@@ -37,9 +37,6 @@ export default defineConfig({
     sourcemap: true,
     chunkSizeWarningLimit: 600,
     rollupOptions: {
-      // Optional monitoring SDKs — dynamically imported when env vars are set.
-      // Mark external so build succeeds even when not installed.
-      external: ['@sentry/browser', 'posthog-js'],
       output: {
         manualChunks(id) {
           // Vendor: React core
