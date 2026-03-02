@@ -4,7 +4,7 @@
   "buildCommand": "npm run build:client",
   "outputDirectory": "dist/client",
   "rewrites": [
-    { "source": "/api/binance/(.*)", "destination": "https://api.binance.com/api/$1" },
+    { "source": "/api/binance/(.*)", "destination": "https://data-api.binance.vision/api/$1" },
     { "source": "/api/coingecko/(.*)", "destination": "https://api.coingecko.com/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
