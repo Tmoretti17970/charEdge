@@ -5,7 +5,9 @@
   "outputDirectory": "dist/client",
   "rewrites": [
     { "source": "/api/binance/(.*)", "destination": "https://data-api.binance.vision/api/$1" },
+    { "source": "/api/yahoo/(.*)", "destination": "https://query1.finance.yahoo.com/v8/finance/$1" },
     { "source": "/api/coingecko/(.*)", "destination": "https://api.coingecko.com/api/$1" },
+    { "source": "/api/cryptocompare/(.*)", "destination": "https://min-api.cryptocompare.com/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
@@ -17,7 +19,7 @@
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
         { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.binance.com wss://stream.binance.com:9443 wss://stream.binance.us:9443 https://api.coingecko.com https://query1.finance.yahoo.com https://hermes.pyth.network wss://ws.kraken.com https://api.kraken.com https://data.sec.gov https://efts.sec.gov https://api.stlouisfed.org https://api.frankfurter.dev https://api.alternative.me https://apewisdom.io https://finnhub.io wss://ws.finnhub.io https://financialmodelingprep.com https://api.whale-alert.io https://api.etherscan.io; worker-src 'self' blob:; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests" }
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.binance.com https://data-api.binance.vision wss://stream.binance.com:9443 wss://stream.binance.us:9443 https://api.coingecko.com https://min-api.cryptocompare.com https://query1.finance.yahoo.com https://hermes.pyth.network wss://ws.kraken.com https://api.kraken.com https://data.sec.gov https://efts.sec.gov https://api.stlouisfed.org https://api.frankfurter.dev https://api.alternative.me https://apewisdom.io https://finnhub.io wss://ws.finnhub.io https://financialmodelingprep.com https://api.whale-alert.io https://api.etherscan.io; worker-src 'self' blob:; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests" }
       ]
     },
     {
