@@ -1,0 +1,8 @@
+# TradeForge — robots.txt
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+
+# Sitemap (uncomment when deployed)
+# Sitemap: https://tradeforge.app/sitemap.xml

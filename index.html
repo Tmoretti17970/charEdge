@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <title>charEdge — Find Your Edge</title>
+    <meta name="description" content="Free trading journal & analytics platform. Track every trade, find your edge, and grow as a trader." />
+    <meta property="og:title" content="charEdge — Find Your Edge" />
+    <meta property="og:description" content="Free trading journal & analytics platform. Track every trade, find your edge, and grow as a trader." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/icons/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="charEdge — Find Your Edge" />
+    <meta name="twitter:description" content="Free trading journal & analytics. No account required." />
+    <meta name="twitter:image" content="/icons/og-image.png" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#e8642c" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="charEdge" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <!--ssr-head-->
+
+    <!-- Fonts referenced in constants.js (F and M) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- CWV: color-scheme for faster initial paint -->
+    <meta name="color-scheme" content="dark light" />
+
+    <!-- Critical CSS (extracted for CSP compliance — no unsafe-inline needed) -->
+    <link rel="stylesheet" href="/critical.css" fetchpriority="high" />
+
+    <!-- JSON-LD: WebApplication structured data for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "charEdge",
+      "description": "Free trading journal & analytics platform. Track every trade, find your edge, and grow as a trader.",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web",
+      "browserRequirements": "Requires JavaScript",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "url": "https://charedge.app",
+      "creator": {
+        "@type": "Organization",
+        "name": "charEdge"
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root"><!--ssr-outlet--></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

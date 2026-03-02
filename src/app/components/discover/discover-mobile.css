@@ -1,0 +1,179 @@
+/* ═══════════════════════════════════════════════════════════════════
+   TradeForge — Discover Mobile-First Responsive Styles
+
+   Sprint 22: Mobile card stack layout, swipe-friendly touch targets,
+   responsive grid breakpoints, and bottom sheet drawer styles.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Mobile Stack Layout (< 768px) ───────────────────────────── */
+@media (max-width: 768px) {
+  /* Force single-column grid on all discover grids */
+  .tf-discover-grid-2,
+  .tf-discover-feed-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Sidebar stacks below feed on mobile */
+  .tf-discover-sidebar {
+    position: static !important;
+  }
+
+  /* Compact padding */
+  .tf-social-tab-content {
+    padding: 0 4px;
+  }
+}
+
+/* ─── Tablet Layout (768px – 1024px) ──────────────────────────── */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .tf-discover-feed-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+
+  .tf-discover-grid-2 {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 16px !important;
+  }
+
+  .tf-discover-sidebar {
+    position: static !important;
+  }
+}
+
+/* ─── Touch Target Sizing ─────────────────────────────────────── */
+@media (pointer: coarse) {
+  /* Ensure minimum 44px touch targets on touch devices */
+  .tf-btn,
+  .tf-social-fab,
+  [role="tab"],
+  [role="toolbar"] button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* ─── Pull-to-Refresh Indicator ───────────────────────────────── */
+.tf-pull-refresh {
+  height: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: height 0.3s ease;
+  color: var(--tf-t3, #888);
+  font-size: 12px;
+}
+
+.tf-pull-refresh.active {
+  height: 48px;
+}
+
+.tf-pull-refresh-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--tf-bd, #333);
+  border-top-color: var(--tf-b, #e8642c);
+  border-radius: 50%;
+  animation: tfPullSpin 0.6s linear infinite;
+}
+
+@keyframes tfPullSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Bottom Sheet Drawer ─────────────────────────────────────── */
+.tf-bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--tf-bg2, #1a1a2e);
+  border-radius: 20px 20px 0 0;
+  padding: 16px 20px 32px;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  z-index: 200;
+  max-height: 70vh;
+  overflow-y: auto;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.25);
+}
+
+.tf-bottom-sheet.open {
+  transform: translateY(0);
+}
+
+.tf-bottom-sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--tf-t3, #555);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+  opacity: 0.5;
+}
+
+.tf-bottom-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 199;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.tf-bottom-sheet-backdrop.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ─── Swipe Tab Indicator ─────────────────────────────────────── */
+.tf-swipe-indicator {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .tf-swipe-indicator {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 0 4px;
+  }
+
+  .tf-swipe-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--tf-t3, #555);
+    opacity: 0.3;
+    transition: all 0.25s ease;
+  }
+
+  .tf-swipe-dot.active {
+    opacity: 1;
+    width: 18px;
+    border-radius: 3px;
+    background: var(--tf-b, #e8642c);
+  }
+}
+
+/* ─── Floating Action Button (Mobile) ─────────────────────────── */
+@media (max-width: 768px) {
+  .tf-social-fab {
+    bottom: 80px !important;
+    right: 16px !important;
+    width: 48px !important;
+    height: 48px !important;
+  }
+}
+
+/* ─── Skeleton Pulse ──────────────────────────────────────────── */
+@keyframes tfSkeletonPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.15; }
+}
+
+.tf-skeleton-pulse {
+  animation: tfSkeletonPulse 1.5s ease-in-out infinite;
+}

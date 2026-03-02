@@ -1,0 +1,3729 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * TradeForge — Component CSS
+ *
+ * Interactive states (hover, active, focus) that replace inline
+ * onMouseEnter/onMouseLeave JS patterns. Import in main.jsx.
+ *
+ * Naming: .tf-{component}  or  .tf-{pattern}
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Buttons ────────────────────────────────────────────────── */
+
+.tf-btn {
+  transition:
+    background 0.1s ease,
+    color 0.1s ease,
+    transform 0.1s ease,
+    border-color 0.1s ease,
+    box-shadow 0.15s ease;
+}
+
+.tf-btn:hover {
+  filter: brightness(1.1);
+}
+
+.tf-btn:active {
+  transform: scale(0.98);
+}
+
+/* ─── Cards ──────────────────────────────────────────────────── */
+
+.tf-card-hover {
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+@media (pointer: fine) {
+  .tf-card-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border-color: var(--tf-bd2);
+  }
+  .tf-card-hover:active {
+    transform: scale(0.995);
+    transition-duration: 0.06s;
+  }
+}
+
+/* ─── Nav Buttons ────────────────────────────────────────────── */
+
+.tf-nav-btn {
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.tf-nav-btn:hover {
+  background: var(--tf-bd) !important;
+}
+
+.tf-nav-btn[aria-current='page'] {
+  background: rgba(232, 100, 44, 0.1);
+}
+
+/* ─── Sidebar Icon Buttons ───────────────────────────────────── */
+
+.tf-icon-btn {
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.tf-icon-btn:hover {
+  color: var(--tf-t1);
+  background: rgba(78, 82, 102, 0.12);
+}
+
+/* ─── Toolbar Buttons ────────────────────────────────────────── */
+
+.tf-toolbar-btn {
+  transition:
+    background 0.08s ease,
+    color 0.08s ease,
+    border-color 0.08s ease;
+}
+
+.tf-toolbar-btn:hover {
+  background: rgba(78, 82, 102, 0.12);
+  color: var(--tf-t1);
+}
+
+.tf-toolbar-btn[data-active='true'] {
+  background: rgba(232, 100, 44, 0.15);
+  color: var(--tf-accent);
+  border-color: rgba(232, 100, 44, 0.4);
+}
+
+/* ─── Inputs ─────────────────────────────────────────────────── */
+
+.tf-input {
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.tf-input:focus {
+  border-color: var(--tf-accent);
+  box-shadow: 0 0 0 3px rgba(232, 100, 44, 0.1);
+}
+
+/* ─── Links / Text Actions ───────────────────────────────────── */
+
+.tf-link {
+  color: var(--tf-accent);
+  transition: opacity 0.1s ease;
+  cursor: pointer;
+}
+
+.tf-link:hover {
+  opacity: 0.8;
+}
+
+/* ─── Clickable Rows ─────────────────────────────────────────── */
+
+.tf-row-hover {
+  transition: background 0.1s ease;
+}
+
+.tf-row-hover:hover {
+  background: rgba(78, 82, 102, 0.06);
+}
+
+/* ─── Page Transitions ───────────────────────────────────────── */
+
+.tf-page-enter {
+  animation: tfPageIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tfPageIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.998);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ─── Modal Transitions (Sprint 21: 300ms spring bounce) ─────── */
+
+.tf-modal-backdrop {
+  animation: tfFadeIn 0.2s ease;
+}
+
+.tf-modal-content {
+  animation: tfModalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes tfFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tfModalIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.94);
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1.01);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* ─── Slide Panel (Sprint 21: 300ms spring with bounce) ──────── */
+
+.tf-slide-right {
+  animation: tfSlideRight 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes tfSlideRight {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ─── Active Indicator Animation ─────────────────────────────── */
+
+.tf-active-bar {
+  transition: top 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ─── Sprint 3: Data Readability Utilities ───────────────────── */
+
+/* Dense data row — logbook, tables, analytics */
+.tf-data-row {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 8px 14px;
+  font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid rgba(42, 46, 58, 0.3);
+  transition: background 0.1s ease;
+}
+
+.tf-data-row:hover {
+  background: rgba(78, 82, 102, 0.06);
+}
+
+/* Mono-formatted numeric value */
+.tf-data-mono {
+  font-family: var(--tf-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+/* Tight line-height for dense data lists */
+.tf-data-dense {
+  line-height: 1.3;
+  font-size: 12px;
+}
+
+/* ─── Number Glow (for hero stats) ───────────────────────────── */
+
+.tf-glow-positive {
+  text-shadow: 0 0 24px rgba(45, 212, 160, 0.15);
+}
+
+.tf-glow-negative {
+  text-shadow: 0 0 24px rgba(242, 92, 92, 0.15);
+}
+
+/* ─── Section Accent Border ──────────────────────────────────── */
+
+.tf-section-accent {
+  padding-left: 12px;
+  border-left: 2px solid var(--tf-accent);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Dashboard Narrative Redesign — Entrance Animations
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Section Entrance (staggered fadeIn + slideUp) ──────────── */
+
+.tf-section-enter {
+  animation: tfSectionIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes tfSectionIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Narrative Divider Fade ──────────────────────────────────── */
+
+.tf-narrative-divider {
+  animation: tfDividerIn 0.6s ease both;
+}
+
+@keyframes tfDividerIn {
+  from {
+    opacity: 0;
+    transform: scaleX(0.3);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+/* ─── Metric Tooltip Entrance ─────────────────────────────────── */
+
+.tf-metric-tooltip {
+  animation: tfMetricTipIn 0.15s ease;
+}
+
+@keyframes tfMetricTipIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ─── Hero Trend Arrow Micro-Animation ─────────────────────────── */
+
+.tf-hero-trend {
+  animation: tfTrendIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: 0.4s;
+}
+
+@keyframes tfTrendIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+}
+
+/* ─── Fade In (utility) ───────────────────────────────────────── */
+
+.tf-fade-in {
+  animation: tfFadeIn 0.2s ease;
+}
+
+
+
+/* ─── Skeleton Shimmer ──────────────────────────────────────── */
+
+.tf-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--tf-bg2, #151619);
+  border-radius: 6px;
+}
+
+.tf-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 40%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 60%,
+    transparent 100%
+  );
+  animation: tfShimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes tfShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ─── Toast Redesign ────────────────────────────────────────── */
+
+.tf-toast-enter {
+  animation: tfToastIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tf-toast-exit {
+  animation: tfToastOut 0.2s ease forwards;
+}
+
+@keyframes tfToastIn {
+  from {
+    opacity: 0;
+    transform: translateX(48px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes tfToastOut {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(48px) scale(0.95);
+  }
+}
+
+/* Mobile: toasts enter from bottom */
+@media (max-width: 480px) {
+  @keyframes tfToastIn {
+    from {
+      opacity: 0;
+      transform: translateY(24px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes tfToastOut {
+    from {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(24px) scale(0.95);
+    }
+  }
+}
+
+/* ─── Dropdown / Overflow Menu ──────────────────────────────── */
+
+.tf-dropdown-enter {
+  animation: tfDropdownIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: top right;
+}
+
+@keyframes tfDropdownIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ─── Tooltip Fade ──────────────────────────────────────────── */
+
+.tf-tooltip {
+  animation: tfTooltipIn 0.12s ease;
+}
+
+@keyframes tfTooltipIn {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Number Count-Up Transition ─────────────────────────────
+ * Applied to stat values. Uses CSS transition on a custom
+ * property via font-variation-settings trick. In practice,
+ * the actual count-up is JS-driven (requestAnimationFrame),
+ * but these classes provide the easing and glow pulse. */
+
+.tf-stat-value {
+  transition: color 0.3s ease;
+}
+
+.tf-stat-flash {
+  animation: tfStatFlash 0.6s ease;
+}
+
+@keyframes tfStatFlash {
+  0% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* ─── Slide Up (for bottom sheets) ──────────────────────────── */
+
+.tf-slide-up {
+  animation: tfSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tfSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Fade Scale (for modals, dialogs) ──────────────────────── */
+
+.tf-fade-scale {
+  animation: tfFadeScale 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tfFadeScale {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ─── Spin (for loading indicators) ──────────────────────────── */
+
+.tf-spin {
+  animation: tfSpin 0.8s linear infinite;
+}
+
+@keyframes tfSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ─── Pulse Dot (live indicator) ────────────────────────────── */
+
+.tf-pulse-dot {
+  animation: tfPulseDot 1.5s ease-in-out infinite;
+}
+
+@keyframes tfPulseDot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(45, 212, 160, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(45, 212, 160, 0);
+  }
+}
+
+/* ─── Stagger Animation Delay Utilities ─────────────────────── */
+
+.tf-stagger-1 {
+  animation-delay: 0.03s;
+}
+.tf-stagger-2 {
+  animation-delay: 0.06s;
+}
+.tf-stagger-3 {
+  animation-delay: 0.09s;
+}
+.tf-stagger-4 {
+  animation-delay: 0.12s;
+}
+.tf-stagger-5 {
+  animation-delay: 0.15s;
+}
+
+/* ─── Focus Visible (Keyboard Navigation) ──────────────────── */
+
+.tf-btn:focus-visible,
+.tf-toolbar-btn:focus-visible,
+.tf-nav-btn:focus-visible,
+.tf-icon-btn:focus-visible,
+.tf-link:focus-visible {
+  outline: 2px solid var(--tf-accent);
+  outline-offset: 2px;
+}
+
+.tf-input:focus-visible {
+  outline: none; /* Uses box-shadow focus from .tf-input:focus */
+}
+
+/* Remove outline on mouse click */
+.tf-btn:focus:not(:focus-visible),
+.tf-toolbar-btn:focus:not(:focus-visible),
+.tf-nav-btn:focus:not(:focus-visible),
+.tf-icon-btn:focus:not(:focus-visible),
+.tf-link:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ─── Mobile Touch Target Enforcement (WCAG AA ≥44×44px) ───── */
+
+@media (pointer: coarse) {
+  .tf-btn,
+  .tf-toolbar-btn,
+  .tf-nav-btn,
+  .tf-icon-btn,
+  .tf-chart-toolbar-btn,
+  .tf-link,
+  a[href] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .tf-data-row {
+    min-height: 44px;
+  }
+}
+
+/* ─── Screen Reader Only ────────────────────────────────────── */
+
+.tf-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Gamification Sprint A: Animations
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* ─── XP Pulse (streak flame) ──────────────────────────────── */
+
+@keyframes tf-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+/* ─── Confetti Fall (level-up particles) ────────────────────── */
+
+@keyframes tf-confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(var(--end-x, 50px)) translateY(var(--end-y, 300px)) rotate(var(--rotation, 360deg));
+  }
+}
+
+/* ─── Level Up Card Entrance ───────────────────────────────── */
+
+@keyframes tf-level-up-entrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+  }
+  60% {
+    transform: scale(1.03) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ─── Bounce (emoji pop) ───────────────────────────────────── */
+
+@keyframes tf-bounce {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* ─── Reduced Motion (Sprint 21: comprehensive coverage) ───── */
+
+@media (prefers-reduced-motion: reduce) {
+  .tf-page-enter,
+  .tf-modal-content,
+  .tf-slide-right,
+  .tf-slide-up,
+  .tf-toast-enter,
+  .tf-toast-exit,
+  .tf-dropdown-enter,
+  .tf-tooltip,
+  .tf-fade-scale,
+  .tf-stat-flash,
+  .tf-skeleton::after,
+  .tf-widget-reorder,
+  .tf-feature-reveal,
+  .tf-fade-through,
+  .tf-content-reveal,
+  .tf-section-enter,
+  .tf-narrative-divider,
+  .tf-metric-tooltip,
+  .tf-hero-trend,
+  .tf-fade-in {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .tf-card-hover:hover {
+    transform: none !important;
+  }
+
+  .tf-btn:active {
+    transform: none !important;
+  }
+
+  /* Gamification animations */
+  * {
+    --tf-gamification-reduced: 1;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Charts Tab — Apple × TradingView Polish
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Frosted Glass Toolbar ──────────────────────────────────── */
+
+.tf-chart-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  height: 44px;
+  background: var(--tf-glass-2);
+  backdrop-filter: var(--tf-blur-lg);
+  -webkit-backdrop-filter: var(--tf-blur-lg);
+  border-bottom: var(--tf-glass-border);
+  box-shadow: var(--tf-inner-glow);
+  flex-shrink: 0;
+  overflow: visible;
+  white-space: nowrap;
+  position: relative;
+  z-index: 10;
+}
+
+html.theme-light .tf-chart-toolbar {
+  background: var(--tf-glass-2);
+  border-bottom-color: rgba(212, 215, 224, 0.7);
+}
+
+/* ─── Toolbar Button (Pill-Style) ────────────────────────────── */
+
+.tf-chart-toolbar-btn {
+  position: relative;
+  padding: 4px 6px;
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  color: var(--tf-t2);
+  font-family: var(--tf-font);
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition:
+    background 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    color 0.15s ease,
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.2s ease;
+  user-select: none;
+}
+
+.tf-chart-toolbar-btn:hover {
+  background: rgba(236, 236, 239, 0.06);
+  color: var(--tf-t1);
+  transform: scale(1.04);
+}
+
+.tf-chart-toolbar-btn:active {
+  transform: scale(0.97);
+}
+
+.tf-chart-toolbar-btn[data-active='true'] {
+  background: rgba(232, 100, 44, 0.12);
+  color: var(--tf-accent);
+  font-weight: 600;
+  box-shadow: inset 0 0 12px rgba(232, 100, 44, 0.06);
+}
+
+html.theme-light .tf-chart-toolbar-btn:hover {
+  background: rgba(17, 19, 24, 0.05);
+}
+
+html.theme-light .tf-chart-toolbar-btn[data-active='true'] {
+  background: rgba(212, 85, 30, 0.1);
+}
+
+/* ─── Timeframe Segment Control ──────────────────────────────── */
+
+.tf-chart-tf-group {
+  display: flex;
+  gap: 1px;
+  padding: 2px;
+  background: rgba(21, 22, 25, 0.5);
+  border-radius: 9px;
+  border: 1px solid rgba(35, 38, 48, 0.4);
+  flex-shrink: 0;
+  align-items: center;
+}
+
+html.theme-light .tf-chart-tf-group {
+  background: rgba(238, 240, 244, 0.6);
+  border-color: rgba(212, 215, 224, 0.5);
+}
+
+.tf-chart-tf-pill {
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    color 0.18s ease,
+    box-shadow 0.2s ease;
+  line-height: 1.4;
+}
+
+.tf-chart-tf-pill:hover {
+  color: var(--tf-t1);
+  background: rgba(236, 236, 239, 0.06);
+}
+
+.tf-chart-tf-pill[data-active='true'] {
+  color: var(--tf-accent);
+  font-weight: 600;
+  /* Background now handled by capsule slider */
+  background: transparent;
+}
+
+html.theme-light .tf-chart-tf-pill[data-active='true'] {
+  background: transparent;
+}
+
+/* ─── Capsule Slider ─────────────────────────────────────────────── */
+
+html.theme-light .tf-capsule-slider {
+  background: rgba(212, 85, 30, 0.12) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ─── Apple-Style Dropdown ───────────────────────────────────── */
+
+.tf-chart-dropdown {
+  background: var(--tf-glass-3);
+  backdrop-filter: var(--tf-blur-lg);
+  -webkit-backdrop-filter: var(--tf-blur-lg);
+  border: var(--tf-glass-border);
+  border-radius: 14px;
+  padding: 6px;
+  min-width: 180px;
+  box-shadow: var(--tf-shadow-3), var(--tf-inner-glow-strong);
+  animation: tfChartDropdownIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: top center;
+  z-index: 1000;
+}
+
+html.theme-light .tf-chart-dropdown {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(190, 195, 208, 0.5);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.12),
+    0 0 0 0.5px rgba(0, 0, 0, 0.04) inset;
+}
+
+@keyframes tfChartDropdownIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(-6px);
+  }
+  60% {
+    transform: scale(1.01) translateY(1px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ─── Dropdown Item ──────────────────────────────────────────── */
+
+.tf-chart-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--tf-t1);
+  font-family: var(--tf-font);
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+
+.tf-chart-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tf-chart-dropdown-item[data-active='true'] {
+  background: rgba(232, 100, 44, 0.1);
+  color: var(--tf-accent);
+  font-weight: 600;
+}
+
+html.theme-light .tf-chart-dropdown-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+html.theme-light .tf-chart-dropdown-item[data-active='true'] {
+  background: rgba(212, 85, 30, 0.08);
+}
+
+/* ─── Dropdown Section Label ─────────────────────────────────── */
+
+.tf-chart-dropdown-label {
+  padding: 6px 12px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  font-family: var(--tf-font);
+}
+
+/* ─── Dropdown Separator ─────────────────────────────────────── */
+
+.tf-chart-dropdown-sep {
+  height: 1px;
+  margin: 4px 10px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--tf-bd) 30%,
+    var(--tf-bd) 70%,
+    transparent 100%
+  );
+}
+
+/* ─── Soft Divider ───────────────────────────────────────────── */
+
+.tf-chart-divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 3px;
+  flex-shrink: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    var(--tf-bd) 30%,
+    var(--tf-bd) 70%,
+    transparent 100%
+  );
+  opacity: 0.6;
+}
+
+/* ─── Chart Status Bar ───────────────────────────────────────── */
+
+.tf-chart-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 14px;
+  height: 32px;
+  background: var(--tf-glass-2);
+  backdrop-filter: var(--tf-blur-md);
+  -webkit-backdrop-filter: var(--tf-blur-md);
+  border-top: var(--tf-glass-border);
+  box-shadow: var(--tf-inner-glow);
+  font-family: var(--tf-mono);
+  font-size: 11px;
+  color: var(--tf-t2);
+  flex-shrink: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+html.theme-light .tf-chart-status-bar {
+  background: rgba(248, 248, 250, 0.85);
+  border-top-color: rgba(212, 215, 224, 0.6);
+}
+
+.tf-chart-status-bar .tf-status-group {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.tf-chart-status-bar .tf-status-close {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+html.theme-light .tf-chart-status-bar .tf-status-close {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.tf-chart-status-bar .tf-status-label {
+  color: var(--tf-t3);
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  font-weight: 500;
+}
+
+.tf-chart-status-bar .tf-status-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.15s ease;
+}
+
+.tf-chart-status-bar .tf-status-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--tf-bd2);
+  flex-shrink: 0;
+}
+
+/* ─── Status Bar Change ──────────────────────────────────────── */
+
+.tf-status-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 600;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.tf-status-change[data-direction='up'] {
+  color: var(--tf-bullish, #2dd4a0);
+  background: rgba(45, 212, 160, 0.08);
+}
+
+.tf-status-change[data-direction='down'] {
+  color: var(--tf-bearish, #f25c5c);
+  background: rgba(242, 92, 92, 0.08);
+}
+
+.tf-status-change-arrow {
+  font-size: 9px;
+}
+
+/* ─── Countdown Pulse ────────────────────────────────────────── */
+
+.tf-countdown-urgent {
+  animation: tfCountdownPulse 1s ease-in-out infinite;
+}
+
+@keyframes tfCountdownPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ─── Chart Minimap ──────────────────────────────────────────── */
+
+.tf-chart-minimap {
+  border-top: 1px solid rgba(35, 38, 48, 0.5);
+  background: rgba(9, 9, 11, 0.5);
+  position: relative;
+  flex-shrink: 0;
+  user-select: none;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+  border-radius: 0 0 6px 6px;
+  margin: 0 4px 2px;
+  animation: tfMinimapFadeIn 0.3s ease;
+}
+
+@keyframes tfMinimapFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+html.theme-light .tf-chart-minimap {
+  background: rgba(238, 240, 244, 0.4);
+  border-top-color: rgba(212, 215, 224, 0.5);
+}
+
+/* ─── Data Warning Bar ──────────────────────────────────────── */
+
+.tf-data-warning {
+  padding: 6px 14px;
+  background: rgba(240, 182, 78, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(240, 182, 78, 0.15);
+  color: var(--tf-y, #f0b64e);
+  font-size: 11px;
+  font-family: var(--tf-mono);
+  display: flex;
+  align-items: center;
+  gap: 8;
+  flex-shrink: 0;
+  animation: tfDataWarningIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tfDataWarningIn {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 40px;
+  }
+}
+
+/* ─── Chart Area Inner Shadow ────────────────────────────────── */
+
+.tf-chart-area {
+  position: relative;
+  /* GPU compositing: promote to own layer for 60fps scrolling */
+  will-change: transform;
+  contain: layout style paint;
+}
+
+/* Canvas containers: hardware-accelerated compositing */
+.tf-chart-area canvas {
+  will-change: transform;
+  image-rendering: -webkit-optimize-contrast; /* Crisp on WebKit/Blink */
+  image-rendering: crisp-edges;
+}
+
+.tf-chart-area::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.08) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+html.theme-light .tf-chart-area::before {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.03) 0%, transparent 100%);
+}
+
+/* ─── Trade Pill Buttons  (compact Long/Short) ───────────────── */
+
+.tf-trade-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  border: 1px solid var(--tf-bd);
+  background: transparent;
+  color: var(--tf-t2);
+  font-family: var(--tf-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.12s ease;
+  user-select: none;
+}
+
+.tf-trade-pill:hover {
+  background: rgba(236, 236, 239, 0.06);
+  color: var(--tf-t1);
+  transform: scale(1.05);
+}
+
+.tf-trade-pill:active {
+  transform: scale(0.96);
+}
+
+.tf-trade-pill[data-side='long'][data-active='true'] {
+  background: rgba(45, 212, 160, 0.12);
+  border-color: rgba(45, 212, 160, 0.35);
+  color: #2dd4a0;
+}
+
+.tf-trade-pill[data-side='short'][data-active='true'] {
+  background: rgba(242, 92, 92, 0.12);
+  border-color: rgba(242, 92, 92, 0.35);
+  color: #f25c5c;
+}
+
+.tf-trade-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+html.theme-light .tf-trade-pill:hover {
+  background: rgba(17, 19, 24, 0.04);
+}
+
+/* ─── Drawing Edit Popup ─────────────────────────────────────── */
+
+.tf-drawing-edit {
+  width: 280px;
+  background: rgba(18, 20, 28, 0.92);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  font-family: var(--tf-font);
+  animation: tfChartDropdownIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+html.theme-light .tf-drawing-edit {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(190, 195, 208, 0.5);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12);
+}
+
+.tf-drawing-edit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 6px;
+}
+
+.tf-drawing-edit-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tf-t1);
+  letter-spacing: 0.2px;
+}
+
+.tf-drawing-edit-close {
+  background: transparent;
+  border: none;
+  color: var(--tf-t3);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  transition: background 0.12s ease, color 0.12s ease;
+  line-height: 1;
+}
+
+.tf-drawing-edit-close:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--tf-t1);
+}
+
+.tf-drawing-edit-section {
+  padding: 4px 10px;
+}
+
+.tf-drawing-edit-section-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  letter-spacing: 0.8px;
+  margin-bottom: 4px;
+}
+
+.tf-drawing-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tf-drawing-edit-sep {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 0 3px;
+  flex-shrink: 0;
+}
+
+html.theme-light .tf-drawing-edit-sep {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.tf-drawing-edit-color-btn {
+  padding: 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.12s ease;
+}
+
+.tf-drawing-edit-color-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tf-drawing-edit-color-grid {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 6px;
+  background: rgba(18, 20, 28, 0.95);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 8px;
+  z-index: 950;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  animation: tfChartDropdownIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tf-drawing-edit-color-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.tf-drawing-edit-color-swatch:hover {
+  transform: scale(1.15);
+}
+
+.tf-drawing-edit-color-input {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 26px;
+  margin-top: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  cursor: pointer;
+  background: rgba(30, 34, 45, 0.8);
+}
+
+.tf-drawing-edit-width-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tf-drawing-edit-label {
+  font-size: 9px;
+  color: var(--tf-t3);
+  font-weight: 600;
+}
+
+.tf-drawing-edit-range {
+  width: 50px;
+  height: 3px;
+  accent-color: var(--tf-accent, #2962FF);
+  cursor: pointer;
+}
+
+.tf-drawing-edit-width-val {
+  font-size: 10px;
+  color: var(--tf-t2);
+  min-width: 12px;
+  text-align: right;
+}
+
+.tf-drawing-edit-dash-btn {
+  padding: 4px 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--tf-t2);
+  font-size: 9px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.tf-drawing-edit-dash-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tf-drawing-edit-dash-btn[data-active='true'] {
+  background: rgba(41, 98, 255, 0.15);
+  border-color: rgba(41, 98, 255, 0.3);
+  color: var(--tf-accent, #2962FF);
+}
+
+/* Coordinate inputs */
+.tf-drawing-edit-coord-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.tf-drawing-edit-coord-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  min-width: 20px;
+}
+
+.tf-drawing-edit-coord-field {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 3px 6px;
+  transition: border-color 0.15s ease;
+}
+
+html.theme-light .tf-drawing-edit-coord-field {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+.tf-drawing-edit-coord-field:focus-within {
+  border-color: var(--tf-accent);
+}
+
+.tf-drawing-edit-coord-icon {
+  font-size: 10px;
+  color: var(--tf-t3);
+  flex-shrink: 0;
+}
+
+.tf-drawing-edit-coord-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--tf-font);
+  font-size: 11px;
+  color: var(--tf-t1);
+  width: 100%;
+  min-width: 0;
+}
+
+.tf-drawing-edit-coord-input::-webkit-inner-spin-button,
+.tf-drawing-edit-coord-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.tf-drawing-edit-coord-time {
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Actions */
+.tf-drawing-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  margin-top: 2px;
+}
+
+html.theme-light .tf-drawing-edit-actions {
+  border-top-color: rgba(0, 0, 0, 0.04);
+}
+
+.tf-drawing-edit-action-btn {
+  padding: 5px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.12s ease;
+  display: flex;
+  align-items: center;
+}
+
+.tf-drawing-edit-action-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tf-drawing-edit-delete {
+  color: #EF5350;
+}
+
+.tf-drawing-edit-delete:hover {
+  background: rgba(239, 83, 80, 0.12);
+}
+
+/* ─── Reduced Motion Override ────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .tf-chart-dropdown,
+  .tf-countdown-urgent,
+  .tf-data-warning,
+  .tf-drawing-edit {
+    animation: none !important;
+  }
+  .tf-chart-toolbar-btn,
+  .tf-chart-tf-pill,
+  .tf-trade-pill {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── Chart Skeleton Loading Shimmer ────────────────────────── */
+
+.tf-chart-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--tf-sf);
+  border-radius: var(--tf-radius-lg);
+}
+
+.tf-chart-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.03) 20%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.03) 80%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+html.theme-light .tf-chart-skeleton::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.02) 20%,
+    rgba(0, 0, 0, 0.04) 50%,
+    rgba(0, 0, 0, 0.02) 80%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* ─── SlidePanel Content Fade-in ─────────────────────────────── */
+
+.tf-slide-panel-content {
+  animation: fadeInUp 0.2s ease 0.1s backwards;
+}
+
+/* ─── Slide Panel Close Button Polish ────────────────────────── */
+
+.tf-slide-close:hover {
+  background: var(--tf-bd) !important;
+  color: var(--tf-t1) !important;
+  transform: scale(1.1);
+}
+
+.tf-slide-close:active {
+  transform: scale(0.9);
+}
+
+.tf-slide-close {
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.12s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Social Hub — Animations & Polish
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Feed Card Entrance (Staggered) ─────────────────────────── */
+
+.tf-social-card {
+  animation: tfSocialCardIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes tfSocialCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ─── Tab Content Switch ─────────────────────────────────────── */
+
+.tf-social-tab-content {
+  animation: tfSocialTabIn 0.25s ease both;
+}
+
+@keyframes tfSocialTabIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── FAB Pulse ──────────────────────────────────────────────── */
+
+.tf-social-fab {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.2s ease;
+}
+
+.tf-social-fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 8px 32px rgba(232, 100, 44, 0.35);
+}
+
+.tf-social-fab:active {
+  transform: scale(0.95);
+}
+
+.tf-social-fab .tf-fab-ring {
+  animation: tfFabRing 3s ease-in-out infinite;
+}
+
+@keyframes tfFabRing {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(232, 100, 44, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(232, 100, 44, 0);
+  }
+}
+
+/* ─── Notification Badge Bounce ──────────────────────────────── */
+
+.tf-notif-badge {
+  animation: tfNotifBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes tfNotifBounce {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+/* ─── Social Card Spring Hover ───────────────────────────────── */
+
+.tf-social-card-hover {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.25s ease,
+              border-color 0.15s ease;
+}
+
+@media (pointer: fine) {
+  .tf-social-card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  }
+}
+
+/* ─── Empty State Illustration Float ─────────────────────────── */
+
+.tf-empty-float {
+  animation: tfEmptyFloat 3s ease-in-out infinite;
+}
+
+@keyframes tfEmptyFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* ─── Reaction Pop ───────────────────────────────────────────── */
+
+.tf-reaction-pop {
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tf-reaction-pop:hover {
+  transform: scale(1.25);
+}
+
+.tf-reaction-pop:active {
+  transform: scale(0.9);
+}
+
+/* ─── Comment Thread Expand ──────────────────────────────────── */
+
+.tf-comment-expand {
+  animation: tfCommentExpand 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  overflow: hidden;
+}
+
+@keyframes tfCommentExpand {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 800px;
+  }
+}
+
+/* ─── Search Bar Focus ───────────────────────────────────────── */
+
+.tf-social-search {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, width 0.3s ease;
+}
+
+.tf-social-search:focus {
+  border-color: var(--tf-accent) !important;
+  box-shadow: 0 0 0 3px rgba(232, 100, 44, 0.1);
+}
+
+/* ─── Digest Card Shimmer ────────────────────────────────────── */
+
+.tf-digest-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.tf-digest-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(232, 100, 44, 0.03) 45%,
+    rgba(232, 100, 44, 0.06) 50%,
+    rgba(232, 100, 44, 0.03) 55%,
+    transparent 100%
+  );
+  animation: tfDigestShimmer 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes tfDigestShimmer {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(50%); }
+}
+
+/* ─── Stagger delays for social cards ────────────────────────── */
+
+.tf-social-stagger-0 { animation-delay: 0s; }
+.tf-social-stagger-1 { animation-delay: 0.05s; }
+.tf-social-stagger-2 { animation-delay: 0.1s; }
+.tf-social-stagger-3 { animation-delay: 0.15s; }
+.tf-social-stagger-4 { animation-delay: 0.2s; }
+.tf-social-stagger-5 { animation-delay: 0.25s; }
+.tf-social-stagger-6 { animation-delay: 0.3s; }
+.tf-social-stagger-7 { animation-delay: 0.35s; }
+
+/* ═══════════════════════════════════════════════════════════════
+ * Social Hub — Phase 2-4: Competitive Moats & Differentiators
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Copy Trade Card ────────────────────────────────────────── */
+
+.tf-copy-card {
+  animation: tfCardEntrance 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.tf-copy-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── Live Room Card ─────────────────────────────────────────── */
+
+.tf-room-card {
+  animation: tfCardEntrance 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.tf-live-dot {
+  animation: tfLivePulse 2s ease-in-out infinite;
+}
+
+@keyframes tfLivePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(45, 212, 160, 0.5);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(45, 212, 160, 0);
+    opacity: 0.8;
+  }
+}
+
+/* ─── Typing Dots ────────────────────────────────────────────── */
+
+.tf-typing-dots {
+  animation: tfTypingDots 1.5s steps(4, end) infinite;
+}
+
+@keyframes tfTypingDots {
+  0%   { content: ''; }
+  25%  { content: '.'; }
+  50%  { content: '..'; }
+  75%  { content: '...'; }
+  100% { content: ''; }
+}
+
+/* ─── Tournament Hero Card ───────────────────────────────────── */
+
+.tf-tournament-hero {
+  animation: tfCardEntrance 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tf-tournament-hero:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── Marketplace Card ───────────────────────────────────────── */
+
+.tf-marketplace-card {
+  animation: tfCardEntrance 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.tf-marketplace-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  border-color: rgba(192, 132, 252, 0.3);
+}
+
+/* ─── Signal Alert Card ──────────────────────────────────────── */
+
+.tf-signal-card {
+  animation: tfSignalSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: background 0.15s ease;
+}
+
+.tf-signal-card:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+@keyframes tfSignalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ─── Streak Rewards Banner ──────────────────────────────────── */
+
+.tf-streak-banner {
+  animation: tfCardEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  position: relative;
+  overflow: hidden;
+}
+
+.tf-streak-banner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(232, 100, 44, 0.04) 45%,
+    rgba(192, 132, 252, 0.06) 50%,
+    rgba(232, 100, 44, 0.04) 55%,
+    transparent 100%
+  );
+  animation: tfStreakShimmer 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes tfStreakShimmer {
+  0% { transform: translateX(-30%); }
+  100% { transform: translateX(30%); }
+}
+
+/* ─── Sentiment Ring ─────────────────────────────────────────── */
+
+.tf-sentiment-ring {
+  animation: tfSentimentIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes tfSentimentIn {
+  from {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+
+/* ─── Shared Card Entrance ───────────────────────────────────── */
+
+@keyframes tfCardEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ─── Tab Content Transition ─────────────────────────────────── */
+
+.tf-social-tab-content {
+  animation: tfTabFade 0.25s ease;
+}
+
+@keyframes tfTabFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Empty State Float ──────────────────────────────────────── */
+
+.tf-empty-float {
+  animation: tfEmptyFloat 3s ease-in-out infinite;
+}
+
+@keyframes tfEmptyFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* ─── Social FAB Pulse Ring ──────────────────────────────────── */
+
+.tf-social-fab {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tf-social-fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 24px rgba(232, 100, 44, 0.45);
+}
+
+.tf-social-fab:active {
+  transform: scale(0.95);
+}
+
+.tf-fab-ring {
+  animation: tfFabRing 3s ease-in-out infinite;
+}
+
+@keyframes tfFabRing {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(232, 100, 44, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(232, 100, 44, 0);
+  }
+}
+
+/* ─── Phase 2-4 Reduced Motion ───────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .tf-copy-card,
+  .tf-room-card,
+  .tf-tournament-hero,
+  .tf-marketplace-card,
+  .tf-signal-card,
+  .tf-streak-banner,
+  .tf-sentiment-ring,
+  .tf-social-tab-content,
+  .tf-social-fab,
+  .tf-fab-ring,
+  .tf-live-dot,
+  .tf-empty-float {
+    animation: none !important;
+  }
+
+  .tf-copy-card:hover,
+  .tf-tournament-hero:hover,
+  .tf-marketplace-card:hover {
+    transform: none !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Strategy Backtester
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Backtest Panel (Config Sidebar) ──────────────────────────── */
+
+.tf-backtest-panel {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  width: 300px;
+  max-height: calc(100% - 44px);
+  background: rgba(13, 14, 18, 0.92);
+  backdrop-filter: saturate(180%) blur(24px);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  border-left: 1px solid rgba(35, 38, 48, 0.6);
+  border-bottom: 1px solid rgba(35, 38, 48, 0.4);
+  border-radius: 0 0 0 14px;
+  box-shadow: -8px 4px 32px rgba(0, 0, 0, 0.4);
+  z-index: 50;
+  animation: tfSlideRight 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(78, 82, 102, 0.3) transparent;
+}
+
+html.theme-light .tf-backtest-panel {
+  background: rgba(248, 248, 250, 0.94);
+  border-left-color: rgba(212, 215, 224, 0.7);
+}
+
+.tf-backtest-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(35, 38, 48, 0.4);
+}
+
+.tf-backtest-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tf-t1);
+}
+
+.tf-backtest-panel__close {
+  background: none;
+  border: none;
+  color: var(--tf-t3);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tf-backtest-panel__close:hover {
+  background: rgba(239, 83, 80, 0.1);
+  color: #EF5350;
+}
+
+.tf-backtest-panel__body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ─── Form Fields ──────────────────────────────────────────────── */
+
+.tf-backtest-field__label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.tf-backtest-field__select,
+.tf-backtest-field__input {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(21, 22, 25, 0.6);
+  border: 1px solid rgba(35, 38, 48, 0.6);
+  border-radius: 8px;
+  color: var(--tf-t1);
+  font-family: var(--tf-font);
+  font-size: 13px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tf-backtest-field__select:focus,
+.tf-backtest-field__input:focus {
+  outline: none;
+  border-color: var(--tf-accent);
+  box-shadow: 0 0 0 3px rgba(232, 100, 44, 0.1);
+}
+
+html.theme-light .tf-backtest-field__select,
+html.theme-light .tf-backtest-field__input {
+  background: rgba(238, 240, 244, 0.6);
+  border-color: rgba(212, 215, 224, 0.5);
+  color: var(--tf-t1);
+}
+
+.tf-backtest-field__input-group {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: rgba(21, 22, 25, 0.6);
+  border: 1px solid rgba(35, 38, 48, 0.6);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.tf-backtest-field__input-group:focus-within {
+  border-color: var(--tf-accent);
+  box-shadow: 0 0 0 3px rgba(232, 100, 44, 0.1);
+}
+
+.tf-backtest-field__input-group .tf-backtest-field__input {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.tf-backtest-field__prefix,
+.tf-backtest-field__suffix {
+  padding: 0 8px;
+  color: var(--tf-t3);
+  font-size: 12px;
+  font-weight: 500;
+  user-select: none;
+}
+
+.tf-backtest-field__hint {
+  font-size: 11px;
+  color: var(--tf-t3);
+  margin-top: 6px;
+  line-height: 1.4;
+  opacity: 0.8;
+}
+
+/* ─── Advanced Toggle ──────────────────────────────────────────── */
+
+.tf-backtest-advanced-toggle {
+  background: none;
+  border: none;
+  color: var(--tf-t2);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  padding: 4px 0;
+  transition: color 0.15s ease;
+}
+
+.tf-backtest-advanced-toggle:hover {
+  color: var(--tf-t1);
+}
+
+.tf-backtest-advanced {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(21, 22, 25, 0.4);
+  border-radius: 10px;
+  border: 1px solid rgba(35, 38, 48, 0.3);
+}
+
+/* ─── Data Info ────────────────────────────────────────────────── */
+
+.tf-backtest-data-info {
+  font-size: 11px;
+  color: var(--tf-t3);
+  padding: 6px 10px;
+  background: rgba(41, 98, 255, 0.06);
+  border-radius: 6px;
+  border: 1px solid rgba(41, 98, 255, 0.1);
+}
+
+/* ─── Error ────────────────────────────────────────────────────── */
+
+.tf-backtest-error {
+  font-size: 12px;
+  color: #EF5350;
+  padding: 8px 12px;
+  background: rgba(239, 83, 80, 0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(239, 83, 80, 0.15);
+}
+
+/* ─── Run Button ───────────────────────────────────────────────── */
+
+.tf-backtest-run-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, var(--tf-accent), #d4551e);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-family: var(--tf-font);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  box-shadow: 0 2px 8px rgba(232, 100, 44, 0.3);
+}
+
+.tf-backtest-run-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(232, 100, 44, 0.4);
+}
+
+.tf-backtest-run-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.tf-backtest-run-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tf-backtest-run-btn__spinner {
+  display: inline-block;
+  animation: tfSpin 0.8s linear infinite;
+}
+
+/* ═══ Backtest Results Dashboard ══════════════════════════════════ */
+
+.tf-backtest-results {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 50%;
+  background: rgba(13, 14, 18, 0.95);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-top: 1px solid rgba(35, 38, 48, 0.6);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.4);
+  z-index: 50;
+  animation: tfSlideUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(78, 82, 102, 0.3) transparent;
+  display: flex;
+  flex-direction: column;
+}
+
+html.theme-light .tf-backtest-results {
+  background: rgba(248, 248, 250, 0.96);
+  border-top-color: rgba(212, 215, 224, 0.7);
+}
+
+.tf-backtest-results__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(35, 38, 48, 0.4);
+  flex-shrink: 0;
+}
+
+.tf-backtest-results__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tf-t1);
+}
+
+.tf-backtest-results__close {
+  background: none;
+  border: none;
+  color: var(--tf-t3);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.tf-backtest-results__close:hover {
+  background: rgba(239, 83, 80, 0.1);
+  color: #EF5350;
+}
+
+/* ─── Quick Stats Bar ──────────────────────────────────────────── */
+
+.tf-backtest-quick-stats {
+  display: flex;
+  gap: 2px;
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(35, 38, 48, 0.3);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.tf-quick-stat {
+  flex: 1;
+  min-width: 80px;
+  padding: 6px 10px;
+  background: rgba(21, 22, 25, 0.4);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.tf-quick-stat__label {
+  font-size: 10px;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+
+.tf-quick-stat__value {
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Tabs ─────────────────────────────────────────────────────── */
+
+.tf-backtest-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 6px 16px;
+  border-bottom: 1px solid rgba(35, 38, 48, 0.3);
+  flex-shrink: 0;
+}
+
+.tf-backtest-tab {
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--tf-t3);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tf-backtest-tab:hover {
+  background: rgba(78, 82, 102, 0.1);
+  color: var(--tf-t1);
+}
+
+.tf-backtest-tab--active {
+  background: rgba(232, 100, 44, 0.12);
+  color: var(--tf-accent);
+  font-weight: 600;
+}
+
+/* ─── Tab Content ──────────────────────────────────────────────── */
+
+.tf-backtest-tab-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+}
+
+/* ─── Overview Metrics ─────────────────────────────────────────── */
+
+.tf-backtest-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tf-backtest-section__title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tf-t2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.tf-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 4px;
+}
+
+.tf-metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: rgba(21, 22, 25, 0.3);
+}
+
+.tf-metric-row__label {
+  font-size: 12px;
+  color: var(--tf-t3);
+}
+
+.tf-metric-row__value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tf-t1);
+  font-variant-numeric: tabular-nums;
+}
+
+.tf-metric--positive { color: #26A69A !important; }
+.tf-metric--negative { color: #EF5350 !important; }
+
+.tf-backtest-exec-info {
+  font-size: 10px;
+  color: var(--tf-t3);
+  opacity: 0.6;
+  text-align: right;
+  padding-top: 8px;
+}
+
+/* ─── Trades Table ─────────────────────────────────────────────── */
+
+.tf-backtest-trades__table-wrap {
+  overflow-x: auto;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.tf-backtest-trades__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.tf-backtest-trades__table th,
+.tf-backtest-trades__table td {
+  padding: 6px 10px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.tf-backtest-trades__table th:first-child,
+.tf-backtest-trades__table td:first-child {
+  text-align: left;
+}
+
+.tf-bt-th {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid rgba(35, 38, 48, 0.4);
+  position: sticky;
+  top: 0;
+  background: rgba(13, 14, 18, 0.95);
+  z-index: 1;
+}
+
+.tf-bt-th:hover { color: var(--tf-t1); }
+
+.tf-backtest-trades__table tr {
+  border-bottom: 1px solid rgba(35, 38, 48, 0.2);
+  transition: background 0.1s ease;
+}
+
+.tf-backtest-trades__table tbody tr:hover {
+  background: rgba(78, 82, 102, 0.06);
+}
+
+.tf-bt-row--win { border-left: 2px solid rgba(38, 166, 154, 0.4); }
+.tf-bt-row--loss { border-left: 2px solid rgba(239, 83, 80, 0.4); }
+
+.tf-bt-long { color: #26A69A; font-weight: 600; }
+.tf-bt-short { color: #EF5350; font-weight: 600; }
+.tf-bt-positive { color: #26A69A; }
+.tf-bt-negative { color: #EF5350; }
+.tf-bt-exit-reason { font-size: 11px; color: var(--tf-t3); }
+
+.tf-backtest-trades__summary {
+  font-size: 11px;
+  color: var(--tf-t3);
+  padding: 8px 0;
+  text-align: center;
+}
+
+/* ─── Equity Curve ─────────────────────────────────────────────── */
+
+.tf-backtest-equity {
+  width: 100%;
+  height: 220px;
+}
+
+.tf-backtest-equity__canvas {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  display: block;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * AI Trade Grade Card
+ * ═══════════════════════════════════════════════════════════════ */
+
+.tf-grade-card {
+  background: rgba(13, 14, 18, 0.95);
+  backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid rgba(35, 38, 48, 0.6);
+  border-radius: 14px;
+  overflow: hidden;
+  max-width: 380px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.tf-grade-card__header {
+  padding: 16px;
+  border-bottom: 1px solid rgba(35, 38, 48, 0.4);
+}
+
+.tf-grade-card__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+}
+
+.tf-grade-card__close {
+  background: none;
+  border: none;
+  color: var(--tf-t3);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.tf-grade-card__close:hover { background: rgba(239, 83, 80, 0.1); color: #EF5350; }
+
+.tf-grade-card__hero {
+  text-align: center;
+}
+
+.tf-grade-card__letter {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.tf-grade-card__score {
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.tf-grade-card__pnl {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* Categories */
+.tf-grade-card__categories {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tf-grade-cat-bar__info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 3px;
+}
+
+.tf-grade-cat-bar__name {
+  font-size: 11px;
+  color: var(--tf-t2);
+  font-weight: 500;
+}
+
+.tf-grade-cat-bar__grade {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tf-grade-cat-bar__track {
+  height: 4px;
+  background: rgba(35, 38, 48, 0.4);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.tf-grade-cat-bar__fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Feedback */
+.tf-grade-card__feedback {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(35, 38, 48, 0.3);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.tf-grade-feedback-section__title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 8px 0 4px;
+}
+
+.tf-grade-feedback-item {
+  display: flex;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--tf-t2);
+  line-height: 1.4;
+  padding: 3px 0;
+}
+
+.tf-grade-feedback-item--good .tf-grade-feedback-item__icon { color: #26A69A; }
+.tf-grade-feedback-item--improve .tf-grade-feedback-item__icon { color: #FFA726; }
+
+/* Actions */
+.tf-grade-card__actions {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(35, 38, 48, 0.3);
+  background: rgba(255, 167, 38, 0.03);
+}
+
+.tf-grade-card__actions-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tf-t1);
+  margin-bottom: 8px;
+}
+
+.tf-grade-action-item {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--tf-t2);
+  line-height: 1.4;
+  padding: 4px 0;
+}
+
+.tf-grade-action-item__num {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 167, 38, 0.15);
+  color: #FFA726;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Risk Guard Overlay
+ * ═══════════════════════════════════════════════════════════════ */
+
+.tf-risk-guard {
+  position: absolute;
+  top: 52px;
+  right: 12px;
+  z-index: 40;
+  animation: tfFadeScale 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tf-risk-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.tf-risk-pill:hover {
+  transform: scale(1.04);
+}
+
+.tf-risk-pill--safe {
+  background: rgba(38, 166, 154, 0.12);
+  color: #26A69A;
+  border-color: rgba(38, 166, 154, 0.2);
+}
+
+.tf-risk-pill--warning {
+  background: rgba(255, 167, 38, 0.12);
+  color: #FFA726;
+  border-color: rgba(255, 167, 38, 0.2);
+  animation: tfRiskPulse 2s ease-in-out infinite;
+}
+
+.tf-risk-pill--danger {
+  background: rgba(239, 83, 80, 0.15);
+  color: #EF5350;
+  border-color: rgba(239, 83, 80, 0.3);
+  animation: tfRiskPulse 1s ease-in-out infinite;
+}
+
+.tf-risk-pill--locked {
+  background: rgba(239, 83, 80, 0.2);
+  color: #D32F2F;
+  border-color: rgba(211, 47, 47, 0.4);
+}
+
+@keyframes tfRiskPulse {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50% { box-shadow: 0 0 0 4px transparent; }
+}
+
+.tf-risk-pill__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Risk Guard Expanded Panel */
+.tf-risk-expanded {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  width: 280px;
+  background: rgba(13, 14, 18, 0.95);
+  backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid rgba(35, 38, 48, 0.6);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  animation: tfChartDropdownIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tf-risk-gauge {
+  margin-bottom: 10px;
+}
+
+.tf-risk-gauge__header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.tf-risk-gauge__label { color: var(--tf-t3); font-weight: 500; }
+.tf-risk-gauge__value { font-weight: 700; }
+
+.tf-risk-gauge__track {
+  height: 6px;
+  background: rgba(35, 38, 48, 0.4);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.tf-risk-gauge__fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+ * STRATEGY BUILDER — No-Code Visual Strategy Builder
+ * ═══════════════════════════════════════════════════════════════════ */
+
+.tf-strategy-builder {
+  position: absolute; right: 0; top: 40px; bottom: 0;
+  width: 340px; max-width: 40vw;
+  background: var(--tf-bg-elevated, #1E222D);
+  border-left: 1px solid var(--tf-border, #363A45);
+  display: flex; flex-direction: column;
+  z-index: 50; overflow-y: auto;
+  font-family: var(--tf-font, system-ui);
+}
+
+.tf-sb-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; gap: 8px;
+  border-bottom: 1px solid var(--tf-border, #363A45);
+}
+.tf-sb-header__title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 700; color: var(--tf-t1, #D1D4DC);
+}
+.tf-sb-header__close {
+  background: none; border: none; color: var(--tf-t3); cursor: pointer;
+  font-size: 14px; padding: 4px; border-radius: 4px;
+}
+.tf-sb-header__close:hover { background: rgba(255,255,255,0.06); }
+
+.tf-sb-name { padding: 10px 14px 6px; }
+.tf-sb-name__input {
+  width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--tf-border);
+  border-radius: 8px; padding: 8px 10px; color: var(--tf-t1); font-size: 13px;
+  font-weight: 600;
+}
+.tf-sb-name__input:focus { border-color: var(--tf-accent); outline: none; }
+
+.tf-sb-tabs {
+  display: flex; gap: 4px; padding: 6px 14px;
+}
+.tf-sb-tab {
+  flex: 1; padding: 7px 10px; border-radius: 8px;
+  font-size: 11px; font-weight: 600; border: none;
+  background: rgba(255,255,255,0.04); color: var(--tf-t3); cursor: pointer;
+  transition: all 0.15s;
+}
+.tf-sb-tab--active.tf-sb-tab--long { background: rgba(38,166,154,0.12); color: #26A69A; }
+.tf-sb-tab--active.tf-sb-tab--short { background: rgba(239,83,80,0.12); color: #EF5350; }
+
+.tf-sb-logic {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 14px 8px;
+}
+.tf-sb-logic-toggle { display: flex; gap: 2px; }
+.tf-sb-logic-btn {
+  padding: 3px 10px; border: 1px solid var(--tf-border); border-radius: 4px;
+  font-size: 10px; font-weight: 700; background: none;
+  color: var(--tf-t3); cursor: pointer; transition: all 0.15s;
+}
+.tf-sb-logic-btn--active {
+  background: rgba(232,100,44,0.15); color: var(--tf-accent);
+  border-color: var(--tf-accent);
+}
+
+.tf-sb-conditions { padding: 0 14px 8px; }
+
+.tf-sb-block {
+  background: rgba(255,255,255,0.03); border: 1px solid var(--tf-border);
+  border-radius: 10px; padding: 10px; margin-bottom: 6px;
+}
+.tf-sb-block__header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+}
+.tf-sb-block__num {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(232,100,44,0.15); color: var(--tf-accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700;
+}
+.tf-sb-block__remove {
+  background: none; border: none; color: var(--tf-t3); cursor: pointer;
+  font-size: 12px; padding: 2px 6px; border-radius: 4px;
+}
+.tf-sb-block__remove:hover { background: rgba(239,83,80,0.15); color: #EF5350; }
+
+.tf-sb-block__row {
+  display: flex; flex-direction: column; gap: 6px;
+}
+
+.tf-sb-comparison {
+  background: rgba(232,100,44,0.1); border: 1px solid rgba(232,100,44,0.2);
+  border-radius: 6px; padding: 5px 8px; color: var(--tf-accent);
+  font-size: 11px; font-weight: 600; align-self: center;
+}
+
+.tf-sb-source {
+  display: flex; gap: 6px; align-items: center;
+}
+.tf-sb-source__select {
+  flex: 1; background: rgba(255,255,255,0.04); border: 1px solid var(--tf-border);
+  border-radius: 6px; padding: 5px 8px; color: var(--tf-t1); font-size: 11px;
+}
+.tf-sb-source__params { display: flex; gap: 4px; }
+.tf-sb-source__param-input {
+  width: 50px; background: rgba(255,255,255,0.06); border: 1px solid var(--tf-border);
+  border-radius: 4px; padding: 4px 6px; color: var(--tf-t1); font-size: 11px; text-align: center;
+}
+
+.tf-sb-block__joiner {
+  display: flex; justify-content: center; margin: 6px 0 -12px;
+}
+.tf-sb-joiner-pill {
+  font-size: 9px; font-weight: 800; padding: 2px 10px;
+  border-radius: 10px; letter-spacing: 0.08em;
+}
+.tf-sb-joiner-pill--and { background: rgba(38,166,154,0.15); color: #26A69A; }
+.tf-sb-joiner-pill--or { background: rgba(255,167,38,0.15); color: #FFA726; }
+
+.tf-sb-add-btn {
+  width: 100%; padding: 8px; border: 1px dashed var(--tf-border);
+  border-radius: 8px; background: none; color: var(--tf-t3);
+  font-size: 11px; cursor: pointer; transition: all 0.15s;
+}
+.tf-sb-add-btn:hover {
+  border-color: var(--tf-accent); color: var(--tf-accent);
+  background: rgba(232,100,44,0.05);
+}
+
+.tf-sb-exits-toggle {
+  margin: 4px 14px; padding: 6px 10px; border: none; border-radius: 6px;
+  background: rgba(255,255,255,0.03); color: var(--tf-t2);
+  font-size: 11px; font-weight: 600; cursor: pointer; text-align: left; width: calc(100% - 28px);
+}
+
+.tf-sb-exits { padding: 4px 14px 8px; display: flex; flex-direction: column; gap: 4px; }
+.tf-sb-exit-option {
+  display: flex; align-items: center; gap: 6px; padding: 5px 8px;
+  border-radius: 6px; font-size: 11px; color: var(--tf-t2); cursor: pointer;
+}
+.tf-sb-exit-option--active { background: rgba(255,255,255,0.04); }
+.tf-sb-exit-option input { accent-color: var(--tf-accent); }
+
+.tf-sb-actions {
+  padding: 10px 14px; display: flex; gap: 6px; border-top: 1px solid var(--tf-border);
+  margin-top: auto;
+}
+.tf-sb-backtest-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px; border: none; border-radius: 8px;
+  background: linear-gradient(135deg, #E8642C, #D4561E);
+  color: #fff; font-size: 12px; font-weight: 700; cursor: pointer;
+  transition: all 0.2s;
+}
+.tf-sb-backtest-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.tf-sb-backtest-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.tf-sb-reset-btn {
+  padding: 10px 14px; border: 1px solid var(--tf-border); border-radius: 8px;
+  background: none; color: var(--tf-t3); font-size: 12px; cursor: pointer;
+}
+.tf-sb-reset-btn:hover { border-color: var(--tf-t2); color: var(--tf-t2); }
+
+.tf-sb-data-info {
+  padding: 6px 14px 12px; font-size: 10px; color: var(--tf-t3); text-align: center;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+ * AI CHART ANALYSIS PANEL
+ * ═══════════════════════════════════════════════════════════════════ */
+
+.tf-analysis-panel {
+  position: absolute; right: 0; top: 40px; bottom: 0;
+  width: 340px; max-width: 40vw;
+  background: var(--tf-bg-elevated, #1E222D);
+  border-left: 1px solid var(--tf-border, #363A45);
+  display: flex; flex-direction: column;
+  z-index: 50; overflow-y: auto;
+  font-family: var(--tf-font, system-ui);
+}
+.tf-analysis-panel__header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border-bottom: 1px solid var(--tf-border);
+}
+.tf-analysis-panel__title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 700; color: var(--tf-t1);
+}
+.tf-analysis-panel__close {
+  background: none; border: none; color: var(--tf-t3); cursor: pointer;
+  font-size: 14px; padding: 4px; border-radius: 4px;
+}
+.tf-analysis-panel__close:hover { background: rgba(255,255,255,0.06); }
+.tf-analysis-panel__empty {
+  padding: 40px 20px; text-align: center; color: var(--tf-t3); font-size: 12px;
+}
+
+.tf-analysis-bias {
+  padding: 16px 14px; text-align: center;
+  background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--tf-border);
+}
+.tf-analysis-bias__score {
+  font-size: 42px; font-weight: 800; line-height: 1;
+  font-family: 'SF Mono', 'JetBrains Mono', monospace;
+}
+.tf-analysis-bias__label {
+  font-size: 14px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; margin-top: 2px;
+}
+.tf-analysis-bias__meta {
+  font-size: 11px; color: var(--tf-t3); margin-top: 6px;
+}
+
+.tf-analysis-gauge { margin-top: 12px; padding: 0 10px; }
+.tf-analysis-gauge__track {
+  height: 6px; border-radius: 3px; position: relative;
+  background: rgba(255,255,255,0.06); overflow: visible;
+}
+.tf-analysis-gauge__fill {
+  height: 100%; border-radius: 3px;
+  opacity: 0.6;
+}
+.tf-analysis-gauge__marker {
+  position: absolute; top: -3px;
+  width: 4px; height: 12px; border-radius: 2px;
+  background: #fff; transform: translateX(-50%);
+  box-shadow: 0 0 6px rgba(255,255,255,0.3);
+}
+.tf-analysis-gauge__labels {
+  display: flex; justify-content: space-between;
+  font-size: 9px; font-weight: 600; margin-top: 4px;
+}
+
+.tf-analysis-sections { padding: 8px 14px; }
+.tf-analysis-section {
+  margin-bottom: 14px;
+}
+.tf-analysis-section__title {
+  font-size: 12px; font-weight: 700; color: var(--tf-t1);
+  margin-bottom: 6px;
+}
+
+.tf-analysis-detail {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 4px 0; font-size: 11px; color: var(--tf-t2); line-height: 1.4;
+}
+.tf-analysis-detail__dot {
+  width: 6px; height: 6px; border-radius: 50%; margin-top: 4px; flex-shrink: 0;
+}
+.tf-analysis-detail--bullish .tf-analysis-detail__dot { background: #26A69A; }
+.tf-analysis-detail--bearish .tf-analysis-detail__dot { background: #EF5350; }
+.tf-analysis-detail--neutral .tf-analysis-detail__dot { background: #787B86; }
+
+.tf-analysis-key-levels {
+  padding: 10px 14px; border-top: 1px solid var(--tf-border);
+}
+.tf-analysis-key-levels__grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 6px;
+}
+.tf-analysis-kl {
+  display: flex; justify-content: space-between; padding: 5px 8px;
+  background: rgba(255,255,255,0.03); border-radius: 6px;
+}
+.tf-analysis-kl__label { font-size: 10px; color: var(--tf-t3); font-weight: 600; }
+.tf-analysis-kl__value { font-size: 10px; color: var(--tf-t1); font-weight: 600; font-family: 'SF Mono', monospace; }
+
+/* ═══════════════════════════════════════════════════════════════════
+ * PAPER TRADING WIDGET
+ * ═══════════════════════════════════════════════════════════════════ */
+
+.tf-paper-widget {
+  position: absolute; right: 8px; bottom: 50px;
+  width: 280px; max-height: 500px;
+  background: var(--tf-bg-elevated, #1E222D);
+  border: 1px solid var(--tf-border, #363A45);
+  border-radius: 12px; z-index: 60;
+  display: flex; flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  font-family: var(--tf-font, system-ui);
+  overflow: hidden;
+}
+
+.tf-paper-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; border-bottom: 1px solid var(--tf-border);
+}
+.tf-paper-header__left {
+  display: flex; align-items: center; gap: 6px;
+}
+.tf-paper-badge {
+  font-size: 9px; font-weight: 800; padding: 2px 6px;
+  border-radius: 4px; background: rgba(255,167,38,0.15);
+  color: #FFA726; letter-spacing: 0.08em;
+}
+.tf-paper-balance { font-size: 14px; font-weight: 700; color: var(--tf-t1); font-family: 'SF Mono', monospace; }
+.tf-paper-close {
+  background: none; border: none; color: var(--tf-t3);
+  cursor: pointer; font-size: 12px; padding: 4px;
+}
+
+.tf-paper-disabled { padding: 30px 16px; text-align: center; }
+.tf-paper-disabled p { color: var(--tf-t3); font-size: 12px; margin-bottom: 12px; }
+.tf-paper-enable-btn {
+  padding: 10px 20px; border: none; border-radius: 8px;
+  background: linear-gradient(135deg, #FFA726, #F57C00);
+  color: #fff; font-weight: 700; font-size: 12px; cursor: pointer;
+}
+
+.tf-paper-tabs { display: flex; gap: 2px; padding: 6px 8px; }
+.tf-paper-tab {
+  flex: 1; padding: 5px 6px; border: none; border-radius: 6px;
+  font-size: 10px; font-weight: 600; background: none;
+  color: var(--tf-t3); cursor: pointer;
+}
+.tf-paper-tab--active { background: rgba(255,255,255,0.06); color: var(--tf-t1); }
+
+.tf-paper-form { padding: 8px 12px; }
+.tf-paper-side-toggle { display: flex; gap: 4px; margin-bottom: 8px; }
+.tf-paper-side-btn {
+  flex: 1; padding: 8px; border: 1px solid var(--tf-border); border-radius: 6px;
+  font-size: 11px; font-weight: 700; background: none;
+  color: var(--tf-t3); cursor: pointer;
+}
+.tf-paper-side-btn--long { background: rgba(38,166,154,0.12); color: #26A69A; border-color: rgba(38,166,154,0.3); }
+.tf-paper-side-btn--short { background: rgba(239,83,80,0.12); color: #EF5350; border-color: rgba(239,83,80,0.3); }
+
+.tf-paper-field {
+  margin-bottom: 6px; display: flex; flex-direction: column; gap: 2px;
+}
+.tf-paper-field label { font-size: 9px; color: var(--tf-t3); font-weight: 600; text-transform: uppercase; }
+.tf-paper-field input, .tf-paper-field select {
+  background: rgba(255,255,255,0.04); border: 1px solid var(--tf-border);
+  border-radius: 6px; padding: 6px 8px; color: var(--tf-t1); font-size: 12px;
+}
+
+.tf-paper-sltp { display: flex; gap: 4px; }
+.tf-paper-field--half { flex: 1; }
+
+.tf-paper-place-btn {
+  width: 100%; padding: 10px; border: none; border-radius: 8px;
+  font-weight: 700; font-size: 12px; cursor: pointer;
+  margin-top: 6px; transition: all 0.15s;
+}
+.tf-paper-place-btn--long { background: #26A69A; color: #fff; }
+.tf-paper-place-btn--long:hover { background: #2ECC71; }
+.tf-paper-place-btn--short { background: #EF5350; color: #fff; }
+.tf-paper-place-btn--short:hover { background: #E53935; }
+
+.tf-paper-positions, .tf-paper-history {
+  padding: 6px 10px; overflow-y: auto; max-height: 300px;
+}
+.tf-paper-empty { padding: 20px; text-align: center; color: var(--tf-t3); font-size: 11px; }
+
+.tf-paper-position {
+  padding: 8px; background: rgba(255,255,255,0.03); border-radius: 8px;
+  margin-bottom: 4px;
+}
+.tf-paper-position__info { display: flex; justify-content: space-between; align-items: center; }
+.tf-paper-position__side { font-weight: 700; font-size: 11px; }
+.tf-paper-position__side--long { color: #26A69A; }
+.tf-paper-position__side--short { color: #EF5350; }
+.tf-paper-position__qty { font-size: 10px; color: var(--tf-t3); }
+.tf-paper-position__meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--tf-t2); margin-top: 3px; }
+.tf-paper-position__close {
+  margin-top: 4px; width: 100%; padding: 4px; border: 1px solid var(--tf-border);
+  background: none; color: var(--tf-t3); border-radius: 4px; font-size: 10px; cursor: pointer;
+}
+.tf-paper-close-all {
+  width: 100%; padding: 6px; border: 1px solid rgba(239,83,80,0.3);
+  background: rgba(239,83,80,0.08); color: #EF5350;
+  border-radius: 6px; font-size: 10px; font-weight: 600; cursor: pointer;
+  margin-top: 4px;
+}
+
+.tf-paper-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 8px; }
+.tf-paper-stat {
+  display: flex; justify-content: space-between; padding: 4px 8px;
+  background: rgba(255,255,255,0.03); border-radius: 4px;
+  font-size: 10px; color: var(--tf-t2);
+}
+
+.tf-paper-trade-row {
+  display: flex; align-items: center; gap: 6px; padding: 4px 6px;
+  font-size: 10px; color: var(--tf-t2);
+}
+.tf-paper-trade-row--long { color: #26A69A; }
+.tf-paper-trade-row--short { color: #EF5350; }
+.tf-paper-trade-row__reason { font-size: 9px; color: var(--tf-t3); margin-left: auto; }
+
+.tf-paper-footer {
+  display: flex; gap: 4px; padding: 8px 10px; border-top: 1px solid var(--tf-border);
+}
+.tf-paper-reset-btn, .tf-paper-disable-btn {
+  flex: 1; padding: 5px; border: 1px solid var(--tf-border); border-radius: 6px;
+  background: none; color: var(--tf-t3); font-size: 10px; cursor: pointer;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+ * WALK-FORWARD & MONTE CARLO PANEL
+ * ═══════════════════════════════════════════════════════════════════ */
+
+.tf-wf-panel {
+  position: absolute; right: 0; top: 40px; bottom: 0;
+  width: 340px; max-width: 40vw;
+  background: var(--tf-bg-elevated, #1E222D);
+  border-left: 1px solid var(--tf-border, #363A45);
+  display: flex; flex-direction: column;
+  z-index: 50; overflow-y: auto;
+  font-family: var(--tf-font, system-ui);
+}
+.tf-wf-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border-bottom: 1px solid var(--tf-border);
+}
+.tf-wf-header__title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 700; color: var(--tf-t1);
+}
+.tf-wf-header__close {
+  background: none; border: none; color: var(--tf-t3); cursor: pointer;
+  font-size: 14px; padding: 4px; border-radius: 4px;
+}
+
+.tf-wf-tabs { display: flex; gap: 4px; padding: 6px 14px; }
+.tf-wf-tab {
+  flex: 1; padding: 6px 10px; border: none; border-radius: 8px;
+  font-size: 11px; font-weight: 600; background: rgba(255,255,255,0.04);
+  color: var(--tf-t3); cursor: pointer;
+}
+.tf-wf-tab--active { background: rgba(232,100,44,0.12); color: var(--tf-accent); }
+
+.tf-wf-empty { padding: 30px 14px; text-align: center; color: var(--tf-t3); font-size: 12px; }
+.tf-wf-content { padding: 8px 14px; }
+
+.tf-wf-config {
+  display: flex; align-items: flex-end; gap: 8px; margin-bottom: 12px;
+}
+.tf-wf-config-field { display: flex; flex-direction: column; gap: 2px; }
+.tf-wf-config-field label { font-size: 9px; color: var(--tf-t3); font-weight: 600; }
+.tf-wf-config-field input {
+  width: 70px; background: rgba(255,255,255,0.04); border: 1px solid var(--tf-border);
+  border-radius: 6px; padding: 5px 8px; color: var(--tf-t1); font-size: 12px;
+}
+.tf-wf-run-btn {
+  flex: 1; padding: 8px 12px; border: none; border-radius: 8px;
+  background: linear-gradient(135deg, #E8642C, #D4561E);
+  color: #fff; font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.tf-wf-run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.tf-wf-results { margin-top: 6px; }
+
+.tf-wf-score-row { display: flex; gap: 6px; margin-bottom: 10px; }
+.tf-wf-score {
+  flex: 1; padding: 10px; background: rgba(255,255,255,0.03);
+  border-radius: 10px; text-align: center;
+}
+.tf-wf-score--good { border: 1px solid rgba(38,166,154,0.2); }
+.tf-wf-score--bad { border: 1px solid rgba(239,83,80,0.2); }
+.tf-wf-score__value { font-size: 18px; font-weight: 800; color: var(--tf-t1); }
+.tf-wf-score__label { font-size: 9px; color: var(--tf-t3); font-weight: 600; margin-top: 2px; }
+
+.tf-wf-warning {
+  padding: 8px 10px; background: rgba(239,83,80,0.08);
+  border-radius: 6px; font-size: 11px; color: #EF5350; margin-bottom: 8px;
+}
+
+.tf-wf-fold-table { border: 1px solid var(--tf-border); border-radius: 8px; overflow: hidden; }
+.tf-wf-fold-header, .tf-wf-fold-row {
+  display: grid; grid-template-columns: 40px 1fr 1fr 60px;
+  font-size: 10px; padding: 4px 8px;
+}
+.tf-wf-fold-header {
+  background: rgba(255,255,255,0.04); color: var(--tf-t3);
+  font-weight: 700; padding: 6px 8px;
+}
+.tf-wf-fold-row { color: var(--tf-t2); border-top: 1px solid rgba(255,255,255,0.03); }
+
+.tf-wf-mc-section { margin-bottom: 12px; }
+.tf-wf-mc-title { font-size: 11px; font-weight: 700; color: var(--tf-t1); margin-bottom: 6px; }
+.tf-wf-mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.tf-wf-mc-stat {
+  display: flex; justify-content: space-between; padding: 4px 8px;
+  background: rgba(255,255,255,0.03); border-radius: 4px;
+}
+.tf-wf-mc-stat__label { font-size: 10px; color: var(--tf-t3); }
+.tf-wf-mc-stat__value { font-size: 10px; font-weight: 700; color: var(--tf-t1); font-family: 'SF Mono', monospace; }
+.tf-wf-mc-prob { font-size: 11px; color: var(--tf-t2); margin-top: 6px; text-align: center; }
+
+.tf-wf-mc-histogram {
+  display: flex; gap: 1px; height: 50px; align-items: flex-end;
+}
+.tf-wf-mc-bar-container {
+  flex: 1; display: flex; align-items: flex-end; height: 100%;
+}
+.tf-wf-mc-bar {
+  width: 100%; border-radius: 1px 1px 0 0;
+  min-height: 1px; opacity: 0.6;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Sprint 12: Drawing Tools Sidebar (Figma-style)
+ * ═══════════════════════════════════════════════════════════════ */
+
+.tf-drawing-sidebar {
+  position: absolute;
+  top: 44px; /* below toolbar */
+  left: 0;
+  bottom: 0;
+  width: 44px;
+  background: var(--tf-glass-2);
+  backdrop-filter: var(--tf-blur-lg);
+  -webkit-backdrop-filter: var(--tf-blur-lg);
+  border-right: var(--tf-glass-border);
+  box-shadow: var(--tf-shadow-1), var(--tf-inner-glow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  z-index: 8;
+  transform: translateX(-100%);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.2s ease;
+}
+
+.tf-drawing-sidebar[data-open] {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+html.theme-light .tf-drawing-sidebar {
+  background: rgba(255, 255, 255, 0.88);
+  border-right-color: rgba(212, 215, 224, 0.7);
+}
+
+/* Groups container */
+.tf-drawing-sidebar-groups {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  padding: 0 4px;
+  scrollbar-width: none;
+}
+
+.tf-drawing-sidebar-groups::-webkit-scrollbar {
+  display: none;
+}
+
+/* Individual group wrapper */
+.tf-drawing-sidebar-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  width: 100%;
+}
+
+/* Tool button (shared between group headers and tools) */
+.tf-drawing-sidebar-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--tf-t2);
+  cursor: pointer;
+  transition:
+    background 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+    color 0.15s ease,
+    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.15s ease;
+  flex-shrink: 0;
+}
+
+.tf-drawing-sidebar-btn:hover {
+  background: rgba(236, 236, 239, 0.08);
+  color: var(--tf-t1);
+  transform: scale(1.08);
+}
+
+.tf-drawing-sidebar-btn:active {
+  transform: scale(0.94);
+}
+
+.tf-drawing-sidebar-btn[data-active] {
+  background: rgba(232, 100, 44, 0.15);
+  color: var(--tf-accent);
+  box-shadow: inset 0 0 12px rgba(232, 100, 44, 0.08);
+}
+
+.tf-drawing-sidebar-btn[data-expanded] {
+  background: rgba(236, 236, 239, 0.06);
+  color: var(--tf-t1);
+}
+
+.tf-drawing-sidebar-btn:disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+html.theme-light .tf-drawing-sidebar-btn:hover {
+  background: rgba(17, 19, 24, 0.06);
+}
+
+html.theme-light .tf-drawing-sidebar-btn[data-active] {
+  background: rgba(212, 85, 30, 0.12);
+}
+
+/* Sub-tool list (expanded group) */
+.tf-drawing-sidebar-tools {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 2px 0;
+  animation: tfDrawToolsIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tf-drawing-sidebar-tool {
+  width: 30px;
+  height: 30px;
+}
+
+@keyframes tfDrawToolsIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Bottom actions area */
+.tf-drawing-sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
+/* Separator line */
+.tf-drawing-sidebar-sep {
+  width: 24px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 6px 0;
+  flex-shrink: 0;
+}
+
+html.theme-light .tf-drawing-sidebar-sep {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* Tooltip */
+.tf-draw-sidebar-tooltip {
+  position: fixed;
+  z-index: 10000;
+  background: var(--tf-glass-3);
+  backdrop-filter: var(--tf-blur-md);
+  -webkit-backdrop-filter: var(--tf-blur-md);
+  border: var(--tf-glass-border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--tf-t1);
+  white-space: nowrap;
+  box-shadow: var(--tf-shadow-2);
+  pointer-events: none;
+  animation: tfTooltipIn 0.12s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tf-draw-sidebar-tooltip-key {
+  font-size: 10px;
+  color: var(--tf-t3);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: var(--tf-mono);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+html.theme-light .tf-draw-sidebar-tooltip-key {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Sprint 14: Chart HUD System
+ * ═══════════════════════════════════════════════════════════════ */
+
+.tf-chart-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 5;
+  transition: opacity 0.4s ease;
+}
+
+.tf-chart-hud[data-hidden] {
+  opacity: 0;
+}
+
+.tf-chart-hud > * {
+  pointer-events: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Sprint 15: Focus Mode
+ * ═══════════════════════════════════════════════════════════════ */
+
+.tf-focus-overlay {
+  position: fixed;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 16px;
+  background: var(--tf-glass-2);
+  backdrop-filter: var(--tf-blur-lg);
+  -webkit-backdrop-filter: var(--tf-blur-lg);
+  border: var(--tf-glass-border);
+  border-radius: 12px;
+  box-shadow: var(--tf-shadow-2);
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.tf-focus-overlay[data-visible] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tf-focus-overlay-sym {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--tf-t1);
+  letter-spacing: 0.5px;
+}
+
+.tf-focus-overlay-tf {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--tf-accent);
+}
+
+.tf-focus-overlay-price {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tf-t1);
+  font-family: var(--tf-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.tf-focus-overlay-exit {
+  font-size: 10px;
+  color: var(--tf-t3);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Toolbar Slide Panel (Non-Modal)
+ * ═══════════════════════════════════════════════════════════════ */
+
+.tf-toolbar-slide {
+  will-change: transform;
+}
+
+.tf-toolbar-slide::-webkit-scrollbar {
+  width: 4px;
+}
+.tf-toolbar-slide::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Chart Skeleton Phase Transitions
+ * ═══════════════════════════════════════════════════════════════ */
+
+.tf-skeleton-phase-1 .tf-skel-toolbar {
+  animation: tfSkelPulse 1.2s ease-in-out infinite;
+}
+
+.tf-skeleton-phase-2 .tf-skel-candles {
+  animation: tfSkelFadeIn 0.3s ease forwards;
+}
+
+.tf-skeleton-phase-3 .tf-skel-indicators {
+  animation: tfSkelFadeIn 0.4s ease 0.1s forwards;
+  opacity: 0;
+}
+
+@keyframes tfSkelPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes tfSkelFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Light Theme — Core Component Overrides
+ * Phase 4 P1: Ensure visual parity between dark and light modes
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* Card hover — softer shadow for light backgrounds */
+@media (pointer: fine) {
+  html.theme-light .tf-card-hover:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+    border-color: var(--tf-bd2);
+  }
+}
+
+/* Data row hover — lighter tint */
+html.theme-light .tf-data-row:hover {
+  background: rgba(17, 19, 24, 0.03);
+}
+
+/* Icon button hover — visible on light surfaces */
+html.theme-light .tf-icon-btn:hover {
+  background: rgba(17, 19, 24, 0.06);
+}
+
+/* Nav active page — light-mode accent tint */
+html.theme-light .tf-nav-btn[aria-current='page'] {
+  background: rgba(212, 85, 30, 0.08);
+}
+
+/* Toolbar active — light-mode accent */
+html.theme-light .tf-toolbar-btn[data-active='true'] {
+  background: rgba(212, 85, 30, 0.1);
+  color: var(--tf-accent);
+}
+
+/* Skeleton shimmer — lighter gradient for light mode */
+html.theme-light .tf-skeleton::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.03) 40%,
+    rgba(0, 0, 0, 0.06) 50%,
+    rgba(0, 0, 0, 0.03) 60%,
+    transparent 100%
+  );
+}
+
+/* Input focus — softer glow on light backgrounds */
+html.theme-light .tf-input:focus {
+  box-shadow: 0 0 0 3px rgba(212, 85, 30, 0.08);
+}
+
+/* Button hover — no brightness filter on light mode */
+html.theme-light .tf-btn:hover {
+  filter: brightness(0.95);
+}
+
+/* Glass button — adapted for light surfaces */
+html.theme-light .tf-glass-btn {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+html.theme-light .tf-glass-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.14);
+}
+
+html.theme-light .tf-glass-btn:active {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/* Row hover — adapted for light */
+html.theme-light .tf-row-hover:hover {
+  background: rgba(17, 19, 24, 0.03);
+}
+
+/* Frosted toolbar — light mode */
+html.theme-light .tf-frosted-bar {
+  background: rgba(255, 255, 255, 0.65);
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+/* P&L glow — softer on light backgrounds */
+html.theme-light .tf-glow-positive {
+  text-shadow: 0 0 16px rgba(5, 150, 105, 0.12);
+}
+
+html.theme-light .tf-glow-negative {
+  text-shadow: 0 0 16px rgba(225, 29, 72, 0.12);
+}

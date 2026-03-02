@@ -1,0 +1,158 @@
+// ═══════════════════════════════════════════════════════════════════
+// charEdge — Volatility Dashboard & VIX Intelligence
+//
+// Sprint 12: Volatility regime monitor for risk management.
+// ═══════════════════════════════════════════════════════════════════
+
+import { useState } from 'react';
+import { C, F, M } from '../../../constants.js';
+import { alpha } from '../../../utils/colorUtils.js';
+
+const VIX_CURRENT = 18.4;
+const VIX_CHANGE = -1.2;
+
+const REGIME = VIX_CURRENT < 15 ? 'low' : VIX_CURRENT < 20 ? 'normal' : VIX_CURRENT < 30 ? 'elevated' : 'extreme';
+const REGIME_META = {
+  low: { label: 'Low Vol', color: '#2dd4a0', icon: '🟢', tip: 'Complacency — good for selling premium. Watch for vol expansion.' },
+  normal: { label: 'Normal', color: '#f0b64e', icon: '🟡', tip: 'Standard conditions. Balanced approach to sizing.' },
+  elevated: { label: 'Elevated', color: '#e8642c', icon: '🟠', tip: 'Reduce size. Focus on defined-risk trades.' },
+  extreme: { label: 'Extreme', color: '#f25c5c', icon: '🔴', tip: 'Crisis mode. Small size only. Hedge existing positions.' },
+};
+
+// VIX term structure (mock)
+const TERM_STRUCTURE = [
+  { label: 'Spot', value: 18.4 },
+  { label: '1M', value: 19.2 },
+  { label: '2M', value: 20.1 },
+  { label: '3M', value: 20.8 },
+  { label: '4M', value: 21.2 },
+  { label: '5M', value: 21.5 },
+  { label: '6M', value: 21.8 },
+];
+
+const isContango = TERM_STRUCTURE[1].value > TERM_STRUCTURE[0].value;
+
+// Per-symbol vol data
+const SYMBOL_VOL = [
+  { symbol: 'NVDA', iv: 58, hv: 42, ivRank: 72, regime: 'elevated', alert: 'IV expansion +12% this week' },
+  { symbol: 'TSLA', iv: 65, hv: 55, ivRank: 85, regime: 'elevated', alert: 'Pre-earnings IV crush expected' },
+  { symbol: 'AAPL', iv: 22, hv: 18, ivRank: 35, regime: 'low', alert: null },
+  { symbol: 'SPY', iv: 16, hv: 14, ivRank: 28, regime: 'low', alert: null },
+  { symbol: 'META', iv: 38, hv: 30, ivRank: 52, regime: 'normal', alert: 'Bollinger squeeze forming' },
+  { symbol: 'AMZN', iv: 32, hv: 28, ivRank: 45, regime: 'normal', alert: null },
+];
+
+const SIZING_RULES = {
+  low: { maxPct: 2.0, tip: 'Standard position sizes. Consider selling premium.' },
+  normal: { maxPct: 1.5, tip: 'Slightly reduced sizing. Monitor for regime shifts.' },
+  elevated: { maxPct: 1.0, tip: 'Cut position sizes by 50%. Use defined-risk trades.' },
+  extreme: { maxPct: 0.5, tip: 'Minimum sizing only. Prioritize capital preservation.' },
+};
+
+export default function VolatilityDashboard() {
+  const [collapsed, setCollapsed] = useState(false);
+
+  const regimeMeta = REGIME_META[REGIME];
+  const sizing = SIZING_RULES[REGIME];
+  const tsMax = Math.max(...TERM_STRUCTURE.map((t) => t.value));
+  const tsMin = Math.min(...TERM_STRUCTURE.map((t) => t.value));
+
+  return (
+    <div style={{ background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 16, overflow: 'hidden' }}>
+      <button onClick={() => setCollapsed(!collapsed)} className="tf-btn"
+        style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 18 }}>📉</span>
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>Volatility Dashboard</h3>
+          <span style={{ fontSize: 10, fontWeight: 700, color: regimeMeta.color, background: alpha(regimeMeta.color, 0.1), padding: '2px 7px', borderRadius: 4, fontFamily: M }}>
+            {regimeMeta.icon} VIX {VIX_CURRENT}
+          </span>
+        </div>
+        <span style={{ color: C.t3, fontSize: 11, transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.2s ease' }}>▾</span>
+      </button>
+
+      {!collapsed && (
+        <div style={{ padding: '0 20px 20px' }}>
+          {/* VIX Hero */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
+            {/* Current VIX */}
+            <div style={{ padding: '14px 16px', background: alpha(regimeMeta.color, 0.06), border: `1px solid ${alpha(regimeMeta.color, 0.15)}`, borderRadius: 10, textAlign: 'center' }}>
+              <div style={{ fontSize: 9, color: C.t3, fontFamily: F, marginBottom: 2 }}>VIX Index</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: regimeMeta.color, fontFamily: M }}>{VIX_CURRENT}</div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: VIX_CHANGE < 0 ? C.g : C.r, fontFamily: M }}>{VIX_CHANGE > 0 ? '+' : ''}{VIX_CHANGE}</div>
+            </div>
+
+            {/* Regime */}
+            <div style={{ padding: '14px 16px', background: alpha(C.sf, 0.5), border: `1px solid ${alpha(C.bd, 0.5)}`, borderRadius: 10 }}>
+              <div style={{ fontSize: 9, color: C.t3, fontFamily: F, marginBottom: 2 }}>Regime</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: regimeMeta.color, fontFamily: F }}>{regimeMeta.label}</div>
+              <div style={{ fontSize: 9, color: C.t2, fontFamily: F, marginTop: 4, lineHeight: 1.4 }}>{regimeMeta.tip}</div>
+            </div>
+
+            {/* Position Sizing */}
+            <div style={{ padding: '14px 16px', background: alpha(C.sf, 0.5), border: `1px solid ${alpha(C.bd, 0.5)}`, borderRadius: 10 }}>
+              <div style={{ fontSize: 9, color: C.t3, fontFamily: F, marginBottom: 2 }}>Suggested Max Size</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: C.t1, fontFamily: M }}>{sizing.maxPct}%</div>
+              <div style={{ fontSize: 9, color: C.t2, fontFamily: F, marginTop: 4, lineHeight: 1.4 }}>{sizing.tip}</div>
+            </div>
+          </div>
+
+          {/* Term Structure */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.t3, fontFamily: F, textTransform: 'uppercase', letterSpacing: 0.5 }}>VIX Term Structure</div>
+              <span style={{ fontSize: 10, fontWeight: 600, color: isContango ? C.g : C.r, fontFamily: F }}>
+                {isContango ? '📈 Contango (Normal)' : '📉 Backwardation (Fear)'}
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 60 }}>
+              {TERM_STRUCTURE.map((t, i) => {
+                const pct = ((t.value - tsMin) / (tsMax - tsMin)) * 100;
+                return (
+                  <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                    <span style={{ fontSize: 9, color: C.t2, fontFamily: M }}>{t.value}</span>
+                    <div style={{ width: '100%', height: `${Math.max(pct, 10)}%`, background: `linear-gradient(180deg, ${alpha(i === 0 ? regimeMeta.color : C.t3, 0.6)}, ${alpha(i === 0 ? regimeMeta.color : C.t3, 0.2)})`, borderRadius: 3 }} />
+                    <span style={{ fontSize: 8, color: C.t3, fontFamily: M }}>{t.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Per-Symbol IV vs HV */}
+          <div style={{ fontSize: 11, fontWeight: 700, color: C.t3, fontFamily: F, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Symbol Volatility</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {SYMBOL_VOL.map((sv) => {
+              const rm = REGIME_META[sv.regime];
+              const ivOverHv = sv.iv > sv.hv;
+              return (
+                <div key={sv.symbol} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: alpha(C.sf, 0.5), border: `1px solid ${alpha(C.bd, 0.3)}`, borderRadius: 8 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: F, minWidth: 45 }}>{sv.symbol}</span>
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: 9, color: C.t3, fontFamily: F }}>IV</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: ivOverHv ? C.y : C.g, fontFamily: M }}>{sv.iv}</div>
+                    </div>
+                    <span style={{ fontSize: 10, color: C.t3 }}>vs</span>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: 9, color: C.t3, fontFamily: F }}>HV</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: C.t2, fontFamily: M }}>{sv.hv}</div>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 9, color: C.t3, fontFamily: F }}>IV Rank</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: sv.ivRank > 70 ? C.r : sv.ivRank > 40 ? C.y : C.g, fontFamily: M }}>{sv.ivRank}</div>
+                  </div>
+                  <span style={{ fontSize: 9, fontWeight: 600, color: rm.color, background: alpha(rm.color, 0.1), padding: '2px 6px', borderRadius: 4, fontFamily: F }}>{rm.label}</span>
+                  {sv.alert && <span style={{ fontSize: 9, color: C.y, fontFamily: F, fontWeight: 600, maxWidth: 150 }}>⚡ {sv.alert}</span>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export { VolatilityDashboard };

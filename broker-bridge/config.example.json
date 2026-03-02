@@ -1,0 +1,25 @@
+{
+  "tws": {
+    "host": "127.0.0.1",
+    "port": 7496,
+    "client_id": 1
+  },
+  "tradeforge": {
+    "ws_url": "ws://localhost:3000/ws/bridge",
+    "auth_token": "YOUR_AUTH_TOKEN_HERE"
+  },
+  "instruments": [
+    { "symbol": "ES",  "sec_type": "FUT", "exchange": "CME",   "currency": "USD", "description": "E-mini S&P 500" },
+    { "symbol": "NQ",  "sec_type": "FUT", "exchange": "CME",   "currency": "USD", "description": "E-mini Nasdaq-100" },
+    { "symbol": "CL",  "sec_type": "FUT", "exchange": "NYMEX", "currency": "USD", "description": "Crude Oil" },
+    { "symbol": "GC",  "sec_type": "FUT", "exchange": "COMEX", "currency": "USD", "description": "Gold" }
+  ],
+  "analytics": {
+    "vwap_reset_time": "09:30",
+    "atr_period": 14,
+    "rsi_period": 14,
+    "delta_window_minutes": 15,
+    "update_interval_seconds": 1,
+    "signal_threshold": 0.7
+  }
+}

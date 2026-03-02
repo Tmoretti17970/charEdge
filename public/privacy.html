@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — charEdge</title>
+  <style>
+    :root { --bg: #0c0e15; --sf: #13161f; --t1: #e8eaf0; --t2: #a0a4b0; --bd: #1e2130; --b: #e8642c; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--t1); font-family: 'Inter', system-ui, sans-serif; line-height: 1.7; }
+    .wrap { max-width: 680px; margin: 0 auto; padding: 48px 24px 80px; }
+    h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; }
+    .sub { font-size: 13px; color: var(--t2); margin-bottom: 32px; }
+    h2 { font-size: 18px; font-weight: 700; margin-top: 32px; margin-bottom: 12px; color: var(--t1); }
+    p, li { font-size: 14px; color: var(--t2); margin-bottom: 12px; }
+    ul { padding-left: 20px; }
+    a { color: var(--b); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .back { display: inline-block; margin-bottom: 24px; font-size: 13px; color: var(--t2); }
+    .back:hover { color: var(--b); }
+    .highlight { background: #e8642c10; border: 1px solid #e8642c25; border-radius: 8px; padding: 14px 16px; margin: 16px 0; }
+    .highlight p { margin-bottom: 0; color: var(--t1); font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a href="/" class="back">← Back to charEdge</a>
+    <h1>Privacy Policy</h1>
+    <p class="sub">Effective: February 28, 2026 · Last updated: February 28, 2026</p>
+
+    <div class="highlight">
+      <p>🔒 <strong>TL;DR:</strong> charEdge does not collect, transmit, or store any of your personal data on our servers. Everything stays in your browser.</p>
+    </div>
+
+    <h2>1. Data Collection</h2>
+    <p><strong>charEdge collects no personal data.</strong> We do not require account registration, email addresses, passwords, or any personally identifiable information (PII) to use the App.</p>
+
+    <h2>2. Local Data Storage</h2>
+    <p>All your data — trades, journal entries, notes, settings, playbooks, and analytics — is stored locally in your browser using IndexedDB. This data never leaves your device unless you explicitly opt into cloud backup.</p>
+    <p>Data stored locally includes:</p>
+    <ul>
+      <li>Trade records (symbol, entry/exit prices, P&L, notes, tags)</li>
+      <li>Journal entries and trade plans</li>
+      <li>User settings and preferences</li>
+      <li>Chart templates and drawings</li>
+      <li>Gamification progress (XP, achievements, challenges)</li>
+      <li>Cached market data (prices, candles) for performance</li>
+    </ul>
+
+    <h2>3. Cloud Backup (Optional)</h2>
+    <p>If you enable cloud backup, your data is:</p>
+    <ul>
+      <li><strong>Encrypted on-device</strong> using AES-256-GCM before upload</li>
+      <li>Stored in <strong>your personal</strong> Google Drive or Dropbox account</li>
+      <li>Never accessible to charEdge — we cannot read your backed-up data</li>
+    </ul>
+    <p>OAuth tokens used for cloud backup are stored locally and are not transmitted to charEdge servers.</p>
+
+    <h2>4. Third-Party Services</h2>
+    <p>charEdge connects to the following third-party services for market data:</p>
+    <ul>
+      <li><strong>Binance API</strong> — real-time and historical cryptocurrency prices</li>
+      <li><strong>Yahoo Finance</strong> — stock quotes and market data</li>
+      <li><strong>CoinGecko API</strong> — cryptocurrency market data</li>
+    </ul>
+    <p>These connections send only the requested ticker symbol — no personal data is transmitted. charEdge proxies these requests through its server to add rate limiting and caching; no personal data is logged.</p>
+
+    <h2>5. Cookies</h2>
+    <p>charEdge does not use cookies. We use browser localStorage and IndexedDB exclusively for data persistence. No tracking cookies, advertising cookies, or third-party cookies are set.</p>
+
+    <h2>6. Analytics</h2>
+    <p>charEdge currently does not use any analytics or tracking services. If we add privacy-respecting analytics in the future (e.g., Plausible, PostHog), this policy will be updated and users will be notified.</p>
+
+    <h2>7. Data Portability</h2>
+    <p>You can export all your data at any time using the built-in export function in Settings. Data is exported as JSON or CSV — standard formats that can be used in any spreadsheet or application.</p>
+
+    <h2>8. Data Deletion</h2>
+    <p>Since all data is stored locally, you can delete it at any time by:</p>
+    <ul>
+      <li>Using the "Clear All Data" button in Settings</li>
+      <li>Clearing your browser's site data for charEdge</li>
+      <li>Using your browser's "Clear browsing data" feature</li>
+    </ul>
+
+    <h2>9. Children's Privacy</h2>
+    <p>charEdge is not directed at or designed for use by individuals under the age of 18. We do not knowingly collect data from minors.</p>
+
+    <h2>10. GDPR & CCPA Compliance</h2>
+    <p>Because charEdge does not collect personal data, many GDPR and CCPA requirements are satisfied by design:</p>
+    <ul>
+      <li><strong>Right to access:</strong> All your data is visible in the App</li>
+      <li><strong>Right to portability:</strong> Export your data anytime via Settings</li>
+      <li><strong>Right to deletion:</strong> Clear all data via Settings or browser tools</li>
+      <li><strong>Right to opt out:</strong> No data is collected, so there is nothing to opt out of</li>
+    </ul>
+
+    <h2>11. Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. Changes will be reflected in the "Last updated" date at the top. Continued use of charEdge after changes constitutes acceptance of the updated policy.</p>
+
+    <h2>12. Contact</h2>
+    <p>Questions about this Privacy Policy? Contact us at <a href="mailto:hello@charedge.app">hello@charedge.app</a>.</p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,70 @@
+/* ═══════════════════════════════════════════════════════════════════
+   TradeForge — Discover Polish (Phase B Sprint 8)
+   Glassmorphism filter chips, animations, and UI refinements.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Filter Chip Animations ────────────────────────────────────── */
+@keyframes tfSubTabsIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes tfChipActive {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
+/* ─── Filter Chip Bar ────────────────────────────────────────────── */
+[role="tablist"][aria-label="Discover filter chips"] {
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06),
+              0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+}
+
+[role="tablist"][aria-label="Discover filter chips"] button[role="tab"] {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-shadow: 0 0 0 transparent;
+}
+
+[role="tablist"][aria-label="Discover filter chips"] button[role="tab"]:hover:not([aria-selected="true"]) {
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateY(-1px);
+}
+
+[role="tablist"][aria-label="Discover filter chips"] button[role="tab"][aria-selected="true"] {
+  animation: tfChipActive 0.2s ease;
+  text-shadow: 0 0 12px currentColor;
+}
+
+[role="tablist"][aria-label="Discover filter chips"] button[role="tab"]:active {
+  transform: scale(0.97);
+}
+
+/* ─── Research Panel Refinements ──────────────────────────────── */
+.tf-research-panel-enter {
+  animation: tfSubTabsIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ─── Unified Content Transitions ────────────────────────────── */
+.tf-social-tab-content {
+  animation: tfSubTabsIn 0.25s ease forwards;
+}
+
+/* ─── Feed Grid Responsive ───────────────────────────────────── */
+@media (max-width: 900px) {
+  .tf-discover-feed-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .tf-discover-sidebar {
+    display: none !important;
+  }
+}
+
+/* ─── Intel Grid Responsive ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .tf-discover-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+}

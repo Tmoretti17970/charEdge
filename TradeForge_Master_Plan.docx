@@ -1,0 +1,1193 @@
+**TRADEFORGE OS**
+
+THE CHARTING PLATFORM MASTER PLAN
+
+Competing with TradingView --- Sprint Roadmap & Technical Architecture
+
+  ---------------------------- ------------------------------------------
+  **Rendering**                Clean rewrite --- Dual-canvas +
+                               pixel-snapping
+
+  **Data Strategy**            Crypto-first --- Zero licensing cost at
+                               launch
+
+  **Indicators**               Pine Script compatible via PineTS
+                               transpiler
+
+  **Differentiator**           Journal + Analytics + Prop Firm Tracking
+
+  **Total Sprints**            12 sprints across 4 phases (\~9 months)
+
+  **Architecture**             Canvas 2D / TypeScript / Zustand /
+                               WebSocket
+  ---------------------------- ------------------------------------------
+
+February 2026
+
+**Strategic Overview**
+
+TradeForge OS is being rebuilt from the ground up as a professional
+charting platform that directly competes with TradingView,
+differentiated by an integrated trading journal, advanced analytics, and
+prop firm tracking that TradingView does not offer. The rendering engine
+will be completely rewritten using TradingView\'s proven dual-canvas
+architecture with pixel-perfect coordinate snapping. Market data starts
+with crypto (zero licensing cost) and expands to equities via Cboe BZX.
+The indicator system will support Pine Script compatibility through the
+PineTS transpiler, giving instant access to 150,000+ community
+indicators.
+
+**The Competitive Formula**
+
+**TradingView-quality charts** + **Trading journal nobody else has** +
+**Pine Script compatibility** = A product traders will actually switch
+to.
+
+**What We Keep From v10.7**
+
+-   Analytics engine (Sharpe, Sortino, Kelly criterion, Monte Carlo risk
+    of ruin, expectancy)
+
+-   Money.js precision arithmetic (eliminates floating-point drift)
+
+-   Prop firm tracking (FTMO, Topstep, Apex presets with trailing
+    drawdown)
+
+-   Trade data model and IndexedDB storage layer
+
+-   Journal entry system (emotions, playbook, tags, screenshots,
+    checklists)
+
+-   Zustand state management architecture
+
+**What Gets Rewritten**
+
+-   chartRenderer.js (1,613 lines) → New dual-canvas engine with
+    pixel-snapping
+
+-   drawingTools.js (1,189 lines) → Price/time coordinate system with
+    anchor snapping
+
+-   ChartCanvas.jsx (538 lines) → New PaneWidget with stacked canvas
+    layers
+
+-   ChartsPage.jsx (1,103 lines) → Modular chart widget with clean prop
+    boundaries
+
+-   ScriptEngine.js → PineTS transpiler integration + sandboxed Web
+    Worker execution
+
+-   FetchService.js → New DataFeed with WebSocket streaming + LRU cache
+
+-   All mobile-specific components → Unified responsive components
+
+**What Gets Deleted**
+
+-   SSR scaffolding (entry-server.jsx, server.js references) ---
+    unnecessary complexity
+
+-   SocialService.js mock data --- no fake features
+
+-   brokerOAuth.js stub --- rebuild when ready for real broker
+    integration
+
+-   FundamentalService.js mock --- not needed for charting platform
+
+-   Separate MobileJournal, MobileSettings, MobileNav --- replaced by
+    responsive design
+
+**Phase Map**
+
+  ----------- ------------------- ----------------------- -----------------
+  **Phase**   **Name**            **Focus**               **Duration**
+
+  **Phase 1** **Foundation**      Rendering engine + data Sprints 1--3 (6
+                                  pipeline                weeks)
+
+  **Phase 2** **Core Features**   Drawing tools +         Sprints 4--6 (6
+                                  indicators + journal    weeks)
+
+  **Phase 3** **Pine Script**     Transpiler + indicator  Sprints 7--9 (6
+                                  library + UX            weeks)
+
+  **Phase 4** **Launch**          Equities data +         Sprints 10--12 (6
+                                  polish + deployment     weeks)
+  ----------- ------------------- ----------------------- -----------------
+
+Total estimated timeline: 24 weeks (\~6 months) for a launchable
+product. Each sprint is 2 weeks. Each phase ends with a usable milestone
+build.
+
+**Phase 1: Foundation**
+
+The entire product depends on getting the rendering engine right. This
+phase builds the core chart widget from scratch using TradingView\'s
+proven architecture. By the end of Phase 1, we have a standalone chart
+component that renders crypto OHLCV data in real-time with smooth
+scrolling, zooming, and a pixel-perfect crosshair --- indistinguishable
+from TradingView at first glance.
+
++-------------------------------------------------+---------------------+
+| **SPRINT 1**                                    | **2 weeks**         |
+|                                                 |                     |
+| **Canvas Engine Core**                          |                     |
++-------------------------------------------------+---------------------+
+
+Build the rendering foundation: dual-canvas architecture, pixel-perfect
+coordinate system, and the core candlestick renderer. This is the most
+critical sprint --- every future feature depends on this being right.
+
+**Tasks**
+
+  -------- ------------------------ ------------------------------ ------------
+  **\#**   **Task**                 **Detail**                     **Est.**
+
+  **1**    **Dual-Canvas            Create PaneWidget with two     **3 days**
+           Architecture**           stacked \<canvas\> elements:   
+                                    main (candles/grid) and top    
+                                    (crosshair/tooltip). Separate  
+                                    price axis and time axis       
+                                    canvases.                      
+
+  **2**    **Pixel-Perfect          Implement fancy-canvas style   **2 days**
+           Renderer**               coordinate system with         
+                                    mediaToPixel/pixelToMedia      
+                                    transforms. All positions      
+                                    Math.round(), all widths       
+                                    Math.floor(). Integer bitmap   
+                                    coordinates only.              
+
+  **3**    **HiDPI Support**        Use devicePixelContentBox via  **1 day**
+                                    ResizeObserver when available, 
+                                    fallback to devicePixelRatio   
+                                    multiplication. Canvas buffer  
+                                    at physical pixel size, CSS    
+                                    scales down.                   
+
+  **4**    **Candlestick Renderer** Adaptive width via atan curve  **2 days**
+                                    (TradingView algorithm). Min 1 
+                                    device pixel. Body fill for    
+                                    bull/bear. Wick as             
+                                    single-pixel line from high to 
+                                    low. Colors: #26a69a up,       
+                                    #ef5350 down.                  
+
+  **5**    **Grid + Price Axis**    niceScale for Y-axis tick      **1 day**
+                                    generation. Horizontal grid    
+                                    lines at 30% opacity. Price    
+                                    labels right-aligned in axis   
+                                    pane. Current price            
+                                    highlighted with colored       
+                                    badge.                         
+
+  **6**    **Time Axis**            Smart label density (no        **1 day**
+                                    overlap). Format: HH:MM for    
+                                    intraday, MMM DD for daily,    
+                                    MMM YYYY for monthly. Vertical 
+                                    grid lines at label positions. 
+  -------- ------------------------ ------------------------------ ------------
+
+**Deliverables**
+
+**✓ ChartEngine class:** Standalone TypeScript class that takes a
+container DOM element and renders OHLCV data with pixel-perfect
+candlesticks
+
+**✓ PaneWidget:** Dual-canvas container managing main + top canvas
+lifecycle, resize handling, DPI changes
+
+**✓ CoordinateSystem:** Pure functions: priceToY, yToPrice, indexToX,
+xToIndex --- all operating in integer bitmap space
+
+**Architecture: The Canvas Stack**
+
+Every chart area contains exactly 2 canvases stacked via position:
+absolute. The main canvas redraws only when data or viewport changes.
+The top canvas redraws on every mouse move (crosshair only). This
+eliminates the #1 performance problem in the current codebase where
+chartRenderer.js redraws 1,613 lines of rendering logic on every mouse
+event.
+
+**Key file:** src/engine/PaneWidget.ts --- This is the heart. Get it
+wrong and everything downstream suffers. Study
+tradingview/lightweight-charts pane-widget.ts before writing a single
+line.
+
++-------------------------------------------------+---------------------+
+| **SPRINT 2**                                    | **2 weeks**         |
+|                                                 |                     |
+| **Interaction + Data Pipeline**                 |                     |
++-------------------------------------------------+---------------------+
+
+Add user interaction (scroll, zoom, crosshair) and connect the first
+live data source. By end of Sprint 2, the chart is interactive with live
+crypto data streaming in real-time.
+
+**Tasks**
+
+  -------- ------------------------ ------------------------------ ------------
+  **\#**   **Task**                 **Detail**                     **Est.**
+
+  **1**    **Scroll/Zoom Engine**   Mouse wheel zoom (centered on  **2 days**
+                                    cursor). Click-drag horizontal 
+                                    scroll. Pinch-to-zoom for      
+                                    touch. Momentum scrolling with 
+                                    deceleration curve. Viewport   
+                                    clamped to data bounds.        
+
+  **2**    **Crosshair System**     Renders on top canvas ONLY.    **1 day**
+                                    Horizontal + vertical dashed   
+                                    lines following cursor. Price  
+                                    label on Y-axis, time label on 
+                                    X-axis. Magnetic snap to       
+                                    nearest OHLC value.            
+
+  **3**    **Tooltip/Legend**       OHLCV values displayed in      **1 day**
+                                    top-left overlay on hover.     
+                                    Shows Open, High, Low, Close,  
+                                    Volume, Change %. Updates on   
+                                    crosshair move without canvas  
+                                    redraw (DOM overlay).          
+
+  **4**    **Binance WebSocket      Connect to Binance kline       **2 days**
+           Feed**                   stream                         
+                                    (wss://stream.binance.com).    
+                                    Support BTC/ETH/SOL pairs.     
+                                    Handle connection lifecycle,   
+                                    reconnection, heartbeats.      
+                                    Parse to internal OHLCV        
+                                    format.                        
+
+  **5**    **Historical Data        REST fetch from Binance        **2 days**
+           Loader**                 /api/v3/klines. Paginated      
+                                    loading (1000 bars per         
+                                    request). LRU cache with       
+                                    5-minute TTL for intraday,     
+                                    1-hour for daily.              
+                                    Viewport-triggered lazy        
+                                    loading.                       
+
+  **6**    **Timeframe Switcher**   1m, 5m, 15m, 1h, 4h, 1D, 1W    **1 day**
+                                    timeframes. Clean data         
+                                    transition (clear canvas, load 
+                                    new data, animate in).         
+                                    Preserve scroll position as    
+                                    percentage.                    
+
+  **7**    **Symbol Search**        Search Binance exchange info   **1 day**
+                                    endpoint. Fuzzy match on       
+                                    symbol name. Recent symbols    
+                                    list. Quick-switch dropdown in 
+                                    chart header.                  
+  -------- ------------------------ ------------------------------ ------------
+
+**Deliverables**
+
+**✓ InteractionManager:** Handles all mouse/touch events, translates to
+viewport commands (scroll, zoom, crosshair position)
+
+**✓ DataFeed interface:** Abstract interface with getBars(),
+subscribeBars(), unsubscribeBars() --- modeled after TradingView\'s
+Datafeed API for future provider swapping
+
+**✓ BinanceFeed:** Concrete DataFeed implementation for Binance with
+WebSocket streaming and REST historical loading
+
+  -----------------------------------------------------------------------
+  **⚠️ DECISION POINT:** After Sprint 2, evaluate: Does the chart feel as
+  smooth as TradingView? If not, this is the time to fix rendering
+  performance before building features on top. Schedule a \"feel test\"
+  comparing side-by-side.
+
+  -----------------------------------------------------------------------
+
++-------------------------------------------------+---------------------+
+| **SPRINT 3**                                    | **2 weeks**         |
+|                                                 |                     |
+| **Volume, Multi-Pane, Theme System**            |                     |
++-------------------------------------------------+---------------------+
+
+Add volume bars, the multi-pane layout system (for indicators below the
+chart), and the theme/color system. This completes the visual
+foundation.
+
+**Tasks**
+
+  -------- ------------------------ ------------------------------ ------------
+  **\#**   **Task**                 **Detail**                     **Est.**
+
+  **1**    **Volume Histogram**     Separate pane below main chart **2 days**
+                                    (resizable divider). Green/red 
+                                    bars matching candle           
+                                    direction. Adaptive height     
+                                    scaling. 1-pixel gap between   
+                                    bars for clarity.              
+
+  **2**    **Multi-Pane Layout**    Vertical pane stacking with    **3 days**
+                                    drag-to-resize dividers. Each  
+                                    pane has its own dual-canvas   
+                                    pair + price axis. Time axis   
+                                    shared at bottom. Min pane     
+                                    height 80px.                   
+
+  **3**    **Theme System**         Dark theme (TradingView        **1 day**
+                                    default: bg #131722, candles   
+                                    #26a69a/#ef5350, grid #363A45  
+                                    at 30%). Light theme. CSS      
+                                    variables for runtime          
+                                    switching. Persistent via      
+                                    localStorage.                  
+
+  **4**    **Chart Type Switcher**  Candlestick (default),         **2 days**
+                                    Heikin-Ashi (computed from     
+                                    OHLCV), Line (close only),     
+                                    Area (gradient fill below      
+                                    line), Bars (OHLC bars). Each  
+                                    is a renderer plugin.          
+
+  **5**    **Price Scale Modes**    Linear (default), Logarithmic, **1 day**
+                                    Percentage, Indexed to 100.    
+                                    Auto-scale to visible data.    
+                                    Manual scale via drag on price 
+                                    axis.                          
+
+  **6**    **Performance            Add FPS counter (dev mode).    **1 day**
+           Profiling**              Profile render times. Target:  
+                                    \<2ms main canvas, \<0.5ms top 
+                                    canvas. Identify and fix any   
+                                    jank.                          
+  -------- ------------------------ ------------------------------ ------------
+
+**Phase 1 Milestone**
+
++-----------------------------------------------------------------------+
+| **✅ MILESTONE: Interactive Crypto Chart**                            |
+|                                                                       |
+| A pixel-perfect candlestick chart streaming live Binance data with    |
+| smooth zoom/scroll, crosshair, volume pane, multiple chart types,     |
+| dark/light themes, and multi-pane layout. Visually indistinguishable  |
+| from TradingView at first glance. This is your demo piece for         |
+| investor/user feedback.                                               |
++-----------------------------------------------------------------------+
+
+**Phase 2: Core Features**
+
+With the rendering engine proven, Phase 2 builds the features traders
+actually use every day: drawing tools, built-in indicators, and the
+journal integration that makes TradeForge unique. By the end of Phase 2,
+a trader could realistically use TradeForge as their primary charting
+tool for crypto.
+
++-------------------------------------------------+---------------------+
+| **SPRINT 4**                                    | **2 weeks**         |
+|                                                 |                     |
+| **Drawing Tools Engine**                        |                     |
++-------------------------------------------------+---------------------+
+
+Build the drawing tools system from scratch using price/time coordinates
+(not pixels). TradingView\'s drawing tools feel great because every
+anchor point is defined in market coordinates --- drawings scale
+perfectly with zoom/scroll without any recalculation of pixel positions.
+
+**Tasks**
+
+  -------- ------------------------ ------------------------------ ------------
+  **\#**   **Task**                 **Detail**                     **Est.**
+
+  **1**    **Drawing Coordinate     Every drawing point stored as  **2 days**
+           System**                 {time: timestamp, price:       
+                                    number}. Engine converts to    
+                                    pixels on each render.         
+                                    Drawings survive zoom, scroll, 
+                                    resize, and timeframe changes. 
+
+  **2**    **Core Line Tools**      Trend Line (2 points), Ray     **2 days**
+                                    (extends right), Extended Line 
+                                    (extends both), Horizontal     
+                                    Line (1 click). All with       
+                                    configurable color, width,     
+                                    line style                     
+                                    (solid/dashed/dotted).         
+
+  **3**    **Fibonacci              2-point placement. Standard    **2 days**
+           Retracement**            levels: 0, 0.236, 0.382, 0.5,  
+                                    0.618, 0.786, 1.0, 1.618.      
+                                    Colored bands between levels.  
+                                    Price labels at each level.    
+                                    Customizable levels.           
+
+  **4**    **Shapes**               Rectangle (2 corners), Circle  **1 day**
+                                    (center + radius), Triangle (3 
+                                    points). Semi-transparent      
+                                    fill + border. Configurable    
+                                    colors.                        
+
+  **5**    **Anchor Interaction**   Drag anchors to reposition.    **2 days**
+                                    Hit-test radius 8px. Cursor    
+                                    changes on hover (move,        
+                                    resize). Magnet mode snaps to  
+                                    OHLC values on nearby candles. 
+                                    Delete via backspace/context   
+                                    menu.                          
+
+  **6**    **Drawing Persistence**  Store in IndexedDB keyed by    **1 day**
+                                    symbol+timeframe. Auto-save on 
+                                    every modification. Load       
+                                    drawings when chart opens.     
+                                    Export/import as JSON.         
+  -------- ------------------------ ------------------------------ ------------
+
+**Drawing Tool Interaction Model**
+
+Follow TradingView\'s pattern exactly: select tool from toolbar, cursor
+changes to crosshair, click to place first anchor, move mouse to preview
+(rubber-band effect on top canvas), click to place second anchor (for
+2-point tools), drawing commits to main canvas, tool stays active for
+consecutive drawings (double-click or Escape to deactivate). This
+click-to-place model is what makes TradingView feel professional --- no
+click-and-drag ambiguity.
+
++-------------------------------------------------+---------------------+
+| **SPRINT 5**                                    | **2 weeks**         |
+|                                                 |                     |
+| **Built-in Indicators**                         |                     |
++-------------------------------------------------+---------------------+
+
+Ship 20 built-in indicators covering every category traders expect.
+These render in the multi-pane system from Sprint 3. Each indicator is a
+pure function: OHLCV in, series data out. Rendering is handled by the
+pane system.
+
+**Tasks**
+
+  -------- ------------------------ ------------------------------ ------------
+  **\#**   **Task**                 **Detail**                     **Est.**
+
+  **1**    **Indicator Engine**     Indicator interface:           **2 days**
+                                    calculate(ohlcv) →             
+                                    SeriesData\[\]. Supports       
+                                    overlay (on main chart) and    
+                                    oscillator (separate pane).    
+                                    Configurable inputs with       
+                                    defaults. Automatic pane       
+                                    creation.                      
+
+  **2**    **Overlay Indicators     SMA, EMA, WMA, VWAP, Bollinger **3 days**
+           (10)**                   Bands, Keltner Channel,        
+                                    Donchian Channel, Ichimoku     
+                                    Cloud, Parabolic SAR, Pivot    
+                                    Points. All with configurable  
+                                    periods and colors.            
+
+  **3**    **Oscillator Indicators  RSI, MACD, Stochastic, CCI,    **3 days**
+           (10)**                   ATR, ADX, OBV, MFI, Williams   
+                                    %R, Rate of Change. Each in    
+                                    its own pane with              
+                                    overbought/oversold zones.     
+
+  **4**    **Indicator Dialog**     Searchable indicator picker    **1 day**
+                                    (name + description). Settings 
+                                    panel with numeric inputs,     
+                                    color pickers. Style tab (line 
+                                    width, plot type). Visibility  
+                                    toggle per indicator.          
+
+  **5**    **Indicator Rendering**  Line series, histogram, area,  **1 day**
+                                    columns renderers. Multi-line  
+                                    support (MACD has 3 outputs).  
+                                    Gradient fills (Ichimoku       
+                                    cloud). All pixel-perfect      
+                                    using same coordinate system.  
+  -------- ------------------------ ------------------------------ ------------
+
+**Indicator Architecture**
+
+Every indicator is a pure function living in src/indicators/{name}.ts.
+No side effects, no state. The IndicatorEngine calls calculate()
+whenever visible data changes, caches results keyed by input hash, and
+passes output series to the appropriate pane renderer. This separation
+means indicators work identically whether computed from live data,
+historical data, or replay data.
+
++-------------------------------------------------+---------------------+
+| **SPRINT 6**                                    | **2 weeks**         |
+|                                                 |                     |
+| **Journal Integration**                         |                     |
++-------------------------------------------------+---------------------+
+
+This is the killer feature. Wire the existing journal/analytics engine
+into the new chart. When a trader marks a trade, it appears directly on
+the chart. When they review their journal, they see the chart context.
+This bidirectional integration is what TradingView cannot offer.
+
+**Tasks**
+
+  -------- ------------------------ ------------------------------ ------------
+  **\#**   **Task**                 **Detail**                     **Est.**
+
+  **1**    **Trade Markers on       Entry arrows (green up, red    **2 days**
+           Chart**                  down) and exit markers         
+                                    directly on candlestick chart  
+                                    at trade prices. Connecting    
+                                    line between entry/exit        
+                                    showing P&L. Click marker to   
+                                    open trade detail.             
+
+  **2**    **Quick Trade Entry**    Right-click chart → \"Log      **2 days**
+                                    Trade Here.\" Pre-fills        
+                                    symbol, entry time, entry      
+                                    price from click position.     
+                                    Opens streamlined trade form   
+                                    modal with essentials only.    
+
+  **3**    **Chart Screenshot on    Auto-capture visible chart     **1 day**
+           Trade**                  state as PNG when trade is     
+                                    saved. Stored in IndexedDB     
+                                    linked to trade record.        
+                                    Viewable in journal entry. No  
+                                    manual screenshot needed.      
+
+  **4**    **Performance Overlay**  Toggle overlay showing         **2 days**
+                                    cumulative P&L curve, equity   
+                                    curve, and drawdown on chart.  
+                                    Rendered as indicator in       
+                                    overlay pane. Uses existing    
+                                    analyticsFast.js calculations. 
+
+  **5**    **Session Markers**      Vertical bands showing trading **1 day**
+                                    sessions (NY Open, London      
+                                    Open, Asia Open). Configurable 
+                                    colors and labels. Helps       
+                                    traders see patterns in their  
+                                    session-based performance.     
+
+  **6**    **Trade Replay Mode**    Select a past trade from       **2 days**
+                                    journal, chart loads to that   
+                                    point, shows entry/exit        
+                                    markers, and allows bar-by-bar 
+                                    replay forward from entry.     
+                                    Uses existing chart replay     
+                                    infrastructure.                
+  -------- ------------------------ ------------------------------ ------------
+
+**Phase 2 Milestone**
+
++-----------------------------------------------------------------------+
+| **✅ MILESTONE: Usable Trading Platform**                             |
+|                                                                       |
+| A complete crypto charting platform with 20 indicators, drawing tools |
+| (trendlines, fib, shapes), and deep journal integration. A trader can |
+| chart, draw, analyze, log trades, and replay past trades all in one   |
+| tool. This is the first version you could put in front of beta        |
+| testers.                                                              |
++-----------------------------------------------------------------------+
+
+  -----------------------------------------------------------------------
+  **⚠️ DECISION POINT:** After Phase 2 milestone, recruit 10-20 beta
+  testers from r/Daytrading, r/CryptoCurrency. Their feedback drives
+  Phase 3 priorities. Key question: \"Would you switch from TradingView
+  for this?\" If answer is charting quality, double down on rendering. If
+  answer is features, accelerate Pine Script.
+
+  -----------------------------------------------------------------------
+
+**Phase 3: Pine Script Compatibility**
+
+This phase is the growth engine. Pine Script compatibility means traders
+can bring their existing indicators and strategies from TradingView
+without rewriting anything. The 150,000+ Pine Script indicators on
+TradingView become a free content library for TradeForge. Combined with
+the journal features TradingView lacks, this creates a compelling reason
+to switch.
+
++-------------------------------------------------+---------------------+
+| **SPRINT 7**                                    | **2 weeks**         |
+|                                                 |                     |
+| **PineTS Integration**                          |                     |
++-------------------------------------------------+---------------------+
+
+Integrate the PineTS transpiler (github.com/QuantForgeOrg/PineTS) to
+convert Pine Script v5/v6 to executable JavaScript. Scripts run in a
+sandboxed Web Worker for security and performance isolation.
+
+**Tasks**
+
+  -------- ------------------------ ------------------------------ ------------
+  **\#**   **Task**                 **Detail**                     **Est.**
+
+  **1**    **PineTS Integration**   Fork PineTS repo. Bundle       **3 days**
+                                    transpiler for browser use.    
+                                    Create compile(pineCode) →     
+                                    jsCode pipeline. Handle Pine   
+                                    v5 and v6 syntax. Error        
+                                    reporting with line numbers.   
+
+  **2**    **Web Worker Sandbox**   Execute transpiled JS in       **2 days**
+                                    dedicated Web Worker. No DOM   
+                                    access, no network, no         
+                                    storage. Communication via     
+                                    postMessage with structured    
+                                    clone. 5-second execution      
+                                    timeout.                       
+
+  **3**    **Pine Runtime Library** Implement core Pine built-in   **3 days**
+                                    functions: ta.sma(), ta.ema(), 
+                                    ta.rsi(), ta.macd(),           
+                                    ta.crossover(),                
+                                    ta.crossunder(), math.\*,      
+                                    input.\*, plot(), plotshape(), 
+                                    bgcolor(), barcolor().         
+
+  **4**    **Pine Editor UI**       Monaco Editor integration with **2 days**
+                                    Pine Script syntax             
+                                    highlighting. Compile button.  
+                                    Error panel with line          
+                                    references. Output log.        
+                                    Side-by-side with chart.       
+  -------- ------------------------ ------------------------------ ------------
+
+**Pine Script Execution Model**
+
+Pine Script runs bar-by-bar from first historical bar to current. For
+each bar, the runtime provides OHLCV data, executes the script, collects
+plot() outputs, then advances. The transpiled JavaScript preserves this
+execution model. Results are sent back to the main thread as typed
+arrays for efficient rendering. Memory limit: 32MB per script. Execution
+limit: 5 seconds for full history.
+
++-------------------------------------------------+---------------------+
+| **SPRINT 8**                                    | **2 weeks**         |
+|                                                 |                     |
+| **Indicator Library + Community**               |                     |
++-------------------------------------------------+---------------------+
+
+Build the indicator library UI and community sharing infrastructure.
+This is where the network effect starts.
+
+**Tasks**
+
+  -------- ------------------------ ------------------------------ ------------
+  **\#**   **Task**                 **Detail**                     **Est.**
+
+  **1**    **Indicator Library      Searchable catalog with        **2 days**
+           Browser**                categories (trend, oscillator, 
+                                    volatility, volume). Preview   
+                                    thumbnails. One-click add to   
+                                    chart. Star/favorite system.   
+                                    Sort by popular/recent.        
+
+  **2**    **Community Indicators** User-published Pine Scripts    **3 days**
+                                    stored in Supabase. Title,     
+                                    description, source code,      
+                                    author. Version history.       
+                                    Fork/clone functionality.      
+                                    Public/private visibility.     
+
+  **3**    **Popular Pine Ports**   Pre-port top 50 most-used      **3 days**
+                                    TradingView indicators:        
+                                    LuxAlgo Smart Money Concepts,  
+                                    Squeeze Momentum, Volume       
+                                    Profile, Market Structure,     
+                                    VWAP Bands, Supertrend, etc.   
+
+  **4**    **Script Templates**     Starter templates: \"Basic     **1 day**
+                                    Indicator\", \"Oscillator\",   
+                                    \"Strategy with Entry/Exit\",  
+                                    \"Multi-Timeframe\". Each with 
+                                    comments explaining Pine       
+                                    Script concepts.               
+
+  **5**    **Import from            Paste Pine Script code         **1 day**
+           TradingView**            directly. Auto-detect version. 
+                                    Compile, show any              
+                                    compatibility warnings, render 
+                                    on chart. \"Bring your         
+                                    indicators\" onboarding flow.  
+  -------- ------------------------ ------------------------------ ------------
+
++-------------------------------------------------+---------------------+
+| **SPRINT 9**                                    | **2 weeks**         |
+|                                                 |                     |
+| **Advanced Chart Features**                     |                     |
++-------------------------------------------------+---------------------+
+
+Polish sprint for chart features that power users expect. These are the
+details that separate \"good enough\" from \"I\'d actually switch.\"
+
+**Tasks**
+
+  -------- ------------------------ ------------------------------ ------------
+  **\#**   **Task**                 **Detail**                     **Est.**
+
+  **1**    **Multi-Chart Layout**   2x1, 1x2, 2x2, 3x1 grid        **2 days**
+                                    layouts. Independent           
+                                    symbol/timeframe per chart.    
+                                    Synchronized crosshair across  
+                                    charts. Linked scroll option.  
+                                    Responsive grid sizing.        
+
+  **2**    **Alert System**         Price alerts                   **2 days**
+                                    (above/below/cross).           
+                                    Indicator-based alerts (RSI \> 
+                                    70). Browser push              
+                                    notifications. Alert list      
+                                    panel. Triggered alert         
+                                    history. Persistent via        
+                                    IndexedDB.                     
+
+  **3**    **Watchlist Panel**      Virtualized list of symbols    **2 days**
+                                    with last price, change %,     
+                                    mini sparkline. Click to       
+                                    switch chart. Drag to reorder. 
+                                    Create multiple watchlists.    
+                                    Real-time price updates via    
+                                    WebSocket.                     
+
+  **4**    **Chart Templates**      Save current chart setup       **1 day**
+                                    (indicators, colors,           
+                                    timeframe, scale mode) as      
+                                    named template. Apply template 
+                                    to any chart. Default template 
+                                    for new charts.                
+
+  **5**    **Keyboard Shortcuts**   Full keyboard navigation:      **1 day**
+                                    arrow keys scroll, +/- zoom,   
+                                    1-9 for timeframes, / for      
+                                    symbol search, Alt+S           
+                                    screenshot, Ctrl+Z undo        
+                                    drawing. Shortcut overlay on   
+                                    \"?\" key.                     
+
+  **6**    **Mobile                 Touch gesture system: pinch    **2 days**
+           Responsiveness**         zoom, swipe scroll, long-press 
+                                    for crosshair, double-tap to   
+                                    reset zoom. Responsive toolbar 
+                                    that collapses on small        
+                                    screens. Bottom sheet for      
+                                    indicator settings.            
+  -------- ------------------------ ------------------------------ ------------
+
+**Phase 3 Milestone**
+
++-----------------------------------------------------------------------+
+| **✅ MILESTONE: Pine Script Compatible Platform**                     |
+|                                                                       |
+| Traders can paste their Pine Script indicators from TradingView and   |
+| see them render on TradeForge charts. 50+ popular indicators          |
+| pre-ported. Community sharing. Multi-chart layouts. Alert system.     |
+| Full keyboard navigation. Mobile-ready. This is the version you       |
+| launch publicly.                                                      |
++-----------------------------------------------------------------------+
+
+**Phase 4: Launch Preparation**
+
+Phase 4 adds US equities data, implements the backend infrastructure for
+user accounts and cloud sync, and polishes everything for public launch.
+This is where TradeForge goes from \"crypto charting tool\" to
+\"full-featured charting platform with a journal.\"
+
++-------------------------------------------------+---------------------+
+| **SPRINT 10**                                   | **2 weeks**         |
+|                                                 |                     |
+| **Equities Data + Backend**                     |                     |
++-------------------------------------------------+---------------------+
+
+**Tasks**
+
+  -------- ------------------------ ------------------------------ ------------
+  **\#**   **Task**                 **Detail**                     **Est.**
+
+  **1**    **Cboe BZX Integration** US equities real-time data via **3 days**
+                                    Cboe BZX (minimal              
+                                    redistribution fees). DataFeed 
+                                    adapter implementing same      
+                                    interface as BinanceFeed.      
+                                    Symbol resolution for          
+                                    stocks/ETFs.                   
+
+  **2**    **Polygon.io             Historical OHLCV for stocks.   **2 days**
+           Integration**            REST API with pagination.      
+                                    WebSocket for real-time        
+                                    streaming. Free tier (5        
+                                    calls/min) for development,    
+                                    paid tier for production.      
+
+  **3**    **Supabase Backend**     Auth (email + Google OAuth).   **3 days**
+                                    PostgreSQL for user profiles,  
+                                    chart layouts, saved           
+                                    indicators. Row-level security 
+                                    policies. Edge functions for   
+                                    server-side operations.        
+
+  **4**    **Cloud Sync**           Sync trades, drawings,         **2 days**
+                                    indicator configs, chart       
+                                    templates between devices.     
+                                    Conflict resolution            
+                                    (last-write-wins with          
+                                    timestamp). Offline queue for  
+                                    connectivity gaps.             
+  -------- ------------------------ ------------------------------ ------------
+
++-------------------------------------------------+---------------------+
+| **SPRINT 11**                                   | **2 weeks**         |
+|                                                 |                     |
+| **Polish + Performance**                        |                     |
++-------------------------------------------------+---------------------+
+
+**Tasks**
+
+  -------- ------------------------ ------------------------------ ------------
+  **\#**   **Task**                 **Detail**                     **Est.**
+
+  **1**    **Performance            Target: 60fps scrolling with   **3 days**
+           Optimization**           10K candles + 5 indicators.    
+                                    Canvas layer caching.          
+                                    Indicator computation in Web   
+                                    Worker. Memory profiling.      
+                                    Bundle size \< 200KB gzipped.  
+
+  **2**    **Testing Suite**        Vitest unit tests for all pure **3 days**
+                                    functions (indicators,         
+                                    coordinate system, data        
+                                    normalization). Playwright E2E 
+                                    for critical flows (load       
+                                    chart, add indicator, draw     
+                                    trendline, log trade).         
+
+  **3**    **Onboarding Flow**      First-run tutorial: place a    **2 days**
+                                    drawing, add an indicator, log 
+                                    a trade. Progressive           
+                                    disclosure of features.        
+                                    \"Import from TradingView\"    
+                                    prominent in onboarding.       
+
+  **4**    **Error Handling Audit** Review all error paths.        **2 days**
+                                    Graceful degradation when data 
+                                    feed disconnects. Recovery UI  
+                                    for WebSocket failures.        
+                                    Storage quota warnings. No     
+                                    uncaught exceptions.           
+  -------- ------------------------ ------------------------------ ------------
+
++-------------------------------------------------+---------------------+
+| **SPRINT 12**                                   | **2 weeks**         |
+|                                                 |                     |
+| **Launch**                                      |                     |
++-------------------------------------------------+---------------------+
+
+**Tasks**
+
+  -------- ------------------------ ------------------------------ ------------
+  **\#**   **Task**                 **Detail**                     **Est.**
+
+  **1**    **Landing Page**         Marketing site with feature    **2 days**
+                                    comparison vs TradingView.     
+                                    Emphasis on journal + Pine     
+                                    Script + free. Screenshot      
+                                    gallery. Video demo.           
+                                    SEO-optimized for              
+                                    \"TradingView alternative.\"   
+
+  **2**    **Freemium Pricing**     Free: 3 charts, 5 indicators,  **2 days**
+                                    local storage, crypto data.    
+                                    Pro (\$9/mo): unlimited        
+                                    charts + indicators, cloud     
+                                    sync, US equities, priority    
+                                    support. Stripe integration.   
+
+  **3**    **Deployment**           Vercel for frontend (edge      **2 days**
+                                    CDN). Supabase for backend.    
+                                    Sentry for error tracking.     
+                                    Plausible for privacy-friendly 
+                                    analytics. GitHub Actions      
+                                    CI/CD pipeline.                
+
+  **4**    **Launch Campaign**      Product Hunt launch. Reddit    **2 days**
+                                    posts (r/Daytrading,           
+                                    r/CryptoCurrency,              
+                                    r/algotrading). Discord        
+                                    community. Twitter/X thread.   
+                                    \"Bring your Pine Scripts\" as 
+                                    hook.                          
+
+  **5**    **Monitoring +           Sentry for error tracking. Web **2 days**
+           Analytics**              Vitals monitoring. User funnel 
+                                    analytics (sign up → first     
+                                    chart → first trade → paid     
+                                    conversion). Feedback          
+                                    collection system.             
+  -------- ------------------------ ------------------------------ ------------
+
+**Phase 4 Milestone**
+
++-----------------------------------------------------------------------+
+| **✅ MILESTONE: Public Launch**                                       |
+|                                                                       |
+| TradeForge OS launches as a freemium charting platform with crypto +  |
+| US equities, Pine Script compatibility, 50+ indicators, full drawing  |
+| tools, integrated trading journal, prop firm tracking, and cloud      |
+| sync. Live on Vercel with Supabase backend. Accepting payments via    |
+| Stripe.                                                               |
++-----------------------------------------------------------------------+
+
+**Technical Architecture**
+
+**Technology Stack**
+
+  ------------------ ------------------------ ----------------------------
+  **Layer**          **Technology**           **Rationale**
+
+  Rendering          HTML5 Canvas 2D          TradingView\'s proven
+                                              approach. No WebGL needed
+                                              for \<10K visible candles.
+
+  Language           TypeScript (strict)      Type safety catches
+                                              coordinate bugs. Matches
+                                              TradingView Lightweight
+                                              Charts.
+
+  HiDPI              fancy-canvas (forked)    Pixel-perfect rendering at
+                                              any DPI. Integer bitmap
+                                              coordinates.
+
+  State              Zustand                  Already proven in v10.7.
+                                              Minimal boilerplate.
+                                              DevTools support.
+
+  Data               WebSocket + REST         Binance WS for real-time
+                                              crypto. REST for historical.
+                                              Polygon.io for equities.
+
+  Storage            IndexedDB (Dexie)        Client-side trades,
+                                              drawings, settings. Already
+                                              proven in v10.7.
+
+  Indicators         PineTS + Web Worker      Pine Script transpiled to
+                                              JS, executed in sandboxed
+                                              Worker.
+
+  Backend            Supabase                 Auth + Postgres + Edge
+                                              Functions. Zero backend code
+                                              to maintain.
+
+  Build              Vite                     Fast HMR, tree-shaking, code
+                                              splitting. Already in v10.7.
+
+  Deploy             Vercel Edge              Global CDN, zero-config,
+                                              preview deployments for PRs.
+
+  Testing            Vitest + Playwright      Unit tests for pure
+                                              functions. E2E for critical
+                                              user flows.
+
+  Monitoring         Sentry + Plausible       Error tracking +
+                                              privacy-friendly analytics.
+  ------------------ ------------------------ ----------------------------
+
+**File Structure**
+
+*The new codebase follows a clean separation: engine (rendering), feeds
+(data), indicators (calculations), tools (drawing), journal (existing),
+and ui (React components). The engine has zero React dependencies --- it
+manages its own DOM and canvas lifecycle.*
+
+  ------------------------ ----------------------------------------------
+  **Directory**            **Contents**
+
+  src/engine/              ChartEngine, PaneWidget, PriceAxisWidget,
+                           TimeAxisWidget, CoordinateSystem, fancy-canvas
+                           fork
+
+  src/engine/renderers/    CandlestickRenderer, LineRenderer,
+                           AreaRenderer, HistogramRenderer, BarRenderer
+
+  src/feeds/               DataFeed interface, BinanceFeed, PolygonFeed,
+                           CboeFeed, MockFeed (for testing)
+
+  src/indicators/          Pure functions: sma.ts, ema.ts, rsi.ts,
+                           macd.ts, etc. IndicatorEngine orchestrator.
+
+  src/tools/               DrawingEngine, TrendLine, FibRetracement,
+                           HorizontalLine, Rectangle, etc. ToolConfig.
+
+  src/pine/                PineTS transpiler integration, PineRuntime
+                           built-ins, PineWorker sandbox, PineEditor UI
+
+  src/journal/             Existing journal code: trades, analytics,
+                           Money.js, prop firm tracking (largely
+                           unchanged)
+
+  src/state/               Zustand stores: useChartStore,
+                           useDrawingStore, useIndicatorStore,
+                           useTradeStore (existing)
+
+  src/ui/                  React components: ChartWidget, Toolbar,
+                           IndicatorDialog, Watchlist, JournalPanel
+
+  src/utils/               Shared utilities: niceScale, formatPrice,
+                           formatTime, LRUCache, debounce
+  ------------------------ ----------------------------------------------
+
+**Rendering Engine: The Core Algorithms**
+
+This section documents the exact algorithms to implement, derived from
+TradingView\'s Lightweight Charts source code and documentation. These
+are the engineering details that make charts look professional.
+
+**1. Pixel-Perfect Coordinate Transform**
+
+The single most important function in the entire codebase. Every pixel
+on screen passes through this transform. Getting it wrong produces
+blurry lines and misaligned candles.
+
+function mediaToPixel(mediaCoord, pixelRatio):
+
+**return Math.round(mediaCoord \* pixelRatio)**
+
+function pixelWidth(mediaWidth, pixelRatio):
+
+**return Math.max(1, Math.floor(mediaWidth \* pixelRatio))**
+
+The key insight: positions are rounded, widths are floored. This ensures
+lines never split across pixel boundaries (which causes the blurriness
+that plagues your current renderer). The Math.max(1, \...) guarantees
+minimum 1-pixel visibility even at extreme zoom-out.
+
+**2. Candlestick Width Algorithm**
+
+TradingView uses an arctangent curve for adaptive candle widths. At
+narrow zoom levels, candles are thin but never less than 1 pixel. At
+wide zoom levels, candles fill \~80% of available space. The transition
+between these states follows a smooth atan curve rather than linear
+scaling, which prevents the jarring visual \"jumps\" when zooming.
+
+barSpacingPx = chartWidth / visibleBarCount
+
+if barSpacingPx \< 4: bodyWidthCoeff = special_narrow_coefficient
+
+**else: bodyWidthCoeff = atan_curve_trending_to_0.8**
+
+bodyWidth = floor(barSpacingPx \* bodyWidthCoeff)
+
+bodyWidth = max(1, bodyWidth) // Never sub-pixel
+
+**3. Batch Rendering Model**
+
+Never render in response to individual events. Instead, mark the canvas
+as dirty and coalesce all changes into a single requestAnimationFrame
+callback. This is the model:
+
+1\. User event (scroll/zoom/data update) → set dirty flag
+
+2\. On rAF: if dirty, validate all computed values, render main canvas
+
+3\. Mouse move → render ONLY top canvas (crosshair) --- never touch main
+canvas
+
+**4. Data update → if only last bar changed, update only that bar region
+(incremental)**
+
+**4. Color Palette**
+
+TradingView\'s default dark theme is instantly recognizable. Match it
+exactly for the \"feels like TradingView\" effect:
+
+  ---------------------- --------------- ---------------------------------
+  **Element**            **Color**       **Hex**
+
+  Background             Dark charcoal   #131722
+
+  Candle Up              Teal green      #26A69A
+
+  Candle Down            Coral red       #EF5350
+
+  Grid Lines             Subtle dark     #363A45 at 30% opacity
+
+  Text Primary           Light gray      #D1D4DC
+
+  Text Secondary         Medium gray     #787B86
+
+  Crosshair              Light dashed    #9598A1 at 50%
+
+  Price Axis BG          Slightly        #1E222D
+                         lighter         
+
+  Current Price          Matches candle  Up: #26A69A / Down: #EF5350
+  ---------------------- --------------- ---------------------------------
+
+**Budget & Timeline Summary**
+
+**Monthly Infrastructure Costs**
+
+  -------------------------- -------------------- -----------------------------
+  **Service**                **Cost**             **Notes**
+
+  Binance Data               \$0                  Free API, no redistribution
+                                                  fees for crypto
+
+  Polygon.io (Starter)       \$29/mo              US equities, options, forex.
+                                                  100 calls/min.
+
+  Supabase (Pro)             \$25/mo              Auth, Postgres, Edge
+                                                  Functions, 8GB storage
+
+  Vercel (Pro)               \$20/mo              Frontend hosting, CDN,
+                                                  preview deploys
+
+  Sentry (Team)              \$26/mo              Error tracking, 50K events/mo
+
+  Plausible                  \$9/mo               Privacy-friendly analytics
+
+  Domain + Email             \$15/mo              tradeforge.io + email
+                                                  forwarding
+
+  **TOTAL (Launch)**         **\$124/mo**         **Scales to \~1,000 users
+                                                  before needing upgrades**
+
+  **TOTAL (Growth)**         **\$500-2,500/mo**   **At 5,000+ users with
+                                                  premium data feeds**
+  -------------------------- -------------------- -----------------------------
+
+**Sprint Timeline**
+
+  ------------ -------------------------- ----------------- -----------------
+  **Sprint**   **Focus**                  **Output**        **Weeks**
+
+  S1           Canvas Engine Core         Pixel-perfect     Weeks 1--2
+                                          candles           
+
+  S2           Interaction + Data         Live crypto       Weeks 3--4
+                                          charts            
+
+  S3           Volume + Multi-Pane        Complete chart    Weeks 5--6
+                                          foundation        
+
+  S4           Drawing Tools              Lines, fib,       Weeks 7--8
+                                          shapes            
+
+  S5           Built-in Indicators        20 indicators     Weeks 9--10
+
+  S6           Journal Integration        Trade markers,    Weeks 11--12
+                                          replay            
+
+  S7           PineTS Integration         Pine Script       Weeks 13--14
+                                          execution         
+
+  S8           Indicator Library          50+ community     Weeks 15--16
+                                          indicators        
+
+  S9           Advanced Features          Multi-chart,      Weeks 17--18
+                                          alerts            
+
+  S10          Equities + Backend         US stocks, cloud  Weeks 19--20
+                                          sync              
+
+  S11          Polish + Testing           Performance,      Weeks 21--22
+                                          tests             
+
+  S12          Launch                     Public release    Weeks 23--24
+  ------------ -------------------------- ----------------- -----------------
+
+**12 sprints** • **24 weeks** • **\$124/mo at launch**
+
+*Let\'s build it.*

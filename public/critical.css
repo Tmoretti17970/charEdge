@@ -1,0 +1,31 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * TradeForge — Critical CSS (loaded before app bundle)
+ *
+ * Extracted from index.html inline <style> to allow removing
+ * 'unsafe-inline' from CSP style-src directive.
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/* Prevent white flash on load — matches C.bg from constants.js */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #09090b;
+  color: #ececef;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Scrollbar styling to match dark theme */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2e3240; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #e8642c; }
+
+/* Selection color */
+::selection { background: rgba(232, 100, 44, 0.3); }

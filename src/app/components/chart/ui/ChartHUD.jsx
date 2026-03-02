@@ -1,0 +1,185 @@
+// ═══════════════════════════════════════════════════════════════════
+// charEdge — Chart HUD System (Sprint 14)
+// Managed overlay for indicator legends, trade P&L, status info.
+// Auto-fades after inactivity, reappears on mouse move.
+// ═══════════════════════════════════════════════════════════════════
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useChartStore } from '../../../../state/useChartStore.js';
+import { C } from '../../../../constants.js';
+
+const FADE_DELAY = 3000; // ms before auto-fade
+
+export default function ChartHUD({ symbol, timeframe, lastPrice, data }) {
+  const indicators = useChartStore((s) => s.indicators);
+  const drawings = useChartStore((s) => s.drawings);
+  const replayMode = useChartStore((s) => s.replayMode);
+  const isLive = useChartStore((s) => s.source !== 'simulated');
+
+  const [hidden, setHidden] = useState(false);
+  const fadeTimer = useRef(null);
+  const hudRef = useRef(null);
+
+  const resetFadeTimer = useCallback(() => {
+    setHidden(false);
+    clearTimeout(fadeTimer.current);
+    fadeTimer.current = setTimeout(() => setHidden(true), FADE_DELAY);
+  }, []);
+
+  // Start fade timer on mount
+  useEffect(() => {
+    resetFadeTimer();
+    return () => clearTimeout(fadeTimer.current);
+  }, [resetFadeTimer]);
+
+  // Listen for mouse movement in the chart area
+  useEffect(() => {
+    const parent = hudRef.current?.parentElement;
+    if (!parent) return;
+
+    const handler = () => resetFadeTimer();
+    parent.addEventListener('mousemove', handler, { passive: true });
+    parent.addEventListener('mousedown', handler, { passive: true });
+    return () => {
+      parent.removeEventListener('mousemove', handler);
+      parent.removeEventListener('mousedown', handler);
+    };
+  }, [resetFadeTimer]);
+
+  const priceChange = data?.length >= 2
+    ? data[data.length - 1].close - data[data.length - 2].close
+    : 0;
+  const priceChangePercent = data?.length >= 2 && data[data.length - 2].close
+    ? ((priceChange / data[data.length - 2].close) * 100)
+    : 0;
+  const isPositive = priceChange >= 0;
+
+  return (
+    <div
+      ref={hudRef}
+      className="tf-chart-hud"
+      data-hidden={hidden || undefined}
+    >
+      {/* Top-left: Symbol + Price badge */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 8,
+          left: 8,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+        }}
+      >
+        {/* Live dot */}
+        {isLive && (
+          <span
+            className="tf-pulse-dot"
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: C.g,
+              flexShrink: 0,
+            }}
+          />
+        )}
+
+        {/* Price change pill */}
+        {lastPrice != null && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '3px 8px',
+              borderRadius: 8,
+              background: isPositive
+                ? 'rgba(45, 212, 160, 0.08)'
+                : 'rgba(242, 92, 92, 0.08)',
+              border: `1px solid ${isPositive ? 'rgba(45, 212, 160, 0.15)' : 'rgba(242, 92, 92, 0.15)'}`,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                fontFamily: "'JetBrains Mono', monospace",
+                fontVariantNumeric: 'tabular-nums',
+                color: isPositive ? C.g : C.r,
+              }}
+            >
+              {isPositive ? '+' : ''}{priceChange.toFixed(2)}
+            </span>
+            <span
+              style={{
+                fontSize: 10,
+                color: isPositive ? C.g : C.r,
+                opacity: 0.7,
+              }}
+            >
+              ({isPositive ? '+' : ''}{priceChangePercent.toFixed(2)}%)
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom-left: Active indicators count + drawings count */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 8,
+          left: 8,
+          display: 'flex',
+          gap: 8,
+        }}
+      >
+        {indicators.length > 0 && (
+          <div
+            style={{
+              fontSize: 10,
+              color: C.t3,
+              padding: '2px 6px',
+              borderRadius: 6,
+              background: 'rgba(22, 24, 29, 0.6)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255,255,255,0.04)',
+            }}
+          >
+            {indicators.length} indicator{indicators.length !== 1 ? 's' : ''}
+          </div>
+        )}
+        {drawings.length > 0 && (
+          <div
+            style={{
+              fontSize: 10,
+              color: C.t3,
+              padding: '2px 6px',
+              borderRadius: 6,
+              background: 'rgba(22, 24, 29, 0.6)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255,255,255,0.04)',
+            }}
+          >
+            {drawings.length} drawing{drawings.length !== 1 ? 's' : ''}
+          </div>
+        )}
+        {replayMode && (
+          <div
+            style={{
+              fontSize: 10,
+              color: C.y,
+              padding: '2px 6px',
+              borderRadius: 6,
+              background: 'rgba(240, 182, 78, 0.08)',
+              border: '1px solid rgba(240, 182, 78, 0.15)',
+              fontWeight: 600,
+            }}
+          >
+            ⏪ REPLAY
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
