@@ -21,6 +21,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { CircularBuffer } from '../streaming/StreamingMetrics.js';
+import { logger } from '../../../utils/logger.ts';
 // ─── Quality Levels ────────────────────────────────────────────
 
 const QUALITY_LEVELS = {
@@ -222,7 +223,7 @@ class _PerformanceMonitor {
     this._stats.levelChanges++;
 
     const config = QUALITY_LEVELS[level];
-    console.log(`[PerfMonitor] Quality: ${prevLevel} → ${level} (FPS: ${this._stats.fps}, Jank: ${this._stats.jankRate}%)`);
+    logger.engine.info(`[PerfMonitor] Quality: ${prevLevel} → ${level} (FPS: ${this._stats.fps}, Jank: ${this._stats.jankRate}%)`);
 
     for (const cb of this._callbacks) {
       try { cb(level, config); } catch { /* ignore */ }

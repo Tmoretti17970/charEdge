@@ -10,6 +10,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { logger } from '../../utils/logger.ts';
 import { binanceFuturesAdapter } from '../../data/adapters/BinanceFuturesAdapter.js';
 
 /**
@@ -46,7 +47,7 @@ export function useDerivativesData(symbol, opts = {}) {
       const history = await binanceFuturesAdapter.fetchOpenInterestHistory(sym, oiPeriod, 100);
       if (history?.length) setOiData(history);
     } catch (err) {
-      console.warn('[useDerivativesData] OI fetch failed:', err.message);
+      logger.data.warn('[useDerivativesData] OI fetch failed:', err.message);
     }
   }, [oiPeriod]);
 
@@ -56,7 +57,7 @@ export function useDerivativesData(symbol, opts = {}) {
       const snap = await binanceFuturesAdapter.fetchDerivativesSnapshot(sym);
       if (snap) setSnapshot(snap);
     } catch (err) {
-      console.warn('[useDerivativesData] Snapshot fetch failed:', err.message);
+      logger.data.warn('[useDerivativesData] Snapshot fetch failed:', err.message);
     }
   }, []);
 
@@ -95,7 +96,7 @@ export function useDerivativesData(symbol, opts = {}) {
         }
       });
     } catch (err) {
-      console.warn('[useDerivativesData] Liquidation WS failed:', err.message);
+      logger.data.warn('[useDerivativesData] Liquidation WS failed:', err.message);
     }
 
     return () => {

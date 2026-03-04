@@ -10,6 +10,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { logger } from '../../../utils/logger.ts';
 import { C, F, M } from '../../../constants.js';
 import { ModalOverlay, Btn, inputStyle } from '../../components/ui/UIKit.jsx';
 import toast from '../../components/ui/Toast.jsx';
@@ -44,7 +45,7 @@ export default function SnapshotPublisher({ isOpen, onClose, canvas, chartInfo =
       setCaption(`${chartInfo.symbol || 'Chart'} ${(chartInfo.tf || '').toUpperCase()} Analysis`);
       setTags(chartInfo.symbol ? chartInfo.symbol.toLowerCase() : '');
     } catch (err) {
-      console.error('Snapshot capture failed:', err);
+      logger.ui.error('Snapshot capture failed:', err);
       toast.error('Failed to capture chart');
       onClose();
     }
@@ -83,7 +84,7 @@ export default function SnapshotPublisher({ isOpen, onClose, canvas, chartInfo =
       setCaption('');
       setTags('');
     } catch (err) {
-      console.error('Publish failed:', err);
+      logger.ui.error('Publish failed:', err);
       toast.error('Failed to publish snapshot');
     } finally {
       setPublishing(false);

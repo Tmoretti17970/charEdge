@@ -1,3 +1,4 @@
+import { logger } from '../../../utils/logger.ts';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v17 — Compute Worker Pool
 //
@@ -102,7 +103,7 @@ class PoolWorker {
         this._completeTask(null, new Error(err.message || 'Worker crashed'));
       };
     } catch (err) {
-      console.warn(`[ComputePool] Worker ${this.id} init failed:`, err.message);
+      logger.worker.warn(`[ComputePool] Worker ${this.id} init failed:`, err.message);
     }
   }
 
@@ -313,7 +314,7 @@ class _ComputeWorkerPool {
   /** @private */
   _init() {
     if (typeof Worker === 'undefined') {
-      console.warn('[ComputePool] Web Workers not available, using fallback mode');
+      logger.worker.warn('[ComputePool] Web Workers not available, using fallback mode');
       this._fallbackMode = true;
       return;
     }
@@ -329,7 +330,7 @@ class _ComputeWorkerPool {
     // Start adaptive sizing monitor
     this._adaptiveTimer = setInterval(() => this._adaptiveResize(), ADAPTIVE_CHECK_MS);
 
-    console.log(`[ComputePool] Initialized with ${this._poolSize} warm workers (${cores} cores detected)`);
+    logger.worker.info(`[ComputePool] Initialized with ${this._poolSize} warm workers (${cores} cores detected)`);
   }
 
   /** @private — Insert task into priority-sorted queue */

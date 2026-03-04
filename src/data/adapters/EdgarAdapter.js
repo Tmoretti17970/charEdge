@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger.ts';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v12 — SEC EDGAR Adapter
 //
@@ -53,7 +54,7 @@ async function resolveCIK(symbol) {
 
     return CIK_CACHE.get(upper) || null;
   } catch (err) {
-    console.warn('[EdgarAdapter] CIK resolution failed:', err.message);
+    logger.data.warn('[EdgarAdapter] CIK resolution failed:', err.message);
     return null;
   }
 }
@@ -89,7 +90,7 @@ class _EdgarAdapter {
       FACT_CACHE.set(symbol, { data, expiry: Date.now() + CACHE_TTL });
       return data;
     } catch (err) {
-      console.warn('[EdgarAdapter] Company facts error:', err.message);
+      logger.data.warn('[EdgarAdapter] Company facts error:', err.message);
       return null;
     }
   }
@@ -177,7 +178,7 @@ class _EdgarAdapter {
 
       return filings;
     } catch (err) {
-      console.warn('[EdgarAdapter] Filings fetch failed:', err.message);
+      logger.data.warn('[EdgarAdapter] Filings fetch failed:', err.message);
       return [];
     }
   }
@@ -200,7 +201,7 @@ class _EdgarAdapter {
         type: 'insider_transaction',
       }));
     } catch (err) {
-      console.warn('[EdgarAdapter] Insider transactions error:', err.message);
+      logger.data.warn('[EdgarAdapter] Insider transactions error:', err.message);
       return [];
     }
   }
@@ -296,7 +297,7 @@ class _EdgarAdapter {
       holdings.sort((a, b) => b.value - a.value);
       return holdings.slice(0, limit);
     } catch (err) {
-      console.warn('[EdgarAdapter] 13F holdings error:', err.message);
+      logger.data.warn('[EdgarAdapter] 13F holdings error:', err.message);
       return [];
     }
   }
@@ -332,7 +333,7 @@ class _EdgarAdapter {
 
       return results;
     } catch (err) {
-      console.warn('[EdgarAdapter] Institution search error:', err.message);
+      logger.data.warn('[EdgarAdapter] Institution search error:', err.message);
       return [];
     }
   }

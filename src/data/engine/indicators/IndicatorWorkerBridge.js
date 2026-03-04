@@ -20,6 +20,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { indicators } from './IndicatorLibrary.js';
+import { logger } from '../../../utils/logger.ts';
 import { computePool } from '../infra/ComputeWorkerPool.js';
 
 // ─── Cache Interface ───────────────────────────────────────────
@@ -161,7 +162,7 @@ class _IndicatorWorkerBridge {
         for (const { indicator, data } of settled) results[indicator] = data;
         return results;
       } catch (err) {
-        console.warn('[IndicatorBridge] Pool batch failed, falling back to main thread:', err?.message);
+        logger.worker.warn('[IndicatorBridge] Pool batch failed, falling back to main thread:', err?.message);
       }
     }
 
@@ -196,7 +197,7 @@ class _IndicatorWorkerBridge {
   _computeOnMainThread(indicator, params = {}, bars) {
     const fn = indicators[indicator];
     if (!fn) {
-      console.warn(`[IndicatorBridge] Unknown indicator: ${indicator}`);
+      logger.worker.warn(`[IndicatorBridge] Unknown indicator: ${indicator}`);
       return [];
     }
 
@@ -211,7 +212,7 @@ class _IndicatorWorkerBridge {
       else if (indicator === 'renko') args.push(params.brickSize);
       return fn(...args);
     } catch (err) {
-      console.error(`[IndicatorBridge] Main-thread compute error for ${indicator}:`, err);
+      logger.worker.error(`[IndicatorBridge] Main-thread compute error for ${indicator}:`, err);
       return [];
     }
   }

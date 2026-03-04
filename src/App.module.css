@@ -1,0 +1,172 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — App Root Styles (CSS Module)
+
+   Layout shell + LoadingScreen. Uses --tf-* theme vars.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── App Root Layout ─────────────────────────────────────────────── */
+.appRoot {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--tf-bg);
+  transition: background-color 0.2s ease;
+}
+
+.appRootMobile {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--tf-bg);
+  transition: background-color 0.2s ease;
+}
+
+.mainArea {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.mainAreaMobile {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 56px;
+}
+
+.mainContent {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Skip Link (a11y) ────────────────────────────────────────────── */
+.skipLink {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 9999;
+  padding: 8px 16px;
+  background: var(--tf-accent);
+  color: #fff;
+  font-weight: 700;
+  border-radius: 0 0 8px 0;
+  text-decoration: none;
+}
+
+.skipLink:focus {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: auto;
+  height: auto;
+  overflow: visible;
+}
+
+/* ─── Loading Screen ──────────────────────────────────────────────── */
+.loadingRoot {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: var(--tf-bg);
+}
+
+.loadingLogoWrap {
+  position: relative;
+}
+
+.loadingSpark {
+  position: absolute;
+  left: 50%;
+  top: -8px;
+  transform: translateX(-50%);
+  font-size: 14px;
+  color: var(--tf-pink, #e8a0b0);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--tf-pink, #e8a0b0) 50%, transparent);
+  animation: tfEmberSpark 2s ease-out infinite;
+  pointer-events: none;
+}
+
+.loadingLogo {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--tf-accent), var(--tf-yellow));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 24px;
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  color: #fff;
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--tf-accent, #e8642c) 25%, transparent),
+    0 0 0 1px rgba(255,255,255,0.06) inset;
+}
+
+.loadingGlow {
+  position: absolute;
+  inset: -20px;
+  border-radius: 32px;
+  background: radial-gradient(ellipse, color-mix(in srgb, var(--tf-accent, #e8642c) 8%, transparent), transparent 70%);
+  pointer-events: none;
+}
+
+.loadingTitle {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--tf-t1);
+  letter-spacing: -0.02em;
+}
+
+.loadingTagline {
+  font-size: 12px;
+  color: var(--tf-t3);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.loadingBarTrack {
+  width: 120px;
+  height: 3px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--tf-bd, #2a2e3a) 25%, transparent);
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.loadingBar {
+  width: 40%;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--tf-accent), var(--tf-yellow));
+  animation: tfLoadBar 1.2s ease-in-out infinite;
+}
+
+/* ─── Loading Animations ──────────────────────────────────────────── */
+@keyframes tfLoadBar {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(150%); }
+  100% { transform: translateX(350%); }
+}
+
+@keyframes tfEmberSpark {
+  0% { opacity: 0; transform: translateX(-50%) translateY(0) scale(0.5); }
+  30% { opacity: 1; transform: translateX(-50%) translateY(-16px) scale(1); }
+  70% { opacity: 0.6; transform: translateX(-50%) translateY(-32px) scale(0.8); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-44px) scale(0.4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingSpark { animation: none !important; opacity: 0.7 !important; }
+  .loadingBar { animation: none !important; }
+}

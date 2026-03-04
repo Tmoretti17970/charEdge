@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════
-// TradeForge OS — ESLint Flat Config
+// charEdge — ESLint Flat Config
 // Requires: eslint @eslint/js eslint-plugin-react eslint-plugin-react-hooks
 //           eslint-config-prettier globals
 // ═══════════════════════════════════════════════════════════════════
@@ -9,6 +9,8 @@ import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import prettier from 'eslint-config-prettier';
 import globals from 'globals';
+import tseslint from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
 
 import unusedImports from 'eslint-plugin-unused-imports';
 
@@ -146,6 +148,48 @@ export default [
       globals: {
         ...globals.node,
       },
+    },
+  },
+
+  // ─── TypeScript files ─────────────────────────────────────
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    plugins: {
+      '@typescript-eslint': tseslint,
+    },
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.es2024,
+      },
+    },
+    rules: {
+      '@typescript-eslint/naming-convention': ['warn',
+        // Variables: camelCase or UPPER_CASE
+        { selector: 'variable', format: ['camelCase', 'UPPER_CASE', 'PascalCase'], leadingUnderscore: 'allow' },
+        // Functions: camelCase or PascalCase (for React components)
+        { selector: 'function', format: ['camelCase', 'PascalCase'] },
+        // Parameters: camelCase
+        { selector: 'parameter', format: ['camelCase'], leadingUnderscore: 'allow' },
+        // Types and interfaces: PascalCase
+        { selector: 'typeLike', format: ['PascalCase'] },
+        // Class properties: camelCase with optional underscore prefix
+        { selector: 'classProperty', format: ['camelCase', 'UPPER_CASE'], leadingUnderscore: 'allow' },
+        // Class methods: camelCase
+        { selector: 'classMethod', format: ['camelCase'], leadingUnderscore: 'allow' },
+        // Enum members: PascalCase or UPPER_CASE
+        { selector: 'enumMember', format: ['PascalCase', 'UPPER_CASE'] },
+      ],
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': ['warn', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+      }],
     },
   },
 

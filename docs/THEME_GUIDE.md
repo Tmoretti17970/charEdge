@@ -1,4 +1,4 @@
-# TradeForge OS — Theme Guide
+# charEdge — Theme Guide
 
 **Dual-theme system · 22 color tokens · Dark/Light swap via `syncThemeColors()`**
 

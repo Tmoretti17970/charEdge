@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════
-// TradeForge — Load Test Script (k6)
+// charEdge — Load Test Script (k6)
 //
 // Tests API and WebSocket endpoints under load.
 // Install k6: https://k6.io/docs/get-started/installation/
@@ -134,7 +134,7 @@ export function wsTest() {
 export function handleSummary(data) {
   return {
     stdout: JSON.stringify({
-      summary: 'TradeForge Load Test Results',
+      summary: 'charEdge Load Test Results',
       api: {
         requests: data.metrics.http_reqs?.values?.count || 0,
         p95_latency: `${(data.metrics.http_req_duration?.values?.['p(95)'] || 0).toFixed(0)}ms`,

@@ -1,0 +1,587 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — DashboardPanel CSS Module
+   Extracted from 96+ inline style={{}} objects.
+   Dynamic colors remain as inline style overrides via CSS vars.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Page Container ─────────────────────────────────────────── */
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  container-type: inline-size;
+  container-name: dashboard;
+  padding: 16px;
+}
+
+@container dashboard (min-width: 640px) {
+  .page { padding: 32px; }
+}
+
+.pageMobile { padding: 16px; }
+.pageDesktop { padding: 32px; }
+
+/* ─── Container-Responsive Bento Grid ────────────────────────── */
+.bentoGridResponsive {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+  grid-auto-rows: auto;
+}
+
+@container dashboard (min-width: 640px) {
+  .bentoGridResponsive {
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 140px;
+  }
+}
+
+.equitySpan {
+  grid-column: 1;
+  grid-row: auto;
+}
+
+@container dashboard (min-width: 640px) {
+  .equitySpan {
+    grid-column: span 4;
+    grid-row: span 2;
+  }
+}
+
+.wideSpan {
+  grid-column: 1;
+  grid-row: auto;
+}
+
+@container dashboard (min-width: 640px) {
+  .wideSpan {
+    grid-column: span 2;
+    grid-row: span 3;
+  }
+}
+
+.equityChartWrapResponsive { min-height: 200px; }
+
+@container dashboard (min-width: 640px) {
+  .equityChartWrapResponsive { min-height: 0; }
+}
+
+/* Container-responsive onboard grid */
+.onboardGridResponsive {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+@container dashboard (min-width: 640px) {
+  .onboardGridResponsive {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Container-responsive two-col grid */
+.twoColGridResponsive {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+
+@container dashboard (min-width: 640px) {
+  .twoColGridResponsive {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Container-responsive section gap */
+.sectionGap { margin-bottom: 20px; }
+
+@container dashboard (min-width: 640px) {
+  .sectionGap { margin-bottom: 28px; }
+}
+
+/* ─── Performance Ribbon ─────────────────────────────────────── */
+.ribbon {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+}
+
+.ribbon::-webkit-scrollbar { display: none; }
+
+.ribbonItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: var(--glass-subtle);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  border: var(--glass-border);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ribbonLabel {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ribbonValue {
+  font-weight: 800;
+}
+
+/* ─── Getting Started Card ───────────────────────────────────── */
+.onboardCard {
+  position: relative;
+}
+
+.onboardDismiss {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.onboardTitle {
+  font-weight: 800;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.onboardGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.onboardGridMobile { grid-template-columns: 1fr; }
+.onboardGridDesktop { grid-template-columns: repeat(3, 1fr); }
+
+.onboardStep {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+
+.onboardIcon { font-size: 22px; }
+.onboardStepLabel { font-weight: 700; }
+.onboardStepDesc { margin-top: 1px; }
+
+.onboardArrow {
+  margin-left: auto;
+  font-size: 14px;
+}
+
+/* ─── Bento Grid ─────────────────────────────────────────────── */
+.bentoGrid {
+  display: grid;
+  gap: 16px;
+}
+
+.bentoGridMobile {
+  grid-template-columns: 1fr;
+  grid-auto-rows: auto;
+}
+
+.bentoGridDesktop {
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 140px;
+}
+
+/* ─── Equity Curve Card ──────────────────────────────────────── */
+.equityCard {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+}
+
+.equityCardDesktop {
+  grid-column: span 4;
+  grid-row: span 2;
+}
+
+.equityCardMobile {
+  grid-column: 1;
+  grid-row: auto;
+}
+
+.equityHeader {
+  padding: 20px 24px 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.equityTotal {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.equityChartWrap { flex: 1; }
+.equityChartWrapMobile { min-height: 200px; }
+
+/* ─── Heatmap & Recent Trades Bento Tiles ────────────────────── */
+.bentoTileWide {
+  padding: 20px;
+  overflow: hidden;
+}
+
+.bentoTileWideDesktop {
+  grid-column: span 2;
+  grid-row: span 3;
+}
+
+.bentoTileWideMobile {
+  grid-column: 1;
+  grid-row: auto;
+}
+
+.recentTradesCard {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.recentTradesHeader {
+  padding: 20px 20px 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.viewAllLink {
+  background: none;
+  border: none;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.recentTradesBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 0;
+}
+
+.tradeRow {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  align-items: center;
+}
+
+.tradeRowDesktop {
+  grid-template-columns: 70px 1fr auto;
+  padding: 10px 20px;
+}
+
+.tradeRowMobile {
+  grid-template-columns: 60px 1fr auto;
+  padding: 10px 20px;
+}
+
+.tradeDate {
+  font-size: 11px;
+}
+
+.tradeSymbol {
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tradeSideBadge {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.tradePnl {
+  font-weight: 700;
+  font-size: 13px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.emptyRow {
+  padding: 24px;
+  text-align: center;
+  font-size: 12px;
+}
+
+/* ─── Show All / Show Less Toggle ────────────────────────────── */
+.showAllBtn {
+  width: 100%;
+  padding: 14px 0;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.showAllBadge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.showLessBtn {
+  width: 100%;
+  padding: 10px 0;
+  background: transparent;
+  border-radius: 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+/* ─── P2 Differentiators Grid ────────────────────────────────── */
+.twoColGrid {
+  display: grid;
+  gap: 16px;
+}
+
+.twoColGridMobile { grid-template-columns: 1fr; }
+.twoColGridDesktop { grid-template-columns: 1fr 1fr; }
+
+/* ─── Edit Mode Bar ──────────────────────────────────────────── */
+.editBar {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.editBarLabel {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.editBarActions {
+  display: flex;
+  gap: 8px;
+}
+
+.editBarBtn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ─── DashHeader ─────────────────────────────────────────────── */
+.dashHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.dashHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashHeaderRight {
+  display: flex;
+  gap: 6px;
+}
+
+.tradeCount { font-weight: 600; }
+
+/* ─── UnitToggle ─────────────────────────────────────────────── */
+.unitToggle {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+/* ─── HeaderBtn ──────────────────────────────────────────────── */
+.headerBtn {
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ─── NarrativeSectionHeader ─────────────────────────────────── */
+.narrativeHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-left: 2px;
+}
+
+.narrativeStep {
+  font-weight: 800;
+  padding: 3px 7px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.narrativeLabel {
+  line-height: 1.3;
+}
+
+.narrativeDesc {
+  margin-top: 2px;
+}
+
+/* ─── NarrativeDivider ───────────────────────────────────────── */
+.divider {
+  height: 1px;
+  margin: 20px 0 24px;
+}
+
+/* ─── MetricRow ──────────────────────────────────────────────── */
+.metricRowLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.metricRowTip {
+  font-size: 10px;
+  cursor: help;
+}
+
+.metricRowValue {
+  font-weight: 700;
+}
+
+/* ─── BentoMetricCard ────────────────────────────────────────── */
+.bentoMetric {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative;
+}
+
+.bentoMetricLabel {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bentoMetricTipIcon {
+  font-size: 9px;
+  opacity: 0.6;
+}
+
+.bentoMetricValue {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+/* ─── Metric Tooltip ─────────────────────────────────────────── */
+.metricTooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  z-index: 50;
+  max-width: 220px;
+  min-width: 160px;
+  pointer-events: none;
+}
+
+.metricTooltipTitle {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.metricTooltipBody {
+  line-height: 1.5;
+}
+
+.metricTooltipArrow {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 8px;
+  height: 8px;
+  border-top: none;
+  border-left: none;
+}
+
+/* ─── Custom Widget Layout ───────────────────────────────────── */
+.customTradeHeader {
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.customTradeRow {
+  display: grid;
+  grid-template-columns: 70px 60px 1fr auto;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 12px;
+  align-items: center;
+}
+
+.customTradeSide {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* ─── Insights ───────────────────────────────────────────────── */
+.insightsList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.insightItem {
+  padding: 8px 12px;
+  border-radius: 0 6px 6px 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.insightsEmpty {
+  font-size: 13px;
+  padding: 20px 0;
+  text-align: center;
+}

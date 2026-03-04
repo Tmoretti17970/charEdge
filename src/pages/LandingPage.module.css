@@ -1,0 +1,478 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — LandingPage Styles (CSS Module)
+
+   Extracted from inline styles. Uses --tf-* theme vars so colors
+   respond to theme changes. Fonts inherit from body (Inter).
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Root Container ──────────────────────────────────────────────── */
+.root {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--tf-bg);
+  scroll-behavior: smooth;
+}
+
+/* ─── Hero Section ────────────────────────────────────────────────── */
+.hero {
+  position: relative;
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px 60px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.heroGlow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--tf-accent, #e8642c)12 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: left 0.6s ease, top 0.6s ease;
+}
+
+.heroGrid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--tf-bd, #2a2e3a)15 1px, transparent 1px),
+    linear-gradient(90deg, var(--tf-bd, #2a2e3a)15 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 100%);
+  pointer-events: none;
+}
+
+/* ─── Brand Logo ──────────────────────────────────────────────────── */
+.logoWrap {
+  position: relative;
+  margin-bottom: 24px;
+}
+
+.logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--tf-accent), var(--tf-yellow));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 28px;
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  color: #fff;
+  box-shadow: 0 12px 40px var(--tf-accent, #e8642c)40,
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    inset 0 0 0 1px rgba(255,255,255,0.03);
+  animation: landingLogoPulse 4s ease-in-out infinite;
+}
+
+/* ─── Headline ────────────────────────────────────────────────────── */
+.headline {
+  font-size: clamp(36px, 6vw, 64px);
+  font-weight: 800;
+  color: var(--tf-t1);
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin: 0;
+  max-width: 700px;
+}
+
+.headlineGradient {
+  background: linear-gradient(135deg, var(--tf-accent), var(--tf-yellow));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Tagline ─────────────────────────────────────────────────────── */
+.tagline {
+  font-size: clamp(16px, 2.5vw, 20px);
+  font-weight: 500;
+  color: var(--tf-t2);
+  margin-top: 16px;
+  margin-bottom: 32px;
+  max-width: 520px;
+  line-height: 1.6;
+}
+
+.taglineStrong {
+  color: var(--tf-t1);
+}
+
+/* ─── CTA Buttons Area ────────────────────────────────────────────── */
+.ctaGroup {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ─── Trust Line ──────────────────────────────────────────────────── */
+.trustLine {
+  font-size: 12px;
+  color: var(--tf-t3);
+  margin-top: 20px;
+  letter-spacing: 0.03em;
+}
+
+/* ─── Benchmark Stats Section ─────────────────────────────────────── */
+.benchmarks {
+  padding: 60px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 40px;
+  border-top: 1px solid var(--tf-bd);
+  border-bottom: 1px solid var(--tf-bd);
+  background: var(--tf-bg2);
+}
+
+/* ─── Animated Stat ───────────────────────────────────────────────── */
+.stat {
+  text-align: center;
+  min-width: 140px;
+}
+
+.statValue {
+  font-size: 42px;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  color: var(--tf-t1);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.statLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tf-t3);
+  margin-top: 6px;
+  letter-spacing: 0.02em;
+}
+
+/* ─── Features Section ────────────────────────────────────────────── */
+.features {
+  padding: 80px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sectionTitle {
+  font-size: clamp(24px, 4vw, 36px);
+  font-weight: 800;
+  color: var(--tf-t1);
+  text-align: center;
+  margin-bottom: 12px;
+  letter-spacing: -0.03em;
+}
+
+.sectionSubtitle {
+  font-size: 15px;
+  color: var(--tf-t3);
+  text-align: center;
+  margin-bottom: 48px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.featureGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+/* ─── Feature Card ────────────────────────────────────────────────── */
+.card {
+  flex: 1 1 280px;
+  max-width: 380px;
+  background: var(--tf-sf);
+  border: 1px solid var(--tf-bd);
+  border-radius: 16px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.25s ease;
+  cursor: default;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 0 1px rgba(0,0,0,0.1);
+}
+
+.card:hover {
+  background: var(--tf-sf2);
+  border-color: rgba(232,100,44,0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35), 0 0 1px rgba(0,0,0,0.08);
+}
+
+.cardIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--tf-t1);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.cardDesc {
+  font-size: 14px;
+  color: var(--tf-t2);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* ─── Tech Pills Section ──────────────────────────────────────────── */
+.techSection {
+  padding: 60px 24px 80px;
+  background: var(--tf-bg2);
+  border-top: 1px solid var(--tf-bd);
+}
+
+.techSectionTitle {
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 800;
+  color: var(--tf-t1);
+  text-align: center;
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+
+.techSectionSubtitle {
+  font-size: 14px;
+  color: var(--tf-t3);
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.techPillGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.techPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  color: var(--tf-t2);
+  background: var(--tf-sf2);
+  border: 1px solid var(--tf-bd);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* ─── Pricing Section ─────────────────────────────────────────────── */
+.pricing {
+  padding: 80px 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.pricingTitle {
+  font-size: clamp(22px, 3.5vw, 32px);
+  font-weight: 800;
+  color: var(--tf-t1);
+  margin-bottom: 8px;
+  letter-spacing: -0.03em;
+}
+
+.pricingSubtitle {
+  font-size: 14px;
+  color: var(--tf-t3);
+  margin-bottom: 40px;
+}
+
+.pricingGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+}
+
+.pricingCard {
+  flex: 1 1 200px;
+  max-width: 260px;
+  background: var(--tf-sf);
+  border: 1px solid var(--tf-bd);
+  border-radius: 16px;
+  padding: 24px 20px;
+  text-align: center;
+}
+
+.pricingCardFeatured {
+  flex: 1 1 200px;
+  max-width: 260px;
+  background: var(--tf-sf);
+  border-radius: 16px;
+  padding: 24px 20px;
+  text-align: center;
+  border-width: 2px;
+  border-style: solid;
+}
+
+.pricingTier {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.pricingAmount {
+  font-size: 32px;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  color: var(--tf-t1);
+  letter-spacing: -0.03em;
+}
+
+.pricingDesc {
+  font-size: 12px;
+  color: var(--tf-t3);
+  margin-top: 4px;
+}
+
+.pricingCta {
+  margin-top: 32px;
+}
+
+/* ─── CTA Footer Section ──────────────────────────────────────────── */
+.ctaFooter {
+  padding: 80px 24px;
+  text-align: center;
+  position: relative;
+}
+
+.ctaFooterGlow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, var(--tf-accent, #e8642c)10, transparent 70%);
+  pointer-events: none;
+}
+
+.ctaFooterTitle {
+  font-size: clamp(24px, 4vw, 36px);
+  font-weight: 800;
+  color: var(--tf-t1);
+  letter-spacing: -0.03em;
+  margin-bottom: 16px;
+}
+
+.ctaFooterDesc {
+  font-size: 15px;
+  color: var(--tf-t2);
+  margin-bottom: 32px;
+  max-width: 440px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* ─── Footer Links ────────────────────────────────────────────────── */
+.footerLinks {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--tf-bd);
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.footerLink {
+  background: none;
+  border: none;
+  color: var(--tf-t3);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.footerCopy {
+  font-size: 12px;
+  color: var(--tf-t3);
+}
+
+/* ─── CTA Button ──────────────────────────────────────────────────── */
+.ctaBtn {
+  padding: 14px 36px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, var(--tf-accent), var(--tf-yellow));
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px var(--tf-accent, #e8642c)30;
+  letter-spacing: -0.01em;
+}
+
+.ctaBtn:hover {
+  transform: scale(1.04);
+  box-shadow: 0 8px 32px var(--tf-accent, #e8642c)50,
+    0 0 0 1px rgba(255,255,255,0.08) inset;
+}
+
+.ctaBtnSecondary {
+  padding: 12px 28px;
+  border-radius: 12px;
+  border: 1px solid var(--tf-bd2);
+  background: transparent;
+  color: var(--tf-t2);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: -0.01em;
+}
+
+.ctaBtnSecondary:hover {
+  transform: scale(1.04);
+}
+
+/* ─── Animations ──────────────────────────────────────────────────── */
+@keyframes landingLogoPulse {
+  0%, 100% { box-shadow: 0 12px 40px var(--tf-accent, #e8642c)40; }
+  50% { box-shadow: 0 16px 56px var(--tf-accent, #e8642c)60, 0 0 0 1px rgba(255,255,255,0.08) inset; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo,
+  .ctaBtn,
+  .ctaBtnSecondary,
+  .card {
+    animation: none !important;
+    transition: none !important;
+  }
+}

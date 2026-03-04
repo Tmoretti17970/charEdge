@@ -1,0 +1,143 @@
+/* PositionPanel — position management panel */
+
+.container {
+  background: var(--color-surface, #1a1a2e);
+  border-top: 1px solid var(--color-border, #334155);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: var(--color-text, #e2e8f0);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+/* ─── Tabs ─────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--color-border, #334155);
+}
+
+.tab {
+  padding: 8px 16px;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  border-bottom: 2px solid transparent;
+  color: var(--color-text-muted, #94a3b8);
+}
+
+.tabActive {
+  font-weight: 700;
+  color: var(--color-primary, #818cf8);
+  border-bottom-color: var(--color-primary, #818cf8);
+}
+
+/* ─── Table ────────────────────────────── */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.th {
+  padding: 6px 10px;
+  text-align: left;
+  color: var(--color-text-muted, #94a3b8);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--color-border, #334155);
+}
+
+.thRight {
+  padding: 6px 10px;
+  color: var(--color-text-muted, #94a3b8);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--color-border, #334155);
+  text-align: right;
+}
+
+.td {
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+}
+
+.tdBold {
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+  font-weight: 600;
+}
+
+.tdRight {
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+  text-align: right;
+}
+
+.plPositive { color: #10b981; font-weight: 600; }
+.plNegative { color: #ef4444; font-weight: 600; }
+
+.sideLong {
+  color: #10b981;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.sideShort {
+  color: #ef4444;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* ─── Buttons ──────────────────────────── */
+.closeBtn {
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.cancelBtn {
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border, #334155);
+  background: transparent;
+  color: var(--color-text-muted, #94a3b8);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+/* ─── Summary Bar ──────────────────────── */
+.summaryBar {
+  display: flex;
+  gap: 24px;
+  padding: 6px 12px;
+  background: var(--color-surface-alt, #16213e);
+  border-bottom: 1px solid var(--color-border, #334155);
+  font-size: 11px;
+}
+
+.summaryItem {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.summaryLabel { color: var(--color-text-muted, #94a3b8); }
+.summaryValue { font-weight: 600; }
+
+/* ─── Empty State ──────────────────────── */
+.empty {
+  padding: 20px 0;
+  text-align: center;
+  color: var(--color-text-muted, #94a3b8);
+  font-size: 12px;
+}

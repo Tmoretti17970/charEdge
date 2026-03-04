@@ -7,6 +7,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { BaseAdapter } from './BaseAdapter.js';
+import { logger } from '../../utils/logger.ts';
 import { CRYPTO_IDS } from '../../constants.js';
 
 const API_BASE =
@@ -76,7 +77,7 @@ export class CoinGeckoAdapter extends BaseAdapter {
 
   async fetchOHLCV(symbol, interval = '1d', opts = {}) {
     if (!_consumeToken()) {
-      console.warn('[CoinGecko] Rate limit exceeded — skipping');
+      logger.data.warn('[CoinGecko] Rate limit exceeded — skipping');
       return null;
     }
 
@@ -149,7 +150,7 @@ export class CoinGeckoAdapter extends BaseAdapter {
 
   subscribe(_symbol, _callback) {
     // CoinGecko does not support WebSocket streaming
-    console.warn('[CoinGeckoAdapter] Real-time subscriptions not supported');
+    logger.data.warn('[CoinGeckoAdapter] Real-time subscriptions not supported');
     return () => {};
   }
 

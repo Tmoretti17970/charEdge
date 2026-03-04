@@ -15,6 +15,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { isCrypto } from '../../../constants.js';
+import { logger } from '../../../utils/logger.ts';
 import { isMarketOpen as _isMarketOpen } from '../../../utils/marketHours.js';
 
 // MARKET_HOURS config removed — now uses shared marketHours.js utility
@@ -100,7 +101,7 @@ class _AdaptivePoller {
 
     const timerId = setInterval(() => {
       try { callback(); } catch (err) {
-        console.warn(`[AdaptivePoller] Poll error for ${symbol}:`, err.message);
+        logger.data.warn(`[AdaptivePoller] Poll error for ${symbol}:`, err.message);
       }
     }, interval);
 
@@ -169,7 +170,7 @@ class _AdaptivePoller {
     task.interval = newInterval;
     task.timerId = setInterval(() => {
       try { task.callback(); } catch (err) {
-        console.warn(`[AdaptivePoller] Poll error for ${task.symbol}:`, err.message);
+        logger.data.warn(`[AdaptivePoller] Poll error for ${task.symbol}:`, err.message);
       }
     }, newInterval);
   }

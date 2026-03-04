@@ -8,6 +8,8 @@
 
 import { useEffect, useRef } from 'react';
 import { C, F, M } from '../../../../constants.js';
+import Icon from '../../design/Icon.jsx';
+import s from './ChartContextMenu.module.css';
 
 const SEPARATOR = null;
 
@@ -49,18 +51,18 @@ export default function ChartContextMenu({ menu, onClose, handlers, tradeMode, t
   if (tradeMode) {
     // In trade mode: show step-appropriate actions
     if (tradeStep === 'entry' || tradeStep === 'idle') {
-      items.push({ label: `📍 Set Entry @ ${price}`, action: () => handlers.onSetEntry?.(menu.price, menu.barIdx) });
+      items.push({ label: <><Icon name="pin" size={11} /> Set Entry @ {price}</>, action: () => handlers.onSetEntry?.(menu.price, menu.barIdx) });
     }
     if (tradeStep === 'sl' || tradeStep === 'entry') {
       items.push({
-        label: `🛑 Set Stop Loss @ ${price}`,
+        label: <><Icon name="stop-loss" size={11} /> Set Stop Loss @ {price}</>,
         action: () => handlers.onSetSL?.(menu.price, menu.barIdx),
         color: C.r,
       });
     }
     if (tradeStep === 'tp' || tradeStep === 'sl') {
       items.push({
-        label: `🎯 Set Target @ ${price}`,
+        label: <><Icon name="target" size={11} /> Set Target @ {price}</>,
         action: () => handlers.onSetTP?.(menu.price, menu.barIdx),
         color: C.g,
       });
@@ -70,20 +72,20 @@ export default function ChartContextMenu({ menu, onClose, handlers, tradeMode, t
   } else {
     // Not in trade mode: show trade entry options
     items.push({
-      label: `📈 Long Entry @ ${price}`,
+      label: <><Icon name="long" size={11} /> Long Entry @ {price}</>,
       action: () => handlers.onLongEntry?.(menu.price, menu.barIdx),
       color: C.g,
     });
     items.push({
-      label: `📉 Short Entry @ ${price}`,
+      label: <><Icon name="short" size={11} /> Short Entry @ {price}</>,
       action: () => handlers.onShortEntry?.(menu.price, menu.barIdx),
       color: C.r,
     });
     items.push(SEPARATOR);
-    items.push({ label: `🔔 Add Alert @ ${price}`, action: () => handlers.onAddAlert?.(menu.price) });
-    items.push({ label: '📝 Quick Journal', action: handlers.onQuickJournal });
+    items.push({ label: <><Icon name="bell" size={11} /> Add Alert @ {price}</>, action: () => handlers.onAddAlert?.(menu.price) });
+    items.push({ label: <><Icon name="edit" size={11} /> Quick Journal</>, action: handlers.onQuickJournal });
     items.push(SEPARATOR);
-    items.push({ label: '📋 Copy Price', action: () => handlers.onCopyPrice?.(menu.price) });
+    items.push({ label: <><Icon name="changelog" size={11} /> Copy Price</>, action: () => handlers.onCopyPrice?.(menu.price) });
   }
 
   // Position: keep menu in viewport
@@ -95,62 +97,40 @@ export default function ChartContextMenu({ menu, onClose, handlers, tradeMode, t
   return (
     <div
       ref={ref}
+      className={s.menu}
       style={{
-        position: 'fixed',
         left: x,
         top: y,
-        zIndex: 200,
         width: menuW,
         background: C.bg,
         border: `1px solid ${C.bd}`,
-        borderRadius: 8,
-        padding: 4,
-        boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
       }}
     >
-      {/* Price header */}
       <div
-        style={{
-          padding: '4px 10px 6px',
-          fontSize: 9,
-          fontWeight: 700,
-          color: C.t3,
-          fontFamily: M,
-          borderBottom: `1px solid ${C.bd}`,
-          marginBottom: 2,
-        }}
+        className={s.priceHeader}
+        style={{ color: C.t3, fontFamily: M, borderBottom: `1px solid ${C.bd}` }}
       >
         Price: {price}
         {menu.date && (
-          <span style={{ float: 'right', fontWeight: 400 }}>{new Date(menu.date).toLocaleDateString()}</span>
+          <span className={s.priceDate}>{new Date(menu.date).toLocaleDateString()}</span>
         )}
       </div>
 
       {items.map((item, i) => {
         if (item === SEPARATOR) {
-          return <div key={i} style={{ height: 1, background: C.bd, margin: '2px 4px' }} />;
+          return <div key={i} className={s.separator} style={{ background: C.bd }} />;
         }
         return (
           <button
-            className="tf-btn"
+            className={`tf-btn ${s.menuItem}`}
             key={i}
             onClick={() => {
               item.action();
               onClose();
             }}
             style={{
-              display: 'block',
-              width: '100%',
-              textAlign: 'left',
-              padding: '6px 10px',
-              fontSize: 11,
               fontFamily: F,
-              background: 'none',
-              border: 'none',
               color: item.color || C.t1,
-              cursor: 'pointer',
-              borderRadius: 4,
-              fontWeight: 500,
             }}
             onMouseEnter={(e) => (e.currentTarget.style.background = C.sf)}
             onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}

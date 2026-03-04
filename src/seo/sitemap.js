@@ -5,7 +5,7 @@
 // Includes all public routes: static pages + known symbol pages.
 //
 // Called by server.js on GET /sitemap.xml.
-// Can also be used for static generation: node -e "import('./src/seo/sitemap.js').then(m => console.log(m.generateSitemap()))"
+// Can also be used for static generation: node -e "import('./src/seo/sitemap.js').then(m => logger.boot.info(m.generateSitemap()))"
 // ═══════════════════════════════════════════════════════════════════
 
 import { SITE_URL } from './meta.js';

@@ -29,6 +29,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { openUnifiedDB } from './UnifiedDB.js';
+import { logger } from '../utils/logger.js';
 
 const DB_NAME = 'charEdge-unified'; // For reference — actual open is in UnifiedDB.js
 
@@ -412,7 +413,7 @@ class _DataCache {
     }
 
     if (total > 0) {
-      console.log(`[DataCache] Evicted ${total} stale records`);
+      logger.data.info(`Evicted ${total} stale records`);
     }
     return total;
   }
@@ -425,7 +426,7 @@ class _DataCache {
     const usage = await this.getStorageUsage();
     if (usage.pct < 80) return; // Under budget
 
-    console.log(`[DataCache] Storage at ${usage.pct}%, starting eviction...`);
+    logger.data.info(`Storage at ${usage.pct}%, starting eviction...`);
 
     // 1. First evict all stale records
     await this.evictStaleRecords();
@@ -449,7 +450,7 @@ class _DataCache {
 
       const recheck = await this.getStorageUsage();
       if (recheck.pct < 70) {
-        console.log(`[DataCache] Eviction brought storage to ${recheck.pct}%`);
+        logger.data.info(`Eviction brought storage to ${recheck.pct}%`);
         return;
       }
     }

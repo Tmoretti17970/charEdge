@@ -27,4 +27,24 @@ export const createIndicatorSlice = (set) => ({
     })),
 
   setIndicators: (indicators) => set({ indicators: indicators || [] }),
+
+  // Sprint 13: Template persistence via localStorage
+  saveIndicatorTemplate: (indicatorId, name, config) => {
+    const key = `indTemplate:${indicatorId}`;
+    const existing = JSON.parse(localStorage.getItem(key) || '{}');
+    existing[name] = config;
+    localStorage.setItem(key, JSON.stringify(existing));
+  },
+
+  loadIndicatorTemplate: (indicatorId, name) => {
+    const key = `indTemplate:${indicatorId}`;
+    const existing = JSON.parse(localStorage.getItem(key) || '{}');
+    return existing[name] || null;
+  },
+
+  listIndicatorTemplates: (indicatorId) => {
+    const key = `indTemplate:${indicatorId}`;
+    const existing = JSON.parse(localStorage.getItem(key) || '{}');
+    return Object.keys(existing);
+  },
 });

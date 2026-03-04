@@ -1,4 +1,4 @@
-# TradeForge OS — Chart Engine Integration Guide
+# charEdge — Chart Engine Integration Guide
 ## Merging Sprint 1-5 Engine (8,021 lines) into v10.7 Codebase (60,848 lines)
 
 ---

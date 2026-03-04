@@ -1,5 +1,8 @@
 import React from 'react';
+import { logger } from './utils/logger.ts';
 import ReactDOM from 'react-dom/client';
+import './styles/base.css';
+import './styles/animations.css';
 import './theme/global.css';
 import './theme/components.css';
 import './app/components/discover/discover-mobile.css';
@@ -16,7 +19,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 );
 
 // ✦ For Charolette — always remembered
-console.log(
+logger.boot.info(
   '%c✦ For Charolette%c — still burning brightly',
   'color: #e8a0b0; font-weight: 800; font-size: 14px',
   'color: #8b8fa2; font-weight: 400; font-size: 12px',

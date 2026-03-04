@@ -1,3 +1,4 @@
+// @ts-check
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v11 — Chart Store (Zustand)
 // Updated for Sprint 1-5 chart engine integration.

@@ -1,3 +1,4 @@
+// @ts-check
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Feature Flags
 //
@@ -23,7 +24,6 @@ export const FEATURES = Object.freeze({
   AI_COACH:       'ai_coach',        // AI trade coaching / Char
   SOCIAL:         'social',          // Community feed / social features
   WEBGPU:         'webgpu',          // WebGPU compute shaders
-  OFFSCREEN:      'offscreen',       // OffscreenCanvas worker rendering
 });
 
 /** Default state for each flag (all off until proven stable) */
@@ -34,7 +34,6 @@ const DEFAULTS = {
   [FEATURES.AI_COACH]:       true,   // AI Coach is stable — enabled by default
   [FEATURES.SOCIAL]:         false,
   [FEATURES.WEBGPU]:         false,
-  [FEATURES.OFFSCREEN]:      false,
 };
 
 /** In-memory cache (avoids repeated localStorage reads) */
@@ -105,5 +104,4 @@ export const FEATURE_LABELS = Object.freeze({
   [FEATURES.AI_COACH]:       'AI Coach (Char)',
   [FEATURES.SOCIAL]:         'Community & Social',
   [FEATURES.WEBGPU]:         'WebGPU Compute (Experimental)',
-  [FEATURES.OFFSCREEN]:      'OffscreenCanvas Rendering (Experimental)',
 });

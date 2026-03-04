@@ -14,6 +14,7 @@
 
 import { BaseAdapter } from './BaseAdapter.js';
 
+import { logger } from '../../utils/logger.ts';
 const OKX_REST = 'https://www.okx.com';
 const OKX_WS   = 'wss://ws.okx.com:8443/ws/v5/public';
 
@@ -203,7 +204,7 @@ export class OKXAdapter extends BaseAdapter {
 
       this._ws.onopen = () => {
         this._wsConnected = true;
-        console.log('[OKXAdapter] WebSocket connected');
+        logger.data.info('[OKXAdapter] WebSocket connected');
 
         // Send pending subscriptions
         if (this._pendingSubscriptions.length > 0) {
@@ -228,7 +229,7 @@ export class OKXAdapter extends BaseAdapter {
         this._wsConnected = false;
         this._ws = null;
         this._stopHeartbeat();
-        console.log('[OKXAdapter] WebSocket closed, reconnecting in 3s...');
+        logger.data.info('[OKXAdapter] WebSocket closed, reconnecting in 3s...');
 
         clearTimeout(this._reconnectTimer);
         this._reconnectTimer = setTimeout(() => {
@@ -239,10 +240,10 @@ export class OKXAdapter extends BaseAdapter {
       };
 
       this._ws.onerror = () => {
-        console.warn('[OKXAdapter] WebSocket error');
+        logger.data.warn('[OKXAdapter] WebSocket error');
       };
     } catch (err) {
-      console.warn('[OKXAdapter] WebSocket init failed:', err.message);
+      logger.data.warn('[OKXAdapter] WebSocket init failed:', err.message);
       this._ws = null;
     }
   }
@@ -252,7 +253,7 @@ export class OKXAdapter extends BaseAdapter {
     // Subscription confirmation
     if (msg.event === 'subscribe' || msg.event === 'unsubscribe') return;
     if (msg.event === 'error') {
-      console.warn('[OKXAdapter] WS error:', msg.msg);
+      logger.data.warn('[OKXAdapter] WS error:', msg.msg);
       return;
     }
 

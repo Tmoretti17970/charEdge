@@ -1,11 +1,11 @@
-# TradeForge OS v10.5 — Launch Guide
+# charEdge v10.5 — Launch Guide
 
 ## Quick Start (3 commands)
 
 ```bash
 # 1. Unzip and enter directory
-unzip TradeForge_v10.5_Complete.zip -d tradeforge
-cd tradeforge
+unzip charEdge_v10.5_Complete.zip -d charedge
+cd charedge
 
 # 2. Install dependencies
 npm install
@@ -25,7 +25,7 @@ Opens at **http://localhost:5173** — browser auto-launches.
 
 Check your versions:
 ```bash
-node -v   # Should show v18+ 
+node -v   # Should show v18+
 npm -v    # Should show 9+
 ```
 
@@ -40,7 +40,7 @@ The app starts with an empty state. You'll see the **Dashboard** with a prompt t
 
 ### Adding Sample Data
 1. Click **Journal** in the sidebar
-2. Click **+ Add Trade** 
+2. Click **+ Add Trade**
 3. Fill in: Symbol (e.g. AAPL), Side (Long/Short), Entry/Exit prices, Quantity, Date
 4. Add several trades to see the dashboard come alive
 

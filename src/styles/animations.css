@@ -1,0 +1,103 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — Shared Animations
+
+   Reusable keyframes for entrance, loading, and micro-interactions.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@layer components {
+
+  /* ─── Entrance Animations ────────────────────────────────────── */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-16px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(16px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes popIn {
+    0%   { opacity: 0; transform: scale(0.8); }
+    70%  { transform: scale(1.03); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* ─── Loading Animations ─────────────────────────────────────── */
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.5; }
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+  }
+
+  /* ─── Chart-Specific ─────────────────────────────────────────── */
+  @keyframes barCascade {
+    from { opacity: 0; transform: scaleY(0.3); transform-origin: bottom; }
+    to   { opacity: 1; transform: scaleY(1); }
+  }
+
+  @keyframes volumeRise {
+    from { opacity: 0; transform: translateY(50%); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes crosshairFade {
+    0%   { opacity: 0; }
+    15%  { opacity: 1; }
+    85%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* ─── Utility Classes ────────────────────────────────────────── */
+  .animate-fadeIn     { animation: fadeIn var(--dur-normal) var(--ease-out); }
+  .animate-fadeInUp   { animation: fadeInUp var(--dur-enter) var(--ease-out); }
+  .animate-fadeInDown { animation: fadeInDown var(--dur-enter) var(--ease-out); }
+  .animate-scaleIn    { animation: scaleIn var(--dur-enter) var(--ease-spring); }
+  .animate-popIn      { animation: popIn var(--dur-slow) var(--ease-spring); }
+  .animate-shimmer    {
+    background: linear-gradient(
+      90deg,
+      var(--c-bg-secondary) 25%,
+      var(--c-bg-tertiary) 50%,
+      var(--c-bg-secondary) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  .animate-pulse      { animation: pulse 2s var(--ease-default) infinite; }
+  .animate-spin       { animation: spin 1s linear infinite; }
+}

@@ -1,18 +1,18 @@
-# TradeForge OS — Design Overhaul Sprint Backlog
+# charEdge — Design Overhaul Sprint Backlog
 
-**Document Version:** 1.0  
-**Date:** February 20, 2026  
-**Prepared by:** Design & Engineering Team  
-**Manager:** Tyler  
+**Document Version:** 1.0
+**Date:** February 20, 2026
+**Prepared by:** Design & Engineering Team
+**Manager:** Tyler
 **Scope:** Full visual rebrand, IA restructure, motion design, progressive UX
 
 ---
 
 ## Executive Summary
 
-This document defines 6 themed sprints to transform TradeForge OS from a feature-complete trading platform into a polished, brand-distinct product. The overhaul is aggressive: new color system, restructured information architecture (7 pages → 5), narrative-driven dashboard, progressive-disclosure charts page, and a motion design language.
+This document defines 6 themed sprints to transform charEdge from a feature-complete trading platform into a polished, brand-distinct product. The overhaul is aggressive: new color system, restructured information architecture (7 pages → 5), narrative-driven dashboard, progressive-disclosure charts page, and a motion design language.
 
-**Core philosophy:** TradeForge's hero experience is the *integrated workflow* — the seamless loop between charting, journaling, and analytics. Every design decision optimizes for that loop feeling effortless.
+**Core philosophy:** charEdge's hero experience is the *integrated workflow* — the seamless loop between charting, journaling, and analytics. Every design decision optimizes for that loop feeling effortless.
 
 **Sprint cadence:** Each sprint is scoped for ~1–2 weeks.
 
@@ -131,8 +131,8 @@ Subtle glow:     radial-gradient(ellipse, #e8642c15, transparent)
 
 ## Sprint 1: Design Foundation & Brand System
 
-**Theme:** Lay the foundation everything else builds on.  
-**Duration:** ~1.5 weeks  
+**Theme:** Lay the foundation everything else builds on.
+**Duration:** ~1.5 weeks
 **Dependency:** None — this is the root.
 
 ### Tasks
@@ -157,8 +157,8 @@ Subtle glow:     radial-gradient(ellipse, #e8642c15, transparent)
 
 ## Sprint 2: Information Architecture & Navigation
 
-**Theme:** Restructure the app's skeleton.  
-**Duration:** ~1 week  
+**Theme:** Restructure the app's skeleton.
+**Duration:** ~1 week
 **Dependency:** Sprint 1 (needs new tokens/colors for nav redesign)
 
 ### Tasks
@@ -179,8 +179,8 @@ Subtle glow:     radial-gradient(ellipse, #e8642c15, transparent)
 
 ## Sprint 3: Dashboard Narrative Redesign
 
-**Theme:** Make the dashboard tell a story.  
-**Duration:** ~1.5 weeks  
+**Theme:** Make the dashboard tell a story.
+**Duration:** ~1.5 weeks
 **Dependency:** Sprint 1 (tokens), Sprint 2 (IA)
 
 ### Tasks
@@ -201,8 +201,8 @@ Subtle glow:     radial-gradient(ellipse, #e8642c15, transparent)
 
 ## Sprint 4: Charts Page — Progressive Disclosure
 
-**Theme:** Tame the 57-import beast.  
-**Duration:** ~1.5 weeks  
+**Theme:** Tame the 57-import beast.
+**Duration:** ~1.5 weeks
 **Dependency:** Sprint 1 (tokens)
 
 ### Tasks
@@ -222,8 +222,8 @@ Subtle glow:     radial-gradient(ellipse, #e8642c15, transparent)
 
 ## Sprint 5: Motion Design & Interaction Polish
 
-**Theme:** Make everything feel alive and responsive.  
-**Duration:** ~1 week  
+**Theme:** Make everything feel alive and responsive.
+**Duration:** ~1 week
 **Dependency:** Sprints 1–4 (needs new components in place)
 
 ### Tasks
@@ -244,8 +244,8 @@ Subtle glow:     radial-gradient(ellipse, #e8642c15, transparent)
 
 ## Sprint 6: Mobile Excellence & Final Polish
 
-**Theme:** Mobile is a first-class citizen, not a compromise.  
-**Duration:** ~1.5 weeks  
+**Theme:** Mobile is a first-class citizen, not a compromise.
+**Duration:** ~1.5 weeks
 **Dependency:** All previous sprints
 
 ### Tasks
@@ -312,7 +312,7 @@ These items surfaced during the review but are out of scope for the 6-sprint ove
 2. **Community page:** I proposed moving it to Settings. Are you OK with this being a secondary feature, or does it need to stay more prominent (e.g., a profile icon in the sidebar bottom that opens a panel)?
 3. **Custom layout vs. narrative default:** Sprint 3 proposes the narrative layout as the DEFAULT with "Custom Layout" as an option. Should we preserve the current widget-grid-first experience as a toggle, or fully commit to narrative-first?
 4. **Mobile priority:** Sprint 6 is last in sequence. If mobile is urgent, we could move the bottom sheet system (6.2) into Sprint 2 alongside the nav restructure. Your call.
-5. **Brand name in UI:** Currently "TradeForge OS" appears in the loading screen. Should we keep "OS" in the branding or simplify to just "TradeForge"?
+5. **Brand name in UI:** Currently "charEdge" appears in the loading screen. Should we keep "OS" in the branding or simplify to just "charEdge"?
 
 ---
 

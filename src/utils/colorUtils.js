@@ -1,3 +1,4 @@
+// @ts-check
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Color Utilities
 // Replaces fragile hex concatenation (C.b + '18') with proper

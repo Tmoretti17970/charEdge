@@ -23,6 +23,7 @@
 
 import { BaseAdapter } from './BaseAdapter.js';
 
+import { logger } from '../../utils/logger.ts';
 const FAPI_BASE = 'https://fapi.binance.com/fapi/v1';
 const FUTURES_WS = 'wss://fstream.binance.com/ws';
 
@@ -93,7 +94,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
       setCache(cacheKey, result);
       return result;
     } catch (err) {
-      console.warn('[BinanceFutures] OI fetch failed:', err.message);
+      logger.data.warn('[BinanceFutures] OI fetch failed:', err.message);
       return null;
     }
   }
@@ -125,7 +126,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
       setCache(cacheKey, result, HIST_CACHE_TTL);
       return result;
     } catch (err) {
-      console.warn('[BinanceFutures] OI history failed:', err.message);
+      logger.data.warn('[BinanceFutures] OI history failed:', err.message);
       return [];
     }
   }
@@ -160,7 +161,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
       setCache(cacheKey, result);
       return result;
     } catch (err) {
-      console.warn('[BinanceFutures] Funding rate failed:', err.message);
+      logger.data.warn('[BinanceFutures] Funding rate failed:', err.message);
       return [];
     }
   }
@@ -216,7 +217,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
       setCache(cacheKey, result, HIST_CACHE_TTL);
       return result;
     } catch (err) {
-      console.warn('[BinanceFutures] L/S ratio failed:', err.message);
+      logger.data.warn('[BinanceFutures] L/S ratio failed:', err.message);
       return [];
     }
   }
@@ -251,7 +252,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
       setCache(cacheKey, result, HIST_CACHE_TTL);
       return result;
     } catch (err) {
-      console.warn('[BinanceFutures] Taker volume failed:', err.message);
+      logger.data.warn('[BinanceFutures] Taker volume failed:', err.message);
       return [];
     }
   }

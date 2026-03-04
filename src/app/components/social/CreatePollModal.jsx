@@ -6,6 +6,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useSocialStore } from '../../../state/useSocialStore.js';
+import { logger } from '../../../utils/logger.ts';
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { alpha } from '../../../utils/colorUtils.js';
@@ -68,7 +69,7 @@ export default function CreatePollModal({ open, onClose }) {
     onClose();
 
     // Success feedback
-    console.log('✅ Prediction market created!');
+    logger.ui.info('✅ Prediction market created!');
   };
 
   const handleBackdrop = (e) => {

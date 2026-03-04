@@ -1,0 +1,57 @@
+/* SettingsHelpers — shared settings UI components */
+
+.sectionWrapper { margin-bottom: 16px; }
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.sectionTitle {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  margin: 0;
+}
+
+.sectionDesc {
+  font-size: var(--fs-sm);
+  margin: 0;
+  padding-left: 30px;
+}
+
+/* ─── Setting Row ─────────────────────────── */
+.settingRow { margin-bottom: 16px; }
+
+.settingLabel {
+  display: block;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.settingHint {
+  font-size: var(--fs-xs);
+  margin-top: 4px;
+}
+
+/* ─── Status Badge ────────────────────────── */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* ─── Alert Banner ────────────────────────── */
+.alertBanner {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-left-width: 3px;
+  border-left-style: solid;
+  font-size: 12px;
+}

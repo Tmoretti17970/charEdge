@@ -5,6 +5,7 @@
 
 import React, { useMemo } from 'react';
 import { C, F } from '../../../../constants.js';
+import Icon from '../../design/Icon.jsx';
 import { useAlertStore } from '../../../../state/useAlertStore.js';
 import { useChartStore } from '../../../../state/useChartStore.js';
 
@@ -106,7 +107,7 @@ export default function AlertLinesOverlay({ symbol, chartHeight = 400 }) {
               }}
               title={alert.note || `Alert: ${alert.condition} ${price}`}
             >
-              <span>🔔</span>
+              <span><Icon name="bell" size={9} /></span>
               <span>{price.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
               {alert.note && (
                 <span style={{ opacity: 0.7, maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis' }}>

@@ -66,9 +66,10 @@ export function formatCountdown(ms) {
  * @param {number} timestamp - Unix milliseconds
  * @param {string} tf - timeframe string
  * @param {number} [prevTimestamp] - Previous label's timestamp for boundary detection
+ * @param {boolean} [useUTC=true] - Sprint 9: Use UTC (true) or local time (false)
  * @returns {string}
  */
-export function formatTimeLabel(timestamp, tf, prevTimestamp) {
+export function formatTimeLabel(timestamp, tf, prevTimestamp, useUTC = true) {
   if (!timestamp || !isFinite(timestamp)) return '';
   const d = new Date(timestamp);
   const tfMs = tfToMs(tf);
@@ -76,41 +77,48 @@ export function formatTimeLabel(timestamp, tf, prevTimestamp) {
 
   const prev = prevTimestamp ? new Date(prevTimestamp) : null;
 
+  // Sprint 9: UTC/local time accessor helpers
+  const getYear = useUTC ? (dt) => dt.getUTCFullYear() : (dt) => dt.getFullYear();
+  const getMon = useUTC ? (dt) => dt.getUTCMonth() : (dt) => dt.getMonth();
+  const getDate = useUTC ? (dt) => dt.getUTCDate() : (dt) => dt.getDate();
+  const getHrs = useUTC ? (dt) => dt.getUTCHours() : (dt) => dt.getHours();
+  const getMins = useUTC ? (dt) => dt.getUTCMinutes() : (dt) => dt.getMinutes();
+
   // ─── Weekly / Monthly ─────────────────────────────────────────
   if (tfMs >= 86400000 * 7) {
     // Year boundary → show year
-    if (prev && d.getUTCFullYear() !== prev.getUTCFullYear()) {
-      return String(d.getUTCFullYear());
+    if (prev && getYear(d) !== getYear(prev)) {
+      return String(getYear(d));
     }
     // Default: "Feb '26"
-    return `${months[d.getUTCMonth()]} '${String(d.getUTCFullYear()).slice(2)}`;
+    return `${months[getMon(d)]} '${String(getYear(d)).slice(2)}`;
   }
 
   // ─── Daily ────────────────────────────────────────────────────
   if (tfMs >= 86400000) {
     // Year boundary → show year
-    if (prev && d.getUTCFullYear() !== prev.getUTCFullYear()) {
-      return String(d.getUTCFullYear());
+    if (prev && getYear(d) !== getYear(prev)) {
+      return String(getYear(d));
     }
     // Month boundary → show month name
-    if (prev && d.getUTCMonth() !== prev.getUTCMonth()) {
-      return months[d.getUTCMonth()];
+    if (prev && getMon(d) !== getMon(prev)) {
+      return months[getMon(d)];
     }
     // Default: "Feb 25"
-    return `${months[d.getUTCMonth()]} ${d.getUTCDate()}`;
+    return `${months[getMon(d)]} ${getDate(d)}`;
   }
 
   // ─── Intraday (hours, minutes) ────────────────────────────────
-  const hh = String(d.getUTCHours()).padStart(2, '0');
-  const mm = String(d.getUTCMinutes()).padStart(2, '0');
+  const hh = String(getHrs(d)).padStart(2, '0');
+  const mm = String(getMins(d)).padStart(2, '0');
 
   // Year boundary → show year
-  if (prev && d.getUTCFullYear() !== prev.getUTCFullYear()) {
-    return String(d.getUTCFullYear());
+  if (prev && getYear(d) !== getYear(prev)) {
+    return String(getYear(d));
   }
   // Day boundary → show date (TradingView style: "25 Feb")
-  if (prev && d.getUTCDate() !== prev.getUTCDate()) {
-    return `${d.getUTCDate()} ${months[d.getUTCMonth()]}`;
+  if (prev && getDate(d) !== getDate(prev)) {
+    return `${getDate(d)} ${months[getMon(d)]}`;
   }
   // Default: "14:00"
   return `${hh}:${mm}`;

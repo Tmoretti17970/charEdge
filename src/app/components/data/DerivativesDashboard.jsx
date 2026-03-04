@@ -10,6 +10,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { logger } from '../../../utils/logger.ts';
 import { C, F, M } from '../../../constants.js';
 import { binanceFuturesAdapter } from '../../../data/adapters/BinanceFuturesAdapter.js';
 
@@ -167,7 +168,7 @@ export default function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
       setFundingHistory(fundHist.map(d => d.fundingRate * 100));
       setLsrHistory(lsr.map(d => d.longShortRatio));
     } catch (err) {
-      console.warn('[DerivativesDashboard] Fetch failed:', err);
+      logger.data.warn('[DerivativesDashboard] Fetch failed:', err);
     }
     setLoading(false);
   }, [symbol]);

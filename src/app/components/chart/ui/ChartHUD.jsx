@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useChartStore } from '../../../../state/useChartStore.js';
 import { C } from '../../../../constants.js';
+import h from './ChartHUD.module.css';
 
 const FADE_DELAY = 3000; // ms before auto-fade
 
@@ -61,28 +62,10 @@ export default function ChartHUD({ symbol, timeframe, lastPrice, data }) {
       data-hidden={hidden || undefined}
     >
       {/* Top-left: Symbol + Price badge */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 8,
-          left: 8,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-        }}
-      >
+      <div className={h.topLeft}>
         {/* Live dot */}
         {isLive && (
-          <span
-            className="tf-pulse-dot"
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              background: C.g,
-              flexShrink: 0,
-            }}
-          />
+          <span className={`tf-pulse-dot ${h.liveDot}`} style={{ background: C.g }} />
         )}
 
         {/* Price change pill */}
@@ -125,15 +108,7 @@ export default function ChartHUD({ symbol, timeframe, lastPrice, data }) {
       </div>
 
       {/* Bottom-left: Active indicators count + drawings count */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 8,
-          left: 8,
-          display: 'flex',
-          gap: 8,
-        }}
-      >
+      <div className={h.bottomLeft}>
         {indicators.length > 0 && (
           <div
             style={{

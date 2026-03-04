@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger.ts';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v12 — Whale Alert Adapter
 //
@@ -82,7 +83,7 @@ class _WhaleAlertAdapter {
       CACHE.set('recent-whales', { data: result, expiry: Date.now() + CACHE_TTL });
       return result;
     } catch (err) {
-      console.warn('[WhaleAlert] Fetch failed:', err.message);
+      logger.data.warn('[WhaleAlert] Fetch failed:', err.message);
       return [];
     }
   }

@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger.ts';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v11 — Futures Derived Adapter
 //
@@ -121,7 +122,7 @@ class _FuturesDerivedAdapter {
       this._ws.onopen = () => {
         this._reconnectAttempts = 0;
         this._setConnected(true);
-        console.log('[FuturesDerivedAdapter] Connected to Broker Bridge');
+        logger.data.info('[FuturesDerivedAdapter] Connected to Broker Bridge');
       };
 
       this._ws.onmessage = (evt) => {
@@ -171,7 +172,7 @@ class _FuturesDerivedAdapter {
     const delay = RECONNECT_DELAY * Math.min(this._reconnectAttempts, 5);
 
     this._reconnectTimer = setTimeout(() => {
-      console.log(`[FuturesDerivedAdapter] Reconnect attempt ${this._reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}`);
+      logger.data.info(`[FuturesDerivedAdapter] Reconnect attempt ${this._reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}`);
       this._doConnect();
     }, delay);
   }

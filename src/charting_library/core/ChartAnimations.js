@@ -114,8 +114,6 @@ export function createTooltipTransition(element) {
   });
 }
 
-// ─── Easing Functions ────────────────────────────────────────
-
 const EASINGS = {
   linear: (t) => t,
   easeInQuad: (t) => t * t,
@@ -135,3 +133,178 @@ const EASINGS = {
 };
 
 export { EASINGS };
+
+// ═══════════════════════════════════════════════════════════════════
+// Sprint 19: Animation System Overhaul
+// ═══════════════════════════════════════════════════════════════════
+
+/**
+ * Sprint 19: Candle entrance animation — bars slide up from bottom.
+ * Only plays on first load and symbol change (300ms max, easeOutCubic).
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Function} drawFn - Receives (progress) to control bar Y offset
+ * @param {Object} options
+ * @param {number} [options.durationMs=300] - Max animation duration
+ * @param {number} [options.staggerMs=8] - Stagger per bar index
+ */
+export function animateCandleEntrance(ctx, drawFn, options = {}) {
+  const { durationMs = 300, staggerMs = 8 } = options;
+  const start = performance.now();
+  let rafId;
+
+  function tick() {
+    const elapsed = performance.now() - start;
+    const progress = Math.min(elapsed / durationMs, 1);
+    const easedProgress = EASINGS.easeOutCubic(progress);
+
+    ctx.save();
+    drawFn(easedProgress, staggerMs);
+    ctx.restore();
+
+    if (progress < 1) {
+      rafId = requestAnimationFrame(tick);
+    }
+  }
+
+  rafId = requestAnimationFrame(tick);
+  return () => cancelAnimationFrame(rafId);
+}
+
+/**
+ * Sprint 19: Chart type transition — crossfade between old and new render.
+ * Captures old frame as ImageBitmap, fades to new rendering.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {ImageBitmap|HTMLCanvasElement} oldFrame - Previous frame capture
+ * @param {Function} drawNewFrame - Draws the new chart type
+ * @param {number} [durationMs=250]
+ */
+export function animateChartTypeTransition(ctx, oldFrame, drawNewFrame, durationMs = 250) {
+  const start = performance.now();
+  let rafId;
+
+  function tick() {
+    const elapsed = performance.now() - start;
+    const progress = Math.min(elapsed / durationMs, 1);
+    const easedProgress = EASINGS.easeOutCubic(progress);
+
+    ctx.save();
+    // Draw old frame fading out
+    ctx.globalAlpha = 1 - easedProgress;
+    if (oldFrame) {
+      ctx.drawImage(oldFrame, 0, 0);
+    }
+    // Draw new frame fading in
+    ctx.globalAlpha = easedProgress;
+    drawNewFrame();
+    ctx.restore();
+
+    if (progress < 1) {
+      rafId = requestAnimationFrame(tick);
+    }
+  }
+
+  rafId = requestAnimationFrame(tick);
+  return () => cancelAnimationFrame(rafId);
+}
+
+/**
+ * Sprint 19: Spring-physics zoom animation.
+ * Replaces linear zoom lerp with a spring-damped oscillation.
+ * @param {number} startZoom
+ * @param {number} targetZoom
+ * @param {Function} onUpdate - (currentZoom) => void
+ * @param {Object} [options]
+ * @param {number} [options.stiffness=180]
+ * @param {number} [options.damping=12]
+ */
+export function animateSpringZoom(startZoom, targetZoom, onUpdate, options = {}) {
+  const { stiffness = 180, damping = 12 } = options;
+  let velocity = 0;
+  let currentZoom = startZoom;
+  let rafId;
+  let lastTime = performance.now();
+
+  function tick() {
+    const now = performance.now();
+    const dt = Math.min((now - lastTime) / 1000, 0.064); // Cap dt at ~16fps
+    lastTime = now;
+
+    const displacement = currentZoom - targetZoom;
+    const springForce = -stiffness * displacement;
+    const dampingForce = -damping * velocity;
+    const acceleration = springForce + dampingForce;
+
+    velocity += acceleration * dt;
+    currentZoom += velocity * dt;
+
+    onUpdate(currentZoom);
+
+    // Stop when settled (velocity ~0 and close to target)
+    if (Math.abs(velocity) < 0.001 && Math.abs(currentZoom - targetZoom) < 0.0001) {
+      onUpdate(targetZoom);
+      return;
+    }
+
+    rafId = requestAnimationFrame(tick);
+  }
+
+  rafId = requestAnimationFrame(tick);
+  return () => cancelAnimationFrame(rafId);
+}
+
+/**
+ * Sprint 19: Price line glow effect — animated gradient glow on current price line.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} y - Y position of price line (bitmap coords)
+ * @param {number} width - Canvas width (bitmap)
+ * @param {string} color - Glow color
+ * @param {number} pr - Pixel ratio
+ */
+export function drawPriceLineGlow(ctx, y, width, color = '#26A69A', pr = 1) {
+  const glowH = Math.round(12 * pr);
+  const gradient = ctx.createLinearGradient(0, y - glowH, 0, y + glowH);
+  gradient.addColorStop(0, 'transparent');
+  gradient.addColorStop(0.4, color + '30');
+  gradient.addColorStop(0.5, color + '60');
+  gradient.addColorStop(0.6, color + '30');
+  gradient.addColorStop(1, 'transparent');
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, y - glowH, width, glowH * 2);
+}
+
+/**
+ * Sprint 19: Shimmer loading effect — CSS-style shimmer sweep for placeholder bars.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {{x: number, y: number, w: number, h: number}} rect - Area to shimmer
+ * @param {number} [durationMs=1500]
+ */
+export function createShimmerEffect(ctx, rect, durationMs = 1500) {
+  const start = performance.now();
+  let rafId;
+
+  function tick() {
+    const elapsed = performance.now() - start;
+    const progress = (elapsed % durationMs) / durationMs;
+    const sweepX = rect.x + rect.w * progress;
+    const sweepW = rect.w * 0.3;
+
+    const gradient = ctx.createLinearGradient(sweepX - sweepW, 0, sweepX + sweepW, 0);
+    gradient.addColorStop(0, 'rgba(255,255,255,0)');
+    gradient.addColorStop(0.5, 'rgba(255,255,255,0.08)');
+    gradient.addColorStop(1, 'rgba(255,255,255,0)');
+
+    ctx.save();
+    ctx.fillStyle = gradient;
+    ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+    ctx.restore();
+
+    if (elapsed < durationMs * 3) {
+      rafId = requestAnimationFrame(tick);
+    }
+  }
+
+  rafId = requestAnimationFrame(tick);
+  return () => cancelAnimationFrame(rafId);
+}
+

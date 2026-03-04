@@ -6,6 +6,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useUserStore } from '../../../../state/useUserStore.js';
+import { logger } from '../../../../utils/logger.ts';
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useChartStore } from '../../../../state/useChartStore.js';
 import { useJournalStore } from '../../../../state/useJournalStore.js';
@@ -24,6 +25,7 @@ import DrawingContextMenu from '../tools/DrawingContextMenu.jsx';
 import DrawingEditPopup from '../tools/DrawingEditPopup.jsx';
 import DataStalenessIndicator from '../ui/DataStalenessIndicator.jsx';
 import DataFallbackBanner from '../ui/DataFallbackBanner.jsx';
+import IndicatorSettingsDialog from '../panels/IndicatorSettingsDialog.jsx';
 
 // ─── Constants ───────────────────────────────────────────────────
 const BINANCE_TF_MAP = {
@@ -72,6 +74,7 @@ export default function ChartEngineWidget({
   const heatmapIntensity = useChartStore((s) => s.heatmapIntensity);
   const showSessions = useChartStore((s) => s.showSessions);
   const paneHeights = useChartStore((s) => s.paneHeights);
+  const historyLoading = useChartStore((s) => s.historyLoading); // Sprint 1/8: left-edge loading indicator
   // Order Flow Overlays
   const showDeltaOverlay = useChartStore((s) => s.showDeltaOverlay);
   const showVPOverlay = useChartStore((s) => s.showVPOverlay);
@@ -102,6 +105,7 @@ export default function ChartEngineWidget({
   const [dataSource, setDataSource] = useState(null); // track source for fallback banner
   const [ctxMenu, setCtxMenu] = useState(null); // { x, y, drawing }
   const [editPopup, setEditPopup] = useState(null); // { drawing data from event }
+  const [editingIndicatorIdx, setEditingIndicatorIdx] = useState(null); // Sprint 13: indicator settings dialog
   const [highlightedTrade, setHighlightedTrade] = useState(null);
   const paneIdRef = useRef(`widget-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`);
 
@@ -177,7 +181,23 @@ export default function ChartEngineWidget({
       },
       onDrawingStateChange: (state) => {
         if (state === 'idle') useChartStore.getState().setActiveTool(null);
-      }
+      },
+      // Sprint 11: Pane resize callback — updates Zustand store
+      onPaneResize: (paneIdx, fraction) => {
+        useChartStore.getState().setPaneHeight(paneIdx, fraction);
+      },
+      // Sprint 11: Pane collapse toggle
+      onPaneToggle: (paneIdx) => {
+        const eng = engineRef.current;
+        if (!eng) return;
+        const collapsed = eng.state.collapsedPanes;
+        if (collapsed.has(paneIdx)) {
+          collapsed.delete(paneIdx);
+        } else {
+          collapsed.add(paneIdx);
+        }
+        eng.markDirty();
+      },
     };
 
     const props = {
@@ -259,12 +279,26 @@ export default function ChartEngineWidget({
     };
     if (containerRef.current) containerRef.current.addEventListener('contextmenu', handleContextMenu);
 
-    // Double-click for editing drawings
+    // Double-click for editing drawings or opening indicator settings
     const handleDblClick = (e) => {
-      const de = engineRef.current?.drawingEngine;
-      if (!de) return;
+      const eng = engineRef.current;
+      if (!eng) return;
       const rect = containerRef.current.getBoundingClientRect();
-      de.onDoubleClick(e.clientX - rect.left, e.clientY - rect.top);
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // Sprint 13: Check legend double-click first
+      const regions = eng.state._legendHitRegions || [];
+      for (const r of regions) {
+        if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h && r.type === 'indicator') {
+          setEditingIndicatorIdx(r.idx);
+          return; // consume — don't pass to drawing engine
+        }
+      }
+
+      // Existing: drawing double-click
+      const de = eng.drawingEngine;
+      if (de) de.onDoubleClick(x, y);
     };
     if (containerRef.current) containerRef.current.addEventListener('dblclick', handleDblClick);
 
@@ -290,6 +324,26 @@ export default function ChartEngineWidget({
     };
     window.addEventListener('charEdge:submit-drawing-text', handleTextEdit);
 
+    // Sprint 12: Toggle indicator visibility from legend eye icon
+    const onToggleIndicator = (e) => {
+      const eng = engineRef.current;
+      if (!eng) return;
+      const idx = e.detail;
+      if (eng.state.hiddenIndicators.has(idx)) {
+        eng.state.hiddenIndicators.delete(idx);
+      } else {
+        eng.state.hiddenIndicators.add(idx);
+      }
+      eng.markDirty();
+    };
+    window.addEventListener('charEdge:toggle-indicator', onToggleIndicator);
+
+    // Sprint 13: Open indicator settings from event
+    const onOpenIndicatorSettings = (e) => {
+      setEditingIndicatorIdx(e.detail?.idx ?? e.detail);
+    };
+    window.addEventListener('charEdge:open-indicator-settings', onOpenIndicatorSettings);
+
     if (onEngineReady) onEngineReady(engineRef.current);
 
     return () => {
@@ -302,6 +356,8 @@ export default function ChartEngineWidget({
       window.removeEventListener('charEdge:update-drawing-style', onUpdateDrawingStyle);
       window.removeEventListener('charEdge:submit-drawing-text', handleTextEdit);
       window.removeEventListener('charEdge:edit-drawing', handleEditDrawing);
+      window.removeEventListener('charEdge:toggle-indicator', onToggleIndicator);
+      window.removeEventListener('charEdge:open-indicator-settings', onOpenIndicatorSettings);
       if (containerRef.current) {
         containerRef.current.removeEventListener('contextmenu', handleContextMenu);
         containerRef.current.removeEventListener('dblclick', handleDblClick);
@@ -324,6 +380,22 @@ export default function ChartEngineWidget({
       aggregatorKey: `${binanceSymbol}_${binanceTf}`
     });
   }, [theme, symbol, tf, chartType, showVolume, compact, trades, srLevels, patternMarkers, divergences, storeChartColors, magnetMode, showHeatmap, heatmapIntensity, showSessions, paneHeights, showDeltaOverlay, showVPOverlay, showOIOverlay, showLargeTradesOverlay, binanceSymbol, binanceTf]);
+
+  // Sprint 1: Sync historyLoading state to engine for shimmer bar rendering
+  useEffect(() => {
+    if (!engineRef.current) return;
+    engineRef.current.state.historyLoading = historyLoading;
+    if (historyLoading) engineRef.current.markDirty();
+  }, [historyLoading]);
+
+  // Sprint 8: Preserve viewport when older bars are prepended
+  const lastPrependCount = useChartStore((s) => s.lastPrependCount);
+  useEffect(() => {
+    if (!engineRef.current || !lastPrependCount) return;
+    // Offset scrollOffset by the number of new bars so the same candles stay visible
+    engineRef.current.state.scrollOffset += lastPrependCount;
+    useChartStore.setState({ lastPrependCount: 0 }); // Reset after consuming
+  }, [lastPrependCount]);
 
   // Update tools
   useEffect(() => {
@@ -367,7 +439,7 @@ export default function ChartEngineWidget({
         engineRef.current.setData(bars);
       },
       onError: (err) => {
-        console.error('Datafeed error:', err);
+        logger.engine.error('Datafeed error:', err);
         setStatus('error');
         setDataSource('no_data');
       },
@@ -472,13 +544,33 @@ export default function ChartEngineWidget({
                   setStatus('error');
                   setDataSource('no_data');
                 }
-              }).catch((err) => { console.warn('[ChartEngine] Retry failed:', err?.message); setStatus('error'); setDataSource('no_data'); });
+              }).catch((err) => { logger.engine.warn('[ChartEngine] Retry failed:', err?.message); setStatus('error'); setDataSource('no_data'); });
             });
           }}
         />
       )}
 
       {children}
+
+      {/* Sprint 1/8: History Loading Indicator — left edge during scroll-left prefetch */}
+      {historyLoading && (
+        <div style={{
+          position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
+          display: 'flex', alignItems: 'center', gap: 6, zIndex: 12,
+          background: 'rgba(19,23,34,0.88)', borderRadius: 16,
+          padding: '6px 14px 6px 10px', border: '1px solid rgba(54,58,69,0.5)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)',
+        }}>
+          <div style={{
+            width: 14, height: 14, border: '2px solid #363A45',
+            borderTopColor: '#2962FF', borderRadius: '50%',
+            animation: 'spin .8s linear infinite',
+          }} />
+          <span style={{ color: '#787B86', fontSize: 11, fontFamily: 'Inter, Arial, sans-serif', whiteSpace: 'nowrap' }}>
+            Loading history…
+          </span>
+        </div>
+      )}
 
       {/* Data Staleness Indicator — top-right badge */}
       {status === 'ready' && (
@@ -515,6 +607,13 @@ export default function ChartEngineWidget({
           containerRect={containerRef.current?.getBoundingClientRect()}
           engine={engineRef.current?.drawingEngine}
           onClose={closeEditPopup}
+        />
+      )}
+
+      {editingIndicatorIdx != null && (
+        <IndicatorSettingsDialog
+          indicatorIdx={editingIndicatorIdx}
+          onClose={() => setEditingIndicatorIdx(null)}
         />
       )}
 

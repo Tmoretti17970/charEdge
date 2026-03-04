@@ -6,33 +6,20 @@
 import { C, F, M } from '../../../constants.js';
 import { radii } from '../../../theme/tokens.js';
 import TFIcon from '../ui/TFIcon.jsx';
+import s from './SettingsHelpers.module.css';
 
 // ─── Section Header ─────────────────────────────────────────────
 
 export function SectionHeader({ icon, title, description }) {
   return (
-    <div style={{ marginBottom: 16 }}>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          marginBottom: 4,
-        }}
-      >
+    <div className={s.sectionWrapper}>
+      <div className={s.sectionHeader}>
         <TFIcon name={icon} size="lg" color={C.b} />
-        <h2
-          style={{
-            fontSize: 16,
-            fontWeight: 700,
-            color: C.t1,
-            margin: 0,
-          }}
-        >
+        <h2 className={s.sectionTitle} style={{ color: C.t1 }}>
           {title}
         </h2>
       </div>
-      {description && <p style={{ fontSize: 13, color: C.t3, margin: 0, paddingLeft: 30 }}>{description}</p>}
+      {description && <p className={s.sectionDesc} style={{ color: C.t3 }}>{description}</p>}
     </div>
   );
 }
@@ -41,20 +28,12 @@ export function SectionHeader({ icon, title, description }) {
 
 export function SettingRow({ label, hint, children }) {
   return (
-    <div style={{ marginBottom: 16 }}>
-      <label
-        style={{
-          display: 'block',
-          fontSize: 12,
-          fontWeight: 600,
-          color: C.t2,
-          marginBottom: 6,
-        }}
-      >
+    <div className={s.settingRow}>
+      <label className={s.settingLabel} style={{ color: C.t2 }}>
         {label}
       </label>
       {children}
-      {hint && <div style={{ fontSize: 11, color: C.t3, marginTop: 4, fontFamily: M }}>{hint}</div>}
+      {hint && <div className={s.settingHint} style={{ color: C.t3, fontFamily: M }}>{hint}</div>}
     </div>
   );
 }
@@ -64,17 +43,11 @@ export function SettingRow({ label, hint, children }) {
 export function StatusBadge({ ok, label }) {
   return (
     <span
+      className={s.statusBadge}
       style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 4,
-        padding: '3px 10px',
-        borderRadius: 12,
         background: ok ? C.g + '12' : C.bd + '30',
         border: `1px solid ${ok ? C.g + '40' : C.bd}`,
-        fontSize: 10,
         fontFamily: M,
-        fontWeight: 600,
         color: ok ? C.g : C.t3,
       }}
     >
@@ -89,13 +62,11 @@ export function AlertBanner({ ok, message }) {
   if (!message) return null;
   return (
     <div
+      className={s.alertBanner}
       style={{
-        marginTop: 10,
-        padding: '8px 12px',
         borderRadius: radii.sm,
         background: ok ? C.g + '12' : C.r + '12',
-        borderLeft: `3px solid ${ok ? C.g : C.r}`,
-        fontSize: 12,
+        borderLeftColor: ok ? C.g : C.r,
         fontFamily: M,
         color: ok ? C.g : C.r,
       }}

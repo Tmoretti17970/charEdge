@@ -18,6 +18,7 @@
 
 import { BaseAdapter } from './BaseAdapter.js';
 
+import { logger } from '../../utils/logger.ts';
 const KRAKEN_REST = 'https://api.kraken.com/0/public';
 const KRAKEN_WS = 'wss://ws.kraken.com';
 
@@ -121,7 +122,7 @@ export class KrakenAdapter extends BaseAdapter {
 
       const json = await resp.json();
       if (json.error?.length) {
-        console.warn('[KrakenAdapter] OHLC error:', json.error);
+        logger.data.warn('[KrakenAdapter] OHLC error:', json.error);
         return [];
       }
 
@@ -138,7 +139,7 @@ export class KrakenAdapter extends BaseAdapter {
         volume: parseFloat(bar[6]), // bar[6] = volume (bar[5] = vwap)
       }));
     } catch (err) {
-      console.warn('[KrakenAdapter] fetchOHLCV failed:', err.message);
+      logger.data.warn('[KrakenAdapter] fetchOHLCV failed:', err.message);
       return [];
     }
   }
@@ -171,7 +172,7 @@ export class KrakenAdapter extends BaseAdapter {
         trades: parseInt(d.t[1], 10),    // 24h trade count
       };
     } catch (err) {
-      console.warn('[KrakenAdapter] fetchQuote failed:', err.message);
+      logger.data.warn('[KrakenAdapter] fetchQuote failed:', err.message);
       return null;
     }
   }
@@ -217,7 +218,7 @@ export class KrakenAdapter extends BaseAdapter {
 
       this._ws.onopen = () => {
         this._wsConnected = true;
-        console.log('[KrakenAdapter] WebSocket connected');
+        logger.data.info('[KrakenAdapter] WebSocket connected');
 
         // Subscribe to all pending pairs
         const pairs = [...this._subscribers.keys()];

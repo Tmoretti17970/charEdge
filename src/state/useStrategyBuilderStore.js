@@ -1,3 +1,4 @@
+// @ts-check
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Strategy Builder Store
 // State management for the no-code visual strategy builder.

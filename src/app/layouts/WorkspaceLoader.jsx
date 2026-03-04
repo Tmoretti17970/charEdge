@@ -11,6 +11,7 @@
 
 import { Suspense, lazy } from 'react';
 import { C, F, M } from '../../constants.js';
+import s from './WorkspaceLoader.module.css';
 
 // Attempt lazy import — will fail gracefully if flexlayout-react not installed
 const WorkspaceLayoutLazy = lazy(() =>
@@ -21,57 +22,26 @@ const WorkspaceLayoutLazy = lazy(() =>
 
 function WorkspaceFallback({ error }) {
   return (
-    <div
-      style={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 12,
-        fontFamily: F,
-        color: C.t2,
-        padding: 40,
-        textAlign: 'center',
-      }}
-    >
-      <div style={{ fontSize: 32 }}>◧</div>
-      <div style={{ fontSize: 15, fontWeight: 600, color: C.t1 }}>Workspace Mode</div>
-      <div style={{ fontSize: 12, color: C.t3, maxWidth: 400, lineHeight: 1.6 }}>
+    <div className={s.fallback} style={{ fontFamily: F, color: C.t2 }}>
+      <div className={s.fallbackIcon}>◧</div>
+      <div className={s.fallbackTitle} style={{ color: C.t1 }}>Workspace Mode</div>
+      <div className={s.fallbackDesc} style={{ color: C.t3 }}>
         Multi-chart workspace requires the <code style={{ fontFamily: M, color: C.b }}>flexlayout-react</code> package.
       </div>
       <div
-        style={{
-          background: C.sf,
-          border: `1px solid ${C.bd}`,
-          borderRadius: 6,
-          padding: '10px 16px',
-          fontFamily: M,
-          fontSize: 12,
-          color: C.t1,
-          userSelect: 'all',
-        }}
+        className={s.codeBlock}
+        style={{ background: C.sf, border: `1px solid ${C.bd}`, fontFamily: M, color: C.t1 }}
       >
         npm install flexlayout-react
       </div>
-      {error && <div style={{ fontSize: 10, color: C.t3, marginTop: 4 }}>{error}</div>}
+      {error && <div className={s.fallbackError} style={{ color: C.t3 }}>{error}</div>}
     </div>
   );
 }
 
 function LoadingFallback() {
   return (
-    <div
-      style={{
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: C.t3,
-        fontFamily: F,
-        fontSize: 13,
-      }}
-    >
+    <div className={s.loading} style={{ color: C.t3, fontFamily: F }}>
       Loading workspace...
     </div>
   );

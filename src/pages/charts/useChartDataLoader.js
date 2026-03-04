@@ -5,7 +5,7 @@
 // share URL parsing, alert checks, and data warning events.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { TFS } from '../../constants.js';
 import { reportError } from '../../utils/globalErrorHandler.js';
 import { useChartStore } from '../../state/useChartStore.js';
@@ -14,7 +14,7 @@ import { useAlertStore, checkSymbolAlerts, requestNotificationPermission } from 
 import { useJournalStore } from '../../state/useJournalStore.js';
 import useWebSocket from '../../data/useWebSocket.js';
 import { WebSocketService } from '../../data/WebSocketService.js';
-import { fetchOHLC, warmCache } from '../../data/FetchService.js';
+import { fetchOHLC, fetchOHLCPage, warmCache } from '../../data/FetchService.js';
 
 import { tickerPlant } from '../../data/engine/streaming/TickerPlant.js';
 import { dataPipeline } from '../../data/engine/DataPipeline.js';
@@ -35,8 +35,25 @@ export default function useChartDataLoader() {
   const tf = useChartStore((s) => s.tf);
   const data = useChartStore((s) => s.data);
   const setSymbol = useChartStore((s) => s.setSymbol);
+  const historyLoading = useChartStore((s) => s.historyLoading);
+  const historyExhausted = useChartStore((s) => s.historyExhausted);
+  const oldestTime = useChartStore((s) => s.oldestTime);
 
   const [dataWarning, setDataWarning] = useState(null);
+
+  // Sprint 6: TTI (Time-to-Interactive) measurement
+  const ttiMountRef = useRef(performance.now());
+  const ttiReportedRef = useRef(false);
+  useEffect(() => {
+    if (data?.length > 0 && !ttiReportedRef.current) {
+      ttiReportedRef.current = true;
+      const tti = Math.round(performance.now() - ttiMountRef.current);
+      if (import.meta.env?.DEV) {
+        console.info(`[charEdge] TTI: ${tti}ms (${data.length} bars)`);
+      }
+      if (typeof window !== 'undefined') window.__charEdge_tti = tti;
+    }
+  }, [data]);
 
   const watchlistItems = useWatchlistStore((s) => s.items);
   const watchlistSymbols = useMemo(() => watchlistItems.map((i) => i.symbol), [watchlistItems]);
@@ -99,6 +116,8 @@ export default function useChartDataLoader() {
   // Fetch real data when symbol or tf changes via FetchService pipeline
   useEffect(() => {
     let cancelled = false;
+    // Sprint 8: AbortController for true HTTP cancellation on symbol switch
+    const abortController = new AbortController();
     const markId = `tf-chart-load-${symbol}-${tf}-${Date.now()}`;
     performance.mark(`${markId}-start`);
     const loadTimer = setTimeout(() => {
@@ -107,7 +126,7 @@ export default function useChartDataLoader() {
 
     const fetchTimer = setTimeout(() => {
       if (cancelled) return;
-      fetchOHLC(symbol, tf)
+      fetchOHLC(symbol, tf, { signal: abortController.signal })
         .then(({ data: newData, source }) => {
           if (cancelled) return;
           performance.mark(`${markId}-end`);
@@ -124,7 +143,7 @@ export default function useChartDataLoader() {
           }
         })
         .catch((err) => {
-          if (cancelled) return;
+          if (cancelled || err?.name === 'AbortError') return;
           reportError(err, { source: 'ChartDataLoader.fetchOHLC' });
           // Phase 0.4: Show empty state instead of fake simulated data
           useChartStore.getState().setData([], 'none');
@@ -134,6 +153,7 @@ export default function useChartDataLoader() {
 
     return () => {
       cancelled = true;
+      abortController.abort(); // Sprint 8: Cancel in-flight HTTP request
       clearTimeout(loadTimer);
       clearTimeout(fetchTimer);
     };
@@ -206,6 +226,71 @@ export default function useChartDataLoader() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Sprint 1: Scroll-left history prefetch ─────────────────────
+  // When the chart engine detects the user is near the left edge,
+  // it dispatches 'charEdge:prefetch-history'. We fetch older bars
+  // and prepend them to the store.
+  const prefetchHistory = useCallback(() => {
+    const state = useChartStore.getState();
+    if (state.historyLoading || state.historyExhausted) return;
+    const oldest = state.oldestTime;
+    if (!oldest) return;
+
+    state.setHistoryLoading(true);
+    fetchOHLCPage(symbol, tf, oldest)
+      .then(({ data: olderBars, hasMore }) => {
+        useChartStore.getState().prependData(olderBars);
+        if (!hasMore) {
+          useChartStore.setState({ historyExhausted: true });
+        }
+      })
+      .catch((err) => {
+        reportError(err, { source: 'ChartDataLoader.prefetchHistory' });
+        useChartStore.getState().setHistoryLoading(false);
+      });
+  }, [symbol, tf]);
+
+  useEffect(() => {
+    const handler = () => prefetchHistory();
+    window.addEventListener('charEdge:prefetch-history', handler);
+    return () => window.removeEventListener('charEdge:prefetch-history', handler);
+  }, [prefetchHistory]);
+
+  // ── Sprint 2: Background prefetch for adjacent timeframes ──────
+  // After initial data loads, warm the cache for nearby TFs so switching is instant.
+  const adjacentPrefetchedRef = useRef(new Set());
+  useEffect(() => {
+    const state = useChartStore.getState();
+    if (!state.data?.length || adjacentPrefetchedRef.current.has(`${symbol}:${tf}`)) return;
+
+    const ADJACENT_TFS = {
+      '1m': ['5m'], '5m': ['15m', '1m'], '15m': ['1h', '5m'],
+      '1h': ['4h', '15m'], '4h': ['1D', '1h'], '1D': ['1w', '4h'], '1w': ['1D'],
+    };
+
+    const neighbors = ADJACENT_TFS[tf];
+    if (!neighbors?.length) return;
+
+    const scheduleId = typeof requestIdleCallback === 'function'
+      ? requestIdleCallback(() => {
+          adjacentPrefetchedRef.current.add(`${symbol}:${tf}`);
+          for (const adjTf of neighbors) {
+            fetchOHLC(symbol, adjTf).catch(() => {}); // fetchOHLC already writes to CacheManager
+          }
+        }, { timeout: 5000 })
+      : setTimeout(() => {
+          adjacentPrefetchedRef.current.add(`${symbol}:${tf}`);
+          for (const adjTf of neighbors) {
+            fetchOHLC(symbol, adjTf).catch(() => {});
+          }
+        }, 3000);
+
+    return () => {
+      if (typeof cancelIdleCallback === 'function') cancelIdleCallback(scheduleId);
+      else clearTimeout(scheduleId);
+    };
+  }, [symbol, tf]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return {
     tick,
     wsStatus,
@@ -218,5 +303,8 @@ export default function useChartDataLoader() {
     priceSpread,
     priceSources,
     watchlistSymbols,
+    historyLoading,
+    historyExhausted,
+    prefetchHistory,
   };
 }

@@ -14,6 +14,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 
+import { logger } from '../../../utils/logger.ts';
 // ─── Styles ────────────────────────────────────────────────────
 
 const s = {
@@ -179,7 +180,7 @@ export default function DataHealthPanel() {
 
       setData(result);
     } catch (err) {
-      console.warn('[DataHealthPanel] Failed to gather stats:', err);
+      logger.data.warn('[DataHealthPanel] Failed to gather stats:', err);
     } finally {
       setLoading(false);
     }

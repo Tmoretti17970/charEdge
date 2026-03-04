@@ -17,6 +17,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { BaseAdapter } from './BaseAdapter.js';
+import { logger } from '../../utils/logger.ts';
 import { pythCandleAggregator, SUPPORTED_INTERVALS } from '../engine/streaming/PythCandleAggregator.js';
 
 // ─── Hermes API Endpoints ───────────────────────────────────────
@@ -169,7 +170,7 @@ export class PythAdapter extends BaseAdapter {
         source: 'pyth',
       };
     } catch (err) {
-      console.warn(`[PythAdapter] fetchQuote error for ${symbol}:`, err.message);
+      logger.data.warn(`[PythAdapter] fetchQuote error for ${symbol}:`, err.message);
       return null;
     }
   }
@@ -311,7 +312,7 @@ export class PythAdapter extends BaseAdapter {
 
       return results;
     } catch (err) {
-      console.warn('[PythAdapter] fetchMultiQuote error:', err.message);
+      logger.data.warn('[PythAdapter] fetchMultiQuote error:', err.message);
       return {};
     }
   }
@@ -441,7 +442,7 @@ export class PythAdapter extends BaseAdapter {
         }, 1000);
       };
     } catch (err) {
-      console.warn('[PythAdapter] SSE connection error:', err.message);
+      logger.data.warn('[PythAdapter] SSE connection error:', err.message);
       this._status = 'error';
     }
   }

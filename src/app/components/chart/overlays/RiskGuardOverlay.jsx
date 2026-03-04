@@ -12,6 +12,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { usePropFirmStore } from '../../../../state/usePropFirmStore.js';
 import { useJournalStore } from '../../../../state/useJournalStore.js';
+import s from './RiskGuardOverlay.module.css';
 
 export default function RiskGuardOverlay() {
   const activeProfile = usePropFirmStore((s) => s.activeProfile);
@@ -99,7 +100,7 @@ export default function RiskGuardOverlay() {
 
       {expanded && (
         <div className="tf-risk-expanded">
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--tf-t2)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          <div className={s.expandedTitle} style={{ color: 'var(--tf-t2)' }}>
             {status.firmName} Risk Guard
           </div>
 
@@ -142,14 +143,14 @@ export default function RiskGuardOverlay() {
           </div>
 
           {/* Summary */}
-          <div style={{ fontSize: 11, color: 'var(--tf-t3)', marginTop: 8 }}>
+          <div className={s.summary} style={{ color: 'var(--tf-t3)' }}>
             Today: {status.tradeCount} trades · P&L: <span style={{ color: status.dailyPnl >= 0 ? '#26A69A' : '#EF5350', fontWeight: 600 }}>
               {status.dailyPnl >= 0 ? '+' : ''}${status.dailyPnl.toFixed(2)}
             </span>
           </div>
 
           {status.level === 'locked' && (
-            <div style={{ fontSize: 11, color: '#D32F2F', fontWeight: 600, marginTop: 6, padding: '6px 8px', background: 'rgba(211, 47, 47, 0.08)', borderRadius: 8 }}>
+            <div className={s.lockedBanner}>
               ⚠ Risk limit reached. Trading is blocked until the next session.
             </div>
           )}

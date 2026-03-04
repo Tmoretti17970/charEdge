@@ -1,3 +1,4 @@
+// @ts-check
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Telemetry Utility
 // Lightweight, privacy-first event tracking for simplification metrics.

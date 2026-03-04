@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger.ts';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v15 — Bybit Futures Adapter
 //
@@ -292,7 +293,7 @@ class _BybitFuturesAdapter {
         // onclose will fire after this
       };
     } catch (err) {
-      console.warn('[BybitFutures] WebSocket init failed:', err.message);
+      logger.data.warn('[BybitFutures] WebSocket init failed:', err.message);
     }
   }
 

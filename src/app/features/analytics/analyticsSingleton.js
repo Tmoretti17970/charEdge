@@ -16,6 +16,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { AnalyticsBridge } from './AnalyticsBridge.js';
+import { logger } from '../../../utils/logger.ts';
 import { useAnalyticsStore } from '../../../state/useAnalyticsStore.js';
 
 let _instance = null;
@@ -154,7 +155,7 @@ export async function computeAndStore(trades, settings = {}) {
           store.setResult(data, ms, mode);
         }
       } catch (err) {
-        console.warn('[analyticsSingleton] Compute failed:', err.message);
+        logger.worker.warn('[analyticsSingleton] Compute failed:', err.message);
         store.setError(err.message);
       }
 

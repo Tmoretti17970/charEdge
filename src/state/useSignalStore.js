@@ -1,3 +1,4 @@
+// @ts-check
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — useSignalStore (DEPRECATED — re-export shim)
 //

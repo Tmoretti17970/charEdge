@@ -95,6 +95,36 @@ function lowestLow(candles, period, idx) {
 
 export const indicators = {
 
+  // ─── Simple Moving Average ───────────────────────────────
+
+  /**
+   * SMA overlay — wraps the private sma() helper for bridge/worker access.
+   * @param {Array} candles
+   * @param {number} [period=20]
+   * @returns {Array<{ time, value }>}
+   */
+  sma(candles, period = 20) {
+    if (!candles?.length) return [];
+    const closes = candles.map(c => c.close);
+    const values = sma(closes, period);
+    return candles.map((c, i) => ({ time: c.time, value: values[i] }));
+  },
+
+  // ─── Exponential Moving Average ──────────────────────────
+
+  /**
+   * EMA overlay — wraps the private ema() helper for bridge/worker access.
+   * @param {Array} candles
+   * @param {number} [period=20]
+   * @returns {Array<{ time, value }>}
+   */
+  ema(candles, period = 20) {
+    if (!candles?.length) return [];
+    const closes = candles.map(c => c.close);
+    const values = ema(closes, period);
+    return candles.map((c, i) => ({ time: c.time, value: values[i] }));
+  },
+
   // ─── On-Balance Volume ───────────────────────────────────
 
   /**

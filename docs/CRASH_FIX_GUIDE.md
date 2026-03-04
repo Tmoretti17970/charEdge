@@ -1,4 +1,4 @@
-# TradeForge — Charts Page Crash Fix (Full Audit)
+# charEdge — Charts Page Crash Fix (Full Audit)
 
 **Date:** 2026-02-21
 **Severity:** P0 — Charts page completely unusable
@@ -84,7 +84,7 @@ Compounded by: CORS failures on Binance/CoinGecko APIs causing rapid fallback ch
 
 1. Copy each file to its source path (see table above)
 2. No new dependencies — all imports already existed
-3. Clear browser localStorage key `tradeforge-chart-trade` (persist schema unchanged, but clean slate recommended)
+3. Clear browser localStorage key `charedge-chart-trade` (persist schema unchanged, but clean slate recommended)
 4. Test sequence:
    - [ ] Navigate to Charts page — should load without crash
    - [ ] Verify data loads (check DataSourceBadge: LIVE / DELAYED / SIMULATED)
@@ -125,8 +125,8 @@ WebSocketService   →  WS #2  →  wss://.../{sym}@kline_{tf}  (DUPLICATE!)
 ```
 ChartEngineWidget  →  WS #1  →  wss://.../stream?streams={sym}@kline_{tf}/{sym}@miniTicker
                                  kline      → barsRef + store (close only)
-                                 miniTicker → window event 'tradeforge:ws-tick'
-                                 open/close → window event 'tradeforge:ws-status'
+                                 miniTicker → window event 'charedge:ws-tick'
+                                 open/close → window event 'charedge:ws-status'
 
 useWebSocket       →  listens to window events (NO WS connection)
                       → { tick, wsStatus, isLive } for LiveTicker + DataSourceBadge

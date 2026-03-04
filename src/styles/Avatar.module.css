@@ -1,0 +1,48 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — Avatar CSS Module
+   Variants: sm (28px), md (36px), lg (48px)
+   Supports image, initials fallback, and status indicator
+   ═══════════════════════════════════════════════════════════════════ */
+
+.avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+  font-weight: 700;
+  text-transform: uppercase;
+  user-select: none;
+  flex-shrink: 0;
+  background: var(--avatar-bg, var(--color-brand, #6366f1));
+  color: #fff;
+}
+
+.sm { width: 28px; height: 28px; font-size: 11px; }
+.md { width: 36px; height: 36px; font-size: 13px; }
+.lg { width: 48px; height: 48px; font-size: 16px; }
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ─── Status Dot ─────────────────────────────────────────────── */
+.status {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  border-radius: 50%;
+  border: 2px solid var(--color-bg1, #1a1a2e);
+}
+
+.statusSm { width: 8px; height: 8px; }
+.statusMd { width: 10px; height: 10px; }
+.statusLg { width: 12px; height: 12px; }
+
+.online { background: #22c55e; }
+.offline { background: #9ca3af; }
+.away { background: #f59e0b; }
+.busy { background: #ef4444; }

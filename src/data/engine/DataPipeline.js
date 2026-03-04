@@ -17,6 +17,7 @@ import { tickerPlant } from './streaming/TickerPlant.js';
 import { pythAdapter } from '../adapters/PythAdapter.js';
 import { getBandwidthMonitor } from './infra/BandwidthMonitor.js';
 import { getBatteryThrottle } from './infra/BatteryThrottle.js';
+import { logger } from '../../utils/logger.js';
 
 // ─── Data Source Constants ──────────────────────────────────────
 
@@ -91,7 +92,7 @@ class DataPipeline extends EventTarget {
     this._bandwidthMonitor.start();
     this._batteryThrottle.init();
 
-    console.log('[DataPipeline] Started — TickerPlant + BandwidthMonitor active');
+    logger.data.info('Started — TickerPlant + BandwidthMonitor active');
   }
 
   /**
@@ -119,7 +120,7 @@ class DataPipeline extends EventTarget {
     this._bandwidthMonitor.stop();
     this._batteryThrottle.destroy();
 
-    console.log('[DataPipeline] Stopped');
+    logger.data.info('Stopped');
   }
 
   // ─── Symbol Management ──────────────────────────────────────
@@ -242,7 +243,7 @@ class DataPipeline extends EventTarget {
 
     this._onOnline = () => {
       this._online = true;
-      console.log('[DataPipeline] Network restored — reconnecting sources');
+      logger.data.info('Network restored — reconnecting sources');
       // Re-watch all symbols to reconnect
       for (const symbol of this._symbolSources.keys()) {
         tickerPlant.watch(symbol);
@@ -258,7 +259,7 @@ class DataPipeline extends EventTarget {
 
     this._onOffline = () => {
       this._online = false;
-      console.log('[DataPipeline] Network offline — serving cached data');
+      logger.data.info('Network offline — serving cached data');
       // Switch all symbols to CACHED
       for (const [sym, info] of this._symbolSources) {
         const old = info.primary;

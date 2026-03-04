@@ -8,99 +8,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { usePaperTradeStore } from '../../../../state/usePaperTradeStore.js';
 import { alpacaAdapter } from '../../../../data/adapters/AlpacaAdapter.js';
-
-// ─── Styles ─────────────────────────────────────────────────────
-
-const styles = {
-  container: {
-    background: 'var(--color-surface, #1a1a2e)',
-    borderTop: '1px solid var(--color-border, #334155)',
-    fontFamily: "'Inter', sans-serif",
-    fontSize: 12,
-    color: 'var(--color-text, #e2e8f0)',
-    maxHeight: 240,
-    overflowY: 'auto',
-  },
-  tabs: {
-    display: 'flex',
-    gap: 0,
-    borderBottom: '1px solid var(--color-border, #334155)',
-  },
-  tab: (active) => ({
-    padding: '8px 16px',
-    cursor: 'pointer',
-    fontWeight: active ? 700 : 400,
-    color: active ? 'var(--color-primary, #818cf8)' : 'var(--color-text-muted, #94a3b8)',
-    borderBottom: active ? '2px solid var(--color-primary, #818cf8)' : '2px solid transparent',
-    background: 'transparent',
-    border: 'none',
-    fontSize: 12,
-  }),
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-  },
-  th: {
-    padding: '6px 10px',
-    textAlign: 'left',
-    color: 'var(--color-text-muted, #94a3b8)',
-    fontWeight: 600,
-    fontSize: 11,
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-    borderBottom: '1px solid var(--color-border, #334155)',
-  },
-  td: {
-    padding: '6px 10px',
-    borderBottom: '1px solid rgba(51, 65, 85, 0.3)',
-  },
-  plPositive: { color: '#10b981', fontWeight: 600 },
-  plNegative: { color: '#ef4444', fontWeight: 600 },
-  closeBtn: {
-    padding: '3px 10px',
-    borderRadius: 4,
-    border: '1px solid #ef4444',
-    background: 'rgba(239, 68, 68, 0.1)',
-    color: '#f87171',
-    cursor: 'pointer',
-    fontSize: 11,
-    fontWeight: 600,
-  },
-  cancelBtn: {
-    padding: '3px 10px',
-    borderRadius: 4,
-    border: '1px solid var(--color-border, #334155)',
-    background: 'transparent',
-    color: 'var(--color-text-muted, #94a3b8)',
-    cursor: 'pointer',
-    fontSize: 11,
-  },
-  summaryBar: {
-    display: 'flex',
-    gap: 24,
-    padding: '6px 12px',
-    background: 'var(--color-surface-alt, #16213e)',
-    borderBottom: '1px solid var(--color-border, #334155)',
-    fontSize: 11,
-  },
-  summaryItem: {
-    display: 'flex',
-    gap: 6,
-    alignItems: 'center',
-  },
-  summaryLabel: {
-    color: 'var(--color-text-muted, #94a3b8)',
-  },
-  summaryValue: {
-    fontWeight: 600,
-  },
-  empty: {
-    padding: '20px 0',
-    textAlign: 'center',
-    color: 'var(--color-text-muted, #94a3b8)',
-    fontSize: 12,
-  },
-};
+import s from './PositionPanel.module.css';
 
 // ─── Component ──────────────────────────────────────────────────
 
@@ -213,43 +121,43 @@ export default function PositionPanel({ currentPrice, symbol }) {
   // ─── Render ─────────────────────────────────────────────────
 
   return (
-    <div style={styles.container}>
+    <div className={s.container}>
       {/* Account Summary Bar */}
-      <div style={styles.summaryBar}>
-        <div style={styles.summaryItem}>
-          <span style={styles.summaryLabel}>{isLive ? '🟢 Live' : '📝 Paper'}</span>
+      <div className={s.summaryBar}>
+        <div className={s.summaryItem}>
+          <span className={s.summaryLabel}>{isLive ? '🟢 Live' : '📝 Paper'}</span>
         </div>
-        <div style={styles.summaryItem}>
-          <span style={styles.summaryLabel}>Balance</span>
-          <span style={styles.summaryValue}>${account.balance?.toFixed(2)}</span>
+        <div className={s.summaryItem}>
+          <span className={s.summaryLabel}>Balance</span>
+          <span className={s.summaryValue}>${account.balance?.toFixed(2)}</span>
         </div>
-        <div style={styles.summaryItem}>
-          <span style={styles.summaryLabel}>Equity</span>
-          <span style={styles.summaryValue}>${account.equity?.toFixed(2)}</span>
+        <div className={s.summaryItem}>
+          <span className={s.summaryLabel}>Equity</span>
+          <span className={s.summaryValue}>${account.equity?.toFixed(2)}</span>
         </div>
-        <div style={styles.summaryItem}>
-          <span style={styles.summaryLabel}>P&L</span>
-          <span style={totalPl >= 0 ? styles.plPositive : styles.plNegative}>
+        <div className={s.summaryItem}>
+          <span className={s.summaryLabel}>P&L</span>
+          <span className={totalPl >= 0 ? s.plPositive : s.plNegative}>
             {totalPl >= 0 ? '+' : ''}{totalPl.toFixed(2)}
           </span>
         </div>
-        <div style={styles.summaryItem}>
-          <span style={styles.summaryLabel}>Buying Power</span>
-          <span style={styles.summaryValue}>${account.buyingPower?.toFixed(2)}</span>
+        <div className={s.summaryItem}>
+          <span className={s.summaryLabel}>Buying Power</span>
+          <span className={s.summaryValue}>${account.buyingPower?.toFixed(2)}</span>
         </div>
         {loading && <span style={{ color: 'var(--color-primary, #818cf8)' }}>⟳</span>}
       </div>
 
       {/* Tabs */}
-      <div style={styles.tabs}>
+      <div className={s.tabs}>
         <button
-          style={styles.tab(activeTab === 'positions')}
+          className={`${s.tab} ${activeTab === 'positions' ? s.tabActive : ''}`}
           onClick={() => setActiveTab('positions')}
         >
           Positions ({positions.length})
         </button>
         <button
-          style={styles.tab(activeTab === 'orders')}
+          className={`${s.tab} ${activeTab === 'orders' ? s.tabActive : ''}`}
           onClick={() => setActiveTab('orders')}
         >
           Orders ({orders.length})
@@ -259,19 +167,19 @@ export default function PositionPanel({ currentPrice, symbol }) {
       {/* Positions Tab */}
       {activeTab === 'positions' && (
         positions.length === 0 ? (
-          <div style={styles.empty}>No open positions</div>
+          <div className={s.empty}>No open positions</div>
         ) : (
-          <table style={styles.table}>
+          <table className={s.table}>
             <thead>
               <tr>
-                <th style={styles.th}>Symbol</th>
-                <th style={styles.th}>Side</th>
-                <th style={styles.th}>Qty</th>
-                <th style={styles.th}>Entry</th>
-                <th style={styles.th}>Current</th>
-                <th style={{...styles.th, textAlign: 'right'}}>P&L</th>
-                <th style={{...styles.th, textAlign: 'right'}}>P&L %</th>
-                <th style={styles.th}></th>
+                <th className={s.th}>Symbol</th>
+                <th className={s.th}>Side</th>
+                <th className={s.th}>Qty</th>
+                <th className={s.th}>Entry</th>
+                <th className={s.th}>Current</th>
+                <th className={s.thRight}>P&L</th>
+                <th className={s.thRight}>P&L %</th>
+                <th className={s.th}></th>
               </tr>
             </thead>
             <tbody>
@@ -280,31 +188,21 @@ export default function PositionPanel({ currentPrice, symbol }) {
                 const plPct = p.unrealizedPlPct || 0;
                 return (
                   <tr key={p.id || p.symbol || i}>
-                    <td style={{...styles.td, fontWeight: 600}}>{p.symbol}</td>
-                    <td style={{
-                      ...styles.td,
-                      color: p.side === 'long' || p.side === 'buy' ? '#10b981' : '#ef4444',
-                      fontWeight: 600, textTransform: 'uppercase',
-                    }}>
+                    <td className={s.tdBold}>{p.symbol}</td>
+                    <td className={`${s.td} ${p.side === 'long' || p.side === 'buy' ? s.sideLong : s.sideShort}`}>
                       {p.side}
                     </td>
-                    <td style={styles.td}>{p.qty}</td>
-                    <td style={styles.td}>${p.entryPrice?.toFixed(2)}</td>
-                    <td style={styles.td}>${p.currentPrice?.toFixed(2)}</td>
-                    <td style={{
-                      ...styles.td, textAlign: 'right',
-                      ...(pl >= 0 ? styles.plPositive : styles.plNegative),
-                    }}>
+                    <td className={s.td}>{p.qty}</td>
+                    <td className={s.td}>${p.entryPrice?.toFixed(2)}</td>
+                    <td className={s.td}>${p.currentPrice?.toFixed(2)}</td>
+                    <td className={`${s.tdRight} ${pl >= 0 ? s.plPositive : s.plNegative}`}>
                       {pl >= 0 ? '+' : ''}{pl.toFixed(2)}
                     </td>
-                    <td style={{
-                      ...styles.td, textAlign: 'right',
-                      ...(plPct >= 0 ? styles.plPositive : styles.plNegative),
-                    }}>
+                    <td className={`${s.tdRight} ${plPct >= 0 ? s.plPositive : s.plNegative}`}>
                       {plPct >= 0 ? '+' : ''}{plPct.toFixed(2)}%
                     </td>
-                    <td style={styles.td}>
-                      <button style={styles.closeBtn} onClick={() => handleClose(p)}>
+                    <td className={s.td}>
+                      <button className={s.closeBtn} onClick={() => handleClose(p)}>
                         Close
                       </button>
                     </td>
@@ -319,37 +217,33 @@ export default function PositionPanel({ currentPrice, symbol }) {
       {/* Orders Tab */}
       {activeTab === 'orders' && (
         orders.length === 0 ? (
-          <div style={styles.empty}>No pending orders</div>
+          <div className={s.empty}>No pending orders</div>
         ) : (
-          <table style={styles.table}>
+          <table className={s.table}>
             <thead>
               <tr>
-                <th style={styles.th}>Symbol</th>
-                <th style={styles.th}>Side</th>
-                <th style={styles.th}>Type</th>
-                <th style={styles.th}>Qty</th>
-                <th style={styles.th}>Price</th>
-                <th style={styles.th}>Status</th>
-                <th style={styles.th}></th>
+                <th className={s.th}>Symbol</th>
+                <th className={s.th}>Side</th>
+                <th className={s.th}>Type</th>
+                <th className={s.th}>Qty</th>
+                <th className={s.th}>Price</th>
+                <th className={s.th}>Status</th>
+                <th className={s.th}></th>
               </tr>
             </thead>
             <tbody>
               {orders.map((o, i) => (
                 <tr key={o.id || i}>
-                  <td style={{...styles.td, fontWeight: 600}}>{o.symbol}</td>
-                  <td style={{
-                    ...styles.td,
-                    color: o.side === 'buy' || o.side === 'long' ? '#10b981' : '#ef4444',
-                    fontWeight: 600, textTransform: 'uppercase',
-                  }}>
+                  <td className={s.tdBold}>{o.symbol}</td>
+                  <td className={`${s.td} ${o.side === 'buy' || o.side === 'long' ? s.sideLong : s.sideShort}`}>
                     {o.side}
                   </td>
-                  <td style={styles.td}>{o.type}</td>
-                  <td style={styles.td}>{o.qty || o.quantity}</td>
-                  <td style={styles.td}>${(o.limit_price || o.price || 0).toFixed?.(2) || o.limit_price || o.price || '—'}</td>
-                  <td style={styles.td}>{o.status}</td>
-                  <td style={styles.td}>
-                    <button style={styles.cancelBtn} onClick={() => handleCancel(o)}>
+                  <td className={s.td}>{o.type}</td>
+                  <td className={s.td}>{o.qty || o.quantity}</td>
+                  <td className={s.td}>${(o.limit_price || o.price || 0).toFixed?.(2) || o.limit_price || o.price || '—'}</td>
+                  <td className={s.td}>{o.status}</td>
+                  <td className={s.td}>
+                    <button className={s.cancelBtn} onClick={() => handleCancel(o)}>
                       Cancel
                     </button>
                   </td>

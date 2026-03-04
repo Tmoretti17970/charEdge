@@ -8,12 +8,13 @@ import { useChartStore } from '../../../../state/useChartStore.js';
 import { useMemo } from 'react';
 import { C, M } from '../../../../constants.js';
 import { calcRiskReward, calcPositionSize } from '../../../../state/chart/tradeSlice.js';
+import Icon from '../../design/Icon.jsx';
 
 const STEPS = [
-  { id: 'entry', label: '1. Entry', icon: '📍' },
-  { id: 'sl', label: '2. Stop Loss', icon: '🛑' },
-  { id: 'tp', label: '3. Target', icon: '🎯' },
-  { id: 'ready', label: 'Ready', icon: '✅' },
+  { id: 'entry', label: '1. Entry', icon: 'pin' },
+  { id: 'sl', label: '2. Stop Loss', icon: 'stop-loss' },
+  { id: 'tp', label: '3. Target', icon: 'target' },
+  { id: 'ready', label: 'Ready', icon: 'check' },
 ];
 
 export default function TradeEntryBar() {
@@ -74,7 +75,7 @@ export default function TradeEntryBar() {
               color: tradeSide === s ? (s === 'long' ? C.g : C.r) : C.t3,
             }}
           >
-            {s === 'long' ? '📈' : '📉'} {s}
+            <Icon name={s === 'long' ? 'long' : 'short'} size={9} /> {s}
           </button>
         ))}
       </div>
@@ -98,7 +99,7 @@ export default function TradeEntryBar() {
               border: `1px solid ${isCurrent ? C.b + '40' : isDone ? C.g + '20' : 'transparent'}`,
             }}
           >
-            <span style={{ fontSize: 10 }}>{isDone ? '✓' : step.icon}</span>
+            <span style={{ fontSize: 10 }}>{isDone ? <Icon name="check" size={10} color={C.g} /> : <Icon name={step.icon} size={10} />}</span>
             <span
               style={{
                 fontSize: 9,

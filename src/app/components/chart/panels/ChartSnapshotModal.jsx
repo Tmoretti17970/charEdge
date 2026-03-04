@@ -80,13 +80,47 @@ export default function ChartSnapshotModal({ open, onClose, canvas, symbol, time
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [copyStatus, setCopyStatus] = useState('');
+  const [embedSnippet, setEmbedSnippet] = useState('');
   const imgRef = useRef(null);
+
+  // Sprint 22: High-DPI 3x capture with watermark
+  const captureHiDPI = (srcCanvas, scale = 3) => {
+    if (!srcCanvas) return null;
+    try {
+      const w = srcCanvas.width * scale;
+      const h = srcCanvas.height * scale;
+      const offscreen = document.createElement('canvas');
+      offscreen.width = w;
+      offscreen.height = h;
+      const ctx = offscreen.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(srcCanvas, 0, 0, w, h);
+
+      // Sprint 22: Watermark with symbol/timeframe/date
+      const fs = Math.round(14 * scale);
+      ctx.font = `bold ${fs}px Arial`;
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'bottom';
+      const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const watermarkText = `${symbol || 'Chart'} · ${timeframe || ''} · ${dateStr} · charEdge`;
+      ctx.fillText(watermarkText, w - Math.round(12 * scale), h - Math.round(8 * scale));
+
+      return offscreen.toDataURL('image/png');
+    } catch { return null; }
+  };
 
   useEffect(() => {
     if (open && canvas) {
-      try { setPreviewUrl(canvas.toDataURL('image/png')); } catch { setPreviewUrl(null); }
+      const url = captureHiDPI(canvas);
+      setPreviewUrl(url || (() => { try { return canvas.toDataURL('image/png'); } catch { return null; } })());
       setTitle(`${symbol || 'Chart'} ${timeframe || ''} Analysis`);
       setDescription('');
+      setCopyStatus('');
+      // Sprint 22: Generate embed snippet
+      setEmbedSnippet(`<iframe src="${window.location.origin}/embed/${(symbol || 'BTC').toLowerCase()}?tf=${timeframe || '1D'}" width="800" height="450" frameborder="0" style="border-radius:8px;"></iframe>`);
     }
   }, [open, canvas, symbol, timeframe]);
 
@@ -115,6 +149,30 @@ export default function ChartSnapshotModal({ open, onClose, canvas, symbol, time
     a.click();
   };
 
+  // Sprint 22: One-click copy to clipboard
+  const handleCopyToClipboard = async () => {
+    if (!previewUrl) return;
+    try {
+      const resp = await fetch(previewUrl);
+      const blob = await resp.blob();
+      await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+      setCopyStatus('Copied!');
+      setTimeout(() => setCopyStatus(''), 2000);
+    } catch {
+      setCopyStatus('Failed');
+      setTimeout(() => setCopyStatus(''), 2000);
+    }
+  };
+
+  // Sprint 22: Copy embed snippet
+  const handleCopyEmbed = () => {
+    try {
+      navigator.clipboard.writeText(embedSnippet);
+      setCopyStatus('Embed copied!');
+      setTimeout(() => setCopyStatus(''), 2000);
+    } catch {}
+  };
+
   return (
     <div style={styles.overlay} onClick={onClose}>
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -140,9 +198,35 @@ export default function ChartSnapshotModal({ open, onClose, canvas, symbol, time
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
           />
+
+          {/* Sprint 22: Embed snippet section */}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <span style={{ color: '#787B86', fontSize: 12 }}>Embed Code</span>
+              <button
+                onClick={handleCopyEmbed}
+                style={{ ...styles.btn, ...styles.btnSecondary, padding: '2px 8px', fontSize: 11 }}
+              >
+                📋 Copy
+              </button>
+            </div>
+            <textarea
+              style={{ ...styles.textarea, minHeight: 40, fontSize: 11, fontFamily: 'monospace' }}
+              value={embedSnippet}
+              readOnly
+            />
+          </div>
         </div>
 
         <div style={styles.footer}>
+          {copyStatus && (
+            <span style={{ color: '#26A69A', fontSize: 12, alignSelf: 'center', marginRight: 'auto' }}>
+              ✓ {copyStatus}
+            </span>
+          )}
+          <button style={{ ...styles.btn, ...styles.btnSecondary }} onClick={handleCopyToClipboard}>
+            📋 Copy to Clipboard
+          </button>
           <button style={{ ...styles.btn, ...styles.btnSecondary }} onClick={handleDownload}>
             ⬇ Download
           </button>

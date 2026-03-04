@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  install:
+    name: Install
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - uses: actions/cache/save@v4
+        with:
+          path: node_modules
+          key: nm-${{ hashFiles('package-lock.json') }}
+
+  lint:
+    name: Lint
+    needs: install
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: nm-${{ hashFiles('package-lock.json') }}
+      - run: npm run lint
+
+  typecheck:
+    name: TypeScript
+    needs: install
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: nm-${{ hashFiles('package-lock.json') }}
+      - run: npx tsc --noEmit
+        continue-on-error: true  # Track but don't block until TS coverage grows
+
+  test:
+    name: Test
+    needs: install
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: nm-${{ hashFiles('package-lock.json') }}
+      # Exclude flaky benchmark tests (timing assertions unreliable in CI).
+      # Will be fixed in Wave 4 (Task 4.3.3).
+      - run: npx vitest run --exclude='**/benchmarks/**'
+
+  build:
+    name: Build + Bundle Size
+    needs: install
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: nm-${{ hashFiles('package-lock.json') }}
+      - run: npm run build:client
+
+      - name: Check bundle size
+        run: |
+          MAIN_CHUNK=$(find dist/client/assets -name 'index-*.js' -type f | head -1)
+          if [ -z "$MAIN_CHUNK" ]; then
+            echo "⚠️  No main chunk found — skipping size check"
+            exit 0
+          fi
+          SIZE=$(gzip -c "$MAIN_CHUNK" | wc -c)
+          SIZE_KB=$((SIZE / 1024))
+          echo "📦 Main chunk: ${SIZE_KB}KB gzipped ($MAIN_CHUNK)"
+          if [ "$SIZE" -gt 256000 ]; then
+            echo "❌ Bundle too large! ${SIZE_KB}KB > 250KB"
+            exit 1
+          fi
+          echo "✅ Bundle size OK"
+
+  audit:
+    name: Security Audit
+    needs: install
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: nm-${{ hashFiles('package-lock.json') }}
+      - run: npm audit --audit-level=high --production
+        continue-on-error: true  # Track but don't block on advisory lag

@@ -19,6 +19,13 @@ try {
   if (raw) _savedColors = JSON.parse(raw);
 } catch {}
 
+// Sprint 15: Load persisted chart type config
+let _savedChartTypeConfig = null;
+try {
+  const raw = localStorage.getItem('charEdge-chart-type-config');
+  if (raw) _savedChartTypeConfig = JSON.parse(raw);
+} catch {}
+
 export const createUISlice = (set) => ({
   layoutMode: '1x1',
   quadSymbols: ['BTC', 'ETH', 'SOL', 'BNB'],
@@ -33,6 +40,9 @@ export const createUISlice = (set) => ({
   showVolumeProfile: false,
 
   chartColors: _savedColors,
+
+  // Sprint 15: per-chart-type user configuration (e.g., renko.boxSizeMode)
+  chartTypeConfig: _savedChartTypeConfig || {},
 
   setLayoutMode: (mode) => set({ layoutMode: mode }),
   toggleQuadMode: () => set((s) => ({ layoutMode: s.layoutMode === '1x1' ? '2x2' : '1x1' })),
@@ -58,4 +68,25 @@ export const createUISlice = (set) => ({
     } catch {}
     set({ chartColors: null });
   },
+
+  // Sprint 15: Update config for a specific chart type
+  setChartTypeConfig: (typeId, key, value) =>
+    set((s) => {
+      const prev = s.chartTypeConfig || {};
+      const typeConf = { ...(prev[typeId] || {}), [key]: value };
+      const next = { ...prev, [typeId]: typeConf };
+      try {
+        localStorage.setItem('charEdge-chart-type-config', JSON.stringify(next));
+      } catch {}
+      return { chartTypeConfig: next };
+    }),
+  resetChartTypeConfig: (typeId) =>
+    set((s) => {
+      const prev = { ...(s.chartTypeConfig || {}) };
+      delete prev[typeId];
+      try {
+        localStorage.setItem('charEdge-chart-type-config', JSON.stringify(prev));
+      } catch {}
+      return { chartTypeConfig: prev };
+    }),
 });

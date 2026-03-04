@@ -1,0 +1,17 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "src/charting_library/engine/ChartEngine.ts",
+    "src/charting_library/engine/WebGPUCompute.ts",
+    "src/charting_library/engine/TickerPlant.ts",
+    "src/charting_library/engine/renderers/CandleRenderer.ts",
+    "src/charting_library/engine/renderers/VolumeRenderer.ts",
+    "src/charting_library/engine/renderers/LineRenderer.ts"
+  ],
+  "out": "docs/api",
+  "name": "charEdge API",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "readme": "none",
+  "tsconfig": "tsconfig.json"
+}

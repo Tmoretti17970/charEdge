@@ -1,3 +1,4 @@
+import { logger } from '../../../utils/logger.ts';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — OPFS Bar Store
 //
@@ -158,7 +159,7 @@ function _decodeBinary(buffer) {
       const storedCrc = new DataView(buffer, dataLen, CRC32_SIZE).getUint32(0, true);
       const computedCrc = _crc32(dataBuffer);
       if (storedCrc !== computedCrc) {
-        console.warn('[OPFSBarStore] CRC32 mismatch — corrupt data detected');
+        logger.data.warn('[OPFSBarStore] CRC32 mismatch — corrupt data detected');
         return null; // signal corruption
       }
       buffer = dataBuffer;
@@ -193,7 +194,7 @@ class OPFSBarStore {
     /** @type {Map<string, Promise>} Per-key write lock to prevent concurrent write races */
     this._locks = new Map();
     if (!this._available) {
-      console.log('[OPFSBarStore] OPFS not available, persistent bar storage disabled');
+      logger.data.info('[OPFSBarStore] OPFS not available, persistent bar storage disabled');
     }
   }
 
@@ -238,7 +239,7 @@ class OPFSBarStore {
           const bars = _decodeBinary(buffer);
           if (bars === null) {
             // CRC32 mismatch — corrupt file, auto-delete and re-fetch
-            console.warn(`[OPFSBarStore] Corrupt file ${binName}, deleting`);
+            logger.data.warn(`[OPFSBarStore] Corrupt file ${binName}, deleting`);
             try { await dir.removeEntry(binName); } catch {}
             return [];
           }
@@ -267,12 +268,12 @@ class OPFSBarStore {
         return bars;
       } catch (e) {
         if (e?.name !== 'NotFoundError') {
-          console.warn('[OPFSBarStore] getCandles error:', e?.message);
+          logger.data.warn('[OPFSBarStore] getCandles error:', e?.message);
         }
         return [];
       }
     } catch (e) {
-      console.warn('[OPFSBarStore] getCandles error:', e?.message);
+      logger.data.warn('[OPFSBarStore] getCandles error:', e?.message);
       return [];
     }
   }
@@ -366,7 +367,7 @@ class OPFSBarStore {
         await writable.write(withChecksum.buffer);
         await writable.close();
       } catch (e) {
-        console.warn('[OPFSBarStore] putCandles error:', e?.message);
+        logger.data.warn('[OPFSBarStore] putCandles error:', e?.message);
       }
     });
   }
@@ -447,7 +448,7 @@ class OPFSBarStore {
     try {
       const root = await navigator.storage.getDirectory();
       await root.removeEntry(DIR_NAME, { recursive: true });
-      console.log('[OPFSBarStore] Cleared all bar cache');
+      logger.data.info('[OPFSBarStore] Cleared all bar cache');
     } catch {
       // Directory might not exist
     }

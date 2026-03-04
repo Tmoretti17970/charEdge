@@ -1,4 +1,4 @@
-# TradeForge OS — Component Map
+# charEdge — Component Map
 
 **83 components · 23,202 lines · 15 memo boundaries · 30 lazy-loaded**
 

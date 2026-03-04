@@ -10,7 +10,7 @@
 //   - ChartPanelManager (side panels, modals, mobile sheets)
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useState, useRef, Suspense } from 'react';
 import { C, F } from '../constants.js';
 import DataSourceBadge from '../app/components/ui/DataSourceBadge.jsx';
 import NoDataState from '../app/components/ui/NoDataState.jsx';
@@ -47,23 +47,31 @@ const GuidedTour = React.lazy(() => import('../app/components/ui/GuidedTour.jsx'
 
 export default function ChartsPage() {
   const [ready, setReady] = useState(false);
+  const [skeletonPhase, setSkeletonPhase] = useState(1); // Sprint 6: phased skeleton
+  const mountTimeRef = useRef(performance.now());         // Sprint 6: TTI measurement
+
   useEffect(() => {
+    // Phase 1 (0ms): Toolbar skeleton only
+    // Phase 2 (100ms): Candle skeletons appear
+    const t2 = setTimeout(() => setSkeletonPhase(2), 100);
+    // Phase 3 (300ms): Full skeleton with indicators
+    const t3 = setTimeout(() => setSkeletonPhase(3), 300);
     const t = requestAnimationFrame(() => setReady(true));
-    return () => cancelAnimationFrame(t);
+    return () => { cancelAnimationFrame(t); clearTimeout(t2); clearTimeout(t3); };
   }, []);
 
   if (!ready) {
     return (
       <div style={{ position: 'relative', height: '100%' }}>
-        <ChartSkeleton />
+        <ChartSkeleton phase={skeletonPhase} />
       </div>
     );
   }
 
-  return <ChartsPageInner />;
+  return <ChartsPageInner mountTime={mountTimeRef.current} />;
 }
 
-function ChartsPageInner() {
+function ChartsPageInner({ mountTime }) {
   // All state consolidated into one hook
   const state = useChartLocalState();
   const {
@@ -248,7 +256,15 @@ function ChartsPageInner() {
             ) : (
               <ChartCanvas {...chartCanvasProps} />
             )}
-            {dataLoading && (!data || data.length === 0) && <ChartSkeleton />}
+            {dataLoading && (!data || data.length === 0) && (
+              <div style={{
+                position: 'absolute', inset: 0, zIndex: 15,
+                transition: 'opacity 0.25s ease-out',
+                opacity: 1,
+              }}>
+                <ChartSkeleton phase={3} />
+              </div>
+            )}
             {!dataLoading && dataSource === 'no_data' && (
               <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: 'var(--tf-bg)', display: 'flex' }}>
                 <NoDataState symbol={symbol} onSettingsClick={() => import('../app/components/ui/Toast.jsx').then(({ default: toast }) => toast.info('Navigate to Settings → API Keys to add your Polygon.io key.')).catch(() => {})} /> {/* intentional: Toast import is best-effort UI */}

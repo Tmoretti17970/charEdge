@@ -13,7 +13,7 @@ test.describe('5.1 — E2E Smoke Tests', () => {
     await page.goto('/');
 
     // Page should load within a reasonable time
-    await expect(page).toHaveTitle(/TradeForge|charEdge|Trade/i);
+    await expect(page).toHaveTitle(/charEdge|Trade/i);
 
     // The app root should render
     const root = page.locator('#root');

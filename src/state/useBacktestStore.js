@@ -1,3 +1,4 @@
+// @ts-check
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Backtest Store
 // Zustand state management for the strategy backtester.

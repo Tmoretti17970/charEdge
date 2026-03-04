@@ -11,6 +11,7 @@
 
 import { BaseAdapter } from './BaseAdapter.js';
 
+import { logger } from '../../utils/logger.ts';
 const BYBIT_REST = 'https://api.bybit.com';
 const BYBIT_WS  = 'wss://stream.bybit.com/v5/public/spot';
 
@@ -176,7 +177,7 @@ export class BybitAdapter extends BaseAdapter {
 
       this._ws.onopen = () => {
         this._wsConnected = true;
-        console.log('[BybitAdapter] WebSocket connected');
+        logger.data.info('[BybitAdapter] WebSocket connected');
 
         // Send any pending subscriptions
         if (this._pendingSubscriptions.length > 0) {
@@ -199,7 +200,7 @@ export class BybitAdapter extends BaseAdapter {
         this._wsConnected = false;
         this._ws = null;
         this._stopHeartbeat();
-        console.log('[BybitAdapter] WebSocket closed, reconnecting in 3s...');
+        logger.data.info('[BybitAdapter] WebSocket closed, reconnecting in 3s...');
 
         // Reconnect
         clearTimeout(this._reconnectTimer);
@@ -211,10 +212,10 @@ export class BybitAdapter extends BaseAdapter {
       };
 
       this._ws.onerror = () => {
-        console.warn('[BybitAdapter] WebSocket error');
+        logger.data.warn('[BybitAdapter] WebSocket error');
       };
     } catch (err) {
-      console.warn('[BybitAdapter] WebSocket init failed:', err.message);
+      logger.data.warn('[BybitAdapter] WebSocket init failed:', err.message);
       this._ws = null;
     }
   }

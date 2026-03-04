@@ -1,5 +1,5 @@
 # Sprint 9: Journal Evolution — Delivery Report
-## TradeForge OS v10.5 → v10.6
+## charEdge v10.5 → v10.6
 
 **Sprint Theme:** Close the feedback loop  
 **Tasks Delivered:** 12/12  

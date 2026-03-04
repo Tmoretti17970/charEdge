@@ -1,3 +1,4 @@
+// @ts-check
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — SafeJSON
 // Drop-in replacement for JSON.parse/stringify that never throws.

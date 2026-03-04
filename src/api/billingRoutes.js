@@ -1,11 +1,12 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge v10 — Stripe Billing Routes (Sprint 5.6)
+// charEdge v11 — Stripe Billing Routes
 //
-// Subscription management for Free/Pro plans.
+// Subscription management for Free / Trader / Pro plans.
 //
 // Plans:
-//   Free  — Local-only, all features, no cloud sync
-//   Pro   — $14/mo: Cloud sync, broker auto-import, priority support
+//   Free    — Local-only, basic charting + journal
+//   Trader  — $14.99/mo: AI Coach, more charts/trades, JSON export
+//   Pro     — $29.99/mo: GPU compute, scripting, cloud sync, all exports
 //
 // Endpoints:
 //   POST /api/billing/checkout    — Create Stripe Checkout session
@@ -16,6 +17,7 @@
 // Setup:
 //   STRIPE_SECRET_KEY=sk_...
 //   STRIPE_WEBHOOK_SECRET=whsec_...
+//   STRIPE_TRADER_PRICE_ID=price_...
 //   STRIPE_PRO_PRICE_ID=price_...
 //
 // Usage:
@@ -48,6 +50,9 @@ function setSubscription(userId, data) {
 
 const PLAN_FEATURES = {
   free: {
+    aiCoach: false,
+    gpuCompute: false,
+    scripting: false,
     cloudSync: false,
     brokerAutoImport: false,
     maxTrades: 500,
@@ -55,7 +60,21 @@ const PLAN_FEATURES = {
     exportFormats: ['csv'],
     priority: false,
   },
+  trader: {
+    aiCoach: true,
+    gpuCompute: false,
+    scripting: false,
+    cloudSync: false,
+    brokerAutoImport: false,
+    maxTrades: 5000,
+    maxCharts: 8,
+    exportFormats: ['csv', 'json'],
+    priority: false,
+  },
   pro: {
+    aiCoach: true,
+    gpuCompute: true,
+    scripting: true,
     cloudSync: true,
     brokerAutoImport: true,
     maxTrades: Infinity,
@@ -70,6 +89,13 @@ export function getFeatures(userId) {
   const plan = sub.status === 'active' || sub.status === 'trialing' ? sub.plan : 'free';
   return { plan, features: PLAN_FEATURES[plan] || PLAN_FEATURES.free };
 }
+
+// ─── Price ID Lookup ────────────────────────────────────────────
+
+const PLAN_PRICE_ENV = {
+  trader: 'STRIPE_TRADER_PRICE_ID',
+  pro: 'STRIPE_PRO_PRICE_ID',
+};
 
 // ─── Route Registration ─────────────────────────────────────────
 
@@ -117,13 +143,17 @@ export function registerBillingRoutes(app) {
   });
 
   // ─── POST /api/billing/checkout ─────────────────────────────
-  // Create a Stripe Checkout session for Pro upgrade
+  // Create a Stripe Checkout session for Trader or Pro upgrade
   app.post('/api/billing/checkout', requireAuth, async (req, res) => {
     const s = getStripe();
     if (!s) return res.status(400).json({ error: 'Stripe not configured' });
 
-    const priceId = process.env.STRIPE_PRO_PRICE_ID;
-    if (!priceId) return res.status(400).json({ error: 'STRIPE_PRO_PRICE_ID not set' });
+    const targetPlan = req.body?.plan || 'pro';
+    const envKey = PLAN_PRICE_ENV[targetPlan];
+    if (!envKey) return res.status(400).json({ error: `Invalid plan: ${targetPlan}` });
+
+    const priceId = process.env[envKey];
+    if (!priceId) return res.status(400).json({ error: `${envKey} not set` });
 
     try {
       const sub = getSubscription(req.userId);
@@ -144,7 +174,7 @@ export function registerBillingRoutes(app) {
         line_items: [{ price: priceId, quantity: 1 }],
         success_url: `${req.protocol}://${req.get('host')}/?billing=success`,
         cancel_url: `${req.protocol}://${req.get('host')}/?billing=cancel`,
-        metadata: { userId: req.userId },
+        metadata: { userId: req.userId, plan: targetPlan },
       });
 
       res.json({ checkoutUrl: session.url, sessionId: session.id });
@@ -221,14 +251,15 @@ export function registerBillingRoutes(app) {
         case 'checkout.session.completed': {
           const session = event.data.object;
           const userId = session.metadata?.userId;
+          const plan = session.metadata?.plan || 'pro';
           if (userId) {
             setSubscription(userId, {
-              plan: 'pro',
+              plan,
               status: 'active',
               stripeCustomerId: session.customer,
               stripeSubId: session.subscription,
             });
-            console.info(`[Billing] User ${userId} upgraded to Pro`);
+            console.info(`[Billing] User ${userId} upgraded to ${plan}`);
           }
           break;
         }

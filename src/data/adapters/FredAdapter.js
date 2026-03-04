@@ -1,11 +1,13 @@
+import { logger } from '../../utils/logger.ts';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v12 — FRED API Adapter
 //
 // Free macro economic data from the Federal Reserve Bank of St. Louis.
 // 800,000+ time series including GDP, CPI, Fed Funds Rate, VIX, yields.
 //
-// Requires: Free API key from https://fred.stlouisfed.org/docs/api/api_key.html
-// Rate limit: 120 req/min (generous)
+// Phase 2.1.1: All requests routed through /api/proxy/fred/ — the
+// server-side proxy injects the API key, keeping it out of the
+// client JS bundle.
 //
 // Key use cases:
 //   - Macro context for trade journal entries
@@ -14,12 +16,12 @@
 //
 // Usage:
 //   import { fredAdapter } from './FredAdapter.js';
-//   fredAdapter.setApiKey('YOUR_FREE_KEY');
 //   const cpi = await fredAdapter.fetchSeries('CPIAUCSL');
 //   const macro = await fredAdapter.fetchMacroSnapshot();
 // ═══════════════════════════════════════════════════════════════════
 
-const FRED_BASE = 'https://api.stlouisfed.org/fred';
+// Phase 2.1.1: Requests go through server proxy (API key injected server-side)
+const PROXY_BASE = '/api/proxy/fred';
 
 // ─── Key Economic Series ───────────────────────────────────────
 // Series IDs for the most trader-relevant economic indicators
@@ -68,24 +70,16 @@ export const MACRO_DASHBOARD_SERIES = [
 
 class _FredAdapter {
   constructor() {
-    this._apiKey = '';
     this._cache = new Map(); // seriesId → { data, expiry }
     this._cacheTTL = 300000; // 5 min for daily series
     this._longCacheTTL = 3600000; // 1 hour for monthly/quarterly
   }
 
-  /**
-   * Set the FRED API key.
-   * Get a free key at https://fred.stlouisfed.org/docs/api/api_key.html
-   */
-  setApiKey(key) {
-    this._apiKey = key;
-  }
+  // Phase 2.1.1: API key managed server-side — always "configured"
+  get isConfigured() { return true; }
 
-  /** @returns {boolean} */
-  get isConfigured() {
-    return !!this._apiKey;
-  }
+  // Legacy no-op — key is server-side now
+  setApiKey(_key) { /* no-op: API key managed server-side */ }
 
   /**
    * Fetch observations for a FRED series.
@@ -98,16 +92,12 @@ class _FredAdapter {
    * @returns {Promise<Array<{ date, value }>>}
    */
   async fetchSeries(seriesId, opts = {}) {
-    if (!this._apiKey) return [];
-
     const cacheKey = `${seriesId}-${opts.from || ''}-${opts.to || ''}-${opts.limit || ''}`;
     const cached = this._cache.get(cacheKey);
     if (cached && Date.now() < cached.expiry) return cached.data;
 
     const params = new URLSearchParams({
       series_id: seriesId,
-      api_key: this._apiKey,
-      file_type: 'json',
       sort_order: opts.sort || 'desc',
     });
     if (opts.from) params.set('observation_start', opts.from);
@@ -115,7 +105,8 @@ class _FredAdapter {
     if (opts.limit) params.set('limit', String(opts.limit));
 
     try {
-      const resp = await fetch(`${FRED_BASE}/series/observations?${params}`);
+      const url = `${PROXY_BASE}/series/observations?${params}`;
+      const resp = await fetch(url);
       if (!resp.ok) return [];
 
       const json = await resp.json();
@@ -136,7 +127,7 @@ class _FredAdapter {
 
       return observations;
     } catch (err) {
-      console.warn(`[FredAdapter] fetchSeries(${seriesId}) failed:`, err.message);
+      logger.data.warn(`[FredAdapter] fetchSeries(${seriesId}) failed:`, err.message);
       return [];
     }
   }
@@ -165,8 +156,6 @@ class _FredAdapter {
    * @returns {Promise<Object>} { VIXCLS: { date, value, name }, ... }
    */
   async fetchMacroSnapshot() {
-    if (!this._apiKey) return {};
-
     const results = {};
     // Fetch in parallel but with some batching to be polite
     const promises = MACRO_DASHBOARD_SERIES.map(async (id) => {
@@ -203,16 +192,9 @@ class _FredAdapter {
    * @returns {Promise<Object|null>}
    */
   async fetchSeriesInfo(seriesId) {
-    if (!this._apiKey) return null;
-
     try {
-      const params = new URLSearchParams({
-        series_id: seriesId,
-        api_key: this._apiKey,
-        file_type: 'json',
-      });
-
-      const resp = await fetch(`${FRED_BASE}/series?${params}`);
+      const params = new URLSearchParams({ series_id: seriesId });
+      const resp = await fetch(`${PROXY_BASE}/series?${params}`);
       if (!resp.ok) return null;
 
       const json = await resp.json();

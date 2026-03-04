@@ -1,0 +1,35 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — Theme Crossfade Transition (1.2.13)
+
+   Applied to <html> when the theme toggle fires.
+   JS toggles the .theme-transitioning class briefly,
+   which enables the crossfade for background/foreground colors.
+
+   Usage (in themeSlice.js or wherever setTheme lives):
+     document.documentElement.classList.add('theme-transitioning');
+     setTimeout(() => document.documentElement.classList.remove('theme-transitioning'), 400);
+   ═══════════════════════════════════════════════════════════════════ */
+
+@layer base {
+  .theme-transitioning,
+  .theme-transitioning *,
+  .theme-transitioning *::before,
+  .theme-transitioning *::after {
+    transition:
+      background-color 300ms var(--ease-default),
+      color 200ms var(--ease-default),
+      border-color 200ms var(--ease-default),
+      box-shadow 300ms var(--ease-default),
+      fill 200ms var(--ease-default),
+      stroke 200ms var(--ease-default) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-transitioning,
+  .theme-transitioning *,
+  .theme-transitioning *::before,
+  .theme-transitioning *::after {
+    transition: none !important;
+  }
+}

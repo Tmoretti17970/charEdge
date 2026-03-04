@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger.ts';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v14 — FINRA Data Adapter
 //
@@ -98,7 +99,7 @@ class _FinraAdapter {
       setCache(cacheKey, result);
       return result;
     } catch (err) {
-      console.warn('[FinraAdapter] Short interest error:', err.message);
+      logger.data.warn('[FinraAdapter] Short interest error:', err.message);
       return this._computeShortInterestFallback(upper);
     }
   }
@@ -152,7 +153,7 @@ class _FinraAdapter {
       setCache(cacheKey, result);
       return result;
     } catch (err) {
-      console.warn('[FinraAdapter] Dark pool volume error:', err.message);
+      logger.data.warn('[FinraAdapter] Dark pool volume error:', err.message);
       return [];
     }
   }
@@ -210,7 +211,7 @@ class _FinraAdapter {
       setCache(cacheKey, result);
       return result;
     } catch (err) {
-      console.warn('[FinraAdapter] Short sale volume error:', err.message);
+      logger.data.warn('[FinraAdapter] Short sale volume error:', err.message);
       return [];
     }
   }

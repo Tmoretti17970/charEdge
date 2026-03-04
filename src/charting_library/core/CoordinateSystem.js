@@ -149,6 +149,22 @@ export function createPriceTransform(priceMin, priceMax, chartHeight, scaleMode 
     };
   }
 
+  // Sprint 10: Indexed to 100 — normalizes first visible bar to 100
+  if (scaleMode === 'indexed' && percentBase > 0) {
+    const range = priceMax - priceMin || 1;
+    return {
+      priceToY(price) {
+        return chartHeight - ((price - priceMin) / range) * chartHeight;
+      },
+      yToPrice(y) {
+        return priceMin + ((chartHeight - y) / chartHeight) * range;
+      },
+      formatTicks(ticks) {
+        return ticks.map((t) => (t / percentBase) * 100);
+      },
+    };
+  }
+
   // Default linear
   const range = priceMax - priceMin || 1;
 

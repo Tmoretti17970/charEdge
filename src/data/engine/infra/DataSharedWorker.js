@@ -1,3 +1,4 @@
+import { logger } from '../../../utils/logger.ts';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v14 — Data SharedWorker
 //
@@ -50,9 +51,9 @@ try {
   import('./BinaryCodec.js').then(m => {
     BinaryCodec = m.BinaryCodec || m.default;
     binaryReady = true;
-    console.log('[DataSharedWorker] BinaryCodec loaded — compressed messaging enabled');
+    logger.worker.info('[DataSharedWorker] BinaryCodec loaded — compressed messaging enabled');
   }).catch(() => {
-    console.warn('[DataSharedWorker] BinaryCodec unavailable — using JSON fallback');
+    logger.worker.warn('[DataSharedWorker] BinaryCodec unavailable — using JSON fallback');
   });
 } catch {
   // BinaryCodec not available, JSON fallback
@@ -159,7 +160,7 @@ self.onconnect = function(event) {
             stats.binaryBytesRelayed += binaryPayload.byteLength || binaryPayload.length || 0;
             stats.compressionEnabled = true;
           } catch (error) {
-            console.warn(`[DataSharedWorker] BinaryCodec encoding failed for ${symbol}:`, error, '— using JSON fallback');
+            logger.worker.warn(`[DataSharedWorker] BinaryCodec encoding failed for ${symbol}:`, error, '— using JSON fallback');
             // Fallback to JSON
             encodedMsg = { type: 'update', symbol, data };
           }

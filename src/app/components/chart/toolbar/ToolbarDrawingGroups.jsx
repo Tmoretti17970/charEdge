@@ -6,6 +6,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { C } from '../../../../constants.js';
+import s from './ToolbarDrawingGroups.module.css';
 
 // ─── SVG Drawing Tool Icons ───────────────────────────────────────
 const S = 14; // icon size
@@ -133,7 +134,7 @@ export default function DrawingGroup({ group, activeTool, setActiveTool }) {
   };
 
   return (
-    <div ref={containerRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+    <div ref={containerRef} className={s.groupWrapper}>
       <ToolbarBtn
         active={isActive}
         onClick={handleClick}
@@ -145,11 +146,8 @@ export default function DrawingGroup({ group, activeTool, setActiveTool }) {
       {group.tools.length > 1 && (
         <button
           onClick={() => setOpen(!open)}
-          style={{
-            background: 'transparent', border: 'none', color: C.t3, cursor: 'pointer',
-            padding: '2px 4px', fontSize: 8, display: 'flex', alignItems: 'center',
-            transition: 'color 0.15s ease',
-          }}
+          className={s.expandBtn}
+          style={{ color: C.t3 }}
           onMouseEnter={(e) => e.currentTarget.style.color = C.t1}
           onMouseLeave={(e) => e.currentTarget.style.color = C.t3}
         >
@@ -159,8 +157,7 @@ export default function DrawingGroup({ group, activeTool, setActiveTool }) {
 
       {open && group.tools.length > 1 && (
         <div
-          className="tf-chart-dropdown"
-          style={{ position: 'absolute', top: '100%', left: 0, marginTop: 6, minWidth: 160 }}
+          className={`tf-chart-dropdown ${s.dropdown}`}
         >
           {group.tools.map(tool => (
             <button
@@ -169,9 +166,9 @@ export default function DrawingGroup({ group, activeTool, setActiveTool }) {
               data-active={activeTool === tool.id || undefined}
               onClick={() => { setActiveTool(tool.id); setOpen(false); }}
             >
-              <span style={{ width: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><TIcon id={tool.id} /></span>
+              <span className={s.toolIconWrap}><TIcon id={tool.id} /></span>
               <span>{tool.name}</span>
-              {activeTool === tool.id && <span style={{ marginLeft: 'auto', color: C.b, fontSize: 12 }}>✓</span>}
+              {activeTool === tool.id && <span className={s.checkMark} style={{ color: C.b }}>✓</span>}
             </button>
           ))}
         </div>

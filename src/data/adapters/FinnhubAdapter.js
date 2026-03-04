@@ -1,8 +1,13 @@
+import { logger } from '../../utils/logger.ts';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v11 — Finnhub Adapter
 //
 // Secondary data source for US equities, forex, and fundamentals.
 // Free tier: 60 API calls/minute, real-time US stock ticks via WS.
+//
+// Phase 2.1.1: REST requests routed through /api/proxy/finnhub/ —
+// server proxy injects the API key from env vars. WebSocket still
+// uses client-side token (WS proxying requires different infra).
 //
 // Provides:
 //   - Real-time stock quotes (REST polling)
@@ -12,18 +17,19 @@
 //
 // Usage:
 //   import { finnhubAdapter } from './FinnhubAdapter.js';
-//   finnhubAdapter.setApiKey('YOUR_KEY');
 //   const quote = await finnhubAdapter.fetchQuote('AAPL');
 //   finnhubAdapter.subscribe('AAPL', (tick) => { ... });
 // ═══════════════════════════════════════════════════════════════════
 
-const BASE_URL = 'https://finnhub.io/api/v1';
+// Phase 2.1.1: REST goes through server proxy
+const PROXY_BASE = '/api/proxy/finnhub';
+// WebSocket still requires client-side token (no WS proxy yet)
 const WS_URL = 'wss://ws.finnhub.io';
 const RATE_LIMIT_INTERVAL = 1100; // ~55 requests/min (under 60 limit)
 
 class _FinnhubAdapter {
   constructor() {
-    this._apiKey = '';
+    this._wsToken = ''; // Only needed for WebSocket streaming
     this._ws = null;
     this._wsConnected = false;
     this._subscribers = new Map();   // symbol → Set<callback>
@@ -35,18 +41,16 @@ class _FinnhubAdapter {
 
   // ─── Configuration ──────────────────────────────────────────
 
+  // Phase 2.1.1: REST API key is server-side — always "configured"
+  get isConfigured() { return true; }
+
   /**
-   * Set the Finnhub API key.
-   * Get a free key at https://finnhub.io/register
+   * Set the Finnhub API key (only used for WebSocket streaming).
+   * REST calls go through the server proxy automatically.
    * @param {string} key
    */
   setApiKey(key) {
-    this._apiKey = key;
-  }
-
-  /** @returns {boolean} */
-  get isConfigured() {
-    return !!this._apiKey;
+    this._wsToken = key;
   }
 
   // ─── Quote / Price ──────────────────────────────────────────
@@ -57,13 +61,11 @@ class _FinnhubAdapter {
    * @returns {Promise<{ price, high, low, open, prevClose, change, changePct, timestamp }>}
    */
   async fetchQuote(symbol) {
-    if (!this._apiKey) return null;
-
     // Check cache
     const cached = this._cache.get(symbol);
     if (cached && Date.now() < cached.expiry) return cached.data;
 
-    const data = await this._request('/quote', { symbol });
+    const data = await this._request('quote', { symbol });
     if (!data || !data.c) return null;
 
     const quote = {
@@ -87,8 +89,7 @@ class _FinnhubAdapter {
    * @returns {Promise<Object>}
    */
   async fetchProfile(symbol) {
-    if (!this._apiKey) return null;
-    return this._request('/stock/profile2', { symbol });
+    return this._request('stock/profile2', { symbol });
   }
 
   /**
@@ -97,8 +98,7 @@ class _FinnhubAdapter {
    * @returns {Promise<Array>}
    */
   async fetchRecommendations(symbol) {
-    if (!this._apiKey) return null;
-    return this._request('/stock/recommendation', { symbol });
+    return this._request('stock/recommendation', { symbol });
   }
 
   /**
@@ -108,8 +108,7 @@ class _FinnhubAdapter {
    * @returns {Promise<Object>}
    */
   async fetchEarnings(from, to) {
-    if (!this._apiKey) return null;
-    return this._request('/calendar/earnings', { from, to });
+    return this._request('calendar/earnings', { from, to });
   }
 
   /**
@@ -119,8 +118,7 @@ class _FinnhubAdapter {
    * @returns {Promise<Object>}
    */
   async fetchEconomicCalendar(from, to) {
-    if (!this._apiKey) return null;
-    return this._request('/calendar/economic', { from, to });
+    return this._request('calendar/economic', { from, to });
   }
 
   /**
@@ -131,8 +129,7 @@ class _FinnhubAdapter {
    * @returns {Promise<Array<{ headline, summary, source, url, datetime, sentiment }>>}
    */
   async fetchNews(symbol, from, to) {
-    if (!this._apiKey) return [];
-    const data = await this._request('/company-news', { symbol, from, to });
+    const data = await this._request('company-news', { symbol, from, to });
     if (!Array.isArray(data)) return [];
     return data.map(a => ({
       headline: a.headline,
@@ -150,8 +147,7 @@ class _FinnhubAdapter {
    * @returns {Promise<Array>}
    */
   async fetchMarketNews() {
-    if (!this._apiKey) return [];
-    const data = await this._request('/news', { category: 'general' });
+    const data = await this._request('news', { category: 'general' });
     return Array.isArray(data) ? data : [];
   }
 
@@ -161,8 +157,7 @@ class _FinnhubAdapter {
    * @returns {Promise<Array<{ name, share, change, filingDate, transactionType }>>}
    */
   async fetchInsiderTransactions(symbol) {
-    if (!this._apiKey) return [];
-    const data = await this._request('/stock/insider-transactions', { symbol });
+    const data = await this._request('stock/insider-transactions', { symbol });
     if (!data?.data) return [];
     return data.data.map(t => ({
       name: t.name,
@@ -182,8 +177,7 @@ class _FinnhubAdapter {
    * @returns {Promise<Array>}
    */
   async fetchIPOCalendar(from, to) {
-    if (!this._apiKey) return [];
-    const data = await this._request('/calendar/ipo', { from, to });
+    const data = await this._request('calendar/ipo', { from, to });
     return data?.ipoCalendar || [];
   }
 
@@ -196,10 +190,9 @@ class _FinnhubAdapter {
    * @returns {Promise<Array>}
    */
   async fetchCryptoCandles(symbol, resolution = '60', from, to) {
-    if (!this._apiKey) return [];
     if (!from) from = Math.floor(Date.now() / 1000) - 86400;
     if (!to) to = Math.floor(Date.now() / 1000);
-    const data = await this._request('/crypto/candle', { symbol, resolution, from, to });
+    const data = await this._request('crypto/candle', { symbol, resolution, from, to });
     if (data?.s !== 'ok' || !data.t) return [];
     return data.t.map((t, i) => ({
       time: t * 1000,
@@ -217,8 +210,7 @@ class _FinnhubAdapter {
    * @returns {Promise<Array<{ symbol, description, type }>>}
    */
   async searchSymbols(query) {
-    if (!this._apiKey) return [];
-    const data = await this._request('/search', { q: query });
+    const data = await this._request('search', { q: query });
     if (!data?.result) return [];
     return data.result.map(r => ({
       symbol: r.symbol,
@@ -232,12 +224,13 @@ class _FinnhubAdapter {
 
   /**
    * Subscribe to real-time ticks for a symbol via WebSocket.
+   * Note: WebSocket still requires a client-side token via setApiKey().
    * @param {string} symbol
    * @param {Function} callback - ({ price, volume, timestamp }) => void
    * @returns {Function} unsubscribe
    */
   subscribe(symbol, callback) {
-    if (!this._apiKey) return () => {};
+    if (!this._wsToken) return () => {};
 
     const upper = symbol.toUpperCase();
 
@@ -274,7 +267,6 @@ class _FinnhubAdapter {
    * @returns {boolean}
    */
   supports(symbol) {
-    if (!this._apiKey) return false;
     const upper = (symbol || '').toUpperCase();
     // Finnhub supports US stocks and some forex
     return /^[A-Z]{1,5}$/.test(upper) || upper.includes('OANDA:');
@@ -282,9 +274,9 @@ class _FinnhubAdapter {
 
   // ─── Private Methods ────────────────────────────────────────
 
-  /** @private */
+  /** @private — REST requests go through server proxy */
   async _request(endpoint, params = {}) {
-    // Rate limiting
+    // Rate limiting (client-side courtesy throttle)
     const now = Date.now();
     const wait = RATE_LIMIT_INTERVAL - (now - this._lastRequest);
     if (wait > 0) {
@@ -292,8 +284,8 @@ class _FinnhubAdapter {
     }
     this._lastRequest = Date.now();
 
-    const url = new URL(`${BASE_URL}${endpoint}`);
-    url.searchParams.set('token', this._apiKey);
+    // Phase 2.1.1: Route through server proxy (no token param)
+    const url = new URL(`${PROXY_BASE}/${endpoint}`, window.location.origin);
     for (const [k, v] of Object.entries(params)) {
       url.searchParams.set(k, v);
     }
@@ -302,14 +294,14 @@ class _FinnhubAdapter {
       const res = await fetch(url.toString());
       if (!res.ok) {
         if (res.status === 429) {
-          console.warn('[FinnhubAdapter] Rate limited — backing off');
+          logger.data.warn('[FinnhubAdapter] Rate limited — backing off');
           await new Promise(r => setTimeout(r, 5000));
         }
         return null;
       }
       return await res.json();
     } catch (err) {
-      console.warn('[FinnhubAdapter] Request failed:', err.message);
+      logger.data.warn('[FinnhubAdapter] Request failed:', err.message);
       return null;
     }
   }
@@ -319,11 +311,11 @@ class _FinnhubAdapter {
     if (this._ws) return;
 
     try {
-      this._ws = new WebSocket(`${WS_URL}?token=${this._apiKey}`);
+      this._ws = new WebSocket(`${WS_URL}?token=${this._wsToken}`);
 
       this._ws.onopen = () => {
         this._wsConnected = true;
-        console.log('[FinnhubAdapter] WebSocket connected');
+        logger.data.info('[FinnhubAdapter] WebSocket connected');
 
         // Subscribe to all pending symbols
         for (const symbol of this._subscribers.keys()) {

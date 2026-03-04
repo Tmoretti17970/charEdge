@@ -1,5 +1,6 @@
+// @ts-check
 // ═══════════════════════════════════════════════════════════════════
-// TradeForge OS v11.0 — Production Server
+// charEdge v11.0 — Production Server
 //
 // Modes:
 //   Development:  npm run dev        (Vite dev server, HMR)
@@ -23,6 +24,21 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
 import compression from 'compression';
+
+/**
+ * @typedef {Object} ProxyConfig
+ * @property {string} base - Upstream API base URL
+ * @property {string} envKey - Environment variable name for API key
+ * @property {string} paramName - Query parameter name to inject API key
+ * @property {number} cache - Cache-Control max-age in seconds
+ * @property {Record<string, string>} [extraParams] - Additional query parameters
+ */
+
+/**
+ * @typedef {Object} RateLimitEntry
+ * @property {number} count - Request count in current window
+ * @property {number} resetAt - Timestamp when window resets
+ */
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isProduction = process.env.NODE_ENV === 'production';
@@ -64,7 +80,7 @@ app.use((req, res, next) => {
       "style-src 'self' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
-      "connect-src 'self' https://api.binance.com wss://stream.binance.com:9443 wss://stream.binance.us:9443 https://api.coingecko.com https://query1.finance.yahoo.com https://hermes.pyth.network wss://ws.kraken.com https://api.kraken.com https://data.sec.gov https://efts.sec.gov https://api.stlouisfed.org https://api.frankfurter.dev https://api.alternative.me https://apewisdom.io https://finnhub.io wss://ws.finnhub.io https://financialmodelingprep.com https://api.whale-alert.io https://api.etherscan.io",
+      "connect-src 'self' https://api.binance.com https://data-api.binance.vision wss://stream.binance.com:9443 wss://stream.binance.us:9443 wss://data-stream.binance.vision https://api.coingecko.com https://query1.finance.yahoo.com https://hermes.pyth.network wss://ws.kraken.com https://api.kraken.com https://data.sec.gov https://efts.sec.gov https://api.stlouisfed.org https://api.frankfurter.dev https://api.alternative.me https://apewisdom.io https://finnhub.io wss://ws.finnhub.io https://financialmodelingprep.com https://api.whale-alert.io https://api.etherscan.io",
       "worker-src 'self' blob:",
       "manifest-src 'self'",
       "base-uri 'self'",
@@ -123,10 +139,16 @@ const ALLOWED_RSS_DOMAINS = [
 
 // ─── Rate Limiter (in-memory, per-IP) ────────────────────────────
 // No npm dependency needed — simple sliding window counter.
+/** @type {Map<string, RateLimitEntry>} */
 const _rateLimitMap = new Map();
 const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
 const RATE_LIMIT_MAX = 30;           // max requests per window (stricter for proxy)
 
+/**
+ * Check if a client IP is within rate limits.
+ * @param {string} ip - Client IP address
+ * @returns {boolean} True if within limits
+ */
 function _checkRateLimit(ip) {
   const now = Date.now();
   let entry = _rateLimitMap.get(ip);
@@ -195,8 +217,93 @@ app.get('/api/proxy/rss', async (req, res) => {
   }
 });
 
+// ─── Exchange API Proxies (server-side API key injection) ────────
+// Task 2.1.1: Keep API keys off the client bundle.
+// Pattern: /api/proxy/{provider}/{path} → upstream with env key injected.
+
+/** @type {Record<string, ProxyConfig>} */
+const _PROXY_CONFIGS = {
+  fmp: {
+    base: 'https://financialmodelingprep.com/api/v3',
+    envKey: 'FMP_API_KEY',
+    paramName: 'apikey',
+    cache: 30,
+  },
+  fred: {
+    base: 'https://api.stlouisfed.org/fred',
+    envKey: 'FRED_API_KEY',
+    paramName: 'api_key',
+    cache: 300,
+    extraParams: { file_type: 'json' },
+  },
+  finnhub: {
+    base: 'https://finnhub.io/api/v1',
+    envKey: 'FINNHUB_API_KEY',
+    paramName: 'token',
+    cache: 5,
+  },
+};
+
+app.get('/api/proxy/:provider/*', async (req, res) => {
+  const { provider } = req.params;
+  const config = _PROXY_CONFIGS[provider];
+  if (!config) {
+    return res.status(400).json({ ok: false, error: `Unknown provider: ${provider}` });
+  }
+
+  // Rate limit
+  const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
+  if (!_checkRateLimit(clientIp)) {
+    res.setHeader('Retry-After', Math.ceil(RATE_LIMIT_WINDOW_MS / 1000));
+    return res.status(429).json({ ok: false, error: 'Rate limit exceeded' });
+  }
+
+  const apiKey = process.env[config.envKey];
+  if (!apiKey) {
+    return res.status(503).json({ ok: false, error: `${provider.toUpperCase()} API key not configured` });
+  }
+
+  // Extract path after /api/proxy/{provider}/
+  const proxyPath = req.params[0] || '';
+  if (!proxyPath) {
+    return res.status(400).json({ ok: false, error: 'Missing API path' });
+  }
+
+  // Build upstream URL
+  const url = new URL(`${config.base}/${proxyPath}`);
+  for (const [k, v] of Object.entries(req.query)) {
+    url.searchParams.set(k, v);
+  }
+  url.searchParams.set(config.paramName, apiKey);
+  if (config.extraParams) {
+    for (const [k, v] of Object.entries(config.extraParams)) {
+      url.searchParams.set(k, v);
+    }
+  }
+
+  try {
+    const upstream = await fetch(url.toString(), {
+      headers: { 'User-Agent': 'charEdge/1.0' },
+      signal: AbortSignal.timeout(15_000),
+    });
+
+    res.setHeader('Cache-Control', `public, max-age=${config.cache}`);
+    res.status(upstream.status);
+
+    const contentType = upstream.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      res.json(await upstream.json());
+    } else {
+      res.send(await upstream.text());
+    }
+  } catch (err) {
+    res.status(502).json({ ok: false, error: `${provider} proxy error: ${err.message}` });
+  }
+});
+
 // ─── API Routes ──────────────────────────────────────────────────
 import { createApiRouter } from './src/api/routes.js';
+import { registerBillingRoutes } from './src/api/billingRoutes.js';
 import {
   apiKeyAuth,
   rateLimiter,
@@ -212,7 +319,7 @@ const _apiKeyStore = {
     return this._keys.get(key) || null;
   },
   create(userId) {
-    const key = `tf_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    const key = `ce_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     const data = { id: key, userId, createdAt: Date.now() };
     this._keys.set(key, data);
     return data;
@@ -233,6 +340,14 @@ app.use('/api/v1', apiKeyAuth(_apiKeyStore));
 app.use('/api/v1', requestLogger());
 app.use('/api/v1', createApiRouter({ _keyStore: _apiKeyStore }));
 app.use('/api/v1', apiErrorHandler());
+
+// ─── Billing Routes (Stripe integration) ─────────────────────────
+// JSON body parser for billing endpoints (webhook excluded — needs raw body)
+app.use('/api/billing', (req, res, next) => {
+  if (req.path === '/webhook') return next(); // Webhook handles its own body parsing
+  express.json()(req, res, next);
+});
+registerBillingRoutes(app);
 
 // ═══════════════════════════════════════════════════════════════════
 // Production Mode
@@ -377,7 +492,7 @@ const server = app.listen(PORT, HOST, () => {
   const mode = isProduction ? '\x1b[32mproduction\x1b[0m' : '\x1b[33mdevelopment\x1b[0m';
   console.log('');
   console.log('  ╔══════════════════════════════════════════╗');
-  console.log('  ║         TradeForge OS v11.0              ║');
+  console.log('  ║            charEdge v11.0                ║');
   console.log('  ╚══════════════════════════════════════════╝');
   console.log('');
   console.log(`  → Mode:    ${mode}`);
@@ -391,6 +506,10 @@ const server = app.listen(PORT, HOST, () => {
 });
 
 // ─── Graceful Shutdown ───────────────────────────────────────────
+/**
+ * Graceful shutdown handler.
+ * @param {string} signal - The signal that triggered shutdown
+ */
 function shutdown(signal) {
   console.log(`\n\x1b[33m${signal} received. Shutting down gracefully...\x1b[0m`);
   server.close(() => {

@@ -11,6 +11,7 @@
 // "Custom Layout" toggle restores the widget grid for power users.
 // ═══════════════════════════════════════════════════════════════════
 
+import s from './DashboardPanel.module.css';
 import { useLayoutStore } from '../../../state/useLayoutStore.js';
 import { useGamificationStore } from '../../../state/useGamificationStore.js';
 import { useUserStore } from '../../../state/useUserStore.js';
@@ -179,7 +180,7 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
   // Loading / empty states — shaped skeletons instead of uniform rectangles
   if (!result) {
     return (
-      <div style={{ padding: isMobile ? 16 : 32, maxWidth: 1200, margin: '0 auto' }}>
+      <div className={`${s.page} ${isMobile ? s.pageMobile : s.pageDesktop}`}>
         <DashHeader
           trades={trades}
           computing={computing}
@@ -209,7 +210,7 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
   // ═══════════════════════════════════════════════════════════════
   if (layoutMode === 'narrative') {
     return (
-      <div style={{ padding: pagePad, maxWidth: 1200, margin: '0 auto' }}>
+      <div className={s.page}>
         <DashHeader
           trades={trades}
           computing={computing}
@@ -223,17 +224,7 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
 
         {/* ═══ PERFORMANCE RIBBON — instant snapshot strip ═══ */}
         {ribbonStats && (
-          <div
-            style={{
-              display: 'flex',
-              gap: 6,
-              marginBottom: 14,
-              overflowX: 'auto',
-              scrollbarWidth: 'none',
-              WebkitOverflowScrolling: 'touch',
-              paddingBottom: 2,
-            }}
-          >
+          <div className={s.ribbon}>
             {[
               { label: 'Week', value: fmtD(ribbonStats.weekPnl), color: ribbonStats.weekPnl >= 0 ? C.g : C.r },
               { label: 'Month', value: fmtD(ribbonStats.monthPnl), color: ribbonStats.monthPnl >= 0 ? C.g : C.r },
@@ -241,28 +232,9 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
               { label: 'Win Rate', value: `${ribbonStats.winRate}%`, color: ribbonStats.winRate >= 50 ? C.g : C.r },
               { label: 'Streak', value: `${ribbonStats.streak}d ${ribbonStats.streakType === 'win' ? '🔥' : '📉'}`, color: ribbonStats.streakType === 'win' ? C.g : C.r },
             ].map((item, i) => (
-              <div
-                key={i}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 5,
-                  padding: '5px 10px',
-                  borderRadius: 8,
-                  background: GLASS.subtle,
-                  backdropFilter: GLASS.blurSm,
-                  WebkitBackdropFilter: GLASS.blurSm,
-                  border: GLASS.border,
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                }}
-              >
-                <span style={{ ...text.captionSm, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-                  {item.label}
-                </span>
-                <span style={{ ...text.dataSm, fontWeight: 800, color: item.color }}>
-                  {item.value}
-                </span>
+              <div key={i} className={s.ribbonItem} style={{ background: GLASS.subtle, backdropFilter: GLASS.blurSm, WebkitBackdropFilter: GLASS.blurSm, border: GLASS.border }}>
+                <span className={s.ribbonLabel} style={text.captionSm}>{item.label}</span>
+                <span className={s.ribbonValue} style={{ ...text.dataSm, color: item.color }}>{item.value}</span>
               </div>
             ))}
           </div>
@@ -301,7 +273,7 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
             <div style={{ ...text.bodyXs, marginBottom: 16 }}>
               Build your trading edge in 3 steps
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 12 }}>
+            <div className={s.onboardGridResponsive}>
               {[
                 { icon: '✏️', label: 'Add your first trade', desc: 'Log a trade to start tracking', action: () => window.dispatchEvent(new CustomEvent('tf:openTradeForm')) },
                 { icon: '📥', label: 'Import from CSV', desc: 'Bulk import your history', action: () => window.dispatchEvent(new CustomEvent('tf:openCSVImport')) },
@@ -363,21 +335,12 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
 
         {/* ═══ BENTO BOX DASHBOARD (Apple-Style) ═══ */}
         <div
-          className="tf-bento tf-section-enter"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)',
-            gap: 16,
-            gridAutoRows: isMobile ? 'auto' : '140px',
-            marginBottom: sectionGap,
-          }}
+          className={`tf-bento tf-section-enter ${s.bentoGridResponsive} ${s.sectionGap}`}
         >
           {/* Equity Curve - full width span */}
           <Card
-            className="tf-card-hover"
+            className={`tf-card-hover ${s.equitySpan}`}
             style={{
-              gridColumn: isMobile ? '1' : 'span 4',
-              gridRow: isMobile ? 'auto' : 'span 2',
               padding: 0,
               display: 'flex',
               flexDirection: 'column',
@@ -391,7 +354,7 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
                 {fmtD(result.totalPnl)}
               </div>
             </div>
-            <div style={{ flex: 1, minHeight: isMobile ? 200 : 0 }}>
+            <div className={s.equityChartWrapResponsive}>
               <WidgetBoundary name="Equity Curve" height="100%">
                 <EquityCurveChart eq={result.eq} height="100%" />
               </WidgetBoundary>
@@ -405,7 +368,7 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
           <BentoMetricCard label="Expectancy" value={fmtD(result.expectancy)} color={result.expectancy >= 0 ? C.g : C.r} tip={METRIC_TIPS['Expectancy']} />
 
           {/* Row 4 - Calendar & Activity */}
-          <Card className="tf-card-hover tf-section-enter" style={{ gridColumn: isMobile ? '1' : 'span 2', gridRow: isMobile ? 'auto' : 'span 3', padding: 20, overflow: 'hidden' }}>
+          <Card className={`tf-card-hover tf-section-enter ${s.wideSpan}`} style={{ padding: 20, overflow: 'hidden' }}>
              <div className="tf-section-accent" style={{ marginBottom: 12 }}>Activity Heatmap</div>
              <WidgetBoundary name="Calendar" height={340}>
                 <TradeHeatmap trades={trades} onDayClick={(date, data) => {
@@ -423,7 +386,7 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
              </WidgetBoundary>
           </Card>
 
-          <Card className="tf-card-hover tf-section-enter" style={{ gridColumn: isMobile ? '1' : 'span 2', gridRow: isMobile ? 'auto' : 'span 3', padding: 0, display: 'flex', flexDirection: 'column' }}>
+          <Card className={`tf-card-hover tf-section-enter ${s.wideSpan}`} style={{ padding: 0, display: 'flex', flexDirection: 'column' }}>
              <div style={{ padding: '20px 20px 0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                <span className="tf-section-accent" style={{ marginBottom: 0 }}>Recent Trades</span>
                <button
@@ -836,7 +799,7 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
     }));
 
   return (
-    <div style={{ padding: pagePad, maxWidth: 1200 }}>
+    <div className={`${s.page} ${isMobile ? s.pageMobile : s.pageDesktop}`}>
       <DashHeader
         trades={trades}
         computing={computing}
@@ -938,24 +901,15 @@ function DashHeader({
   _activePreset,
 }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div className={s.dashHeader}>
+      <div className={s.dashHeaderLeft}>
         {trades.length > 0 && (
-          <span style={{ ...text.monoXs, fontWeight: 600 }}>
-            {trades.length} trades
-          </span>
+          <span className={s.tradeCount} style={text.monoXs}>{trades.length} trades</span>
         )}
         <UnitToggle />
       </div>
 
-      <div style={{ display: 'flex', gap: 6 }}>
+      <div className={s.dashHeaderRight}>
         <HeaderBtn label={layoutMode === 'narrative' ? '⊞ Custom' : '☰ Story'} onClick={onLayoutToggle} />
         {layoutMode === 'custom' && (
           <>
@@ -976,20 +930,9 @@ function UnitToggle() {
   return (
     <button
       onClick={cycle}
-      className="tf-btn"
+      className={`tf-btn ${s.unitToggle}`}
       title={`Display unit: ${unit} (click to cycle)`}
-      style={{
-        ...text.monoXs,
-        padding: '3px 8px',
-        borderRadius: 4,
-        border: `1px solid ${C.b}30`,
-        background: C.b + '10',
-        color: C.b,
-        fontWeight: 800,
-        cursor: 'pointer',
-        transition: 'all 0.15s',
-        lineHeight: 1,
-      }}
+      style={{ ...text.monoXs, border: `1px solid ${C.b}30`, background: C.b + '10', color: C.b }}
     >
       {label}
     </button>
@@ -1000,16 +943,8 @@ function HeaderBtn({ label, onClick, active }) {
   return (
     <button
       onClick={onClick}
-      className="tf-btn"
-      style={{
-        ...text.label,
-        padding: '5px 10px',
-        borderRadius: 6,
-        border: `1px solid ${active ? C.b : C.bd}`,
-        background: active ? C.b + '15' : C.sf,
-        color: active ? C.b : C.t2,
-        cursor: 'pointer',
-      }}
+      className={`tf-btn ${s.headerBtn}`}
+      style={{ ...text.label, border: `1px solid ${active ? C.b : C.bd}`, background: active ? C.b + '15' : C.sf, color: active ? C.b : C.t2 }}
     >
       {label}
     </button>
@@ -1034,45 +969,16 @@ function SectionHeader({ label }) {
 /** Narrative section header with step number, label, and description */
 function NarrativeSectionHeader({ step, label, description }) {
   return (
-    <div
-      className="tf-section-enter"
-      style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: 12,
-        marginBottom: 16,
-        paddingLeft: 2,
-      }}
-    >
-      <span
-        style={{
-          ...text.captionSm,
-          fontWeight: 800,
-          color: C.b,
-          background: C.b + '12',
-          padding: '3px 7px',
-          borderRadius: 6,
-          flexShrink: 0,
-        }}
-      >
+    <div className={`tf-section-enter ${s.narrativeHeader}`}>
+      <span className={s.narrativeStep} style={{ ...text.captionSm, color: C.b, background: C.b + '12' }}>
         {step}
       </span>
       <div>
-        <div
-          style={{
-            ...text.h3,
-            lineHeight: 1.3,
-          }}
-        >
+        <div className={s.narrativeLabel} style={text.h3}>
           {label}
         </div>
         {description && (
-          <div
-            style={{
-              ...text.caption,
-              marginTop: 2,
-            }}
-          >
+          <div className={s.narrativeDesc} style={text.caption}>
             {description}
           </div>
         )}
@@ -1084,14 +990,7 @@ function NarrativeSectionHeader({ step, label, description }) {
 /** Gradient divider between narrative sections */
 function NarrativeDivider() {
   return (
-    <div
-      className="tf-narrative-divider"
-      style={{
-        height: 1,
-        background: `linear-gradient(90deg, transparent, ${C.bd}60, transparent)`,
-        margin: '20px 0 24px',
-      }}
-    />
+    <div className={`tf-narrative-divider ${s.divider}`} style={{ background: `linear-gradient(90deg, transparent, ${C.bd}60, transparent)` }} />
   );
 }
 

@@ -17,11 +17,13 @@ import { useHotkeys } from './utils/useHotkeys.js';
 import { useUserStore } from './state/useUserStore.js';
 import { useUIStore } from './state/useUIStore.js';
 import { installGlobalErrorHandlers } from './utils/globalErrorHandler.js';
+import './utils/sentry.js'; // Sentry error monitoring (no-op without VITE_SENTRY_DSN)
 import { C, F, M } from './constants.js';
 import KeyboardShortcuts from './app/components/ui/KeyboardShortcuts.jsx';
 import { useGamificationStore, XP_TABLE } from './state/useGamificationStore.js';
 import { useJournalStore } from './state/useJournalStore.js';
 import { processPendingAchievements } from './app/components/ui/AchievementToast.jsx';
+import styles from './App.module.css';
 
 import { useFocusStore } from './state/useFocusStore.js';
 
@@ -36,6 +38,8 @@ const SettingsSlideOver = React.lazy(() => import('./app/layouts/SettingsSlideOv
 const FocusOverlay = React.lazy(() => import('./app/components/ui/FocusOverlay.jsx'));
 const CookieConsent = React.lazy(() => import('./app/components/ui/CookieConsent.jsx'));
 const FeedbackWidget = React.lazy(() => import('./app/components/ui/FeedbackWidget.jsx'));
+const VercelAnalytics = React.lazy(() => import('@vercel/analytics/react').then(m => ({ default: m.Analytics })));
+const VercelSpeedInsights = React.lazy(() => import('@vercel/speed-insights/react').then(m => ({ default: m.SpeedInsights })));
 
 // Install global error handlers once at module load
 installGlobalErrorHandlers();
@@ -165,30 +169,15 @@ export default function App() {
   return (
     <div
       key={theme}
-      style={{
-        display: 'flex',
-        flexDirection: isMobile ? 'column' : 'row',
-        height: '100vh',
-        overflow: 'hidden',
-        background: C.bg,
-        transition: 'background-color 0.2s ease',
-      }}
+      className={isMobile ? styles.appRootMobile : styles.appRoot}
     >
       {/* Sprint 23: Skip-to-content for keyboard/screen-reader users */}
-      <a href="#tf-main-content" className="tf-skip-link">Skip to content</a>
+      <a href="#tf-main-content" className={styles.skipLink}>Skip to content</a>
       {!isMobile && <Sidebar />}
       <ErrorBoundary resetKey={page}>
-        <div
-          style={{
-            flex: 1,
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            paddingBottom: isMobile ? 56 : 0,
-          }}
-        >
+        <div className={isMobile ? styles.mainAreaMobile : styles.mainArea}>
           <DailyGuardBanner />
-          <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }} id="tf-main-content" role="main" aria-label="Page content">
+          <div className={styles.mainContent} id="tf-main-content" role="main" aria-label="Page content">
             <PageRouter />
           </div>
         </div>
@@ -206,6 +195,8 @@ export default function App() {
         <FocusOverlay />
         <CookieConsent />
         <FeedbackWidget />
+        <VercelAnalytics />
+        <VercelSpeedInsights />
       </Suspense>
       <KeyboardShortcuts isOpen={shortcutsOpen} onClose={closeShortcuts} />
     </div>
@@ -216,111 +207,22 @@ export default function App() {
 
 function LoadingScreen() {
   return (
-    <div
-      style={{
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 20,
-        fontFamily: F,
-        background: C.bg,
-      }}
-    >
+    <div className={styles.loadingRoot}>
       {/* Brand icon with glow */}
-      <div style={{ position: 'relative' }}>
+      <div className={styles.loadingLogoWrap}>
         {/* ✦ Ember spark — rises and fades before logo appears */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            left: '50%',
-            top: -8,
-            transform: 'translateX(-50%)',
-            fontSize: 14,
-            color: C.rose || '#e8a0b0',
-            textShadow: `0 0 8px ${C.rose || '#e8a0b0'}80`,
-            animation: 'tfEmberSpark 2s ease-out infinite',
-            pointerEvents: 'none',
-          }}
-        >
-          ✦
-        </div>
-        <div
-          style={{
-            width: 64,
-            height: 64,
-            borderRadius: 16,
-            background: `linear-gradient(135deg, ${C.b}, ${C.y})`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 800,
-            fontSize: 24,
-            fontFamily: M,
-            color: '#fff',
-            boxShadow: `0 8px 32px ${C.b}40, 0 0 0 1px rgba(255,255,255,0.06) inset`,
-          }}
-        >
-          CE
-        </div>
+        <div aria-hidden="true" className={styles.loadingSpark}>✦</div>
+        <div className={styles.loadingLogo}>CE</div>
         {/* Ambient glow */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: -20,
-            borderRadius: 32,
-            background: `radial-gradient(ellipse, ${C.b}15, transparent 70%)`,
-            pointerEvents: 'none',
-          }}
-        />
+        <div className={styles.loadingGlow} />
       </div>
-      <div style={{ fontSize: 20, fontWeight: 800, color: C.t1, letterSpacing: '-0.02em' }}>
-        charEdge
-      </div>
-      <div style={{ fontSize: 12, color: C.t3, fontFamily: F, fontWeight: 500, letterSpacing: '0.04em' }}>
-        Find Your Edge.
-      </div>
+      <div className={styles.loadingTitle}>charEdge</div>
+      <div className={styles.loadingTagline}>Find Your Edge.</div>
 
       {/* Progress bar instead of spinner */}
-      <div
-        style={{
-          width: 120,
-          height: 3,
-          borderRadius: 2,
-          background: `${C.bd}40`,
-          overflow: 'hidden',
-          marginTop: 4,
-        }}
-      >
-        <div
-          style={{
-            width: '40%',
-            height: '100%',
-            borderRadius: 2,
-            background: `linear-gradient(90deg, ${C.b}, ${C.y})`,
-            animation: 'tfLoadBar 1.2s ease-in-out infinite',
-          }}
-        />
+      <div className={styles.loadingBarTrack}>
+        <div className={styles.loadingBar} />
       </div>
-
-      <style>{`
-        @keyframes tfLoadBar {
-          0% { transform: translateX(-100%); }
-          50% { transform: translateX(150%); }
-          100% { transform: translateX(350%); }
-        }
-        @keyframes tfEmberSpark {
-          0% { opacity: 0; transform: translateX(-50%) translateY(0) scale(0.5); }
-          30% { opacity: 1; transform: translateX(-50%) translateY(-16px) scale(1); }
-          70% { opacity: 0.6; transform: translateX(-50%) translateY(-32px) scale(0.8); }
-          100% { opacity: 0; transform: translateX(-50%) translateY(-44px) scale(0.4); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          [aria-hidden="true"] { animation: none !important; opacity: 0.7 !important; }
-        }
-      `}</style>
     </div>
   );
 }

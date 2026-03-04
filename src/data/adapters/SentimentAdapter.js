@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger.ts';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v12 — Fear & Greed Index + Social Sentiment Adapters
 //
@@ -65,7 +66,7 @@ async function fetchFearGreedIndex() {
     setCache('fear-greed', result, 600000); // 10 min cache
     return result;
   } catch (err) {
-    console.warn('[SentimentAdapter] Fear & Greed fetch failed:', err.message);
+    logger.data.warn('[SentimentAdapter] Fear & Greed fetch failed:', err.message);
     return null;
   }
 }
@@ -112,7 +113,7 @@ async function fetchRedditTrending(filter = 'all-stocks', page = 1) {
     setCache(`reddit-${filter}-${page}`, result);
     return result;
   } catch (err) {
-    console.warn('[SentimentAdapter] Reddit trending fetch failed:', err.message);
+    logger.data.warn('[SentimentAdapter] Reddit trending fetch failed:', err.message);
     return [];
   }
 }

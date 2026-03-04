@@ -1,5 +1,5 @@
 # Sprint 8: Dashboard Overhaul — Delivery Report
-## TradeForge OS v10.4 → v10.5
+## charEdge v10.4 → v10.5
 
 **Sprint Theme:** Command center  
 **Tasks Delivered:** 12/12  

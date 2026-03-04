@@ -1,0 +1,86 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — Tooltip CSS Module
+   Portal-based positioned tooltip with arrow.
+   Placements: top, bottom, left, right
+   ═══════════════════════════════════════════════════════════════════ */
+
+.trigger {
+  display: inline-flex;
+  position: relative;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 9999;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  line-height: 1.4;
+  max-width: 240px;
+  pointer-events: none;
+  white-space: normal;
+  word-wrap: break-word;
+
+  /* Glassmorphism */
+  background: rgba(20, 20, 35, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.04);
+
+  /* Animation */
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ─── Arrow ──────────────────────────────────────────────────── */
+.arrow {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: rgba(20, 20, 35, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transform: rotate(45deg);
+}
+
+.arrowTop {
+  bottom: -5px;
+  left: 50%;
+  margin-left: -4px;
+  border-top: none;
+  border-left: none;
+}
+
+.arrowBottom {
+  top: -5px;
+  left: 50%;
+  margin-left: -4px;
+  border-bottom: none;
+  border-right: none;
+}
+
+.arrowLeft {
+  right: -5px;
+  top: 50%;
+  margin-top: -4px;
+  border-bottom: none;
+  border-left: none;
+}
+
+.arrowRight {
+  left: -5px;
+  top: 50%;
+  margin-top: -4px;
+  border-top: none;
+  border-right: none;
+}

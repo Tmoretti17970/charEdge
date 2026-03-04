@@ -1,3 +1,4 @@
+// @ts-check
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v10.5 — Trade Entry Templates
 // Sprint 9 C9.3: Pre-filled trade form templates with checklists.

@@ -1,3 +1,4 @@
+// @ts-check
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v10 — UI Store (Zustand)
 // Manages: page navigation, modals, zen mode, command palette

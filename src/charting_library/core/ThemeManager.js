@@ -159,6 +159,86 @@ const THEMES = {
   light: LIGHT_THEME,
 };
 
+// Sprint 21: Preset Palettes
+/** Bloomberg Terminal theme */
+export const BLOOMBERG_THEME = {
+  name: 'bloomberg',
+  background: '#000000',
+  foreground: '#FF8C00',
+  axisBackground: '#0A0A0A',
+  axisBorder: 'rgba(255, 140, 0, 0.15)',
+  textPrimary: '#FF8C00',
+  textSecondary: '#CC7000',
+  textDisabled: '#664000',
+  gridColor: 'rgba(255, 140, 0, 0.08)',
+  crosshairColor: 'rgba(255, 140, 0, 0.35)',
+  candleUp: '#00FF00',
+  candleDown: '#FF0000',
+  candleUpWick: '#00FF00',
+  candleDownWick: '#FF0000',
+  volumeUp: 'rgba(0, 255, 0, 0.25)',
+  volumeDown: 'rgba(255, 0, 0, 0.25)',
+  lineColor: '#FF8C00',
+  areaTopColor: 'rgba(255, 140, 0, 0.2)',
+  areaBottomColor: 'rgba(255, 140, 0, 0.01)',
+  currentPriceLine: '#FF8C00',
+  dividerColor: '#1A1A1A',
+  dividerHover: '#FF8C00',
+  toolbarBg: '#000000',
+  toolbarBorder: '#1A1A1A',
+  buttonHover: '#1A1A0A',
+  buttonActive: '#FF8C00',
+  accentColor: '#FF8C00',
+  dangerColor: '#FF0000',
+  warningColor: '#FFFF00',
+  successColor: '#00FF00',
+  tooltipBg: '#1A1A1A',
+  tooltipText: '#FF8C00',
+  scrollbarTrack: '#0A0A0A',
+  scrollbarThumb: '#333333',
+};
+
+/** TradingView Pro Dark (refined) */
+export const TRADINGVIEW_PRO_THEME = {
+  name: 'tradingview-pro',
+  background: '#0C0E15',
+  foreground: '#E0E3EB',
+  axisBackground: '#161A25',
+  axisBorder: 'rgba(42, 46, 57, 0.6)',
+  textPrimary: '#E0E3EB',
+  textSecondary: '#6A6E78',
+  textDisabled: '#3E4254',
+  gridColor: 'rgba(42, 46, 57, 0.25)',
+  crosshairColor: 'rgba(120, 123, 134, 0.4)',
+  candleUp: '#089981',
+  candleDown: '#F23645',
+  candleUpWick: '#089981',
+  candleDownWick: '#F23645',
+  volumeUp: 'rgba(8, 153, 129, 0.25)',
+  volumeDown: 'rgba(242, 54, 69, 0.25)',
+  lineColor: '#2962FF',
+  areaTopColor: 'rgba(41, 98, 255, 0.3)',
+  areaBottomColor: 'rgba(41, 98, 255, 0.02)',
+  currentPriceLine: '#6A6E78',
+  dividerColor: '#2A2E39',
+  dividerHover: '#2962FF',
+  toolbarBg: '#0C0E15',
+  toolbarBorder: '#161A25',
+  buttonHover: '#1E222D',
+  buttonActive: '#2962FF',
+  accentColor: '#2962FF',
+  dangerColor: '#F23645',
+  warningColor: '#FF9800',
+  successColor: '#089981',
+  tooltipBg: '#2A2E39',
+  tooltipText: '#E0E3EB',
+  scrollbarTrack: '#161A25',
+  scrollbarThumb: '#2A2E39',
+};
+
+THEMES['bloomberg'] = BLOOMBERG_THEME;
+THEMES['tradingview-pro'] = TRADINGVIEW_PRO_THEME;
+
 /**
  * Create a theme manager for runtime theme switching.
  *
@@ -167,14 +247,26 @@ const THEMES = {
  */
 export function createThemeManager(initialTheme = 'dark') {
   let currentTheme = THEMES[initialTheme] || DARK_THEME;
+  // Sprint 21: Per-key user overrides
+  let userOverrides = {};
 
   /** @type {Set<(theme: ChartTheme) => void>} */
   const listeners = new Set();
 
+  // Sprint 21: Load saved overrides
+  try {
+    const raw = localStorage.getItem('tf_theme_overrides');
+    if (raw) userOverrides = JSON.parse(raw);
+  } catch {}
+
+  function getTheme() {
+    return { ...currentTheme, ...userOverrides };
+  }
+
   return {
-    /** Current theme object */
+    /** Current theme object (with user overrides applied) */
     get theme() {
-      return currentTheme;
+      return getTheme();
     },
 
     /** Current theme name */
@@ -184,12 +276,17 @@ export function createThemeManager(initialTheme = 'dark') {
 
     /** Is dark theme */
     get isDark() {
-      return currentTheme.name === 'dark';
+      return currentTheme.name === 'dark' || currentTheme.background?.startsWith('#0') || currentTheme.background === '#000000';
+    },
+
+    /** Sprint 21: List all available theme names */
+    get availableThemes() {
+      return Object.keys(THEMES);
     },
 
     /**
      * Switch theme.
-     * @param {string} themeName - 'dark' | 'light'
+     * @param {string} themeName - 'dark' | 'light' | 'bloomberg' | 'tradingview-pro'
      */
     setTheme(themeName) {
       const newTheme = THEMES[themeName];
@@ -204,7 +301,7 @@ export function createThemeManager(initialTheme = 'dark') {
 
       // Notify listeners
       for (const listener of listeners) {
-        listener(currentTheme);
+        listener(getTheme());
       }
     },
 
@@ -214,11 +311,51 @@ export function createThemeManager(initialTheme = 'dark') {
     },
 
     /**
+     * Sprint 21: Set per-key color overrides.
+     * @param {string} key - Theme property key (e.g., 'candleUp')
+     * @param {string} value - CSS color value
+     */
+    setOverride(key, value) {
+      userOverrides[key] = value;
+      try {
+        localStorage.setItem('tf_theme_overrides', JSON.stringify(userOverrides));
+      } catch {}
+      for (const listener of listeners) {
+        listener(getTheme());
+      }
+    },
+
+    /**
+     * Sprint 21: Clear all user overrides.
+     */
+    clearOverrides() {
+      userOverrides = {};
+      try {
+        localStorage.removeItem('tf_theme_overrides');
+      } catch {}
+      for (const listener of listeners) {
+        listener(getTheme());
+      }
+    },
+
+    /**
+     * Sprint 21: Get gradient background CSS (for gradient background option).
+     * @param {string} [direction='to bottom'] - CSS gradient direction
+     * @returns {string} CSS linear-gradient value
+     */
+    getGradientBackground(direction = 'to bottom') {
+      const bg = getTheme().background || '#131722';
+      // Lighten the top, darken the bottom
+      return `linear-gradient(${direction}, ${bg}, ${adjustBrightness(bg, -10)})`;
+    },
+
+    /**
      * Apply theme CSS variables to a container element.
      * @param {HTMLElement} el
      */
     apply(el) {
-      for (const [key, value] of Object.entries(currentTheme)) {
+      const merged = getTheme();
+      for (const [key, value] of Object.entries(merged)) {
         if (key === 'name') continue;
         el.style.setProperty(`--tf-${camelToKebab(key)}`, value);
       }
@@ -235,12 +372,12 @@ export function createThemeManager(initialTheme = 'dark') {
     },
 
     /**
-     * Get a specific color from the current theme.
+     * Get a specific color from the current theme (with overrides).
      * @param {string} key - Theme key (e.g., 'candleUp')
      * @returns {string}
      */
     color(key) {
-      return currentTheme[key] || '#FF00FF'; // Magenta = missing color
+      return getTheme()[key] || '#FF00FF'; // Magenta = missing color
     },
 
     /**
@@ -250,6 +387,42 @@ export function createThemeManager(initialTheme = 'dark') {
      */
     registerTheme(name, theme) {
       THEMES[name] = { ...theme, name };
+    },
+
+    /**
+     * Sprint 21: Export current theme + overrides as JSON string.
+     * @returns {string}
+     */
+    exportThemeJSON() {
+      return JSON.stringify({
+        base: currentTheme.name,
+        overrides: userOverrides,
+        theme: getTheme(),
+      }, null, 2);
+    },
+
+    /**
+     * Sprint 21: Import theme from JSON string.
+     * @param {string} json
+     */
+    importThemeJSON(json) {
+      try {
+        const parsed = JSON.parse(json);
+        if (parsed.base && THEMES[parsed.base]) {
+          this.setTheme(parsed.base);
+        }
+        if (parsed.overrides && typeof parsed.overrides === 'object') {
+          userOverrides = { ...parsed.overrides };
+          try {
+            localStorage.setItem('tf_theme_overrides', JSON.stringify(userOverrides));
+          } catch {}
+        }
+        for (const listener of listeners) {
+          listener(getTheme());
+        }
+      } catch (e) {
+        console.warn('[ThemeManager] Invalid theme JSON:', e);
+      }
     },
 
     /**
@@ -269,4 +442,18 @@ export function createThemeManager(initialTheme = 'dark') {
 /** Convert camelCase to kebab-case */
 function camelToKebab(str) {
   return str.replace(/([A-Z])/g, '-$1').toLowerCase();
+}
+
+/**
+ * Sprint 21: Adjust brightness of a hex color.
+ * @param {string} hex - e.g. '#131722'
+ * @param {number} amount - positive = lighter, negative = darker
+ * @returns {string}
+ */
+function adjustBrightness(hex, amount) {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const r = Math.max(0, Math.min(255, ((num >> 16) & 0xFF) + amount));
+  const g = Math.max(0, Math.min(255, ((num >> 8) & 0xFF) + amount));
+  const b = Math.max(0, Math.min(255, (num & 0xFF) + amount));
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
 }

@@ -1,3 +1,4 @@
+import { logger } from '../../../utils/logger.ts';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Data Event Bus
 //
@@ -130,7 +131,7 @@ class _DataEventBus {
         try {
           handler(detail);
         } catch (err) {
-          console.warn(`[DataEventBus] Handler error for '${type}':`, err);
+          logger.data.warn(`[DataEventBus] Handler error for '${type}':`, err);
         }
       }
     }

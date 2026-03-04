@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════
-# TradeForge — Cloudflare Configuration Reference
+# charEdge — Cloudflare Configuration Reference
 #
 # This file documents the recommended Cloudflare settings.
 # Apply these via the Cloudflare dashboard or Wrangler CLI.
@@ -8,8 +8,8 @@
 # ─── DNS Records ─────────────────────────────────────────────────
 #
 # Type    Name              Content              Proxy    TTL
-# A       tradeforge.app    <HETZNER_IP>         Proxied  Auto
-# CNAME   www               tradeforge.app       Proxied  Auto
+# A       charedge.app      <HETZNER_IP>         Proxied  Auto
+# CNAME   www               charedge.app         Proxied  Auto
 #
 # ─── SSL/TLS ─────────────────────────────────────────────────────
 #
@@ -35,15 +35,15 @@
 # Cache Level: Standard
 #
 # Page Rules:
-#   1. tradeforge.app/assets/*
+#   1. charedge.app/assets/*
 #      Cache Level: Cache Everything
 #      Edge Cache TTL: 1 month
 #      Browser Cache TTL: 1 year
 #
-#   2. tradeforge.app/api/*
+#   2. charedge.app/api/*
 #      Cache Level: Bypass
 #
-#   3. tradeforge.app/ws/*
+#   3. charedge.app/ws/*
 #      Cache Level: Bypass (WebSocket)
 #
 # ─── Security ────────────────────────────────────────────────────
@@ -65,5 +65,5 @@
 # ─── Workers (Future) ───────────────────────────────────────────
 #
 # Planned: Edge-side price caching for Hub Mode
-# Route: tradeforge.app/api/prices/*
+# Route: charedge.app/api/prices/*
 # Worker: infra/workers/price-cache.js (TBD)

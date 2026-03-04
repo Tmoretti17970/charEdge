@@ -95,6 +95,18 @@ function pearsonCorrelation(x, y) {
 // ─── Indicator Implementations ─────────────────────────────────
 
 const indicators = {
+  sma(candles, period = 20) {
+    const closes = candles.map(c => c.close);
+    const values = sma(closes, period);
+    return candles.map((c, i) => ({ time: c.time, value: values[i] }));
+  },
+
+  ema(candles, period = 20) {
+    const closes = candles.map(c => c.close);
+    const values = ema(closes, period);
+    return candles.map((c, i) => ({ time: c.time, value: values[i] }));
+  },
+
   obv(candles) {
     const result = [];
     let obv = 0;

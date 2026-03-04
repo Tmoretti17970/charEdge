@@ -7,6 +7,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { BaseAdapter } from './BaseAdapter.js';
+import { logger } from '../../utils/logger.ts';
 import { CRYPTO_IDS } from '../../constants.js';
 
 const API_BASE =
@@ -136,7 +137,7 @@ export class CryptoCompareAdapter extends BaseAdapter {
 
   subscribe(_symbol, _callback) {
     // CryptoCompare has WebSocket streaming but requires paid tier
-    console.warn('[CryptoCompareAdapter] Real-time subscriptions not supported on free tier');
+    logger.data.warn('[CryptoCompareAdapter] Real-time subscriptions not supported on free tier');
     return () => {};
   }
 

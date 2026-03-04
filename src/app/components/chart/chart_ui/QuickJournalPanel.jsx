@@ -10,6 +10,7 @@ import { useChartStore } from '../../../../state/useChartStore.js';
 import { useJournalStore } from '../../../../state/useJournalStore.js';
 import { uid } from '../../../../utils.js';
 import toast from '../../ui/Toast.jsx';
+import css from './QuickJournalPanel.module.css';
 
 const SIDES = ['long', 'short'];
 
@@ -83,61 +84,25 @@ export default function QuickJournalPanel({ onClose }) {
 
   return (
     <div
-      style={{
-        position: 'absolute',
-        bottom: 60,
-        left: 12,
-        zIndex: 80,
-        width: 260,
-        background: C.bg,
-        border: `1px solid ${C.bd}`,
-        borderRadius: 8,
-        boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-      }}
+      className={css.panel}
+      style={{ background: C.bg, border: `1px solid ${C.bd}` }}
     >
       {/* Header */}
-      <div
-        style={{
-          padding: '8px 12px',
-          borderBottom: `1px solid ${C.bd}`,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <span style={{ fontSize: 11, fontWeight: 700, color: C.t1, fontFamily: F }}>📝 Quick Journal — {symbol}</span>
-        <button
-          className="tf-btn"
-          onClick={onClose}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: C.t3,
-            fontSize: 14,
-            cursor: 'pointer',
-          }}
-        >
-          ✕
-        </button>
+      <div className={css.header} style={{ borderBottom: `1px solid ${C.bd}` }}>
+        <span className={css.headerTitle} style={{ color: C.t1, fontFamily: F }}>📝 Quick Journal — {symbol}</span>
+        <button className={`tf-btn ${css.closeBtn}`} onClick={onClose} style={{ color: C.t3 }}>✕</button>
       </div>
 
-      <div style={{ padding: '8px 12px' }}>
+      <div className={css.body}>
         {/* Side */}
-        <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+        <div className={css.sideToggle}>
           {SIDES.map((s) => (
             <button
-              className="tf-btn"
+              className={`tf-btn ${css.sideBtn}`}
               key={s}
               onClick={() => set('side', s)}
               style={{
-                flex: 1,
-                padding: '4px 0',
-                fontSize: 10,
-                fontWeight: 700,
-                borderRadius: 4,
-                cursor: 'pointer',
                 fontFamily: M,
-                textTransform: 'uppercase',
                 border: `1px solid ${form.side === s ? (s === 'long' ? C.g : C.r) : C.bd}`,
                 background: form.side === s ? (s === 'long' ? C.g + '15' : C.r + '15') : 'transparent',
                 color: form.side === s ? (s === 'long' ? C.g : C.r) : C.t3,
@@ -149,21 +114,14 @@ export default function QuickJournalPanel({ onClose }) {
         </div>
 
         {/* Levels (read-only from chart) */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr 1fr',
-            gap: 4,
-            marginBottom: 8,
-          }}
-        >
+        <div className={css.levelGrid}>
           <LevelBadge label="Entry" value={pendingEntry?.price} color={C.info} />
           <LevelBadge label="SL" value={pendingSL?.price} color={C.r} />
           <LevelBadge label="TP" value={pendingTP?.price} color={C.g} />
         </div>
 
         {/* Qty + P&L */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, marginBottom: 8 }}>
+        <div className={css.twoCol}>
           <SmallInput label="Qty" value={form.qty} onChange={(v) => set('qty', v)} placeholder="100" type="number" />
           <SmallInput
             label="P&L"
@@ -183,7 +141,7 @@ export default function QuickJournalPanel({ onClose }) {
         />
 
         {/* Emotion chips */}
-        <div style={{ display: 'flex', gap: 3, marginTop: 6, marginBottom: 6, flexWrap: 'wrap' }}>
+        <div className={css.emotionRow}>
           {(
             EMOJIS || [
               { l: 'confident', e: '😎' },
@@ -195,14 +153,10 @@ export default function QuickJournalPanel({ onClose }) {
             ]
           ).map((em) => (
             <button
-              className="tf-btn"
+              className={`tf-btn ${css.emotionBtn}`}
               key={em.l}
               onClick={() => set('emotion', form.emotion === em.l ? '' : em.l)}
               style={{
-                padding: '2px 6px',
-                fontSize: 9,
-                borderRadius: 4,
-                cursor: 'pointer',
                 border: `1px solid ${form.emotion === em.l ? C.b : C.bd}`,
                 background: form.emotion === em.l ? C.b + '15' : 'transparent',
                 color: form.emotion === em.l ? C.b : C.t3,
@@ -217,45 +171,23 @@ export default function QuickJournalPanel({ onClose }) {
         <SmallInput label="Tags" value={form.tags} onChange={(v) => set('tags', v)} placeholder="comma-separated" />
 
         {/* Notes */}
-        <div style={{ marginTop: 6 }}>
-          <label style={{ fontSize: 8, fontWeight: 600, color: C.t3, fontFamily: M }}>Notes</label>
+        <div className={css.notesWrap}>
+          <label className={css.notesLabel} style={{ color: C.t3, fontFamily: M }}>Notes</label>
           <textarea
             value={form.notes}
             onChange={(e) => set('notes', e.target.value)}
             placeholder="Quick notes..."
             rows={2}
-            style={{
-              width: '100%',
-              padding: '4px 8px',
-              fontSize: 10,
-              borderRadius: 4,
-              border: `1px solid ${C.bd}`,
-              background: C.sf,
-              color: C.t1,
-              fontFamily: M,
-              resize: 'none',
-              outline: 'none',
-            }}
+            className={css.notesArea}
+            style={{ border: `1px solid ${C.bd}`, background: C.sf, color: C.t1, fontFamily: M }}
           />
         </div>
 
         {/* Submit */}
         <button
-          className="tf-btn"
+          className={`tf-btn ${css.submitBtn}`}
           onClick={handleSubmit}
-          style={{
-            width: '100%',
-            padding: '7px 0',
-            marginTop: 8,
-            borderRadius: 6,
-            border: 'none',
-            background: C.b,
-            color: '#fff',
-            fontSize: 11,
-            fontWeight: 700,
-            fontFamily: F,
-            cursor: 'pointer',
-          }}
+          style={{ background: C.b, fontFamily: F }}
         >
           Log Trade
         </button>

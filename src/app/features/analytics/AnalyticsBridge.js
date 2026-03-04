@@ -16,6 +16,7 @@
 
 import { computeFast } from './analyticsFast.js';
 
+import { logger } from '../../../utils/logger.ts';
 let _idCounter = 0;
 
 class AnalyticsBridge {
@@ -44,7 +45,7 @@ class AnalyticsBridge {
 
       this._worker.onmessage = (e) => this._onMessage(e.data);
       this._worker.onerror = (err) => {
-        console.warn('[AnalyticsBridge] Worker error, falling back to sync:', err.message);
+        logger.worker.warn('[AnalyticsBridge] Worker error, falling back to sync:', err.message);
         this._useWorker = false;
         this._rejectPending('Worker error');
       };

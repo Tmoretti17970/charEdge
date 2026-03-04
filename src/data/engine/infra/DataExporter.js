@@ -18,6 +18,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { tickPersistence } from '../streaming/TickPersistence.js';
+import { logger } from '../../../utils/logger.ts';
 import { cacheManager } from './CacheManager.js';
 
 // ─── Data Exporter ─────────────────────────────────────────────
@@ -122,7 +123,7 @@ class _DataExporter {
   async purgeSymbol(symbol) {
     // This would require extending DataCache with delete methods
     // For now, indicated as a future capability
-    console.warn('[DataExporter] purgeSymbol not yet implemented');
+    logger.data.warn('[DataExporter] purgeSymbol not yet implemented');
     return false;
   }
 

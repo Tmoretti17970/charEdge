@@ -26,27 +26,79 @@ import { FootprintRenderer } from '../FootprintRenderer.js';
  * @property {string}   name     - Display name
  * @property {string}   icon     - Unicode icon
  * @property {boolean}  hasVolume - Whether volume makes sense with this type
+ * @property {Object}   [configParams] - User-configurable parameters for this type
  */
 
 /** All available chart types */
 export const CHART_TYPES = {
   candlestick: { id: 'candlestick', name: 'Candlestick', icon: '📊', hasVolume: true },
   hollow:      { id: 'hollow', name: 'Hollow Candles', icon: '▯', hasVolume: true },
-  heikinashi:  { id: 'heikinashi', name: 'Heikin-Ashi', icon: '🔷', hasVolume: true },
+  heikinashi:  { id: 'heikinashi', name: 'Heikin-Ashi', icon: '🔷', hasVolume: true,
+    configParams: {
+      smoothing: { type: 'range', label: 'Smoothing', min: 1, max: 5, step: 1, default: 1 },
+    },
+  },
   footprint:   { id: 'footprint', name: 'Footprint (Volume)', icon: '👣', hasVolume: true },
   ohlc:        { id: 'ohlc', name: 'OHLC Bars', icon: '┤', hasVolume: true },
   line:        { id: 'line', name: 'Line', icon: '📈', hasVolume: false },
   area:        { id: 'area', name: 'Area', icon: '▨', hasVolume: false },
-  baseline:    { id: 'baseline', name: 'Baseline', icon: '⚖', hasVolume: false },
-  renko:       { id: 'renko', name: 'Renko', icon: '🧱', hasVolume: false },
+  baseline:    { id: 'baseline', name: 'Baseline', icon: '⚖', hasVolume: false,
+    configParams: {
+      baselinePrice: { type: 'select', label: 'Baseline', options: ['auto', 'custom'], default: 'auto' },
+      customBasePrice: { type: 'number', label: 'Custom Price', default: 0, min: 0 },
+      topFillColor: { type: 'color', label: 'Above Fill', default: '#26A69A' },
+      bottomFillColor: { type: 'color', label: 'Below Fill', default: '#EF5350' },
+    },
+  },
+  renko:       { id: 'renko', name: 'Renko', icon: '🧱', hasVolume: false,
+    configParams: {
+      boxSizeMode: { type: 'select', label: 'Box Size', options: ['ATR', 'fixed'], default: 'ATR' },
+      fixedBoxSize: { type: 'number', label: 'Fixed Size', default: 1, min: 0.01, step: 0.01 },
+      brickStyle: { type: 'select', label: 'Brick Style', options: ['solid', 'hollow'], default: 'solid' },
+    },
+  },
   range:       { id: 'range', name: 'Range Bars', icon: '📶', hasVolume: true },
-  pointfigure: { id: 'pointfigure', name: 'Point & Figure', icon: '✕', hasVolume: false },
+  pointfigure: { id: 'pointfigure', name: 'Point & Figure', icon: '✕', hasVolume: false,
+    configParams: {
+      boxSizeMode: { type: 'select', label: 'Box Size', options: ['ATR', 'fixed'], default: 'ATR' },
+      fixedBoxSize: { type: 'number', label: 'Fixed Size', default: 1, min: 0.01, step: 0.01 },
+      reversalCount: { type: 'range', label: 'Reversal', min: 1, max: 10, step: 1, default: 3 },
+      style: { type: 'select', label: 'Style', options: ['XO', 'filled'], default: 'XO' },
+    },
+  },
   kagi:        { id: 'kagi', name: 'Kagi', icon: '⧸', hasVolume: false },
   linebreak:   { id: 'linebreak', name: 'Line Break', icon: '▮', hasVolume: false },
   tick:        { id: 'tick', name: 'Tick Chart', icon: '·', hasVolume: false },
   volumecandle:{ id: 'volumecandle', name: 'Volume Candles', icon: '◧', hasVolume: true },
   hilo:        { id: 'hilo', name: 'Hi-Lo', icon: '↕', hasVolume: true },
 };
+
+// ─── Sprint 15: Computation Caches ───────────────────────────────
+// Cache Renko bricks and P&F columns to avoid recomputing per frame.
+// Keyed by barCount+configHash. Invalidated when bars change or config updates.
+const _renkoCache = { key: '', bricks: null };
+const _pnfCache = { key: '', columns: null, boxSize: 0 };
+
+function _cacheKey(bars, config) {
+  const len = bars?.length || 0;
+  const lastTime = len > 0 ? (bars[len - 1].time || 0) : 0;
+  return `${len}_${lastTime}_${JSON.stringify(config || {})}`;
+}
+
+/**
+ * Get default config values for a chart type.
+ * @param {string} typeId
+ * @returns {Object}
+ */
+export function getChartTypeDefaults(typeId) {
+  const ct = CHART_TYPES[typeId];
+  if (!ct?.configParams) return {};
+  const defaults = {};
+  for (const [key, param] of Object.entries(ct.configParams)) {
+    defaults[key] = param.default;
+  }
+  return defaults;
+}
 
 // ─── Shared Helpers ───────────────────────────────────────────────
 
@@ -288,10 +340,14 @@ export function drawBaselineChart(ctx, bars, params, theme) {
   const { pixelRatio, bitmapHeight } = params;
   const mainBH = bitmapHeight || Math.round((params.mainH || 400) * pixelRatio);
   const cBW = params.chartWidth || mainBH; // chart bitmap width
-  const basePrice = bars[0].close;
+  // Sprint 15: configurable baseline price
+  const cfg = params.chartTypeConfig || {};
+  const basePrice = (cfg.baselinePrice === 'custom' && cfg.customBasePrice > 0)
+    ? cfg.customBasePrice
+    : bars[0].close;
   const baseY = priceY(basePrice, params);
-  const aboveColor = theme.bullCandle || theme.candleUp || '#26A69A';
-  const belowColor = theme.bearCandle || theme.candleDown || '#EF5350';
+  const aboveColor = cfg.topFillColor || theme.bullCandle || theme.candleUp || '#26A69A';
+  const belowColor = cfg.bottomFillColor || theme.bearCandle || theme.candleDown || '#EF5350';
 
   // Baseline reference dashed line
   ctx.strokeStyle = theme.axisText || '#787B86';
@@ -368,8 +424,11 @@ export function drawBaselineChart(ctx, bars, params, theme) {
  */
 export function drawHeikinAshi(ctx, bars, params, theme) {
   if (!bars?.length) return;
+  // Sprint 15: configurable smoothing passes
+  const cfg = params.chartTypeConfig || {};
+  const smoothing = Math.max(1, Math.min(5, cfg.smoothing || 1));
 
-  const ha = [];
+  let ha = [];
   for (let i = 0; i < bars.length; i++) {
     const b = bars[i];
     const haClose = (b.open + b.high + b.low + b.close) / 4;
@@ -384,15 +443,37 @@ export function drawHeikinAshi(ctx, bars, params, theme) {
     });
   }
 
+  // Additional smoothing passes (re-apply HA transform)
+  for (let s = 1; s < smoothing; s++) {
+    const smoothed = [];
+    for (let i = 0; i < ha.length; i++) {
+      const b = ha[i];
+      const sClose = (b.open + b.high + b.low + b.close) / 4;
+      const sOpen = i === 0 ? (b.open + b.close) / 2 : (smoothed[i - 1].open + smoothed[i - 1].close) / 2;
+      smoothed.push({
+        open: sOpen,
+        high: Math.max(b.high, sOpen, sClose),
+        low: Math.min(b.low, sOpen, sClose),
+        close: sClose,
+        volume: b.volume,
+        time: b.time,
+      });
+    }
+    ha = smoothed;
+  }
+
   drawCandlesticks(ctx, ha, params, theme);
 }
 
 /**
  * Draw Renko bricks (no wicks, uniform height blocks).
+ * Sprint 15: supports configurable box size and brick style, with computation caching.
  */
 export function drawRenko(ctx, bars, params, theme) {
   if (!bars?.length) return;
   const { pixelRatio } = params;
+  const cfg = params.chartTypeConfig || {};
+  const isHollow = cfg.brickStyle === 'hollow';
   const cW = params.chartWidth || 800;
   const rBSp = cW / Math.max(1, bars.length);
   const rbw = Math.max(1, Math.floor(rBSp * 0.8 * pixelRatio));
@@ -404,8 +485,15 @@ export function drawRenko(ctx, bars, params, theme) {
     const cY = priceY(b.close, params);
     const tp = Math.min(oY, cY);
     const h = Math.max(1, Math.abs(oY - cY));
-    ctx.fillStyle = b._isUp ? (theme.bullCandle || '#26A69A') : (theme.bearCandle || '#EF5350');
-    ctx.fillRect(x - Math.floor(rbw / 2), tp, rbw, h);
+    const color = b._isUp ? (theme.bullCandle || '#26A69A') : (theme.bearCandle || '#EF5350');
+    if (isHollow) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = Math.max(1, Math.round(pixelRatio));
+      ctx.strokeRect(x - Math.floor(rbw / 2), tp, rbw, h);
+    } else {
+      ctx.fillStyle = color;
+      ctx.fillRect(x - Math.floor(rbw / 2), tp, rbw, h);
+    }
   }
 }
 
@@ -472,90 +560,42 @@ export function drawFootprint(ctx, bars, params, theme, aggregator) {
 
 /**
  * Draw Point & Figure chart (X = up, O = down).
- * Computes P&F columns on-the-fly from OHLCV bars.
- * Box size auto-calculated from ATR(14); 3-box reversal.
+ * Sprint 15: configurable box size, reversal count, style. Results cached.
  */
 export function drawPointAndFigure(ctx, bars, params, theme) {
   if (!bars?.length || bars.length < 2) return;
   const { pixelRatio } = params;
   const cW = params.chartWidth || 800;
+  const cfg = params.chartTypeConfig || {};
+  const reversal = cfg.reversalCount || 3;
+  const useFilled = cfg.style === 'filled';
 
-  // --- Auto-calculate box size from ATR(14) ---
-  const atrPeriod = Math.min(14, bars.length);
-  let atrSum = 0;
-  for (let i = Math.max(1, bars.length - atrPeriod); i < bars.length; i++) {
-    const prev = bars[i - 1];
-    const c = bars[i];
-    atrSum += Math.max(c.high - c.low, Math.abs(c.high - prev.close), Math.abs(c.low - prev.close));
+  // --- Box size: ATR-based or user-fixed ---
+  let boxSize;
+  if (cfg.boxSizeMode === 'fixed' && cfg.fixedBoxSize > 0) {
+    boxSize = cfg.fixedBoxSize;
+  } else {
+    const atrPeriod = Math.min(14, bars.length);
+    let atrSum = 0;
+    for (let i = Math.max(1, bars.length - atrPeriod); i < bars.length; i++) {
+      const prev = bars[i - 1];
+      const c = bars[i];
+      atrSum += Math.max(c.high - c.low, Math.abs(c.high - prev.close), Math.abs(c.low - prev.close));
+    }
+    boxSize = (atrSum / atrPeriod) || 1;
   }
-  const boxSize = (atrSum / atrPeriod) || 1;
-  const reversal = 3;
 
-  // --- Build P&F columns ---
-  // column = { direction: 1 (X/up) | -1 (O/down), boxes: [price, ...] }
-  const columns = [];
-  let currentDir = 0;  // 0 = undecided
-  let colTop = 0;
-  let colBot = 0;
-
-  // Seed with first bar
-  const startPrice = Math.round(bars[0].close / boxSize) * boxSize;
-  colTop = startPrice;
-  colBot = startPrice;
-
-  for (let i = 1; i < bars.length; i++) {
-    const high = bars[i].high;
-    const low  = bars[i].low;
-
-    if (currentDir === 0) {
-      // Determine initial direction
-      const upBoxes  = Math.floor((high - colTop) / boxSize);
-      const dnBoxes  = Math.floor((colBot - low) / boxSize);
-      if (upBoxes >= reversal) {
-        currentDir = 1;
-        colTop = colTop + upBoxes * boxSize;
-        columns.push({ direction: 1, top: colTop, bottom: colBot });
-      } else if (dnBoxes >= reversal) {
-        currentDir = -1;
-        colBot = colBot - dnBoxes * boxSize;
-        columns.push({ direction: -1, top: colTop, bottom: colBot });
-      }
-      continue;
-    }
-
-    if (currentDir === 1) {
-      // Currently in X (up) column
-      const upBoxes = Math.floor((high - colTop) / boxSize);
-      if (upBoxes > 0) {
-        colTop += upBoxes * boxSize;
-        columns[columns.length - 1].top = colTop;
-      } else {
-        const dnBoxes = Math.floor((colTop - low) / boxSize);
-        if (dnBoxes >= reversal) {
-          // Reversal to O column
-          currentDir = -1;
-          colTop = colTop - boxSize;  // step back one box
-          colBot = colTop - (dnBoxes - 1) * boxSize;
-          columns.push({ direction: -1, top: colTop, bottom: colBot });
-        }
-      }
-    } else {
-      // Currently in O (down) column
-      const dnBoxes = Math.floor((colBot - low) / boxSize);
-      if (dnBoxes > 0) {
-        colBot -= dnBoxes * boxSize;
-        columns[columns.length - 1].bottom = colBot;
-      } else {
-        const upBoxes = Math.floor((high - colBot) / boxSize);
-        if (upBoxes >= reversal) {
-          // Reversal to X column
-          currentDir = 1;
-          colBot = colBot + boxSize;  // step back one box
-          colTop = colBot + (upBoxes - 1) * boxSize;
-          columns.push({ direction: 1, top: colTop, bottom: colBot });
-        }
-      }
-    }
+  // --- Build P&F columns (cached) ---
+  const cacheKey = _cacheKey(bars, { boxSize, reversal });
+  let columns;
+  if (_pnfCache.key === cacheKey && _pnfCache.columns) {
+    columns = _pnfCache.columns;
+    boxSize = _pnfCache.boxSize;
+  } else {
+    columns = _buildPnfColumns(bars, boxSize, reversal);
+    _pnfCache.key = cacheKey;
+    _pnfCache.columns = columns;
+    _pnfCache.boxSize = boxSize;
   }
 
   if (columns.length === 0) return;
@@ -572,33 +612,113 @@ export function drawPointAndFigure(ctx, bars, params, theme) {
     const halfBox = Math.max(2, Math.floor(colSpacing * 0.35 * pixelRatio));
 
     if (col.direction === 1) {
-      // Draw X's
-      ctx.strokeStyle = xColor;
-      ctx.lineWidth = Math.max(1.5, 2 * pixelRatio);
-      ctx.lineCap = 'round';
-      for (let b = 0; b < numBoxes; b++) {
-        const price = col.bottom + b * boxSize;
-        const y = priceY(price, params);
-        ctx.beginPath();
-        ctx.moveTo(cx - halfBox, y - halfBox);
-        ctx.lineTo(cx + halfBox, y + halfBox);
-        ctx.moveTo(cx + halfBox, y - halfBox);
-        ctx.lineTo(cx - halfBox, y + halfBox);
-        ctx.stroke();
+      if (useFilled) {
+        ctx.fillStyle = xColor;
+        for (let b = 0; b < numBoxes; b++) {
+          const price = col.bottom + b * boxSize;
+          const y = priceY(price, params);
+          ctx.fillRect(cx - halfBox, y - halfBox, halfBox * 2, halfBox * 2);
+        }
+      } else {
+        ctx.strokeStyle = xColor;
+        ctx.lineWidth = Math.max(1.5, 2 * pixelRatio);
+        ctx.lineCap = 'round';
+        for (let b = 0; b < numBoxes; b++) {
+          const price = col.bottom + b * boxSize;
+          const y = priceY(price, params);
+          ctx.beginPath();
+          ctx.moveTo(cx - halfBox, y - halfBox);
+          ctx.lineTo(cx + halfBox, y + halfBox);
+          ctx.moveTo(cx + halfBox, y - halfBox);
+          ctx.lineTo(cx - halfBox, y + halfBox);
+          ctx.stroke();
+        }
       }
     } else {
-      // Draw O's
-      ctx.strokeStyle = oColor;
-      ctx.lineWidth = Math.max(1.5, 2 * pixelRatio);
-      for (let b = 0; b < numBoxes; b++) {
-        const price = col.bottom + b * boxSize;
-        const y = priceY(price, params);
-        ctx.beginPath();
-        ctx.arc(cx, y, halfBox, 0, Math.PI * 2);
-        ctx.stroke();
+      if (useFilled) {
+        ctx.fillStyle = oColor;
+        for (let b = 0; b < numBoxes; b++) {
+          const price = col.bottom + b * boxSize;
+          const y = priceY(price, params);
+          ctx.beginPath();
+          ctx.arc(cx, y, halfBox, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else {
+        ctx.strokeStyle = oColor;
+        ctx.lineWidth = Math.max(1.5, 2 * pixelRatio);
+        for (let b = 0; b < numBoxes; b++) {
+          const price = col.bottom + b * boxSize;
+          const y = priceY(price, params);
+          ctx.beginPath();
+          ctx.arc(cx, y, halfBox, 0, Math.PI * 2);
+          ctx.stroke();
+        }
       }
     }
   }
+}
+
+/** @private Build P&F columns from bars (extracted for caching). */
+function _buildPnfColumns(bars, boxSize, reversal) {
+  const columns = [];
+  let currentDir = 0;
+  let colTop = 0;
+  let colBot = 0;
+  const startPrice = Math.round(bars[0].close / boxSize) * boxSize;
+  colTop = startPrice;
+  colBot = startPrice;
+
+  for (let i = 1; i < bars.length; i++) {
+    const high = bars[i].high;
+    const low  = bars[i].low;
+
+    if (currentDir === 0) {
+      const upBoxes  = Math.floor((high - colTop) / boxSize);
+      const dnBoxes  = Math.floor((colBot - low) / boxSize);
+      if (upBoxes >= reversal) {
+        currentDir = 1;
+        colTop = colTop + upBoxes * boxSize;
+        columns.push({ direction: 1, top: colTop, bottom: colBot });
+      } else if (dnBoxes >= reversal) {
+        currentDir = -1;
+        colBot = colBot - dnBoxes * boxSize;
+        columns.push({ direction: -1, top: colTop, bottom: colBot });
+      }
+      continue;
+    }
+
+    if (currentDir === 1) {
+      const upBoxes = Math.floor((high - colTop) / boxSize);
+      if (upBoxes > 0) {
+        colTop += upBoxes * boxSize;
+        columns[columns.length - 1].top = colTop;
+      } else {
+        const dnBoxes = Math.floor((colTop - low) / boxSize);
+        if (dnBoxes >= reversal) {
+          currentDir = -1;
+          colTop = colTop - boxSize;
+          colBot = colTop - (dnBoxes - 1) * boxSize;
+          columns.push({ direction: -1, top: colTop, bottom: colBot });
+        }
+      }
+    } else {
+      const dnBoxes = Math.floor((colBot - low) / boxSize);
+      if (dnBoxes > 0) {
+        colBot -= dnBoxes * boxSize;
+        columns[columns.length - 1].bottom = colBot;
+      } else {
+        const upBoxes = Math.floor((high - colBot) / boxSize);
+        if (upBoxes >= reversal) {
+          currentDir = 1;
+          colBot = colBot + boxSize;
+          colTop = colBot + (upBoxes - 1) * boxSize;
+          columns.push({ direction: 1, top: colTop, bottom: colBot });
+        }
+      }
+    }
+  }
+  return columns;
 }
 
 /**

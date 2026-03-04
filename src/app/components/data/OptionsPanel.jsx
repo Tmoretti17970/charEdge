@@ -12,6 +12,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { logger } from '../../../utils/logger.ts';
 import { C, F, M } from '../../../constants.js';
 
 // ─── Styles ────────────────────────────────────────────────────
@@ -242,7 +243,7 @@ export default function OptionsPanel({ symbol = 'SPY' }) {
         setVixRegime(engine.classifyVIXRegime(vixData.value, termData));
       }
     } catch (err) {
-      console.warn('[OptionsPanel] Fetch error:', err);
+      logger.data.warn('[OptionsPanel] Fetch error:', err);
     }
     setLoading(false);
   }, []);

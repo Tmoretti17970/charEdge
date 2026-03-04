@@ -31,6 +31,7 @@ import { migrateAllTrades } from './charting_library/model/Money.js';
 import { useAnalyticsStore } from './state/useAnalyticsStore.js';
 import { initTelemetry } from './utils/telemetry.js';
 import { setupAutoSave } from './autoSave.js';
+import { logger } from './utils/logger.js';
 
 // ─── Phase 1: Load from storage ─────────────────────────────────
 
@@ -40,10 +41,10 @@ import { setupAutoSave } from './autoSave.js';
  * @returns {Promise<Object>} Raw storage results keyed by store name.
  */
 export async function loadFromStorage() {
-  console.log('[AppBoot] Phase 1: Legacy migration...');
+  logger.boot.info('Phase 1: Legacy migration...');
   await StorageService.migrateFromLegacy();
 
-  console.log('[AppBoot] Phase 1: Loading from IndexedDB...');
+  logger.boot.info('Phase 1: Loading from IndexedDB...');
   const [
     tradesResult,
     playbooksResult,
@@ -67,7 +68,7 @@ export async function loadFromStorage() {
     StorageService.settings.get('watchlist'),
     StorageService.settings.get('gamification'),
   ]);
-  console.log('[AppBoot] Phase 1 complete.');
+  logger.boot.info('Phase 1 complete.');
 
   return {
     tradesResult,
@@ -93,7 +94,7 @@ export async function loadFromStorage() {
  * @returns {Promise<Array>} Hydrated trades array.
  */
 export async function hydrateStores(raw) {
-  console.log('[AppBoot] Phase 2: Hydrating stores...');
+  logger.boot.info('Phase 2: Hydrating stores...');
 
   // ─── Journal (trades, playbooks, notes, plans) ────────────
   let trades = raw.tradesResult.ok ? raw.tradesResult.data : [];
@@ -149,7 +150,7 @@ export async function hydrateStores(raw) {
   }
   useGamificationStore.getState().generateDailyChallenge();
 
-  console.log('[AppBoot] Phase 2 complete.');
+  logger.boot.info('Phase 2 complete.');
   return trades;
 }
 
@@ -161,10 +162,15 @@ export async function hydrateStores(raw) {
  * @returns {Array<Function>} Unsubscribe functions from auto-save.
  */
 export async function postBoot(trades) {
-  console.log('[AppBoot] Phase 3: Post-boot setup...');
+  logger.boot.info('Phase 3: Post-boot setup...');
 
   // Telemetry
   initTelemetry(useAnalyticsStore);
+
+  // Product analytics (PostHog — lazy, env-gated)
+  import('./utils/posthog.js')
+    .then(({ trackEvent }) => trackEvent('app_booted', { tradeCount: trades?.length || 0 }))
+    .catch(() => {}); // non-fatal
 
   // Persona from trade count
   useUserStore.getState().updateFromTrades(trades);
@@ -177,22 +183,22 @@ export async function postBoot(trades) {
   try {
     const { tickerPlant } = await import('./data/engine/streaming/TickerPlant.js');
     tickerPlant.start();
-    console.log('[AppBoot] TickerPlant started with SharedWorker multiplexing');
+    logger.boot.info('TickerPlant started with SharedWorker multiplexing');
   } catch (err) {
-    console.warn('[AppBoot] TickerPlant startup failed (non-fatal):', err?.message);
+    logger.boot.warn('TickerPlant startup failed (non-fatal): ' + err?.message);
   }
 
   // Storage quota check
   const quotaCheck = await StorageService.checkQuota();
   if (quotaCheck.ok && quotaCheck.data.percent > 85) {
-    console.warn(`[AppBoot] Storage quota at ${quotaCheck.data.percent}% — consider cleanup`);
+    logger.boot.warn(`Storage quota at ${quotaCheck.data.percent}% — consider cleanup`);
     if (quotaCheck.data.percent >= 95) {
-      console.warn('[AppBoot] Critical quota — running auto-recovery');
+      logger.boot.warn('Critical quota — running auto-recovery');
       await StorageService.quotaRecovery(70);
     }
   }
 
-  console.log('[AppBoot] Phase 3 complete.');
+  logger.boot.info('Phase 3 complete.');
   return unsubs;
 }
 
@@ -219,10 +225,10 @@ export function useAppBoot() {
 
         unsubscribers.current = await postBoot(trades);
 
-        console.log('[AppBoot] ✅ Boot complete!');
+        logger.boot.info('✅ Boot complete!');
         if (!cancelled) setReady(true);
       } catch (err) {
-        console.error('[AppBoot] ❌ Hydration failed:', err);
+        logger.boot.error('❌ Hydration failed', err);
         // Seed demo data so the app still works
         const { genDemoData } = await import('./data/demoData.js');
         const demo = genDemoData();

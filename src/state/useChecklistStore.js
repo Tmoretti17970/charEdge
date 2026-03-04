@@ -1,3 +1,4 @@
+// @ts-check
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v10 — Pre-Trade Checklist Store (Sprint 4.3)
 //

@@ -1,3 +1,4 @@
+// @ts-check
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — usePanelStore (DEPRECATED — re-export shim)
 //

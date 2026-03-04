@@ -1,5 +1,5 @@
 # Sprint 5: Chart Dominance — Delivery Report
-## TradeForge OS v10.1 → v10.2
+## charEdge v10.1 → v10.2
 
 **Sprint Theme:** TradingView-killer chart features  
 **Tasks Delivered:** 12/12  

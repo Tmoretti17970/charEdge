@@ -1,3 +1,4 @@
+// @ts-check
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — AI Coach Store (H2.3)
 // Zustand state for trade grading, behavioral patterns, coaching

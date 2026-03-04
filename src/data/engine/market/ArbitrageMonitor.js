@@ -1,3 +1,4 @@
+import { logger } from '../../../utils/logger.ts';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v14 — Arbitrage Monitor
 //
@@ -13,7 +14,7 @@
 // Usage:
 //   import { arbitrageMonitor } from './ArbitrageMonitor.js';
 //   arbitrageMonitor.watch('BTCUSDT');
-//   arbitrageMonitor.onAlert((alert) => console.log(alert));
+//   arbitrageMonitor.onAlert((alert) => logger.data.info(alert));
 // ═══════════════════════════════════════════════════════════════════
 
 const DEFAULT_CONFIG = {

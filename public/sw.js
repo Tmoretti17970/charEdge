@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════
-// TradeForge — ServiceWorker (Data Cache)
+// charEdge — ServiceWorker (Data Cache)
 //
 // Lightweight SW that caches REST API responses with stale-while-revalidate.
 // Only caches data API routes — no app shell caching.
@@ -9,7 +9,7 @@
 //   /api/binance/v3/ticker   — 30 sec TTL
 // ═══════════════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'tradeforge-data-v1';
+const CACHE_NAME = 'charedge-data-v1';
 
 // Route-specific TTLs (milliseconds)
 const CACHE_RULES = [
@@ -32,7 +32,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys
-          .filter((key) => key.startsWith('tradeforge-data-') && key !== CACHE_NAME)
+          .filter((key) => key.startsWith('charedge-data-') && key !== CACHE_NAME)
           .map((key) => caches.delete(key))
       );
     }).then(() => self.clients.claim())

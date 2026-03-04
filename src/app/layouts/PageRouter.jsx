@@ -16,6 +16,8 @@ const CharolettePage = React.lazy(() => import('../../pages/CharolettePage.jsx')
 const ChangelogPage = React.lazy(() => import('../../pages/ChangelogPage.jsx'));
 const PrivacyPage = React.lazy(() => import('../../pages/PrivacyPage.jsx'));
 const TermsPage = React.lazy(() => import('../../pages/TermsPage.jsx'));
+const LandingPage = React.lazy(() => import('../../pages/LandingPage.jsx'));
+const PricingPage = React.lazy(() => import('../../pages/PricingPage.jsx'));
 
 // Prefetch Journal immediately (it's the default page) so it loads in background
 if (typeof window !== 'undefined') {
@@ -33,6 +35,8 @@ const PAGES = {
   changelog: ChangelogPage,
   privacy: PrivacyPage,
   terms: TermsPage,
+  landing: LandingPage,
+  pricing: PricingPage,
   settings: SettingsPage,
   telemetry: TelemetryDashboard,
   // Legacy routes → redirect to new locations
@@ -143,6 +147,8 @@ export default function PageRouter() {
     changelog: "What's New",
     privacy: 'Privacy Policy',
     terms: 'Terms of Service',
+    landing: 'Landing',
+    pricing: 'Pricing',
   };
 
   // Sprint 1: Framer Motion page transition variants

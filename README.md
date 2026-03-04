@@ -1,4 +1,4 @@
-# TradeForge OS — Developer Documentation
+# charEdge — Developer Documentation
 
 **192 files · 53,197 lines · React 18 + Zustand + Canvas**
 
@@ -15,15 +15,30 @@
 
 | Metric | Value |
 |--------|-------|
-| Source files | 192 |
-| Source lines | 53,197 |
-| Test files | 26 |
-| Test cases | 723 |
+| Source files | 200+ |
+| Source lines | 55,000+ |
+| Test files | 103 |
+| Test cases | 2,940 |
 | React.memo boundaries | 15 |
 | Lazy-loaded components | 30 |
-| Zustand stores | 23 |
+| Zustand stores | 35 |
 | ARIA attributes | 64 |
 | tf-btn classes | 166 |
 | Hardcoded colors (pages) | 0 |
 | Hardcoded colors (components) | 9 (intentional) |
 | Dead code quarantined | 48 files / 9,951 lines |
+
+## Dev Workflow
+
+```bash
+# Development (recommended)
+npm run dev          # Vite dev server with HMR
+
+# Run tests
+npm test             # vitest run
+npm run test:watch   # vitest in watch mode
+
+# Build for production
+npm run build        # client + server bundles
+npm run preview      # preview production build
+```

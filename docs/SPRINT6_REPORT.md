@@ -1,5 +1,5 @@
 # Sprint 6: Mobile Pro — Delivery Report
-## TradeForge OS v10.2 → v10.3
+## charEdge v10.2 → v10.3
 
 **Sprint Theme:** Mobile-first chart experience  
 **Tasks Delivered:** 12/12  

@@ -6,6 +6,7 @@
 
 import React, { useMemo, useCallback, useState } from 'react';
 import { C, F } from '../../../../constants.js';
+import Icon from '../../design/Icon.jsx';
 import { useChartStore } from '../../../../state/useChartStore.js';
 import { INDICATORS } from '../../../../charting_library/studies/indicators/registry.js';
 import { formatPrice } from '../../../../charting_library/core/CoordinateSystem.js';
@@ -202,7 +203,7 @@ export default function IndicatorLegendHeader({ data, hoverIdx, onEditIndicator 
                   opacity: 0.7,
                 }}
               >
-                {item.visible ? '👁' : '👁‍🗨'}
+                {item.visible ? <Icon name="eye" size={9} /> : <Icon name="eye-off" size={9} />}
               </button>
             )}
 

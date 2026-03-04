@@ -1,0 +1,130 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — Design Tokens
+
+   Spacing scale, type scale, color primitives, border radii,
+   shadows, transitions. All values reference these tokens instead
+   of ad-hoc numbers.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ─── Spacing Scale (4px base) ──────────────────────────── */
+  --sp-0: 0;
+  --sp-px: 1px;
+  --sp-0_5: 2px;
+  --sp-1: 4px;
+  --sp-1_5: 6px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+  --sp-24: 96px;
+
+  /* ─── Type Scale ────────────────────────────────────────── */
+  --fs-xs: 0.6875rem;   /* 11px */
+  --fs-sm: 0.8125rem;   /* 13px */
+  --fs-base: 0.9375rem; /* 15px */
+  --fs-md: 1rem;        /* 16px */
+  --fs-lg: 1.125rem;    /* 18px */
+  --fs-xl: 1.25rem;     /* 20px */
+  --fs-2xl: 1.5rem;     /* 24px */
+  --fs-3xl: 1.875rem;   /* 30px */
+  --fs-4xl: 2.25rem;    /* 36px */
+  --fs-5xl: 3rem;       /* 48px */
+
+  /* ─── Font Weights ──────────────────────────────────────── */
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* ─── Line Heights ──────────────────────────────────────── */
+  --lh-tight: 1.2;
+  --lh-snug: 1.375;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.625;
+
+  /* ─── Border Radii ──────────────────────────────────────── */
+  --br-none: 0;
+  --br-sm: 4px;
+  --br-md: 8px;
+  --br-lg: 12px;
+  --br-xl: 16px;
+  --br-2xl: 24px;
+  --br-full: 9999px;
+
+  /* ─── Color Primitives ──────────────────────────────────── */
+  /* Background */
+  --c-bg-primary: hsl(225, 13%, 9%);
+  --c-bg-secondary: hsl(225, 13%, 12%);
+  --c-bg-tertiary: hsl(225, 13%, 15%);
+  --c-bg-elevated: hsl(225, 13%, 18%);
+  --c-bg-overlay: hsla(225, 13%, 5%, 0.85);
+
+  /* Foreground / Text */
+  --c-fg-primary: hsl(210, 20%, 92%);
+  --c-fg-secondary: hsl(210, 13%, 68%);
+  --c-fg-tertiary: hsl(210, 13%, 48%);
+  --c-fg-muted: hsl(210, 13%, 35%);
+
+  /* Chart Accent Colors */
+  --c-accent-green: hsl(152, 69%, 48%);
+  --c-accent-red: hsl(356, 75%, 53%);
+  --c-accent-blue: hsl(217, 91%, 60%);
+  --c-accent-purple: hsl(271, 91%, 65%);
+  --c-accent-amber: hsl(38, 92%, 50%);
+  --c-accent-cyan: hsl(187, 85%, 53%);
+
+  /* Interactive States */
+  --c-hover: hsla(217, 91%, 60%, 0.12);
+  --c-focus-ring: hsla(217, 91%, 60%, 0.5);
+  --c-pressed: hsla(217, 91%, 60%, 0.18);
+
+  /* Borders */
+  --c-border: hsl(225, 13%, 18%);
+  --c-border-hover: hsl(225, 13%, 28%);
+  --c-border-focus: hsl(217, 91%, 60%);
+
+  /* ─── Shadows ───────────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px hsla(0, 0%, 0%, 0.3);
+  --shadow-md: 0 4px 12px hsla(0, 0%, 0%, 0.4);
+  --shadow-lg: 0 8px 24px hsla(0, 0%, 0%, 0.5);
+  --shadow-xl: 0 16px 48px hsla(0, 0%, 0%, 0.6);
+
+  /* ─── Transitions ───────────────────────────────────────── */
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 100ms;
+  --dur-normal: 200ms;
+  --dur-slow: 350ms;
+  --dur-enter: 250ms;
+  --dur-exit: 200ms;
+
+  /* ─── Z-Index Scale ─────────────────────────────────────── */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-popover: 500;
+  --z-toast: 600;
+  --z-tooltip: 700;
+
+  /* ─── Container Query Breakpoints ──────────────────────── */
+  /* Use with: @container (min-width: var(--cq-sm)) { ... }   */
+  --cq-sm: 400px;
+  --cq-md: 600px;
+  --cq-lg: 900px;
+  --cq-xl: 1200px;
+
+  /* ─── Logical Properties (i18n / RTL) ──────────────────── */
+  /* Prefer: margin-inline, padding-block, inset-inline-start */
+  /* Instead of: margin-left, padding-top, left               */
+}

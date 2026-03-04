@@ -1,8 +1,12 @@
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v12 — Financial Modeling Prep (FMP) Adapter
 //
-// Replaces Alpha Vantage as the backup equity data provider.
+// Backup equity data provider for stocks/fundamentals.
 // FMP free tier: 250 req/day (10x more than Alpha Vantage's 25/day).
+//
+// Phase 2.1.1: All requests routed through /api/proxy/fmp/ — the
+// server-side proxy injects the API key from env vars, keeping it
+// out of the client JS bundle.
 //
 // Provides:
 //   - OHLCV historical data
@@ -13,17 +17,17 @@
 //   - Sector performance
 //   - Stock screener
 //
-// Get free key: https://site.financialmodelingprep.com/developer
-//
 // Usage:
 //   import { fmpAdapter } from './FMPAdapter.js';
-//   fmpAdapter.setApiKey('YOUR_FREE_KEY');
 //   const data = await fmpAdapter.fetchOHLCV('AAPL', '1d');
 // ═══════════════════════════════════════════════════════════════════
 
 import { BaseAdapter } from './BaseAdapter.js';
 
-const BASE_URL = 'https://financialmodelingprep.com/api/v3';
+import { logger } from '../../utils/logger.ts';
+// Phase 2.1.1: Requests go through server proxy (API key injected server-side)
+const PROXY_BASE = '/api/proxy/fmp';
+
 const CACHE = new Map();
 const CACHE_TTL = 30000; // 30 sec for quotes
 const LONG_CACHE_TTL = 3600000; // 1 hour for fundamentals
@@ -31,26 +35,26 @@ const LONG_CACHE_TTL = 3600000; // 1 hour for fundamentals
 class FMPAdapter extends BaseAdapter {
   constructor() {
     super('fmp');
-    this._apiKey = '';
   }
 
-  setApiKey(key) { this._apiKey = key; }
-  get isConfigured() { return !!this._apiKey; }
+  // Phase 2.1.1: API key managed server-side — always "configured"
+  get isConfigured() { return true; }
+
+  // Legacy no-op — key is server-side now
+  setApiKey(_key) { /* no-op: API key managed server-side */ }
 
   // ─── OHLCV ───────────────────────────────────────────────────
 
   async fetchOHLCV(symbol, interval = '1d', opts = {}) {
-    if (!this._apiKey) return [];
-
     // FMP uses different endpoints per timeframe
     let endpoint;
     if (['1m', '5m', '15m', '30m', '1h', '4h'].includes(interval)) {
-      endpoint = `/historical-chart/${interval}/${symbol}`;
+      endpoint = `historical-chart/${interval}/${symbol}`;
     } else {
-      endpoint = `/historical-price-full/${symbol}`;
+      endpoint = `historical-price-full/${symbol}`;
     }
 
-    const params = { apikey: this._apiKey };
+    const params = {};
     if (opts.from) params.from = opts.from;
     if (opts.to) params.to = opts.to;
 
@@ -76,13 +80,11 @@ class FMPAdapter extends BaseAdapter {
   // ─── Quote ───────────────────────────────────────────────────
 
   async fetchQuote(symbol) {
-    if (!this._apiKey) return null;
-
     const cacheKey = `quote-${symbol}`;
     const cached = CACHE.get(cacheKey);
     if (cached && Date.now() < cached.expiry) return cached.data;
 
-    const data = await this._request(`/quote/${symbol}`, { apikey: this._apiKey });
+    const data = await this._request(`quote/${symbol}`);
     if (!Array.isArray(data) || !data[0]) return null;
 
     const q = data[0];
@@ -112,69 +114,59 @@ class FMPAdapter extends BaseAdapter {
   // ─── Fundamentals ────────────────────────────────────────────
 
   async fetchIncomeStatement(symbol, period = 'annual', limit = 5) {
-    if (!this._apiKey) return [];
     return this._cachedRequest(`income-${symbol}-${period}`,
-      `/income-statement/${symbol}`, { period, limit, apikey: this._apiKey }, LONG_CACHE_TTL);
+      `income-statement/${symbol}`, { period, limit }, LONG_CACHE_TTL);
   }
 
   async fetchBalanceSheet(symbol, period = 'annual', limit = 5) {
-    if (!this._apiKey) return [];
     return this._cachedRequest(`balance-${symbol}-${period}`,
-      `/balance-sheet-statement/${symbol}`, { period, limit, apikey: this._apiKey }, LONG_CACHE_TTL);
+      `balance-sheet-statement/${symbol}`, { period, limit }, LONG_CACHE_TTL);
   }
 
   async fetchKeyMetrics(symbol, period = 'annual', limit = 5) {
-    if (!this._apiKey) return [];
     return this._cachedRequest(`metrics-${symbol}-${period}`,
-      `/key-metrics/${symbol}`, { period, limit, apikey: this._apiKey }, LONG_CACHE_TTL);
+      `key-metrics/${symbol}`, { period, limit }, LONG_CACHE_TTL);
   }
 
   async fetchRatios(symbol, period = 'annual', limit = 5) {
-    if (!this._apiKey) return [];
     return this._cachedRequest(`ratios-${symbol}-${period}`,
-      `/ratios/${symbol}`, { period, limit, apikey: this._apiKey }, LONG_CACHE_TTL);
+      `ratios/${symbol}`, { period, limit }, LONG_CACHE_TTL);
   }
 
   // ─── Earnings Calendar ───────────────────────────────────────
 
   async fetchEarningsCalendar(from, to) {
-    if (!this._apiKey) return [];
-    const params = { apikey: this._apiKey };
+    const params = {};
     if (from) params.from = from;
     if (to) params.to = to;
-    return this._request('/earning_calendar', params) || [];
+    return this._request('earning_calendar', params) || [];
   }
 
   // ─── Sector Performance ──────────────────────────────────────
 
   async fetchSectorPerformance() {
-    if (!this._apiKey) return [];
     return this._cachedRequest('sector-perf',
-      '/sector-performance', { apikey: this._apiKey }, 300000) || [];
+      'sector-performance', {}, 300000) || [];
   }
 
   // ─── Stock Screener ──────────────────────────────────────────
 
   async fetchGainers() {
-    if (!this._apiKey) return [];
-    return this._request('/stock_market/gainers', { apikey: this._apiKey }) || [];
+    return this._request('stock_market/gainers') || [];
   }
 
   async fetchLosers() {
-    if (!this._apiKey) return [];
-    return this._request('/stock_market/losers', { apikey: this._apiKey }) || [];
+    return this._request('stock_market/losers') || [];
   }
 
   async fetchMostActive() {
-    if (!this._apiKey) return [];
-    return this._request('/stock_market/actives', { apikey: this._apiKey }) || [];
+    return this._request('stock_market/actives') || [];
   }
 
   // ─── Symbol Search ───────────────────────────────────────────
 
   async searchSymbols(query, limit = 10) {
-    if (!this._apiKey) return [];
-    const data = await this._request('/search', { query, limit, apikey: this._apiKey });
+    const data = await this._request('search', { query, limit });
     if (!Array.isArray(data)) return [];
     return data.map(r => ({
       symbol: r.symbol,
@@ -185,7 +177,6 @@ class FMPAdapter extends BaseAdapter {
   }
 
   supports(symbol) {
-    if (!this._apiKey) return false;
     const upper = (symbol || '').toUpperCase();
     return /^[A-Z]{1,5}$/.test(upper);
   }
@@ -193,7 +184,7 @@ class FMPAdapter extends BaseAdapter {
   // ─── Private ─────────────────────────────────────────────────
 
   async _request(endpoint, params = {}) {
-    const url = new URL(`${BASE_URL}${endpoint}`);
+    const url = new URL(`${PROXY_BASE}/${endpoint}`, window.location.origin);
     for (const [k, v] of Object.entries(params)) {
       url.searchParams.set(k, String(v));
     }
@@ -203,7 +194,7 @@ class FMPAdapter extends BaseAdapter {
       if (!resp.ok) return null;
       return await resp.json();
     } catch (err) {
-      console.warn(`[FMPAdapter] Request failed:`, err.message);
+      logger.data.warn(`[FMPAdapter] Request failed:`, err.message);
       return null;
     }
   }

@@ -16,9 +16,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 // All characters we need for price/time labels
+// Sprint 20: Extended with common trading emoji and currency symbols
 const CHARSET =
   '0123456789.,:-+%$/ ' +
-  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz' +
+  '€£¥₿▲▼⬆⬇◆●○★☆✓✗⚠';
 
 const GLYPH_SIZE = 48;        // Render size for each glyph in the atlas
 const SDF_RADIUS = 8;         // Distance field spread in pixels
@@ -97,6 +99,8 @@ export class TextAtlas {
   constructor(gl, opts = {}) {
     this.gl = gl;
     this._fontFamily = opts.fontFamily || 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif';
+    // Sprint 20: Support bold weight
+    this._fontWeight = opts.fontWeight || 'normal';
     this._glyphs = new Map(); // char → { u, v, w, h, advance, bearingX, bearingY }
     this._texture = null;
     this._program = null;
@@ -133,7 +137,8 @@ export class TextAtlas {
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, this._atlasW, this._atlasH);
     ctx.fillStyle = '#FFF';
-    ctx.font = `${GLYPH_SIZE * 0.7}px ${this._fontFamily}`;
+    // Sprint 20: Use configurable weight for bold rendering
+    ctx.font = `${this._fontWeight} ${GLYPH_SIZE * 0.7}px ${this._fontFamily}`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
 
@@ -454,5 +459,23 @@ export class TextAtlas {
     if (this._program) gl.deleteProgram(this._program);
     for (const name in this._buffers) gl.deleteBuffer(this._buffers[name]);
     this._ready = false;
+  }
+
+  /**
+   * Sprint 20: Change font style at runtime and rebuild atlas.
+   * @param {Object} opts
+   * @param {string} [opts.fontFamily]
+   * @param {string} [opts.fontWeight] - 'normal' | 'bold' | '600' etc.
+   */
+  setFontStyle(opts = {}) {
+    if (opts.fontFamily) this._fontFamily = opts.fontFamily;
+    if (opts.fontWeight) this._fontWeight = opts.fontWeight;
+    // Rebuild atlas with new font
+    if (this._texture) {
+      this.gl.deleteTexture(this._texture);
+    }
+    this._glyphs.clear();
+    this._ready = false;
+    this._build();
   }
 }

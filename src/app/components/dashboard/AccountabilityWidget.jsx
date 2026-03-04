@@ -2,7 +2,7 @@
 // charEdge — Accountability Widget (Sprint 15)
 //
 // Self-accountability system with daily goal tracking and
-// AI-powered accountability partner. Users set daily goals,
+// Accountability partner. Users set daily goals,
 // check in at end of session, and track adherence over time.
 // ═══════════════════════════════════════════════════════════════════
 

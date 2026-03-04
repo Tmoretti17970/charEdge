@@ -1,5 +1,5 @@
 # Sprint 10: Trader Workflow — Delivery Report
-## TradeForge OS v10.6 → v10.7
+## charEdge v10.6 → v10.7
 
 **Sprint Theme:** Chart becomes a cockpit  
 **Tasks Delivered:** 10/10  

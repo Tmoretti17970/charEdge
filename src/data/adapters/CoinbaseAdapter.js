@@ -14,6 +14,7 @@
 
 import { BaseAdapter } from './BaseAdapter.js';
 
+import { logger } from '../../utils/logger.ts';
 const CB_REST = 'https://api.exchange.coinbase.com';
 const CB_WS   = 'wss://ws-feed.exchange.coinbase.com';
 
@@ -225,7 +226,7 @@ export class CoinbaseAdapter extends BaseAdapter {
 
       this._ws.onopen = () => {
         this._wsConnected = true;
-        console.log('[CoinbaseAdapter] WebSocket connected');
+        logger.data.info('[CoinbaseAdapter] WebSocket connected');
 
         // Re-subscribe to active products
         if (this._subscribedProducts.size > 0) {
@@ -243,7 +244,7 @@ export class CoinbaseAdapter extends BaseAdapter {
       this._ws.onclose = () => {
         this._wsConnected = false;
         this._ws = null;
-        console.log('[CoinbaseAdapter] WebSocket closed, reconnecting in 3s...');
+        logger.data.info('[CoinbaseAdapter] WebSocket closed, reconnecting in 3s...');
 
         clearTimeout(this._reconnectTimer);
         this._reconnectTimer = setTimeout(() => {
@@ -254,10 +255,10 @@ export class CoinbaseAdapter extends BaseAdapter {
       };
 
       this._ws.onerror = () => {
-        console.warn('[CoinbaseAdapter] WebSocket error');
+        logger.data.warn('[CoinbaseAdapter] WebSocket error');
       };
     } catch (err) {
-      console.warn('[CoinbaseAdapter] WebSocket init failed:', err.message);
+      logger.data.warn('[CoinbaseAdapter] WebSocket init failed:', err.message);
       this._ws = null;
     }
   }
@@ -267,7 +268,7 @@ export class CoinbaseAdapter extends BaseAdapter {
     // Subscription ack
     if (msg.type === 'subscriptions') return;
     if (msg.type === 'error') {
-      console.warn('[CoinbaseAdapter] WS error:', msg.message);
+      logger.data.warn('[CoinbaseAdapter] WS error:', msg.message);
       return;
     }
 

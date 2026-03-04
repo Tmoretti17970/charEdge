@@ -18,6 +18,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { logger } from '../../../../utils/logger.ts';
 import { C, M, TFS, CHART_TYPES } from '../../../../constants.js';
 import ChartCanvas from './ChartCanvas.jsx';
 import SymbolSearch from '../../ui/SymbolSearch.jsx';
@@ -137,7 +138,7 @@ export default function ChartPane({
       })
       .catch((err) => {
         if (cancelled) return;
-        console.warn('[ChartPane] fetchOHLC failed:', err?.message);
+        logger.engine.warn('[ChartPane] fetchOHLC failed:', err?.message);
         setLoading(false);
         setDataWarning(`Failed to load data for ${symbol}`);
       });

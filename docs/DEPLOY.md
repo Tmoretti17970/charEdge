@@ -1,4 +1,4 @@
-# TradeForge OS v11.0 — Launch Guide
+# charEdge v11.0 — Launch Guide
 
 ## Quick Start (Local)
 
@@ -98,10 +98,10 @@ Config is in `fly.toml`. Scales to zero when idle (free tier friendly).
 
 ```bash
 # Build
-docker build -t tradeforge .
+docker build -t charedge .
 
 # Run
-docker run -d -p 3000:3000 --name tradeforge tradeforge
+docker run -d -p 3000:3000 --name charedge charedge
 
 # Or with docker-compose
 docker compose up -d
@@ -120,8 +120,8 @@ curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
 # 2. Clone + build
-git clone https://github.com/your-repo/tradeforge.git
-cd tradeforge
+git clone https://github.com/your-repo/charedge.git
+cd charedge
 npm install
 npm run build
 
@@ -129,7 +129,7 @@ npm run build
 sudo npm install -g pm2
 
 # 4. Start
-pm2 start server.js --name tradeforge --env production
+pm2 start server.js --name charedge --env production
 pm2 save
 pm2 startup
 
@@ -137,11 +137,11 @@ pm2 startup
 sudo apt install nginx
 ```
 
-Nginx config (`/etc/nginx/sites-available/tradeforge`):
+Nginx config (`/etc/nginx/sites-available/charedge`):
 ```nginx
 server {
     listen 80;
-    server_name tradeforge.app www.tradeforge.app;
+    server_name charedge.app www.charedge.app;
 
     # Redirect to HTTPS (after certbot)
     return 301 https://$server_name$request_uri;
@@ -149,11 +149,11 @@ server {
 
 server {
     listen 443 ssl http2;
-    server_name tradeforge.app www.tradeforge.app;
+    server_name charedge.app www.charedge.app;
 
     # SSL certs (certbot generates these)
-    ssl_certificate /etc/letsencrypt/live/tradeforge.app/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/tradeforge.app/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/charedge.app/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/charedge.app/privkey.pem;
 
     # Security
     add_header X-Frame-Options SAMEORIGIN;
@@ -189,8 +189,8 @@ server {
 
 ```bash
 # Enable site + get SSL cert
-sudo ln -s /etc/nginx/sites-available/tradeforge /etc/nginx/sites-enabled/
-sudo certbot --nginx -d tradeforge.app -d www.tradeforge.app
+sudo ln -s /etc/nginx/sites-available/charedge /etc/nginx/sites-enabled/
+sudo certbot --nginx -d charedge.app -d www.charedge.app
 sudo systemctl restart nginx
 ```
 
@@ -203,7 +203,7 @@ sudo systemctl restart nginx
 | `NODE_ENV` | Yes | `development` | `production` for deployed apps |
 | `PORT` | No | `5173` | Server port |
 | `HOST` | No | `0.0.0.0` | Bind address |
-| `VITE_SITE_URL` | No | `https://tradeforge.app` | Used in SEO meta tags |
+| `VITE_SITE_URL` | No | `https://charedge.app` | Used in SEO meta tags |
 
 See `.env.example` for the full list.
 

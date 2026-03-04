@@ -10,7 +10,7 @@ import { parseIBKR } from './parsers/ibkr.js';
 import { parseRobinhood } from './parsers/robinhood.js';
 import { parseWebull } from './parsers/webull.js';
 import { parseMT5 } from './parsers/mt5.js';
-import { parsecharEdgeCSV } from './parsers/tradeforge.js';
+import { parsecharEdgeCSV } from './parsers/charedge.js';
 import { parseGenericCSV } from './parsers/generic.js';
 
 // H2.1: Crypto + Fidelity parsers

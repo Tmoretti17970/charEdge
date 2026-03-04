@@ -1,0 +1,82 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — Shared Card Styles (CSS Module)
+
+   Reusable card surface with glassmorphism border, hover lift,
+   and depth shadows. Import into any component.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.card {
+  background: var(--tf-sf);
+  border: 1px solid var(--tf-bd);
+  border-radius: var(--br-xl, 16px);
+  padding: var(--sp-6, 24px);
+  transition: all var(--dur-normal, 200ms) var(--ease-default);
+  cursor: default;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.2));
+}
+
+.card:hover {
+  background: var(--tf-sf2);
+  border-color: var(--c-border-hover, rgba(255,255,255,0.12));
+  transform: perspective(800px) translateY(-2px) rotateX(1deg) rotateY(-0.5deg);
+  box-shadow:
+    var(--shadow-md, 0 4px 12px rgba(0,0,0,0.4)),
+    0 0 20px rgba(232, 100, 44, 0.06);
+}
+
+/* ─── Elevated variant — deeper shadows ───────────────────────── */
+.cardElevated {
+  background: var(--tf-sf);
+  border: 1px solid var(--tf-bd);
+  border-radius: var(--br-xl, 16px);
+  padding: var(--sp-6, 24px);
+  transition: all var(--dur-normal, 200ms) var(--ease-default);
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.4));
+}
+
+.cardElevated:hover {
+  background: var(--tf-sf2);
+  border-color: rgba(232,100,44,0.3);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg, 0 8px 24px rgba(0,0,0,0.5));
+}
+
+/* ─── Glass variant — blurred backdrop ────────────────────────── */
+.cardGlass {
+  background: rgba(22, 24, 29, 0.65);
+  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--br-xl, 16px);
+  padding: var(--sp-6, 24px);
+  transition: all var(--dur-normal, 200ms) var(--ease-default);
+}
+
+.cardGlass:hover {
+  border-color: rgba(255,255,255,0.12);
+}
+
+/* ─── Compact variant — less padding ──────────────────────────── */
+.cardCompact {
+  background: var(--tf-sf);
+  border: 1px solid var(--tf-bd);
+  border-radius: var(--br-lg, 12px);
+  padding: var(--sp-4, 16px);
+  transition: all var(--dur-normal, 200ms) var(--ease-default);
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.2));
+}
+
+.cardCompact:hover {
+  background: var(--tf-sf2);
+  border-color: var(--c-border-hover);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card:hover,
+  .cardElevated:hover,
+  .cardGlass:hover,
+  .cardCompact:hover {
+    transform: none !important;
+    transition: none !important;
+  }
+}

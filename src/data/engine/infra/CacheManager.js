@@ -449,6 +449,119 @@ class _CacheManager {
     const ss = await this._loadStorage();
     return ss ? ss.migrateFromLegacy() : { trades: 0, playbooks: 0, notes: 0 };
   }
+
+  // ═══════════════════════════════════════════════════════════════
+  // SPRINT 2: PAGE-LEVEL CHUNK CACHE (history pagination)
+  // ═══════════════════════════════════════════════════════════════
+
+  /**
+   * Build a page cache key for a specific history chunk.
+   * Format: page:SYMBOL:TIMEFRAME:BEFORE_TIMESTAMP
+   * @param {string} sym
+   * @param {string} tfId
+   * @param {number|string} beforeTime
+   * @returns {string}
+   */
+  _pageKey(sym, tfId, beforeTime) {
+    const ts = typeof beforeTime === 'string' ? new Date(beforeTime).getTime() : beforeTime;
+    return `page:${sym}:${tfId}:${ts}`;
+  }
+
+  /**
+   * Read a cached history page by symbol+tf+timestamp.
+   * Returns { data, hasMore } or null on miss.
+   * @param {string} sym
+   * @param {string} tfId
+   * @param {number|string} beforeTime
+   * @returns {{ data: Array, hasMore: boolean } | null}
+   */
+  readPage(sym, tfId, beforeTime) {
+    const key = this._pageKey(sym, tfId, beforeTime);
+    const entry = this._mem.get(key);
+    if (!entry) return null;
+    // LRU touch
+    this._mem.delete(key);
+    this._mem.set(key, entry);
+    this._hits.memory++;
+    return { data: entry.data, hasMore: entry.hasMore };
+  }
+
+  /**
+   * Cache a fetched history page.
+   * Writes to memory tier + OPFS in background.
+   * @param {string} sym
+   * @param {string} tfId
+   * @param {number|string} beforeTime
+   * @param {Array} bars
+   * @param {boolean} hasMore
+   */
+  writePage(sym, tfId, beforeTime, bars, hasMore) {
+    if (!bars || !bars.length) return;
+    const key = this._pageKey(sym, tfId, beforeTime);
+
+    // LRU eviction if at capacity
+    if (this._mem.has(key)) {
+      this._mem.delete(key);
+    } else if (this._mem.size >= (CACHE_MAX_ENTRIES || 200)) {
+      const lruKey = this._mem.keys().next().value;
+      this._mem.delete(lruKey);
+    }
+
+    this._mem.set(key, { data: bars, hasMore, source: 'page-cache', t: Date.now() });
+
+    // Background OPFS write (merge with existing data for this symbol+tf)
+    opfsBarStore.putCandles(sym, tfId, bars).catch((err) =>
+      pipelineLogger.warn('CacheManager', `Page OPFS write failed: ${key}`, err)
+    );
+
+    // Check storage budget (fire-and-forget)
+    this._checkPageBudget().catch(() => {});
+  }
+
+  /**
+   * Sprint 2: Evict oldest page cache entries if OPFS exceeds budget.
+   * Budget: 50MB, hysteresis target: 40MB.
+   */
+  async _checkPageBudget() {
+    const BUDGET_MB = 50;
+    const TARGET_MB = 40;
+    try {
+      const stats = await opfsBarStore.getStats();
+      const usedMB = stats.totalSizeKB / 1024;
+      if (usedMB <= BUDGET_MB) return;
+
+      pipelineLogger.info('CacheManager', `Page cache over budget: ${usedMB.toFixed(1)}MB > ${BUDGET_MB}MB, evicting...`);
+
+      // Evict oldest memory page entries until under target
+      let evicted = 0;
+      for (const [key] of this._mem) {
+        if (!key.startsWith('page:')) continue;
+        this._mem.delete(key);
+        evicted++;
+        // Re-check periodically (every 10 evictions)
+        if (evicted % 10 === 0) {
+          const recheck = await opfsBarStore.getStats();
+          if (recheck.totalSizeKB / 1024 <= TARGET_MB) break;
+        }
+      }
+      pipelineLogger.info('CacheManager', `Evicted ${evicted} page cache entries`);
+    } catch (err) {
+      pipelineLogger.warn('CacheManager', 'Budget check failed', err);
+    }
+  }
+
+  /**
+   * Get the total OPFS storage used in MB.
+   * @returns {Promise<number>}
+   */
+  async getPageCacheSizeMB() {
+    try {
+      const stats = await opfsBarStore.getStats();
+      return Math.round(stats.totalSizeKB / 1024 * 10) / 10;
+    } catch {
+      return 0;
+    }
+  }
 }
 
 // ─── Singleton + Exports ──────────────────────────────────────

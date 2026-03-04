@@ -7,6 +7,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState } from 'react';
+import { logger } from '../../../utils/logger.ts';
 import { C, F, M } from '../../../constants.js';
 import { alpha } from '../../../utils/colorUtils.js';
 import { useSocialStore } from '../../../state/useSocialStore.js';
@@ -53,7 +54,7 @@ export default function ComposeIdeaModal({ open, onClose }) {
     onClose();
 
     // Success feedback
-    console.log('✅ Idea posted to the feed!');
+    logger.ui.info('✅ Idea posted to the feed!');
   };
 
   const handleBackdrop = (e) => {

@@ -1,5 +1,5 @@
 # Sprint 7: Intelligence Layer — Delivery Report
-## TradeForge OS v10.3 → v10.4
+## charEdge v10.3 → v10.4
 
 **Sprint Theme:** Make the chart think  
 **Tasks Delivered:** 12/12  

@@ -18,6 +18,7 @@
 
 import { bybitFuturesAdapter } from '../../adapters/BybitFuturesAdapter.js';
 
+import { logger } from '../../../utils/logger.ts';
 // ─── Constants ─────────────────────────────────────────────────
 
 const SCAN_INTERVAL_MS = 5 * 60 * 1000;       // Scan every 5 minutes
@@ -58,11 +59,11 @@ class _FundingArbitrageScanner {
     this._isScanning = true;
 
     // Initial scan
-    this._scan().catch((err) => console.warn('[FundingScanner] Initial scan failed:', err?.message));
+    this._scan().catch((err) => logger.data.warn('[FundingScanner] Initial scan failed:', err?.message));
 
     // Periodic scans
     this._scanTimer = setInterval(() => {
-      this._scan().catch((err) => console.warn('[FundingScanner] Periodic scan failed:', err?.message));
+      this._scan().catch((err) => logger.data.warn('[FundingScanner] Periodic scan failed:', err?.message));
     }, SCAN_INTERVAL_MS);
   }
 
@@ -263,7 +264,7 @@ class _FundingArbitrageScanner {
       }
 
     } catch (err) {
-      console.warn('[FundingScanner] Scan failed:', err.message);
+      logger.data.warn('[FundingScanner] Scan failed:', err.message);
     }
 
     return newOpps;

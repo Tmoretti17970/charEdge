@@ -7,6 +7,7 @@
 
 import { BaseAdapter } from './BaseAdapter.js';
 
+import { logger } from '../../utils/logger.ts';
 const INTERVAL_MAP = {
   '1m': '1m',
   '2m': '2m',
@@ -94,7 +95,7 @@ export class YahooAdapter extends BaseAdapter {
 
   subscribe(_symbol, _callback) {
     // Yahoo doesn't support WebSocket — return noop
-    console.warn('[YahooAdapter] Real-time subscriptions not supported');
+    logger.data.warn('[YahooAdapter] Real-time subscriptions not supported');
     return () => {};
   }
 

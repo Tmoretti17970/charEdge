@@ -105,7 +105,6 @@ export function getQualitySettings(tier) {
         maxVisibleBarsBeforeDecimation: 5000,
         enableWebGL: true,
         enableWebGPU: true,
-        enableOffscreenCanvas: true,
         enableWideColorGamut: true,
         antiAliasing: 'subpixel',
         lineRenderQuality: 'high',     // Gaussian AA
@@ -126,7 +125,6 @@ export function getQualitySettings(tier) {
         maxVisibleBarsBeforeDecimation: 2000,
         enableWebGL: true,
         enableWebGPU: false,
-        enableOffscreenCanvas: true,
         enableWideColorGamut: false,
         antiAliasing: 'standard',
         lineRenderQuality: 'medium',
@@ -148,7 +146,6 @@ export function getQualitySettings(tier) {
         maxVisibleBarsBeforeDecimation: 500,
         enableWebGL: false,
         enableWebGPU: false,
-        enableOffscreenCanvas: false,
         enableWideColorGamut: false,
         antiAliasing: 'none',
         lineRenderQuality: 'low',

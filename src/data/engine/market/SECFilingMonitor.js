@@ -1,3 +1,4 @@
+import { logger } from '../../../utils/logger.ts';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v14 — SEC Filing Monitor
 //
@@ -15,7 +16,7 @@
 // Usage:
 //   import { secFilingMonitor } from './SECFilingMonitor.js';
 //   secFilingMonitor.watch('AAPL');
-//   secFilingMonitor.onFiling(filing => console.log(filing));
+//   secFilingMonitor.onFiling(filing => logger.data.info(filing));
 // ═══════════════════════════════════════════════════════════════════
 
 // ─── Configuration ─────────────────────────────────────────────
@@ -56,7 +57,7 @@ class _SECFilingMonitor {
       const { resolveCIK } = await import('../../adapters/EdgarAdapter.js');
       const cik = await resolveCIK(sym);
       if (!cik) {
-        console.warn(`[SECFilingMonitor] Could not resolve CIK for ${sym}`);
+        logger.data.warn(`[SECFilingMonitor] Could not resolve CIK for ${sym}`);
         return false;
       }
 
@@ -74,7 +75,7 @@ class _SECFilingMonitor {
 
       return true;
     } catch (err) {
-      console.warn(`[SECFilingMonitor] Failed to watch ${sym}:`, err.message);
+      logger.data.warn(`[SECFilingMonitor] Failed to watch ${sym}:`, err.message);
       return false;
     }
   }
@@ -188,7 +189,7 @@ class _SECFilingMonitor {
         await this._checkSymbol(sym);
       }
     } catch (err) {
-      console.warn('[SECFilingMonitor] Poll error:', err.message);
+      logger.data.warn('[SECFilingMonitor] Poll error:', err.message);
     } finally {
       this._isPolling = false;
     }
@@ -289,7 +290,7 @@ class _SECFilingMonitor {
 
       entry.lastCheck = Date.now();
     } catch (err) {
-      console.warn(`[SECFilingMonitor] Fallback check failed for ${symbol}:`, err.message);
+      logger.data.warn(`[SECFilingMonitor] Fallback check failed for ${symbol}:`, err.message);
     }
   }
 

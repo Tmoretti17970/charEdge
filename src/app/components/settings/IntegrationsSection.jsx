@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { radii } from '../../../theme/tokens.js';
-import { useBrokerStore } from '../../../state/useBrokerStore.js';
 import { getApiKey, setApiKey, getProviderStatus } from '../../../data/DataProvider.js';
 import { configureSupabase, signIn, signUp, signOut, getAuth, getSyncStatus, sync } from '../../../data/StorageAdapter.js';
 import { Card, Btn, inputStyle } from '../ui/UIKit.jsx';
@@ -11,61 +10,9 @@ export default function IntegrationsSection() {
   return (
     <section style={{ marginBottom: 40 }}>
       <SectionHeader icon="plug" title="Integrations" description="API keys, data sources, and cloud sync" />
-      <BrokerSyncSettings />
-      <div style={{ marginTop: 16 }}><ApiKeySettings /></div>
+      <ApiKeySettings />
       <div style={{ marginTop: 16 }}><CloudSyncSection /></div>
     </section>
-  );
-}
-
-// ─── Broker Sync Settings ───────────────────────────────────────
-
-function BrokerSyncSettings() {
-  const tokens = useBrokerStore((s) => s.tokens);
-  const status = useBrokerStore((s) => s.status);
-  const setToken = useBrokerStore((s) => s.setToken);
-  const disconnect = useBrokerStore((s) => s.disconnect);
-  const syncNow = useBrokerStore((s) => s.syncNow);
-  const isSyncing = useBrokerStore((s) => s.isSyncing);
-
-  const renderBrokerRow = (id, name, hint) => {
-    const isConnected = !!tokens[id];
-    const brokerStatus = status[id];
-    return (
-      <div key={id} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: `1px solid ${C.bd}` }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: C.t1 }}>{name}</div>
-            <div style={{ fontSize: 11, color: C.t3 }}>{hint}</div>
-          </div>
-          <StatusBadge ok={isConnected} label={isConnected ? 'Connected' : 'Disconnected'} />
-        </div>
-        {!isConnected ? (
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input type="password" placeholder={`Enter ${name} API Token`} style={{ ...inputStyle, flex: 1 }}
-              onKeyDown={(e) => { if (e.key === 'Enter' && e.target.value.trim()) { setToken(id, e.target.value.trim()); e.target.value = ''; } }} />
-          </div>
-        ) : (
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <Btn onClick={() => syncNow(id)} disabled={isSyncing} style={{ fontSize: 12, padding: '6px 12px' }}>{isSyncing ? 'Syncing...' : '🔄 Sync Trades'}</Btn>
-            <Btn variant="ghost" onClick={() => disconnect(id)} style={{ fontSize: 12, padding: '6px 12px', color: C.r }}>Disconnect</Btn>
-            {brokerStatus?.lastSync && (
-              <span style={{ fontSize: 11, color: C.t3, marginLeft: 8 }}>Last sync: {new Date(brokerStatus.lastSync).toLocaleTimeString()}</span>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  return (
-    <Card style={{ padding: 20 }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, marginBottom: 4 }}>Broker Auto-Sync</div>
-      <div style={{ fontSize: 11, color: C.t3, marginBottom: 16 }}>Connect your broker API to automatically import trades into your journal.</div>
-      {renderBrokerRow('schwab', 'Schwab / TD Ameritrade', 'Requires developer.schwab.com App Access Token')}
-      {renderBrokerRow('ibkr', 'Interactive Brokers', 'Requires Client Portal Web API token')}
-      {renderBrokerRow('tradovate', 'Tradovate', 'Requires Live API Access Token')}
-    </Card>
   );
 }
 

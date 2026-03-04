@@ -17,6 +17,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useRef, useCallback, useEffect, useState } from 'react';
+import { logger } from '../../utils/logger.ts';
 import { Layout, Model, Actions, DockLocation } from 'flexlayout-react';
 import 'flexlayout-react/style/dark.css';
 import { C, F, M } from '../../constants.js';
@@ -567,7 +568,7 @@ export default function WorkspaceLayout({ preset = null }) {
       saveLayout(newModel);
       window.location.reload(); // Simplest approach — layout presets are infrequent
     } catch (e) {
-      console.warn('[WorkspaceLayout] Failed to apply preset:', e);
+      logger.ui.warn('[WorkspaceLayout] Failed to apply preset:', e);
     }
   }, []);
 

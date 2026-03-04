@@ -10,7 +10,9 @@
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import sb from './Sidebar.module.css';
 import { C, F, M } from '../../constants.js';
+import Icon from '../components/design/Icon.jsx';
 import { useUIStore } from '../../state/useUIStore.js';
 import { useUserStore } from '../../state/useUserStore.js';
 import SidebarXPBadge from '../components/ui/SidebarXPBadge.jsx';
@@ -151,28 +153,19 @@ export default function Sidebar() {
   const sidebarWidth = expanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH;
 
   return (
-    <nav
+    <motion.nav
       ref={navRef}
       role="navigation"
       aria-label="Main navigation"
+      className={`${sb.sidebar} ${expanded ? sb.expanded : sb.collapsed}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      animate={{ width: sidebarWidth, minWidth: sidebarWidth }}
+      transition={{ type: 'spring', stiffness: 300, damping: 28 }}
       style={{
-        width: sidebarWidth,
-        minWidth: sidebarWidth,
-        height: '100vh',
         background: C.bg2,
         borderRight: `1px solid ${C.bd}`,
         boxShadow: `1px 0 8px ${C.bg}20`,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: expanded ? 'stretch' : 'center',
-        paddingTop: 8,
-        paddingBottom: 12,
-        position: 'relative',
-        zIndex: 100,
-        transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-        overflow: 'hidden',
       }}
     >
       {/* ─── Sliding Active Indicator Bar (Sprint 1: spring physics) ─ */}
@@ -183,53 +176,21 @@ export default function Sidebar() {
           stiffness: 500,
           damping: 30,
         }}
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: barTop,
-          width: 3,
-          height: 24,
-          borderRadius: '0 3px 3px 0',
-          background: C.b,
-          boxShadow: `0 0 8px ${C.b}60`,
-          opacity: barVisible ? 1 : 0,
-          pointerEvents: 'none',
-        }}
+        className={sb.activeBar}
+        style={{ top: barTop, background: C.b, boxShadow: `0 0 8px ${C.b}60`, opacity: barVisible ? 1 : 0 }}
       />
 
       {/* ─── Logo ─────────────────────────────────────────── */}
       <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: expanded ? '0 12px' : '0',
-          justifyContent: expanded ? 'flex-start' : 'center',
-          marginBottom: 12,
-          cursor: 'pointer',
-          minHeight: 36,
-          flexShrink: 0,
-        }}
+        className={`${sb.logo} ${expanded ? sb.logoExpanded : sb.logoCollapsed}`}
         onClick={() => setPage('journal')}
         title="charEdge"
         aria-label="charEdge — go to Home"
         role="button"
       >
         <div
-          style={{
-            width: 32,
-            height: 32,
-            minWidth: 32,
-            borderRadius: 9,
-            background: `linear-gradient(135deg, ${C.b}, ${C.y})`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 800,
-            fontSize: 14,
-            fontFamily: M,
-            color: '#fff',
-          }}
+          className={sb.logoIcon}
+          style={{ background: `linear-gradient(135deg, ${C.b}, ${C.y})`, fontFamily: M }}
         >
           CE
         </div>
@@ -251,21 +212,14 @@ export default function Sidebar() {
       </div>
 
       {/* ─── P&L Widget ───────────────────────────────────── */}
-      <div style={{ flexShrink: 0, display: 'flex', justifyContent: expanded ? 'stretch' : 'center' }}>
+      <div className={`${sb.pnlWrap} ${expanded ? sb.pnlExpanded : sb.pnlCollapsed}`}>
         <SidebarPnL expanded={expanded} />
       </div>
 
       {/* ─── Divider ──────────────────────────────────────── */}
       <div
-        style={{
-          width: expanded ? 'calc(100% - 24px)' : 24,
-          height: 1,
-          background: C.bd,
-          margin: expanded ? '6px 12px 8px' : '6px auto 8px',
-          borderRadius: 1,
-          flexShrink: 0,
-          transition: 'width 0.2s ease, margin 0.2s ease',
-        }}
+        className={`${sb.divider} ${expanded ? sb.dividerExpanded : sb.dividerCollapsed}`}
+        style={{ background: C.bd }}
       />
 
       {/* Sprint 6: Hide gamification on Charts page for immersion */}
@@ -273,19 +227,19 @@ export default function Sidebar() {
       {!isChartPage && !simpleMode && (
         <>
           {/* ─── XP Badge ──────────────────────────────────────── */}
-          <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'center', marginBottom: 2 }}>
+          <div className={sb.xpBadge}>
             <SidebarXPBadge />
           </div>
 
           {/* ─── Persona Badge ─────────────────────────────────── */}
-          <div style={{ flexShrink: 0, marginBottom: 4 }}>
+          <div className={sb.personaBadge}>
             <SidebarPersonaBadge expanded={expanded} />
           </div>
         </>
       )}
 
       {/* ─── Main Nav ─────────────────────────────────────── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, padding: expanded ? '0 8px' : '0' }}>
+      <div className={`${sb.navGroup} ${expanded ? sb.navGroupExpanded : sb.navGroupCollapsed}`}>
         {NAV_ITEMS.filter((item) => !simpleMode || item.id !== 'coach').map((item) => (
           <NavButton
             key={item.id}
@@ -336,7 +290,7 @@ export default function Sidebar() {
       </div>
 
       {/* ─── Bottom: Settings Gear ─────────────────────────── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: expanded ? '0 8px' : '0', flexShrink: 0 }}>
+      <div className={`${sb.bottomGroup} ${expanded ? sb.navGroupExpanded : sb.navGroupCollapsed}`}>
         {/* Divider */}
         <div
           style={{
@@ -456,7 +410,7 @@ export default function Sidebar() {
           onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
           onMouseLeave={(e) => { if (page !== 'changelog') e.currentTarget.style.opacity = '0.6'; }}
         >
-          {expanded ? "📋 What's New" : '📋'}
+          {expanded ? <><Icon name="changelog" size={10} /> What's New</> : <Icon name="changelog" size={10} />}
         </span>
 
         {/* Privacy Policy link */}
@@ -481,7 +435,7 @@ export default function Sidebar() {
           onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
           onMouseLeave={(e) => { if (page !== 'privacy') e.currentTarget.style.opacity = '0.6'; }}
         >
-          {expanded ? '🔒 Privacy' : '🔒'}
+          {expanded ? <><Icon name="lock" size={10} /> Privacy</> : <Icon name="lock" size={10} />}
         </span>
 
         {/* Terms of Service link */}
@@ -506,7 +460,32 @@ export default function Sidebar() {
           onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
           onMouseLeave={(e) => { if (page !== 'terms') e.currentTarget.style.opacity = '0.6'; }}
         >
-          {expanded ? '📜 Terms' : '📜'}
+          {expanded ? <><Icon name="journal" size={10} /> Terms</> : <Icon name="journal" size={10} />}
+        </span>
+
+        {/* Pricing / Upgrade link */}
+        <span
+          role="button"
+          tabIndex={0}
+          aria-label="Pricing — upgrade plans"
+          onClick={() => setPage('pricing')}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPage('pricing'); } }}
+          style={{
+            fontSize: expanded ? 10 : 10,
+            display: 'block',
+            cursor: 'pointer',
+            color: page === 'pricing' ? C.b : C.y,
+            opacity: page === 'pricing' ? 1 : 0.7,
+            transition: 'opacity 0.2s, color 0.2s',
+            marginBottom: 4,
+            fontFamily: F,
+            fontWeight: 600,
+          }}
+          title="Pricing & Plans"
+          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
+          onMouseLeave={(e) => { if (page !== 'pricing') e.currentTarget.style.opacity = '0.7'; }}
+        >
+          {expanded ? <><Icon name="eye" size={10} /> Upgrade</> : <Icon name="eye" size={10} />}
         </span>
 
         <span
@@ -519,7 +498,7 @@ export default function Sidebar() {
             display: 'block',
           }}
         >
-          {expanded ? 'Not financial advice. Trade at your own risk.' : '⚠️'}
+          {expanded ? 'Not financial advice. Trade at your own risk.' : <Icon name="warning" size={8} />}
         </span>
         <span
           role="button"
@@ -543,7 +522,7 @@ export default function Sidebar() {
           ✦
         </span>
       </div>
-    </nav>
+    </motion.nav>
   );
 }
 

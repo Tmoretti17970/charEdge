@@ -5,12 +5,6 @@
 // Splits rendering into 5 independent canvas layers, each with its
 // own dirty flag. This eliminates 60-80% of unnecessary redraws:
 //
-// Phase 1.3.3: OffscreenCanvas support — GRID, DATA, INDICATORS
-// layers can be transferred to a Web Worker for off-main-thread
-// rendering. DRAWINGS + UI stay on the main thread for zero-latency
-// interaction. Fallback: if OffscreenCanvas unsupported, all layers
-// render on the main thread as before.
-//
 //   Layer 0  GRID         Grid lines, watermark, background
 //                         Dirty on: resize, theme change
 //
@@ -50,28 +44,12 @@ const LAYER_ORDER = [
 export class LayerManager {
   /**
    * @param {HTMLElement} container — parent DOM element
-   * @param {Object} [options]
-   * @param {string[]} [options.offscreenLayers] — layer names to transfer to a worker
-   *   e.g. ['GRID', 'DATA', 'INDICATORS']. These layers' 2D contexts become null on
-   *   the main thread (worker owns rendering). Falls back gracefully if unsupported.
-   * @param {Function} [options.onResize] — callback(viewport) when dimensions change,
-   *   used to notify the render worker of resize events.
    */
-  constructor(container, options = {}) {
+  constructor(container) {
     this.container = container;
     this._layers = new Map();
     this._dirty = new Map();
     this._disposed = false;
-
-    // Phase 1.3.3: OffscreenCanvas layer tracking
-    this._offscreenSet = new Set(options.offscreenLayers || []);
-    this._offscreenCanvases = new Map(); // name → OffscreenCanvas
-    this._offscreenActive = false; // true if any layer was successfully transferred
-    this._onResizeCallback = options.onResize || null;
-
-    // Feature detection
-    const hasOffscreen = typeof OffscreenCanvas !== 'undefined'
-      && typeof HTMLCanvasElement.prototype.transferControlToOffscreen === 'function';
 
     // Store dimensions
     this.mediaWidth = 0;
@@ -80,7 +58,7 @@ export class LayerManager {
     this.bitmapHeight = 0;
     this.pixelRatio = (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1;
 
-    // Create all layers — all render on the main thread.
+    // Create all layers
     for (let i = 0; i < LAYER_ORDER.length; i++) {
       const name = LAYER_ORDER[i];
       const canvas = document.createElement('canvas');
@@ -94,7 +72,7 @@ export class LayerManager {
         : { alpha: true };
 
       const ctx = canvas.getContext('2d', ctxOptions);
-      this._layers.set(name, { canvas, ctx, offscreen: false });
+      this._layers.set(name, { canvas, ctx });
       this._dirty.set(name, true); // All dirty initially
     }
 
@@ -135,9 +113,8 @@ export class LayerManager {
       this.bitmapHeight = bh;
       this.pixelRatio = pr;
 
-      // Resize all canvas buffers (skip offscreen — worker handles those)
+      // Resize all canvas buffers
       for (const [_name, layer] of this._layers) {
-        if (layer.offscreen) continue; // Cannot touch canvas after transferControlToOffscreen()
         layer.canvas.width = bw;
         layer.canvas.height = bh;
         layer.canvas.style.width = mw + 'px';
@@ -146,11 +123,6 @@ export class LayerManager {
 
       // All layers dirty after resize
       this.markAllDirty();
-
-      // Phase 1.3.3: Notify render worker of resize
-      if (this._offscreenActive && this._onResizeCallback) {
-        this._onResizeCallback({ bitmapWidth: bw, bitmapHeight: bh, pixelRatio: pr });
-      }
     }
   }
 
@@ -221,39 +193,6 @@ export class LayerManager {
     return this._layers.get(layerName)?.ctx || null;
   }
 
-  // ─── OffscreenCanvas Access (Phase 1.3.3) ───────────────────
-
-  /**
-   * Get transferable OffscreenCanvas objects for worker init.
-   * Call once, then pass to WorkerBridge.initRenderWorker().
-   * @returns {{ gridCanvas, dataCanvas, indicatorCanvas } | null}
-   */
-  getOffscreenCanvases() {
-    if (!this._offscreenActive) return null;
-    const grid = this._offscreenCanvases.get(LAYERS.GRID);
-    const data = this._offscreenCanvases.get(LAYERS.DATA);
-    const indicator = this._offscreenCanvases.get(LAYERS.INDICATORS);
-    if (!grid || !data || !indicator) return null;
-    return { gridCanvas: grid, dataCanvas: data, indicatorCanvas: indicator };
-  }
-
-  /**
-   * Check if a specific layer is rendered offscreen (by worker).
-   * @param {string} layerName
-   * @returns {boolean}
-   */
-  isOffscreen(layerName) {
-    return this._layers.get(layerName)?.offscreen || false;
-  }
-
-  /**
-   * Whether any layers have been transferred to a worker.
-   * @returns {boolean}
-   */
-  get hasOffscreenLayers() {
-    return this._offscreenActive;
-  }
-
   /**
    * Get the topmost canvas (UI layer) for event binding.
    * @returns {HTMLCanvasElement}
@@ -304,11 +243,8 @@ export class LayerManager {
 
     for (const [_name, layer] of this._layers) {
       // Release canvas memory (iOS Safari fix)
-      // Cannot set width/height on canvases transferred to OffscreenCanvas
-      if (!layer.offscreen) {
-        layer.canvas.width = 0;
-        layer.canvas.height = 0;
-      }
+      layer.canvas.width = 0;
+      layer.canvas.height = 0;
       if (layer.canvas.parentElement) {
         layer.canvas.parentElement.removeChild(layer.canvas);
       }

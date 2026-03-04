@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger.ts';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v12 — Frankfurter Adapter (ECB Exchange Rates)
 //
@@ -45,7 +46,7 @@ class _FrankfurterAdapter {
       CACHE.set(key, { data: result, expiry: Date.now() + CACHE_TTL });
       return result;
     } catch (err) {
-      console.warn('[FrankfurterAdapter] fetchRate failed:', err.message);
+      logger.data.warn('[FrankfurterAdapter] fetchRate failed:', err.message);
       return null;
     }
   }
@@ -96,7 +97,7 @@ class _FrankfurterAdapter {
         }))
         .sort((a, b) => a.time - b.time);
     } catch (err) {
-      console.warn('[FrankfurterAdapter] fetchHistory failed:', err.message);
+      logger.data.warn('[FrankfurterAdapter] fetchHistory failed:', err.message);
       return [];
     }
   }

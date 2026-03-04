@@ -1,13 +1,18 @@
 /* ═══════════════════════════════════════════════════════════════════
- * TradeForge OS v10 — Global Styles
+ * charEdge v11.0 — Global Styles
  *
  * CSS custom properties, keyframes, reset, scrollbar, and utilities.
  * Replaces the inline <style> tag in App.jsx for spinner keyframes
  * and provides foundation for progressive CSS adoption.
  * ═══════════════════════════════════════════════════════════════════ */
 
+/* ─── Cascade Layer Order (Task 1.2.9) ───────────────────────── */
+@layer base, components, pages, utilities;
+
 /* ─── CSS Custom Properties (Design Tokens) ──────────────────── */
 :root {
+  /* Color scheme (Task 1.2.10) — enables auto dark/light UA styles */
+  color-scheme: dark light;
   /* Colors — Forge palette (Sprint 2: widened contrast) */
   --tf-bg: #08090a;
   --tf-bg2: #0e1013;
