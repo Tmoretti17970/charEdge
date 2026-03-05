@@ -60,6 +60,9 @@ export default function DashboardNarrativeLayout({
     activeWidgets,
     activePreset,
     onDashboardFilter,
+    onLayoutToggle,
+    editMode,
+    onToggleEdit,
 }) {
     const [showCustomizer, setShowCustomizer] = useState(false);
     const [showAllWidgets, setShowAllWidgets] = useState(false);
@@ -71,9 +74,9 @@ export default function DashboardNarrativeLayout({
                 trades={trades}
                 computing={computing}
                 layoutMode="narrative"
-                onLayoutToggle={() => { }}
-                editMode={false}
-                onToggleEdit={() => { }}
+                onLayoutToggle={onLayoutToggle}
+                editMode={editMode || false}
+                onToggleEdit={onToggleEdit || (() => { })}
                 onCustomize={() => setShowCustomizer(true)}
                 activePreset={activePreset}
             />
