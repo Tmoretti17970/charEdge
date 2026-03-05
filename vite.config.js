@@ -33,6 +33,7 @@ export default defineConfig({
     }
   },
   build: {
+    target: ['es2020', 'safari14', 'chrome87', 'firefox78'],
     outDir: 'dist/client',
     sourcemap: true,
     chunkSizeWarningLimit: 600,

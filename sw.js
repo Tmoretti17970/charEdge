@@ -9,7 +9,7 @@
 // Versioned cache — bumping VERSION clears stale caches on update.
 // ═══════════════════════════════════════════════════════════════════
 
-const VERSION = 'tf-v11.0';
+const VERSION = 'tf-v11.1';
 const STATIC_CACHE = `${VERSION}-static`;
 const DYNAMIC_CACHE = `${VERSION}-dynamic`;
 

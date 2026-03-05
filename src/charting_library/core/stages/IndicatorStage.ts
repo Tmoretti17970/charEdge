@@ -59,7 +59,6 @@ export function executeIndicatorStage(fs, ctx, engine) {
   const webgl = ctx.webgl;
   if (webgl?.available && R.p2y) {
     const gpuSeries = [];
-    const gpuHandled = new Set();
 
     for (let oi = 0; oi < overlayInds.length; oi++) {
       const ind = overlayInds[oi];
@@ -76,9 +75,6 @@ export function executeIndicatorStage(fs, ctx, engine) {
           lineWidth: output.width || 2,
         });
       }
-      // Mark indicators that ONLY have line outputs (+ optional fills) as GPU-handled
-      const hasNonLine = ind.outputs.some(o => o.type !== 'line');
-      if (!hasNonLine) gpuHandled.add(ind);
     }
 
     if (gpuSeries.length > 0) {
@@ -104,49 +100,28 @@ export function executeIndicatorStage(fs, ctx, engine) {
         indDrawFn();
       }
     }
+  }
 
-    // Fall through to Canvas2D for non-GPU indicators (VRVP, fills, etc.)
-    for (let oi = 0; oi < overlayInds.length; oi++) {
-      const ind = overlayInds[oi];
-      if (gpuHandled.has(ind)) continue;
-      if (hiddenSet.has(oi)) continue; // Sprint 12: skip hidden
-      // Sprint 12: dim non-highlighted
-      const isDimmed = highlightIdx >= 0 && highlightIdx !== oi;
-      if (isDimmed) iCtx.globalAlpha = 0.3;
-      renderOverlayIndicator(iCtx, ind, {
-        rawBars: bars,
-        startIdx: start,
-        exactStart,
-        endIdx: Math.min(endIdx + 1, bars.length - 1),
-        barSpacing: bSp,
-        priceToY: R.p2y,
-        pixelRatio: pr,
-        bitmapWidth: bw,
-        bitmapHeight: mainBH,
-      });
-      if (isDimmed) iCtx.globalAlpha = 1;
-    }
-  } else {
-    // Canvas2D fallback: render all indicators the traditional way
-    for (let oi = 0; oi < overlayInds.length; oi++) {
-      const ind = overlayInds[oi];
-      if (hiddenSet.has(oi)) continue; // Sprint 12: skip hidden
-      // Sprint 12: dim non-highlighted
-      const isDimmed = highlightIdx >= 0 && highlightIdx !== oi;
-      if (isDimmed) iCtx.globalAlpha = 0.3;
-      renderOverlayIndicator(iCtx, ind, {
-        rawBars: bars,
-        startIdx: start,
-        exactStart,
-        endIdx: Math.min(endIdx + 1, bars.length - 1),
-        barSpacing: bSp,
-        priceToY: R.p2y,
-        pixelRatio: pr,
-        bitmapWidth: bw,
-        bitmapHeight: mainBH,
-      });
-      if (isDimmed) iCtx.globalAlpha = 1;
-    }
+  // Canvas2D: always render ALL overlay indicators as reliable fallback
+  // (if GPU also rendered them, this is a harmless overdraw)
+  for (let oi = 0; oi < overlayInds.length; oi++) {
+    const ind = overlayInds[oi];
+    if (hiddenSet.has(oi)) continue; // Sprint 12: skip hidden
+    // Sprint 12: dim non-highlighted
+    const isDimmed = highlightIdx >= 0 && highlightIdx !== oi;
+    if (isDimmed) iCtx.globalAlpha = 0.3;
+    renderOverlayIndicator(iCtx, ind, {
+      rawBars: bars,
+      startIdx: start,
+      exactStart,
+      endIdx: Math.min(endIdx + 1, bars.length - 1),
+      barSpacing: bSp,
+      priceToY: R.p2y,
+      pixelRatio: pr,
+      bitmapWidth: bw,
+      bitmapHeight: mainBH,
+    });
+    if (isDimmed) iCtx.globalAlpha = 1;
   }
 
   iCtx.restore();

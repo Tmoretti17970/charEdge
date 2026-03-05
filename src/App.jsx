@@ -172,7 +172,7 @@ export default function App() {
 
   return (
     <PasswordGate>
-      <Suspense fallback={null}>
+      <Suspense fallback={<LoadingScreen phase="loading" />}>
         <AgeVerificationGate>
           <div
             key={theme}
@@ -191,7 +191,7 @@ export default function App() {
             </ErrorBoundary>
             {isMobile && <MobileNav />}
             <ToastContainer />
-            <Suspense fallback={null}>
+            <Suspense fallback={null}>{/* overlay modals — null fallback OK */}
               <CommandPalette />
               <GlobalQuickAddModal />
               <NotificationPanel />
