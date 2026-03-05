@@ -133,8 +133,8 @@ export default function DataHealthPanel() {
 
       // Circuit breaker states
       try {
-        const { getCircuitBreakerStats } = await import('../../data/engine/AdapterCircuitBreaker.js');
-        result.circuits = getCircuitBreakerStats?.() || {};
+        const { getAllCircuitStates } = await import('../../../data/engine/infra/CircuitBreaker');
+        result.circuits = getAllCircuitStates?.() || {};
       } catch (_) { result.circuits = {}; }
 
       // OPFS usage

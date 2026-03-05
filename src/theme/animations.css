@@ -1,0 +1,372 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * charEdge — Animation & Transition Styles
+ * Page, modal, slide, toast, dropdown, tooltip, and utility animations.
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Page Transitions ───────────────────────────────────────── */
+
+.tf-page-enter {
+    animation: tfPageIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tfPageIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px) scale(0.998);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ─── Modal Transitions (300ms spring bounce) ────────────────── */
+
+.tf-modal-backdrop {
+    animation: tfFadeIn 0.2s ease;
+}
+
+.tf-modal-content {
+    animation: tfModalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes tfFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes tfModalIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.94);
+    }
+
+    60% {
+        transform: translate(-50%, -50%) scale(1.01);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* ─── Slide Panel (300ms spring with bounce) ─────────────────── */
+
+.tf-slide-right {
+    animation: tfSlideRight 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes tfSlideRight {
+    from {
+        opacity: 0;
+        transform: translateX(24px);
+    }
+
+    60% {
+        transform: translateX(-2px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ─── Active Indicator Animation ─────────────────────────────── */
+
+.tf-active-bar {
+    transition: top 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ─── Dashboard Narrative Entrance Animations ────────────────── */
+
+.tf-section-enter {
+    animation: tfSectionIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes tfSectionIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tf-narrative-divider {
+    animation: tfDividerIn 0.6s ease both;
+}
+
+@keyframes tfDividerIn {
+    from {
+        opacity: 0;
+        transform: scaleX(0.3);
+    }
+
+    to {
+        opacity: 1;
+        transform: scaleX(1);
+    }
+}
+
+.tf-metric-tooltip {
+    animation: tfMetricTipIn 0.15s ease;
+}
+
+@keyframes tfMetricTipIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.tf-hero-trend {
+    animation: tfTrendIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    animation-delay: 0.4s;
+}
+
+@keyframes tfTrendIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateX(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateX(0);
+    }
+}
+
+/* ─── Fade In (utility) ───────────────────────────────────────── */
+
+.tf-fade-in {
+    animation: tfFadeIn 0.2s ease;
+}
+
+/* ─── Toast Animations ──────────────────────────────────────── */
+
+.tf-toast-enter {
+    animation: tfToastIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tf-toast-exit {
+    animation: tfToastOut 0.2s ease forwards;
+}
+
+@keyframes tfToastIn {
+    from {
+        opacity: 0;
+        transform: translateX(48px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes tfToastOut {
+    from {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(48px) scale(0.95);
+    }
+}
+
+@media (max-width: 480px) {
+    @keyframes tfToastIn {
+        from {
+            opacity: 0;
+            transform: translateY(24px) scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes tfToastOut {
+        from {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        to {
+            opacity: 0;
+            transform: translateY(24px) scale(0.95);
+        }
+    }
+}
+
+/* ─── Dropdown / Overflow Menu ──────────────────────────────── */
+
+.tf-dropdown-enter {
+    animation: tfDropdownIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: top right;
+}
+
+@keyframes tfDropdownIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ─── Tooltip Fade ──────────────────────────────────────────── */
+
+.tf-tooltip {
+    animation: tfTooltipIn 0.12s ease;
+}
+
+@keyframes tfTooltipIn {
+    from {
+        opacity: 0;
+        transform: translateY(2px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ─── Number Count-Up / Stat Flash ───────────────────────────── */
+
+.tf-stat-value {
+    transition: color 0.3s ease;
+}
+
+.tf-stat-flash {
+    animation: tfStatFlash 0.6s ease;
+}
+
+@keyframes tfStatFlash {
+    0% {
+        opacity: 1;
+    }
+
+    30% {
+        opacity: 0.6;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+/* ─── Slide Up (for bottom sheets) ──────────────────────────── */
+
+.tf-slide-up {
+    animation: tfSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tfSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ─── Fade Scale (for modals, dialogs) ──────────────────────── */
+
+.tf-fade-scale {
+    animation: tfFadeScale 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tfFadeScale {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ─── Spin (for loading indicators) ──────────────────────────── */
+
+.tf-spin {
+    animation: tfSpin 0.8s linear infinite;
+}
+
+@keyframes tfSpin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ─── Pulse Dot (live indicator) ────────────────────────────── */
+
+.tf-pulse-dot {
+    animation: tfPulseDot 1.5s ease-in-out infinite;
+}
+
+@keyframes tfPulseDot {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(45, 212, 160, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 0 4px rgba(45, 212, 160, 0);
+    }
+}
+
+/* ─── Stagger Animation Delay Utilities ─────────────────────── */
+
+.tf-stagger-1 {
+    animation-delay: 0.03s;
+}
+
+.tf-stagger-2 {
+    animation-delay: 0.06s;
+}
+
+.tf-stagger-3 {
+    animation-delay: 0.09s;
+}
+
+.tf-stagger-4 {
+    animation-delay: 0.12s;
+}
+
+.tf-stagger-5 {
+    animation-delay: 0.15s;
+}

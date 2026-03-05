@@ -1,0 +1,72 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * charEdge — Button Styles
+ * Interactive states for buttons, nav, icon, and toolbar buttons.
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Buttons ────────────────────────────────────────────────── */
+
+.tf-btn {
+    transition:
+        background 0.1s ease,
+        color 0.1s ease,
+        transform 0.1s ease,
+        border-color 0.1s ease,
+        box-shadow 0.15s ease;
+}
+
+.tf-btn:hover {
+    filter: brightness(1.1);
+}
+
+.tf-btn:active {
+    transform: scale(0.98);
+}
+
+/* ─── Nav Buttons ────────────────────────────────────────────── */
+
+.tf-nav-btn {
+    transition:
+        background 0.15s ease,
+        color 0.15s ease;
+}
+
+.tf-nav-btn:hover {
+    background: var(--tf-bd) !important;
+}
+
+.tf-nav-btn[aria-current='page'] {
+    background: rgba(232, 100, 44, 0.1);
+}
+
+/* ─── Sidebar Icon Buttons ───────────────────────────────────── */
+
+.tf-icon-btn {
+    transition:
+        color 0.15s ease,
+        background 0.15s ease;
+}
+
+.tf-icon-btn:hover {
+    color: var(--tf-t1);
+    background: rgba(78, 82, 102, 0.12);
+}
+
+/* ─── Toolbar Buttons ────────────────────────────────────────── */
+
+.tf-toolbar-btn {
+    transition:
+        background 0.08s ease,
+        color 0.08s ease,
+        border-color 0.08s ease;
+}
+
+.tf-toolbar-btn:hover {
+    background: rgba(78, 82, 102, 0.12);
+    color: var(--tf-t1);
+}
+
+.tf-toolbar-btn[data-active='true'] {
+    background: rgba(232, 100, 44, 0.15);
+    color: var(--tf-accent);
+    border-color: rgba(232, 100, 44, 0.4);
+}

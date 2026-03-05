@@ -25,6 +25,7 @@ import { useOrderFlowConnection } from '../../../hooks/useOrderFlowConnection.js
 import DrawingContextMenu from '../tools/DrawingContextMenu.jsx';
 import DrawingEditPopup from '../tools/DrawingEditPopup.jsx';
 import DataStalenessIndicator from '../ui/DataStalenessIndicator.jsx';
+import ChartLoadingNarrative from '../overlays/ChartLoadingNarrative.jsx';
 import DataFallbackBanner from '../ui/DataFallbackBanner.jsx';
 import IndicatorSettingsDialog from '../panels/IndicatorSettingsDialog.jsx';
 
@@ -39,7 +40,6 @@ const SYMBOL_MAP = {
   BTC: 'BTCUSDT', ETH: 'ETHUSDT', SOL: 'SOLUSDT', BNB: 'BNBUSDT',
   XRP: 'XRPUSDT', DOGE: 'DOGEUSDT', ADA: 'ADAUSDT', AVAX: 'AVAXUSDT',
   DOT: 'DOTUSDT', MATIC: 'MATICUSDT', LINK: 'LINKUSDT', UNI: 'UNIUSDT',
-  ES: 'BTCUSDT', NQ: 'ETHUSDT',
 };
 
 import { isCrypto } from '../../../../constants.js';
@@ -47,11 +47,12 @@ import { isCrypto } from '../../../../constants.js';
 function resolveSymbol(sym) {
   if (!sym) return 'BTCUSDT';
   const upper = sym.toUpperCase();
+  // Non-crypto symbols pass through unchanged — DatafeedService
+  // routes them through FetchService's equity/futures providers
+  if (!isCrypto(upper)) return upper;
   if (SYMBOL_MAP[upper]) return SYMBOL_MAP[upper];
   if (upper.endsWith('USDT') || upper.endsWith('BUSD') || upper.endsWith('BTC')) return upper;
-  // Only append USDT for crypto symbols — leave equities/forex as-is
-  if (isCrypto(upper)) return upper + 'USDT';
-  return upper;
+  return upper + 'USDT';
 }
 
 function resolveTf(tf) { return BINANCE_TF_MAP[tf] || '1h'; }
@@ -528,10 +529,7 @@ export default function ChartEngineWidget({
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
 
       {status === 'loading' && (
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: '#787B86', fontSize: 13, zIndex: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 16, height: 16, border: '2px solid #363A45', borderTopColor: '#2962FF', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
-          Loading {symbol}...
-        </div>
+        <ChartLoadingNarrative status={status} symbol={symbol} barCount={barCount} />
       )}
 
       {status === 'error' && (

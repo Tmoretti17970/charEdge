@@ -1,0 +1,23 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * charEdge — Card Styles
+ * ═══════════════════════════════════════════════════════════════════ */
+
+.tf-card-hover {
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        border-color 0.15s ease;
+}
+
+@media (pointer: fine) {
+    .tf-card-hover:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        border-color: var(--tf-bd2);
+    }
+
+    .tf-card-hover:active {
+        transform: scale(0.995);
+        transition-duration: 0.06s;
+    }
+}

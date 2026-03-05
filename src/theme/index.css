@@ -20,9 +20,15 @@
 /* Feature modules (extracted from monoliths) */
 @import './chart.css';
 /* Chart toolbar, status bar, minimap, HUD */
+@import './chart-components.css';
+/* Chart toolbar polish, skeleton, drawing sidebar, focus mode, light theme */
 @import './drawing.css';
 /* Drawing edit popup, sidebar, color picker */
 @import './trading.css';
 /* Trade pills, risk guard, P&L */
 @import './social.css';
 /* Social hub, feed, reactions, rooms */
+@import './strategy.css';
+/* Strategy backtester, walk-forward, Monte Carlo */
+@import './overlays.css';
+/* AI trade grade, risk guard, strategy builder, paper trading, analysis panel */

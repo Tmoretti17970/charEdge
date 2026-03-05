@@ -1,0 +1,36 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * charEdge — Input & Link Styles
+ * ═══════════════════════════════════════════════════════════════════ */
+
+.tf-input {
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.tf-input:focus {
+    border-color: var(--tf-accent);
+    box-shadow: 0 0 0 3px rgba(232, 100, 44, 0.1);
+}
+
+/* ─── Links / Text Actions ───────────────────────────────────── */
+
+.tf-link {
+    color: var(--tf-accent);
+    transition: opacity 0.1s ease;
+    cursor: pointer;
+}
+
+.tf-link:hover {
+    opacity: 0.8;
+}
+
+/* ─── Clickable Rows ─────────────────────────────────────────── */
+
+.tf-row-hover {
+    transition: background 0.1s ease;
+}
+
+.tf-row-hover:hover {
+    background: rgba(78, 82, 102, 0.06);
+}

@@ -16,6 +16,18 @@
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
+/** Structured log entry for JSON transports. */
+export interface LogEntry {
+  timestamp: string;
+  level: LogLevel;
+  tag: string;
+  message: string;
+  extra?: unknown;
+}
+
+/** A pluggable log transport (e.g., Datadog, Logtail, custom sink). */
+export type LogTransport = (entry: LogEntry) => void;
+
 /** A tagged logger with methods for each log level. */
 export interface TaggedLogger {
   debug(msg: string, extra?: unknown): void;
@@ -56,21 +68,30 @@ const MIN_LEVEL: number = isProd ? LEVELS.warn : LEVELS.debug;
 
 // ─── Console Styling (dev only) ──────────────────────────────────
 const TAG_COLORS: Record<string, string> = {
-  Engine:  '#e8642c',
-  Data:    '#4fc3f7',
-  WebGL:   '#ab47bc',
-  Worker:  '#66bb6a',
-  Store:   '#ffa726',
-  UI:      '#ec407a',
-  Boot:    '#26a69a',
+  Engine: '#e8642c',
+  Data: '#4fc3f7',
+  WebGL: '#ab47bc',
+  Worker: '#66bb6a',
+  Store: '#ffa726',
+  UI: '#ec407a',
+  Boot: '#26a69a',
   Network: '#5c6bc0',
 };
 
 const LEVEL_STYLES: Record<LogLevel, string> = {
   debug: 'color: #888',
-  info:  'color: #4fc3f7',
-  warn:  'color: #ffa726; font-weight: bold',
+  info: 'color: #4fc3f7',
+  warn: 'color: #ffa726; font-weight: bold',
   error: 'color: #ef5350; font-weight: bold',
+};
+
+// ─── Log Transports (JSON sinks for prod aggregation) ────────────
+const _logTransports: LogTransport[] = [];
+
+// Default JSON console transport for production (machine-readable)
+const _defaultJsonTransport: LogTransport = (entry) => {
+  // eslint-disable-next-line no-console
+  console.log(JSON.stringify(entry));
 };
 
 // ─── Error Handler Integration ───────────────────────────────────
@@ -111,6 +132,21 @@ function _log(level: LogLevel, tag: string, message: string, extra?: unknown): v
   const numLevel = LEVELS[level] ?? LEVELS.info;
   if (numLevel < MIN_LEVEL) return;
 
+  // Forward to JSON transports in production
+  if (isProd) {
+    const entry: LogEntry = {
+      timestamp: new Date().toISOString(),
+      level,
+      tag,
+      message,
+      ...(extra !== undefined && extra !== null ? { extra: extra instanceof Error ? { name: extra.name, message: extra.message, stack: extra.stack } : extra } : {}),
+    };
+    const transports = _logTransports.length > 0 ? _logTransports : [_defaultJsonTransport];
+    for (const transport of transports) {
+      try { transport(entry); } catch (_) { /* transport error — non-critical */ }
+    }
+  }
+
   // Forward to DataPipelineLogger if available
   const pl = _getPipelineLogger();
   if (pl && typeof pl[level] === 'function') {
@@ -146,21 +182,21 @@ function _log(level: LogLevel, tag: string, message: string, extra?: unknown): v
 function createTaggedLogger(tag: string): TaggedLogger {
   return {
     debug: (msg, extra) => _log('debug', tag, msg, extra),
-    info:  (msg, extra) => _log('info',  tag, msg, extra),
-    warn:  (msg, extra) => _log('warn',  tag, msg, extra),
+    info: (msg, extra) => _log('info', tag, msg, extra),
+    warn: (msg, extra) => _log('warn', tag, msg, extra),
     error: (msg, extra) => _log('error', tag, msg, extra),
   };
 }
 
 // ─── Public API ──────────────────────────────────────────────────
 export const logger: Logger = {
-  engine:  createTaggedLogger('Engine'),
-  data:    createTaggedLogger('Data'),
-  webgl:   createTaggedLogger('WebGL'),
-  worker:  createTaggedLogger('Worker'),
-  store:   createTaggedLogger('Store'),
-  ui:      createTaggedLogger('UI'),
-  boot:    createTaggedLogger('Boot'),
+  engine: createTaggedLogger('Engine'),
+  data: createTaggedLogger('Data'),
+  webgl: createTaggedLogger('WebGL'),
+  worker: createTaggedLogger('Worker'),
+  store: createTaggedLogger('Store'),
+  ui: createTaggedLogger('UI'),
+  boot: createTaggedLogger('Boot'),
   network: createTaggedLogger('Network'),
 
   // Create a custom-tagged logger
@@ -174,6 +210,19 @@ export function registerErrorReporter(fn: ErrorReporter): void {
 
 export function registerPipelineLogger(pl: PipelineLogger): void {
   _pipelineLogger = pl;
+}
+
+/**
+ * Register a custom log transport for production log aggregation.
+ * When at least one custom transport is registered, the default
+ * JSON console transport is bypassed.
+ */
+export function registerLogTransport(transport: LogTransport): () => void {
+  _logTransports.push(transport);
+  return () => {
+    const idx = _logTransports.indexOf(transport);
+    if (idx >= 0) _logTransports.splice(idx, 1);
+  };
 }
 
 export default logger;

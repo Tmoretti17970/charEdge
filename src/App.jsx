@@ -27,8 +27,8 @@ import { processPendingAchievements } from './app/components/ui/AchievementToast
 import styles from './App.module.css';
 
 import { useFocusStore } from './state/useFocusStore.js';
-import PasswordGate from './app/components/ui/PasswordGate.jsx';
-import AgeVerificationGate from './app/components/ui/AgeVerificationGate.jsx';
+import AuthGate from './app/components/auth/AuthGate.jsx';
+import { useAuthStore } from './state/useAuthStore.js';
 
 // Lazy-load overlay components (not needed on initial render)
 const CommandPalette = React.lazy(() => import('./app/components/ui/CommandPalette.jsx'));
@@ -136,6 +136,12 @@ export default function App() {
     useUserStore.getState().init();
   }, []);
 
+  // Initialize Supabase auth listener
+  useEffect(() => {
+    const unsubscribe = useAuthStore.getState().initialize();
+    return unsubscribe;
+  }, []);
+
   // ─── Gamification: react to trade changes ──────────────
   useEffect(() => {
     const unsub = useJournalStore.subscribe((state, prevState) => {
@@ -233,46 +239,44 @@ export default function App() {
 
   return (
     <ChunkErrorBoundary>
-      <PasswordGate>
-        <AgeVerificationGate>
-          <Suspense fallback={<LoadingScreen phase="loading" />}>
-            <div
-              key={theme}
-              className={isMobile ? styles.appRootMobile : styles.appRoot}
-            >
-              {/* Sprint 23: Skip-to-content for keyboard/screen-reader users */}
-              <a href="#tf-main-content" className={styles.skipLink}>Skip to content</a>
-              {!isMobile && <Sidebar />}
-              <ErrorBoundary resetKey={page}>
-                <div className={isMobile ? styles.mainAreaMobile : styles.mainArea}>
-                  <DailyGuardBanner />
-                  <div className={styles.mainContent} id="tf-main-content" role="main" aria-label="Page content">
-                    <PageRouter />
-                  </div>
+      <AuthGate>
+        <Suspense fallback={<LoadingScreen phase="loading" />}>
+          <div
+            key={theme}
+            className={isMobile ? styles.appRootMobile : styles.appRoot}
+          >
+            {/* Sprint 23: Skip-to-content for keyboard/screen-reader users */}
+            <a href="#tf-main-content" className={styles.skipLink}>Skip to content</a>
+            {!isMobile && <Sidebar />}
+            <ErrorBoundary resetKey={page}>
+              <div className={isMobile ? styles.mainAreaMobile : styles.mainArea}>
+                <DailyGuardBanner />
+                <div className={styles.mainContent} id="tf-main-content" role="main" aria-label="Page content">
+                  <PageRouter />
                 </div>
-              </ErrorBoundary>
-              {isMobile && <MobileNav />}
-              <ToastContainer />
-              <Suspense fallback={null}>{/* overlay modals — null fallback OK */}
-                <CommandPalette />
-                <GlobalQuickAddModal />
-                <NotificationPanel />
-                <OnboardingWizard />
-                <LevelUpModal />
-                <MilestoneModal />
-                <SettingsSlideOver />
-                <FocusOverlay />
-                <CookieConsent />
-                <FeedbackWidget />
-                {/* Consent-gated: only load analytics when user opted in */}
-                {analyticsConsent === true && <VercelAnalytics />}
-                {analyticsConsent === true && <VercelSpeedInsights />}
-              </Suspense>
-              <KeyboardShortcuts isOpen={shortcutsOpen} onClose={closeShortcuts} />
-            </div>
-          </Suspense>
-        </AgeVerificationGate>
-      </PasswordGate>
+              </div>
+            </ErrorBoundary>
+            {isMobile && <MobileNav />}
+            <ToastContainer />
+            <Suspense fallback={null}>{/* overlay modals — null fallback OK */}
+              <CommandPalette />
+              <GlobalQuickAddModal />
+              <NotificationPanel />
+              <OnboardingWizard />
+              <LevelUpModal />
+              <MilestoneModal />
+              <SettingsSlideOver />
+              <FocusOverlay />
+              <CookieConsent />
+              <FeedbackWidget />
+              {/* Consent-gated: only load analytics when user opted in */}
+              {analyticsConsent === true && <VercelAnalytics />}
+              {analyticsConsent === true && <VercelSpeedInsights />}
+            </Suspense>
+            <KeyboardShortcuts isOpen={shortcutsOpen} onClose={closeShortcuts} />
+          </div>
+        </Suspense>
+      </AuthGate>
     </ChunkErrorBoundary>
   );
 }
@@ -280,12 +284,14 @@ export default function App() {
 // ─── Loading Screen ─────────────────────────────────────────────
 
 function LoadingScreen({ phase = 'connecting' }) {
-  const phaseText = {
-    connecting: 'Connecting…',
-    loading: 'Loading market data…',
-    computing: 'Computing indicators…',
-    ready: 'Ready',
-  }[phase] || 'Loading…';
+  const PHASES = {
+    connecting: { text: 'Connecting to market…', step: 1 },
+    loading: { text: 'Loading price data…', step: 2 },
+    computing: { text: 'Computing indicators…', step: 3 },
+    ready: { text: 'Ready', step: 4 },
+  };
+  const current = PHASES[phase] || PHASES.connecting;
+
   return (
     <div className={styles.loadingRoot}>
       {/* Brand icon with glow */}
@@ -297,12 +303,13 @@ function LoadingScreen({ phase = 'connecting' }) {
         <div className={styles.loadingGlow} />
       </div>
       <div className={styles.loadingTitle}>charEdge</div>
-      <div className={styles.loadingTagline}>{phaseText}</div>
+      <div className={styles.loadingTagline}>{current.text}</div>
 
       {/* Progress bar instead of spinner */}
       <div className={styles.loadingBarTrack}>
-        <div className={styles.loadingBar} />
+        <div className={styles.loadingBar} style={{ width: `${current.step * 25}%` }} />
       </div>
     </div>
   );
 }
+

@@ -1,0 +1,102 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — Empty State Styles
+   Centered illustration with gentle float animation.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.emptyRoot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--sp-12, 48px) var(--sp-6, 24px);
+    min-height: 280px;
+    animation: emptyFadeIn var(--dur-enter, 250ms) var(--ease-out);
+}
+
+.iconWrap {
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--br-2xl, 24px);
+    background: var(--c-bg-tertiary);
+    margin-bottom: var(--sp-5, 20px);
+    animation: emptyFloat 3s ease-in-out infinite;
+}
+
+.icon {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.title {
+    font-size: var(--fs-lg, 1.125rem);
+    font-weight: var(--fw-semibold, 600);
+    color: var(--c-fg-primary);
+    margin: 0 0 var(--sp-2, 8px);
+}
+
+.description {
+    font-size: var(--fs-sm, 0.8125rem);
+    color: var(--c-fg-secondary);
+    margin: 0 0 var(--sp-6, 24px);
+    max-width: 320px;
+    line-height: var(--lh-relaxed, 1.625);
+}
+
+.cta {
+    padding: var(--sp-2, 8px) var(--sp-6, 24px);
+    border: none;
+    border-radius: var(--br-md, 8px);
+    background: linear-gradient(135deg, var(--brand-blue, hsl(217, 91%, 60%)), var(--brand-purple, hsl(271, 91%, 65%)));
+    color: white;
+    font-size: var(--fs-sm, 0.8125rem);
+    font-weight: var(--fw-semibold, 600);
+    cursor: pointer;
+    transition: opacity var(--dur-normal, 200ms) var(--ease-default),
+        transform var(--dur-fast, 100ms) var(--ease-default);
+}
+
+.cta:hover {
+    opacity: 0.9;
+}
+
+.cta:active {
+    transform: scale(0.98);
+}
+
+/* ─── Animations ────────────────────────────────────────────────── */
+
+@keyframes emptyFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes emptyFloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .emptyRoot,
+    .iconWrap {
+        animation: none;
+    }
+}

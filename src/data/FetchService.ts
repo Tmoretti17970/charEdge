@@ -9,7 +9,7 @@
 
 import { TFS, isCrypto, buildCacheKey } from '../constants.js';
 import { opfsBarStore } from './engine/infra/OPFSBarStore.js';
-import { withCircuitBreaker } from './engine/infra/AdapterCircuitBreaker.js';
+import { withCircuitBreaker } from './engine/infra/CircuitBreaker';
 import { validateCandleArray } from './engine/infra/DataValidator';
 import { volatilityTTL } from './engine/infra/VolatilityTTL.js';
 import { cacheManager } from './engine/infra/CacheManager.js';

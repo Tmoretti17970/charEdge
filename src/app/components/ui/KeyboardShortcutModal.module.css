@@ -1,0 +1,185 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — Keyboard Shortcut Modal Styles
+   Centered overlay with grouped shortcuts and polished kbd elements.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal, 400);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--c-bg-overlay, hsla(225, 13%, 5%, 0.85));
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: kbFadeIn var(--dur-enter, 250ms) var(--ease-out);
+}
+
+.modal {
+    width: 100%;
+    max-width: 520px;
+    max-height: 80vh;
+    margin: var(--sp-4, 16px);
+    border-radius: var(--br-xl, 16px);
+    background: var(--c-bg-secondary, hsl(225, 13%, 12%));
+    border: 1px solid var(--c-border, hsl(225, 13%, 18%));
+    box-shadow: var(--shadow-xl);
+    display: flex;
+    flex-direction: column;
+    animation: kbSlideUp var(--dur-enter, 250ms) var(--ease-spring);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--sp-5, 20px) var(--sp-6, 24px);
+    border-bottom: 1px solid var(--c-border);
+}
+
+.title {
+    font-size: var(--fs-lg, 1.125rem);
+    font-weight: var(--fw-semibold, 600);
+    color: var(--c-fg-primary);
+    margin: 0;
+}
+
+.closeBtn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: var(--br-sm, 4px);
+    background: transparent;
+    color: var(--c-fg-tertiary);
+    font-size: var(--fs-sm);
+    cursor: pointer;
+    transition: background var(--dur-normal) var(--ease-default),
+        color var(--dur-normal) var(--ease-default);
+}
+
+.closeBtn:hover {
+    background: var(--c-bg-tertiary);
+    color: var(--c-fg-primary);
+}
+
+.content {
+    overflow-y: auto;
+    padding: var(--sp-4, 16px) var(--sp-6, 24px);
+}
+
+.group {
+    margin-bottom: var(--sp-5, 20px);
+}
+
+.group:last-child {
+    margin-bottom: 0;
+}
+
+.groupTitle {
+    font-size: var(--fs-xs, 0.6875rem);
+    font-weight: var(--fw-medium, 500);
+    color: var(--c-fg-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 var(--sp-3, 12px);
+}
+
+.shortcuts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1_5, 6px);
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--sp-1_5, 6px) var(--sp-2, 8px);
+    border-radius: var(--br-sm, 4px);
+    transition: background var(--dur-fast) var(--ease-default);
+}
+
+.row:hover {
+    background: var(--c-hover, hsla(217, 91%, 60%, 0.06));
+}
+
+.description {
+    font-size: var(--fs-sm, 0.8125rem);
+    color: var(--c-fg-secondary);
+}
+
+.keys {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1, 4px);
+}
+
+.kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 var(--sp-1_5, 6px);
+    border-radius: var(--br-sm, 4px);
+    background: var(--c-bg-primary);
+    border: 1px solid var(--c-border);
+    color: var(--c-fg-primary);
+    font-size: var(--fs-2xs, 0.625rem);
+    font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+    font-weight: var(--fw-medium, 500);
+    box-shadow: 0 1px 2px hsla(0, 0%, 0%, 0.2);
+}
+
+.plus {
+    color: var(--c-fg-muted);
+    font-size: var(--fs-2xs);
+}
+
+.footer {
+    padding: var(--sp-3, 12px) var(--sp-6, 24px);
+    border-top: 1px solid var(--c-border);
+    text-align: center;
+    color: var(--c-fg-muted);
+    font-size: var(--fs-xs, 0.6875rem);
+}
+
+.footer .kbd {
+    margin: 0 var(--sp-1, 4px);
+}
+
+/* ─── Animations ────────────────────────────────────────────────── */
+
+@keyframes kbFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes kbSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .backdrop,
+    .modal {
+        animation: none;
+    }
+}

@@ -25,6 +25,7 @@ import { WebGPUCompute } from '../renderers/WebGPUCompute.js';
 import { checkDrawingAlerts } from '../tools/DrawingAlertEngine.js';
 import { validateBars, validateProps, validateIndicators } from './validateBars.js';
 import { logger } from '../../utils/logger.js';
+import { memoryBudget } from '../../data/engine/infra/MemoryBudget.js';
 import { renderTradeMarkers as renderTradeMarkersImpl } from '../renderers/TradeMarkerRenderer.js';
 
 import type { Bar } from '../../types/chart.js';
@@ -201,6 +202,10 @@ export class ChartEngine {
   _lastPriceTransform: unknown;
   _lastTimeTransform: unknown;
 
+  // Memory budget integration (P3-2)
+  _degradationLevel: number;
+  _memoryUnsubscribe: (() => void) | null;
+
   // Countdown
   _countdownTick: number;
   _countdownInterval: ReturnType<typeof setInterval>;
@@ -342,6 +347,18 @@ export class ChartEngine {
 
     this._scheduleDraw();
 
+    // ─── P3-2: Memory Budget → Render Throttle ──────────────────
+    this._degradationLevel = 0;
+    memoryBudget.register('chartEngine', () => {
+      // Estimate: bars × 7 floats × 8 bytes + indicator buffer overhead
+      return (this.bars.length * 7 * 8) +
+        (this.indicators.length * this.bars.length * 8) +
+        ((this.drawingEngine?.getDrawings?.()?.length || 0) * 200);
+    });
+    this._memoryUnsubscribe = memoryBudget.onPressure((status: any) => {
+      this._degradationLevel = status.level === 'critical' ? 2 : status.level === 'warning' ? 1 : 0;
+    });
+
     // Countdown timer: only repaint the lightweight UI layer every second.
     this._countdownTick = 0;
     this._countdownInterval = setInterval(() => {
@@ -377,6 +394,9 @@ export class ChartEngine {
     if (this._webglCanvas?.parentElement) this._webglCanvas.parentElement.removeChild(this._webglCanvas);
     if (this.raf) cancelAnimationFrame(this.raf);
     if (this._countdownInterval) clearInterval(this._countdownInterval);
+    // P3-2: Unregister memory estimator
+    memoryBudget.unregister('chartEngine');
+    if (this._memoryUnsubscribe) this._memoryUnsubscribe();
   }
 
   /**
@@ -702,6 +722,18 @@ export class ChartEngine {
     const bars = this.bars;
 
     if (!bars.length) { this.fb.endFrame(); return; }
+
+    // ─── P3-2: Memory Pressure Render Throttle ───────────────────
+    // Level 0 = normal, Level 1 = warning (cap bars), Level 2 = critical (30fps)
+    const degradation = this._degradationLevel;
+    if (degradation >= 2) {
+      // Critical: skip every other frame (effectively 30fps)
+      if ((this._countdownTick & 1) === 1) {
+        this.fb.endFrame();
+        this._scheduleDraw(); // Stay alive but throttled
+        return;
+      }
+    }
 
     // ─── Task 8.2.1: Forming candle interpolation ────────────────────
     if (!this._formingInterpolator.isDone && bars.length > 0) {

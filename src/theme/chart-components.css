@@ -1,0 +1,1393 @@
+/* ═══════════════════════════════════════════════════════════════
+ * Charts Tab — Apple × TradingView Polish
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Frosted Glass Toolbar ──────────────────────────────────── */
+
+.tf-chart-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  height: 44px;
+  background: var(--tf-glass-2);
+  backdrop-filter: var(--tf-blur-lg);
+  -webkit-backdrop-filter: var(--tf-blur-lg);
+  border-bottom: var(--tf-glass-border);
+  box-shadow: var(--tf-inner-glow);
+  flex-shrink: 0;
+  overflow: visible;
+  white-space: nowrap;
+  position: relative;
+  z-index: 10;
+}
+
+html.theme-light .tf-chart-toolbar {
+  background: var(--tf-glass-2);
+  border-bottom-color: rgba(212, 215, 224, 0.7);
+}
+
+/* ─── Toolbar Button (Pill-Style) ────────────────────────────── */
+
+.tf-chart-toolbar-btn {
+  position: relative;
+  padding: 4px 6px;
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  color: var(--tf-t2);
+  font-family: var(--tf-font);
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition:
+    background 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    color 0.15s ease,
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.2s ease;
+  user-select: none;
+}
+
+.tf-chart-toolbar-btn:hover {
+  background: rgba(236, 236, 239, 0.06);
+  color: var(--tf-t1);
+  transform: scale(1.04);
+}
+
+.tf-chart-toolbar-btn:active {
+  transform: scale(0.97);
+}
+
+.tf-chart-toolbar-btn[data-active='true'] {
+  background: rgba(232, 100, 44, 0.12);
+  color: var(--tf-accent);
+  font-weight: 600;
+  box-shadow: inset 0 0 12px rgba(232, 100, 44, 0.06);
+}
+
+html.theme-light .tf-chart-toolbar-btn:hover {
+  background: rgba(17, 19, 24, 0.05);
+}
+
+html.theme-light .tf-chart-toolbar-btn[data-active='true'] {
+  background: rgba(212, 85, 30, 0.1);
+}
+
+/* ─── Timeframe Segment Control ──────────────────────────────── */
+
+.tf-chart-tf-group {
+  display: flex;
+  gap: 1px;
+  padding: 2px;
+  background: rgba(21, 22, 25, 0.5);
+  border-radius: 9px;
+  border: 1px solid rgba(35, 38, 48, 0.4);
+  flex-shrink: 0;
+  align-items: center;
+}
+
+html.theme-light .tf-chart-tf-group {
+  background: rgba(238, 240, 244, 0.6);
+  border-color: rgba(212, 215, 224, 0.5);
+}
+
+.tf-chart-tf-pill {
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    color 0.18s ease,
+    box-shadow 0.2s ease;
+  line-height: 1.4;
+}
+
+.tf-chart-tf-pill:hover {
+  color: var(--tf-t1);
+  background: rgba(236, 236, 239, 0.06);
+}
+
+.tf-chart-tf-pill[data-active='true'] {
+  color: var(--tf-accent);
+  font-weight: 600;
+  /* Background now handled by capsule slider */
+  background: transparent;
+}
+
+html.theme-light .tf-chart-tf-pill[data-active='true'] {
+  background: transparent;
+}
+
+/* ─── Capsule Slider ─────────────────────────────────────────────── */
+
+html.theme-light .tf-capsule-slider {
+  background: rgba(212, 85, 30, 0.12) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ─── Apple-Style Dropdown ───────────────────────────────────── */
+
+.tf-chart-dropdown {
+  background: var(--tf-glass-3);
+  backdrop-filter: var(--tf-blur-lg);
+  -webkit-backdrop-filter: var(--tf-blur-lg);
+  border: var(--tf-glass-border);
+  border-radius: 14px;
+  padding: 6px;
+  min-width: 180px;
+  box-shadow: var(--tf-shadow-3), var(--tf-inner-glow-strong);
+  animation: tfChartDropdownIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: top center;
+  z-index: 1000;
+}
+
+html.theme-light .tf-chart-dropdown {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(190, 195, 208, 0.5);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.12),
+    0 0 0 0.5px rgba(0, 0, 0, 0.04) inset;
+}
+
+@keyframes tfChartDropdownIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(-6px);
+  }
+  60% {
+    transform: scale(1.01) translateY(1px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ─── Dropdown Item ──────────────────────────────────────────── */
+
+.tf-chart-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--tf-t1);
+  font-family: var(--tf-font);
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+
+.tf-chart-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tf-chart-dropdown-item[data-active='true'] {
+  background: rgba(232, 100, 44, 0.1);
+  color: var(--tf-accent);
+  font-weight: 600;
+}
+
+html.theme-light .tf-chart-dropdown-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+html.theme-light .tf-chart-dropdown-item[data-active='true'] {
+  background: rgba(212, 85, 30, 0.08);
+}
+
+/* ─── Dropdown Section Label ─────────────────────────────────── */
+
+.tf-chart-dropdown-label {
+  padding: 6px 12px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  font-family: var(--tf-font);
+}
+
+/* ─── Dropdown Separator ─────────────────────────────────────── */
+
+.tf-chart-dropdown-sep {
+  height: 1px;
+  margin: 4px 10px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--tf-bd) 30%,
+    var(--tf-bd) 70%,
+    transparent 100%
+  );
+}
+
+/* ─── Soft Divider ───────────────────────────────────────────── */
+
+.tf-chart-divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 3px;
+  flex-shrink: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    var(--tf-bd) 30%,
+    var(--tf-bd) 70%,
+    transparent 100%
+  );
+  opacity: 0.6;
+}
+
+/* ─── Chart Status Bar ───────────────────────────────────────── */
+
+.tf-chart-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 14px;
+  height: 32px;
+  background: var(--tf-glass-2);
+  backdrop-filter: var(--tf-blur-md);
+  -webkit-backdrop-filter: var(--tf-blur-md);
+  border-top: var(--tf-glass-border);
+  box-shadow: var(--tf-inner-glow);
+  font-family: var(--tf-mono);
+  font-size: 11px;
+  color: var(--tf-t2);
+  flex-shrink: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+html.theme-light .tf-chart-status-bar {
+  background: rgba(248, 248, 250, 0.85);
+  border-top-color: rgba(212, 215, 224, 0.6);
+}
+
+.tf-chart-status-bar .tf-status-group {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.tf-chart-status-bar .tf-status-close {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+html.theme-light .tf-chart-status-bar .tf-status-close {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.tf-chart-status-bar .tf-status-label {
+  color: var(--tf-t3);
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  font-weight: 500;
+}
+
+.tf-chart-status-bar .tf-status-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.15s ease;
+}
+
+.tf-chart-status-bar .tf-status-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--tf-bd2);
+  flex-shrink: 0;
+}
+
+/* ─── Status Bar Change ──────────────────────────────────────── */
+
+.tf-status-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 600;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.tf-status-change[data-direction='up'] {
+  color: var(--tf-bullish, #2dd4a0);
+  background: rgba(45, 212, 160, 0.08);
+}
+
+.tf-status-change[data-direction='down'] {
+  color: var(--tf-bearish, #f25c5c);
+  background: rgba(242, 92, 92, 0.08);
+}
+
+.tf-status-change-arrow {
+  font-size: 9px;
+}
+
+/* ─── Countdown Pulse ────────────────────────────────────────── */
+
+.tf-countdown-urgent {
+  animation: tfCountdownPulse 1s ease-in-out infinite;
+}
+
+@keyframes tfCountdownPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ─── Chart Minimap ──────────────────────────────────────────── */
+
+.tf-chart-minimap {
+  border-top: 1px solid rgba(35, 38, 48, 0.5);
+  background: rgba(9, 9, 11, 0.5);
+  position: relative;
+  flex-shrink: 0;
+  user-select: none;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+  border-radius: 0 0 6px 6px;
+  margin: 0 4px 2px;
+  animation: tfMinimapFadeIn 0.3s ease;
+}
+
+@keyframes tfMinimapFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+html.theme-light .tf-chart-minimap {
+  background: rgba(238, 240, 244, 0.4);
+  border-top-color: rgba(212, 215, 224, 0.5);
+}
+
+/* ─── Data Warning Bar ──────────────────────────────────────── */
+
+.tf-data-warning {
+  padding: 6px 14px;
+  background: rgba(240, 182, 78, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(240, 182, 78, 0.15);
+  color: var(--tf-y, #f0b64e);
+  font-size: 11px;
+  font-family: var(--tf-mono);
+  display: flex;
+  align-items: center;
+  gap: 8;
+  flex-shrink: 0;
+  animation: tfDataWarningIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tfDataWarningIn {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 40px;
+  }
+}
+
+/* ─── Chart Area Inner Shadow ────────────────────────────────── */
+
+.tf-chart-area {
+  position: relative;
+  /* GPU compositing: promote to own layer for 60fps scrolling */
+  will-change: transform;
+  contain: layout style paint;
+}
+
+/* Canvas containers: hardware-accelerated compositing */
+.tf-chart-area canvas {
+  will-change: transform;
+  image-rendering: -webkit-optimize-contrast; /* Crisp on WebKit/Blink */
+  image-rendering: crisp-edges;
+}
+
+.tf-chart-area::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.08) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+html.theme-light .tf-chart-area::before {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.03) 0%, transparent 100%);
+}
+
+/* ─── Trade Pill Buttons  (compact Long/Short) ───────────────── */
+
+.tf-trade-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  border: 1px solid var(--tf-bd);
+  background: transparent;
+  color: var(--tf-t2);
+  font-family: var(--tf-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.12s ease;
+  user-select: none;
+}
+
+.tf-trade-pill:hover {
+  background: rgba(236, 236, 239, 0.06);
+  color: var(--tf-t1);
+  transform: scale(1.05);
+}
+
+.tf-trade-pill:active {
+  transform: scale(0.96);
+}
+
+.tf-trade-pill[data-side='long'][data-active='true'] {
+  background: rgba(45, 212, 160, 0.12);
+  border-color: rgba(45, 212, 160, 0.35);
+  color: #2dd4a0;
+}
+
+.tf-trade-pill[data-side='short'][data-active='true'] {
+  background: rgba(242, 92, 92, 0.12);
+  border-color: rgba(242, 92, 92, 0.35);
+  color: #f25c5c;
+}
+
+.tf-trade-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+html.theme-light .tf-trade-pill:hover {
+  background: rgba(17, 19, 24, 0.04);
+}
+
+/* ─── Drawing Edit Popup ─────────────────────────────────────── */
+
+.tf-drawing-edit {
+  width: 280px;
+  background: rgba(18, 20, 28, 0.92);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  font-family: var(--tf-font);
+  animation: tfChartDropdownIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+html.theme-light .tf-drawing-edit {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(190, 195, 208, 0.5);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12);
+}
+
+.tf-drawing-edit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 6px;
+}
+
+.tf-drawing-edit-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tf-t1);
+  letter-spacing: 0.2px;
+}
+
+.tf-drawing-edit-close {
+  background: transparent;
+  border: none;
+  color: var(--tf-t3);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  transition: background 0.12s ease, color 0.12s ease;
+  line-height: 1;
+}
+
+.tf-drawing-edit-close:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--tf-t1);
+}
+
+.tf-drawing-edit-section {
+  padding: 4px 10px;
+}
+
+.tf-drawing-edit-section-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  letter-spacing: 0.8px;
+  margin-bottom: 4px;
+}
+
+.tf-drawing-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tf-drawing-edit-sep {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 0 3px;
+  flex-shrink: 0;
+}
+
+html.theme-light .tf-drawing-edit-sep {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.tf-drawing-edit-color-btn {
+  padding: 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.12s ease;
+}
+
+.tf-drawing-edit-color-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tf-drawing-edit-color-grid {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 6px;
+  background: rgba(18, 20, 28, 0.95);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 8px;
+  z-index: 950;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  animation: tfChartDropdownIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tf-drawing-edit-color-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.tf-drawing-edit-color-swatch:hover {
+  transform: scale(1.15);
+}
+
+.tf-drawing-edit-color-input {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 26px;
+  margin-top: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  cursor: pointer;
+  background: rgba(30, 34, 45, 0.8);
+}
+
+.tf-drawing-edit-width-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tf-drawing-edit-label {
+  font-size: 9px;
+  color: var(--tf-t3);
+  font-weight: 600;
+}
+
+.tf-drawing-edit-range {
+  width: 50px;
+  height: 3px;
+  accent-color: var(--tf-accent, #2962FF);
+  cursor: pointer;
+}
+
+.tf-drawing-edit-width-val {
+  font-size: 10px;
+  color: var(--tf-t2);
+  min-width: 12px;
+  text-align: right;
+}
+
+.tf-drawing-edit-dash-btn {
+  padding: 4px 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--tf-t2);
+  font-size: 9px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.tf-drawing-edit-dash-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tf-drawing-edit-dash-btn[data-active='true'] {
+  background: rgba(41, 98, 255, 0.15);
+  border-color: rgba(41, 98, 255, 0.3);
+  color: var(--tf-accent, #2962FF);
+}
+
+/* Coordinate inputs */
+.tf-drawing-edit-coord-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.tf-drawing-edit-coord-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  min-width: 20px;
+}
+
+.tf-drawing-edit-coord-field {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 3px 6px;
+  transition: border-color 0.15s ease;
+}
+
+html.theme-light .tf-drawing-edit-coord-field {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+.tf-drawing-edit-coord-field:focus-within {
+  border-color: var(--tf-accent);
+}
+
+.tf-drawing-edit-coord-icon {
+  font-size: 10px;
+  color: var(--tf-t3);
+  flex-shrink: 0;
+}
+
+.tf-drawing-edit-coord-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--tf-font);
+  font-size: 11px;
+  color: var(--tf-t1);
+  width: 100%;
+  min-width: 0;
+}
+
+.tf-drawing-edit-coord-input::-webkit-inner-spin-button,
+.tf-drawing-edit-coord-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.tf-drawing-edit-coord-time {
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Actions */
+.tf-drawing-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  margin-top: 2px;
+}
+
+html.theme-light .tf-drawing-edit-actions {
+  border-top-color: rgba(0, 0, 0, 0.04);
+}
+
+.tf-drawing-edit-action-btn {
+  padding: 5px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.12s ease;
+  display: flex;
+  align-items: center;
+}
+
+.tf-drawing-edit-action-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tf-drawing-edit-delete {
+  color: #EF5350;
+}
+
+.tf-drawing-edit-delete:hover {
+  background: rgba(239, 83, 80, 0.12);
+}
+
+/* ─── Reduced Motion Override ────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .tf-chart-dropdown,
+  .tf-countdown-urgent,
+  .tf-data-warning,
+  .tf-drawing-edit {
+    animation: none !important;
+  }
+  .tf-chart-toolbar-btn,
+  .tf-chart-tf-pill,
+  .tf-trade-pill {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── Chart Skeleton Loading Shimmer ────────────────────────── */
+
+.tf-chart-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--tf-sf);
+  border-radius: var(--tf-radius-lg);
+}
+
+.tf-chart-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.03) 20%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.03) 80%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+html.theme-light .tf-chart-skeleton::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.02) 20%,
+    rgba(0, 0, 0, 0.04) 50%,
+    rgba(0, 0, 0, 0.02) 80%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* ─── SlidePanel Content Fade-in ─────────────────────────────── */
+
+.tf-slide-panel-content {
+  animation: fadeInUp 0.2s ease 0.1s backwards;
+}
+
+/* ─── Slide Panel Close Button Polish ────────────────────────── */
+
+.tf-slide-close:hover {
+  background: var(--tf-bd) !important;
+  color: var(--tf-t1) !important;
+  transform: scale(1.1);
+}
+
+.tf-slide-close:active {
+  transform: scale(0.9);
+}
+
+.tf-slide-close {
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.12s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+ * WALK-FORWARD & MONTE CARLO PANEL
+ * ═══════════════════════════════════════════════════════════════════ */
+
+.tf-wf-panel {
+  position: absolute; right: 0; top: 40px; bottom: 0;
+  width: 340px; max-width: 40vw;
+  background: var(--tf-bg-elevated, #1E222D);
+  border-left: 1px solid var(--tf-border, #363A45);
+  display: flex; flex-direction: column;
+  z-index: 50; overflow-y: auto;
+  font-family: var(--tf-font, system-ui);
+}
+.tf-wf-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border-bottom: 1px solid var(--tf-border);
+}
+.tf-wf-header__title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 700; color: var(--tf-t1);
+}
+.tf-wf-header__close {
+  background: none; border: none; color: var(--tf-t3); cursor: pointer;
+  font-size: 14px; padding: 4px; border-radius: 4px;
+}
+
+.tf-wf-tabs { display: flex; gap: 4px; padding: 6px 14px; }
+.tf-wf-tab {
+  flex: 1; padding: 6px 10px; border: none; border-radius: 8px;
+  font-size: 11px; font-weight: 600; background: rgba(255,255,255,0.04);
+  color: var(--tf-t3); cursor: pointer;
+}
+.tf-wf-tab--active { background: rgba(232,100,44,0.12); color: var(--tf-accent); }
+
+.tf-wf-empty { padding: 30px 14px; text-align: center; color: var(--tf-t3); font-size: 12px; }
+.tf-wf-content { padding: 8px 14px; }
+
+.tf-wf-config {
+  display: flex; align-items: flex-end; gap: 8px; margin-bottom: 12px;
+}
+.tf-wf-config-field { display: flex; flex-direction: column; gap: 2px; }
+.tf-wf-config-field label { font-size: 9px; color: var(--tf-t3); font-weight: 600; }
+.tf-wf-config-field input {
+  width: 70px; background: rgba(255,255,255,0.04); border: 1px solid var(--tf-border);
+  border-radius: 6px; padding: 5px 8px; color: var(--tf-t1); font-size: 12px;
+}
+.tf-wf-run-btn {
+  flex: 1; padding: 8px 12px; border: none; border-radius: 8px;
+  background: linear-gradient(135deg, #E8642C, #D4561E);
+  color: #fff; font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.tf-wf-run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.tf-wf-results { margin-top: 6px; }
+
+.tf-wf-score-row { display: flex; gap: 6px; margin-bottom: 10px; }
+.tf-wf-score {
+  flex: 1; padding: 10px; background: rgba(255,255,255,0.03);
+  border-radius: 10px; text-align: center;
+}
+.tf-wf-score--good { border: 1px solid rgba(38,166,154,0.2); }
+.tf-wf-score--bad { border: 1px solid rgba(239,83,80,0.2); }
+.tf-wf-score__value { font-size: 18px; font-weight: 800; color: var(--tf-t1); }
+.tf-wf-score__label { font-size: 9px; color: var(--tf-t3); font-weight: 600; margin-top: 2px; }
+
+.tf-wf-warning {
+  padding: 8px 10px; background: rgba(239,83,80,0.08);
+  border-radius: 6px; font-size: 11px; color: #EF5350; margin-bottom: 8px;
+}
+
+.tf-wf-fold-table { border: 1px solid var(--tf-border); border-radius: 8px; overflow: hidden; }
+.tf-wf-fold-header, .tf-wf-fold-row {
+  display: grid; grid-template-columns: 40px 1fr 1fr 60px;
+  font-size: 10px; padding: 4px 8px;
+}
+.tf-wf-fold-header {
+  background: rgba(255,255,255,0.04); color: var(--tf-t3);
+  font-weight: 700; padding: 6px 8px;
+}
+.tf-wf-fold-row { color: var(--tf-t2); border-top: 1px solid rgba(255,255,255,0.03); }
+
+.tf-wf-mc-section { margin-bottom: 12px; }
+.tf-wf-mc-title { font-size: 11px; font-weight: 700; color: var(--tf-t1); margin-bottom: 6px; }
+.tf-wf-mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.tf-wf-mc-stat {
+  display: flex; justify-content: space-between; padding: 4px 8px;
+  background: rgba(255,255,255,0.03); border-radius: 4px;
+}
+.tf-wf-mc-stat__label { font-size: 10px; color: var(--tf-t3); }
+.tf-wf-mc-stat__value { font-size: 10px; font-weight: 700; color: var(--tf-t1); font-family: 'SF Mono', monospace; }
+.tf-wf-mc-prob { font-size: 11px; color: var(--tf-t2); margin-top: 6px; text-align: center; }
+
+.tf-wf-mc-histogram {
+  display: flex; gap: 1px; height: 50px; align-items: flex-end;
+}
+.tf-wf-mc-bar-container {
+  flex: 1; display: flex; align-items: flex-end; height: 100%;
+}
+.tf-wf-mc-bar {
+  width: 100%; border-radius: 1px 1px 0 0;
+  min-height: 1px; opacity: 0.6;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Sprint 12: Drawing Tools Sidebar (Figma-style)
+ * ═══════════════════════════════════════════════════════════════ */
+
+.tf-drawing-sidebar {
+  position: absolute;
+  top: 44px; /* below toolbar */
+  left: 0;
+  bottom: 0;
+  width: 44px;
+  background: var(--tf-glass-2);
+  backdrop-filter: var(--tf-blur-lg);
+  -webkit-backdrop-filter: var(--tf-blur-lg);
+  border-right: var(--tf-glass-border);
+  box-shadow: var(--tf-shadow-1), var(--tf-inner-glow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  z-index: 8;
+  transform: translateX(-100%);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.2s ease;
+}
+
+.tf-drawing-sidebar[data-open] {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+html.theme-light .tf-drawing-sidebar {
+  background: rgba(255, 255, 255, 0.88);
+  border-right-color: rgba(212, 215, 224, 0.7);
+}
+
+/* Groups container */
+.tf-drawing-sidebar-groups {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  padding: 0 4px;
+  scrollbar-width: none;
+}
+
+.tf-drawing-sidebar-groups::-webkit-scrollbar {
+  display: none;
+}
+
+/* Individual group wrapper */
+.tf-drawing-sidebar-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  width: 100%;
+}
+
+/* Tool button (shared between group headers and tools) */
+.tf-drawing-sidebar-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--tf-t2);
+  cursor: pointer;
+  transition:
+    background 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+    color 0.15s ease,
+    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.15s ease;
+  flex-shrink: 0;
+}
+
+.tf-drawing-sidebar-btn:hover {
+  background: rgba(236, 236, 239, 0.08);
+  color: var(--tf-t1);
+  transform: scale(1.08);
+}
+
+.tf-drawing-sidebar-btn:active {
+  transform: scale(0.94);
+}
+
+.tf-drawing-sidebar-btn[data-active] {
+  background: rgba(232, 100, 44, 0.15);
+  color: var(--tf-accent);
+  box-shadow: inset 0 0 12px rgba(232, 100, 44, 0.08);
+}
+
+.tf-drawing-sidebar-btn[data-expanded] {
+  background: rgba(236, 236, 239, 0.06);
+  color: var(--tf-t1);
+}
+
+.tf-drawing-sidebar-btn:disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+html.theme-light .tf-drawing-sidebar-btn:hover {
+  background: rgba(17, 19, 24, 0.06);
+}
+
+html.theme-light .tf-drawing-sidebar-btn[data-active] {
+  background: rgba(212, 85, 30, 0.12);
+}
+
+/* Sub-tool list (expanded group) */
+.tf-drawing-sidebar-tools {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 2px 0;
+  animation: tfDrawToolsIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tf-drawing-sidebar-tool {
+  width: 30px;
+  height: 30px;
+}
+
+@keyframes tfDrawToolsIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Bottom actions area */
+.tf-drawing-sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
+/* Separator line */
+.tf-drawing-sidebar-sep {
+  width: 24px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 6px 0;
+  flex-shrink: 0;
+}
+
+html.theme-light .tf-drawing-sidebar-sep {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* Tooltip */
+.tf-draw-sidebar-tooltip {
+  position: fixed;
+  z-index: 10000;
+  background: var(--tf-glass-3);
+  backdrop-filter: var(--tf-blur-md);
+  -webkit-backdrop-filter: var(--tf-blur-md);
+  border: var(--tf-glass-border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--tf-t1);
+  white-space: nowrap;
+  box-shadow: var(--tf-shadow-2);
+  pointer-events: none;
+  animation: tfTooltipIn 0.12s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tf-draw-sidebar-tooltip-key {
+  font-size: 10px;
+  color: var(--tf-t3);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: var(--tf-mono);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+html.theme-light .tf-draw-sidebar-tooltip-key {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Sprint 14: Chart HUD System
+ * ═══════════════════════════════════════════════════════════════ */
+
+.tf-chart-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 5;
+  transition: opacity 0.4s ease;
+}
+
+.tf-chart-hud[data-hidden] {
+  opacity: 0;
+}
+
+.tf-chart-hud > * {
+  pointer-events: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Sprint 15: Focus Mode
+ * ═══════════════════════════════════════════════════════════════ */
+
+.tf-focus-overlay {
+  position: fixed;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 16px;
+  background: var(--tf-glass-2);
+  backdrop-filter: var(--tf-blur-lg);
+  -webkit-backdrop-filter: var(--tf-blur-lg);
+  border: var(--tf-glass-border);
+  border-radius: 12px;
+  box-shadow: var(--tf-shadow-2);
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.tf-focus-overlay[data-visible] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tf-focus-overlay-sym {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--tf-t1);
+  letter-spacing: 0.5px;
+}
+
+.tf-focus-overlay-tf {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--tf-accent);
+}
+
+.tf-focus-overlay-price {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tf-t1);
+  font-family: var(--tf-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.tf-focus-overlay-exit {
+  font-size: 10px;
+  color: var(--tf-t3);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Toolbar Slide Panel (Non-Modal)
+ * ═══════════════════════════════════════════════════════════════ */
+
+.tf-toolbar-slide {
+  will-change: transform;
+}
+
+.tf-toolbar-slide::-webkit-scrollbar {
+  width: 4px;
+}
+.tf-toolbar-slide::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Chart Skeleton Phase Transitions
+ * ═══════════════════════════════════════════════════════════════ */
+
+.tf-skeleton-phase-1 .tf-skel-toolbar {
+  animation: tfSkelPulse 1.2s ease-in-out infinite;
+}
+
+.tf-skeleton-phase-2 .tf-skel-candles {
+  animation: tfSkelFadeIn 0.3s ease forwards;
+}
+
+.tf-skeleton-phase-3 .tf-skel-indicators {
+  animation: tfSkelFadeIn 0.4s ease 0.1s forwards;
+  opacity: 0;
+}
+
+@keyframes tfSkelPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes tfSkelFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Light Theme — Core Component Overrides
+ * Phase 4 P1: Ensure visual parity between dark and light modes
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* Card hover — softer shadow for light backgrounds */
+@media (pointer: fine) {
+  html.theme-light .tf-card-hover:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+    border-color: var(--tf-bd2);
+  }
+}
+
+/* Data row hover — lighter tint */
+html.theme-light .tf-data-row:hover {
+  background: rgba(17, 19, 24, 0.03);
+}
+
+/* Icon button hover — visible on light surfaces */
+html.theme-light .tf-icon-btn:hover {
+  background: rgba(17, 19, 24, 0.06);
+}
+
+/* Nav active page — light-mode accent tint */
+html.theme-light .tf-nav-btn[aria-current='page'] {
+  background: rgba(212, 85, 30, 0.08);
+}
+
+/* Toolbar active — light-mode accent */
+html.theme-light .tf-toolbar-btn[data-active='true'] {
+  background: rgba(212, 85, 30, 0.1);
+  color: var(--tf-accent);
+}
+
+/* Skeleton shimmer — lighter gradient for light mode */
+html.theme-light .tf-skeleton::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.03) 40%,
+    rgba(0, 0, 0, 0.06) 50%,
+    rgba(0, 0, 0, 0.03) 60%,
+    transparent 100%
+  );
+}
+
+/* Input focus — softer glow on light backgrounds */
+html.theme-light .tf-input:focus {
+  box-shadow: 0 0 0 3px rgba(212, 85, 30, 0.08);
+}
+
+/* Button hover — no brightness filter on light mode */
+html.theme-light .tf-btn:hover {
+  filter: brightness(0.95);
+}
+
+/* Glass button — adapted for light surfaces */
+html.theme-light .tf-glass-btn {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+html.theme-light .tf-glass-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.14);
+}
+
+html.theme-light .tf-glass-btn:active {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/* Row hover — adapted for light */
+html.theme-light .tf-row-hover:hover {
+  background: rgba(17, 19, 24, 0.03);
+}
+
+/* Frosted toolbar — light mode */
+html.theme-light .tf-frosted-bar {
+  background: rgba(255, 255, 255, 0.65);
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+/* P&L glow — softer on light backgrounds */
+html.theme-light .tf-glow-positive {
+  text-shadow: 0 0 16px rgba(5, 150, 105, 0.12);
+}
+
+html.theme-light .tf-glow-negative {
+  text-shadow: 0 0 16px rgba(225, 29, 72, 0.12);
+}

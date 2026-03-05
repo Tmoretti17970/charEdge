@@ -1,0 +1,306 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — Auth Gate Styles
+   Glassmorphism login/signup modal matching the brand system.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.authOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal, 400);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--c-bg-overlay, hsla(225, 13%, 5%, 0.92));
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    animation: authFadeIn var(--dur-enter, 250ms) var(--ease-out);
+}
+
+.authCard {
+    width: 100%;
+    max-width: 420px;
+    margin: var(--sp-4, 16px);
+    padding: var(--sp-8, 32px);
+    border-radius: var(--br-xl, 16px);
+    background: var(--c-bg-secondary, hsl(225, 13%, 12%));
+    border: 1px solid var(--c-border, hsl(225, 13%, 18%));
+    box-shadow: var(--shadow-xl), 0 0 80px hsla(217, 91%, 60%, 0.06);
+    animation: authSlideUp var(--dur-enter, 250ms) var(--ease-spring);
+}
+
+.logoSection {
+    text-align: center;
+    margin-bottom: var(--sp-8, 32px);
+}
+
+.logoMark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: var(--br-lg, 12px);
+    background: linear-gradient(135deg, var(--brand-blue, hsl(217, 91%, 60%)), var(--brand-purple, hsl(271, 91%, 65%)));
+    margin-bottom: var(--sp-4, 16px);
+    box-shadow: 0 4px 20px hsla(217, 91%, 60%, 0.3);
+}
+
+.logoMark svg {
+    width: 28px;
+    height: 28px;
+    color: white;
+}
+
+.logoTitle {
+    font-size: var(--fs-2xl, 1.5rem);
+    font-weight: var(--fw-bold, 700);
+    color: var(--c-fg-primary);
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.logoSubtitle {
+    font-size: var(--fs-sm, 0.8125rem);
+    color: var(--c-fg-secondary);
+    margin: var(--sp-1, 4px) 0 0;
+}
+
+/* ─── Tab Switcher ──────────────────────────────────────────────── */
+.tabSwitcher {
+    display: flex;
+    gap: var(--sp-1, 4px);
+    padding: var(--sp-1, 4px);
+    border-radius: var(--br-md, 8px);
+    background: var(--c-bg-primary);
+    margin-bottom: var(--sp-6, 24px);
+}
+
+.tab {
+    flex: 1;
+    padding: var(--sp-2, 8px) var(--sp-4, 16px);
+    border: none;
+    border-radius: var(--br-sm, 4px);
+    background: transparent;
+    color: var(--c-fg-secondary);
+    font-size: var(--fs-sm, 0.8125rem);
+    font-weight: var(--fw-medium, 500);
+    cursor: pointer;
+    transition: all var(--dur-normal, 200ms) var(--ease-default);
+}
+
+.tab:hover {
+    color: var(--c-fg-primary);
+}
+
+.tabActive {
+    background: var(--c-bg-tertiary);
+    color: var(--c-fg-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+/* ─── Form ──────────────────────────────────────────────────────── */
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4, 16px);
+}
+
+.fieldGroup {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1_5, 6px);
+}
+
+.label {
+    font-size: var(--fs-xs, 0.6875rem);
+    font-weight: var(--fw-medium, 500);
+    color: var(--c-fg-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.input {
+    width: 100%;
+    padding: var(--sp-3, 12px) var(--sp-4, 16px);
+    border: 1px solid var(--c-border);
+    border-radius: var(--br-md, 8px);
+    background: var(--c-bg-primary);
+    color: var(--c-fg-primary);
+    font-size: var(--fs-base, 0.9375rem);
+    transition: border-color var(--dur-normal) var(--ease-default),
+        box-shadow var(--dur-normal) var(--ease-default);
+    outline: none;
+    box-sizing: border-box;
+}
+
+.input::placeholder {
+    color: var(--c-fg-muted);
+}
+
+.input:focus {
+    border-color: var(--c-border-focus);
+    box-shadow: 0 0 0 3px var(--c-focus-ring);
+}
+
+.submitBtn {
+    width: 100%;
+    padding: var(--sp-3, 12px);
+    border: none;
+    border-radius: var(--br-md, 8px);
+    background: linear-gradient(135deg, var(--brand-blue, hsl(217, 91%, 60%)), var(--brand-purple, hsl(271, 91%, 65%)));
+    color: white;
+    font-size: var(--fs-base, 0.9375rem);
+    font-weight: var(--fw-semibold, 600);
+    cursor: pointer;
+    transition: opacity var(--dur-normal) var(--ease-default),
+        transform var(--dur-fast) var(--ease-default);
+    margin-top: var(--sp-2, 8px);
+}
+
+.submitBtn:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.submitBtn:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.submitBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ─── Divider ───────────────────────────────────────────────────── */
+.divider {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-4, 16px);
+    margin: var(--sp-4, 16px) 0;
+    color: var(--c-fg-muted);
+    font-size: var(--fs-xs, 0.6875rem);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--c-border);
+}
+
+/* ─── OAuth Buttons ─────────────────────────────────────────────── */
+.oauthGroup {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3, 12px);
+}
+
+.oauthBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-3, 12px);
+    width: 100%;
+    padding: var(--sp-3, 12px);
+    border: 1px solid var(--c-border);
+    border-radius: var(--br-md, 8px);
+    background: var(--c-bg-primary);
+    color: var(--c-fg-primary);
+    font-size: var(--fs-sm, 0.8125rem);
+    font-weight: var(--fw-medium, 500);
+    cursor: pointer;
+    transition: background var(--dur-normal) var(--ease-default),
+        border-color var(--dur-normal) var(--ease-default);
+}
+
+.oauthBtn:hover {
+    background: var(--c-bg-tertiary);
+    border-color: var(--c-border-hover);
+}
+
+.oauthBtn svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+/* ─── Error ─────────────────────────────────────────────────────── */
+.errorMsg {
+    padding: var(--sp-3, 12px);
+    border-radius: var(--br-md, 8px);
+    background: hsla(356, 75%, 53%, 0.1);
+    border: 1px solid hsla(356, 75%, 53%, 0.25);
+    color: var(--c-accent-red);
+    font-size: var(--fs-sm, 0.8125rem);
+    text-align: center;
+}
+
+/* ─── Success ───────────────────────────────────────────────────── */
+.successMsg {
+    padding: var(--sp-3, 12px);
+    border-radius: var(--br-md, 8px);
+    background: hsla(152, 69%, 48%, 0.1);
+    border: 1px solid hsla(152, 69%, 48%, 0.25);
+    color: var(--c-accent-green);
+    font-size: var(--fs-sm, 0.8125rem);
+    text-align: center;
+}
+
+/* ─── Skip / Demo link ──────────────────────────────────────────── */
+.skipLink {
+    display: block;
+    text-align: center;
+    margin-top: var(--sp-4, 16px);
+    color: var(--c-fg-muted);
+    font-size: var(--fs-xs, 0.6875rem);
+    cursor: pointer;
+    background: none;
+    border: none;
+    transition: color var(--dur-normal) var(--ease-default);
+}
+
+.skipLink:hover {
+    color: var(--c-fg-secondary);
+}
+
+/* ─── Animations ────────────────────────────────────────────────── */
+@keyframes authFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes authSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ─── Responsive ────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+    .authCard {
+        margin: var(--sp-3, 12px);
+        padding: var(--sp-6, 24px);
+        border-radius: var(--br-lg, 12px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .authOverlay,
+    .authCard {
+        animation: none;
+    }
+}

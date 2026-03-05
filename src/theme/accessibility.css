@@ -1,0 +1,105 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * charEdge — Accessibility Styles
+ * Focus-visible, touch targets, screen reader, and reduced motion.
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Focus Visible (Keyboard Navigation) ──────────────────── */
+
+.tf-btn:focus-visible,
+.tf-toolbar-btn:focus-visible,
+.tf-nav-btn:focus-visible,
+.tf-icon-btn:focus-visible,
+.tf-link:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+}
+
+.tf-input:focus-visible {
+    outline: none;
+    /* Uses box-shadow focus from .tf-input:focus */
+}
+
+/* Remove outline on mouse click */
+.tf-btn:focus:not(:focus-visible),
+.tf-toolbar-btn:focus:not(:focus-visible),
+.tf-nav-btn:focus:not(:focus-visible),
+.tf-icon-btn:focus:not(:focus-visible),
+.tf-link:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* ─── Mobile Touch Target Enforcement (WCAG AA ≥44×44px) ───── */
+
+@media (pointer: coarse) {
+
+    .tf-btn,
+    .tf-toolbar-btn,
+    .tf-nav-btn,
+    .tf-icon-btn,
+    .tf-chart-toolbar-btn,
+    .tf-link,
+    a[href] {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .tf-data-row {
+        min-height: 44px;
+    }
+}
+
+/* ─── Screen Reader Only ────────────────────────────────────── */
+
+.tf-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ─── Reduced Motion ────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .tf-page-enter,
+    .tf-modal-content,
+    .tf-slide-right,
+    .tf-slide-up,
+    .tf-toast-enter,
+    .tf-toast-exit,
+    .tf-dropdown-enter,
+    .tf-tooltip,
+    .tf-fade-scale,
+    .tf-stat-flash,
+    .tf-skeleton::after,
+    .tf-widget-reorder,
+    .tf-feature-reveal,
+    .tf-fade-through,
+    .tf-content-reveal,
+    .tf-section-enter,
+    .tf-narrative-divider,
+    .tf-metric-tooltip,
+    .tf-hero-trend,
+    .tf-fade-in {
+        animation: none !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .tf-card-hover:hover {
+        transform: none !important;
+    }
+
+    .tf-btn:active {
+        transform: none !important;
+    }
+
+    /* Gamification animations */
+    * {
+        --tf-gamification-reduced: 1;
+    }
+}

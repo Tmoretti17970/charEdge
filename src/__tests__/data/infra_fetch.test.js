@@ -2,7 +2,7 @@
 // charEdge — Consolidated Fetch & Adapter Infrastructure Tests
 //
 // Covers: FetchService, SymbolRegistry, isCrypto, WebSocketService,
-//         BaseAdapter, AdapterCircuitBreaker, DataExporter, DataProvider,
+//         BaseAdapter, CircuitBreaker (unified), DataExporter, DataProvider,
 //         Constants TFS
 // Replaces: dataInfraFixes.test.js (Bug#1,#4), dataInfraRound2.test.js,
 //           dataInfraRound3.test.js (#15,#27), dataInfraRound4.test.js,
@@ -307,7 +307,7 @@ describe('isCrypto — expanded CRYPTO_IDS + USDT suffix handling', () => {
 
 describe('WebSocketService — multiplexed combined streams', () => {
   it('subscribe returns a numeric subscription ID', async () => {
-    vi.stubGlobal('WebSocket', class { constructor() { this.readyState = 0; } close() {} });
+    vi.stubGlobal('WebSocket', class { constructor() { this.readyState = 0; } close() { } });
     const { WebSocketService } = await import('../../data/WebSocketService.ts');
     const ws = new WebSocketService();
     const subId = ws.subscribe('BTC', '1h', {});
@@ -324,7 +324,7 @@ describe('WebSocketService — multiplexed combined streams', () => {
   });
 
   it('supports multiple concurrent subscriptions', async () => {
-    vi.stubGlobal('WebSocket', class { constructor() { this.readyState = 0; } close() {} });
+    vi.stubGlobal('WebSocket', class { constructor() { this.readyState = 0; } close() { } });
     const { WebSocketService } = await import('../../data/WebSocketService.ts');
     const ws = new WebSocketService();
     const sub1 = ws.subscribe('BTC', '1h', {});
@@ -340,7 +340,7 @@ describe('WebSocketService — multiplexed combined streams', () => {
   });
 
   it('deduplicates same symbol+tf into single stream', async () => {
-    vi.stubGlobal('WebSocket', class { constructor() { this.readyState = 0; } close() {} });
+    vi.stubGlobal('WebSocket', class { constructor() { this.readyState = 0; } close() { } });
     const { WebSocketService } = await import('../../data/WebSocketService.ts');
     const ws = new WebSocketService();
     ws.subscribe('BTC', '1h', {});
@@ -402,7 +402,7 @@ describe('WebSocketService — exponential backoff reconnection', () => {
         wsInstances.push(this);
       }
       close() { this.readyState = 3; }
-      send() {}
+      send() { }
     });
   });
 
@@ -473,7 +473,7 @@ describe('WebSocketService — exponential backoff reconnection', () => {
   it('subscribe + unsubscribe specific ID manages subs correctly', async () => {
     const { WebSocketService } = await import('../../data/WebSocketService.ts');
     const ws = new WebSocketService();
-    ws._scheduleStreamUpdate = () => {};
+    ws._scheduleStreamUpdate = () => { };
     const id1 = ws.subscribe('BTC', '1h', {});
     const id2 = ws.subscribe('ETH', '1h', {});
     expect(ws.subscriptionCount).toBe(2);
@@ -484,7 +484,7 @@ describe('WebSocketService — exponential backoff reconnection', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════
-// BaseAdapter + AdapterCircuitBreaker
+// BaseAdapter + CircuitBreaker (unified)
 // ═══════════════════════════════════════════════════════════════════
 
 describe('BaseAdapter — capabilities() runtime introspection', () => {
@@ -512,7 +512,7 @@ describe('BaseAdapter — capabilities() runtime introspection', () => {
     class FullAdapter extends BaseAdapter {
       async fetchOHLCV() { return []; }
       async fetchQuote() { return {}; }
-      subscribe() { return () => {}; }
+      subscribe() { return () => { }; }
       async searchSymbols() { return []; }
     }
     const adapter = new FullAdapter('full');
@@ -524,14 +524,14 @@ describe('BaseAdapter — capabilities() runtime introspection', () => {
   });
 });
 
-describe('AdapterCircuitBreaker — granular error recovery', () => {
+describe('CircuitBreaker (unified) — granular error recovery', () => {
   beforeEach(async () => {
-    const { resetAllCircuits } = await import('../../data/engine/infra/AdapterCircuitBreaker.js');
+    const { resetAllCircuits } = await import('../../data/engine/infra/CircuitBreaker.ts');
     resetAllCircuits();
   });
 
   it('does not trip circuit on 429 rate limit errors', async () => {
-    const { withCircuitBreaker, getCircuitState } = await import('../../data/engine/infra/AdapterCircuitBreaker.js');
+    const { withCircuitBreaker, getCircuitState } = await import('../../data/engine/infra/CircuitBreaker.ts');
     const rateLimitErr = new Error('Rate limited');
     rateLimitErr.status = 429;
     rateLimitErr.retryAfterMs = 5000;
@@ -542,7 +542,7 @@ describe('AdapterCircuitBreaker — granular error recovery', () => {
   });
 
   it('skips adapter during rate limit cooldown window', async () => {
-    const { withCircuitBreaker } = await import('../../data/engine/infra/AdapterCircuitBreaker.js');
+    const { withCircuitBreaker } = await import('../../data/engine/infra/CircuitBreaker.ts');
     const rateLimitErr = new Error('Rate limited');
     rateLimitErr.status = 429;
     rateLimitErr.retryAfterMs = 60_000;
@@ -554,7 +554,7 @@ describe('AdapterCircuitBreaker — granular error recovery', () => {
   });
 
   it('trips circuit normally on non-429 errors', async () => {
-    const { withCircuitBreaker, getCircuitState } = await import('../../data/engine/infra/AdapterCircuitBreaker.js');
+    const { withCircuitBreaker, getCircuitState } = await import('../../data/engine/infra/CircuitBreaker.ts');
     for (let i = 0; i < 5; i++) {
       await withCircuitBreaker('test-500-adapter', async () => { throw new Error('Server error'); });
     }

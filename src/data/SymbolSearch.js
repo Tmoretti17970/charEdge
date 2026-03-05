@@ -10,6 +10,64 @@ import { logger } from '../utils/logger';
 // Extracted from FetchService.js for separation of concerns.
 // ═══════════════════════════════════════════════════════════════════
 
+// ─── P4-9: Fuzzy Scoring ─────────────────────────────────────────
+
+/**
+ * Generate trigrams (3-char substrings) from a string.
+ * @param {string} str
+ * @returns {Set<string>}
+ */
+function trigrams(str) {
+  const t = new Set();
+  const s = str.toUpperCase();
+  for (let i = 0; i <= s.length - 3; i++) t.add(s.slice(i, i + 3));
+  return t;
+}
+
+/**
+ * Score a candidate against a query using fuzzy matching.
+ * Returns 0..1 where 1 = perfect match.
+ *
+ * Scoring weights:
+ *   - Exact match: 1.0
+ *   - Prefix match: 0.8
+ *   - Substring: 0.5
+ *   - Trigram overlap: 0..0.4 (Jaccard coefficient)
+ *
+ * @param {string} query - User's search input (already uppercased)
+ * @param {string} candidate - Symbol name to score against
+ * @returns {number} 0..1 score
+ */
+function fuzzyScore(query, candidate) {
+  const q = query.toUpperCase();
+  const c = candidate.toUpperCase();
+
+  if (q === c) return 1.0;
+  if (c.startsWith(q)) return 0.8;
+  if (c.includes(q)) return 0.5;
+
+  // Trigram overlap (Jaccard coefficient) — handles typos
+  if (q.length >= 3 && c.length >= 3) {
+    const qTri = trigrams(q);
+    const cTri = trigrams(c);
+    let intersection = 0;
+    for (const t of qTri) { if (cTri.has(t)) intersection++; }
+    const union = qTri.size + cTri.size - intersection;
+    if (union === 0) return 0;
+    const jaccard = intersection / union;
+    return jaccard * 0.4;
+  }
+
+  // Short queries: character overlap
+  if (q.length < 3) {
+    let matches = 0;
+    for (const ch of q) { if (c.includes(ch)) matches++; }
+    return (matches / q.length) * 0.3;
+  }
+
+  return 0;
+}
+
 let _exchangeInfoCache = null;
 
 /**
@@ -84,17 +142,13 @@ export async function fetchSymbolSearch(query) {
     }
 
     if (_exchangeInfoCache) {
-      const exact = [];
-      const startsWith = [];
-      const contains = [];
-
-      for (const s of _exchangeInfoCache) {
-        if (s.name === q) exact.push(s);
-        else if (s.name.startsWith(q)) startsWith.push(s);
-        else if (s.name.includes(q)) contains.push(s);
-        if (exact.length + startsWith.length + contains.length >= 10) break;
-      }
-      binanceResults = [...exact, ...startsWith, ...contains];
+      // ─── P4-9: Fuzzy/Trigram Search ──────────────────────────────
+      const scored = _exchangeInfoCache
+        .map((s) => ({ ...s, score: fuzzyScore(q, s.name) }))
+        .filter((s) => s.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10);
+      binanceResults = scored;
     }
   } catch (err) {
     logger.data.warn('Binance symbol search failed:', err.message);

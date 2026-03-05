@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Robustness Module Tests
-// Tests for AdapterCircuitBreaker and DataValidator.
+// Tests for CircuitBreaker (unified) and DataValidator.
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -16,7 +16,7 @@ import {
   resetCircuit,
   resetAllCircuits,
   STATE,
-} from '../../data/engine/infra/AdapterCircuitBreaker.js';
+} from '../../data/engine/infra/CircuitBreaker.ts';
 
 // ─────────────────────────────────────────────────────────────────
 // DataValidator

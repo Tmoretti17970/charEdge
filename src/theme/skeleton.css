@@ -1,0 +1,33 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * charEdge — Skeleton Loading Shimmer
+ * ═══════════════════════════════════════════════════════════════════ */
+
+.tf-skeleton {
+    position: relative;
+    overflow: hidden;
+    background: var(--tf-bg2, #151619);
+    border-radius: 6px;
+}
+
+.tf-skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.04) 40%,
+            rgba(255, 255, 255, 0.08) 50%,
+            rgba(255, 255, 255, 0.04) 60%,
+            transparent 100%);
+    animation: tfShimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes tfShimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
