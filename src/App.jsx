@@ -28,6 +28,7 @@ import styles from './App.module.css';
 
 import { useFocusStore } from './state/useFocusStore.js';
 import PasswordGate from './app/components/ui/PasswordGate.jsx';
+import AgeVerificationGate from './app/components/ui/AgeVerificationGate.jsx';
 
 // Lazy-load overlay components (not needed on initial render)
 const CommandPalette = React.lazy(() => import('./app/components/ui/CommandPalette.jsx'));
@@ -40,9 +41,69 @@ const SettingsSlideOver = React.lazy(() => import('./app/layouts/SettingsSlideOv
 const FocusOverlay = React.lazy(() => import('./app/components/ui/FocusOverlay.jsx'));
 const CookieConsent = React.lazy(() => import('./app/components/ui/CookieConsent.jsx'));
 const FeedbackWidget = React.lazy(() => import('./app/components/ui/FeedbackWidget.jsx'));
-const AgeVerificationGate = React.lazy(() => import('./app/components/ui/AgeVerificationGate.jsx'));
 const VercelAnalytics = React.lazy(() => import('@vercel/analytics/react').then(m => ({ default: m.Analytics })));
 const VercelSpeedInsights = React.lazy(() => import('@vercel/speed-insights/react').then(m => ({ default: m.SpeedInsights })));
+
+// ─── Chunk Load Error Boundary ──────────────────────────────────
+// Handles stale cache: when old cached HTML references JS chunks
+// that no longer exist after a new deployment, the lazy imports fail.
+// This boundary catches those errors and reloads the page once to
+// get the fresh index.html with correct chunk references.
+class ChunkErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error) {
+    const isChunkError =
+      error?.message?.includes('dynamically imported module') ||
+      error?.message?.includes('Loading chunk') ||
+      error?.message?.includes('Failed to fetch') ||
+      error?.message?.includes('Loading CSS chunk');
+    if (isChunkError) {
+      // Only auto-reload once to avoid infinite loops
+      const key = 'ce_chunk_reload';
+      const last = sessionStorage.getItem(key);
+      if (!last || Date.now() - Number(last) > 30000) {
+        sessionStorage.setItem(key, String(Date.now()));
+        window.location.reload();
+      }
+    }
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          height: '100vh', background: '#09090b', color: '#ececef',
+          fontFamily: "'Inter', sans-serif", textAlign: 'center', padding: '2rem',
+        }}>
+          <div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>🔄</div>
+            <h2 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700 }}>Update Available</h2>
+            <p style={{ color: '#888', fontSize: 14, marginBottom: 24 }}>
+              A new version of charEdge was deployed. Please reload to continue.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                padding: '12px 32px', borderRadius: 12, border: 'none',
+                background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+                color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+              }}
+            >
+              Reload
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Install global error handlers once at module load
 installGlobalErrorHandlers();
@@ -171,46 +232,48 @@ export default function App() {
   }
 
   return (
-    <PasswordGate>
-      <Suspense fallback={<LoadingScreen phase="loading" />}>
+    <ChunkErrorBoundary>
+      <PasswordGate>
         <AgeVerificationGate>
-          <div
-            key={theme}
-            className={isMobile ? styles.appRootMobile : styles.appRoot}
-          >
-            {/* Sprint 23: Skip-to-content for keyboard/screen-reader users */}
-            <a href="#tf-main-content" className={styles.skipLink}>Skip to content</a>
-            {!isMobile && <Sidebar />}
-            <ErrorBoundary resetKey={page}>
-              <div className={isMobile ? styles.mainAreaMobile : styles.mainArea}>
-                <DailyGuardBanner />
-                <div className={styles.mainContent} id="tf-main-content" role="main" aria-label="Page content">
-                  <PageRouter />
+          <Suspense fallback={<LoadingScreen phase="loading" />}>
+            <div
+              key={theme}
+              className={isMobile ? styles.appRootMobile : styles.appRoot}
+            >
+              {/* Sprint 23: Skip-to-content for keyboard/screen-reader users */}
+              <a href="#tf-main-content" className={styles.skipLink}>Skip to content</a>
+              {!isMobile && <Sidebar />}
+              <ErrorBoundary resetKey={page}>
+                <div className={isMobile ? styles.mainAreaMobile : styles.mainArea}>
+                  <DailyGuardBanner />
+                  <div className={styles.mainContent} id="tf-main-content" role="main" aria-label="Page content">
+                    <PageRouter />
+                  </div>
                 </div>
-              </div>
-            </ErrorBoundary>
-            {isMobile && <MobileNav />}
-            <ToastContainer />
-            <Suspense fallback={null}>{/* overlay modals — null fallback OK */}
-              <CommandPalette />
-              <GlobalQuickAddModal />
-              <NotificationPanel />
-              <OnboardingWizard />
-              <LevelUpModal />
-              <MilestoneModal />
-              <SettingsSlideOver />
-              <FocusOverlay />
-              <CookieConsent />
-              <FeedbackWidget />
-              {/* Consent-gated: only load analytics when user opted in */}
-              {analyticsConsent === true && <VercelAnalytics />}
-              {analyticsConsent === true && <VercelSpeedInsights />}
-            </Suspense>
-            <KeyboardShortcuts isOpen={shortcutsOpen} onClose={closeShortcuts} />
-          </div>
+              </ErrorBoundary>
+              {isMobile && <MobileNav />}
+              <ToastContainer />
+              <Suspense fallback={null}>{/* overlay modals — null fallback OK */}
+                <CommandPalette />
+                <GlobalQuickAddModal />
+                <NotificationPanel />
+                <OnboardingWizard />
+                <LevelUpModal />
+                <MilestoneModal />
+                <SettingsSlideOver />
+                <FocusOverlay />
+                <CookieConsent />
+                <FeedbackWidget />
+                {/* Consent-gated: only load analytics when user opted in */}
+                {analyticsConsent === true && <VercelAnalytics />}
+                {analyticsConsent === true && <VercelSpeedInsights />}
+              </Suspense>
+              <KeyboardShortcuts isOpen={shortcutsOpen} onClose={closeShortcuts} />
+            </div>
+          </Suspense>
         </AgeVerificationGate>
-      </Suspense>
-    </PasswordGate>
+      </PasswordGate>
+    </ChunkErrorBoundary>
   );
 }
 
