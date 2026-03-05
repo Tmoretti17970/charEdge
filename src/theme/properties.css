@@ -1,0 +1,90 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * charEdge — @property Definitions
+ *
+ * CSS Houdini @property declarations enable smooth theme transitions.
+ * Without @property, browsers can't interpolate custom properties.
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Cascade Layer Order (Task 1.2.9) ───────────────────────── */
+@layer base, components, pages, utilities;
+
+/* ─── @property Definitions — Enable Smooth Theme Transitions ── */
+
+@property --tf-bg {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #08090a;
+}
+
+@property --tf-bg2 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #0e1013;
+}
+
+@property --tf-sf {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #16181d;
+}
+
+@property --tf-t1 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #ececef;
+}
+
+@property --tf-t2 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #8b8fa2;
+}
+
+@property --tf-t3 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #7078a0;
+}
+
+@property --tf-accent {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #e8642c;
+}
+
+@property --tf-green {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #2dd4a0;
+}
+
+@property --tf-red {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #f25c5c;
+}
+
+@property --tf-bd {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #2a2e3a;
+}
+
+/* Task 2.1.2: Additional properties for full theme interpolation */
+@property --tf-sf2 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #1d2027;
+}
+
+@property --tf-bd2 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #363b4a;
+}
+
+@property --tf-yellow {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #f0b64e;
+}

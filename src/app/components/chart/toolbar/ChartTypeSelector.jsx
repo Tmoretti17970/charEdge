@@ -94,6 +94,66 @@ const ChartTypeIcon = ({ type, size = 16 }) => {
         <rect x="9" y="6" width="4" height="5" rx="0.5" fill="currentColor" opacity="0.6" />
       </svg>
     ),
+    kagi: (
+      <svg width={s} height={s} viewBox="0 0 16 16" fill="none">
+        <polyline points="2,12 2,4 5,4 5,10 8,10 8,3 11,3 11,9 14,9 14,5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      </svg>
+    ),
+    linebreak: (
+      <svg width={s} height={s} viewBox="0 0 16 16" fill="none">
+        <rect x="1" y="6" width="3" height="6" rx="0.5" fill="currentColor" opacity="0.7" />
+        <rect x="5" y="3" width="3" height="5" rx="0.5" fill="currentColor" opacity="0.5" />
+        <rect x="9" y="5" width="3" height="7" rx="0.5" fill="currentColor" opacity="0.6" />
+      </svg>
+    ),
+    pnf: (
+      <svg width={s} height={s} viewBox="0 0 16 16" fill="none">
+        <line x1="2" y1="3" x2="6" y2="7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+        <line x1="6" y1="3" x2="2" y2="7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+        <circle cx="11" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.3" fill="none" />
+      </svg>
+    ),
+    tick: (
+      <svg width={s} height={s} viewBox="0 0 16 16" fill="none">
+        <polyline points="1,11 4,8 7,10 10,5 13,7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <circle cx="1" cy="11" r="1.2" fill="currentColor" />
+        <circle cx="4" cy="8" r="1.2" fill="currentColor" />
+        <circle cx="7" cy="10" r="1.2" fill="currentColor" />
+        <circle cx="10" cy="5" r="1.2" fill="currentColor" />
+        <circle cx="13" cy="7" r="1.2" fill="currentColor" />
+      </svg>
+    ),
+    volumecandle: (
+      <svg width={s} height={s} viewBox="0 0 16 16" fill="none">
+        <rect x="1" y="4" width="5" height="8" rx="0.5" fill="currentColor" opacity="0.7" />
+        <line x1="3.5" y1="2" x2="3.5" y2="4" stroke="currentColor" strokeWidth="1" />
+        <line x1="3.5" y1="12" x2="3.5" y2="14" stroke="currentColor" strokeWidth="1" />
+        <rect x="8" y="6" width="2" height="5" rx="0.5" fill="currentColor" opacity="0.4" />
+        <line x1="9" y1="4" x2="9" y2="6" stroke="currentColor" strokeWidth="1" />
+        <line x1="9" y1="11" x2="9" y2="13" stroke="currentColor" strokeWidth="1" />
+      </svg>
+    ),
+    hilo: (
+      <svg width={s} height={s} viewBox="0 0 16 16" fill="none">
+        <rect x="2" y="3" width="2.5" height="10" rx="0.5" fill="currentColor" opacity="0.6" />
+        <rect x="6" y="5" width="2.5" height="7" rx="0.5" fill="currentColor" opacity="0.5" />
+        <rect x="10" y="4" width="2.5" height="8" rx="0.5" fill="currentColor" opacity="0.65" />
+      </svg>
+    ),
+    columns: (
+      <svg width={s} height={s} viewBox="0 0 16 16" fill="none">
+        <line x1="1" y1="8" x2="15" y2="8" stroke="currentColor" strokeWidth="0.5" opacity="0.3" />
+        <rect x="2" y="4" width="2" height="4" rx="0.3" fill="currentColor" opacity="0.7" />
+        <rect x="5" y="8" width="2" height="3" rx="0.3" fill="currentColor" opacity="0.5" />
+        <rect x="8" y="5" width="2" height="3" rx="0.3" fill="currentColor" opacity="0.6" />
+        <rect x="11" y="8" width="2" height="4" rx="0.3" fill="currentColor" opacity="0.5" />
+      </svg>
+    ),
+    stepline: (
+      <svg width={s} height={s} viewBox="0 0 16 16" fill="none">
+        <polyline points="1,10 4,10 4,6 8,6 8,9 12,9 12,4 15,4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="miter" fill="none" />
+      </svg>
+    ),
   };
   return icons[type] || icons.candles;
 };

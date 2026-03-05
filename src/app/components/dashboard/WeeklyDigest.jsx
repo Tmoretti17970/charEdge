@@ -70,7 +70,7 @@ export default function WeeklyDigest() {
   })();
 
   return (
-    <div style={{
+    <div className="tf-container" style={{
       borderRadius: 10,
       background: `linear-gradient(135deg, ${C.p}06, ${C.b}04)`,
       border: `1px solid ${C.p}15`,

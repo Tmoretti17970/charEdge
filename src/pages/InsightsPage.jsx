@@ -100,7 +100,7 @@ export default function InsightsPage() {
   const needsAnalytics = !isPlansTab;
 
   return (
-    <div style={{ padding: 32, maxWidth: 1200 }}>
+    <div data-container="insights" className="tf-container" style={{ padding: 32, maxWidth: 1200 }}>
       {/* ─── Section 1: Header ──── */}
       <div style={{ marginBottom: 20 }}>
         <h1 style={{ fontSize: 26, fontWeight: 700, fontFamily: F, color: C.t1, margin: 0 }}>Insights</h1>

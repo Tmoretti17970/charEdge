@@ -123,7 +123,7 @@ export default function SmartActionBar() {
 
   return (
     <div
-      className="tf-smart-action-bar"
+      className="tf-container tf-smart-action-bar"
       style={{
         display: 'flex',
         alignItems: 'center',

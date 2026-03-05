@@ -170,6 +170,7 @@ export default function UnifiedChartToolbar({
   return (
     <div
       className="tf-chart-toolbar"
+      data-container="toolbar"
       role="toolbar"
       aria-label="Chart toolbar"
       style={{

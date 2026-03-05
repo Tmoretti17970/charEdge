@@ -61,7 +61,7 @@ export default function AccountabilityWidget() {
   }, [checkin]);
 
   return (
-    <div style={{
+    <div className="tf-container" style={{
       padding: isMobile ? '12px 14px' : '14px 18px',
       borderRadius: 10,
       background: C.sf,

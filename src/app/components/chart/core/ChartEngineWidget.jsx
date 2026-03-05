@@ -21,6 +21,7 @@ import { createIndicatorInstance, INDICATORS } from '../../../../charting_librar
 import { indicatorBridge } from '../../../../data/engine/indicators/IndicatorWorkerBridge.js';
 import { ChartEngine } from '../../../../charting_library/core/ChartEngine.js';
 import crosshairBus from '../../../../utils/CrosshairBus.js';
+import scrollSyncBus from '../../../../utils/ScrollSyncBus.js';
 import { useOrderFlowConnection } from '../../../hooks/useOrderFlowConnection.js';
 import DrawingContextMenu from '../tools/DrawingContextMenu.jsx';
 import DrawingEditPopup from '../tools/DrawingEditPopup.jsx';
@@ -29,14 +30,11 @@ import ChartLoadingNarrative from '../overlays/ChartLoadingNarrative.jsx';
 import DataFallbackBanner from '../ui/DataFallbackBanner.jsx';
 import IndicatorSettingsDialog from '../panels/IndicatorSettingsDialog.jsx';
 
-// ─── Constants ───────────────────────────────────────────────────
-const BINANCE_TF_MAP = {
-  '1m': '1m', '3m': '3m', '5m': '5m', '15m': '15m', '30m': '30m',
-  '1h': '1h', '2h': '2h', '4h': '4h', '6h': '6h', '8h': '8h', '12h': '12h',
-  '1D': '1d', '1d': '1d', '3D': '3d', '1W': '1w', '1w': '1w', '1M': '1M',
-};
+// ─── Constants ─────────────────────────────────────────────────────────
+import { resolveAdapterTimeframe } from '../../../../constants/TimeframeMap.ts';
 
-const SYMBOL_MAP = {
+// Symbol shorthand map — exported so other modules can reuse
+export const SYMBOL_MAP = {
   BTC: 'BTCUSDT', ETH: 'ETHUSDT', SOL: 'SOLUSDT', BNB: 'BNBUSDT',
   XRP: 'XRPUSDT', DOGE: 'DOGEUSDT', ADA: 'ADAUSDT', AVAX: 'AVAXUSDT',
   DOT: 'DOTUSDT', MATIC: 'MATICUSDT', LINK: 'LINKUSDT', UNI: 'UNIUSDT',
@@ -44,7 +42,7 @@ const SYMBOL_MAP = {
 
 import { isCrypto } from '../../../../constants.js';
 
-function resolveSymbol(sym) {
+export function resolveSymbol(sym) {
   if (!sym) return 'BTCUSDT';
   const upper = sym.toUpperCase();
   // Non-crypto symbols pass through unchanged — DatafeedService
@@ -55,7 +53,7 @@ function resolveSymbol(sym) {
   return upper + 'USDT';
 }
 
-function resolveTf(tf) { return BINANCE_TF_MAP[tf] || '1h'; }
+function resolveTf(tf) { return resolveAdapterTimeframe(tf, 'binance'); }
 
 export default function ChartEngineWidget({
   height = '100%', width = '100%', onBarClick, onCrosshairMove, onEngineReady,
@@ -163,6 +161,52 @@ export default function ChartEngineWidget({
       }
     });
     return unsub;
+  }, []);
+
+  // ScrollSyncBus: subscribe for scroll sync from other panes
+  const scrollSyncMutedRef = useRef(false);
+  useEffect(() => {
+    const paneId = paneIdRef.current;
+    const unsub = scrollSyncBus.subscribe(paneId, (payload) => {
+      const engine = engineRef.current;
+      if (!engine || !payload) return;
+      const bars = engine.bars;
+      if (!bars?.length) return;
+      // Apply fractional scroll position from the source pane
+      const maxScroll = Math.max(0, bars.length - engine.state.visibleBars);
+      const newOffset = Math.round(payload.fraction * maxScroll);
+      if (Math.abs(engine.state.scrollOffset - newOffset) > 0.5) {
+        scrollSyncMutedRef.current = true; // Mute emission to prevent feedback loop
+        engine.state.scrollOffset = newOffset;
+        engine.markDirty();
+        requestAnimationFrame(() => { scrollSyncMutedRef.current = false; });
+      }
+    });
+    return unsub;
+  }, []);
+
+  // ScrollSyncBus: emit scroll position changes at 60fps
+  useEffect(() => {
+    let lastOffset = -1;
+    let rafId = 0;
+    const tick = () => {
+      const engine = engineRef.current;
+      if (engine && !scrollSyncMutedRef.current) {
+        const bars = engine.bars;
+        const offset = engine.state.scrollOffset;
+        if (bars?.length && Math.abs(offset - lastOffset) > 0.5) {
+          lastOffset = offset;
+          const maxScroll = Math.max(1, bars.length - engine.state.visibleBars);
+          scrollSyncBus.emit(paneIdRef.current, {
+            fraction: offset / maxScroll,
+            visibleBars: engine.state.visibleBars,
+          });
+        }
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
   }, []);
 
   // Initialize Engine once
@@ -525,7 +569,7 @@ export default function ChartEngineWidget({
   }, [indicators, barCount]);
 
   return (
-    <div style={{ position: 'relative', width, height, overflow: 'hidden' }}>
+    <div data-container="chart" style={{ position: 'relative', width, height, overflow: 'hidden' }}>
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
 
       {status === 'loading' && (

@@ -400,6 +400,76 @@ export const LAYOUT_PRESETS = {
       },
     },
   },
+  scalper: {
+    label: 'The Scalper',
+    icon: '⚡',
+    json: {
+      global: GLOBAL_CONFIG,
+      layout: {
+        type: 'row',
+        children: [
+          {
+            type: 'column',
+            weight: 50,
+            children: [
+              { type: 'tabset', weight: 50, children: [chartTab('BTC', '1m')] },
+              { type: 'tabset', weight: 50, children: [chartTab('ETH', '1m')] },
+            ],
+          },
+          {
+            type: 'column',
+            weight: 50,
+            children: [
+              { type: 'tabset', weight: 50, children: [{ type: 'tab', name: 'Watchlist', component: 'watchlist' }] },
+              { type: 'tabset', weight: 50, children: [{ type: 'tab', name: 'Journal', component: 'journal-mini' }] },
+            ],
+          },
+        ],
+      },
+    },
+  },
+  swing: {
+    label: 'The Swing',
+    icon: '🌊',
+    json: {
+      global: GLOBAL_CONFIG,
+      layout: {
+        type: 'row',
+        children: [
+          { type: 'tabset', weight: 60, children: [chartTab('SPY', '1D')] },
+          {
+            type: 'column',
+            weight: 40,
+            children: [
+              { type: 'tabset', weight: 50, children: [chartTab('BTC', '1D')] },
+              { type: 'tabset', weight: 50, children: [{ type: 'tab', name: 'Compare', component: 'compare' }] },
+            ],
+          },
+        ],
+      },
+    },
+  },
+  researcher: {
+    label: 'The Researcher',
+    icon: '🔬',
+    json: {
+      global: GLOBAL_CONFIG,
+      layout: {
+        type: 'row',
+        children: [
+          { type: 'tabset', weight: 45, children: [chartTab('BTC', '4h')] },
+          {
+            type: 'column',
+            weight: 55,
+            children: [
+              { type: 'tabset', weight: 50, children: [{ type: 'tab', name: 'AI Insights', component: 'insights' }] },
+              { type: 'tabset', weight: 50, children: [{ type: 'tab', name: 'Compare', component: 'compare' }] },
+            ],
+          },
+        ],
+      },
+    },
+  },
 };
 
 // ─── Storage Key ────────────────────────────────────────────────

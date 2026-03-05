@@ -62,7 +62,7 @@ export default function CoachPage() {
   const gradeColor = latestReport ? GRADE_COLORS[latestReport.grade] || C.t3 : C.t3;
 
   return (
-    <div style={{
+    <div data-container="coach" className="tf-container" style={{
       padding: isMobile ? '16px 12px 80px' : '24px 32px',
       maxWidth: 720,
       margin: '0 auto',

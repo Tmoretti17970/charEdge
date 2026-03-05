@@ -18,6 +18,60 @@ export interface Bar {
     volume: number;
 }
 
+/** Real-time price tick from a market data adapter */
+export interface Tick {
+    time: number;
+    price: number;
+    size: number;
+    side: 'buy' | 'sell' | 'unknown';
+}
+
+/** Individual market trade (order flow / tape) */
+export interface MarketTrade {
+    id: string;
+    time: number;
+    price: number;
+    qty: number;
+    isBuyer: boolean;
+    /** Source adapter that produced this trade */
+    source?: AdapterName;
+}
+
+/** Known data adapter names */
+export type AdapterName = 'binance' | 'polygon' | 'itick' | 'dukascopy' | 'mock';
+
+// ─── Runtime Validators (dev-only, stripped in production) ───────
+
+const IS_DEV = typeof process !== 'undefined'
+  && process.env?.NODE_ENV !== 'production';
+
+/** Validate a bar has all required numeric fields. No-op in prod. */
+export function validateBar(bar: unknown, source?: string): bar is Bar {
+    if (!IS_DEV) return true;
+    if (!bar || typeof bar !== 'object') {
+        console.warn(`[validateBar] Invalid bar from ${source || 'unknown'}:`, bar);
+        return false;
+    }
+    const b = bar as Record<string, unknown>;
+    const requiredFields = ['time', 'open', 'high', 'low', 'close', 'volume'];
+    for (const f of requiredFields) {
+        if (typeof b[f] !== 'number' || Number.isNaN(b[f])) {
+            console.warn(`[validateBar] Missing/NaN field "${f}" from ${source || 'unknown'}:`, bar);
+            return false;
+        }
+    }
+    return true;
+}
+
+/** Validate a tick has required fields. No-op in prod. */
+export function validateTick(tick: unknown, source?: string): tick is Tick {
+    if (!IS_DEV) return true;
+    if (!tick || typeof tick !== 'object') return false;
+    const t = tick as Record<string, unknown>;
+    return typeof t.time === 'number' && typeof t.price === 'number' && typeof t.size === 'number';
+}
+
+
 /** Typed array representation for GPU/perf-critical paths */
 export interface BarArrays {
     times: Float64Array;

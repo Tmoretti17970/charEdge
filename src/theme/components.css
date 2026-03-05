@@ -1,15 +1,161 @@
 /* ═══════════════════════════════════════════════════════════════════
- * charEdge — Component Styles (Hub)
+ * charEdge — Component Styles
  *
- * Split into focused partials for maintainability.
- * Import order: interactive → visual → data → animation → accessibility
+ * Typography utilities, glassmorphism surfaces, cards, buttons,
+ * keyframe animations, and motion design classes.
  * ═══════════════════════════════════════════════════════════════════ */
 
-@import './buttons.css';
-@import './cards.css';
-@import './inputs.css';
-@import './data.css';
-@import './skeleton.css';
-@import './animations.css';
-@import './gamification.css';
-@import './accessibility.css';
+/* ═══ Typography Utilities ═══════════════════════════════════════ */
+
+.tf-hero { font: var(--tf-type-2xl); color: var(--tf-t1); letter-spacing: -0.02em; }
+.tf-heading { font: var(--tf-type-heading); color: var(--tf-t2); letter-spacing: 0.06em; text-transform: uppercase; }
+.tf-title { font: var(--tf-type-lg); color: var(--tf-t1); letter-spacing: -0.01em; }
+.tf-body { font: var(--tf-type-md); color: var(--tf-t2); }
+.tf-caption { font: var(--tf-type-sm); color: var(--tf-t3); }
+.tf-label { font: var(--tf-type-xs); color: var(--tf-t2); letter-spacing: 0.04em; text-transform: uppercase; }
+.tf-mono { font: var(--tf-type-mono-md); font-variant-numeric: tabular-nums; }
+.tf-mono-sm { font: var(--tf-type-mono-sm); font-variant-numeric: tabular-nums; }
+.tf-section-gap { margin-top: 24px; padding-top: 20px; }
+.tf-section-accent { padding-left: 12px; border-left: 3px solid var(--tf-accent); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tf-t2); }
+
+/* ═══ Card Elevation ═════════════════════════════════════════════ */
+
+.tf-card-elevated { background: var(--tf-elevation-1); border: 1px solid rgba(35, 38, 48, 0.4); border-radius: var(--tf-radius-lg); box-shadow: var(--tf-elevation-shadow); }
+.tf-card-elevated-2 { background: var(--tf-elevation-2); border: 1px solid rgba(35, 38, 48, 0.25); border-radius: var(--tf-radius-lg); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22); }
+
+@media (pointer: fine) {
+  .tf-card-hover { transition: transform var(--tf-transition-base), box-shadow var(--tf-transition-base), border-color var(--tf-transition-base); }
+  .tf-card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15); border-color: var(--tf-bd2); }
+  .tf-card-hover:active { transform: scale(0.995); transition-duration: 0.06s; }
+}
+
+/* ═══ Glassmorphism Surfaces ═════════════════════════════════════ */
+
+.tf-glass { background: var(--tf-glass-2); backdrop-filter: var(--tf-blur-md); -webkit-backdrop-filter: var(--tf-blur-md); border: var(--tf-glass-border); box-shadow: var(--tf-shadow-2), var(--tf-inner-glow); }
+.tf-glass-subtle { background: var(--tf-glass-1); backdrop-filter: var(--tf-blur-sm); -webkit-backdrop-filter: var(--tf-blur-sm); border: var(--tf-glass-border); }
+.tf-glass-heavy { background: var(--tf-glass-3); backdrop-filter: var(--tf-blur-lg); -webkit-backdrop-filter: var(--tf-blur-lg); border: var(--tf-glass-border); box-shadow: var(--tf-shadow-4), var(--tf-inner-glow-strong); }
+.tf-glass-backdrop { background: rgba(0, 0, 0, 0.4); backdrop-filter: var(--tf-blur-md); -webkit-backdrop-filter: var(--tf-blur-md); }
+
+.tf-depth-0 { box-shadow: var(--tf-shadow-0); }
+.tf-depth-1 { box-shadow: var(--tf-shadow-1); }
+.tf-depth-2 { box-shadow: var(--tf-shadow-2); }
+.tf-depth-3 { box-shadow: var(--tf-shadow-3); }
+.tf-depth-4 { box-shadow: var(--tf-shadow-4); }
+
+.tf-glass-card { background: var(--tf-glass-2); backdrop-filter: var(--tf-blur-md); -webkit-backdrop-filter: var(--tf-blur-md); border: var(--tf-glass-border); border-radius: var(--tf-radius-lg); box-shadow: var(--tf-shadow-2), var(--tf-inner-glow); transition: border-color var(--tf-transition-base), box-shadow var(--tf-transition-base), transform var(--tf-transition-base); }
+
+@media (pointer: fine) {
+  .tf-glass-card:hover { border: var(--tf-glass-border-hover); box-shadow: var(--tf-shadow-3), var(--tf-inner-glow-strong); transform: translateY(-1px); }
+  .tf-glass-card:active { transform: scale(0.995); transition-duration: 0.06s; }
+}
+
+.tf-glass-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--tf-radius-md); box-shadow: var(--tf-shadow-1), var(--tf-inner-glow); color: var(--tf-t1); cursor: pointer; transition: background var(--tf-transition-fast), border-color var(--tf-transition-fast), box-shadow var(--tf-transition-fast), transform var(--tf-transition-micro); }
+.tf-glass-btn:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.14); box-shadow: var(--tf-shadow-2), var(--tf-inner-glow-strong); }
+.tf-glass-btn:active { transform: scale(0.96); background: rgba(255, 255, 255, 0.04); }
+
+.tf-frosted-bar { background: var(--tf-glass-1); backdrop-filter: var(--tf-blur-sm); -webkit-backdrop-filter: var(--tf-blur-sm); border-bottom: var(--tf-glass-border); }
+
+/* ═══ P&L Glow Borders ══════════════════════════════════════════ */
+
+.tf-glow-positive { border-color: rgba(45, 212, 160, 0.25) !important; box-shadow: 0 0 20px rgba(45, 212, 160, 0.06), inset 0 0 20px rgba(45, 212, 160, 0.03); animation: glowPulseGreen 3s ease-in-out infinite; }
+.tf-glow-negative { border-color: rgba(242, 92, 92, 0.25) !important; box-shadow: 0 0 20px rgba(242, 92, 92, 0.06), inset 0 0 20px rgba(242, 92, 92, 0.03); animation: glowPulseRed 3s ease-in-out infinite; }
+
+/* ═══ Button & Interactive Styles ════════════════════════════════ */
+
+.tf-btn { transition: background var(--tf-transition-fast), color var(--tf-transition-fast), border-color var(--tf-transition-fast), transform var(--tf-transition-micro), box-shadow var(--tf-transition-fast); }
+.tf-btn:active { transform: scale(0.97); }
+
+.tf-icon-btn { transition: background var(--tf-transition-fast), color var(--tf-transition-fast), transform var(--tf-transition-micro); }
+.tf-icon-btn:hover { background: var(--tf-sf2) !important; color: var(--tf-t1) !important; }
+.tf-icon-btn:active { transform: scale(0.92); }
+
+.tf-link { position: relative; color: var(--tf-accent); transition: color var(--tf-transition-fast); }
+.tf-link::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 0; height: 1px; background: var(--tf-accent); transition: width var(--tf-transition-base); }
+.tf-link:hover::after { width: 100%; }
+
+.tf-tab-pill { position: relative; z-index: 1; }
+.tf-tab-pill::before { content: ''; position: absolute; inset: 0; border-radius: var(--tf-radius-md); background: var(--tf-accent); opacity: 0; transform: scale(0.92); transition: opacity var(--tf-transition-base), transform var(--tf-transition-enter); z-index: -1; }
+.tf-tab-pill[aria-selected="true"]::before { opacity: 0.12; transform: scale(1); }
+
+.tf-row-hover { transition: background var(--tf-transition-fast); }
+
+.tf-crosshair-active { cursor: crosshair; }
+.tf-crosshair-label { font: var(--tf-type-mono-sm); background: var(--tf-glass-3); backdrop-filter: var(--tf-blur-sm); border-radius: var(--tf-radius-sm); padding: 2px 6px; color: var(--tf-t1); font-variant-numeric: tabular-nums; pointer-events: none; white-space: nowrap; }
+
+/* ═══ Keyframe Animations ════════════════════════════════════════ */
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideInRight { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes glowPulseGreen { 0%, 100% { box-shadow: 0 0 20px rgba(45, 212, 160, 0.06), inset 0 0 20px rgba(45, 212, 160, 0.03); } 50% { box-shadow: 0 0 30px rgba(45, 212, 160, 0.1), inset 0 0 30px rgba(45, 212, 160, 0.05); } }
+@keyframes glowPulseRed { 0%, 100% { box-shadow: 0 0 20px rgba(242, 92, 92, 0.06), inset 0 0 20px rgba(242, 92, 92, 0.03); } 50% { box-shadow: 0 0 30px rgba(242, 92, 92, 0.1), inset 0 0 30px rgba(242, 92, 92, 0.05); } }
+@keyframes bentoPop { from { opacity: 0; transform: scale(0.97) translateY(6px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes heroGlow { 0%, 100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.15); } }
+@keyframes heroShimmer { 0% { transform: translateX(-100%) rotate(15deg); } 100% { transform: translateX(350%) rotate(15deg); } }
+@keyframes tfPageEnter { from { opacity: 0; transform: translateY(8px) scale(0.997); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes tfWidgetSpring { 0% { transform: scale(1.03); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); } 60% { transform: scale(0.99); } 100% { transform: scale(1); box-shadow: none; } }
+@keyframes tfFeatureReveal { 0% { opacity: 0; transform: scale(0.92); box-shadow: 0 0 0 0 rgba(232, 100, 44, 0); } 50% { opacity: 1; transform: scale(1.02); box-shadow: 0 0 20px 4px rgba(232, 100, 44, 0.25); } 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(232, 100, 44, 0); } }
+@keyframes tfFadeThrough { 0% { opacity: 0; transform: scale(0.98); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes tfContentReveal { from { opacity: 0; filter: blur(4px); } to { opacity: 1; filter: blur(0); } }
+@keyframes sidebarSlide { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes numberFlash { 0% { opacity: 0.7; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
+@keyframes expandDown { from { opacity: 0; max-height: 0; transform: translateY(-4px); } to { opacity: 1; max-height: 500px; transform: translateY(0); } }
+@keyframes backdropFadeIn { from { opacity: 0; backdrop-filter: blur(0); } to { opacity: 1; backdrop-filter: blur(8px); } }
+@keyframes modalSlideUp { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes toastSlideIn { from { opacity: 0; transform: translateX(100%) scale(0.95); } to { opacity: 1; transform: translateX(0) scale(1); } }
+@keyframes toastExit { to { opacity: 0; transform: translateX(100%) scale(0.95); } }
+@keyframes tagPop { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+@keyframes checkPop { 0% { transform: scale(0.8); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+@keyframes tooltipFade { from { opacity: 0; transform: translateY(-50%) translateX(-4px); } to { opacity: 1; transform: translateY(-50%) translateX(0); } }
+@keyframes tf-spring-in { 0% { opacity: 0; transform: scale(0.92) translateY(8px); } 60% { opacity: 1; transform: scale(1.03) translateY(-2px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes tf-spring-out { 0% { opacity: 1; transform: scale(1) translateY(0); } 100% { opacity: 0; transform: scale(0.95) translateY(6px); } }
+@keyframes tf-spring-scale { 0% { transform: scale(0.85); } 60% { transform: scale(1.06); } 100% { transform: scale(1); } }
+
+/* ─── Animation Utility Classes ──────────────────────────────── */
+.tf-spin { animation: spin 0.8s linear infinite; }
+.tf-fade-in { animation: fadeIn 0.2s ease; }
+.tf-fade-in-up { animation: fadeInUp 0.25s ease; }
+.tf-slide-in { animation: slideInRight 0.2s ease; }
+.tf-pulse { animation: pulse 1.5s ease infinite; }
+.tf-shimmer { background: linear-gradient(90deg, var(--tf-sf) 25%, var(--tf-sf2) 50%, var(--tf-sf) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+.tf-hero-orb { animation: heroGlow 4s ease-in-out infinite; }
+.tf-page-enter { animation: tfPageEnter 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+.tf-widget-reorder { animation: tfWidgetSpring 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.tf-feature-reveal { animation: tfFeatureReveal 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+.tf-fade-through { animation: tfFadeThrough 0.2s ease-out; }
+.tf-content-reveal { animation: tfContentReveal 0.25s ease-out; }
+.tf-sidebar-active-indicator { animation: sidebarSlide 0.2s var(--tf-transition-spring); }
+.tf-number-flash { animation: numberFlash 0.4s ease; }
+.tf-expand-enter { animation: expandDown 0.25s cubic-bezier(0.16, 1, 0.3, 1); overflow: hidden; }
+.tf-modal-backdrop { animation: backdropFadeIn 0.2s ease forwards; }
+.tf-modal-content { animation: modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+.tf-toast-enter { animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.tf-toast-exit { animation: toastExit 0.2s ease forwards; }
+.tf-tag-pop { animation: tagPop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.tf-check-pop { animation: checkPop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.tf-tooltip { animation: tooltipFade 0.15s ease; }
+.tf-spring-in { animation: tf-spring-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.tf-spring-out { animation: tf-spring-out 0.2s ease both; }
+.tf-spring-pop { animation: tf-spring-scale 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* Bento grid stagger */
+.tf-bento>* { animation: bentoPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+.tf-bento>*:nth-child(1) { animation-delay: 0ms; }
+.tf-bento>*:nth-child(2) { animation-delay: 50ms; }
+.tf-bento>*:nth-child(3) { animation-delay: 90ms; }
+.tf-bento>*:nth-child(4) { animation-delay: 120ms; }
+.tf-bento>*:nth-child(5) { animation-delay: 150ms; }
+.tf-bento>*:nth-child(6) { animation-delay: 175ms; }
+.tf-bento>*:nth-child(7) { animation-delay: 195ms; }
+.tf-bento>*:nth-child(8) { animation-delay: 210ms; }
+.tf-bento>*:nth-child(9) { animation-delay: 225ms; }
+.tf-bento>*:nth-child(10) { animation-delay: 240ms; }
+.tf-bento>*:nth-child(11) { animation-delay: 250ms; }
+
+.tf-glow-positive::after,
+.tf-glow-negative::after { content: ''; position: absolute; top: 0; left: -40%; width: 30%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent); animation: heroShimmer 6s ease-in-out infinite; pointer-events: none; }
+
+.tf-bento~div::-webkit-scrollbar { display: none; }

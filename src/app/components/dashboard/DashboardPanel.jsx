@@ -110,7 +110,7 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
 
   if (!result) {
     return (
-      <div className={`${s.page} ${isMobile ? s.pageMobile : s.pageDesktop}`}>
+      <div data-container="dashboard" className={`${s.page} ${isMobile ? s.pageMobile : s.pageDesktop}`}>
         <DashHeader
           trades={trades} computing={computing}
           layoutMode={layoutMode}

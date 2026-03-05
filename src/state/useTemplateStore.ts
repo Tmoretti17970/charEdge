@@ -15,6 +15,9 @@
 //       { type: 'ema', color: '#5c9cf5', params: { period: 21 } },
 //       { type: 'rsi', color: '#a855f7', params: { period: 14 } },
 //     ],
+//     drawings: [],          // Serialized drawing objects (optional)
+//     timeframe: string,     // Default TF, e.g. '3m' (optional)
+//     themeOverrides: {},    // Custom candle colors, line widths (optional)
 //     createdAt: string,
 //   }
 //
@@ -92,25 +95,51 @@ const useTemplateStore = create(
       /**
        * Save current chart config as a named template.
        * If a user template with the same name exists, it gets overwritten.
+       * Accepts expanded options: { indicators, chartType, drawings, timeframe, themeOverrides }
        */
-      saveTemplate: (name, indicators, chartType = 'candle') => {
+      saveTemplate: (name: any, indicatorsOrOpts?: any, chartType: any = 'candle') => {
         const trimmed = (name || '').trim();
         if (!trimmed) return null;
 
+        // Support both old signature (name, indicators, chartType)
+        // and new expanded object (name, { indicators, chartType, drawings, ... })
+        let indicators: any;
+        let drawings: any;
+        let timeframe: any;
+        let themeOverrides: any;
+        let resolvedChartType = chartType;
+
+        if (indicatorsOrOpts && !Array.isArray(indicatorsOrOpts) && typeof indicatorsOrOpts === 'object' && 'indicators' in indicatorsOrOpts) {
+          // New expanded format
+          indicators = indicatorsOrOpts.indicators;
+          resolvedChartType = indicatorsOrOpts.chartType || chartType;
+          drawings = indicatorsOrOpts.drawings;
+          timeframe = indicatorsOrOpts.timeframe;
+          themeOverrides = indicatorsOrOpts.themeOverrides;
+        } else {
+          // Legacy format: (name, indicators[], chartType)
+          indicators = indicatorsOrOpts;
+        }
+
         const id = 'tpl_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
-        const template = {
+        const template: any = {
           id,
           name: trimmed,
           builtIn: false,
-          chartType,
+          chartType: resolvedChartType,
           // Deep clone indicators to snapshot current params
           indicators: safeClone(indicators || [], []),
           createdAt: new Date().toISOString(),
         };
 
-        set((s) => {
+        // Optional expanded fields
+        if (drawings) template.drawings = safeClone(drawings, []);
+        if (timeframe) template.timeframe = timeframe;
+        if (themeOverrides) template.themeOverrides = safeClone(themeOverrides, {});
+
+        set((s: any) => {
           // Remove existing user template with same name (overwrite)
-          const filtered = s.templates.filter((t) => t.builtIn || t.name.toLowerCase() !== trimmed.toLowerCase());
+          const filtered = s.templates.filter((t: any) => t.builtIn || t.name.toLowerCase() !== trimmed.toLowerCase());
           return { templates: [...filtered, template] };
         });
 

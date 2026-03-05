@@ -76,7 +76,7 @@ export default function StreakCelebration() {
   if (tradingStreak === 0 && journalStreak === 0 && profitStreak === 0) return null;
 
   return (
-    <div
+    <div className="tf-container"
       className="tf-streak-celebration"
       style={{
         borderRadius: 10,

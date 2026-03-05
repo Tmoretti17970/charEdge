@@ -78,7 +78,7 @@ export function PersonaTierBanner() {
   const tradesNeeded = (nextConfig?.minTrades || 0) - tradeCount;
 
   return (
-    <div style={{
+    <div className="tf-container" style={{
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',

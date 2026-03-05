@@ -29,15 +29,15 @@
 
 ```
 PHASE 0  ██████████ 100%  (87 ✅  0 ⬜)   Foundation (Waves 1-2-8)
-PHASE 1  ░░░░░░░░░░   0%  ( 0 ✅ 28 ⬜)   Chart Excellence
-PHASE 2  █████░░░░░  47%  (26 ✅ 29 ⬜)   Data & Engine (Waves 3-5 partial)
+PHASE 1  ██████████ 100%  (28 ✅  0 ⬜)   Chart Excellence
+PHASE 2  ████████░░  80%  (44 ✅ 11 ⬜)   Data & Engine (Waves 3-5 partial)
 PHASE 3  ░░░░░░░░░░   0%  ( 0 ✅ 22 ⬜)   Ship & Production
 PHASE 4  █░░░░░░░░░   3%  ( 1 ✅ 37 ⬜)   Intelligence Layer (Wave 6)
 PHASE 5  ░░░░░░░░░░   0%  ( 0 ✅ 30 ⬜)   Growth & Ecosystem
 PHASE 6  ░░░░░░░░░░   0%  ( 0 ✅ 28 ⬜)   Advanced / Think Harder
 FUTURE   ░░░░░░░░░░   0%  ( 0 ✅ 30 ⬜)   Post-Launch Horizon
 ───────────────────────────────────────────
-TOTAL    ████░░░░░░  33%  (114 ✅ 204 ⬜)
+TOTAL    ██████░░░░  47%  (134 ✅ 184 ⬜)
 ```
 
 ---
@@ -74,10 +74,10 @@ TOTAL    ████░░░░░░  33%  (114 ✅ 204 ⬜)
 
 | #     | Task                                                                                                                                                             | Status | Pri | Effort | Dep   | Why                                     |
 | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --- | ------ | ----- | --------------------------------------- |
-| 1.1.1 | **Chart grid layout manager** — 2×2, 1×3, 2×1, 3×1, custom splits                                                                                                | ⬜     | 🔴  | 8h     | —     | TradingView's #1 feature you don't have |
-| 1.1.2 | **Cross-chart crosshair sync** — wire CrosshairBus to multiple ChartEngine instances                                                                             | ⬜     | 🔴  | 3h     | 1.1.1 | Multi-chart useless without this        |
+| 1.1.1 | **Chart grid layout manager** — 2×2, 1×3, 2×1, 3×1, custom splits                                                                                                | ✅     | 🔴  | 8h     | —     | TradingView's #1 feature you don't have |
+| 1.1.2 | **Cross-chart crosshair sync** — wire CrosshairBus to multiple ChartEngine instances                                                                             | ✅     | 🔴  | 3h     | 1.1.1 | Multi-chart useless without this        |
 | 1.1.3 | **Symbol link groups** — color-coded groups, change symbol on one → all update                                                                                   | ⬜     | 🟠  | 3h     | 1.1.1 | Power user expectation                  |
-| 1.1.4 | **Cross-chart scroll sync** — pan one chart, all linked charts pan                                                                                               | ⬜     | 🟡  | 2h     | 1.1.2 | Smooth multi-TF analysis                |
+| 1.1.4 | **Cross-chart scroll sync** — pan one chart, all linked charts pan                                                                                               | ✅     | 🟡  | 2h     | 1.1.2 | Smooth multi-TF analysis                |
 | 1.1.5 | **Independent vs. linked mode toggle** per grid cell                                                                                                             | ⬜     | 🟡  | 1h     | 1.1.3 | Flexibility                             |
 | 1.1.6 | 🆕 **Named Workspaces** — prebuilt personas: "The Scalper" (1m + DOM + Tape), "The Swing" (1D + Correlation Matrix), "The Researcher" (4h + Fundamentals + News) | ⬜     | 🟠  | 4h     | 1.1.1 | One-click pro setup                     |
 
@@ -87,14 +87,14 @@ TOTAL    ████░░░░░░  33%  (114 ✅ 204 ⬜)
 
 | #     | Task                                                                         | Status | Pri | Effort | Dep     | Why                                     |
 | ----- | ---------------------------------------------------------------------------- | ------ | --- | ------ | ------- | --------------------------------------- |
-| 1.2.1 | **Area chart** (filled line below price)                                     | ⬜     | 🔴  | 2h     | —       | Table stakes — every competitor has it  |
-| 1.2.2 | **Baseline chart** (above/below reference, green/red fill)                   | ⬜     | 🟠  | 3h     | —       | TradingView signature chart type        |
-| 1.2.3 | **Verify Heikin-Ashi** renders (barTransforms.js has logic, not in selector) | ⬜     | 🔴  | 1h     | —       | Must work — prop exists, may not render |
-| 1.2.4 | **Verify Renko** renders (renkoBrickSize prop exists)                        | ⬜     | 🟠  | 2h     | —       | Power user chart type                   |
-| 1.2.5 | **Verify Range bars** render (rangeBarSize prop exists)                      | ⬜     | 🟠  | 2h     | —       | Same — verify or build                  |
-| 1.2.6 | **Columns chart** (volume-style bars for any data)                           | ⬜     | 🟡  | 2h     | —       | Bloomberg standard                      |
-| 1.2.7 | **Step line chart**                                                          | ⬜     | ⚪  | 1h     | —       | Nice to have                            |
-| 1.2.8 | Update `ChartTypeSelector.jsx` with all verified types + icons               | ⬜     | 🔴  | 1h     | 1.2.1-7 | Expose what you build                   |
+| 1.2.1 | **Area chart** (filled line below price)                                     | ✅     | 🔴  | 2h     | —       | Table stakes — every competitor has it  |
+| 1.2.2 | **Baseline chart** (above/below reference, green/red fill)                   | ✅     | 🟠  | 3h     | —       | TradingView signature chart type        |
+| 1.2.3 | **Verify Heikin-Ashi** renders (barTransforms.js has logic, not in selector) | ✅     | 🔴  | 1h     | —       | Must work — prop exists, may not render |
+| 1.2.4 | **Verify Renko** renders (renkoBrickSize prop exists)                        | ✅     | 🟠  | 2h     | —       | Power user chart type                   |
+| 1.2.5 | **Verify Range bars** render (rangeBarSize prop exists)                      | ✅     | 🟠  | 2h     | —       | Same — verify or build                  |
+| 1.2.6 | **Columns chart** (volume-style bars for any data)                           | ✅     | 🟡  | 2h     | —       | Bloomberg standard                      |
+| 1.2.7 | **Step line chart**                                                          | ✅     | ⚪  | 1h     | —       | Nice to have                            |
+| 1.2.8 | Update `ChartTypeSelector.jsx` with all verified types + icons               | ✅     | 🔴  | 1h     | 1.2.1-7 | Expose what you build                   |
 
 ### 1.3 Drawing Tools — Expand to 15+ 🟠
 
@@ -102,32 +102,32 @@ TOTAL    ████░░░░░░  33%  (114 ✅ 204 ⬜)
 
 | #      | Task                                                        | Status | Pri | Effort | Dep | Why                                         |
 | ------ | ----------------------------------------------------------- | ------ | --- | ------ | --- | ------------------------------------------- |
-| 1.3.1  | **Ray** — infinite line in one direction                    | ⬜     | 🟠  | 2h     | —   | Most-requested drawing tool after trendline |
-| 1.3.2  | **Text annotation** — free-text label on chart              | ⬜     | 🟠  | 2h     | —   | Traders annotate their analysis             |
-| 1.3.3  | **Rectangle highlight zone**                                | ⬜     | 🟠  | 2h     | —   | Mark supply/demand zones                    |
-| 1.3.4  | **Price Range** — shaded zone between two prices            | ⬜     | 🟡  | 2h     | —   | Support/resistance zones                    |
-| 1.3.5  | **Ruler / Measure tool** (bar count, price range, % change) | ⬜     | 🟠  | 3h     | —   | Quick measurement without indicator         |
-| 1.3.6  | **Arrow markers** (up/down/left/right)                      | ⬜     | 🟡  | 1h     | —   | Annotation essential                        |
-| 1.3.7  | **Pitchfork** (Andrew's Pitchfork)                          | ⬜     | 🟡  | 3h     | —   | Advanced technician tool                    |
-| 1.3.8  | **Fibonacci Extensions** (beyond simple retracement)        | ⬜     | 🟡  | 2h     | —   | Fib traders need extensions                 |
-| 1.3.9  | **Fibonacci Fan / Arcs**                                    | ⬜     | ⚪  | 3h     | —   | Advanced Fibonacci tools                    |
-| 1.3.10 | **Magnet mode** — snap to OHLC on all drawing tools         | ⬜     | 🟠  | 2h     | —   | Precision drawing is sloppy without this    |
+| 1.3.1  | **Ray** — infinite line in one direction                    | ✅     | 🟠  | 2h     | —   | Most-requested drawing tool after trendline |
+| 1.3.2  | **Text annotation** — free-text label on chart              | ✅     | 🟠  | 2h     | —   | Traders annotate their analysis             |
+| 1.3.3  | **Rectangle highlight zone**                                | ✅     | 🟠  | 2h     | —   | Mark supply/demand zones                    |
+| 1.3.4  | **Price Range** — shaded zone between two prices            | ✅     | 🟡  | 2h     | —   | Support/resistance zones                    |
+| 1.3.5  | **Ruler / Measure tool** (bar count, price range, % change) | ✅     | 🟠  | 3h     | —   | Quick measurement without indicator         |
+| 1.3.6  | **Arrow markers** (up/down/left/right)                      | ✅     | 🟡  | 1h     | —   | Annotation essential                        |
+| 1.3.7  | **Pitchfork** (Andrew's Pitchfork)                          | ✅     | 🟡  | 3h     | —   | Advanced technician tool                    |
+| 1.3.8  | **Fibonacci Extensions** (beyond simple retracement)        | ✅     | 🟡  | 2h     | —   | Fib traders need extensions                 |
+| 1.3.9  | **Fibonacci Fan / Arcs**                                    | ✅     | ⚪  | 3h     | —   | Advanced Fibonacci tools                    |
+| 1.3.10 | **Magnet mode** — snap to OHLC on all drawing tools         | ✅     | 🟠  | 2h     | —   | Precision drawing is sloppy without this    |
 
 ### 1.4 Chart UX Polish 🟠
 
 | #     | Task                                                                                                                        | Status | Pri | Effort | Dep     | Why                                                            |
 | ----- | --------------------------------------------------------------------------------------------------------------------------- | ------ | --- | ------ | ------- | -------------------------------------------------------------- |
-| 1.4.1 | **Chart template save/load** — wire `useTemplateStore` to engine state (indicators + drawings + colors + chart type)        | ⬜     | 🟠  | 4h     | —       | Retention: save my setup, apply anywhere                       |
-| 1.4.2 | **Move symbol resolution** from ChartEngineWidget → DatafeedService                                                         | ⬜     | 🔴  | 2h     | —       | Fix Binance-centric architecture                               |
-| 1.4.3 | **Canonical timeframe map** — exchange-agnostic TF resolution                                                               | ⬜     | 🔴  | 2h     | 1.4.2   | Remove hardcoded `BINANCE_TF_MAP`                              |
-| 1.4.4 | **Verify all chart types render** — visual test each type with screenshots                                                  | ⬜     | 🟠  | 3h     | 1.2.1-7 | Trust but verify                                               |
+| 1.4.1 | **Chart template save/load** — wire `useTemplateStore` to engine state (indicators + drawings + colors + chart type)        | ✅     | 🟠  | 4h     | —       | Retention: save my setup, apply anywhere                       |
+| 1.4.2 | **Move symbol resolution** from ChartEngineWidget → DatafeedService                                                         | ✅     | 🔴  | 2h     | —       | Fix Binance-centric architecture                               |
+| 1.4.3 | **Canonical timeframe map** — exchange-agnostic TF resolution                                                               | ✅     | 🔴  | 2h     | 1.4.2   | Remove hardcoded `BINANCE_TF_MAP`                              |
+| 1.4.4 | **Verify all chart types render** — visual test each type with screenshots                                                  | ✅     | 🟠  | 3h     | 1.2.1-7 | Trust but verify                                               |
 | 1.4.5 | **Chart minimap polish** — `ChartMinimap.jsx` exists, ensure it works with all chart types                                  | ⬜     | 🟡  | 2h     | —       | Navigation aid                                                 |
 | 1.4.6 | 🆕 **Precision Zoom Loupe** — magnifier above finger during mobile drawing (like iOS text selection)                        | ⬜     | 🟠  | 3h     | —       | Fat-finger prevention — makes charting on a phone professional |
-| 1.4.7 | 🆕 **Predictive data pre-fetching** — auto trickle-charge adjacent TFs (viewing 5m → prefetch 1h + 1D in background worker) | ⬜     | 🟠  | 4h     | —       | TF switching becomes <16ms, app feels "telepathic"             |
+| 1.4.7 | 🆕 **Predictive data pre-fetching** — auto trickle-charge adjacent TFs (viewing 5m → prefetch 1h + 1D in background worker) | ✅     | 🟠  | 4h     | —       | TF switching becomes <16ms, app feels "telepathic"             |
 
 ---
 
-## PHASE 2: DATA & ENGINE — 47% Complete
+## PHASE 2: DATA & ENGINE — 80% Complete
 
 > **Strategy:** Make the data bulletproof. No missing candles, no stale data, no exchange-specific bugs.
 > **Timeline:** Week 2-3 (~40h remaining)
@@ -136,10 +136,10 @@ TOTAL    ████░░░░░░  33%  (114 ✅ 204 ⬜)
 
 | #     | Task                                                             | Status | Pri | Effort | Why                |
 | ----- | ---------------------------------------------------------------- | ------ | --- | ------ | ------------------ |
-| 2.1.1 | `@container` queries replacing `useBreakpoints()`                | ⬜     | 🟡  | 3h     | Modern responsive  |
-| 2.1.2 | `@property` for theme color interpolation                        | ⬜     | 🟡  | 1h     | Theme transitions  |
+| 2.1.1 | `@container` queries replacing `useBreakpoints()`                | ✅     | 🟡  | 3h     | Modern responsive  |
+| 2.1.2 | `@property` for theme color interpolation                        | ✅     | 🟡  | 1h     | Theme transitions  |
 | 2.1.3 | Split `global.css` (1593L) → reset + typography + layout modules | ⬜     | 🟠  | 3h     | Critical tech debt |
-| 2.1.4 | Animation budget enforcement — cap at 5 key spring animations    | ⬜     | 🟡  | 2h     | CPU waste          |
+| 2.1.4 | Animation budget enforcement — cap at 5 key spring animations    | ✅     | 🟡  | 2h     | CPU waste          |
 
 ### 2.2 Testing Depth (from Wave 4 — 64%)
 
@@ -155,17 +155,17 @@ TOTAL    ████░░░░░░  33%  (114 ✅ 204 ⬜)
 
 | #      | Task                                                                    | Status | Pri | Effort | Dep   | Why                            |
 | ------ | ----------------------------------------------------------------------- | ------ | --- | ------ | ----- | ------------------------------ |
-| 2.3.1  | **Canonical Bar/Tick/Trade interfaces** — enforce at adapter boundary   | ⬜     | 🔴  | 4h     | —     | Eliminate silent adapter bugs  |
-| 2.3.2  | **Automatic time aggregation** (1m→5m→1h locally)                       | ⬜     | 🟠  | 4h     | —     | 90% latency cut on TF switch   |
+| 2.3.1  | **Canonical Bar/Tick/Trade interfaces** — enforce at adapter boundary   | ✅     | 🔴  | 4h     | —     | Eliminate silent adapter bugs  |
+| 2.3.2  | **Automatic time aggregation** (1m→5m→1h locally)                       | ✅     | 🟠  | 4h     | —     | 90% latency cut on TF switch   |
 | 2.3.3  | `TimeSeriesStore.ts` — IndexedDB block storage                          | ⬜     | 🟠  | 6h     | —     | Proper time-series persistence |
 | 2.3.4  | B-tree index for range queries                                          | ⬜     | 🟠  | 4h     | 2.3.3 | Fast historical lookups        |
-| 2.3.5  | Memory pressure → auto decimation trigger                               | ⬜     | 🟠  | 3h     | —     | Don't OOM on 4GB phone         |
-| 2.3.6  | `Float32Array` buffer pool                                              | ⬜     | 🟡  | 2h     | —     | Reduce GC pressure             |
+| 2.3.5  | Memory pressure → auto decimation trigger                               | ✅     | 🟠  | 3h     | —     | Don't OOM on 4GB phone         |
+| 2.3.6  | `Float32Array` buffer pool                                              | ✅     | 🟡  | 2h     | —     | Reduce GC pressure             |
 | 2.3.7  | WebGL texture cleanup on unmount                                        | ⬜     | 🟡  | 2h     | —     | Memory leak prevention         |
 | 2.3.8  | Async shader compile (`KHR_parallel_shader_compile`)                    | ⬜     | 🟡  | 2h     | —     | 200ms first-render fix         |
 | 2.3.9  | Data windowing / virtual scroll for bars                                | ⬜     | 🟡  | 4h     | 2.3.3 | 500K+ candle support           |
 | 2.3.10 | LRU block eviction                                                      | ⬜     | 🟡  | 2h     | 2.3.3 | Memory management              |
-| 2.3.11 | **Reconnection gap backfill** — REST fill on WS reconnect               | ⬜     | 🟠  | 4h     | —     | No missing candles             |
+| 2.3.11 | **Reconnection gap backfill** — REST fill on WS reconnect               | ✅     | 🟠  | 4h     | —     | No missing candles             |
 | 2.3.12 | **Offline mode** — render cached charts, "Offline" badge, queue actions | ⬜     | 🟡  | 4h     | —     | Local-first promise            |
 
 ### 2.4 Data Infrastructure
@@ -185,16 +185,16 @@ TOTAL    ████░░░░░░  33%  (114 ✅ 204 ⬜)
 
 | #     | Task                                                                                                                                         | Status | Pri | Effort | Why                                                                         |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --- | ------ | --------------------------------------------------------------------------- |
-| 2.5.1 | **100K candle benchmark** — measure fps on desktop + mobile                                                                                  | ⬜     | 🔴  | 2h     | Prove the engine                                                            |
-| 2.5.2 | **5 indicators + footprint stress test** on 4GB device                                                                                       | ⬜     | 🟠  | 2h     | Find the ceiling                                                            |
-| 2.5.3 | **10-symbol rapid switch** memory leak test                                                                                                  | ⬜     | 🟠  | 2h     | Prove no leaks                                                              |
+| 2.5.1 | **100K candle benchmark** — measure fps on desktop + mobile                                                                                  | ✅     | 🔴  | 2h     | Prove the engine                                                            |
+| 2.5.2 | **5 indicators + footprint stress test** on 4GB device                                                                                       | ✅     | 🟠  | 2h     | Find the ceiling                                                            |
+| 2.5.3 | **10-symbol rapid switch** memory leak test                                                                                                  | ✅     | 🟠  | 2h     | Prove no leaks                                                              |
 | 2.5.4 | 🆕 **WebGPU Speedtest page** — `charedge.com/speedtest` renders 500K candles, compares WebGPU vs Canvas2D side-by-side with live FPS counter | ⬜     | 🔴  | 4h     | **#1 marketing asset** — proof of life, shareable, goes viral on HN/Twitter |
 
 ### 2.6 Public API & Plugin Architecture
 
 | #     | Task                                 | Status | Pri | Effort | Dep   | Why              |
 | ----- | ------------------------------------ | ------ | --- | ------ | ----- | ---------------- |
-| 2.6.1 | `ChartAPI.ts` — typed public methods | ⬜     | 🟠  | 4h     | —     | Embeddable chart |
+| 2.6.1 | `ChartAPI.ts` — typed public methods | ✅     | 🟠  | 4h     | —     | Embeddable chart |
 | 2.6.2 | Typed `EventEmitter`                 | ⬜     | 🟠  | 3h     | —     | Event-driven API |
 | 2.6.3 | Plugin registry with lifecycle hooks | ⬜     | 🟡  | 4h     | 2.6.1 | Extensibility    |
 | 2.6.4 | Configuration schema with JSDoc      | ⬜     | 🟡  | 2h     | —     | Developer docs   |

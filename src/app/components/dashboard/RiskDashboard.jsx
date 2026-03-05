@@ -94,7 +94,7 @@ export default function RiskDashboard() {
   const scoreLabel = risk.riskScore >= 60 ? 'HIGH RISK' : risk.riskScore >= 30 ? 'MODERATE' : 'LOW RISK';
 
   return (
-    <div
+    <div className="tf-container"
       className="tf-risk-dashboard"
       style={{
         padding: isMobile ? '12px 14px' : '14px 18px',

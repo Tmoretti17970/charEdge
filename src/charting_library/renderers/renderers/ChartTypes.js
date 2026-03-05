@@ -71,6 +71,8 @@ export const CHART_TYPES = {
   tick:        { id: 'tick', name: 'Tick Chart', icon: '·', hasVolume: false },
   volumecandle:{ id: 'volumecandle', name: 'Volume Candles', icon: '◧', hasVolume: true },
   hilo:        { id: 'hilo', name: 'Hi-Lo', icon: '↕', hasVolume: true },
+  columns:     { id: 'columns', name: 'Columns', icon: '▐', hasVolume: false },
+  stepline:    { id: 'stepline', name: 'Step Line', icon: '⌐', hasVolume: false },
 };
 
 // ─── Sprint 15: Computation Caches ───────────────────────────────
@@ -872,6 +874,68 @@ export function drawHiLo(ctx, bars, params, theme) {
   }
 }
 
+/**
+ * Draw Columns chart — vertical bars from zero-line, colored by direction.
+ * Useful for rendering volume, delta, or any histogram-style data.
+ */
+export function drawColumns(ctx, bars, params, theme) {
+  if (!bars?.length) return;
+  const { pixelRatio, barSpacing } = params;
+  const bodyW = candleBodyWidth(barSpacing);
+  const bw = Math.max(1, Math.floor(bodyW * pixelRatio));
+
+  // Use midpoint of visible range as zero line
+  let minC = Infinity, maxC = -Infinity;
+  for (let i = 0; i < bars.length; i++) {
+    if (bars[i].close < minC) minC = bars[i].close;
+    if (bars[i].close > maxC) maxC = bars[i].close;
+  }
+  const zeroPrice = (minC + maxC) / 2;
+  const zeroY = priceY(zeroPrice, params);
+
+  for (let i = 0; i < bars.length; i++) {
+    const b = bars[i];
+    const x = barX(i, params);
+    const cY = priceY(b.close, params);
+    const isUp = b.close >= b.open;
+    ctx.fillStyle = isUp ? (theme.bullCandle || theme.candleUp || '#26A69A')
+                         : (theme.bearCandle || theme.candleDown || '#EF5350');
+    const top = Math.min(cY, zeroY);
+    const h = Math.max(1, Math.abs(cY - zeroY));
+    ctx.fillRect(x - Math.floor(bw / 2), top, bw, h);
+  }
+}
+
+/**
+ * Draw Step Line chart — horizontal-then-vertical stair-step path.
+ * Price holds flat until the next bar, then jumps vertically.
+ */
+export function drawStepLine(ctx, bars, params, theme) {
+  if (!bars?.length) return;
+  const { pixelRatio } = params;
+  const lineColor = theme.lineColor || theme.bullCandle || theme.candleUp || '#2962FF';
+
+  ctx.strokeStyle = lineColor;
+  ctx.lineWidth = Math.max(1.5, 2 * pixelRatio);
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+
+  for (let i = 0; i < bars.length; i++) {
+    const x = barX(i, params);
+    const y = priceY(bars[i].close, params);
+    if (i === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      // Horizontal to current x at previous y, then vertical to current y
+      const prevY = priceY(bars[i - 1].close, params);
+      ctx.lineTo(x, prevY);
+      ctx.lineTo(x, y);
+    }
+  }
+  ctx.stroke();
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // Registry
 // ═══════════════════════════════════════════════════════════════════
@@ -899,6 +963,8 @@ export function getChartDrawFunction(typeId) {
     case 'tick':        return drawTickChart;
     case 'volumecandle': return drawVolumeCandles;
     case 'hilo':        return drawHiLo;
+    case 'columns':     return drawColumns;
+    case 'stepline':    return drawStepLine;
     default:            return drawCandlesticks;
   }
 }

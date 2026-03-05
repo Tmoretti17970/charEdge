@@ -74,6 +74,8 @@ export default function NotesPage() {
 
   return (
     <div
+      data-container="notes"
+      className="tf-container"
       style={{
         padding: isMobile ? 16 : 24,
         maxWidth: 900,

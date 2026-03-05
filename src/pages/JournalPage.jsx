@@ -138,7 +138,7 @@ export default function JournalPage() {
   // DESKTOP RENDER
   // ═══════════════════════════════════════════════════════════════
   return (
-    <div role="main" aria-label="Journal" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+    <div role="main" aria-label="Journal" data-container="journal" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
       <JournalHeader
         journalTab={journalTab}
         setJournalTab={setJournalTab}

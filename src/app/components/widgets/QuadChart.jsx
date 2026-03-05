@@ -21,6 +21,8 @@ const LAYOUT_CONFIG = {
   '1x1': { cols: '1fr', rows: '1fr', count: 1 },
   '2x1': { cols: '1fr 1fr', rows: '1fr', count: 2 },
   '1x2': { cols: '1fr', rows: '1fr 1fr', count: 2 },
+  '3x1': { cols: '1fr 1fr 1fr', rows: '1fr', count: 3 },
+  '1x3': { cols: '1fr', rows: '1fr 1fr 1fr', count: 3 },
   '2x2': { cols: '1fr 1fr', rows: '1fr 1fr', count: 4 },
 };
 

@@ -34,7 +34,7 @@ export default function DashboardCommands() {
   if (isMobile) return null; // Desktop only — mobile uses bottom nav
 
   return (
-    <div style={{
+    <div className="tf-container" style={{
       display: 'flex',
       alignItems: 'center',
       gap: 6,

@@ -530,6 +530,34 @@ export function executeDataStage(fs, ctx, engine) {
         cmdBuf.push({ program: webgl.getProgram('line'), blendMode: 0, texture: null, zOrder: 1, label: 'area-chart', drawFn: areaDrawFn });
       } else { areaDrawFn(); }
       renderedViaWebGL = true;
+    } else if (chartType === 'baseline') {
+      // Baseline: green fill above baseline price, red fill below
+      // Uses GL scissor to clip two drawArea passes
+      const baselinePrice = renderBars[0]?.close ?? yMin;
+      const baselineY = Math.round(p2y(baselinePrice) * pr);
+      const gl = webgl.gl;
+      const cH = webgl.canvas.height;
+
+      const baselineDrawFn = () => {
+        const areaParams = { ...webglParams, priceToY: p2y };
+
+        // Upper half: green fill (above baseline)
+        gl.enable(gl.SCISSOR_TEST);
+        gl.scissor(0, cH - baselineY, webgl.canvas.width, baselineY);
+        webgl.drawArea(renderBars, areaParams, '#26A69A', 'rgba(38,166,154,0.12)');
+
+        // Lower half: red fill (below baseline)
+        gl.scissor(0, 0, webgl.canvas.width, cH - baselineY);
+        webgl.drawArea(renderBars, areaParams, '#EF5350', 'rgba(239,83,80,0.12)');
+
+        gl.disable(gl.SCISSOR_TEST);
+      };
+
+      const cmdBuf = ctx.commandBuffer;
+      if (cmdBuf) {
+        cmdBuf.push({ program: webgl.getProgram('line'), blendMode: 0, texture: null, zOrder: 1, label: 'baseline-chart', drawFn: baselineDrawFn });
+      } else { baselineDrawFn(); }
+      renderedViaWebGL = true;
     }
   }
 

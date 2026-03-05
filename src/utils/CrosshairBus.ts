@@ -2,6 +2,7 @@
 // charEdge v10.1 — CrosshairBus (TypeScript)
 // Sprint 5: Timestamp-based crosshair synchronization between panes.
 // Phase 2: Converted to TypeScript.
+// Phase 1.1: Added link-group-aware filtering.
 // ═══════════════════════════════════════════════════════════════════
 
 export interface CrosshairData {
@@ -89,10 +90,29 @@ class CrosshairBus {
 
     private _broadcast(sourcePaneId: string, data: CrosshairData): void {
         const payload: CrosshairPayload = { ...data, sourcePaneId };
+
+        // Link-group-aware filtering: only sync within same group
+        let sourceGroup: string | undefined;
+        let linkStore: { links?: Record<string, string> } | undefined;
+        try {
+            // Lazy access to avoid circular imports — store may not exist yet
+            const mod = require('../state/useChartLinkStore');
+            linkStore = mod?.useChartLinkStore?.getState?.();
+            sourceGroup = linkStore?.links?.[sourcePaneId];
+        } catch (_) {
+            // Link store not available — broadcast to all (backwards compatible)
+        }
+
         for (const [paneId, cb] of this._listeners) {
-            if (paneId !== sourcePaneId) {
-                cb(payload);
+            if (paneId === sourcePaneId) continue;
+
+            // If source has a link group (not 'none'), only sync within that group
+            if (sourceGroup && sourceGroup !== 'none' && linkStore?.links) {
+                const paneGroup = linkStore.links[paneId];
+                if (paneGroup && paneGroup !== sourceGroup) continue;
             }
+
+            cb(payload);
         }
     }
 }

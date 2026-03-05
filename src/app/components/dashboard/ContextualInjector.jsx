@@ -138,7 +138,7 @@ export default function ContextualInjector() {
   const visible = cards.slice(0, 2);
 
   return (
-    <div style={{ marginBottom: 14 }}>
+    <div className="tf-container" style={{ marginBottom: 14 }}>
       {visible.map((card) => {
         const colors = COLOR_MAP[card.color] || COLOR_MAP.blue;
         return (

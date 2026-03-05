@@ -37,6 +37,14 @@ export const CHART_TYPES = [
   { id: 'footprint', label: 'Footprint', engineId: 'footprint' },
   { id: 'renko', label: 'Renko', engineId: 'renko' },
   { id: 'range', label: 'Range Bars', engineId: 'range' },
+  { id: 'kagi', label: 'Kagi', engineId: 'kagi' },
+  { id: 'linebreak', label: 'Line Break', engineId: 'linebreak' },
+  { id: 'pnf', label: 'Point & Figure', engineId: 'pointfigure' },
+  { id: 'tick', label: 'Tick', engineId: 'tick' },
+  { id: 'volumecandle', label: 'Vol Candles', engineId: 'volumecandle' },
+  { id: 'hilo', label: 'Hi-Lo', engineId: 'hilo' },
+  { id: 'columns', label: 'Columns', engineId: 'columns' },
+  { id: 'stepline', label: 'Step Line', engineId: 'stepline' },
 ];
 
 export const EMOJIS = [

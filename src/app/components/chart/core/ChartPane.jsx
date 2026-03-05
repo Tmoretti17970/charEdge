@@ -28,6 +28,7 @@ import { useJournalStore } from '../../../../state/useJournalStore.js';
 import { checkSymbolAlerts } from '../../../../state/useAlertStore.js';
 import { safeClone } from '../../../../utils/safeJSON.js';
 import crosshairBus from '../../../../utils/CrosshairBus.js';
+import { useChartLinkStore, LINK_GROUP_COLORS, LINK_GROUPS } from '../../../../state/useChartLinkStore.ts';
 
 const DEFAULT_INDICATORS = [];
 
@@ -62,6 +63,14 @@ export default function ChartPane({
   // C5.1: Crosshair sync — unique pane ID
   const paneIdRef = useRef(`pane-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`);
   const [syncedTimestamp, setSyncedTimestamp] = useState(null);
+  const [showLinkMenu, setShowLinkMenu] = useState(false);
+
+  // Link group state
+  const linkGroup = useChartLinkStore((s) => s.getLinkGroup(paneIdRef.current));
+  const setLinkGroup = useChartLinkStore((s) => s.setLinkGroup);
+  const broadcastSymbol = useChartLinkStore((s) => s.broadcastSymbol);
+  const subscribeSymbol = useChartLinkStore((s) => s.subscribeSymbol);
+  const removePaneLink = useChartLinkStore((s) => s.removePaneLink);
 
   // Subscribe to crosshair bus
   useEffect(() => {
@@ -71,6 +80,18 @@ export default function ChartPane({
     });
     return unsub;
   }, []);
+
+  // Subscribe to symbol sync from linked charts
+  useEffect(() => {
+    const paneId = paneIdRef.current;
+    const unsub = subscribeSymbol(paneId, (sym) => {
+      setSymbol(sym.toUpperCase());
+    });
+    return () => {
+      unsub();
+      removePaneLink(paneId);
+    };
+  }, []); // eslint-disable-line
 
   // Emit crosshair position to bus
   const handleCrosshairMove = useCallback(({ timestamp, price }) => {
@@ -153,8 +174,14 @@ export default function ChartPane({
 
   // ─── Handlers ─────────────────────────────────────────────
   const handleSymbolSelect = useCallback((sym) => {
-    setSymbol(sym.toUpperCase());
-  }, []);
+    const upper = sym.toUpperCase();
+    setSymbol(upper);
+    // Broadcast to linked charts
+    const group = useChartLinkStore.getState().getLinkGroup(paneIdRef.current);
+    if (group && group !== 'none') {
+      broadcastSymbol(group, upper, paneIdRef.current);
+    }
+  }, [broadcastSymbol]);
 
   const _handleAddIndicator = useCallback((preset) => {
     setIndicators((prev) => [...prev, { ...preset }]);
@@ -209,6 +236,74 @@ export default function ChartPane({
           minHeight: 32,
         }}
       >
+        {/* Link Group Dot */}
+        <div style={{ position: 'relative' }}>
+          <button
+            className="tf-btn"
+            onClick={() => setShowLinkMenu((v) => !v)}
+            title={`Link group: ${linkGroup}`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 22,
+              height: 22,
+              background: 'transparent',
+              border: linkGroup !== 'none' ? `1.5px solid ${LINK_GROUP_COLORS[linkGroup]}` : `1px solid ${C.bd}`,
+              borderRadius: '50%',
+              padding: 0,
+              cursor: 'pointer',
+            }}
+          >
+            <span style={{
+              width: 10,
+              height: 10,
+              borderRadius: '50%',
+              background: linkGroup !== 'none' ? LINK_GROUP_COLORS[linkGroup] : C.t3 + '40',
+            }} />
+          </button>
+          {showLinkMenu && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                zIndex: 999,
+                background: C.sf,
+                border: `1px solid ${C.bd}`,
+                borderRadius: 6,
+                marginTop: 3,
+                padding: 6,
+                display: 'flex',
+                gap: 4,
+                boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+              }}
+              onMouseLeave={() => setShowLinkMenu(false)}
+            >
+              {LINK_GROUPS.map((g) => (
+                <button
+                  key={g}
+                  className="tf-btn"
+                  onClick={() => {
+                    setLinkGroup(paneIdRef.current, g);
+                    setShowLinkMenu(false);
+                  }}
+                  title={g === 'none' ? 'Independent' : `Link: ${g}`}
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: '50%',
+                    background: g === 'none' ? C.bg2 : LINK_GROUP_COLORS[g],
+                    border: linkGroup === g ? '2px solid white' : `1px solid ${C.bd}`,
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Symbol Search */}
         <SymbolSearch onSelect={handleSymbolSelect} currentSymbol={symbol} width={140} />
 

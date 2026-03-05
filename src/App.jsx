@@ -28,6 +28,7 @@ import styles from './App.module.css';
 
 import { useFocusStore } from './state/useFocusStore.js';
 import AuthGate from './app/components/auth/AuthGate.jsx';
+import { animationBudget } from './utils/AnimationBudget.js';
 import { useAuthStore } from './state/useAuthStore.js';
 
 // Lazy-load overlay components (not needed on initial render)
@@ -134,6 +135,9 @@ export default function App() {
   useEffect(() => {
     useUserStore.getState().hydrate();
     useUserStore.getState().init();
+    // Sprint D: Start animation budget monitoring
+    animationBudget.start();
+    return () => animationBudget.stop();
   }, []);
 
   // Initialize Supabase auth listener
@@ -243,6 +247,7 @@ export default function App() {
         <Suspense fallback={<LoadingScreen phase="loading" />}>
           <div
             key={theme}
+            data-container="app"
             className={isMobile ? styles.appRootMobile : styles.appRoot}
           >
             {/* Sprint 23: Skip-to-content for keyboard/screen-reader users */}

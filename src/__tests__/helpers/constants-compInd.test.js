@@ -90,12 +90,16 @@ describe('Constants', () => {
     expect(ICATS.map(c => c.id)).toContain('volume');
   });
 
-  it('CHART_TYPES has 10 types', () => {
-    expect(CHART_TYPES.length).toBe(10);
+  it('CHART_TYPES has 18 types', () => {
+    expect(CHART_TYPES.length).toBe(18);
     const ids = CHART_TYPES.map((ct) => ct.id);
     expect(ids).toContain('candles');
     expect(ids).toContain('line');
     expect(ids).toContain('ohlc');
+    expect(ids).toContain('area');
+    expect(ids).toContain('baseline');
+    expect(ids).toContain('heikinashi');
+    expect(ids).toContain('renko');
   });
 
   it('EMOJIS has entries with e and l', () => {

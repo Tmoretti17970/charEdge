@@ -64,7 +64,7 @@ export default function AchievementShowcase() {
   if (earned.length === 0 && !nextAchievement) return null;
 
   return (
-    <div
+    <div className="tf-container"
       className="tf-achievements"
       style={{
         padding: isMobile ? '12px 14px' : '14px 18px',

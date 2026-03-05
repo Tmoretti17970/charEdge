@@ -19,6 +19,7 @@ const ChangelogPage = React.lazy(() => import('../../pages/ChangelogPage.jsx'));
 const PrivacyPage = React.lazy(() => import('../../pages/PrivacyPage.jsx'));
 const TermsPage = React.lazy(() => import('../../pages/TermsPage.jsx'));
 const LandingPage = React.lazy(() => import('../../pages/LandingPage.jsx'));
+const SpeedtestPage = React.lazy(() => import('../../pages/SpeedtestPage.jsx'));
 // Wave 0: Quarantined — pricing removed until Stripe integration
 // const PricingPage = React.lazy(() => import('../../pages/PricingPage.jsx'));
 
@@ -40,6 +41,7 @@ const PAGES = {
   privacy: PrivacyPage,
   terms: TermsPage,
   landing: LandingPage,
+  speedtest: SpeedtestPage,
   pricing: JournalPage, // Wave 0: Quarantined
   settings: SettingsPage,
   telemetry: TelemetryDashboard,
@@ -146,6 +148,7 @@ export default function PageRouter() {
     privacy: 'Privacy Policy',
     terms: 'Terms of Service',
     landing: 'Landing',
+    speedtest: 'Speed Test',
     pricing: 'Pricing',
   };
 

@@ -303,7 +303,7 @@ export default function MorningBriefing() {
   // ── No-data state ──
   if (!stats) {
     return (
-      <div style={{
+      <div className="tf-container" style={{
         padding: '24px 28px',
         borderRadius: 14,
         background: config.glass,

@@ -142,6 +142,7 @@ function DesktopSettings({ searchFilter = '' }) {
 
   return (
     <div
+      data-container="settings"
       style={{
         padding: 24,
         maxWidth: 720,

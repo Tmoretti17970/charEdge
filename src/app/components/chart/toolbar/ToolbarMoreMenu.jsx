@@ -210,6 +210,8 @@ export default function ToolbarMoreMenu({
               { id: '1x1', label: 'Single', grid: [[1]] },
               { id: '2x1', label: '2 Col', grid: [[1,1]] },
               { id: '1x2', label: '2 Row', grid: [[1],[1]] },
+              { id: '3x1', label: '3 Col', grid: [[1,1,1]] },
+              { id: '1x3', label: '3 Row', grid: [[1],[1],[1]] },
               { id: '2x2', label: 'Quad', grid: [[1,1],[1,1]] },
             ].map(lo => {
               const isActive = layoutMode === lo.id;
