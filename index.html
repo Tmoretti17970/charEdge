@@ -1,43 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <title>charEdge — Find Your Edge</title>
-    <meta name="description" content="Free trading journal & analytics platform. Track every trade, find your edge, and grow as a trader." />
-    <meta property="og:title" content="charEdge — Find Your Edge" />
-    <meta property="og:description" content="Free trading journal & analytics platform. Track every trade, find your edge, and grow as a trader." />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="/icons/og-image.png" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="charEdge — Find Your Edge" />
-    <meta name="twitter:description" content="Free trading journal & analytics. No account required." />
-    <meta name="twitter:image" content="/icons/og-image.png" />
 
-    <!-- PWA -->
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#e8642c" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="charEdge" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
-    <!--ssr-head-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <title>charEdge — Find Your Edge</title>
+  <meta name="description"
+    content="Free trading journal & analytics platform. Track every trade, find your edge, and grow as a trader." />
+  <meta property="og:title" content="charEdge — Find Your Edge" />
+  <meta property="og:description"
+    content="Free trading journal & analytics platform. Track every trade, find your edge, and grow as a trader." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/icons/og-image.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="charEdge — Find Your Edge" />
+  <meta name="twitter:description" content="Free trading journal & analytics. No account required." />
+  <meta name="twitter:image" content="/icons/og-image.png" />
 
-    <!-- Fonts: self-hosted via @fontsource (no external CDN tracking) -->
-    <!-- Loaded via CSS import in src/styles/fonts.css -->
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#e8642c" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="charEdge" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+  <!--ssr-head-->
 
-    <!-- CWV: color-scheme for faster initial paint -->
-    <meta name="color-scheme" content="dark light" />
+  <!-- Fonts: self-hosted via @fontsource (no external CDN tracking) -->
+  <!-- Loaded via CSS import in src/styles/fonts.css -->
 
-    <!-- Critical CSS (extracted for CSP compliance — no unsafe-inline needed) -->
-    <link rel="stylesheet" href="/critical.css" fetchpriority="high" />
+  <!-- CWV: color-scheme for faster initial paint -->
+  <meta name="color-scheme" content="dark light" />
 
-    <!-- JSON-LD: WebApplication structured data for SEO -->
-    <script type="application/ld+json">
+  <!-- Critical CSS (extracted for CSP compliance — no unsafe-inline needed) -->
+  <link rel="stylesheet" href="/critical.css" fetchpriority="high" />
+
+  <!-- JSON-LD: WebApplication structured data for SEO -->
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
@@ -58,17 +61,50 @@
       }
     }
     </script>
-  </head>
-  <body>
-    <div id="root"><!--ssr-outlet--></div>
-    <noscript>
-      <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#09090b;color:#ececef;font-family:Inter,sans-serif;text-align:center;padding:2rem">
-        <div>
-          <h1 style="font-size:1.5rem;margin-bottom:0.5rem">charEdge</h1>
-          <p style="color:#888">JavaScript is required to run this app. Please enable JavaScript or try a different browser.</p>
-        </div>
+</head>
+
+<body>
+  <div id="root"><!--ssr-outlet--></div>
+  <noscript>
+    <div
+      style="display:flex;align-items:center;justify-content:center;height:100vh;background:#09090b;color:#ececef;font-family:Inter,sans-serif;text-align:center;padding:2rem">
+      <div>
+        <h1 style="font-size:1.5rem;margin-bottom:0.5rem">charEdge</h1>
+        <p style="color:#888">JavaScript is required to run this app. Please enable JavaScript or try a different
+          browser.</p>
       </div>
-    </noscript>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+    </div>
+  </noscript>
+  <script>
+    // Error catcher — runs before module scripts to catch Safari/mobile JS crashes
+    window.addEventListener('error', function (e) {
+      var root = document.getElementById('root');
+      if (root && !root.hasChildNodes()) {
+        root.innerHTML = '<div style="padding:2rem;color:#ececef;font-family:sans-serif;text-align:center;max-width:500px;margin:auto;margin-top:20vh">' +
+          '<h2 style="color:#f59e0b;margin-bottom:1rem">⚠️ Loading Error</h2>' +
+          '<p style="font-size:13px;color:#888;margin-bottom:1rem">charEdge encountered an error loading on this browser.</p>' +
+          '<p style="font-size:11px;color:#ef4444;word-break:break-all;background:#1a1a2e;padding:12px;border-radius:8px;text-align:left">' +
+          (e.message || 'Unknown error') + '<br><br>' + (e.filename || '') + ':' + (e.lineno || '') +
+          '</p>' +
+          '<button onclick="location.reload()" style="margin-top:1rem;padding:10px 24px;border:none;border-radius:8px;background:#f59e0b;color:#fff;font-weight:700;cursor:pointer">Reload</button>' +
+          '</div>';
+      }
+    });
+    window.addEventListener('unhandledrejection', function (e) {
+      var root = document.getElementById('root');
+      if (root && !root.hasChildNodes()) {
+        var msg = e.reason ? (e.reason.message || String(e.reason)) : 'Unknown promise rejection';
+        root.innerHTML = '<div style="padding:2rem;color:#ececef;font-family:sans-serif;text-align:center;max-width:500px;margin:auto;margin-top:20vh">' +
+          '<h2 style="color:#f59e0b;margin-bottom:1rem">⚠️ Loading Error</h2>' +
+          '<p style="font-size:13px;color:#888;margin-bottom:1rem">charEdge encountered an error loading on this browser.</p>' +
+          '<p style="font-size:11px;color:#ef4444;word-break:break-all;background:#1a1a2e;padding:12px;border-radius:8px;text-align:left">' +
+          msg + '</p>' +
+          '<button onclick="location.reload()" style="margin-top:1rem;padding:10px 24px;border:none;border-radius:8px;background:#f59e0b;color:#fff;font-weight:700;cursor:pointer">Reload</button>' +
+          '</div>';
+      }
+    });
+  </script>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
 </html>
