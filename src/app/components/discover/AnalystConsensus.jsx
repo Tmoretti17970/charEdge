@@ -10,29 +10,45 @@ import { alpha } from '../../../utils/colorUtils.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 
 const MOCK_CONSENSUS = [
-  { symbol: 'NVDA', name: 'NVIDIA', current: 892.50, targetLow: 750, targetAvg: 1050, targetHigh: 1400, buy: 38, hold: 5, sell: 1, upside: 17.6, recentChanges: [
-    { analyst: 'Morgan Stanley', firm: 'MS', rating: 'Overweight', target: 1160, accuracy: 82, date: '02/23' },
-    { analyst: 'Goldman Sachs', firm: 'GS', rating: 'Buy', target: 1100, accuracy: 78, date: '02/20' },
-  ]},
-  { symbol: 'AAPL', name: 'Apple', current: 198.30, targetLow: 160, targetAvg: 220, targetHigh: 260, buy: 28, hold: 12, sell: 3, upside: 10.9, recentChanges: [
-    { analyst: 'JP Morgan', firm: 'JPM', rating: 'Overweight', target: 235, accuracy: 75, date: '02/22' },
-  ]},
-  { symbol: 'TSLA', name: 'Tesla', current: 248.60, targetLow: 120, targetAvg: 265, targetHigh: 400, buy: 15, hold: 18, sell: 12, upside: 6.6, recentChanges: [
-    { analyst: 'Wedbush', firm: 'WED', rating: 'Outperform', target: 380, accuracy: 65, date: '02/24' },
-    { analyst: 'Bernstein', firm: 'AB', rating: 'Underperform', target: 150, accuracy: 72, date: '02/21' },
-  ]},
-  { symbol: 'MSFT', name: 'Microsoft', current: 415.80, targetLow: 380, targetAvg: 480, targetHigh: 550, buy: 42, hold: 4, sell: 0, upside: 15.4, recentChanges: [
-    { analyst: 'UBS', firm: 'UBS', rating: 'Buy', target: 500, accuracy: 80, date: '02/23' },
-  ]},
-  { symbol: 'META', name: 'Meta', current: 498.60, targetLow: 400, targetAvg: 560, targetHigh: 650, buy: 52, hold: 6, sell: 1, upside: 12.3, recentChanges: [
-    { analyst: 'Barclays', firm: 'BARC', rating: 'Overweight', target: 580, accuracy: 77, date: '02/24' },
-  ]},
-  { symbol: 'AMZN', name: 'Amazon', current: 185.20, targetLow: 160, targetAvg: 220, targetHigh: 260, buy: 58, hold: 3, sell: 0, upside: 18.8, recentChanges: [
-    { analyst: 'BofA', firm: 'BAC', rating: 'Buy', target: 230, accuracy: 74, date: '02/22' },
-  ]},
+  {
+    symbol: 'NVDA', name: 'NVIDIA', current: 892.50, targetLow: 750, targetAvg: 1050, targetHigh: 1400, buy: 38, hold: 5, sell: 1, upside: 17.6, recentChanges: [
+      { analyst: 'Morgan Stanley', firm: 'MS', rating: 'Overweight', target: 1160, accuracy: 82, date: '02/23' },
+      { analyst: 'Goldman Sachs', firm: 'GS', rating: 'Buy', target: 1100, accuracy: 78, date: '02/20' },
+    ]
+  },
+  {
+    symbol: 'AAPL', name: 'Apple', current: 198.30, targetLow: 160, targetAvg: 220, targetHigh: 260, buy: 28, hold: 12, sell: 3, upside: 10.9, recentChanges: [
+      { analyst: 'JP Morgan', firm: 'JPM', rating: 'Overweight', target: 235, accuracy: 75, date: '02/22' },
+    ]
+  },
+  {
+    symbol: 'TSLA', name: 'Tesla', current: 248.60, targetLow: 120, targetAvg: 265, targetHigh: 400, buy: 15, hold: 18, sell: 12, upside: 6.6, recentChanges: [
+      { analyst: 'Wedbush', firm: 'WED', rating: 'Outperform', target: 380, accuracy: 65, date: '02/24' },
+      { analyst: 'Bernstein', firm: 'AB', rating: 'Underperform', target: 150, accuracy: 72, date: '02/21' },
+    ]
+  },
+  {
+    symbol: 'MSFT', name: 'Microsoft', current: 415.80, targetLow: 380, targetAvg: 480, targetHigh: 550, buy: 42, hold: 4, sell: 0, upside: 15.4, recentChanges: [
+      { analyst: 'UBS', firm: 'UBS', rating: 'Buy', target: 500, accuracy: 80, date: '02/23' },
+    ]
+  },
+  {
+    symbol: 'META', name: 'Meta', current: 498.60, targetLow: 400, targetAvg: 560, targetHigh: 650, buy: 52, hold: 6, sell: 1, upside: 12.3, recentChanges: [
+      { analyst: 'Barclays', firm: 'BARC', rating: 'Overweight', target: 580, accuracy: 77, date: '02/24' },
+    ]
+  },
+  {
+    symbol: 'AMZN', name: 'Amazon', current: 185.20, targetLow: 160, targetAvg: 220, targetHigh: 260, buy: 58, hold: 3, sell: 0, upside: 18.8, recentChanges: [
+      { analyst: 'BofA', firm: 'BAC', rating: 'Buy', target: 230, accuracy: 74, date: '02/22' },
+    ]
+  },
 ];
 
-const RATINGS = { 'Overweight': C.g, 'Outperform': C.g, 'Buy': C.g, 'Hold': C.y, 'Neutral': C.y, 'Underweight': C.r, 'Underperform': C.r, 'Sell': C.r };
+let _RATINGS = null;
+function getRatings() {
+  if (!_RATINGS) _RATINGS = { 'Overweight': C.g, 'Outperform': C.g, 'Buy': C.g, 'Hold': C.y, 'Neutral': C.y, 'Underweight': C.r, 'Underperform': C.r, 'Sell': C.r };
+  return _RATINGS;
+}
 
 export default function AnalystConsensus() {
   const [collapsed, setCollapsed] = useState(false);
@@ -155,7 +171,7 @@ export default function AnalystConsensus() {
                             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', background: alpha(C.sf, 0.3), borderRadius: 6, fontSize: 10 }}>
                               <span style={{ color: C.t3, fontFamily: M, minWidth: 40 }}>{rc.date}</span>
                               <span style={{ fontWeight: 600, color: C.t1, fontFamily: F, minWidth: 60 }}>{rc.firm}</span>
-                              <span style={{ fontWeight: 600, color: RATINGS[rc.rating] || C.t2, fontFamily: F }}>{rc.rating}</span>
+                              <span style={{ fontWeight: 600, color: getRatings()[rc.rating] || C.t2, fontFamily: F }}>{rc.rating}</span>
                               <span style={{ color: C.t1, fontFamily: M, marginLeft: 'auto' }}>PT ${rc.target}</span>
                               <span style={{ fontSize: 9, color: C.t3, fontFamily: M }}>({rc.accuracy}% acc)</span>
                             </div>

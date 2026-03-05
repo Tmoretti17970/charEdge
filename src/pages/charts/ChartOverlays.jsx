@@ -211,28 +211,45 @@ export default function ChartOverlays({
             y={radialMenu.y}
             price={radialMenu.price}
             onClose={() => setRadialMenu(null)}
-            onAction={(segId, price) => {
-              switch (segId) {
-                case 'draw':
-                  setDrawSidebarOpen(true);
-                  break;
-                case 'trade':
-                  useChartStore.getState().startTradeMode('long');
-                  break;
-                case 'alert':
-                  contextMenuHandlers.onAddAlert?.(price);
-                  break;
-                case 'indicator':
-                  setShowIndicators(true);
-                  break;
-                case 'measure':
-                  useChartStore.getState().setActiveTool('measure');
-                  break;
-                case 'screenshot':
-                  setShowSnapshotPublisher(true);
-                  break;
-                default:
-                  break;
+            onAction={(segId, subItemId, actionPrice) => {
+              // ── Draw submenu ──
+              if (segId === 'draw') {
+                if (subItemId === 'more') { setDrawSidebarOpen(true); return; }
+                useChartStore.getState().setActiveTool(subItemId); // trendline, hline, fib, channel, rect
+                return;
+              }
+              // ── Trade submenu ──
+              if (segId === 'trade') {
+                if (subItemId === 'more') { /* future: open full trade panel */ return; }
+                if (subItemId === 'long') { useChartStore.getState().startTradeMode('long'); return; }
+                if (subItemId === 'short') { useChartStore.getState().startTradeMode('short'); return; }
+                if (subItemId === 'close') { /* future: close position */ return; }
+                return;
+              }
+              // ── Alert submenu ──
+              if (segId === 'alert') {
+                if (subItemId === 'more') { /* future: open alerting panel */ return; }
+                contextMenuHandlers.onAddAlert?.(actionPrice);
+                return;
+              }
+              // ── Indicator submenu ──
+              if (segId === 'indicator') {
+                if (subItemId === 'more') { setShowIndicators(true); return; }
+                // Directly add indicator by id (rsi, ema, macd, bollinger, vwap)
+                try { useChartStore.getState().addIndicator({ indicatorId: subItemId }); } catch (_) { /* noop */ }
+                return;
+              }
+              // ── Measure submenu ──
+              if (segId === 'measure') {
+                if (subItemId === 'more') { /* future */ return; }
+                useChartStore.getState().setActiveTool('measure');
+                return;
+              }
+              // ── Screenshot submenu ──
+              if (segId === 'screenshot') {
+                if (subItemId === 'more') { setShowSnapshotPublisher(true); return; }
+                setShowSnapshotPublisher(true);
+                return;
               }
             }}
           />

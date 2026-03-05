@@ -37,9 +37,9 @@ const CONFLUENCE_DATA = [
   { symbol: 'TSLA', tf5m: 'bull', tf15m: 'bull', tf1h: 'neutral', tf4h: 'bear', tf1d: 'neutral', score: 42 },
 ];
 
-const CONF_COLORS = { bull: C.g, bear: C.r, neutral: C.y };
+function getConfColors() { return { bull: C.g, bear: C.r, neutral: C.y }; }
 const CONF_ICONS = { bull: '▲', bear: '▼', neutral: '—' };
-const STRENGTH_COLORS = { strong: C.g, high: C.cyan, medium: C.y };
+function getStrengthColors() { return { strong: C.g, high: C.cyan, medium: C.y }; }
 
 const TABS = ['patterns', 'signals', 'confluence'];
 const CONFIDENCE_FILTERS = ['all', 'high', 'medium'];
@@ -139,8 +139,8 @@ export default function TechnicalScanner() {
                     <div style={{ fontSize: 11, fontWeight: 600, color: C.t1, fontFamily: F }}>{s.signal}</div>
                     <div style={{ fontSize: 9, color: C.t3, fontFamily: F }}>{s.detected}</div>
                   </div>
-                  <span style={{ fontSize: 9, fontWeight: 600, color: STRENGTH_COLORS[s.strength] || C.t3, background: alpha(STRENGTH_COLORS[s.strength] || C.t3, 0.1), padding: '2px 6px', borderRadius: 4, fontFamily: F, textTransform: 'capitalize' }}>{s.strength}</span>
-                  <span style={{ fontSize: 9, fontWeight: 700, fontFamily: F, color: CONF_COLORS[s.direction === 'bullish' ? 'bull' : s.direction === 'bearish' ? 'bear' : 'neutral'] }}>
+                  <span style={{ fontSize: 9, fontWeight: 600, color: getStrengthColors()[s.strength] || C.t3, background: alpha(getStrengthColors()[s.strength] || C.t3, 0.1), padding: '2px 6px', borderRadius: 4, fontFamily: F, textTransform: 'capitalize' }}>{s.strength}</span>
+                  <span style={{ fontSize: 9, fontWeight: 700, fontFamily: F, color: getConfColors()[s.direction === 'bullish' ? 'bull' : s.direction === 'bearish' ? 'bear' : 'neutral'] }}>
                     {s.direction === 'bullish' ? '▲ BULL' : s.direction === 'bearish' ? '▼ BEAR' : '— NEUT'}
                   </span>
                 </div>
@@ -160,7 +160,7 @@ export default function TechnicalScanner() {
                   <div key={cd.symbol} style={{ display: 'grid', gridTemplateColumns: '60px repeat(5, 1fr) 60px', gap: 4, padding: '10px 10px', background: alpha(C.sf, 0.5), borderRadius: 6, alignItems: 'center', border: `1px solid ${alpha(C.bd, 0.3)}` }}>
                     <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: F }}>{cd.symbol}</span>
                     {['tf5m', 'tf15m', 'tf1h', 'tf4h', 'tf1d'].map((tf) => (
-                      <span key={tf} style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: CONF_COLORS[cd[tf]], fontFamily: M }}>{CONF_ICONS[cd[tf]]}</span>
+                      <span key={tf} style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: getConfColors()[cd[tf]], fontFamily: M }}>{CONF_ICONS[cd[tf]]}</span>
                     ))}
                     <div style={{ textAlign: 'right' }}>
                       <span style={{ fontSize: 13, fontWeight: 700, fontFamily: M, color: cd.score >= 70 ? C.g : cd.score >= 50 ? C.y : C.r }}>{cd.score}</span>

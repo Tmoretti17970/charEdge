@@ -14,8 +14,8 @@ import { SectionHeader } from './SettingsHelpers.jsx';
 
 // ─── Shared Styles ───────────────────────────────────────────────
 
-const subLabel = { fontSize: 13, fontWeight: 700, color: C.t1, marginBottom: 4 };
-const subHint = { fontSize: 11, color: C.t3, marginBottom: 16 };
+function subLabel() { return { fontSize: 13, fontWeight: 700, color: C.t1, marginBottom: 4 }; }
+function subHint() { return { fontSize: 11, color: C.t3, marginBottom: 16 }; }
 const cardWrap = { padding: 20, marginBottom: 12 };
 
 // ─── Theme Picker ────────────────────────────────────────────────
@@ -32,11 +32,11 @@ function ThemePicker() {
 
   return (
     <Card style={cardWrap}>
-      <div style={subLabel}>
+      <div style={subLabel()}>
         <TFIcon name="layers" size={14} style={{ marginRight: 6, verticalAlign: -2 }} />
         Theme Mode
       </div>
-      <div style={subHint}>Choose your preferred interface theme</div>
+      <div style={subHint()}>Choose your preferred interface theme</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
         {options.map((opt) => {
           const active = theme === opt.value;
@@ -82,11 +82,11 @@ function AccentColorPicker() {
 
   return (
     <Card style={cardWrap}>
-      <div style={subLabel}>
+      <div style={subLabel()}>
         <TFIcon name="palette" size={14} style={{ marginRight: 6, verticalAlign: -2 }} />
         Accent Color
       </div>
-      <div style={subHint}>Personalize buttons, links, and highlights</div>
+      <div style={subHint()}>Personalize buttons, links, and highlights</div>
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
         {ACCENT_PRESETS.map((preset) => {
@@ -187,11 +187,11 @@ function FontSizeSlider() {
 
   return (
     <Card style={cardWrap}>
-      <div style={subLabel}>
+      <div style={subLabel()}>
         <TFIcon name="edit" size={14} style={{ marginRight: 6, verticalAlign: -2 }} />
         Font Size
       </div>
-      <div style={subHint}>
+      <div style={subHint()}>
         Adjust the base font size across the interface
       </div>
 
@@ -247,11 +247,11 @@ function ChartStylePicker() {
 
   return (
     <Card style={cardWrap}>
-      <div style={subLabel}>
+      <div style={subLabel()}>
         <TFIcon name="chart" size={14} style={{ marginRight: 6, verticalAlign: -2 }} />
         Chart Colors
       </div>
-      <div style={subHint}>Choose candle color styling for charts</div>
+      <div style={subHint()}>Choose candle color styling for charts</div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 8 }}>
         {CHART_COLOR_PRESETS.map((preset) => {
@@ -323,11 +323,11 @@ function DensityPicker() {
 
   return (
     <Card style={cardWrap}>
-      <div style={subLabel}>
+      <div style={subLabel()}>
         <TFIcon name="settings" size={14} style={{ marginRight: 6, verticalAlign: -2 }} />
         UI Density
       </div>
-      <div style={subHint}>Controls spacing, font sizes, and control sizes across the app.</div>
+      <div style={subHint()}>Controls spacing, font sizes, and control sizes across the app.</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8 }}>
         {options.map((opt) => {
           const isActive = densityMode === opt.value;
@@ -361,7 +361,7 @@ function SimpleModePicker() {
     <Card style={cardWrap}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
         <div style={{ flex: 1 }}>
-          <div style={subLabel}>
+          <div style={subLabel()}>
             <TFIcon name="layers" size={14} style={{ marginRight: 6, verticalAlign: -2 }} />
             Simple Mode
           </div>

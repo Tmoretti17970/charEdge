@@ -20,7 +20,7 @@ import { fmtD } from '../../../utils.js';
 import { safeSum } from '../../../charting_library/model/Money.js';
 // Wave 0: PollCard quarantined — social features removed from v1.0 scope
 
-// ─── Shared styles ──────────────────────────────────────────────
+// ─── Shared styles (functions to avoid TDZ with C/F/M imports) ──
 const hdr = (_label, _icon) => ({
   display: 'flex',
   alignItems: 'center',
@@ -41,8 +41,8 @@ const metricRow = {
   fontSize: 11,
 };
 
-const metricLabel = { color: C.t2, fontFamily: F };
-const metricValue = (color) => ({ fontFamily: M, fontWeight: 700, color: color || C.t1 });
+function getMetricLabel() { return { color: C.t2, fontFamily: F }; }
+function getMetricValue(color) { return { fontFamily: M, fontWeight: 700, color: color || C.t1 }; }
 
 // ═══════════════════════════════════════════════════════════════════
 // C8.3 — STREAK WIDGET
@@ -127,12 +127,12 @@ export const StreakWidget = memo(function StreakWidget({ trades }) {
 
       {/* Best / Worst */}
       <div style={metricRow}>
-        <span style={metricLabel}>Best Win Streak</span>
-        <span style={metricValue(C.g)}>{best}</span>
+        <span style={getMetricLabel()}>Best Win Streak</span>
+        <span style={getMetricValue(C.g)}>{best}</span>
       </div>
       <div style={metricRow}>
-        <span style={metricLabel}>Worst Loss Streak</span>
-        <span style={metricValue(C.r)}>{worst}</span>
+        <span style={getMetricLabel()}>Worst Loss Streak</span>
+        <span style={getMetricValue(C.r)}>{worst}</span>
       </div>
 
       {/* Mini streak history bar */}
@@ -571,16 +571,16 @@ export const DailyDebriefWidget = memo(function DailyDebriefWidget({ trades, _re
           {/* Best / Worst */}
           {debrief.bestTrade && (
             <div style={metricRow}>
-              <span style={metricLabel}>Best Trade</span>
-              <span style={metricValue(C.g)}>
+              <span style={getMetricLabel()}>Best Trade</span>
+              <span style={getMetricValue(C.g)}>
                 {debrief.bestTrade.symbol} {fmtD(debrief.bestTrade.pnl)}
               </span>
             </div>
           )}
           {debrief.worstTrade && debrief.worstTrade.id !== debrief.bestTrade?.id && (
             <div style={metricRow}>
-              <span style={metricLabel}>Worst Trade</span>
-              <span style={metricValue(C.r)}>
+              <span style={getMetricLabel()}>Worst Trade</span>
+              <span style={getMetricValue(C.r)}>
                 {debrief.worstTrade.symbol} {fmtD(debrief.worstTrade.pnl)}
               </span>
             </div>
