@@ -125,13 +125,21 @@ const AnimatedNumber = memo(function AnimatedNumber({
 
   // Flash class on value change
   const [flash, setFlash] = useState(false);
+  // Phase 4 Task 4.2.7: Directional tick flash (green ↑ / red ↓)
+  const [tickDir, setTickDir] = useState(null); // 'up' | 'down' | null
   const prevValueRef = useRef(value);
 
   useEffect(() => {
     if (prevValueRef.current !== value) {
       setFlash(true);
+      // Directional tick for price morphing
+      if (value > prevValueRef.current) {
+        setTickDir('up');
+      } else if (value < prevValueRef.current) {
+        setTickDir('down');
+      }
       prevValueRef.current = value;
-      const t = setTimeout(() => setFlash(false), 600);
+      const t = setTimeout(() => { setFlash(false); setTickDir(null); }, 600);
       return () => clearTimeout(t);
     }
   }, [value]);
@@ -146,9 +154,11 @@ const AnimatedNumber = memo(function AnimatedNumber({
     ? value >= 0 ? 'tf-glow-positive' : 'tf-glow-negative'
     : '';
 
+  const tickClass = tickDir === 'up' ? 'tf-tick-up' : tickDir === 'down' ? 'tf-tick-down' : '';
+
   return (
     <span
-      className={`tf-stat-value tf-data-mono ${flash ? 'tf-stat-flash' : ''} ${glowClass} ${className}`.trim()}
+      className={`tf-stat-value tf-data-mono ${flash ? 'tf-stat-flash' : ''} ${tickClass} ${glowClass} ${className}`.trim()}
       style={{ fontVariantNumeric: 'tabular-nums', ...colorStyle, ...style }}
       aria-label={formatValue(value, { decimals, prefix, suffix, format })}
     >

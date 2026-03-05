@@ -1,3 +1,5 @@
+import { logger } from '../../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v11 — Price Aggregator Engine
 //
@@ -33,10 +35,10 @@ const CONFIG = {
 // ─── Confidence Levels ──────────────────────────────────────────
 
 export const CONFIDENCE = {
-  HIGH:   'high',     // 3+ fresh, non-outlier sources
+  HIGH: 'high',     // 3+ fresh, non-outlier sources
   MEDIUM: 'medium',   // 2 fresh sources
-  LOW:    'low',      // 1 fresh source
-  STALE:  'stale',    // 0 fresh sources, using last known price
+  LOW: 'low',      // 1 fresh source
+  STALE: 'stale',    // 0 fresh sources, using last known price
 };
 
 // ─── Helper Functions ───────────────────────────────────────────
@@ -90,11 +92,11 @@ class SourceBuffer {
   }
 
   get isFresh() {
-    return (Date.now() - this.timestamp) < CONFIG.STALENESS_THRESHOLD_MS;
+    return (performance.now() - this.timestamp) < CONFIG.STALENESS_THRESHOLD_MS;
   }
 
   get age() {
-    return Date.now() - this.timestamp;
+    return performance.now() - this.timestamp;
   }
 
   get rollingMean() {
@@ -134,7 +136,7 @@ class SymbolState {
    *   4. Score confidence
    */
   aggregate() {
-    const now = Date.now();
+    const now = performance.now();
     const freshSources = [];
     const staleSources = [];
 
@@ -201,7 +203,7 @@ class SymbolState {
 
     // Notify subscribers
     for (const cb of this.subscribers) {
-      try { cb(result); } catch { /* ignore */ }
+      try { cb(result); } catch (e) { logger.data.warn('Operation failed', e); }
     }
 
     return result;
@@ -298,7 +300,7 @@ export class PriceAggregator {
    */
   subscribe(symbol, callback) {
     const upper = symbol?.toUpperCase();
-    if (!upper) return () => {};
+    if (!upper) return () => { };
 
     let state = this._symbols.get(upper);
     if (!state) {
@@ -351,7 +353,7 @@ export class PriceAggregator {
     for (const [id, stats] of this._sourceHealth) {
       health[id] = {
         ...stats,
-        isHealthy: (Date.now() - stats.lastSeen) < this._config.STALENESS_THRESHOLD_MS * 2,
+        isHealthy: (performance.now() - stats.lastSeen) < this._config.STALENESS_THRESHOLD_MS * 2,
       };
     }
     return health;
@@ -401,11 +403,11 @@ export class PriceAggregator {
   _trackSourceHealth(sourceId) {
     let health = this._sourceHealth.get(sourceId);
     if (!health) {
-      health = { updates: 0, errors: 0, lastSeen: 0, firstSeen: Date.now() };
+      health = { updates: 0, errors: 0, lastSeen: 0, firstSeen: performance.now() };
       this._sourceHealth.set(sourceId, health);
     }
     health.updates++;
-    health.lastSeen = Date.now();
+    health.lastSeen = performance.now();
   }
 }
 

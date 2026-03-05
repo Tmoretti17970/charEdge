@@ -60,7 +60,7 @@ class AnalyticsBridge {
 
       this._worker.terminate();
       this._worker = null;
-    } catch {
+    } catch (_) {
       // Worker creation failed (CSP, module support, etc.)
     }
 

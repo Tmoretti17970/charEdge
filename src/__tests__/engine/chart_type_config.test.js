@@ -3,7 +3,7 @@
 //
 // Validates Sprint 15 enhancements:
 //   1. ChartTypes.js — configParams schema, caching, getChartTypeDefaults
-//   2. uiSlice.js — chartTypeConfig state, persistence
+//   2. uiSlice.ts — chartTypeConfig state, persistence
 //   3. ChartSettingsPanel.jsx — Chart Type tab
 // ═══════════════════════════════════════════════════════════════════
 
@@ -94,9 +94,9 @@ describe('Sprint 15 · ChartTypes — Draw function config support', () => {
   });
 });
 
-// ─── 3. uiSlice.js — chartTypeConfig state ───────────────────────
+// ─── 3. uiSlice.ts — chartTypeConfig state ───────────────────────
 describe('Sprint 15 · uiSlice — Chart Type Config State', () => {
-  const src = read('state/chart/uiSlice.js');
+  const src = read('state/chart/uiSlice.ts');
 
   it('has chartTypeConfig state', () => {
     expect(src).toContain('chartTypeConfig:');

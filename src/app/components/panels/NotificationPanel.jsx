@@ -109,7 +109,7 @@ export default function NotificationPanel() {
           zIndex: 8001,
           display: 'flex',
           flexDirection: 'column',
-          animation: 'tfSlideIn 0.2s ease-out',
+          animation: 'scaleInSm 0.2s ease-out',
         }}
       >
         {/* Header */}
@@ -218,13 +218,6 @@ export default function NotificationPanel() {
           Ctrl+. to toggle · Esc to close
         </div>
 
-        {/* Slide-in animation */}
-        <style>{`
-          @keyframes tfSlideIn {
-            from { transform: translateX(100%); }
-            to   { transform: translateX(0); }
-          }
-        `}</style>
       </div>
     </>
   );

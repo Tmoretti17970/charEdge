@@ -7,15 +7,21 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { createDrawingEngine } from '../tools/tools/DrawingEngine.js';
+import { LAYERS } from './LayerManager.js';
 import { createDrawingRenderer } from '../tools/tools/DrawingRenderer.js';
 import { debouncedSave } from '../tools/DrawingPersistence.js';
 
 import type { Bar } from '../../types/chart.js';
 
 /** Minimal interface for the engine properties the setup needs. */
+// Extended engine ref to include layers for dirty marking
+interface LayersRef {
+  markDirty(layer: string): void;
+}
 interface EngineRef {
   bars: Bar[];
-  props: { magnetMode?: boolean; [key: string]: unknown };
+  layers: LayersRef;
+  props: { magnetMode?: boolean;[key: string]: unknown };
   state: {
     lastRender: { vis?: Bar[] } | null;
     mainDirty: boolean;
@@ -82,6 +88,7 @@ export function createChartDrawingSetup(engine: EngineRef) {
     onChange: (drawings: unknown[]) => {
       engine.state.mainDirty = true;
       engine.state.topDirty = true;
+      if (engine.layers) engine.layers.markDirty(LAYERS.DRAWINGS);
       engine._scheduleDraw();
       if (engine.callbacks.onDrawingsChange) engine.callbacks.onDrawingsChange(drawings);
       // Sprint 13.1: Auto-save drawings to IndexedDB
@@ -91,6 +98,7 @@ export function createChartDrawingSetup(engine: EngineRef) {
     },
     onStateChange: (state: unknown) => {
       engine.state.topDirty = true;
+      if (engine.layers) engine.layers.markDirty(LAYERS.DRAWINGS);
       engine._scheduleDraw();
       if (engine.callbacks.onDrawingStateChange) engine.callbacks.onDrawingStateChange(state);
     },

@@ -1,3 +1,5 @@
+import { logger } from '../../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v15 — Streaming Metrics Engine
 //
@@ -638,7 +640,7 @@ class _StreamingMetrics {
     if (state._subscribers.size === 0) return;
     const snapshot = this.getSnapshot(state.symbol);
     for (const cb of state._subscribers) {
-      try { cb(snapshot); } catch { /* ignore */ }
+      try { cb(snapshot); } catch (e) { logger.data.warn('Operation failed', e); }
     }
   }
 }

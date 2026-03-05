@@ -10,7 +10,7 @@ let _analyticsData = null;
 try {
   const raw = localStorage.getItem(ANALYTICS_KEY);
   if (raw) _analyticsData = JSON.parse(raw);
-} catch {}
+} catch (_) { /* storage may be blocked */ }
 
 const DEFAULT_ANALYTICS = {
   // Feature usage counters
@@ -39,7 +39,7 @@ export function getAnalytics() {
 
 function persist(data) {
   _analyticsData = data;
-  try { localStorage.setItem(ANALYTICS_KEY, JSON.stringify(data)); } catch {}
+  try { localStorage.setItem(ANALYTICS_KEY, JSON.stringify(data)); } catch (_) { /* storage may be blocked */ }
 }
 
 /**

@@ -234,7 +234,7 @@ describe('PrefetchPredictor — ML-lite prefetching', () => {
   });
 
   afterEach(() => {
-    try { localStorage.removeItem('charEdge-prefetch-model'); } catch {}
+    try { localStorage.removeItem('charEdge-prefetch-model'); } catch (_) { /* storage may be blocked */ }
   });
 
   it('recordView stores hourly frequency', () => {
@@ -426,14 +426,14 @@ describe('MemoryBudget — threshold check and degradation triggers', () => {
 // ── MemoryBudget — import path correctness ──────────────────────
 
 describe('MemoryBudget — import path correctness', () => {
-  it('uses ../DataCache.js (single-hop) not ../../data/DataCache.js', async () => {
+  it('uses ../DataCache.ts (single-hop) not ../../data/DataCache.ts', async () => {
     const fs = await import('fs');
     const source = fs.readFileSync(
       new URL('../../data/engine/infra/MemoryBudget.js', import.meta.url),
       'utf-8'
     );
-    expect(source).toContain("'../../DataCache.js'");
-    expect(source).not.toContain("'../../../data/DataCache.js'");
+    expect(source).toContain("'../../DataCache.ts'");
+    expect(source).not.toContain("'../../../data/DataCache.ts'");
   });
 });
 

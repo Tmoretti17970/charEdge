@@ -37,7 +37,7 @@ export function getFrequentSymbols(limit = 10) {
       .map(([symbol, count]) => ({ symbol, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, limit);
-  } catch {
+  } catch (_) {
     return [];
   }
 }
@@ -53,7 +53,7 @@ export function recordSymbolView(symbol) {
     const freq = raw ? JSON.parse(raw) : {};
     freq[symbol] = (freq[symbol] || 0) + 1;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(freq));
-  } catch {
+  } catch (_) {
     // localStorage not available
   }
 }
@@ -88,7 +88,7 @@ async function _fillGaps(symbol, interval, fetchFn) {
       await opfsBarStore.putCandles(symbol, interval, merged);
       filled = olderBars.length;
     }
-  } catch {
+  } catch (_) {
     errors++;
   }
 
@@ -129,11 +129,11 @@ export async function startAccumulator(opts = {}) {
   // Default fetch function uses FetchService's Binance pagination
   const fetchFn = opts.fetchFn || (async (sym, interval, fetchOpts) => {
     try {
-      const { fetchOHLC } = await import('../../FetchService.js');
+      const { fetchOHLC } = await import('../../FetchService.ts');
       // Pass fetchOpts so endTime is respected for gap-filling
       const result = await fetchOHLC(sym, interval, fetchOpts);
       return result?.data || null;
-    } catch {
+    } catch (_) {
       return null;
     }
   });

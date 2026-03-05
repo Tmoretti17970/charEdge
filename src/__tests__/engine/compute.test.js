@@ -164,7 +164,7 @@ describe('1.3.2 — Binary WebSocket wire format', () => {
   let wsSource;
 
   beforeAll(() => {
-    wsSource = readSource('data/WebSocketService.js');
+    wsSource = readSource('data/WebSocketService.ts');
   });
 
   it('WebSocketService has lazy BinaryCodec import', () => {

@@ -358,8 +358,13 @@ describe('6.4 — PositionPanel', () => {
   });
 
   it('color-codes P&L (green positive, red negative)', () => {
-    expect(panelSource).toContain('#10b981'); // Green
-    expect(panelSource).toContain('#ef4444'); // Red
+    // Colors now live in CSS module
+    const cssSource = fs.readFileSync(
+      'src/app/components/chart/panels/PositionPanel.module.css', 'utf8',
+    );
+    expect(cssSource).toContain('#10b981'); // Green
+    expect(cssSource).toContain('#ef4444'); // Red
+    // JSX uses CSS module class names
     expect(panelSource).toContain('plPositive');
     expect(panelSource).toContain('plNegative');
   });

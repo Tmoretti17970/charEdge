@@ -129,7 +129,7 @@ export class CoinbaseAdapter extends BaseAdapter {
       let stats = null;
       try {
         stats = await fetchJSON(`${CB_REST}/products/${productId}/stats`);
-      } catch { /* optional */ }
+      } catch (e) { logger.data.warn('Operation failed', e); }
 
       const openPrice = stats ? parseFloat(stats.open) : lastPrice;
       return {
@@ -141,7 +141,7 @@ export class CoinbaseAdapter extends BaseAdapter {
         low: stats ? parseFloat(stats.low) : lastPrice,
         open: openPrice,
       };
-    } catch {
+    } catch (_) {
       return null;
     }
   }
@@ -194,7 +194,7 @@ export class CoinbaseAdapter extends BaseAdapter {
           type: 'CRYPTO',
           exchange: 'Coinbase',
         }));
-    } catch {
+    } catch (_) {
       return [];
     }
   }
@@ -238,7 +238,7 @@ export class CoinbaseAdapter extends BaseAdapter {
         try {
           const msg = JSON.parse(event.data);
           this._handleMessage(msg);
-        } catch { /* ignore parse errors */ }
+        } catch (e) { logger.data.warn('Operation failed', e); }
       };
 
       this._ws.onclose = () => {
@@ -287,7 +287,7 @@ export class CoinbaseAdapter extends BaseAdapter {
       };
 
       for (const cb of callbacks) {
-        try { cb(tick); } catch { /* ignore */ }
+        try { cb(tick); } catch (e) { logger.data.warn('Operation failed', e); }
       }
     }
   }

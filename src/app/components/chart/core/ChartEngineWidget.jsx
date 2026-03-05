@@ -16,6 +16,7 @@ import { tradeNav, findBarByTimestamp } from '../../../../utils/navigateToTrade.
 import TradeMarkerOverlay from '../overlays/TradeMarkerOverlay.jsx';
 
 import { datafeedService } from '../../../../charting_library/datafeed/DatafeedService.js';
+import { tickChannel } from '../../../../charting_library/core/TickChannel.js';
 import { createIndicatorInstance, INDICATORS } from '../../../../charting_library/studies/indicators/registry.js';
 import { indicatorBridge } from '../../../../data/engine/indicators/IndicatorWorkerBridge.js';
 import { ChartEngine } from '../../../../charting_library/core/ChartEngine.js';
@@ -366,7 +367,7 @@ export default function ChartEngineWidget({
       engineRef.current?.destroy();
       engineRef.current = null;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Update properties
@@ -431,12 +432,12 @@ export default function ChartEngineWidget({
         setStatus('ready');
         setStoreData(bars, 'binance');
         setDataSource('binance');
-        engineRef.current.setData(bars);
+        // TickChannel delivers to engine directly; this is for React state only
       },
       onTick: (bars, latestBar) => {
         barsRef.current = bars;
         setBarCount(bars.length);
-        engineRef.current.setData(bars);
+        // Engine gets data directly from TickChannel (rAF-batched, bypasses React)
       },
       onError: (err) => {
         logger.engine.error('Datafeed error:', err);
@@ -445,7 +446,16 @@ export default function ChartEngineWidget({
       },
     });
 
-    return () => unsubscribe();
+    // Subscribe engine to TickChannel for direct tick delivery (8.1.1 + 8.1.2)
+    const tickKey = `${binanceSymbol}_${binanceTf}`;
+    const unsubTick = engineRef.current
+      ? tickChannel.subscribe(tickKey, engineRef.current)
+      : null;
+
+    return () => {
+      unsubscribe();
+      if (unsubTick) unsubTick();
+    };
   }, [binanceSymbol, binanceTf, setStoreData]);
 
   const indicatorInstancesRef = useRef([]);
@@ -531,7 +541,7 @@ export default function ChartEngineWidget({
           dataSource={dataSource}
           onRetry={() => {
             setStatus('loading');
-            import('../../../../data/FetchService.js').then(({ fetchOHLC }) => {
+            import('../../../../data/FetchService.ts').then(({ fetchOHLC }) => {
               fetchOHLC(symbol, tf).then(({ data: newData, source }) => {
                 if (newData?.length) {
                   barsRef.current = newData;
@@ -617,7 +627,6 @@ export default function ChartEngineWidget({
         />
       )}
 
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }

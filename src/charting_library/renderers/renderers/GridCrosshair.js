@@ -19,7 +19,7 @@ import { positionsLine } from '../../core/CoordinateSystem.js';
  */
 
 export const DEFAULT_GRID_THEME = {
-  color: 'rgba(54, 58, 69, 0.3)', // #363A45 at 30% — TradingView default
+  color: 'rgba(54, 58, 69, 0.05)', // 8.3.8: Ghost grid — 5% opacity for better data-ink ratio (Tufte)
   borderColor: 'rgba(54, 58, 69, 0.6)',
 };
 
@@ -89,6 +89,9 @@ export const DEFAULT_CROSSHAIR_THEME = {
   labelBg: '#363A45',
   labelText: '#D1D4DC',
   labelFont: '11px Arial',
+  // 8.2.2: Phosphor glow at crosshair intersection
+  glowColor: 'rgba(149, 152, 161, 0.35)',
+  glowRadius: 28,
 };
 
 /**
@@ -146,6 +149,17 @@ export function createCrosshairRenderer(theme = DEFAULT_CROSSHAIR_THEME) {
       ctx.stroke();
 
       ctx.setLineDash([]);
+
+      // ── 8.2.2: Phosphor glow at intersection ──
+      const glowR = Math.round((currentTheme.glowRadius || 28) * pixelRatio);
+      const glowColor = currentTheme.glowColor || 'rgba(149, 152, 161, 0.35)';
+      const gradient = ctx.createRadialGradient(vX, hY, 0, vX, hY, glowR);
+      gradient.addColorStop(0, glowColor);
+      gradient.addColorStop(1, 'rgba(149, 152, 161, 0)');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(vX, hY, glowR, 0, Math.PI * 2);
+      ctx.fill();
     },
   };
 }

@@ -140,7 +140,7 @@ export class Bloom {
 
     try {
       this._blurCanvas = new OffscreenCanvas(w, h);
-    } catch {
+    } catch (_) {
       if (typeof document !== 'undefined') {
         this._blurCanvas = document.createElement('canvas');
         this._blurCanvas.width = w;

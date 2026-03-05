@@ -112,7 +112,7 @@ class DataPipeline extends EventTarget {
     }
 
     // Clear state
-    for (const unsub of this._subscriptions.values()) { try { unsub(); } catch {} }
+    for (const unsub of this._subscriptions.values()) { try { unsub(); } catch (e) { logger.data.warn('Operation failed', e); } }
     this._subscriptions.clear();
     this._symbolSources.clear();
 
@@ -150,7 +150,7 @@ class DataPipeline extends EventTarget {
     // Subscribe to aggregated price updates to track source info
     // Clean up any existing subscription before re-subscribing
     const existingUnsub = this._subscriptions.get(upper);
-    if (existingUnsub) { try { existingUnsub(); } catch {} }
+    if (existingUnsub) { try { existingUnsub(); } catch (e) { logger.data.warn('Operation failed', e); } }
 
     const unsub = tickerPlant.subscribe(upper, (aggData) => {
       this._updateSourceTracking(upper, aggData);
@@ -170,7 +170,7 @@ class DataPipeline extends EventTarget {
 
     // Clean up subscription to prevent leak
     const unsub = this._subscriptions.get(upper);
-    if (unsub) { try { unsub(); } catch {} this._subscriptions.delete(upper); }
+    if (unsub) { try { unsub(); } catch (e) { logger.data.warn('Operation failed', e); } this._subscriptions.delete(upper); }
 
     tickerPlant.unwatch(upper);
     this._symbolSources.delete(upper);
@@ -222,7 +222,7 @@ class DataPipeline extends EventTarget {
   getConfidence(symbol) {
     try {
       return pythAdapter.getConfidence(symbol);
-    } catch {
+    } catch (_) {
       return null;
     }
   }

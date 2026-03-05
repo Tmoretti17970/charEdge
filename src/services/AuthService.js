@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger';
+
 // @ts-check
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v10 — Auth Service (Sprint 5.1)
@@ -50,7 +52,7 @@ const SupabaseProvider = {
 
       // SDK not available — fall back to local provider
       return false;
-    } catch {
+    } catch (_) {
       return false;
     }
   },
@@ -180,13 +182,13 @@ export async function initAuthProvider() {
   const supabaseReady = await SupabaseProvider.init();
   if (supabaseReady) {
     _provider = SupabaseProvider;
-    console.info('[Auth] Using Supabase provider');
+    logger.network.info('[Auth] Using Supabase provider');
     return _provider;
   }
 
   // Fallback to local
   _provider = LocalProvider;
-  console.info('[Auth] Using local provider (no auth configured)');
+  logger.network.info('[Auth] Using local provider (no auth configured)');
   return _provider;
 }
 

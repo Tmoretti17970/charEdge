@@ -25,7 +25,7 @@
   width: 100%;
   text-align: left;
   padding: 6px 10px;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   background: none;
   border: none;
   cursor: pointer;

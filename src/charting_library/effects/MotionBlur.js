@@ -144,7 +144,7 @@ export class MotionBlur {
 
     try {
       this._prevFrame = new OffscreenCanvas(w, h);
-    } catch {
+    } catch (_) {
       if (typeof document !== 'undefined') {
         this._prevFrame = document.createElement('canvas');
         this._prevFrame.width = w;

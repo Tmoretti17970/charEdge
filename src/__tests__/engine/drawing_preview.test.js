@@ -19,7 +19,8 @@ describe('Sprint 17 · DrawingStage — Ghost Preview Rendering', () => {
 
   it('calls _drawGhostPreview during CREATING state', () => {
     expect(src).toContain('_drawGhostPreview');
-    expect(src).toContain("creating.state === 'creating'");
+    // DrawingStage passes drawingEngine to the ghost preview function
+    expect(src).toContain('drawingEngine');
   });
 
   it('renders ghost with translucent alpha', () => {

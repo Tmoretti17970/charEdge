@@ -38,7 +38,7 @@ export default function MobileShareSheet({ isOpen, onClose, canvas, chartInfo = 
       canvas.toBlob((blob) => {
         if (blob) setImageBlob(blob);
       }, 'image/png');
-    } catch {
+    } catch (_) {
       toast.error('Failed to capture chart');
       onClose();
     }
@@ -73,7 +73,7 @@ export default function MobileShareSheet({ isOpen, onClose, canvas, chartInfo = 
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': imageBlob })]);
       toast.success('Copied to clipboard');
       onClose();
-    } catch {
+    } catch (_) {
       toast.error('Clipboard not available');
     }
   }, [imageBlob, onClose]);
@@ -92,24 +92,10 @@ export default function MobileShareSheet({ isOpen, onClose, canvas, chartInfo = 
 
   // ─── Post to Social Feed ──────────────────────────────────
   const handlePostToFeed = useCallback(async () => {
-    if (!imageData) return;
-    try {
-      const { publishSnapshot } = await import('../../../data/SocialService.js');
-      await publishSnapshot({
-        image: imageData,
-        caption: `${chartInfo.symbol || 'Chart'} ${(chartInfo.tf || '').toUpperCase()} Analysis`,
-        tags: [chartInfo.symbol?.toLowerCase()].filter(Boolean),
-        symbol: chartInfo.symbol,
-        timeframe: chartInfo.tf,
-        chartType: chartInfo.chartType,
-        createdAt: new Date().toISOString(),
-      });
-      toast.success('Posted to feed!');
-      onClose();
-    } catch {
-      toast.error('Post failed');
-    }
-  }, [imageData, chartInfo, onClose]);
+    // Wave 0: Social features quarantined — post to feed disabled
+    toast.info('Social sharing coming soon!');
+    onClose();
+  }, [onClose]);
 
   if (!isOpen) return null;
 
@@ -204,12 +190,6 @@ export default function MobileShareSheet({ isOpen, onClose, canvas, chartInfo = 
           </button>
         </div>
 
-        <style>{`
-          @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-          }
-        `}</style>
       </div>
     </>
   );

@@ -17,8 +17,9 @@ import { useWorkspaceStore } from './state/useWorkspaceStore.js';
 import { useWatchlistStore } from './state/useWatchlistStore.js';
 import { useGamificationStore } from './state/useGamificationStore.js';
 import { useAnalyticsStore } from './state/useAnalyticsStore.js';
-import { StorageService } from './data/StorageService.js';
+import { StorageService } from './data/StorageService.ts';
 import { storageAdapter } from './data/StorageAdapter.js';
+import { logger } from './utils/logger';
 
 const AUTOSAVE_DELAY = 1500; // ms — debounce window for auto-save
 
@@ -48,7 +49,7 @@ export function setupAutoSave() {
             storageAdapter.tradePlans.replaceAll(state.tradePlans),
           ]);
         } catch (err) {
-          console.warn('[AutoSave] Trades auto-save failed:', err);
+          logger.ui.warn('[AutoSave] Trades auto-save failed:', err);
         }
       }, AUTOSAVE_DELAY);
     }),
@@ -64,7 +65,7 @@ export function setupAutoSave() {
           const { _update, _hydrate, _reset, ...data } = state;
           await StorageService.settings.set('settings', data);
         } catch (err) {
-          console.warn('[AutoSave] Settings auto-save failed:', err);
+          logger.ui.warn('[AutoSave] Settings auto-save failed:', err);
         }
       }, AUTOSAVE_DELAY);
     }),
@@ -80,7 +81,7 @@ export function setupAutoSave() {
           const data = useUserStore.getState().onboardingToJSON();
           await StorageService.settings.set('onboarding', data);
         } catch (err) {
-          console.warn('[AutoSave] Onboarding auto-save failed:', err);
+          logger.ui.warn('[AutoSave] Onboarding auto-save failed:', err);
         }
       }, AUTOSAVE_DELAY);
     }),
@@ -97,7 +98,7 @@ export function setupAutoSave() {
           const data = useScriptStore.getState().toJSON();
           await StorageService.settings.set('scripts', data);
         } catch (err) {
-          console.warn('[AutoSave] Scripts auto-save failed:', err);
+          logger.ui.warn('[AutoSave] Scripts auto-save failed:', err);
         }
       }, AUTOSAVE_DELAY);
     }),
@@ -112,7 +113,7 @@ export function setupAutoSave() {
         try {
           await StorageService.settings.set('workspaces', state.workspaces);
         } catch (err) {
-          console.warn('[AutoSave] Workspaces auto-save failed:', err);
+          logger.ui.warn('[AutoSave] Workspaces auto-save failed:', err);
         }
       }, AUTOSAVE_DELAY);
     }),
@@ -128,7 +129,7 @@ export function setupAutoSave() {
         try {
           await StorageService.settings.set('watchlist', state.items);
         } catch (err) {
-          console.warn('[AutoSave] Watchlist auto-save failed:', err);
+          logger.ui.warn('[AutoSave] Watchlist auto-save failed:', err);
         }
       }, AUTOSAVE_DELAY);
     }),
@@ -144,7 +145,7 @@ export function setupAutoSave() {
           const data = useGamificationStore.getState().toJSON();
           await StorageService.settings.set('gamification', data);
         } catch (err) {
-          console.warn('[AutoSave] Gamification auto-save failed:', err);
+          logger.ui.warn('[AutoSave] Gamification auto-save failed:', err);
         }
       }, AUTOSAVE_DELAY);
     }),
@@ -160,7 +161,7 @@ export function setupAutoSave() {
           const data = useAnalyticsStore.getState().toJSON();
           await StorageService.settings.set('telemetry', data);
         } catch (err) {
-          console.warn('[AutoSave] Telemetry auto-save failed:', err);
+          logger.ui.warn('[AutoSave] Telemetry auto-save failed:', err);
         }
       }, AUTOSAVE_DELAY * 2); // less frequent than other stores
     }),

@@ -35,7 +35,7 @@
 }
 
 .pricePercent {
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   opacity: 0.7;
 }
 
@@ -48,7 +48,7 @@
 }
 
 .badge {
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   padding: 2px 6px;
   border-radius: 6px;
   background: rgba(22, 24, 29, 0.6);
@@ -57,7 +57,7 @@
 }
 
 .replayBadge {
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   padding: 2px 6px;
   border-radius: 6px;
   font-weight: 600;

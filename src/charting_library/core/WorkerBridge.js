@@ -1,3 +1,5 @@
+import { logger } from '../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — WorkerBridge
 //
@@ -40,10 +42,10 @@ export class WorkerBridge {
       };
 
       this._indicatorWorker.onerror = (err) => {
-        console.warn('[WorkerBridge] Indicator worker error:', err.message);
+        logger.engine.warn('[WorkerBridge] Indicator worker error:', err.message);
       };
     } catch (err) {
-      console.warn('[WorkerBridge] Failed to create indicator worker:', err.message);
+      logger.engine.warn('[WorkerBridge] Failed to create indicator worker:', err.message);
       this._indicatorWorker = null;
     }
   }

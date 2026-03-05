@@ -43,7 +43,7 @@
   gap: 4px;
   padding: 3px 10px;
   border-radius: 12px;
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   font-weight: 600;
 }
 

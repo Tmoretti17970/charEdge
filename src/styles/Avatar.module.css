@@ -19,9 +19,9 @@
   color: #fff;
 }
 
-.sm { width: 28px; height: 28px; font-size: 11px; }
-.md { width: 36px; height: 36px; font-size: 13px; }
-.lg { width: 48px; height: 48px; font-size: 16px; }
+.sm { width: 28px; height: 28px; font-size: var(--fs-xs); }
+.md { width: 36px; height: 36px; font-size: var(--fs-sm); }
+.lg { width: 48px; height: 48px; font-size: var(--fs-md); }
 
 .image {
   width: 100%;

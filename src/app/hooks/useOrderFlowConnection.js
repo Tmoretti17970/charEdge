@@ -15,8 +15,8 @@
 
 import { useEffect, useRef } from 'react';
 import { orderFlowBridge } from '../../data/engine/orderflow/OrderFlowBridge.js';
-import { orderFlowEngine } from '../../data/engine/orderflow/OrderFlowEngine.js';
-import { depthEngine } from '../../data/engine/orderflow/DepthEngine.js';
+import { orderFlowEngine } from '../../data/engine/orderflow/OrderFlowEngine.ts';
+import { depthEngine } from '../../data/engine/orderflow/DepthEngine.ts';
 import { getAggregator } from '../../data/OrderFlowAggregator.js';
 import { streamingIndicatorBridge } from '../../data/engine/indicators/StreamingIndicatorBridge.js';
 import { cacheManager } from '../../data/engine/infra/CacheManager.js';
@@ -43,10 +43,17 @@ export function useOrderFlowConnection(binanceSymbol, tf = '1h') {
   const prevSymbolRef = useRef(null);
   const depthUnsubRef = useRef(null);
   const evictionTimerRef = useRef(null);
+  const cleanupTimerRef = useRef(null);
 
   useEffect(() => {
     const upper = (binanceSymbol || '').toUpperCase();
     const prevSymbol = prevSymbolRef.current;
+
+    // Cancel any pending cleanup from a previous unmount (React Strict Mode double-mount)
+    if (cleanupTimerRef.current) {
+      clearTimeout(cleanupTimerRef.current);
+      cleanupTimerRef.current = null;
+    }
 
     // Disconnect previous symbol if switching
     if (prevSymbol && prevSymbol !== upper) {
@@ -68,7 +75,7 @@ export function useOrderFlowConnection(binanceSymbol, tf = '1h') {
       // 1. Warm-start from persisted ticks (instant CVD, VP, delta, footprint)
       try {
         await orderFlowEngine.warmStart(upper, 10 * 60 * 1000); // Last 10 minutes
-      } catch {
+      } catch (_) {
         // Non-fatal: proceed to live connection regardless
       }
 
@@ -95,24 +102,29 @@ export function useOrderFlowConnection(binanceSymbol, tf = '1h') {
       // 6. Schedule periodic storage eviction (every 5 minutes)
       if (!evictionTimerRef.current) {
         evictionTimerRef.current = setInterval(() => {
-          cacheManager.evictAll().catch(() => {}); // intentional: periodic eviction is best-effort
+          cacheManager.evictAll().catch(() => { }); // intentional: periodic eviction is best-effort
         }, 5 * 60 * 1000);
       }
     })();
 
-    // Cleanup on unmount
+    // Cleanup on unmount — debounced to survive React Strict Mode double-mount
     return () => {
       cancelled = true;
-      orderFlowBridge.disconnect(upper);
-      streamingIndicatorBridge.deactivate(upper);
-      if (depthUnsubRef.current) {
-        depthUnsubRef.current();
-        depthUnsubRef.current = null;
-      }
-      if (evictionTimerRef.current) {
-        clearInterval(evictionTimerRef.current);
-        evictionTimerRef.current = null;
-      }
+      // Delay the actual disconnect so that a rapid remount (Strict Mode)
+      // cancels this timer before any WS teardown happens
+      cleanupTimerRef.current = setTimeout(() => {
+        cleanupTimerRef.current = null;
+        orderFlowBridge.disconnect(upper);
+        streamingIndicatorBridge.deactivate(upper);
+        if (depthUnsubRef.current) {
+          depthUnsubRef.current();
+          depthUnsubRef.current = null;
+        }
+        if (evictionTimerRef.current) {
+          clearInterval(evictionTimerRef.current);
+          evictionTimerRef.current = null;
+        }
+      }, 200);
     };
   }, [binanceSymbol, tf]);
 }

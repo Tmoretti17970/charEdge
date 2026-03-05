@@ -187,6 +187,11 @@ export default function AIInsightCard() {
         </div>
       </div>
 
+      {/* Financial disclaimer */}
+      <div style={{ fontSize: 9, color: C.t3, fontFamily: F, marginTop: 10, opacity: 0.7 }}>
+        ⚖️ For educational purposes only — not financial advice.
+      </div>
+
       {/* Dot indicators + navigation */}
       {insights.length > 1 && (
         <div style={{

@@ -66,7 +66,7 @@ class _FrankfurterAdapter {
       if (!resp.ok) return null;
 
       return await resp.json();
-    } catch {
+    } catch (_) {
       return null;
     }
   }
@@ -119,7 +119,7 @@ class _FrankfurterAdapter {
         rate: json.rates?.[to] || null,
         date: json.date,
       };
-    } catch {
+    } catch (_) {
       return null;
     }
   }
@@ -133,7 +133,7 @@ class _FrankfurterAdapter {
       const resp = await fetch(`${BASE_URL}/currencies`);
       if (!resp.ok) return {};
       return await resp.json();
-    } catch {
+    } catch (_) {
       return {};
     }
   }
@@ -159,7 +159,7 @@ class _FrankfurterAdapter {
         Math.pow(r.CHF, 0.036);
 
       return Math.round(dxy * 100) / 100;
-    } catch {
+    } catch (_) {
       return null;
     }
   }

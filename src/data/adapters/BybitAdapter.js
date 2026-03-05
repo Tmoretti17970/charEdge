@@ -144,7 +144,7 @@ export class BybitAdapter extends BaseAdapter {
           type: 'CRYPTO',
           exchange: 'Bybit',
         }));
-    } catch {
+    } catch (_) {
       return [];
     }
   }
@@ -193,7 +193,7 @@ export class BybitAdapter extends BaseAdapter {
         try {
           const msg = JSON.parse(event.data);
           this._handleMessage(msg);
-        } catch { /* ignore parse errors */ }
+        } catch (e) { logger.data.warn('Operation failed', e); }
       };
 
       this._ws.onclose = () => {
@@ -243,7 +243,7 @@ export class BybitAdapter extends BaseAdapter {
           side: trade.S === 'Buy' ? 'buy' : 'sell',
         };
         for (const cb of callbacks) {
-          try { cb(tick); } catch { /* ignore */ }
+          try { cb(tick); } catch (e) { logger.data.warn('Operation failed', e); }
         }
       }
     }

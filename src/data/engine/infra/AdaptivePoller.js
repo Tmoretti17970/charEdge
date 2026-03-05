@@ -115,7 +115,7 @@ class _AdaptivePoller {
     });
 
     // Execute immediately on first schedule
-    try { callback(); } catch { /* first poll failure is non-fatal */ }
+    try { callback(); } catch (e) { logger.data.warn('Operation failed', e); }
 
     return id;
   }

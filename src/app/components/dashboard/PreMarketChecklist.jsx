@@ -37,7 +37,7 @@ export default function PreMarketChecklist() {
     try {
       const saved = localStorage.getItem('tf-premarket-' + getTodayKey());
       return saved ? JSON.parse(saved) : {};
-    } catch { return {}; }
+    } catch (_) { return {}; }
   });
   // Sprint 1: Auto-collapse on same-day revisits or if already completed
   const [collapsed, setCollapsed] = useState(() => {
@@ -53,15 +53,15 @@ export default function PreMarketChecklist() {
       // Collapse on revisit (not first visit today)
       if (visited) return true;
       // Mark first visit
-      try { localStorage.setItem('tf-premarket-visited-' + todayKey, '1'); } catch {}
+      try { localStorage.setItem('tf-premarket-visited-' + todayKey, '1'); } catch (_) { /* storage may be blocked */ }
       return false;
-    } catch {}
+    } catch (_) { /* storage may be blocked */ }
     return false;
   });
   const [xpAwarded, setXpAwarded] = useState(() => {
     try {
       return localStorage.getItem('tf-premarket-xp-' + getTodayKey()) === 'true';
-    } catch { return false; }
+    } catch (_) { return false; }
   });
 
   const completedCount = useMemo(() =>
@@ -74,7 +74,7 @@ export default function PreMarketChecklist() {
       const next = { ...prev, [id]: !prev[id] };
       try {
         localStorage.setItem('tf-premarket-' + getTodayKey(), JSON.stringify(next));
-      } catch {}
+      } catch (_) { /* storage may be blocked */ }
 
       // Check if all done → award XP + auto-collapse
       const nowAllDone = PRE_MARKET_ITEMS.every((i) => next[i.id]);
@@ -83,7 +83,7 @@ export default function PreMarketChecklist() {
         setXpAwarded(true);
         try {
           localStorage.setItem('tf-premarket-xp-' + getTodayKey(), 'true');
-        } catch {}
+        } catch (_) { /* storage may be blocked */ }
         // Sprint 1: Auto-collapse after completion with a brief delay for feedback
         setTimeout(() => setCollapsed(true), 1200);
       }

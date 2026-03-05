@@ -33,7 +33,7 @@ const ChartAnalysisPanel = React.lazy(() => import('../../app/components/chart/p
 const WalkForwardPanel = React.lazy(() => import('../../app/components/chart/panels/WalkForwardPanel.jsx'));
 const FuturesAnalytics = React.lazy(() => import('../../app/components/chart/panels/FuturesAnalytics.jsx'));
 const PaperTradeWidget = React.lazy(() => import('../../app/components/chart/panels/PaperTradeWidget.jsx'));
-const ContextualPoll = React.lazy(() => import('../../app/components/social/ContextualPoll.jsx'));
+// Wave 0: ContextualPoll quarantined — social features removed from v1.0 scope
 
 /** Mobile floating action button */
 function MobileFab({ icon, onClick, active }) {
@@ -285,12 +285,7 @@ export default function ChartOverlays({
         </div>
       )}
 
-      {/* Contextual Poll (gated: social) */}
-      {isEnabled(FEATURES.SOCIAL) && !multiMode && !isMobile && (
-        <Suspense fallback={null}>
-          <ContextualPoll symbol={symbol} />
-        </Suspense>
-      )}
+      {/* Wave 0: ContextualPoll quarantined — social features removed from v1.0 scope */}
 
       {/* Strategy Backtester Panel (gated: backtesting) */}
       {isEnabled(FEATURES.BACKTESTING) && backtestPanelOpen && !multiMode && !isMobile && (

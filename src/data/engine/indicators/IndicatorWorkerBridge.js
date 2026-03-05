@@ -31,10 +31,10 @@ let _dataCache = null;
 async function getCache() {
   if (_dataCache) return _dataCache;
   try {
-    const mod = await import('../../DataCache.js');
+    const mod = await import('../../DataCache.ts');
     _dataCache = mod.dataCache || mod.default;
     return _dataCache;
-  } catch {
+  } catch (_) {
     return null;
   }
 }
@@ -66,7 +66,7 @@ class _IndicatorWorkerBridge {
           this._ready = true;
           resolve(true);
         }
-      } catch {
+      } catch (_) {
         this._fallback = true;
         resolve(false);
       }
@@ -107,7 +107,7 @@ class _IndicatorWorkerBridge {
           const cached = await cache.getIndicator(symbol, tf, indicator);
           if (cached) return cached;
         }
-      } catch { /* cache miss, proceed */ }
+      } catch (e) { logger.data.warn('Operation failed', e); }
     }
 
     // 2. Compute (worker or fallback)
@@ -125,7 +125,7 @@ class _IndicatorWorkerBridge {
       try {
         const cache = await getCache();
         if (cache) await cache.putIndicator(symbol, tf, indicator, result);
-      } catch { /* cache write failure is non-fatal */ }
+      } catch (e) { logger.data.warn('Operation failed', e); }
     }
 
     return result;
@@ -155,7 +155,7 @@ class _IndicatorWorkerBridge {
             params: task.params,
             priority: 'high',
           }).then(data => ({ indicator: task.indicator, data }))
-           .catch(() => ({ indicator: task.indicator, data: this._computeOnMainThread(task.indicator, task.params, bars) }))
+            .catch(() => ({ indicator: task.indicator, data: this._computeOnMainThread(task.indicator, task.params, bars) }))
         );
         const settled = await Promise.all(promises);
         const results = {};
@@ -197,7 +197,7 @@ class _IndicatorWorkerBridge {
   _computeOnMainThread(indicator, params = {}, bars) {
     const fn = indicators[indicator];
     if (!fn) {
-      logger.worker.warn(`[IndicatorBridge] Unknown indicator: ${indicator}`);
+      logger.worker.debug(`[IndicatorBridge] Unknown indicator: ${indicator}`);
       return [];
     }
 

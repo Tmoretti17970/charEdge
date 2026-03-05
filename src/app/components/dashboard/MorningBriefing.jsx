@@ -18,6 +18,7 @@ import { useBreakpoints } from '../../../utils/useMediaQuery.js';
 import { fmtD } from '../../../utils.js';
 const useDisplayUnitStore = useUserStore; // consolidated into useUserStore
 import { Card } from '../ui/UIKit.jsx';
+import { logger } from '../../../utils/logger';
 
 // ─── Session Phase Detection ─────────────────────────────────────
 
@@ -161,7 +162,7 @@ export default function MorningBriefing() {
 
   // Trader name
   let traderName = '';
-  try { traderName = useUserStore.getState()?.profile?.name || ''; } catch { /* noop */ }
+  try { traderName = useUserStore.getState()?.profile?.name || ''; } catch (e) { logger.ui.warn('Operation failed', e); }
   const nameLabel = traderName || 'Trader';
 
   // Settings

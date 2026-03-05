@@ -7,6 +7,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { logger } from '../../../utils/logger';
 
 // ─── Default Watchlist ─────────────────────────────────────────
 
@@ -145,14 +146,14 @@ export default function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
       try {
         const depthMod = await import('../../data/engine/orderflow/DepthEngine.js');
         depthEngine = depthMod.depthEngine;
-      } catch { /* not available */ }
+      } catch (e) { logger.ui.warn('Operation failed', e); }
 
       // OrderFlowEngine — CVD, aggressor ratio, tick rates
       let orderFlowEngine;
       try {
         const ofMod = await import('../../data/engine/orderflow/OrderFlowEngine.js');
         orderFlowEngine = ofMod.orderFlowEngine;
-      } catch { /* not available */ }
+      } catch (e) { logger.ui.warn('Operation failed', e); }
 
       for (const symbol of symbols) {
         const upper = symbol.toUpperCase();
@@ -186,7 +187,7 @@ export default function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
             entry.cvd = cvd?.current || 0;
             entry.aggressorBuy = aggressor?.buyPercent || 50;
             entry.aggressorSell = aggressor?.sellPercent || 50;
-          } catch { /* ok */ }
+          } catch (e) { logger.ui.warn('Operation failed', e); }
         }
 
         snap[upper] = entry;
@@ -199,9 +200,9 @@ export default function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
         const { depthFlowCorrelator } = await import('../../data/engine/orderflow/DepthFlowCorrelator.js');
         const events = depthFlowCorrelator.getRecentEvents?.(10) || [];
         setCorrelatorEvents(events);
-      } catch { /* ok */ }
+      } catch (e) { logger.ui.warn('Operation failed', e); }
 
-    } catch { /* non-fatal */ }
+    } catch (e) { logger.ui.warn('Operation failed', e); }
   }, [symbols]);
 
   useEffect(() => {

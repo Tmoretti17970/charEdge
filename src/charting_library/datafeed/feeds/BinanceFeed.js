@@ -16,6 +16,7 @@
 
 import { RESOLUTION_MS, normalizeResolution } from './DataFeed.js';
 import { createLRUCache, getTTLForResolution, barCacheKey } from './LRUCache.js';
+import { logger } from '../../../utils/logger';
 
 // ── Binance API endpoints ──
 const REST_BASE =
@@ -244,7 +245,7 @@ export function createBinanceFeed(options = {}) {
 
             onBar(bar);
           }
-        } catch {
+        } catch (_) {
           // Silently ignore parse errors (heartbeats, etc.)
         }
       };
@@ -493,7 +494,7 @@ export function createBinanceFeed(options = {}) {
       if (sub.ws) {
         try {
           sub.ws.close(1000, 'unsubscribed');
-        } catch {}
+        } catch (e) { logger.engine.warn('Operation failed', e); }
       }
 
       subscriptions.delete(subId);
@@ -532,7 +533,7 @@ export function createBinanceFeed(options = {}) {
         if (sub.ws) {
           try {
             sub.ws.close(1000, 'disposed');
-          } catch {}
+          } catch (e) { logger.engine.warn('Operation failed', e); }
         }
       }
       subscriptions.clear();

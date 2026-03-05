@@ -55,7 +55,7 @@ try {
   }).catch(() => {
     logger.worker.warn('[DataSharedWorker] BinaryCodec unavailable — using JSON fallback');
   });
-} catch {
+} catch (_) {
   // BinaryCodec not available, JSON fallback
 }
 
@@ -180,7 +180,7 @@ self.onconnect = function(event) {
                 if (!stats.compressionEnabled) {
                   stats.bytesRelayed += JSON.stringify(encodedMsg).length;
                 }
-              } catch {
+              } catch (_) {
                 // Port might be closed
                 subscribers.delete(subPort);
                 clients.delete(subPort);
@@ -247,7 +247,7 @@ self.onconnect = function(event) {
                 source: msg.source,
               });
               stats.messagesRelayed++;
-            } catch {
+            } catch (_) {
               // Port closed
               clients.delete(waiterPort);
             }
@@ -294,7 +294,7 @@ function cleanup(port) {
     if (entry.fetcher === port) {
       // The fetcher disconnected — notify waiters of failure
       for (const waiter of entry.waiters) {
-        try { waiter.postMessage({ type: 'fetch-result', key, data: null, source: 'error' }); } catch {}
+        try { waiter.postMessage({ type: 'fetch-result', key, data: null, source: 'error' }); } catch (_) { /* storage may be blocked */ }
       }
       inflightFetches.delete(key);
     }

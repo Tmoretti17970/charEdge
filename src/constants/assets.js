@@ -44,6 +44,24 @@ export const CRYPTO_IDS = {
   MANA: 'decentraland',
   SAND: 'the-sandbox',
   AXS: 'axie-infinity',
+  // 6.5.1: Expanded to 55+ pairs
+  HBAR: 'hedera-hashgraph',
+  VET: 'vechain',
+  XLM: 'stellar',
+  ICP: 'internet-computer',
+  FET: 'fetch-ai',
+  GRT: 'the-graph',
+  THETA: 'theta-token',
+  EOS: 'eos',
+  FLOW: 'flow',
+  XTZ: 'tezos',
+  EGLD: 'multiversx',
+  NEO: 'neo',
+  KAVA: 'kava',
+  ZIL: 'zilliqa',
+  ENJ: 'enjincoin',
+  CHZ: 'chiliz',
+  GALA: 'gala',
 };
 
 /**

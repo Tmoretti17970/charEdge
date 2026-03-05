@@ -12,8 +12,9 @@
 // leaving the browser.
 // ═══════════════════════════════════════════════════════════════════
 
-import StorageService from './StorageService.js';
-import { encryptData, decryptData, isEncryptionSupported } from '../utils/DataEncryption.js';
+import StorageService from './StorageService.ts';
+import { encryptData, decryptData, isEncryptionSupported } from '../utils/DataEncryption.ts';
+import { logger } from '../utils/logger';
 
 // ─── Configuration ─────────────────────────────────────────────
 const APP_VERSION = '11.0.0';
@@ -124,7 +125,7 @@ async function _googleConnect() {
             resolve({ ok: false, error });
           }
         }
-      } catch {
+      } catch (_) {
         // Cross-origin — popup hasn't redirected yet, keep polling
       }
     }, 500);
@@ -410,7 +411,7 @@ async function _dropboxConnect() {
             resolve({ ok: false, error: `Token exchange error: ${e.message}` });
           }
         }
-      } catch {
+      } catch (_) {
         // Cross-origin — popup hasn't redirected yet
       }
     }, 500);
@@ -580,7 +581,7 @@ export function disconnectCloud() {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(PROVIDER_STORAGE_KEY);
     localStorage.removeItem(PASSPHRASE_VALIDATED_KEY);
-  } catch {
+  } catch (_) {
     // localStorage not available
   }
 }
@@ -644,7 +645,7 @@ export async function cloudBackup(passphrase) {
       try {
         const val = localStorage.getItem(key);
         if (val !== null) localStorageData[key] = JSON.parse(val);
-      } catch {
+      } catch (_) {
         // Skip malformed JSON
       }
     }
@@ -679,7 +680,7 @@ export async function cloudBackup(passphrase) {
 
     return { ok: true, filename };
   } catch (e) {
-    console.error('[CloudBackup] Backup failed:', e);
+    logger.data.error('[CloudBackup] Backup failed:', e);
     return { ok: false, error: e.message };
   }
 }
@@ -697,7 +698,7 @@ export async function listCloudBackups() {
     const backups = await _listBackups();
     return { ok: true, backups };
   } catch (e) {
-    console.error('[CloudBackup] List failed:', e);
+    logger.data.error('[CloudBackup] List failed:', e);
     return { ok: false, error: e.message };
   }
 }
@@ -756,7 +757,7 @@ export async function cloudRestore(filename, passphrase) {
       for (const [key, value] of Object.entries(bundle.localStorage)) {
         try {
           localStorage.setItem(key, JSON.stringify(value));
-        } catch {
+        } catch (_) {
           // Quota exceeded — skip
         }
       }
@@ -766,7 +767,7 @@ export async function cloudRestore(filename, passphrase) {
     _lastSync = Date.now();
     return { ok: true, restored };
   } catch (e) {
-    console.error('[CloudBackup] Restore failed:', e);
+    logger.data.error('[CloudBackup] Restore failed:', e);
     // Special-case wrong passphrase
     if (e.message?.includes('decrypt') || e.name === 'OperationError') {
       return { ok: false, error: 'Decryption failed — wrong passphrase or corrupted file' };
@@ -798,7 +799,7 @@ export function restoreCloudConnection() {
     _token = tokenData.token;
     _tokenExpiry = tokenData.expiry || null;
     return true;
-  } catch {
+  } catch (_) {
     return false;
   }
 }
@@ -824,7 +825,7 @@ function _persistConnection() {
       TOKEN_STORAGE_KEY,
       JSON.stringify({ token: _token, expiry: _tokenExpiry })
     );
-  } catch {
+  } catch (_) {
     // localStorage not available
   }
 }

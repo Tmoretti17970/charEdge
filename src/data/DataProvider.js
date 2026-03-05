@@ -30,16 +30,16 @@ export { fmpAdapter } from './adapters/FMPAdapter.js';
 export { whaleAlertAdapter } from './adapters/WhaleAlertAdapter.js';
 export { newsAggregator } from './NewsAggregator.js';
 export { derivedEngine } from './DerivedDataEngine.js';
-export { dataCache } from './DataCache.js';
+export { dataCache } from './DataCache.ts';
 export { cacheManager } from './engine/infra/CacheManager.js';
 
 // ─── Engine re-exports ──────────────────────────────────────────
-export { orderFlowEngine } from './engine/orderflow/OrderFlowEngine.js';
+export { orderFlowEngine } from './engine/orderflow/OrderFlowEngine.ts';
 export { volumeProfileEngine } from './engine/orderflow/VolumeProfileEngine.js';
 export { orderFlowBridge } from './engine/orderflow/OrderFlowBridge.js';
 export { indicators } from './engine/indicators/IndicatorLibrary.js';
 export { binanceFuturesAdapter } from './adapters/BinanceFuturesAdapter.js';
-export { depthEngine } from './engine/orderflow/DepthEngine.js';
+export { depthEngine } from './engine/orderflow/DepthEngine.ts';
 
 // ─── Orderflow ──────────────────────────────────────────────────
 export { getTradeHeatmapEngine } from './engine/orderflow/TradeHeatmapEngine.js';

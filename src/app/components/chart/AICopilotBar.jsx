@@ -67,7 +67,7 @@ export default function AICopilotBar({ onCommand, onClose }) {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        animation: 'tf-slide-up 0.2s ease-out',
+        animation: 'scaleInSm 0.2s ease-out',
       }}
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', gap: 12 }}>
@@ -129,17 +129,6 @@ export default function AICopilotBar({ onCommand, onClose }) {
           to close
         </span>
       </div>
-      <style>
-        {`
-          @keyframes tf-slide-up {
-            from { opacity: 0; transform: translate(-50%, -40%); }
-            to { opacity: 1; transform: translate(-50%, -50%); }
-          }
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-        `}
-      </style>
     </div>
   );
 }

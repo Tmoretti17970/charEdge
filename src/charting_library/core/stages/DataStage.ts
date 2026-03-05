@@ -5,7 +5,7 @@ import { createTimeTransform } from '../TimeAxis.js';
 import { HeatmapRenderer } from '../../renderers/HeatmapRenderer.js';
 import { getAggregator } from '../../../data/OrderFlowAggregator.js';
 import { drawSessionDividers } from '../../renderers/SessionDividers.js';
-import { toRenkoBricks, toRangeBars } from '../barTransforms.js';
+import { toRenkoBricks, toRangeBars, toHeikinAshi } from '../barTransforms.js';
 import { getChartDrawFunction } from '../../renderers/renderers/ChartTypes.js';
 
 // ─── Phase 1.1.2: Incremental Bar Append helpers ─────────────────
@@ -132,8 +132,20 @@ export function executeDataStage(fs, ctx, engine) {
       pixelRatio: pr, barSpacing: bSp, startIdx: start,
       timeTransform, yMin, yMax,
     }, thm)) {
+      // Queue a redraw command so the updated buffer data is rendered during flush
+      const cmdBuf = ctx.commandBuffer;
+      if (cmdBuf) {
+        const tickYMin = yMin, tickYMax = yMax;
+        cmdBuf.push({
+          program: webgl.getProgram('candle'),
+          blendMode: 0, texture: null, zOrder: 1,
+          label: 'candles-tick',
+          drawFn: () => webgl.redrawWithPanOffset(0, { yMin: tickYMin, yMax: tickYMax }),
+        });
+      }
+
       // Redraw Canvas 2D price line only
-      mCtx.clearRect(0, 0, bw, bh);
+      mCtx.clearRect(0, 0, cBW, mainBH);
       mCtx.save();
       mCtx.beginPath();
       mCtx.rect(0, 0, cBW, mainBH);
@@ -204,77 +216,7 @@ export function executeDataStage(fs, ctx, engine) {
     return; // Skip full redraw
   }
 
-  // ═══════════════════════════════════════════════════════════════════
-  // Phase 1.1.2: BLIT-PAN FAST PATH
-  // When viewport shifted by a small number of bars (1-5), shift the
-  // existing pixels via drawImage and only render the newly-exposed edge.
-  // ═══════════════════════════════════════════════════════════════════
   const prevFs = engine._pipeline?._prevFrameState;
-  const isSmallPan = prevFs
-    && (changeMask & CHANGED.VIEWPORT) !== 0
-    && (changeMask & ~(CHANGED.VIEWPORT | CHANGED.MOUSE | CHANGED.TICK)) === 0
-    && chartType === 'candlestick'
-    && !fs.showHeatmap
-    && fs.visibleBars === prevFs.visibleBars
-    && fs.bitmapWidth === prevFs.bitmapWidth
-    && fs.bitmapHeight === prevFs.bitmapHeight;
-
-  if (isSmallPan && !webgl?.available) {
-    const barShift = fs.startIdx - prevFs.startIdx;
-    const absShift = Math.abs(barShift);
-
-    if (absShift >= 1 && absShift <= 5) {
-      const shiftPx = Math.round(barShift * bSp * pr);
-
-      mCtx.save();
-      mCtx.beginPath();
-      mCtx.rect(0, 0, cBW, mainBH);
-      mCtx.clip();
-
-      // Blit-shift existing pixels
-      const canvas = mCtx.canvas;
-      mCtx.clearRect(0, 0, cBW, mainBH);
-      mCtx.drawImage(canvas, shiftPx, 0, cBW - Math.abs(shiftPx), mainBH,
-                      0, 0, cBW - Math.abs(shiftPx), mainBH);
-
-      // Determine the exposed strip and render only those bars
-      let stripX, stripW, stripStartIdx, stripEndIdx;
-      if (barShift > 0) {
-        // Scrolled right: new bars exposed on the right edge
-        stripX = cBW - Math.round(absShift * bSp * pr) - Math.round(bSp * pr);
-        stripW = cBW - stripX;
-        stripStartIdx = Math.max(0, endIdx - absShift);
-        stripEndIdx = endIdx;
-      } else {
-        // Scrolled left: new bars exposed on the left edge
-        stripX = 0;
-        stripW = Math.round(absShift * bSp * pr) + Math.round(bSp * pr);
-        stripStartIdx = start;
-        stripEndIdx = Math.min(bars.length - 1, start + absShift);
-      }
-
-      // Clear and render the strip
-      mCtx.clearRect(stripX, 0, stripW, mainBH);
-      const stripBars = bars.slice(stripStartIdx, stripEndIdx + 1);
-      if (stripBars.length > 0) {
-        const drawFn = getChartDrawFunction(chartType);
-        const drawParams = {
-          startIdx: stripStartIdx, barSpacing: bSp, priceToY: p2y,
-          pixelRatio: pr, bitmapHeight: mainBH, mainH: mainHeight,
-          chartWidth: cBW, timeTransform, yMin, yMax,
-        };
-        drawFn(mCtx, stripBars, drawParams, thm);
-      }
-
-      // Re-draw price line (it spans full width)
-      renderPriceLine(mCtx, bars, p2y, pr, cBW, mainBH, thm);
-
-      mCtx.restore();
-
-      // Still need grid/axes/niceStep stored on engine (already set above)
-      return; // Skip full redraw
-    }
-  }
 
   // ═══════════════════════════════════════════════════════════════════
   // Sprint 3: GPU PAN FAST PATH
@@ -302,9 +244,27 @@ export function executeDataStage(fs, ctx, engine) {
     const panOffsetPx = scrollDelta * bSp * fs.pixelRatio;
 
     // Only use GPU path for small-to-medium pans (within the visible bar window)
-    if (Math.abs(scrollDelta) < fs.visibleBars * 0.8 && webgl.redrawWithPanOffset(panOffsetPx, { yMin, yMax })) {
-      // GPU shifted candles + volume — now redraw Canvas 2D overlays
-      mCtx.clearRect(0, 0, bw, bh);
+    if (Math.abs(scrollDelta) < fs.visibleBars * 0.8 && webgl._lastCandleInstanceCount) {
+      // Queue the pan-offset redraw into the command buffer so it participates
+      // in the centralized clear+flush cycle. Drawing directly here would be
+      // wiped by webgl.clear() when the buffer flushes later.
+      const cmdBuf = ctx.commandBuffer;
+      const capturedYMin = yMin;
+      const capturedYMax = yMax;
+      const capturedPanOffset = panOffsetPx;
+      if (cmdBuf) {
+        cmdBuf.push({
+          program: webgl.getProgram('candle'),
+          blendMode: 0,
+          texture: null,
+          zOrder: 1,
+          label: 'candles-pan',
+          drawFn: () => webgl.redrawWithPanOffset(capturedPanOffset, { yMin: capturedYMin, yMax: capturedYMax }),
+        });
+      }
+
+      // Redraw Canvas 2D overlays on the DATA layer
+      mCtx.clearRect(0, 0, cBW, mainBH);
       mCtx.save();
       mCtx.beginPath();
       mCtx.rect(0, 0, cBW, mainBH);
@@ -352,7 +312,7 @@ export function executeDataStage(fs, ctx, engine) {
       }
 
       mCtx.restore();
-      return; // Skip full redraw — GPU handled it
+      return; // Skip full redraw — GPU pan handled candles via command buffer
     }
   }
 
@@ -360,8 +320,8 @@ export function executeDataStage(fs, ctx, engine) {
   // FULL REDRAW (original path — zoom, resize, theme change, etc.)
   // ═══════════════════════════════════════════════════════════════════
 
-  // Clear the data layer
-  mCtx.clearRect(0, 0, bw, bh);
+  // Clear the data layer (chart area only — axes gutter is managed by AxesStage)
+  mCtx.clearRect(0, 0, cBW, mainBH);
 
   // ─── Canvas Rendering Quality ──────────────────────────────
   mCtx.imageSmoothingEnabled = true;
@@ -395,7 +355,7 @@ export function executeDataStage(fs, ctx, engine) {
 
   // ─── Horizontal Grid Lines ──────────────────────────────────
   const gridTicks = niceStep.ticks;
-  const useWebGLGrid = webgl?.available && viewportChanged;
+  const useWebGLGrid = webgl?.available;
   if (useWebGLGrid) {
     const gridHorizontal = gridTicks.map((t, gi) => ({
       y: p2y(t),
@@ -437,7 +397,7 @@ export function executeDataStage(fs, ctx, engine) {
 
   // ─── Volume ──────────────────────────────────────────────────
   if (fs.showVolume && lod.volume) {
-    const useWebGLVol = webgl?.available && viewportChanged;
+    const useWebGLVol = webgl?.available;
     if (useWebGLVol) {
       const volDrawFn = () => webgl.drawVolume(vis, {
         pixelRatio: pr, barSpacing: bSp, startIdx: start,
@@ -502,12 +462,13 @@ export function executeDataStage(fs, ctx, engine) {
     }
   }
 
-  // ─── Transform bars for Renko/Range ─────────────────────────
+  // ─── Transform bars for Renko/Range/Heikin-Ashi ─────────────────────────
   let renderBars = vis;
   let renderTimeTransform = timeTransform;
   let renderStart = start;
   const isRenko = chartType === 'renko';
   const isRange = chartType === 'range';
+  const isHeikinAshi = chartType === 'heikinashi';
 
   if (isRenko) {
     const { bricks } = toRenkoBricks(bars, fs.renkoBrickSize);
@@ -523,6 +484,11 @@ export function executeDataStage(fs, ctx, engine) {
     renderBars = rangeBars.slice(rStart, rEnd);
     renderStart = rStart;
     renderTimeTransform = createTimeTransform(rangeBars, rStart, rStart, fs.visibleBars, cW);
+  } else if (isHeikinAshi) {
+    // Heikin-Ashi transform: convert full bar array, then slice visible range
+    const haBars = toHeikinAshi(bars);
+    renderBars = haBars.slice(start, Math.min(haBars.length, endIdx + 2));
+    // renderStart and renderTimeTransform stay the same — HA preserves bar count
   }
 
   // ─── Delegate to Chart Type Renderer ─────────────────────────
@@ -532,19 +498,19 @@ export function executeDataStage(fs, ctx, engine) {
     chartWidth: cBW, timeTransform: renderTimeTransform, yMin, yMax,
   };
 
-  const useWebGL = webgl?.available && viewportChanged;
+  const useWebGL = webgl?.available;
   let renderedViaWebGL = false;
 
   if (useWebGL) {
-    webgl.clear();
     const timeXform = { indexToPixel: (idx) => renderTimeTransform.indexToPixel(idx) };
     const webglParams = {
       pixelRatio: pr, barSpacing: bSp, startIdx: renderStart,
       timeTransform: timeXform, mainH: mainHeight, yMin, yMax,
     };
 
-    if (chartType === 'candlestick') {
-      const candleDrawFn = () => webgl.drawCandles(renderBars, webglParams, thm);
+    if (chartType === 'candlestick' || chartType === 'hollow' || chartType === 'heikinashi') {
+      const hollowParams = chartType === 'hollow' ? { ...webglParams, hollow: true } : webglParams;
+      const candleDrawFn = () => webgl.drawCandles(renderBars, hollowParams, thm);
       const cmdBuf = ctx.commandBuffer;
       if (cmdBuf) {
         cmdBuf.push({ program: webgl.getProgram('candle'), blendMode: 0, texture: null, zOrder: 1, label: 'candles', drawFn: candleDrawFn });

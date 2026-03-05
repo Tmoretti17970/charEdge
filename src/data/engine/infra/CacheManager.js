@@ -65,7 +65,7 @@ class _CacheManager {
   // Cache the dynamic import so we pay the cost only once, not on every read/write.
   _loadDataCache() {
     if (!this._dataCachePromise) {
-      this._dataCachePromise = import('../../DataCache.js')
+      this._dataCachePromise = import('../../DataCache.ts')
         .then(mod => mod.dataCache)
         .catch((err) => { pipelineLogger.warn('CacheManager', 'DataCache import failed', err); this._dataCachePromise = null; return null; });
     }
@@ -75,7 +75,7 @@ class _CacheManager {
   // ─── StorageService Lazy Singleton ────────────────────────────
   _loadStorage() {
     if (!this._storagePromise) {
-      this._storagePromise = import('../../StorageService.js')
+      this._storagePromise = import('../../StorageService.ts')
         .then(mod => mod.StorageService || mod.default)
         .catch((err) => { pipelineLogger.warn('CacheManager', 'StorageService import failed', err); this._storagePromise = null; return null; });
     }
@@ -298,7 +298,7 @@ class _CacheManager {
       const dc = await this._loadDataCache();
       if (dc) return dc.getStorageUsage();
       return { usedMB: 0, quotaMB: 0, pct: 0 };
-    } catch {
+    } catch (_) {
       return { usedMB: 0, quotaMB: 0, pct: 0 };
     }
   }
@@ -558,7 +558,7 @@ class _CacheManager {
     try {
       const stats = await opfsBarStore.getStats();
       return Math.round(stats.totalSizeKB / 1024 * 10) / 10;
-    } catch {
+    } catch (_) {
       return 0;
     }
   }

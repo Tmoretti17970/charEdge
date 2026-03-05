@@ -78,7 +78,7 @@ export default function FeedbackWidget() {
       const existing = JSON.parse(localStorage.getItem(FEEDBACK_STORAGE_KEY) || '[]');
       existing.push(entry);
       localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(existing));
-    } catch {
+    } catch (_) {
       // Storage full or unavailable — silently fail
     }
 

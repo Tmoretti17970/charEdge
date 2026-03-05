@@ -412,6 +412,7 @@ export function createDrawing(type, firstPoint, styleOverrides = {}) {
     state: 'creating',
     locked: false,
     visible: true,
+    syncAcrossTimeframes: true, // Visible on all timeframes by default
     meta: {},
   };
 }
@@ -449,7 +450,7 @@ export function deserializeDrawings(json) {
       ...d,
       state: 'idle',
     }));
-  } catch {
+  } catch (_) {
     return [];
   }
 }

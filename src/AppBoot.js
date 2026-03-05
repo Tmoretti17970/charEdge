@@ -26,7 +26,7 @@ import { useScriptStore } from './state/useScriptStore.js';
 import { useWorkspaceStore } from './state/useWorkspaceStore.js';
 import { useWatchlistStore } from './state/useWatchlistStore.js';
 import { useGamificationStore } from './state/useGamificationStore.js';
-import { StorageService } from './data/StorageService.js';
+import { StorageService } from './data/StorageService.ts';
 import { migrateAllTrades } from './charting_library/model/Money.js';
 import { useAnalyticsStore } from './state/useAnalyticsStore.js';
 import { initTelemetry } from './utils/telemetry.js';
@@ -164,13 +164,20 @@ export async function hydrateStores(raw) {
 export async function postBoot(trades) {
   logger.boot.info('Phase 3: Post-boot setup...');
 
-  // Telemetry
-  initTelemetry(useAnalyticsStore);
+  // Telemetry (gated behind consent — Phase 1 GDPR compliance)
+  const { useConsentStore } = await import('./state/useConsentStore.js');
+  const consent = useConsentStore.getState().analytics;
 
-  // Product analytics (PostHog — lazy, env-gated)
-  import('./utils/posthog.js')
-    .then(({ trackEvent }) => trackEvent('app_booted', { tradeCount: trades?.length || 0 }))
-    .catch(() => {}); // non-fatal
+  if (consent === true) {
+    initTelemetry(useAnalyticsStore);
+
+    // Product analytics (PostHog — consent-gated, lazy, env-gated)
+    import('./utils/posthog.js')
+      .then(({ trackEvent }) => trackEvent('app_booted', { tradeCount: trades?.length || 0 }))
+      .catch(() => { }); // non-fatal
+  } else {
+    logger.boot.info('Analytics consent not granted — telemetry skipped');
+  }
 
   // Persona from trade count
   useUserStore.getState().updateFromTrades(trades);
@@ -206,10 +213,11 @@ export async function postBoot(trades) {
 
 /**
  * Hook that hydrates all stores from IndexedDB.
- * Returns true when boot is complete.
+ * Returns { ready, phase } where phase tracks boot progress.
  */
 export function useAppBoot() {
   const [ready, setReady] = useState(false);
+  const [phase, setPhase] = useState('connecting');
   const unsubscribers = useRef([]);
 
   useEffect(() => {
@@ -217,16 +225,21 @@ export function useAppBoot() {
 
     async function boot() {
       try {
+        setPhase('loading');
         const raw = await loadFromStorage();
         if (cancelled) return;
 
+        setPhase('computing');
         const trades = await hydrateStores(raw);
         if (cancelled) return;
 
         unsubscribers.current = await postBoot(trades);
 
         logger.boot.info('✅ Boot complete!');
-        if (!cancelled) setReady(true);
+        if (!cancelled) {
+          setPhase('ready');
+          setReady(true);
+        }
       } catch (err) {
         logger.boot.error('❌ Hydration failed', err);
         // Seed demo data so the app still works
@@ -238,7 +251,10 @@ export function useAppBoot() {
           notes: [],
           tradePlans: [],
         });
-        if (!cancelled) setReady(true);
+        if (!cancelled) {
+          setPhase('ready');
+          setReady(true);
+        }
       }
     }
 
@@ -250,7 +266,7 @@ export function useAppBoot() {
     };
   }, []);
 
-  return ready;
+  return { ready, phase };
 }
 
 /**

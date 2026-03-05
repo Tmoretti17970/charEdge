@@ -20,6 +20,7 @@ import React from 'react';
 import { TIER_CONFIG, FEATURE_TIERS, TIERS } from '../../../state/user/personaSlice.js';
 import { C, F, M } from '../../../constants.js';
 import { trackFeatureUse } from '../../../utils/telemetry.js';
+import styles from './FeatureGate.module.css';
 
 /**
  * Feature gate that conditionally renders children based on user tier.
@@ -117,45 +118,40 @@ export default function FeatureGate({ feature, silent = false, children, fallbac
               borderRadius: 2,
               background: `linear-gradient(90deg, ${tierConfig.color}, ${tierConfig.color}CC)`,
               transition: 'width 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
-              animation: 'tfProgressGlow 2s ease-in-out infinite',
+              '--feature-gate-color': `${tierConfig.color}40`,
             }}
+            className={styles.progressBar}
           />
+        </div>
+
+        {/* Unlock button */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button
+            className="tf-btn"
+            onClick={() => {
+              unlockFeature(feature);
+              trackFeatureUse('feature_gate_unlock', { feature });
+            }}
+            style={{
+              fontSize: 10,
+              padding: '4px 10px',
+              borderRadius: 6,
+              border: `1px solid ${tierConfig.color}40`,
+              background: `${tierConfig.color}15`,
+              color: tierConfig.color,
+              fontWeight: 600,
+              fontFamily: M,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = `${tierConfig.color}25`; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = `${tierConfig.color}15`; }}
+          >
+            Unlock Early
+          </button>
         </div>
       </div>
 
-      {/* Unlock button */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <button
-          className="tf-btn"
-          onClick={() => {
-            unlockFeature(feature);
-            trackFeatureUse('feature_gate_unlock', { feature });
-          }}
-          style={{
-            fontSize: 10,
-            padding: '4px 10px',
-            borderRadius: 6,
-            border: `1px solid ${tierConfig.color}40`,
-            background: `${tierConfig.color}15`,
-            color: tierConfig.color,
-            fontWeight: 600,
-            fontFamily: M,
-            cursor: 'pointer',
-            transition: 'all 0.15s ease',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = `${tierConfig.color}25`; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = `${tierConfig.color}15`; }}
-        >
-          Unlock Early
-        </button>
-      </div>
-
-      <style>{`
-        @keyframes tfProgressGlow {
-          0%, 100% { box-shadow: none; }
-          50% { box-shadow: 0 0 8px ${tierConfig.color}40; }
-        }
-      `}</style>
     </div>
   );
 }

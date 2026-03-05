@@ -86,6 +86,11 @@ export default function InsightsPanel({ trades = [] }) {
         ))}
       </div>
 
+      {/* Financial disclaimer */}
+      <div style={{ padding: '6px 10px', fontSize: 9, color: C.t3, fontFamily: F, borderBottom: `1px solid ${C.bd}`, flexShrink: 0 }}>
+        ⚖️ For educational purposes only — not financial advice. Always do your own research.
+      </div>
+
       {/* Content */}
       <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
         {tab === 'patterns' && <PatternsTab trades={trades} />}

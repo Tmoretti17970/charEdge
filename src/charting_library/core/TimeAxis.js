@@ -48,7 +48,24 @@ export function createTimeTransform(bars, startIdx, exactStart, visibleBars, cha
       if (!bars || bars.length === 0) return Date.now();
       const ri = x / barSpacing - 0.5;
       const exactIdx = exactStart + ri;
-      const idx = Math.max(0, Math.min(bars.length - 1, Math.round(exactIdx)));
+
+      // Allow future/past extrapolation for drawing tools
+      if (exactIdx >= bars.length) {
+        // Extrapolate future timestamp
+        const lastTime = bars[bars.length - 1].time;
+        const tfMs = bars.length > 1
+          ? bars[bars.length - 1].time - bars[bars.length - 2].time
+          : 60000;
+        return lastTime + Math.round((exactIdx - (bars.length - 1)) * tfMs);
+      }
+      if (exactIdx < 0) {
+        // Extrapolate past timestamp
+        const firstTime = bars[0].time;
+        const tfMs = bars.length > 1 ? bars[1].time - bars[0].time : 60000;
+        return firstTime + Math.round(exactIdx * tfMs);
+      }
+
+      const idx = Math.round(exactIdx);
       return bars[idx]?.time || Date.now();
     },
 

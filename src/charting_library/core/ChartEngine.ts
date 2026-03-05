@@ -42,6 +42,7 @@ import { executeOverlayStage } from './stages/OverlayStage.js';
 import { executeAxesStage } from './stages/AxesStage.js';
 import { executeUIStage } from './stages/UIStage.js';
 import { SceneGraph } from '../scene/SceneGraph.js';
+import { FormingCandleInterpolator } from './FormingCandleInterpolator.js';
 
 // ─── Type Definitions ────────────────────────────────────────────
 
@@ -94,13 +95,7 @@ export interface ChartEngineOptions {
   props?: ChartProps;
 }
 
-/** Animation state for candle transition. */
-interface AnimOHLC {
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-}
+// AnimOHLC replaced by FormingCandleInterpolator (task 8.2.1)
 
 /** Internal mutable engine state. */
 export interface EngineState {
@@ -147,10 +142,11 @@ export class ChartEngine {
   symbol: string;
   timeframe: string;
 
-  // Animation
-  _animTarget: AnimOHLC | null;
-  _animCurrent: AnimOHLC | null;
-  _animLerp: number;
+  // Animation (task 8.2.1: FormingCandleInterpolator)
+  _formingInterpolator: FormingCandleInterpolator;
+  _animTarget: { open: number; high: number; low: number; close: number } | null;
+  _animCurrent: { open: number; high: number; low: number; close: number } | null;
+  _lastFrameTime: number;
 
   // Viewport tracking
   _prevStartIdx: number;
@@ -236,10 +232,11 @@ export class ChartEngine {
     this.symbol = options.props?.symbol || '';
     this.timeframe = options.props?.tf || '1h';
 
-    // Animated candle transition state
-    this._animTarget = null; // Target OHLC for last bar
-    this._animCurrent = null; // Current lerp'd OHLC for last bar
-    this._animLerp = 0.25; // Lerp speed (0-1, higher = faster)
+    // Task 8.2.1: Forming candle interpolation (replaces ad-hoc spring physics)
+    this._formingInterpolator = new FormingCandleInterpolator(0.3, 0.001);
+    this._animTarget = null; // Compat: kept for FrameState snapshot
+    this._animCurrent = null; // Compat: kept for FrameState snapshot
+    this._lastFrameTime = performance.now();
 
     // ─── Viewport Change Tracking (Batch Render Optimization) ────
     this._prevStartIdx = -1;
@@ -416,6 +413,9 @@ export class ChartEngine {
     // Sync WebGL overlay canvas dimensions
     if (this._webglRenderer && this._webglCanvas) {
       const pr = window.devicePixelRatio || 1;
+      // Grid/UI layers use clamped DPR (1x) to save GPU bandwidth.
+      // Data layers (candles, indicators) keep full DPR for crispness.
+      const gridPr = Math.min(pr, 1);
       const w = this.container.clientWidth;
       const h = this.container.clientHeight;
       this._webglCanvas.width = w * pr;
@@ -438,12 +438,8 @@ export class ChartEngine {
   _needsNextFrame(): boolean {
     if (this.state.mainDirty || this.state.topDirty) return true;
     if (this.layers.anyDirty()) return true;
-    // Animation in progress — keep rendering until lerp settles
-    if (this._animTarget && this._animCurrent) {
-      for (const k of ['open', 'high', 'low', 'close'] as const) {
-        if (Math.abs(this._animTarget[k] - this._animCurrent[k]) > 0.0001) return true;
-      }
-    }
+    // Task 8.2.1: Animation in progress — keep rendering until interpolator settles
+    if (!this._formingInterpolator.isDone) return true;
     // Live chart types that need continuous updates
     if (this.props.showHeatmap || this.props.chartType === 'footprint') return true;
     return false;
@@ -491,27 +487,33 @@ export class ChartEngine {
    * ```
    */
   setData(bars: Bar[]): void {
-  // ─── Input Validation (dev only) ────────────────────────────────
-  if (__DEV__) {
-    const result = validateBars(bars);
-    if (!result.valid) {
-      for (const err of result.errors) {
-        logger.engine.warn(err.message);
+    // ─── Input Validation (dev only) ────────────────────────────────
+    if (__DEV__) {
+      const result = validateBars(bars);
+      if (!result.valid) {
+        for (const err of result.errors) {
+          logger.engine.warn(err.message);
+        }
       }
     }
-  }
     // ─── Phase 1.1.2: Track tick vs new-bar updates ─────────────────
     this._tickUpdate = (bars.length > 0 && this.bars.length === bars.length);
 
-    // Detect tick update (same bar count, last bar changed) for animation
+    // Task 8.2.1: Route forming candle animation through FormingCandleInterpolator
     if (this._tickUpdate) {
       const last = bars[bars.length - 1];
+      this._formingInterpolator.setTarget({ open: last.open, high: last.high, low: last.low, close: last.close });
+      // Compat: keep _animTarget/_animCurrent for FrameState snapshot
       this._animTarget = { open: last.open, high: last.high, low: last.low, close: last.close };
-      if (!this._animCurrent) {
-        this._animCurrent = { ...this._animTarget };
-      }
+      this._animCurrent = this._formingInterpolator.current as any;
     } else {
-      // New bar added or data reset — snap immediately & start entrance animation
+      // New bar added or data reset — snap immediately
+      if (bars.length > 0) {
+        const last = bars[bars.length - 1];
+        this._formingInterpolator.snap({ open: last.open, high: last.high, low: last.low, close: last.close });
+      } else {
+        this._formingInterpolator.reset();
+      }
       this._animTarget = null;
       this._animCurrent = null;
       if (bars.length !== this.bars.length) {
@@ -563,16 +565,16 @@ export class ChartEngine {
    * ```
    */
   setIndicators(indicators: unknown[]): void {
-  // ─── Input Validation (dev only) ────────────────────────────────
-  if (__DEV__) {
-    const result = validateIndicators(indicators);
-    if (!result.valid) {
-      for (const err of result.errors) {
-        logger.engine.warn(err.message);
+    // ─── Input Validation (dev only) ────────────────────────────────
+    if (__DEV__) {
+      const result = validateIndicators(indicators);
+      if (!result.valid) {
+        for (const err of result.errors) {
+          logger.engine.warn(err.message);
+        }
       }
     }
-  }
-  this.indicators = indicators;
+    this.indicators = indicators;
     this.layers.markDirty(LAYERS.INDICATORS);
     this.state.mainDirty = true;
     this._scheduleDraw();
@@ -590,16 +592,16 @@ export class ChartEngine {
    * ```
    */
   setProps(props: ChartProps): void {
-  // ─── Input Validation (dev only) ────────────────────────────────
-  if (__DEV__) {
-    const result = validateProps(props);
-    if (!result.valid) {
-      for (const err of result.errors) {
-        logger.engine.warn(err.message);
+    // ─── Input Validation (dev only) ────────────────────────────────
+    if (__DEV__) {
+      const result = validateProps(props);
+      if (!result.valid) {
+        for (const err of result.errors) {
+          logger.engine.warn(err.message);
+        }
       }
     }
-  }
-  const prevSymbol = this.symbol;
+    const prevSymbol = this.symbol;
     const prevTf = this.timeframe;
     this.props = { ...this.props, ...props };
     this.symbol = this.props.symbol || this.symbol;
@@ -701,27 +703,24 @@ export class ChartEngine {
 
     if (!bars.length) { this.fb.endFrame(); return; }
 
-    // ─── Animated candle transition: lerp toward target OHLC ────
-    if (this._animTarget && this._animCurrent && bars.length > 0) {
-      const t = this._animTarget;
-      const c = this._animCurrent;
-      const lerp = this._animLerp;
-      let animating = false;
-      for (const k of ['open', 'high', 'low', 'close'] as const) {
-        const diff = t[k] - c[k];
-        if (Math.abs(diff) > 0.0001) {
-          c[k] += diff * lerp;
-          animating = true;
-        } else {
-          c[k] = t[k];
-        }
-      }
+    // ─── Task 8.2.1: Forming candle interpolation ────────────────────
+    if (!this._formingInterpolator.isDone && bars.length > 0) {
+      const now = performance.now();
+      const dt = Math.min(now - this._lastFrameTime, 32); // Cap at ~30fps min
+      this._lastFrameTime = now;
+
+      const result = this._formingInterpolator.tick(dt);
+
       const lastBar = bars[bars.length - 1] as any;
-      lastBar._animOpen = c.open;
-      lastBar._animHigh = c.high;
-      lastBar._animLow = c.low;
-      lastBar._animClose = c.close;
-      if (animating) {
+      lastBar._animOpen = result.open;
+      lastBar._animHigh = result.high;
+      lastBar._animLow = result.low;
+      lastBar._animClose = result.close;
+
+      // Sync compat fields for FrameState
+      this._animCurrent = { open: result.open, high: result.high, low: result.low, close: result.close };
+
+      if (!result.done) {
         S.mainDirty = true;
         S.topDirty = true;
         this.layers.markDirty(LAYERS.DATA);

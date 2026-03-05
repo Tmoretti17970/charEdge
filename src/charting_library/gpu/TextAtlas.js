@@ -1,3 +1,5 @@
+import { logger } from '../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — TextAtlas (SDF)
 //
@@ -242,7 +244,7 @@ export class TextAtlas {
     gl.shaderSource(vert, SDF_TEXT_VERT);
     gl.compileShader(vert);
     if (!gl.getShaderParameter(vert, gl.COMPILE_STATUS)) {
-      console.error('[TextAtlas] Vert error:', gl.getShaderInfoLog(vert));
+      logger.engine.error('[TextAtlas] Vert error:', gl.getShaderInfoLog(vert));
       return;
     }
 
@@ -250,7 +252,7 @@ export class TextAtlas {
     gl.shaderSource(frag, SDF_TEXT_FRAG);
     gl.compileShader(frag);
     if (!gl.getShaderParameter(frag, gl.COMPILE_STATUS)) {
-      console.error('[TextAtlas] Frag error:', gl.getShaderInfoLog(frag));
+      logger.engine.error('[TextAtlas] Frag error:', gl.getShaderInfoLog(frag));
       return;
     }
 
@@ -260,7 +262,7 @@ export class TextAtlas {
     gl.linkProgram(this._program);
 
     if (!gl.getProgramParameter(this._program, gl.LINK_STATUS)) {
-      console.error('[TextAtlas] Link error:', gl.getProgramInfoLog(this._program));
+      logger.engine.error('[TextAtlas] Link error:', gl.getProgramInfoLog(this._program));
       this._program = null;
     }
 

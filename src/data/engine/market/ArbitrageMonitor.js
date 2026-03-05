@@ -211,7 +211,7 @@ class _ArbitrageMonitor {
   /** @private */
   _emitAlert(alert) {
     for (const cb of this._alertCallbacks) {
-      try { cb(alert); } catch { /* ignore */ }
+      try { cb(alert); } catch (e) { logger.data.warn('Operation failed', e); }
     }
 
     // Also dispatch a DOM event for UI integration

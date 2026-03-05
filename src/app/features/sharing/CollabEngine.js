@@ -1,3 +1,5 @@
+import { logger } from '../../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Real-Time Chart Collaboration Engine (Sprint 17)
 // Enables shared chart sessions where multiple users can draw,
@@ -46,7 +48,7 @@ export class CollabSession {
       }, 3000);
 
       return true;
-    } catch {
+    } catch (_) {
       return false;
     }
   }
@@ -124,7 +126,7 @@ export class CollabSession {
   // ─── Private ──────────────────────────────────────────────
 
   _send(data) {
-    try { this.channel?.postMessage(data); } catch {}
+    try { this.channel?.postMessage(data); } catch (_) { /* storage may be blocked */ }
   }
 
   _handleMessage(data) {
@@ -181,7 +183,7 @@ export class CollabSession {
   _emit(event, data) {
     const cbs = this.listeners.get(event) || [];
     for (const cb of cbs) {
-      try { cb(data); } catch {}
+      try { cb(data); } catch (e) { logger.ui.warn('Operation failed', e); }
     }
   }
 

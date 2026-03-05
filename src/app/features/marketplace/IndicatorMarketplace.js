@@ -10,7 +10,7 @@ let _marketplace = [];
 try {
   const raw = localStorage.getItem(MARKET_KEY);
   if (raw) _marketplace = JSON.parse(raw);
-} catch {}
+} catch (_) { /* storage may be blocked */ }
 
 const CATEGORIES = ['trend', 'momentum', 'volatility', 'volume', 'oscillator', 'custom'];
 
@@ -40,7 +40,7 @@ export function publishIndicator({
   };
 
   _marketplace = [indicator, ..._marketplace];
-  try { localStorage.setItem(MARKET_KEY, JSON.stringify(_marketplace)); } catch {}
+  try { localStorage.setItem(MARKET_KEY, JSON.stringify(_marketplace)); } catch (_) { /* storage may be blocked */ }
   return indicator;
 }
 
@@ -72,7 +72,7 @@ export function installIndicator(indicatorId) {
   const indicator = _marketplace.find(i => i.id === indicatorId);
   if (indicator) {
     indicator.downloads++;
-    try { localStorage.setItem(MARKET_KEY, JSON.stringify(_marketplace)); } catch {}
+    try { localStorage.setItem(MARKET_KEY, JSON.stringify(_marketplace)); } catch (_) { /* storage may be blocked */ }
     return { ...indicator, installed: true, installedAt: Date.now() };
   }
   return null;
@@ -89,7 +89,7 @@ export function rateIndicator(indicatorId, rating, review = '') {
     if (review) {
       indicator.reviews.push({ text: review, rating, date: Date.now() });
     }
-    try { localStorage.setItem(MARKET_KEY, JSON.stringify(_marketplace)); } catch {}
+    try { localStorage.setItem(MARKET_KEY, JSON.stringify(_marketplace)); } catch (_) { /* storage may be blocked */ }
   }
   return indicator;
 }

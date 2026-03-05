@@ -128,7 +128,7 @@ export default function QuickStylePalette() {
       boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
       zIndex: 1000,
       userSelect: 'none',
-      animation: 'quickStyleSlideUp 0.2s ease-out',
+      animation: 'scaleInSm 0.2s ease-out',
     }}>
       {/* Sticky mode toggle */}
       <button
@@ -313,12 +313,6 @@ export default function QuickStylePalette() {
         </div>
       )}
 
-      <style>{`
-        @keyframes quickStyleSlideUp {
-          from { opacity: 0; transform: translateX(-50%) translateY(8px); }
-          to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-      `}</style>
     </div>
   );
 }

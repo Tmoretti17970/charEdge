@@ -12,7 +12,7 @@ import {
   getPlatformCLS,
   getPhase5Summary,
   SIMPLIFICATION_MANIFESTO,
-} from '../../utils/cognitiveLoadAudit.js';
+} from '../../utils/cognitiveLoadAudit.ts';
 
 // ═══ SCREEN_AUDIT ══════════════════════════════════════════════════
 

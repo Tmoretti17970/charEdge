@@ -10,6 +10,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
+import { logger } from '../../../utils/logger';
 
 /**
  * Core icon registry.
@@ -77,7 +78,7 @@ export default function Icon({
 
   if (!pathData) {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn(`[Icon] Unknown icon name: "${name}"`);
+      logger.ui.warn(`[Icon] Unknown icon name: "${name}"`);
     }
     return null;
   }

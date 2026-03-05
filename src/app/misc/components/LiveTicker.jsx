@@ -10,7 +10,7 @@
 
 import React from 'react';
 import { C, M } from '../../../constants.js';
-import { WS_STATUS } from '../../../data/WebSocketService.js';
+import { WS_STATUS } from '../../../data/WebSocketService.ts';
 
 const STATUS_COLORS = {
   [WS_STATUS.CONNECTED]: C.g,
@@ -75,16 +75,10 @@ function LiveTicker({ tick, status, _symbol }) {
             borderRadius: '50%',
             background: statusColor,
             boxShadow: isPulsing ? `0 0 4px ${statusColor}` : 'none',
-            animation: isPulsing ? 'tfPulse 2s ease infinite' : 'none',
+            animation: isPulsing ? 'pulse 2s ease infinite' : 'none',
           }}
         />
         <span style={{ fontSize: 9, color: statusColor, fontWeight: 600 }}>{statusLabel}</span>
-        <style>{`
-          @keyframes tfPulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-          }
-        `}</style>
       </div>
 
       {/* Price + change */}

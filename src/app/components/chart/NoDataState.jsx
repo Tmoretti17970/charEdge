@@ -41,10 +41,9 @@ export default function NoDataState({ symbol, message }) {
         fontSize: 10, fontWeight: 600, fontFamily: M, color: C.y,
         letterSpacing: '0.04em', textTransform: 'uppercase',
       }}>
-        <span style={{ width: 8, height: 8, borderRadius: '50%', background: C.y, animation: 'noDataPulse 2s ease-in-out infinite' }} />
+        <span style={{ width: 8, height: 8, borderRadius: '50%', background: C.y, animation: 'pulse 2s ease-in-out infinite' }} />
         NO DATA
       </div>
-      <style>{`@keyframes noDataPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }`}</style>
     </div>
   );
 }

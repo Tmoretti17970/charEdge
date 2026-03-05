@@ -22,7 +22,7 @@
 //   orderFlowBridge.onStateChange((symbol, state) => { ... });
 // ═══════════════════════════════════════════════════════════════════
 
-import { orderFlowEngine } from './OrderFlowEngine.js';
+import { orderFlowEngine } from './OrderFlowEngine.ts';
 import { krakenAdapter } from '../../adapters/KrakenAdapter.js';
 import { tickPersistence } from '../streaming/TickPersistence.js';
 import { derivedEngine } from '../../DerivedDataEngine.js';
@@ -30,6 +30,7 @@ import { streamingMetrics } from '../streaming/StreamingMetrics.js';
 import { streamingIndicatorBridge } from '../indicators/StreamingIndicatorBridge.js';
 import { pipelineLogger } from '../infra/DataPipelineLogger.js';
 import { isCrypto } from '../../../constants.js';
+import { logger } from '../../../utils/logger';
 
 // ─── Constants ─────────────────────────────────────────────────
 
@@ -160,6 +161,7 @@ class SymbolConnection {
     // Reconnection state
     this.reconnectAttempts = 0;
     this.reconnectTimer = null;
+    this.reconnectScheduled = false;
 
     // Heartbeat / silence detection
     this.lastTickTime = 0;
@@ -245,7 +247,9 @@ class _OrderFlowBridge {
       conn.binanceWS.onmessage = null;
       conn.binanceWS.onclose = null;
       conn.binanceWS.onerror = null;
-      conn.binanceWS.close();
+      if (conn.binanceWS.readyState === WebSocket.OPEN) {
+        conn.binanceWS.close();
+      }
       conn.binanceWS = null;
     }
 
@@ -430,6 +434,21 @@ class _OrderFlowBridge {
   /** @private — Connect Binance WS with reconnection support */
   _connectBinance(symbol, conn, handler) {
     if (!conn.active) return;
+    conn.reconnectScheduled = false;
+
+    // Close any existing WS before creating a new one (prevents "closed before established")
+    if (conn.binanceWS) {
+      conn.binanceWS.onopen = null;
+      conn.binanceWS.onmessage = null;
+      conn.binanceWS.onclose = null;
+      conn.binanceWS.onerror = null;
+      try {
+        if (conn.binanceWS.readyState === WebSocket.OPEN) {
+          conn.binanceWS.close();
+        }
+      } catch (e) { logger.data.warn('Operation failed', e); }
+      conn.binanceWS = null;
+    }
 
     try {
       conn.binanceWS = createBinanceTradeWS(
@@ -467,6 +486,8 @@ class _OrderFlowBridge {
   /** @private — Exponential backoff reconnection */
   _scheduleReconnect(symbol, conn, handler) {
     if (!conn.active) return;
+    // Prevent double-scheduling (heartbeat + onClose can both trigger)
+    if (conn.reconnectScheduled) return;
     if (conn.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
       pipelineLogger.error('OrderFlowBridge',
         `Max reconnect attempts (${MAX_RECONNECT_ATTEMPTS}) reached for ${symbol}. Giving up.`);
@@ -474,6 +495,13 @@ class _OrderFlowBridge {
       return;
     }
 
+    // Clear any existing reconnect timer to prevent stacking
+    if (conn.reconnectTimer) {
+      clearTimeout(conn.reconnectTimer);
+      conn.reconnectTimer = null;
+    }
+
+    conn.reconnectScheduled = true;
     conn.reconnectAttempts++;
     const delay = Math.min(
       RECONNECT_BASE_MS * Math.pow(2, conn.reconnectAttempts - 1),
@@ -488,6 +516,7 @@ class _OrderFlowBridge {
 
     conn.reconnectTimer = setTimeout(() => {
       conn.reconnectTimer = null;
+      conn.reconnectScheduled = false;
       if (conn.active) {
         this._connectBinance(symbol, conn, handler);
       }
@@ -518,7 +547,9 @@ class _OrderFlowBridge {
           conn.binanceWS.onmessage = null;
           conn.binanceWS.onclose = null;
           conn.binanceWS.onerror = null;
-          conn.binanceWS.close();
+          if (conn.binanceWS.readyState === WebSocket.OPEN) {
+            conn.binanceWS.close();
+          }
           conn.binanceWS = null;
           // Handlers nullified — manually schedule reconnect
           this._scheduleReconnect(symbol, conn, handler);

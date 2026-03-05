@@ -48,8 +48,8 @@ describe('Phase 1.1.1 — Render-on-demand (kill continuous rAF)', () => {
     expect(engineSource).toContain('_needsNextFrame()');
     // Should check dirty flags
     expect(engineSource).toContain('this.state.mainDirty || this.state.topDirty');
-    // Should check animation state
-    expect(engineSource).toContain('this._animTarget && this._animCurrent');
+    // Should check animation state (FormingCandleInterpolator)
+    expect(engineSource).toContain('this._formingInterpolator.isDone');
     // Should check live chart types
     expect(engineSource).toContain("this.props.showHeatmap || this.props.chartType === 'footprint'");
   });
@@ -203,11 +203,11 @@ describe('Phase 1.1.2 — Incremental bar append (blit-pan)', () => {
     expect(dataStageSource).toContain('vis.slice(penultIdx)');
   });
 
-  it('DataStage has blit-pan fast path with drawImage', () => {
-    expect(dataStageSource).toContain('BLIT-PAN FAST PATH');
-    expect(dataStageSource).toContain('mCtx.drawImage');
-    // Should calculate bar shift
-    expect(dataStageSource).toContain('barShift');
+  it('DataStage has GPU pan fast path with redrawWithPanOffset', () => {
+    expect(dataStageSource).toContain('GPU PAN FAST PATH');
+    expect(dataStageSource).toContain('redrawWithPanOffset');
+    // Should calculate scroll delta for pan offset
+    expect(dataStageSource).toContain('scrollDelta');
   });
 
   it('DataStage has extracted renderPriceLine helper', () => {
@@ -219,7 +219,8 @@ describe('Phase 1.1.2 — Incremental bar append (blit-pan)', () => {
 
   it('DataStage full-redraw path is preserved as fallback', () => {
     expect(dataStageSource).toContain('FULL REDRAW');
-    expect(dataStageSource).toContain('mCtx.clearRect(0, 0, bw, bh)');
+    // clearRect should be scoped to chart area (cBW, mainBH) not full bitmap (bw, bh)
+    expect(dataStageSource).toContain('mCtx.clearRect(0, 0, cBW, mainBH)');
   });
 
   // ─── RenderPipeline ────────────────────────────────────────

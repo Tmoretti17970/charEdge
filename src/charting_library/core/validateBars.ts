@@ -8,10 +8,11 @@
 // Usage:
 //   import { validateBars, validateProps, validateIndicators } from './validateBars.js';
 //   const result = validateBars(bars);
-//   if (!result.valid) result.errors.forEach(e => console.warn(e.message));
+//   if (!result.valid) result.errors.forEach(e => logger.engine.warn(e.message));
 // ═══════════════════════════════════════════════════════════════════
 
 import { ChartError, ERROR_CODES } from './ChartError.js';
+import { logger } from '../../utils/logger';
 
 /** Validation result returned by all validators. */
 export interface ValidationResult {
@@ -138,13 +139,28 @@ export function validateBars(bars: unknown): ValidationResult {
  * Known props for ChartEngine.setProps().
  */
 const KNOWN_PROPS: Set<string> = new Set([
+  // Display options
   'chartType', 'theme', 'showVolume', 'showGrid', 'showCrosshair',
-  'showPriceScale', 'showTimeScale', 'showWatermark', 'barSpacing',
-  'rightMargin', 'leftMargin', 'scaleMode', 'autoScale', 'logScale',
-  'percentScale', 'indexedScale', 'bullColor', 'bearColor', 'wickColor',
-  'gridColor', 'backgroundColor', 'textColor', 'crosshairColor',
-  'lineWidth', 'candleWidth', 'volumeOpacity', 'overlays',
+  'showPriceScale', 'showTimeScale', 'showWatermark', 'compact',
+  // Scaling & spacing
+  'barSpacing', 'rightMargin', 'leftMargin', 'scaleMode',
+  'autoScale', 'logScale', 'percentScale', 'indexedScale',
+  // Colors
+  'bullColor', 'bearColor', 'wickColor', 'gridColor',
+  'backgroundColor', 'textColor', 'crosshairColor', 'storeChartColors',
+  // Sizing
+  'lineWidth', 'candleWidth', 'volumeOpacity',
+  // Data & symbol
+  'symbol', 'tf', 'trades', 'overlays', 'aggregatorKey',
+  // Drawing & markers
   'showDrawings', 'showTradeMarkers', 'showAlerts', 'showOrderFlow',
+  'srLevels', 'patternMarkers', 'divergences', 'magnetMode',
+  // Heatmap & sessions
+  'showHeatmap', 'heatmapIntensity', 'showSessions',
+  // Order flow overlays
+  'showDeltaOverlay', 'showVPOverlay', 'showOIOverlay', 'showLargeTradesOverlay',
+  // Layout
+  'paneHeights', 'panelHeights',
 ]);
 
 /**
@@ -203,19 +219,26 @@ export function validateIndicators(indicators: unknown): ValidationResult {
       continue;
     }
 
-    if (!ind.name || typeof ind.name !== 'string') {
+    // Accept either { name } (raw config) or { indicatorId } (registry instance)
+    const hasName = (ind.name && typeof ind.name === 'string') ||
+      (ind.indicatorId && typeof ind.indicatorId === 'string');
+    if (!hasName) {
       errors.push(new ChartError(
         ERROR_CODES.INVALID_INDICATOR,
-        `Indicator at index ${i} is missing required "name" (string)`,
+        `Indicator at index ${i} is missing required "name" or "indicatorId" (string)`,
         { index: i }
       ));
     }
 
-    if (!Array.isArray(ind.values)) {
+    // Accept { values } (raw), { outputs } (registry instance), or { computed } (worker result)
+    const hasValues = Array.isArray(ind.values) ||
+      Array.isArray(ind.outputs) ||
+      (ind.computed && typeof ind.computed === 'object');
+    if (!hasValues) {
       errors.push(new ChartError(
         ERROR_CODES.INVALID_INDICATOR,
-        `Indicator "${ind.name || i}" is missing required "values" array`,
-        { index: i, name: ind.name }
+        `Indicator "${ind.name || ind.indicatorId || i}" is missing required "values", "outputs", or "computed" data`,
+        { index: i, name: ind.name || ind.indicatorId }
       ));
     }
   }

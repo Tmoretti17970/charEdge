@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { evaluateCondition, DEFAULT_RULES } from '../../state/useRuleEngine.js';
+import { evaluateCondition, DEFAULT_RULES } from '../../state/useRuleEngine.ts';
 import { buildSessionContext } from '../../hooks/useCooldownEnforcer.js';
 import { computeStreaks, computeRecovery } from '../../app/features/analytics/analytics_ui/StreakAnalysis.jsx';
 

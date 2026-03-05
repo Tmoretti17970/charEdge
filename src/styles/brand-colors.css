@@ -1,0 +1,62 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — Brand Colors (oklch)
+
+   Phase 4 Task 4.1.3: Perceptually uniform color palette using
+   oklch() for consistent lightness across hues.
+
+   These supplement the hsl() tokens in tokens.css with oklch()
+   alternatives for modern browsers (97%+ support).
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+    /* ─── Primary: Navy/Steel ──────────────────────────────────── */
+    --brand-navy: oklch(0.22 0.03 260);
+    --brand-navy-light: oklch(0.30 0.04 260);
+    --brand-steel: oklch(0.38 0.04 260);
+    --brand-steel-light: oklch(0.48 0.04 260);
+
+    /* ─── Accent: Teal (Bull) ──────────────────────────────────── */
+    --brand-teal: oklch(0.65 0.14 170);
+    --brand-teal-light: oklch(0.75 0.12 170);
+    --brand-teal-dim: oklch(0.55 0.10 170);
+
+    /* ─── Accent: Coral (Bear) ─────────────────────────────────── */
+    --brand-coral: oklch(0.60 0.19 25);
+    --brand-coral-light: oklch(0.70 0.16 25);
+    --brand-coral-dim: oklch(0.50 0.14 25);
+
+    /* ─── Accent: Blue (Interactive) ───────────────────────────── */
+    --brand-blue: oklch(0.62 0.19 255);
+    --brand-blue-light: oklch(0.72 0.15 255);
+    --brand-blue-dim: oklch(0.52 0.14 255);
+
+    /* ─── Accent: Gold (Premium / Alert) ───────────────────────── */
+    --brand-gold: oklch(0.75 0.16 80);
+    --brand-gold-light: oklch(0.82 0.12 80);
+    --brand-gold-dim: oklch(0.60 0.14 80);
+
+    /* ─── Accent: Purple (Gamification) ────────────────────────── */
+    --brand-purple: oklch(0.60 0.20 300);
+    --brand-purple-light: oklch(0.70 0.16 300);
+
+    /* ─── Surfaces ─────────────────────────────────────────────── */
+    --brand-bg-0: oklch(0.10 0.01 260);
+    /* Deepest background */
+    --brand-bg-1: oklch(0.14 0.01 260);
+    /* Card background */
+    --brand-bg-2: oklch(0.18 0.01 260);
+    /* Elevated surface */
+    --brand-bg-3: oklch(0.22 0.01 260);
+    /* Interactive hover */
+
+    /* ─── Text ─────────────────────────────────────────────────── */
+    --brand-text-primary: oklch(0.93 0.01 260);
+    --brand-text-secondary: oklch(0.68 0.02 260);
+    --brand-text-muted: oklch(0.48 0.02 260);
+
+    /* ─── Semantic ─────────────────────────────────────────────── */
+    --brand-success: var(--brand-teal);
+    --brand-error: var(--brand-coral);
+    --brand-warning: var(--brand-gold);
+    --brand-info: var(--brand-blue);
+}

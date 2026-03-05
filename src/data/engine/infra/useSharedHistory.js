@@ -28,7 +28,7 @@ function _getWorker() {
     );
     _worker.port.start();
     return _worker;
-  } catch {
+  } catch (_) {
     _workerFailed = true;
     return null;
   }
@@ -55,7 +55,7 @@ export async function fetchPageViaWorker(sym, tfId, beforeTime) {
 
   // Fallback to direct fetch if SharedWorker unavailable
   if (!worker) {
-    const { fetchOHLCPage } = await import('../../FetchService.js');
+    const { fetchOHLCPage } = await import('../../FetchService.ts');
     return fetchOHLCPage(sym, tfId, beforeTime);
   }
 
@@ -74,7 +74,7 @@ export async function fetchPageViaWorker(sym, tfId, beforeTime) {
     const timer = setTimeout(() => {
       // Timeout after 15s — fall back to direct fetch
       _pending.delete(key);
-      import('../../FetchService.js').then(({ fetchOHLCPage }) => {
+      import('../../FetchService.ts').then(({ fetchOHLCPage }) => {
         fetchOHLCPage(sym, tfId, beforeTime).then(resolve).catch(reject);
       });
     }, 15000);
@@ -86,7 +86,7 @@ export async function fetchPageViaWorker(sym, tfId, beforeTime) {
       const msg = e.data;
       if (msg.type === 'fetch-proceed' && msg.key === key) {
         // We are the designated fetcher — do the actual fetch
-        import('../../FetchService.js').then(({ fetchOHLCPage }) => {
+        import('../../FetchService.ts').then(({ fetchOHLCPage }) => {
           fetchOHLCPage(sym, tfId, beforeTime).then((result) => {
             // Tell the worker we're done (so other tabs get the result)
             worker.port.postMessage({
@@ -115,7 +115,7 @@ export async function fetchPageViaWorker(sym, tfId, beforeTime) {
           resolve({ data: msg.data, hasMore: msg.data.length >= 500 });
         } else {
           // Fallback to direct fetch on error
-          import('../../FetchService.js').then(({ fetchOHLCPage }) => {
+          import('../../FetchService.ts').then(({ fetchOHLCPage }) => {
             fetchOHLCPage(sym, tfId, beforeTime).then(resolve).catch(reject);
           });
         }

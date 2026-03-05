@@ -7,25 +7,10 @@
 
 import React from 'react';
 
-const shimmerKeyframes = `
-@keyframes ce-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-`;
-
-// Inject keyframes once
-if (typeof document !== 'undefined' && !document.getElementById('ce-shimmer-style')) {
-  const style = document.createElement('style');
-  style.id = 'ce-shimmer-style';
-  style.textContent = shimmerKeyframes;
-  document.head.appendChild(style);
-}
-
 const BASE_STYLE = {
   background: 'linear-gradient(90deg, var(--c-bg-secondary, hsl(225, 13%, 12%)) 25%, var(--c-bg-tertiary, hsl(225, 13%, 15%)) 50%, var(--c-bg-secondary, hsl(225, 13%, 12%)) 75%)',
   backgroundSize: '200% 100%',
-  animation: 'ce-shimmer 1.5s ease-in-out infinite',
+  animation: 'shimmer 1.5s ease-in-out infinite',
   borderRadius: 'var(--br-md, 8px)',
 };
 

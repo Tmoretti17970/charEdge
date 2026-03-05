@@ -18,7 +18,7 @@ let _savedTemplates = null;
 try {
   const raw = localStorage.getItem('charEdge-drawing-templates');
   if (raw) _savedTemplates = JSON.parse(raw);
-} catch {}
+} catch (_) { /* storage may be blocked */ }
 
 const DEFAULT_TEMPLATES = [
   { id: 'dt1', tool: 'trendline', color: '#2962FF', lineWidth: 2, dash: [], label: 'Blue Trend' },
@@ -40,7 +40,7 @@ export default function DrawingTemplateBar() {
 
   const persistTemplates = useCallback((t) => {
     setTemplatesLocal(t);
-    try { localStorage.setItem('charEdge-drawing-templates', JSON.stringify(t)); } catch {}
+    try { localStorage.setItem('charEdge-drawing-templates', JSON.stringify(t)); } catch (_) { /* storage may be blocked */ }
   }, []);
 
   const handleSelect = useCallback((tmpl) => {

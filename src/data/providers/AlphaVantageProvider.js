@@ -6,6 +6,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { getApiKey } from './ApiKeyStore.js';
+import { logger } from '../../utils/logger';
 
 // ─── Alpha Vantage Timeframe Config ─────────────────────────────
 
@@ -60,7 +61,7 @@ export async function fetchAlphaVantage(sym, tfId) {
       volume: parseInt(bar['5. volume'] || bar['6. volume'] || '0', 10),
     }));
   } catch (err) {
-    console.warn(`[AlphaVantageProvider] Error for ${sym}:`, err.message);
+    logger.data.warn(`[AlphaVantageProvider] Error for ${sym}:`, err.message);
     return null;
   }
 }

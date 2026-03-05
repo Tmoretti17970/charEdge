@@ -12,11 +12,12 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { orderFlowBridge } from '../orderflow/OrderFlowBridge.js';
-import { depthEngine } from '../orderflow/DepthEngine.js';
+import { depthEngine } from '../orderflow/DepthEngine.ts';
 import { tickPersistence } from '../streaming/TickPersistence.js';
 import { streamingMetrics } from '../streaming/StreamingMetrics.js';
 import { performanceMonitor } from './PerformanceMonitor.js';
 import { pipelineLogger } from './DataPipelineLogger.js';
+import { logger } from '../../../utils/logger';
 
 // ─── Constants ─────────────────────────────────────────────────
 
@@ -215,10 +216,10 @@ class _PipelineHealthMonitor {
       // Notify on change (or always on first poll)
       if (!prevOverall || prevOverall !== health.overall) {
         for (const cb of this._callbacks) {
-          try { cb(health); } catch { /* silent */ }
+          try { cb(health); } catch (e) { logger.data.warn('Operation failed', e); }
         }
       }
-    } catch {
+    } catch (_) {
       // Monitor itself must never crash
     }
   }

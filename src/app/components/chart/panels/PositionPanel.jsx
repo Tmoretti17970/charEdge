@@ -36,7 +36,7 @@ export default function PositionPanel({ currentPrice, symbol }) {
       setLivePositions(pos || []);
       setLiveOrders(ord || []);
       setLiveAccount(acc);
-    } catch {
+    } catch (_) {
       /* silent */
     } finally {
       setLoading(false);

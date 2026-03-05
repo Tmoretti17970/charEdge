@@ -201,7 +201,7 @@ function normalizeTrade(trade) {
   if (out.date && !out.date.includes('T')) {
     try {
       out.date = new Date(out.date).toISOString();
-    } catch {
+    } catch (_) {
       /* keep as-is */
     }
   }

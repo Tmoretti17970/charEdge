@@ -3,11 +3,11 @@
 // Tests for: useJournalStore, useChartStore, useUserStore, useUIStore
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../state/useUserStore.js';
+import { useUserStore } from '../../state/useUserStore.ts';
 import { describe, it, expect } from 'vitest';
-import { useJournalStore } from '../../state/useJournalStore.js';
-import { useChartStore } from '../../state/useChartStore.js';
-import { useUIStore } from '../../state/useUIStore.js';
+import { useJournalStore } from '../../state/useJournalStore.ts';
+import { useChartStore } from '../../state/useChartStore.ts';
+import { useUIStore } from '../../state/useUIStore.ts';
 
 const mkTrade = (id = 'test_1', pnl = 100) => ({
   id,

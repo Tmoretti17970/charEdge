@@ -1,0 +1,79 @@
+// ═══════════════════════════════════════════════════════════════════
+// charEdge — Environment Variable Validation (TypeScript)
+//
+// Validates all required environment variables at startup using Zod.
+// Crashes immediately with human-readable errors on invalid config.
+// Import this at the top of server.js before anything else.
+// ═══════════════════════════════════════════════════════════════════
+
+import { z } from 'zod';
+
+const envSchema = z.object({
+    // ── Required ────────────────────────────────────────────
+    NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+    PORT: z.coerce.number().int().min(1).max(65535).default(3000),
+
+    // ── Security ────────────────────────────────────────────
+    JWT_SECRET: z.string().min(16, 'JWT_SECRET must be at least 16 characters').default('dev-secret-change-in-production!'),
+    CORS_ORIGINS: z.string().optional().default(''),
+
+    // ── Database ────────────────────────────────────────────
+    DB_PATH: z.string().optional().default('./data/charedge.db'),
+
+    // ── Sentry ──────────────────────────────────────────────
+    SENTRY_DSN: z.string().url().optional(),
+    SENTRY_AUTH_TOKEN: z.string().optional(),
+    SENTRY_ORG: z.string().optional(),
+    SENTRY_PROJECT: z.string().optional(),
+
+    // ── External APIs ───────────────────────────────────────
+    STRIPE_SECRET_KEY: z.string().optional(),
+    STRIPE_WEBHOOK_SECRET: z.string().optional(),
+
+    // ── Feature Flags ───────────────────────────────────────
+    ENABLE_SOCIAL: z.coerce.boolean().default(false),
+    ENABLE_AI: z.coerce.boolean().default(false),
+});
+
+export type Env = z.infer<typeof envSchema>;
+
+let _env: Env | null = null;
+
+/**
+ * Validate and parse environment variables.
+ * Call once at startup — crashes with clear errors on invalid config.
+ */
+export function validateEnv(): Env {
+    if (_env) return _env;
+
+    const result = envSchema.safeParse(process.env);
+
+    if (!result.success) {
+        const errors = result.error.issues.map(
+            (issue) => `  ✗ ${issue.path.join('.')}: ${issue.message}`
+        );
+        console.error('\n╔══════════════════════════════════════════════╗');
+        console.error('║  Environment Variable Validation Failed      ║');
+        console.error('╚══════════════════════════════════════════════╝\n');
+        console.error(errors.join('\n'));
+        console.error('\nFix the above issues and restart the server.\n');
+        process.exit(1);
+    }
+
+    // Warn if using default JWT secret in production
+    if (result.data.NODE_ENV === 'production' && result.data.JWT_SECRET === 'dev-secret-change-in-production!') {
+        console.error('\n⚠️  WARNING: Using default JWT_SECRET in production! Set a secure value.\n');
+        process.exit(1);
+    }
+
+    _env = result.data;
+    return _env;
+}
+
+/**
+ * Get the validated environment. Must call validateEnv() first.
+ */
+export function getEnv(): Env {
+    if (!_env) throw new Error('Environment not validated. Call validateEnv() at startup.');
+    return _env;
+}

@@ -1,3 +1,5 @@
+import { logger } from '../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — StressTest
 //
@@ -8,7 +10,7 @@
 //   const st = new StressTest();
 //   const data = StressTest.generateBars(10000);
 //   const result = st.measure(data, simulateFn, { durationMs: 2000 });
-//   console.log(StressTest.generateReport([result]));
+//   logger.engine.info(StressTest.generateReport([result]));
 // ═══════════════════════════════════════════════════════════════════
 
 /**

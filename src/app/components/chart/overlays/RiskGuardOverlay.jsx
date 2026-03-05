@@ -10,7 +10,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { usePropFirmStore } from '../../../../state/usePropFirmStore.js';
+// Wave 0: usePropFirmStore quarantined — prop firm features removed from v1.0 scope
+const usePropFirmStore = () => null;
+const _selectPropFirm = () => ({ activeProfile: null, profiles: [] });
 import { useJournalStore } from '../../../../state/useJournalStore.js';
 import s from './RiskGuardOverlay.module.css';
 

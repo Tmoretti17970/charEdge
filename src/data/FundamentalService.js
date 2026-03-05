@@ -12,6 +12,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { CRYPTO_IDS, isCrypto } from '../constants.js';
+import { logger } from '../utils/logger';
 
 const CACHE_TTL = 3600_000; // 1 hour
 const cache = new Map(); // key → { data, ts }
@@ -53,7 +54,7 @@ export async function fetchFundamentals(symbol) {
     const res = await fetch(url);
 
     if (!res.ok) {
-      console.warn(`FundamentalService: CoinGecko returned ${res.status} for ${sym}`);
+      logger.data.warn(`FundamentalService: CoinGecko returned ${res.status} for ${sym}`);
       // Return stale cache if available
       return cached?.data || null;
     }
@@ -95,7 +96,7 @@ export async function fetchFundamentals(symbol) {
     cache.set(sym, { data, ts: Date.now() });
     return data;
   } catch (err) {
-    console.warn('FundamentalService: fetch error', err.message);
+    logger.data.warn('FundamentalService: fetch error', err.message);
     return cached?.data || null;
   }
 }

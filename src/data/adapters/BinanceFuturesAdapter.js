@@ -283,7 +283,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
         interestRate: parseFloat(data.interestRate),
         time: data.time,
       };
-    } catch {
+    } catch (_) {
       return null;
     }
   }
@@ -334,9 +334,9 @@ class _BinanceFuturesAdapter extends BaseAdapter {
           };
 
           for (const cb of this._liquidationCallbacks) {
-            try { cb(liq); } catch { /* ignore */ }
+            try { cb(liq); } catch (e) { logger.data.warn('Operation failed', e); }
           }
-        } catch { /* ignore */ }
+        } catch (e) { logger.data.warn('Operation failed', e); }
       };
 
       this._liquidationWS.onclose = () => {
@@ -348,7 +348,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
       };
 
       this._liquidationWS.onerror = () => { /* silent */ };
-    } catch {
+    } catch (_) {
       this._liquidationWS = null;
     }
   }
@@ -409,10 +409,10 @@ class _BinanceFuturesAdapter extends BaseAdapter {
           const subs = this._markPriceCallbacks.get(symbol);
           if (subs) {
             for (const cb of subs) {
-              try { cb(update); } catch { /* ignore */ }
+              try { cb(update); } catch (e) { logger.data.warn('Operation failed', e); }
             }
           }
-        } catch { /* ignore */ }
+        } catch (e) { logger.data.warn('Operation failed', e); }
       };
 
       this._markPriceWS.onclose = () => {
@@ -420,7 +420,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
       };
 
       this._markPriceWS.onerror = () => { /* silent */ };
-    } catch {
+    } catch (_) {
       this._markPriceWS = null;
     }
   }
@@ -492,7 +492,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
         currentOI: lastOI,
         timestamp: Date.now(),
       };
-    } catch {
+    } catch (_) {
       return null;
     }
   }

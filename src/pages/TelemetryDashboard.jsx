@@ -15,6 +15,7 @@ import { C, F, M } from '../constants.js';
 import { getAuditSummary, getPlatformCLS, getPhase5Summary, SIMPLIFICATION_MANIFESTO } from '../utils/cognitiveLoadAudit.js';
 import { ChartPerfMonitor } from '../charting_library/core/ChartPerfMonitor.js';
 import { StressTest } from '../charting_library/perf/StressTest.js';
+import { logger } from '../utils/logger';
 
 function formatDuration(ms) {
   if (!ms || ms <= 0) return '—';
@@ -399,7 +400,7 @@ function RenderPerfSection({ MetricCard }) {
         if (monitor && typeof monitor.getReport === 'function') {
           setPerfData(monitor.getReport());
         }
-      } catch { /* no monitor running */ }
+      } catch (e) { logger.ui.warn('Operation failed', e); }
     }, 2000);
     return () => clearInterval(id);
   }, []);

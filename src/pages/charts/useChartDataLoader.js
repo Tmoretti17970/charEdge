@@ -13,12 +13,13 @@ import { useWatchlistStore } from '../../state/useWatchlistStore.js';
 import { useAlertStore, checkSymbolAlerts, requestNotificationPermission } from '../../state/useAlertStore.js';
 import { useJournalStore } from '../../state/useJournalStore.js';
 import useWebSocket from '../../data/useWebSocket.js';
-import { WebSocketService } from '../../data/WebSocketService.js';
-import { fetchOHLC, fetchOHLCPage, warmCache } from '../../data/FetchService.js';
+import { WebSocketService } from '../../data/WebSocketService.ts';
+import { fetchOHLC, fetchOHLCPage, warmCache } from '../../data/FetchService.ts';
 
 import { tickerPlant } from '../../data/engine/streaming/TickerPlant.js';
 import { dataPipeline } from '../../data/engine/DataPipeline.js';
 import { parseShareURL } from '../../utils/chartExport.js';
+import { logger } from '../../utils/logger';
 
 /**
  * Hook that manages all chart data lifecycle:
@@ -49,7 +50,7 @@ export default function useChartDataLoader() {
       ttiReportedRef.current = true;
       const tti = Math.round(performance.now() - ttiMountRef.current);
       if (import.meta.env?.DEV) {
-        console.info(`[charEdge] TTI: ${tti}ms (${data.length} bars)`);
+        logger.ui.info(`[charEdge] TTI: ${tti}ms (${data.length} bars)`);
       }
       if (typeof window !== 'undefined') window.__charEdge_tti = tti;
     }
@@ -73,16 +74,20 @@ export default function useChartDataLoader() {
     warmCache(symbol, tf);
   }, [symbol]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Pre-warm watchlist symbols on mount for faster switching
+  // 5A.2.1: Pre-warm watchlist symbols via WatchlistPrefetcher service
+  // Replaces inline setTimeout approach with requestIdleCallback + DataCache
   useEffect(() => {
-    if (!watchlistSymbols?.length) return;
-    const t = setTimeout(() => {
-      watchlistSymbols.forEach(sym => {
-        if (sym !== symbol) warmCache(sym, tf);
-      });
-    }, 1500);
-    return () => clearTimeout(t);
-  }, [watchlistSymbols, tf, symbol]);
+    let prefetcher;
+    import('../../data/engine/streaming/WatchlistPrefetcher.ts')
+      .then((mod) => {
+        prefetcher = mod.watchlistPrefetcher;
+        prefetcher.start();
+      })
+      .catch(() => { }); // WatchlistPrefetcher import is best-effort
+    return () => {
+      if (prefetcher) prefetcher.stop();
+    };
+  }, []);
 
   // Request notification permission for price alerts
   useEffect(() => {
@@ -97,7 +102,7 @@ export default function useChartDataLoader() {
         .then(({ default: toast }) => {
           toast.info(`🔔 ${e.detail.message}`);
         })
-        .catch(() => {}); // intentional: Toast import is best-effort UI
+        .catch(() => { }); // intentional: Toast import is best-effort UI
     };
     window.addEventListener('charEdge:alert-triggered', handler);
     return () => window.removeEventListener('charEdge:alert-triggered', handler);
@@ -130,7 +135,7 @@ export default function useChartDataLoader() {
         .then(({ data: newData, source }) => {
           if (cancelled) return;
           performance.mark(`${markId}-end`);
-          try { performance.measure(`tf-chart-load`, `${markId}-start`, `${markId}-end`); } catch {}
+          try { performance.measure(`tf-chart-load`, `${markId}-start`, `${markId}-end`); } catch (e) { logger.ui.warn('Operation failed', e); }
           useChartStore.getState().setData(newData, source);
           if (newData?.length > 0) {
             const last = newData[newData.length - 1].close;
@@ -273,17 +278,17 @@ export default function useChartDataLoader() {
 
     const scheduleId = typeof requestIdleCallback === 'function'
       ? requestIdleCallback(() => {
-          adjacentPrefetchedRef.current.add(`${symbol}:${tf}`);
-          for (const adjTf of neighbors) {
-            fetchOHLC(symbol, adjTf).catch(() => {}); // fetchOHLC already writes to CacheManager
-          }
-        }, { timeout: 5000 })
+        adjacentPrefetchedRef.current.add(`${symbol}:${tf}`);
+        for (const adjTf of neighbors) {
+          fetchOHLC(symbol, adjTf).catch(() => { }); // fetchOHLC already writes to CacheManager
+        }
+      }, { timeout: 5000 })
       : setTimeout(() => {
-          adjacentPrefetchedRef.current.add(`${symbol}:${tf}`);
-          for (const adjTf of neighbors) {
-            fetchOHLC(symbol, adjTf).catch(() => {});
-          }
-        }, 3000);
+        adjacentPrefetchedRef.current.add(`${symbol}:${tf}`);
+        for (const adjTf of neighbors) {
+          fetchOHLC(symbol, adjTf).catch(() => { });
+        }
+      }, 3000);
 
     return () => {
       if (typeof cancelIdleCallback === 'function') cancelIdleCallback(scheduleId);

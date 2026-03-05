@@ -11,6 +11,7 @@
 
 import { formatPrice } from '../CoordinateSystem.js';
 import { formatTimeLabel } from '../barCountdown.js';
+import { filterOverlappingLabels, filterOverlappingTimeLabels } from '../NiceTicks.js';
 
 // ─── Offscreen Bitmap Cache ──────────────────────────────────────
 let _axesCache = { canvas: null, ctx: null, key: '' };
@@ -99,13 +100,25 @@ export function executeAxesStage(fs, ctx, engine) {
       priceLabels.push({ text: label, x: bw - axP, y: tickY, fontSize: 11 });
     }
 
-    // GPU SDF text path for price labels
-    const webgl = ctx.webgl;
-    const useGPUText = webgl?.available && typeof webgl.drawSDFText === 'function';
+    // ─── Collision Avoidance (8.3.2) ────────────────────────────
+    // Build exclusion zone around the current price badge
+    const lastBar = bars[bars.length - 1];
+    const exclusions = [];
+    if (lastBar) {
+      const badgeY = Math.round(p2y(lastBar.close) * pr);
+      exclusions.push({ center: badgeY, halfSize: Math.round(12 * pr) });
+    }
+    const filteredPriceLabels = filterOverlappingLabels(priceLabels, Math.round(22 * pr), exclusions);
+
+    // NOTE: Always use Canvas2D for axis labels. GPU SDF text renders to the
+    // WebGL canvas which is cleared every frame by webgl.clear(). On frames
+    // where AxesStage is skipped (change flags not matched), SDF text vanishes.
+    // Canvas2D draws to the offscreen cache → DATA canvas, which persists.
+    const useGPUText = false;
 
     if (useGPUText) {
       const axisColor = _parseColorToArray(thm.axisText || '#787B86');
-      const sdfEntries = priceLabels.map(l => ({
+      const sdfEntries = filteredPriceLabels.map(l => ({
         text: l.text,
         x: l.x,
         y: l.y,
@@ -122,7 +135,7 @@ export function executeAxesStage(fs, ctx, engine) {
       }
     } else {
       // Canvas2D fallback — draw to offscreen
-      for (const l of priceLabels) {
+      for (const l of filteredPriceLabels) {
         oCtx.fillText(l.text, l.x, l.y);
       }
     }
@@ -166,8 +179,11 @@ export function executeAxesStage(fs, ctx, engine) {
       }
 
       // Sprint 9: Session dividers (thicker line at day boundaries for intraday)
+      // 8.1.3: Use numeric timestamps directly — avoid new Date() in hot loops
+      const firstTime = typeof vis[0].time === 'number' ? vis[0].time : new Date(vis[0].time).getTime();
+      const lastTime = typeof vis[vis.length - 1].time === 'number' ? vis[vis.length - 1].time : new Date(vis[vis.length - 1].time).getTime();
       const tfMs = vis.length > 1
-        ? (new Date(vis[vis.length - 1].time).getTime() - new Date(vis[0].time).getTime()) / vis.length
+        ? (lastTime - firstTime) / vis.length
         : 60000;
       if (tfMs < 86400000) { // Only for intraday
         oCtx.save();
@@ -176,9 +192,11 @@ export function executeAxesStage(fs, ctx, engine) {
         oCtx.setLineDash([4 * pr, 2 * pr]);
         for (let i = 1; i < vis.length; i++) {
           if (!vis[i].time || !vis[i - 1].time) continue;
-          const d = new Date(vis[i].time);
-          const pd = new Date(vis[i - 1].time);
-          if (d.getUTCDate() !== pd.getUTCDate()) {
+          // 8.1.3: Numeric day-boundary detection (avoid new Date() per iteration)
+          const t = typeof vis[i].time === 'number' ? vis[i].time : +new Date(vis[i].time);
+          const pt = typeof vis[i - 1].time === 'number' ? vis[i - 1].time : +new Date(vis[i - 1].time);
+          const DAY_MS = 86400000;
+          if (Math.floor(t / DAY_MS) !== Math.floor(pt / DAY_MS)) {
             const sx = Math.round(timeTransform.indexToPixel(start + i) * pr);
             if (sx > 0 && sx < cBW) {
               oCtx.beginPath();
@@ -199,7 +217,10 @@ export function executeAxesStage(fs, ctx, engine) {
         oCtx.setLineDash([2 * pr, 3 * pr]);
         for (let i = 1; i < vis.length; i++) {
           if (!vis[i].time || !vis[i - 1].time) continue;
-          const gapMs = new Date(vis[i].time).getTime() - new Date(vis[i - 1].time).getTime();
+          // 8.1.3: Numeric gap detection (avoid new Date() per iteration)
+          const t = typeof vis[i].time === 'number' ? vis[i].time : +new Date(vis[i].time);
+          const pt = typeof vis[i - 1].time === 'number' ? vis[i - 1].time : +new Date(vis[i - 1].time);
+          const gapMs = t - pt;
           // Gap > 2 days indicates weekend or holiday
           if (gapMs > 86400000 * 2) {
             const gx = Math.round(timeTransform.indexToPixel(start + i - 0.5) * pr);
@@ -214,10 +235,13 @@ export function executeAxesStage(fs, ctx, engine) {
         oCtx.restore();
       }
 
+      // ─── Collision Avoidance for Time Labels (8.3.2) ─────────
+      const filteredTimeLabels = filterOverlappingTimeLabels(timeLabels, Math.round(16 * pr));
+
       // GPU SDF text path for time labels
       if (useGPUText) {
         const axisColor = _parseColorToArray(thm.axisText || '#787B86');
-        const sdfEntries = timeLabels.map(l => ({
+        const sdfEntries = filteredTimeLabels.map(l => ({
           text: l.text,
           x: l.x,
           y: l.y,
@@ -233,7 +257,7 @@ export function executeAxesStage(fs, ctx, engine) {
           timeTextFn();
         }
       } else {
-        for (const l of timeLabels) {
+        for (const l of filteredTimeLabels) {
           oCtx.fillText(l.text, l.x, l.y);
         }
       }

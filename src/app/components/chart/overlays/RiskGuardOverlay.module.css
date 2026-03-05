@@ -1,7 +1,7 @@
 /* RiskGuardOverlay — expanded panel inline style extraction */
 
 .expandedTitle {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   margin-bottom: 10px;
   text-transform: uppercase;
@@ -9,12 +9,12 @@
 }
 
 .summary {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   margin-top: 8px;
 }
 
 .lockedBanner {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   margin-top: 6px;
   padding: 6px 8px;

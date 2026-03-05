@@ -1,10 +1,10 @@
 import React from 'react';
 import { logger } from './utils/logger.ts';
 import ReactDOM from 'react-dom/client';
+import './styles/fonts.css';
 import './styles/base.css';
 import './styles/animations.css';
-import './theme/global.css';
-import './theme/components.css';
+import './theme/index.css';
 import './app/components/discover/discover-mobile.css';
 import './app/components/discover/discover-polish.css';
 import './app/components/discover/discover-a11y.css';

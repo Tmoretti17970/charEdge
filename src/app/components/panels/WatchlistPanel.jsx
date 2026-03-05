@@ -46,34 +46,26 @@ export default function WatchlistPanel({ compact = false }) {
 
   useEffect(() => {
     let mounted = true;
-    import('../../../data/FetchService.js').then(async ({ fetch24hTicker, fetchSparkline }) => {
-      import('../../../data/SocialService.js').then(async ({ default: SocialService }) => {
-        // Fetch all tickers, sparklines, and sentiment
-        const newTickers = { ...tickers };
-        const newSparklines = { ...sparklines };
-        const newSentiments = { ...sentiments };
+    import('../../../data/FetchService.ts').then(async ({ fetch24hTicker, fetchSparkline }) => {
+      // Fetch all tickers and sparklines
+      const newTickers = { ...tickers };
+      const newSparklines = { ...sparklines };
 
-        for (const item of items) {
-          if (!newTickers[item.symbol]) {
-            const tData = await fetch24hTicker(item.symbol);
-            if (tData && tData.length > 0) newTickers[item.symbol] = tData[0];
-          }
-          if (!newSparklines[item.symbol]) {
-            const sData = await fetchSparkline(item.symbol, item.assetClass === 'crypto');
-            if (sData && sData.length > 0) newSparklines[item.symbol] = sData;
-          }
-          if (!newSentiments[item.symbol]) {
-            const senData = await SocialService.getSentiment(item.symbol);
-            if (senData.ok) newSentiments[item.symbol] = senData.data;
-          }
+      for (const item of items) {
+        if (!newTickers[item.symbol]) {
+          const tData = await fetch24hTicker(item.symbol);
+          if (tData && tData.length > 0) newTickers[item.symbol] = tData[0];
         }
+        if (!newSparklines[item.symbol]) {
+          const sData = await fetchSparkline(item.symbol, item.assetClass === 'crypto');
+          if (sData && sData.length > 0) newSparklines[item.symbol] = sData;
+        }
+      }
 
-        if (mounted) {
-          setTickers(newTickers);
-          setSparklines(newSparklines);
-          setSentiments(newSentiments);
-        }
-      });
+      if (mounted) {
+        setTickers(newTickers);
+        setSparklines(newSparklines);
+      }
     });
     return () => {
       mounted = false;

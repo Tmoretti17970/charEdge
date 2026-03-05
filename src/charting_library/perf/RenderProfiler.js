@@ -1,3 +1,5 @@
+import { logger } from '../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — RenderProfiler
 //
@@ -12,7 +14,7 @@
 //   // ... render grid ...
 //   profiler.endStage('grid');
 //   profiler.endFrame();
-//   console.log(profiler.getSummary());
+//   logger.engine.info(profiler.getSummary());
 // ═══════════════════════════════════════════════════════════════════
 
 /**

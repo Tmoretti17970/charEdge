@@ -1,3 +1,5 @@
+import { logger } from './utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Service Worker Registration (Sprint 5.7)
 //
@@ -9,13 +11,13 @@
 
 export function registerSW() {
   if (!('serviceWorker' in navigator)) {
-    console.info('[SW] Service workers not supported');
+    logger.ui.info('[SW] Service workers not supported');
     return;
   }
 
   // Only register in production
   if (import.meta.env?.DEV) {
-    console.info('[SW] Skipping registration in dev mode');
+    logger.ui.info('[SW] Skipping registration in dev mode');
     return;
   }
 
@@ -40,15 +42,15 @@ export function registerSW() {
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
             // New version available — notify user
-            console.info('[SW] New version available');
+            logger.ui.info('[SW] New version available');
             if (window.__onSWUpdate) window.__onSWUpdate();
           }
         });
       });
 
-      console.info('[SW] Registered successfully, scope:', registration.scope);
+      logger.ui.info('[SW] Registered successfully, scope:', registration.scope);
     } catch (err) {
-      console.warn('[SW] Registration failed:', err.message);
+      logger.ui.warn('[SW] Registration failed:', err.message);
     }
   });
 }

@@ -93,7 +93,7 @@ describe('Sprint 8 — dataSlice viewport offset tracking', () => {
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'state/chart/dataSlice.js'),
+      path.resolve(__dirname, '..', '..', 'state/chart/dataSlice.ts'),
       'utf-8'
     );
   });

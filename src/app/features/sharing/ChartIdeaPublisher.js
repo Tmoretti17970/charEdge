@@ -9,7 +9,7 @@ let _savedIdeas = [];
 try {
   const raw = localStorage.getItem(IDEAS_KEY);
   if (raw) _savedIdeas = JSON.parse(raw);
-} catch {}
+} catch (_) { /* storage may be blocked */ }
 
 /**
  * Publish a chart idea — captures everything needed to reproduce the chart.
@@ -46,7 +46,7 @@ export function publishChartIdea({
   };
 
   _savedIdeas = [idea, ..._savedIdeas].slice(0, 200);
-  try { localStorage.setItem(IDEAS_KEY, JSON.stringify(_savedIdeas)); } catch {}
+  try { localStorage.setItem(IDEAS_KEY, JSON.stringify(_savedIdeas)); } catch (_) { /* storage may be blocked */ }
   return idea;
 }
 
@@ -82,7 +82,7 @@ export function toggleIdeaLike(ideaId) {
   const idea = _savedIdeas.find(i => i.id === ideaId);
   if (idea) {
     idea.likes = (idea.likes || 0) + 1;
-    try { localStorage.setItem(IDEAS_KEY, JSON.stringify(_savedIdeas)); } catch {}
+    try { localStorage.setItem(IDEAS_KEY, JSON.stringify(_savedIdeas)); } catch (_) { /* storage may be blocked */ }
   }
   return idea;
 }
@@ -100,7 +100,7 @@ export function addIdeaComment(ideaId, text, author = 'You') {
       author,
       createdAt: Date.now(),
     });
-    try { localStorage.setItem(IDEAS_KEY, JSON.stringify(_savedIdeas)); } catch {}
+    try { localStorage.setItem(IDEAS_KEY, JSON.stringify(_savedIdeas)); } catch (_) { /* storage may be blocked */ }
   }
   return idea;
 }

@@ -27,6 +27,7 @@ import { drawGrid as _drawGrid } from './GridRenderer.ts';
 import { drawSDFText as _drawSDFText, measureSDFText as _measureSDFText, drawIndicatorLines as _drawIndicatorLines } from './TextRenderer.ts';
 
 // ─── Shader Sources (extracted to shaders/ directory) ──────────
+import { logger } from '../../utils/logger';
 import {
   CANDLE_VERT, CANDLE_FRAG,
   VOLUME_VERT, VOLUME_FRAG,
@@ -159,6 +160,11 @@ export class WebGLRenderer {
   _maxInstances: number;
   _textAtlas: TextAtlas | null;
 
+  // Phase 3 Task 3.1.9: GPU context loss recovery
+  private _contextLostHandler: ((e: Event) => void) | null;
+  private _contextRestoredHandler: (() => void) | null;
+  private _contextLost: boolean;
+
   // Instance data arrays
   _candleData!: Float32Array;
   _volumeData!: Float32Array;
@@ -190,6 +196,11 @@ export class WebGLRenderer {
     this._maxInstances = 0;
     this._textAtlas = null;
 
+    // Phase 3 Task 3.1.9: GPU context loss state
+    this._contextLost = false;
+    this._contextLostHandler = null;
+    this._contextRestoredHandler = null;
+
     // Phase 1.1.4: Virtual bar window stats for perf dashboard
     this._gpuWindowStats = { uploaded: 0, capped: 0, windowSize: GPU_WINDOW_SIZE };
 
@@ -213,12 +224,12 @@ export class WebGLRenderer {
         alpha: true,
         premultipliedAlpha: false,
         antialias: true,
-        preserveDrawingBuffer: false,
+        preserveDrawingBuffer: true,
         powerPreference: 'high-performance',
       });
 
       if (!gl) {
-        console.warn('[WebGLRenderer] WebGL 2 not available, falling back to Canvas 2D');
+        logger.engine.warn('[WebGLRenderer] WebGL 2 not available, falling back to Canvas 2D');
         return;
       }
 
@@ -246,9 +257,60 @@ export class WebGLRenderer {
       this._maxInstances = 4096;
       this._createInstanceBuffers();
 
+      // Phase 3 Task 3.1.10: Shader warm-up — eagerly compile all programs
+      // to eliminate first-render stutter from lazy compilation.
+      this._warmUpShaders();
+
+      // Phase 3 Task 3.1.9: GPU context loss/restoration handlers
+      this._setupContextRecovery();
+
     } catch (err: unknown) {
-      console.warn('[WebGLRenderer] Init failed:', (err as Error).message);
+      logger.engine.warn('[WebGLRenderer] Init failed:', (err as Error).message);
       this._available = false;
+    }
+  }
+
+  // ─── Phase 3: GPU Context Recovery ──────────────────────────
+
+  /**
+   * Listen for WebGL context loss and automatically re-initialize.
+   * Mobile GPUs and driver updates can trigger context loss.
+   */
+  private _setupContextRecovery(): void {
+    this._contextLostHandler = (e: Event) => {
+      e.preventDefault(); // Prevents default 'context is gone forever' behavior
+      this._contextLost = true;
+      this._available = false;
+      logger.engine.warn('[WebGLRenderer] GPU context lost — will attempt recovery');
+    };
+
+    this._contextRestoredHandler = () => {
+      logger.engine.info('[WebGLRenderer] GPU context restored — re-initializing');
+      this._contextLost = false;
+      // Re-init from scratch: new GL state, new shaders, new buffers
+      this._init();
+    };
+
+    this.canvas.addEventListener('webglcontextlost', this._contextLostHandler);
+    this.canvas.addEventListener('webglcontextrestored', this._contextRestoredHandler);
+  }
+
+  /** Whether the GPU context has been lost. */
+  get contextLost(): boolean {
+    return this._contextLost;
+  }
+
+  // ─── Phase 3: Shader Warm-Up ────────────────────────────────
+
+  /**
+   * Eagerly compile all registered shader programs at init.
+   * This prevents the first-render stutter caused by lazy compilation.
+   */
+  private _warmUpShaders(): void {
+    if (!this._shaderLib) return;
+    const programs = ['candle', 'volume', 'line', 'aaLine', 'vprofile', 'heatmap', 'fibFill'];
+    for (const name of programs) {
+      this._shaderLib.get(name); // Triggers compile-on-first-access
     }
   }
 
@@ -277,8 +339,8 @@ export class WebGLRenderer {
     const gl = this.gl!;
     // Unit quad: 2 triangles making a rectangle
     const quadVerts = new Float32Array([
-      0, 0,  1, 0,  0, 1,  // triangle 1
-      1, 0,  1, 1,  0, 1,  // triangle 2
+      0, 0, 1, 0, 0, 1,  // triangle 1
+      1, 0, 1, 1, 0, 1,  // triangle 2
     ]);
     this._buffers.quad = gl.createBuffer()!;
     gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.quad);
@@ -389,9 +451,9 @@ export class WebGLRenderer {
     const cW = this.canvas.width;
     const cH = this.canvas.height;
 
-    // ── Clear WebGL canvas ──
+    // NOTE: Do NOT clear here — the pipeline's centralized webgl.clear()
+    // handles clearing before flushing the command buffer.
     gl.viewport(0, 0, cW, cH);
-    gl.clear(gl.COLOR_BUFFER_BIT);
 
     // ── Redraw candles with pan offset ──
     const candleProg = this._shaderLib!.get('candle');
@@ -408,6 +470,7 @@ export class WebGLRenderer {
       gl.uniform1f(gl.getUniformLocation(candleProg, 'u_yMax'), overrides.yMax ?? p.yMax);
       gl.uniform1f(gl.getUniformLocation(candleProg, 'u_mainH'), mainH * pr);
       gl.uniform1f(gl.getUniformLocation(candleProg, 'u_panOffset'), panOffsetPx);
+      gl.uniform1f(gl.getUniformLocation(candleProg, 'u_hollow'), this._lastCandleParams?.hollow ? 1.0 : 0.0);
 
       const t = this._lastCandleTheme;
       gl.uniform4fv(gl.getUniformLocation(candleProg, 'u_bullColor'), this._parseColor(t.bullCandle || '#26A69A'));
@@ -635,6 +698,16 @@ export class WebGLRenderer {
   // ─── Cleanup ────────────────────────────────────────────────
 
   dispose(): void {
+    // Phase 3: Remove context recovery listeners
+    if (this._contextLostHandler) {
+      this.canvas.removeEventListener('webglcontextlost', this._contextLostHandler);
+      this._contextLostHandler = null;
+    }
+    if (this._contextRestoredHandler) {
+      this.canvas.removeEventListener('webglcontextrestored', this._contextRestoredHandler);
+      this._contextRestoredHandler = null;
+    }
+
     if (!this.gl) return;
     const gl = this.gl;
 

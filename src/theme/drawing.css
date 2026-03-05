@@ -1,0 +1,14 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * charEdge — Drawing Tools CSS  
+ *
+ * Drawing edit popup, sidebar, color picker, coordinate inputs.
+ * Extracted from components.css (Sprint: CSS Surgery)
+ *
+ * NOTE: Full drawing styles remain in components.css until Phase 2
+ * of CSS surgery. This file is a forward-declaration placeholder
+ * to establish the import chain. Styles will be migrated here
+ * incrementally.
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/* Drawing styles are currently served from components.css.
+   This file will receive migrated styles in future sprints. */

@@ -101,7 +101,7 @@ describe('Sprint 1 — dataSlice pagination state', () => {
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'state/chart/dataSlice.js'),
+      path.resolve(__dirname, '..', '..', 'state/chart/dataSlice.ts'),
       'utf-8'
     );
   });

@@ -13,7 +13,7 @@ const TRENDING = ['BTC', 'ETH', 'SOL', 'AAPL', 'NVDA', 'TSLA', 'SPY', 'ES'];
 
 function getRecent() {
   try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]').slice(0, MAX_RECENT); }
-  catch { return []; }
+  catch (_) { return []; }
 }
 
 function addRecent(sym) {
@@ -69,7 +69,7 @@ export default function SymbolSearchModal({ isOpen, onClose, onSelect, onSearch,
       try {
         const r = await onSearch(query);
         setResults(Array.isArray(r) ? r.slice(0, 12) : []);
-      } catch { setResults([]); }
+      } catch (_) { setResults([]); }
       setLoading(false);
     }, 200);
     return () => clearTimeout(searchTimer.current);

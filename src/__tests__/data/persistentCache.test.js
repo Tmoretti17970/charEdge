@@ -84,7 +84,7 @@ let DATA_SOURCE;
 try {
   const mod = await import('../../data/engine/DataPipeline.js');
   DATA_SOURCE = mod.DATA_SOURCE;
-} catch {
+} catch (_) {
   DATA_SOURCE = {
     LIVE: 'live', RELAY: 'relay', ORACLE: 'oracle',
     DELAYED: 'delayed', CACHED: 'cached', NO_DATA: 'no_data',
@@ -141,7 +141,7 @@ describe('OPFSBarStore', () => {
         const file = await fh.getFile();
         const text = await file.text();
         if (text) { const p = JSON.parse(text); if (Array.isArray(p)) existing = p; }
-      } catch { /* file doesn't exist */ }
+      } catch (_) { /* file doesn't exist */ }
 
       let merged;
       if (existing.length > 0) {
@@ -312,8 +312,8 @@ describe('FetchService - OPFS Cache Integration', () => {
   it('imports opfsBarStore from FetchService module', async () => {
     let mod;
     try {
-      mod = await import('../../data/FetchService.js');
-    } catch {
+      mod = await import('../../data/FetchService.ts');
+    } catch (_) {
       mod = null;
     }
     expect(mod === null || typeof mod.fetchOHLC === 'function').toBe(true);
@@ -368,7 +368,7 @@ describe('DataPipeline - Offline Detection', () => {
 describe('ServiceWorker - Registration', () => {
   it('registerSW module exists and exports a function', async () => {
     let mod;
-    try { mod = await import('../../registerSW.js'); } catch { mod = null; }
+    try { mod = await import('../../registerSW.js'); } catch (_) { mod = null; }
     expect(mod === null || typeof mod.registerSW === 'function').toBe(true);
   });
 

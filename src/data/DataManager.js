@@ -11,6 +11,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { RESOLUTION_MS, normalizeResolution } from './DataFeed.js';
+import { logger } from '../utils/logger';
 
 /**
  * @typedef {Object} DataManagerOptions
@@ -90,7 +91,7 @@ export function createDataManager(engine, dataFeed, options = {}) {
       let _symbolInfo;
       try {
         _symbolInfo = await dataFeed.resolveSymbol(symbol);
-      } catch {
+      } catch (_) {
         // Non-fatal: continue without symbol info
       }
 
@@ -120,7 +121,7 @@ export function createDataManager(engine, dataFeed, options = {}) {
       });
     } catch (error) {
       notifyState(false, 'error', error.message);
-      console.error(`[DataManager] Failed to load ${symbol}:`, error);
+      logger.data.error(`[DataManager] Failed to load ${symbol}:`, error);
     }
   }
 
@@ -168,7 +169,7 @@ export function createDataManager(engine, dataFeed, options = {}) {
       notifyState(false, 'ready');
     } catch (error) {
       notifyState(false, 'error', error.message);
-      console.error('[DataManager] Failed to load history:', error);
+      logger.data.error('[DataManager] Failed to load history:', error);
     }
   }
 

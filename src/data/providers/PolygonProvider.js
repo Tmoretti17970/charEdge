@@ -7,6 +7,7 @@
 
 import { isCrypto } from '../../constants.js';
 import { getApiKey, hasApiKey } from './ApiKeyStore.js';
+import { logger } from '../../utils/logger';
 
 // ─── Polygon.io REST Adapter ────────────────────────────────────
 
@@ -72,7 +73,7 @@ export async function fetchPolygon(sym, tfId) {
       trades: bar.n || 0,
     }));
   } catch (err) {
-    console.warn(`[PolygonProvider] Polygon.io error for ${sym}:`, err.message);
+    logger.data.warn(`[PolygonProvider] Polygon.io error for ${sym}:`, err.message);
     return null;
   }
 }
@@ -132,7 +133,7 @@ export function createPolygonWSAdapter() {
             });
           }
         } catch (err) {
-          console.warn(`[PolygonProvider] Equity poll failed for ${symbol}:`, err.message);
+          logger.data.warn(`[PolygonProvider] Equity poll failed for ${symbol}:`, err.message);
         }
       }, 15000);
     },

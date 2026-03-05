@@ -95,7 +95,7 @@ export class BinanceAdapter extends BaseAdapter {
           time: data.T,
           symbol: data.s,
         });
-      } catch {
+      } catch (_) {
         /* ignore parse errors */
       }
     };
@@ -129,7 +129,7 @@ export class BinanceAdapter extends BaseAdapter {
           type: 'CRYPTO',
           exchange: 'Binance',
         }));
-    } catch {
+    } catch (_) {
       return [];
     }
   }

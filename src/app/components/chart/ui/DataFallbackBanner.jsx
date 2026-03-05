@@ -47,7 +47,7 @@ const styles = {
     fontFamily: '"Inter", system-ui, sans-serif',
     backdropFilter: 'blur(12px)',
     maxWidth: '90%',
-    animation: 'fallbackSlideDown 0.3s ease-out',
+    animation: 'scaleInSm 0.3s ease-out',
   },
   warning: {
     backgroundColor: 'rgba(249, 115, 22, 0.15)',
@@ -119,7 +119,7 @@ export default function DataFallbackBanner({ symbol, tfId, dataSource, onRetry }
     setRetrying(true);
     try {
       await onRetry?.();
-    } catch {
+    } catch (_) {
       // retry failed — user can try again
     } finally {
       setTimeout(() => setRetrying(false), 2000);
@@ -176,12 +176,6 @@ export default function DataFallbackBanner({ symbol, tfId, dataSource, onRetry }
         </button>
       </div>
 
-      <style>{`
-        @keyframes fallbackSlideDown {
-          from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
-          to { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-      `}</style>
     </>
   );
 }

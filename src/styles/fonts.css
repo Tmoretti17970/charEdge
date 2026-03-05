@@ -1,0 +1,21 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * charEdge — Self-Hosted Font Declarations
+ *
+ * Phase 1 Task 1.1.7: Self-host Google Fonts to eliminate CDN tracking.
+ * Uses @fontsource packages for Inter and JetBrains Mono.
+ * Zero external requests to fonts.googleapis.com or fonts.gstatic.com.
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/* Inter — Primary UI font */
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/inter/800.css';
+
+/* JetBrains Mono — Monospace/data font */
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/jetbrains-mono/600.css';
+@import '@fontsource/jetbrains-mono/700.css';
+@import '@fontsource/jetbrains-mono/800.css';

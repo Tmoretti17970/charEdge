@@ -33,7 +33,7 @@ describe('DataCache — putCandles locking prevents race conditions', () => {
   it('has _withLock method and _locks map', async () => {
     // Verify structural fix exists in the source
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/DataCache.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/DataCache.ts', 'utf8');
     expect(source).toContain('_withLock');
     expect(source).toContain('this._locks = new Map()');
     expect(source).toContain('return this._withLock(key, async ()');
@@ -234,14 +234,14 @@ describe('CacheManager.clear — clears all cache tiers', () => {
 describe('FetchService — uses buildCacheKey for key construction', () => {
   it('imports buildCacheKey from constants', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/FetchService.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
     expect(source).toContain('buildCacheKey');
     expect(source).not.toContain("const key = `${sym}_${tfId}`");
   });
 
   it('warmCache does not reference non-existent 3m timeframe', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/FetchService.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
     expect(source).not.toContain("'3m'");
   });
 });

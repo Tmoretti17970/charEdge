@@ -61,7 +61,7 @@ async function _getDir() {
   try {
     const root = await navigator.storage.getDirectory();
     return await root.getDirectoryHandle(DIR_NAME, { create: true });
-  } catch {
+  } catch (_) {
     return null;
   }
 }
@@ -240,12 +240,12 @@ class OPFSBarStore {
           if (bars === null) {
             // CRC32 mismatch — corrupt file, auto-delete and re-fetch
             logger.data.warn(`[OPFSBarStore] Corrupt file ${binName}, deleting`);
-            try { await dir.removeEntry(binName); } catch {}
+            try { await dir.removeEntry(binName); } catch (_) { /* storage may be blocked */ }
             return [];
           }
           return bars;
         }
-      } catch {
+      } catch (_) {
         // .bin not found — try legacy .json
       }
 
@@ -294,7 +294,7 @@ class OPFSBarStore {
       // Delete legacy JSON
       const jsonName = _jsonFileName(symbol, interval);
       await dir.removeEntry(jsonName);
-    } catch {
+    } catch (_) {
       // Migration failed — that's OK, will try again next read
     }
   }
@@ -407,7 +407,7 @@ class OPFSBarStore {
         const view = new Float64Array(buffer);
         // First field is time_ms
         return new Date(view[0]).toISOString();
-      } catch {
+      } catch (_) {
         // .bin not found — fall back to full decode of legacy JSON
       }
 
@@ -415,7 +415,7 @@ class OPFSBarStore {
       const bars = await this.getCandles(symbol, interval);
       if (!bars.length) return null;
       return bars[bars.length - 1].time;
-    } catch {
+    } catch (_) {
       return null;
     }
   }
@@ -432,10 +432,10 @@ class OPFSBarStore {
       const dir = await _getDir();
       if (!dir) return;
       // Remove binary
-      try { await dir.removeEntry(_binFileName(symbol, interval)); } catch { /* ok */ }
+      try { await dir.removeEntry(_binFileName(symbol, interval)); } catch (_) { /* ok */ }
       // Remove legacy JSON
-      try { await dir.removeEntry(_jsonFileName(symbol, interval)); } catch { /* ok */ }
-    } catch {
+      try { await dir.removeEntry(_jsonFileName(symbol, interval)); } catch (_) { /* ok */ }
+    } catch (_) {
       // Directory might not exist — that's fine
     }
   }
@@ -449,7 +449,7 @@ class OPFSBarStore {
       const root = await navigator.storage.getDirectory();
       await root.removeEntry(DIR_NAME, { recursive: true });
       logger.data.info('[OPFSBarStore] Cleared all bar cache');
-    } catch {
+    } catch (_) {
       // Directory might not exist
     }
   }
@@ -484,7 +484,7 @@ class OPFSBarStore {
         totalSizeKB: Math.round(totalSize / 1024 * 10) / 10,
         symbols,
       };
-    } catch {
+    } catch (_) {
       return { fileCount: 0, totalSizeKB: 0, symbols: [] };
     }
   }

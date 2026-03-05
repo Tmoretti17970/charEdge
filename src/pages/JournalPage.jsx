@@ -25,7 +25,7 @@ import { useCooldownEnforcer } from '../hooks/useCooldownEnforcer.js';
 // Modals
 import TradeFormModal from '../app/components/dialogs/TradeFormModal.jsx';
 import CSVImportModal from '../app/components/dialogs/CSVImportModal.jsx';
-import PublishTradeModal from '../app/components/social/PublishTradeModal.jsx';
+// Wave 0: PublishTradeModal quarantined — social features removed from v1.0 scope
 
 // Bulk selection
 import { useBulkSelection } from '../app/features/journal/journal_ui/BulkOperations.jsx';
@@ -211,11 +211,7 @@ export default function JournalPage() {
         editTrade={actions.editTrade}
       />
       <CSVImportModal isOpen={actions.csvModalOpen} onClose={() => actions.setCsvModalOpen(false)} />
-      <PublishTradeModal
-        open={actions.publishTradeOpen}
-        onClose={actions.closePublishModal}
-        trade={actions.publishTrade}
-      />
+      {/* Wave 0: PublishTradeModal quarantined — social features removed from v1.0 scope */}
     </div>
   );
 }

@@ -1,13 +1,17 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "types": ["@webgpu/types"],
+    "types": [
+      "@webgpu/types"
+    ],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "allowJs": true,
-    "checkJs": false,
+    "checkJs": true,
     "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     "noEmit": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -16,9 +20,18 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "_quarantine", "src/__tests__"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "_quarantine",
+    "src/__tests__"
+  ]
 }

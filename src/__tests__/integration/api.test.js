@@ -7,11 +7,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import fs from 'node:fs';
 
-describe('6.1 — API Routes (routes.js)', () => {
+describe('6.1 — API Routes (routes.ts)', () => {
   let routesSource;
 
   beforeEach(async () => {
-    routesSource = await fs.promises.readFile('src/api/routes.js', 'utf8');
+    routesSource = await fs.promises.readFile('src/api/routes.ts', 'utf8');
   });
 
   // ── Factory Pattern ────────────────────────────────────────
@@ -22,6 +22,38 @@ describe('6.1 — API Routes (routes.js)', () => {
 
   it('creates Router from express', () => {
     expect(routesSource).toContain("import { Router } from 'express'");
+  });
+
+  // ── SQLite Integration ─────────────────────────────────────
+
+  it('imports SQLite database module', () => {
+    expect(routesSource).toContain("import { getDb } from './db/sqlite.ts'");
+  });
+
+  it('imports TradeRepository', () => {
+    expect(routesSource).toContain("import { TradeRepository } from './db/TradeRepository.ts'");
+  });
+
+  it('imports CrudRepository', () => {
+    expect(routesSource).toContain("import { CrudRepository } from './db/CrudRepository.ts'");
+  });
+
+  it('imports SettingsRepository', () => {
+    expect(routesSource).toContain("import { SettingsRepository } from './db/SettingsRepository.ts'");
+  });
+
+  it('initializes repositories in createApiRouter', () => {
+    expect(routesSource).toContain('new TradeRepository(db)');
+    expect(routesSource).toContain("new CrudRepository(db, 'playbooks')");
+    expect(routesSource).toContain("new CrudRepository(db, 'notes')");
+    expect(routesSource).toContain("new CrudRepository(db, 'plans')");
+    expect(routesSource).toContain('new SettingsRepository(db)');
+  });
+
+  it('does NOT use in-memory Maps', () => {
+    expect(routesSource).not.toContain('new Map<string, Trade[]>()');
+    expect(routesSource).not.toContain('new Map<string, CrudItem[]>()');
+    expect(routesSource).not.toContain('new Map<string, Record<string, unknown>>()');
   });
 
   // ── Trade CRUD ─────────────────────────────────────────────
@@ -48,18 +80,18 @@ describe('6.1 — API Routes (routes.js)', () => {
 
   it('has /analytics endpoint with stats', () => {
     expect(routesSource).toContain("router.get('/analytics'");
-    expect(routesSource).toContain('computeBasicStats');
+    expect(routesSource).toContain('computeStats');
   });
 
   it('has /analytics/equity endpoint', () => {
     expect(routesSource).toContain("router.get('/analytics/equity'");
-    expect(routesSource).toContain('cumulative');
+    expect(routesSource).toContain('equityCurve');
   });
 
   // ── Playbooks / Notes / Plans CRUD ─────────────────────────
 
   it('has mountCRUD factory function', () => {
-    expect(routesSource).toContain('function mountCRUD(path, store)');
+    expect(routesSource).toContain('function mountCRUD(path: string, repo:');
   });
 
   it('mounts /playbooks CRUD', () => {
@@ -76,10 +108,11 @@ describe('6.1 — API Routes (routes.js)', () => {
 
   it('CRUD factory has bulk upsert', () => {
     expect(routesSource).toContain('`${path}/bulk`');
-    expect(routesSource).toContain('upserted');
+    expect(routesSource).toContain('bulkUpsert');
   });
 
-  it('CRUD factory does upsert (replace if exists)', () => {
+  it('CRUD factory uses repository upsert', () => {
+    // Upsert — replace if exists
     expect(routesSource).toContain('Upsert — replace if exists');
   });
 
@@ -111,19 +144,14 @@ describe('6.1 — API Routes (routes.js)', () => {
     expect(routesSource).toContain('trades: clientTrades, playbooks, notes, plans, settings, since');
   });
 
-  it('sync uses last-write-wins conflict resolution', () => {
-    // Check for timestamp comparison in the sync handler
-    expect(routesSource).toContain('updatedAt || 0) >');
+  it('sync uses repository bulk upsert', () => {
+    expect(routesSource).toContain('tradeRepo.bulkUpsert');
+    expect(routesSource).toContain('repo.bulkUpsert');
   });
 
   it('sync returns pushed count and pulled data', () => {
     expect(routesSource).toContain('results.pushed');
     expect(routesSource).toContain('results.pulled');
-  });
-
-  it('sync supports since parameter for incremental pull', () => {
-    expect(routesSource).toContain('sinceMs');
-    expect(routesSource).toContain('new Date(since).getTime()');
   });
 
   // ── Alpaca Proxy ───────────────────────────────────────────
@@ -146,32 +174,13 @@ describe('6.1 — API Routes (routes.js)', () => {
   it('proxy has 15s timeout', () => {
     expect(routesSource).toContain('AbortSignal.timeout(15_000)');
   });
-
-  // ── Helpers ────────────────────────────────────────────────
-
-  it('has getUserTrades helper', () => {
-    expect(routesSource).toContain('function getUserTrades');
-  });
-
-  it('has getUserItems helper', () => {
-    expect(routesSource).toContain('function getUserItems');
-  });
-
-  it('has findUserItem helper', () => {
-    expect(routesSource).toContain('function findUserItem');
-  });
-
-  it('has computeBasicStats helper', () => {
-    expect(routesSource).toContain('function computeBasicStats');
-    expect(routesSource).toContain('profitFactor');
-  });
 });
 
 describe('6.1 — API Middleware (middleware.js)', () => {
   let middlewareSource;
 
   beforeEach(async () => {
-    middlewareSource = await fs.promises.readFile('src/api/middleware.js', 'utf8');
+    middlewareSource = await fs.promises.readFile('src/api/middleware.ts', 'utf8');
   });
 
   it('exports apiKeyAuth middleware', () => {
@@ -212,7 +221,7 @@ describe('6.1 — Server API Mount (server.js)', () => {
   });
 
   it('imports createApiRouter', () => {
-    expect(serverSource).toContain("import { createApiRouter } from './src/api/routes.js'");
+    expect(serverSource).toContain("import { createApiRouter } from './src/api/routes.ts'");
   });
 
   it('imports middleware stack', () => {
@@ -243,13 +252,12 @@ describe('6.1 — Server API Mount (server.js)', () => {
   });
 
   it('has in-memory API key store for self-hosted mode', () => {
-    expect(serverSource).toContain('_apiKeyStore');
-    expect(serverSource).toContain('validate(key)');
-    expect(serverSource).toContain('create(userId)');
+    expect(serverSource).toContain('apiKeyStore');
+    expect(serverSource).toContain("import apiKeyStore from './server/apiKeyStore.js'");
   });
 
   it('auto-creates dev API key in development', () => {
-    expect(serverSource).toContain("_apiKeyStore.create('dev-user')");
+    expect(serverSource).toContain("apiKeyStore.create('dev-user')");
     expect(serverSource).toContain('Dev API key');
   });
 

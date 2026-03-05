@@ -1,0 +1,25 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — CookieConsent Styles
+   ═══════════════════════════════════════════════════════════════════ */
+
+.banner {
+    animation: slideUp var(--dur-enter) var(--ease-out);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .banner {
+        animation: none !important;
+    }
+}

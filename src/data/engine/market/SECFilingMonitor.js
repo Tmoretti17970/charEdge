@@ -313,13 +313,13 @@ class _SECFilingMonitor {
       } else {
         filing.urgency = 2;
       }
-    } catch {
+    } catch (_) {
       filing.urgency = filing.urgency || 2;
     }
 
     // Fire filing callbacks
     for (const cb of this._callbacks) {
-      try { cb(filing); } catch { /* ignore listener errors */ }
+      try { cb(filing); } catch (e) { logger.data.warn('Operation failed', e); }
     }
 
     // Fire chart annotation callbacks
@@ -335,7 +335,7 @@ class _SECFilingMonitor {
         color: (filing.urgency || 0) >= 4 ? '#ef4444' : (filing.urgency || 0) >= 3 ? '#f59e0b' : '#6b7280',
       };
       for (const cb of this._annotationCallbacks) {
-        try { cb(annotation); } catch { /* ignore */ }
+        try { cb(annotation); } catch (e) { logger.data.warn('Operation failed', e); }
       }
     }
 
@@ -347,7 +347,7 @@ class _SECFilingMonitor {
           icon: '/favicon.ico',
           tag: `sec-${filing.accessionNumber}`,
         });
-      } catch { /* silent */ }
+      } catch (_) { /* silent */ }
     }
   }
 }

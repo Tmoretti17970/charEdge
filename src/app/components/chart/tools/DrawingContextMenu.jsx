@@ -109,7 +109,7 @@ export default function DrawingContextMenu({ x, y, drawing, engine, onClose }) {
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif",
         fontSize: 13,
         color: '#D1D4DC',
-        animation: 'ctxMenuIn 0.15s ease-out',
+        animation: 'scaleInSm 0.15s ease-out',
       }}
     >
       {items.map((item, i) => {
@@ -162,12 +162,6 @@ export default function DrawingContextMenu({ x, y, drawing, engine, onClose }) {
         );
       })}
 
-      <style>{`
-        @keyframes ctxMenuIn {
-          from { opacity: 0; transform: scale(0.95); }
-          to { opacity: 1; transform: scale(1); }
-        }
-      `}</style>
     </div>
   );
 }

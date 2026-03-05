@@ -52,7 +52,7 @@ function parseRSS(xml) {
           });
         }
       });
-    } catch {
+    } catch (_) {
       // Fallback if parsing fails
     }
   } else {
@@ -86,7 +86,7 @@ async function fetchYahooNews(symbol) {
     if (!resp.ok) return [];
     const xml = await resp.text();
     return parseRSS(xml).map(a => ({ ...a, source: 'Yahoo Finance', symbol }));
-  } catch {
+  } catch (_) {
     return [];
   }
 }
@@ -97,7 +97,7 @@ async function fetchGoogleNews(query) {
     if (!resp.ok) return [];
     const xml = await resp.text();
     return parseRSS(xml).map(a => ({ ...a, source: 'Google News' }));
-  } catch {
+  } catch (_) {
     return [];
   }
 }
@@ -118,7 +118,7 @@ async function fetchFinnhubNews(symbol, from, to) {
       sentiment: a.sentiment || null,
       image: a.image || null,
     }));
-  } catch {
+  } catch (_) {
     return [];
   }
 }
@@ -138,7 +138,7 @@ async function fetchFinnhubMarketNews() {
       category: a.category || 'general',
       image: a.image || null,
     }));
-  } catch {
+  } catch (_) {
     return [];
   }
 }

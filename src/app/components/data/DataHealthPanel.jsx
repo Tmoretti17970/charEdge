@@ -129,45 +129,45 @@ export default function DataHealthPanel() {
       try {
         const { memoryBudget } = await import('../../data/engine/MemoryBudget.js');
         result.memory = memoryBudget.getStatus();
-      } catch { result.memory = null; }
+      } catch (_) { result.memory = null; }
 
       // Circuit breaker states
       try {
         const { getCircuitBreakerStats } = await import('../../data/engine/AdapterCircuitBreaker.js');
         result.circuits = getCircuitBreakerStats?.() || {};
-      } catch { result.circuits = {}; }
+      } catch (_) { result.circuits = {}; }
 
       // OPFS usage
       try {
         const { opfsBarStore } = await import('../../data/engine/OPFSBarStore.js');
         result.opfs = opfsBarStore.getStats?.() || {};
-      } catch { result.opfs = {}; }
+      } catch (_) { result.opfs = {}; }
 
       // IndexedDB cache stats
       try {
-        const { dataCache } = await import('../../data/DataCache.js');
+        const { dataCache } = await import('../../data/DataCache.ts');
         result.idb = await dataCache.getStats?.() || {};
         result.storage = await dataCache.getStorageUsage?.() || {};
-      } catch { result.idb = {}; result.storage = {}; }
+      } catch (_) { result.idb = {}; result.storage = {}; }
 
       // FetchService cache stats
       try {
-        const { cacheStats } = await import('../../data/FetchService.js');
+        const { cacheStats } = await import('../../data/FetchService.ts');
         result.fetchCache = cacheStats?.() || {};
-      } catch { result.fetchCache = {}; }
+      } catch (_) { result.fetchCache = {}; }
 
       // Bandwidth
       try {
         const { getBandwidthMonitor } = await import('../../data/engine/BandwidthMonitor.js');
         const bw = getBandwidthMonitor?.();
         result.bandwidth = bw?.getReport?.() || {};
-      } catch { result.bandwidth = {}; }
+      } catch (_) { result.bandwidth = {}; }
 
       // Event bus stats
       try {
         const { dataEventBus } = await import('../../data/engine/DataEventBus.js');
         result.events = dataEventBus.getStats?.() || {};
-      } catch { result.events = {}; }
+      } catch (_) { result.events = {}; }
 
       // Streaming indicators
       try {
@@ -176,7 +176,7 @@ export default function DataHealthPanel() {
           active: streamingIndicatorBridge.getActiveSymbols?.() || {},
           workerActive: streamingIndicatorBridge.isWorkerActive?.() || false,
         };
-      } catch { result.indicators = {}; }
+      } catch (_) { result.indicators = {}; }
 
       setData(result);
     } catch (err) {

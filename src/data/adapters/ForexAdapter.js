@@ -17,6 +17,7 @@
 
 import { pythAdapter } from './PythAdapter.js';
 import { finnhubAdapter } from './FinnhubAdapter.js';
+import { logger } from '../../utils/logger';
 
 // ─── FX Pair Registry ───────────────────────────────────────────
 
@@ -110,7 +111,7 @@ class _ForexAdapter {
         if (quote?.price > 0) {
           return { price: quote.price, source: 'pyth', pair, name: info.name, confidence: quote.confidence };
         }
-      } catch { /* fallthrough */ }
+      } catch (e) { logger.data.warn('Operation failed', e); }
     }
 
     // Try Finnhub
@@ -120,7 +121,7 @@ class _ForexAdapter {
         if (quote?.price > 0) {
           return { price: quote.price, source: 'finnhub', pair, name: info.name, confidence: 0 };
         }
-      } catch { /* fallthrough */ }
+      } catch (e) { logger.data.warn('Operation failed', e); }
     }
 
     return null;
@@ -153,7 +154,7 @@ class _ForexAdapter {
           });
         });
         if (unsub) this._unsubs.push(unsub);
-      } catch { /* ignore */ }
+      } catch (e) { logger.data.warn('Operation failed', e); }
     }
 
     // Subscribe to Finnhub as secondary
@@ -169,12 +170,12 @@ class _ForexAdapter {
           });
         });
         if (unsub) this._unsubs.push(unsub);
-      } catch { /* ignore */ }
+      } catch (e) { logger.data.warn('Operation failed', e); }
     }
 
     return () => {
       // Unsubscribe all related
-      this._unsubs.forEach(fn => { try { fn(); } catch {} });
+      this._unsubs.forEach(fn => { try { fn(); } catch (e) { logger.data.warn('Operation failed', e); } });
       this._unsubs = [];
     };
   }
@@ -202,7 +203,7 @@ class _ForexAdapter {
    * Dispose of all connections.
    */
   dispose() {
-    this._unsubs.forEach(fn => { try { fn(); } catch {} });
+    this._unsubs.forEach(fn => { try { fn(); } catch (e) { logger.data.warn('Operation failed', e); } });
     this._unsubs = [];
     this._subscribers.clear();
   }

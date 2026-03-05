@@ -40,7 +40,7 @@ export default function TradeHeatmap({ symbol, priceMin, priceMax, height = 400 
   const [showEntries, setShowEntries] = useState(true);
   const [showExits, setShowExits] = useState(true);
   const [enabled, setEnabled] = useState(() => {
-    try { return localStorage.getItem('tf-heatmap-enabled') === 'true'; } catch { return false; }
+    try { return localStorage.getItem('tf-heatmap-enabled') === 'true'; } catch (_) { return false; }
   });
 
   const engine = getTradeHeatmapEngine();
@@ -48,7 +48,7 @@ export default function TradeHeatmap({ symbol, priceMin, priceMax, height = 400 
   // Enable/disable engine opt-in
   useEffect(() => {
     engine.setOptIn(enabled);
-    try { localStorage.setItem('tf-heatmap-enabled', String(enabled)); } catch {}
+    try { localStorage.setItem('tf-heatmap-enabled', String(enabled)); } catch (_) { /* storage may be blocked */ }
   }, [enabled, engine]);
 
   // Listen for heatmap updates

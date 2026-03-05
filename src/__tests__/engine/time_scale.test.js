@@ -88,7 +88,8 @@ describe('Sprint 9 — AxesStage labels and dividers', () => {
 
   it('has session dividers for intraday', () => {
     expect(source).toContain('Session dividers');
-    expect(source).toContain('getUTCDate');
+    // 8.1.3: Numeric day-boundary detection replaced getUTCDate
+    expect(source).toContain('DAY_MS');
   });
 
   it('has weekend/holiday gap markers for daily+', () => {

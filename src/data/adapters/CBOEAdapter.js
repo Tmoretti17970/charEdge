@@ -1,3 +1,5 @@
+import { logger } from '../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v14 — CBOE Data Adapter
 //
@@ -45,7 +47,7 @@ async function fetchJSON(url) {
         headers: { 'Accept': 'application/json' },
       });
       if (resp.ok) return await resp.json();
-    } catch { /* try next */ }
+    } catch (e) { logger.data.warn('Operation failed', e); }
   }
   return null;
 }
@@ -93,7 +95,7 @@ class _CBOEAdapter {
       }
 
       return this._generateFallbackPCRatio(days);
-    } catch {
+    } catch (_) {
       return this._generateFallbackPCRatio(days);
     }
   }
@@ -143,7 +145,7 @@ class _CBOEAdapter {
       }
 
       return this._generateFallbackVIXCurve();
-    } catch {
+    } catch (_) {
       return this._generateFallbackVIXCurve();
     }
   }
@@ -173,7 +175,7 @@ class _CBOEAdapter {
         setCache(cacheKey, result);
         return result;
       }
-    } catch { /* fallback below */ }
+    } catch (e) { logger.data.warn('Operation failed', e); }
 
     return { value: null, change: 0, changePct: 0, high: null, low: null, open: null, timestamp: Date.now() };
   }

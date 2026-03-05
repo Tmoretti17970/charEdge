@@ -23,16 +23,13 @@ import { C, M, TFS, CHART_TYPES } from '../../../../constants.js';
 import ChartCanvas from './ChartCanvas.jsx';
 import SymbolSearch from '../../ui/SymbolSearch.jsx';
 import TemplateSelector from '../../../layouts/TemplateSelector.jsx';
-import { fetchOHLC, warmCache } from '../../../../data/FetchService.js';
+import { fetchOHLC, warmCache } from '../../../../data/FetchService.ts';
 import { useJournalStore } from '../../../../state/useJournalStore.js';
 import { checkSymbolAlerts } from '../../../../state/useAlertStore.js';
 import { safeClone } from '../../../../utils/safeJSON.js';
 import crosshairBus from '../../../../utils/CrosshairBus.js';
 
-const DEFAULT_INDICATORS = [
-  { type: 'sma', params: { period: 20 }, color: C.y },
-  { type: 'ema', params: { period: 50 }, color: C.p },
-];
+const DEFAULT_INDICATORS = [];
 
 /**
  * Independent chart pane for the workspace layout.
@@ -105,12 +102,12 @@ export default function ChartPane({
             try {
               const tabNode = model.getNodeById(node.getId());
               if (tabNode && tabNode._setName) tabNode._setName(`${symbol} · ${tf.toUpperCase()}`);
-            } catch {
+            } catch (_) {
               /* silently fail */
             }
           });
       }
-    } catch {
+    } catch (_) {
       /* flexlayout may throw if node is being removed during layout change */
     }
   }, [symbol, tf, node]);
@@ -402,8 +399,6 @@ export default function ChartPane({
         )}
       </div>
 
-      {/* Inline CSS for spinner */}
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

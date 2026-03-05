@@ -10,6 +10,7 @@
 //   1. All values are plain data (no DOM refs, no contexts)
 //   2. Created via FrameState.create() — never mutated
 //   3. FrameState.diff() returns a bitmask of what changed
+//   4. 8.1.5: Pooled allocation — eliminates per-frame GC
 // ═══════════════════════════════════════════════════════════════════
 
 import type { Bar, IndicatorConfig, Theme } from '../../types/chart.js';
@@ -19,18 +20,18 @@ import type { Bar, IndicatorConfig, Theme } from '../../types/chart.js';
  * Stages check these to decide whether they need to re-render.
  */
 export const CHANGED = {
-  NONE:         0,
-  VIEWPORT:     1 << 0,   // scroll, zoom, visibleBars changed
-  DATA:         1 << 1,   // bars array changed (length or content)
-  THEME:        1 << 2,   // theme or chart colors changed
-  INDICATORS:   1 << 3,   // indicator config changed
-  DRAWINGS:     1 << 4,   // drawing state changed
-  MOUSE:        1 << 5,   // cursor position changed
-  PROPS:        1 << 6,   // chart type, scale mode, overlays changed
-  SIZE:         1 << 7,   // canvas dimensions changed
-  ANIMATION:    1 << 8,   // candle entrance or tick animation active
-  TICK:         1 << 9,   // last bar updated, bar count unchanged (incremental)
-  ALL:          0x3FF,     // all bits set
+  NONE: 0,
+  VIEWPORT: 1 << 0,   // scroll, zoom, visibleBars changed
+  DATA: 1 << 1,   // bars array changed (length or content)
+  THEME: 1 << 2,   // theme or chart colors changed
+  INDICATORS: 1 << 3,   // indicator config changed
+  DRAWINGS: 1 << 4,   // drawing state changed
+  MOUSE: 1 << 5,   // cursor position changed
+  PROPS: 1 << 6,   // chart type, scale mode, overlays changed
+  SIZE: 1 << 7,   // canvas dimensions changed
+  ANIMATION: 1 << 8,   // candle entrance or tick animation active
+  TICK: 1 << 9,   // last bar updated, bar count unchanged (incremental)
+  ALL: 0x3FF,     // all bits set
 } as const;
 
 export type ChangeMask = number;
@@ -185,6 +186,9 @@ export class FrameState {
   renkoBrickSize!: number | undefined;
   rangeBarSize!: number | undefined;
 
+  // ── Drawing version (for change detection) ──────────────────────
+  drawingVersion!: number;
+
   // ─── Change mask (set after diff) ──────────────────────────────
   private _changeMask: number = 0;
 
@@ -269,7 +273,7 @@ export class FrameState {
     // Theme resolution
     const { storeChartColors } = props;
 
-    const fs = new FrameState();
+    const fs = _frameStatePool.acquire();
 
     // Timing
     fs.timestamp = performance.now();
@@ -411,6 +415,9 @@ export class FrameState {
     fs.renkoBrickSize = props.renkoBrickSize as number | undefined;
     fs.rangeBarSize = props.rangeBarSize as number | undefined;
 
+    // Drawing version from drawing engine
+    fs.drawingVersion = (engine as any).drawingEngine?.version ?? 0;
+
     return fs;
   }
 
@@ -425,9 +432,9 @@ export class FrameState {
 
     // Viewport
     if (this.startIdx !== prev.startIdx ||
-        this.endIdx !== prev.endIdx ||
-        this.visibleBars !== prev.visibleBars ||
-        this.scrollOffset !== prev.scrollOffset) {
+      this.endIdx !== prev.endIdx ||
+      this.visibleBars !== prev.visibleBars ||
+      this.scrollOffset !== prev.scrollOffset) {
       mask |= CHANGED.VIEWPORT;
     }
 
@@ -458,12 +465,12 @@ export class FrameState {
 
     // Props
     if (this.chartType !== prev.chartType ||
-        this.scaleMode !== prev.scaleMode ||
-        this.showVolume !== prev.showVolume ||
-        this.showHeatmap !== prev.showHeatmap ||
-        this.showSessions !== prev.showSessions ||
-        this.compact !== prev.compact ||
-        this.autoScale !== prev.autoScale) {
+      this.scaleMode !== prev.scaleMode ||
+      this.showVolume !== prev.showVolume ||
+      this.showHeatmap !== prev.showHeatmap ||
+      this.showSessions !== prev.showSessions ||
+      this.compact !== prev.compact ||
+      this.autoScale !== prev.autoScale) {
       mask |= CHANGED.PROPS;
     }
 
@@ -475,6 +482,11 @@ export class FrameState {
     // Animation
     if (this.animating || this.loadTimestamp) {
       mask |= CHANGED.ANIMATION;
+    }
+
+    // Drawings
+    if (this.drawingVersion !== prev.drawingVersion) {
+      mask |= CHANGED.DRAWINGS;
     }
 
     return mask;
@@ -493,4 +505,48 @@ export class FrameState {
   setChangeMask(mask: number): void {
     this._changeMask = mask;
   }
+
+  /**
+   * Release this FrameState back to the pool for reuse (8.1.5).
+   * Call this when the frame is no longer needed (after the next frame is created).
+   */
+  release(): void {
+    _frameStatePool.release(this);
+  }
 }
+
+// ─── FrameStatePool (8.1.5) ─────────────────────────────────────
+// Pre-allocates FrameState objects to avoid per-frame GC pressure.
+// Pool size = 4 (double-buffer + 2 spare for async consumers).
+
+class _FrameStatePool {
+  private readonly _pool: FrameState[] = [];
+  private readonly _maxSize: number;
+
+  constructor(size: number = 4) {
+    this._maxSize = size;
+    // Pre-allocate pool
+    for (let i = 0; i < size; i++) {
+      this._pool.push(new FrameState());
+    }
+  }
+
+  /** Acquire a FrameState from the pool (or create a new one if exhausted). */
+  acquire(): FrameState {
+    return this._pool.pop() || new FrameState();
+  }
+
+  /** Return a FrameState to the pool for reuse. */
+  release(fs: FrameState): void {
+    if (this._pool.length < this._maxSize) {
+      // Reset change mask before returning to pool
+      fs.setChangeMask(0);
+      this._pool.push(fs);
+    }
+    // If pool is full, let it be GC'd (shouldn't happen normally)
+  }
+}
+
+/** Singleton pool instance. */
+const _frameStatePool = new _FrameStatePool(4);
+export { _frameStatePool as frameStatePool };

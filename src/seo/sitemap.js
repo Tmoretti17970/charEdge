@@ -10,6 +10,7 @@
 
 import { SITE_URL } from './meta.js';
 import { getAllPublicPaths } from './routes.js';
+import { logger } from '../utils/logger';
 
 /**
  * Generate sitemap.xml content.

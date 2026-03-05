@@ -16,7 +16,7 @@ const MAX_RECENT = 10;
 function getRecentSymbols() {
   try {
     return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
-  } catch {
+  } catch (_) {
     return [];
   }
 }
@@ -76,7 +76,7 @@ export default function SymbolSearch({ currentSymbol, onSearch, onSelect, theme 
         const hits = await onSearch(query);
         setResults(hits || []);
         setSelectedIdx(0);
-      } catch {
+      } catch (_) {
         setResults([]);
       }
       setLoading(false);

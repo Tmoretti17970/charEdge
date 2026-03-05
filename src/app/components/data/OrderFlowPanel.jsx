@@ -14,7 +14,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { orderFlowEngine } from '../../../data/engine/orderflow/OrderFlowEngine.js';
+import { orderFlowEngine } from '../../../data/engine/orderflow/OrderFlowEngine.ts';
 import { orderFlowBridge } from '../../../data/engine/orderflow/OrderFlowBridge.js';
 
 // ─── Formatters ────────────────────────────────────────────────

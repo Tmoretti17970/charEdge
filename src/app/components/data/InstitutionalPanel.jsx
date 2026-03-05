@@ -13,6 +13,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { C, F } from '../../../constants.js';
+import { logger } from '../../../utils/logger';
 
 // ─── Styles ────────────────────────────────────────────────────
 
@@ -224,7 +225,7 @@ export default function InstitutionalPanel({ symbol = 'AAPL' }) {
             setFilings(prev => [filing, ...prev].slice(0, 50));
           }
         });
-      } catch { /* monitor unavailable, non-critical */ }
+      } catch (e) { logger.ui.warn('Operation failed', e); }
     })();
     return () => {
       if (unsubscribe) unsubscribe();
@@ -466,7 +467,7 @@ function Holdings13F({ symbol }) {
       const { edgarAdapter } = await import('../../../data/adapters/EdgarAdapter.js');
       const results = await edgarAdapter.searchInstitutions(searchQuery, 10);
       setInstitutions(results);
-    } catch { setInstitutions([]); }
+    } catch (_) { setInstitutions([]); }
     setLoadingSearch(false);
   }, [searchQuery]);
 
@@ -481,7 +482,7 @@ function Holdings13F({ symbol }) {
         const { edgarAdapter } = await import('../../../data/adapters/EdgarAdapter.js');
         const h = await edgarAdapter.fetch13FHoldings(selectedFund.cik, 30);
         if (!cancelled) setHoldings(h);
-      } catch { if (!cancelled) setHoldings([]); }
+      } catch (_) { if (!cancelled) setHoldings([]); }
       if (!cancelled) setLoadingHoldings(false);
     })();
 

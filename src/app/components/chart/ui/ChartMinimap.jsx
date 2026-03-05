@@ -5,6 +5,7 @@
 
 import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { C } from '../../../../constants.js';
+import { alpha } from '../../../../utils/colorUtils.js';
 
 const MINIMAP_HEIGHT = 36;
 
@@ -68,8 +69,8 @@ export default function ChartMinimap({ data, visibleBars = 80, scrollOffset = 0,
     ctx.closePath();
 
     const grad = ctx.createLinearGradient(0, 0, 0, h);
-    grad.addColorStop(0, C.b + '20');
-    grad.addColorStop(1, C.b + '02');
+    grad.addColorStop(0, alpha(C.b, 0.13));
+    grad.addColorStop(1, alpha(C.b, 0.01));
     ctx.fillStyle = grad;
     ctx.fill();
 
@@ -87,7 +88,7 @@ export default function ChartMinimap({ data, visibleBars = 80, scrollOffset = 0,
         ctx.quadraticCurveTo(cpx, prevY, x, y);
       }
     }
-    ctx.strokeStyle = C.b + '55';
+    ctx.strokeStyle = alpha(C.b, 0.33);
     ctx.lineWidth = 1.2;
     ctx.stroke();
 
@@ -112,7 +113,7 @@ export default function ChartMinimap({ data, visibleBars = 80, scrollOffset = 0,
     }
 
     // Viewport border — rounded
-    ctx.strokeStyle = C.b + '90';
+    ctx.strokeStyle = alpha(C.b, 0.56);
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.roundRect(vpLeft + 0.5, 1, Math.min(vpWidth, w - vpLeft) - 1, h - 2, 4);

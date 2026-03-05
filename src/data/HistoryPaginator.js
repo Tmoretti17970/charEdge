@@ -7,8 +7,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { isCrypto } from '../constants.js';
-import { validateCandleArray } from './engine/infra/DataValidator.js';
+import { validateCandleArray } from './engine/infra/DataValidator';
 import { toBinancePair, BINANCE_INTERVALS, fetchBinanceBatch } from './BinanceClient.js';
+import { logger } from '../utils/logger';
 
 /** Dedup in-flight pagination requests. */
 const _historyInflight = new Map();
@@ -26,7 +27,7 @@ export async function fetchOHLCPage(sym, tfId, beforeTime) {
     const { cacheManager } = await import('./engine/infra/CacheManager.js');
     const cached = cacheManager.readPage(sym, tfId, beforeTime);
     if (cached) return cached;
-  } catch { /* cache unavailable — continue to network */ }
+  } catch (e) { logger.data.warn('Operation failed', e); }
 
   // Dedup in-flight pagination requests
   if (_historyInflight.has(key)) return _historyInflight.get(key);
@@ -37,7 +38,7 @@ export async function fetchOHLCPage(sym, tfId, beforeTime) {
       try {
         const { cacheManager } = await import('./engine/infra/CacheManager.js');
         cacheManager.writePage(sym, tfId, beforeTime, result.data, result.hasMore);
-      } catch { /* cache write failed — non-critical */ }
+      } catch (e) { logger.data.warn('Operation failed', e); }
     }
     return result;
   });

@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { C, F } from '../../../../constants.js';
+import { logger } from '../../../../utils/logger';
 
 const STORAGE_KEY = 'charEdge-hotkeys';
 
@@ -39,7 +40,7 @@ function loadHotkeys() {
         key: parsed[hk.id] || hk.defaultKey,
       }));
     }
-  } catch { /* ignore */ }
+  } catch (e) { logger.ui.warn('Operation failed', e); }
   return DEFAULT_HOTKEYS.map((hk) => ({ ...hk }));
 }
 
@@ -166,7 +167,6 @@ export default function HotkeyCustomizationPanel({ onClose }) {
         ))}
       </div>
 
-      <style>{`@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }`}</style>
     </div>
   );
 }

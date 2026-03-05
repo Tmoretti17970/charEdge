@@ -116,7 +116,7 @@ describe('SWR logic consolidated into shared utility', () => {
   });
 
   it('FetchService imports staleWhileRevalidate from swr.js', () => {
-    const source = fs.readFileSync('src/data/FetchService.js', 'utf8');
+    const source = fs.readFileSync('src/data/FetchService.ts', 'utf8');
     expect(source).toContain("import { staleWhileRevalidate } from './engine/swr.js'");
     expect(source).toContain('staleWhileRevalidate(cached');
     // Should NOT have the old inline SWR pattern

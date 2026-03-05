@@ -1,3 +1,5 @@
+import { logger } from '../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — RenderQuality
 //
@@ -178,7 +180,7 @@ export function createP3Context(canvas) {
     try {
       const ctx = canvas.getContext('2d', { colorSpace: 'display-p3' });
       if (ctx) {
-        console.info('[RenderQuality] Using Display P3 wide color gamut');
+        logger.engine.info('[RenderQuality] Using Display P3 wide color gamut');
         return ctx;
       }
     } catch (e) {

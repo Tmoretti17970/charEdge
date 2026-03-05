@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Symbol Search
 //
@@ -36,7 +38,7 @@ export async function fetchSymbolSearch(query) {
       assetClass: info.assetClass || 'stock',
       provider: info.provider || 'yahoo',
     }));
-  } catch {
+  } catch (_) {
     /* SymbolRegistry not available */
   }
 
@@ -95,7 +97,7 @@ export async function fetchSymbolSearch(query) {
       binanceResults = [...exact, ...startsWith, ...contains];
     }
   } catch (err) {
-    console.warn('Binance symbol search failed:', err.message);
+    logger.data.warn('Binance symbol search failed:', err.message);
   }
 
   // ─── 3. Merge: registry first, then Binance (deduplicated) ───

@@ -15,6 +15,7 @@ import { useUIStore } from '../../state/useUIStore.js';
 import { NotificationBell } from '../components/panels/NotificationPanel.jsx';
 import { alpha } from '../../utils/colorUtils.js';
 import QuickSettings from '../components/ui/QuickSettings.jsx';
+import styles from './SettingsSlideOver.module.css';
 
 const SettingsPage = React.lazy(() => import('../../pages/SettingsPage.jsx'));
 
@@ -286,24 +287,11 @@ export default function SettingsSlideOver() {
 
             {/* Quick Settings Popover */}
             {qsOpen && (
-              <div className="qs-slideover-anchor">
+              <div className={styles.qsAnchor}>
                 <QuickSettings
                   anchorRef={qsBtnRef}
                   onClose={() => setQsOpen(false)}
                 />
-                <style>{`
-                  .qs-slideover-anchor > div {
-                    position: absolute !important;
-                    left: auto !important;
-                    bottom: auto !important;
-                    right: 20px !important;
-                    top: 0 !important;
-                  }
-                  .qs-slideover-anchor {
-                    position: relative;
-                    z-index: 10;
-                  }
-                `}</style>
               </div>
             )}
 

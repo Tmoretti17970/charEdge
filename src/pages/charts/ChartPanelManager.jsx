@@ -17,10 +17,13 @@ const ObjectTreePanel = React.lazy(() => import('../../app/components/panels/Obj
 const WatchlistPanel = React.lazy(() => import('../../app/components/panels/WatchlistPanel.jsx'));
 const AlertPanel = React.lazy(() => import('../../app/components/panels/AlertPanel.jsx'));
 const ChartInsightsPanel = React.lazy(() => import('../../app/components/panels/ChartInsightsPanel.jsx'));
-const ScriptEditor = React.lazy(() => import('../../charting_library/scripting/ScriptEditor.jsx'));
-const ScriptManager = React.lazy(() => import('../../charting_library/scripting/ScriptManager.jsx'));
-const ShareSnapshotModal = React.lazy(() => import('../../app/features/sharing/ShareSnapshotModal.jsx'));
-const SnapshotPublisher = React.lazy(() => import('../../app/features/sharing/SnapshotPublisher.jsx'));
+// Wave 0: Quarantined — script editor frozen for v1.0
+// const ScriptEditor = React.lazy(() => import('../../charting_library/scripting/ScriptEditor.jsx'));
+// const ScriptManager = React.lazy(() => import('../../charting_library/scripting/ScriptManager.jsx'));
+// Wave 0: ShareSnapshotModal quarantined — social sharing removed from v1.0
+// const ShareSnapshotModal = React.lazy(() => import('../../app/features/sharing/ShareSnapshotModal.jsx'));
+// Wave 0: SnapshotPublisher quarantined — social sharing removed from v1.0
+// const SnapshotPublisher = React.lazy(() => import('../../app/features/sharing/SnapshotPublisher.jsx'));
 const ChartSnapshotModal = React.lazy(() => import('../../app/components/chart/panels/ChartSnapshotModal.jsx'));
 const ChartSettingsPanel = React.lazy(() => import('../../app/components/chart/panels/ChartSettingsPanel.jsx'));
 const HotkeyCustomizationPanel = React.lazy(() => import('../../app/components/chart/panels/HotkeyCustomizationPanel.jsx'));
@@ -108,14 +111,14 @@ export default function ChartPanelManager({
             zIndex: 100,
             ...(isMobile
               ? {
-                  top: 0,
-                  right: 0,
-                  bottom: 0,
-                  zIndex: 50,
-                  borderLeft: `1px solid ${C.bd}`,
-                  width: '75%',
-                  maxWidth: 280,
-                }
+                top: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 50,
+                borderLeft: `1px solid ${C.bd}`,
+                width: '75%',
+                maxWidth: 280,
+              }
               : {}),
           }}
         >
@@ -209,7 +212,7 @@ export default function ChartPanelManager({
           onPost={() => {
             import('../../app/components/ui/Toast.jsx')
               .then(({ default: toast }) => toast.success('Chart posted to Social Hub! 🚀'))
-              .catch(() => {}); // intentional: Toast import is best-effort UI
+              .catch(() => { }); // intentional: Toast import is best-effort UI
           }}
         />
       </Suspense>
@@ -248,9 +251,11 @@ export default function ChartPanelManager({
                   }}
                 />
               )}
+              {/* Wave 0: Quarantined — script editor frozen
               {activePanel === 'scripts' && (
                 <ScriptEditor ref={editorRef} bars={data} onResults={setEditorOutputs} />
               )}
+              */}
               {activePanel === 'settings' && (
                 <ChartSettingsPanel onClose={closePanel} />
               )}
@@ -280,7 +285,7 @@ export default function ChartPanelManager({
         </SlidePanel>
       )}
 
-      {/* ─── Script Editor (hidden instance for ref) ─── */}
+      {/* Wave 0: Quarantined — script editor frozen
       {!isMobile && activePanel !== 'scripts' && (
         <div style={{ display: 'none' }}>
           <Suspense fallback={null}>
@@ -288,8 +293,9 @@ export default function ChartPanelManager({
           </Suspense>
         </div>
       )}
+      */}
 
-      {/* ─── Script Manager Overlay ─── */}
+      {/* Wave 0: Quarantined — script manager frozen
       <Suspense fallback={null}>
         <ScriptManager
           open={showScriptManager}
@@ -302,8 +308,9 @@ export default function ChartPanelManager({
           }}
         />
       </Suspense>
+      */}
 
-      {/* ─── Share Snapshot Modal ─── */}
+      {/* Wave 0: ShareSnapshotModal quarantined — social sharing removed from v1.0
       <Suspense fallback={null}>
         <ShareSnapshotModal
           isOpen={showShareModal}
@@ -311,8 +318,9 @@ export default function ChartPanelManager({
           chartConfig={{ symbol, tf, chartType, indicators }}
         />
       </Suspense>
+      */}
 
-      {/* ─── Snapshot Publisher (Ctrl+S) ─── */}
+      {/* Wave 0: SnapshotPublisher quarantined — social sharing removed from v1.0
       <Suspense fallback={null}>
         <SnapshotPublisher
           isOpen={showSnapshotPublisher}
@@ -321,6 +329,7 @@ export default function ChartPanelManager({
           chartInfo={{ symbol, tf, chartType }}
         />
       </Suspense>
+      */}
 
       {/* ─── Mobile Chart Settings Sheet ─── */}
       {isMobile && (

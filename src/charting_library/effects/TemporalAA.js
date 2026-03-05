@@ -198,7 +198,7 @@ export class TemporalAccumulator {
 
     try {
       this._accumCanvas = new OffscreenCanvas(w, h);
-    } catch {
+    } catch (_) {
       // Fallback for environments without OffscreenCanvas
       this._accumCanvas = document.createElement('canvas');
       this._accumCanvas.width = w;

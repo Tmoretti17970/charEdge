@@ -41,10 +41,18 @@ describe('Vercel proxy functions — exist and export handler', () => {
 // ─── Server.js Proxy Routes ──────────────────────────────────────
 
 describe('server.js — proxy routes for FMP/FRED/Finnhub', () => {
-  const serverSrc = readFileSync(resolve(ROOT, 'server.js'), 'utf8');
+  const serverSrc = [
+      'server.js',
+      'server/middleware/security.js',
+      'server/middleware/rateLimiter.js',
+      'server/middleware/requestId.js',
+      'server/routes/rss.js',
+      'server/routes/proxy.js',
+      'server/ssr.js',
+    ].map(f => readFileSync(resolve(ROOT, f), 'utf8')).join('\n');
 
-  it('has _PROXY_CONFIGS with fmp, fred, finnhub', () => {
-    expect(serverSrc).toContain('_PROXY_CONFIGS');
+  it('has PROXY_CONFIGS with fmp, fred, finnhub', () => {
+    expect(serverSrc).toContain('PROXY_CONFIGS');
     expect(serverSrc).toContain("fmp:");
     expect(serverSrc).toContain("fred:");
     expect(serverSrc).toContain("finnhub:");

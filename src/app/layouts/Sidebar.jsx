@@ -79,8 +79,9 @@ function IconCoach({ color }) {
 const NAV_ITEMS = [
   { id: 'journal', label: 'Home', Icon: IconHome },
   { id: 'charts', label: 'Charts', Icon: IconChart },
-  { id: 'coach', label: 'Char', Icon: IconCoach },
-  { id: 'discover', label: 'Discover', Icon: IconDiscover },
+  // Wave 0: Quarantined — coach + discover removed from v1.0 launch scope
+  // { id: 'coach', label: 'Char', Icon: IconCoach },
+  // { id: 'discover', label: 'Discover', Icon: IconDiscover },
 ];
 
 // ─── Sidebar Dimensions ─────────────────────────────────────────
@@ -463,7 +464,7 @@ export default function Sidebar() {
           {expanded ? <><Icon name="journal" size={10} /> Terms</> : <Icon name="journal" size={10} />}
         </span>
 
-        {/* Pricing / Upgrade link */}
+        {/* Wave 0: Pricing quarantined — re-enable when Stripe is integrated
         <span
           role="button"
           tabIndex={0}
@@ -487,6 +488,7 @@ export default function Sidebar() {
         >
           {expanded ? <><Icon name="eye" size={10} /> Upgrade</> : <Icon name="eye" size={10} />}
         </span>
+        */}
 
         <span
           style={{

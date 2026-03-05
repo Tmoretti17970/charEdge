@@ -143,13 +143,13 @@ describe('Sprint 7 — WebGLRenderer updateLastCandle', () => {
   });
 
   it('writes 7 floats per instance (x, open, high, low, close, isBull, isWick)', () => {
-    // Instance data has 7 float fields
-    expect(source).toContain('idx * 7 * 4');
+    // Instance data has 7 float fields per body/wick
+    expect(source).toContain('* 7 * 4');
   });
 
   it('updates both body and wick instances', () => {
     expect(source).toContain('wickData');
-    expect(source).toContain('wickOffset');
+    expect(source).toContain('wickIdx');
   });
 
   it('guards against no previous instance data', () => {

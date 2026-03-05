@@ -186,7 +186,7 @@ class _TickerPlant {
     AAPL: ['QQQ', 'MSFT'],
     MSFT: ['QQQ', 'AAPL'],
     NVDA: ['QQQ', 'AMD', 'SMCI'],
-    AMD:  ['NVDA', 'QQQ'],
+    AMD: ['NVDA', 'QQQ'],
     TSLA: ['QQQ', 'ARKK'],
     AMZN: ['QQQ', 'GOOGL'],
     GOOGL: ['QQQ', 'META'],
@@ -331,7 +331,7 @@ class _TickerPlant {
           priceAggregator.ingest(upper, source.id, quote.price, Date.now(), quote.confidence || 0);
           return { ...quote, source: source.id };
         }
-      } catch {
+      } catch (_) {
         // Try next source
       }
     }
@@ -485,7 +485,7 @@ class _TickerPlant {
           if (!res.ok) return null;
           const data = await res.json();
           return { price: parseFloat(data.price), confidence: 0 };
-        } catch {
+        } catch (_) {
           return null;
         }
       },
@@ -743,7 +743,7 @@ class _TickerPlant {
                   priceAggregator.ingest(symbol, source.id, quote.price, Date.now(), quote.confidence || 0);
                   this._broadcastToSharedWorker(symbol, source.id, quote.price);
                 }
-              } catch {
+              } catch (_) {
                 this._recordAdapterError(source.id);
               }
             },
@@ -768,7 +768,7 @@ class _TickerPlant {
     if (!entry) return;
 
     for (const unsub of entry.unsubs) {
-      try { unsub(); } catch { /* ignore */ }
+      try { unsub(); } catch (e) { logger.data.warn('Operation failed', e); }
     }
     entry.unsubs = [];
 
@@ -868,13 +868,13 @@ class _TickerPlant {
 
   private _initSharedWorker(): void {
     if (typeof SharedWorker === 'undefined') {
-      console.info('[TickerPlant] SharedWorker not available, running in direct mode');
+      logger.data.info('[TickerPlant] SharedWorker not available, running in direct mode');
       return;
     }
 
     try {
-      const workerUrl = new URL('./DataSharedWorker.js', import.meta.url);
-      this._sharedWorker = new SharedWorker(workerUrl, { name: 'charEdge-data' });
+      const workerUrl = new URL('../infra/DataSharedWorker.js', import.meta.url);
+      this._sharedWorker = new SharedWorker(workerUrl, { name: 'charEdge-data', type: 'module' });
       this._sharedWorkerPort = this._sharedWorker.port;
 
       this._sharedWorkerPort.onmessage = (event: MessageEvent<SharedWorkerMessage>) => {
@@ -920,11 +920,11 @@ class _TickerPlant {
         const binaryMsg = BinaryCodec.encode(msg);
         this._bandwidth.binaryBytesOut += binaryMsg.byteLength || binaryMsg.length;
         this._sharedWorkerPort.postMessage(msg);
-      } catch {
+      } catch (_) {
         this._sharedWorkerPort.postMessage(msg);
         this._bandwidth.binaryBytesOut += jsonSize;
       }
-    } catch { /* SharedWorker may be closed */ }
+    } catch (_) { /* SharedWorker may be closed */ }
   }
 
   // ─── Predictive Prefetch (Phase 9) ─────────────────────────
@@ -946,7 +946,7 @@ class _TickerPlant {
       if (lastPrefetch && (now - lastPrefetch) < this._prefetchTTL) continue;
 
       this._prefetchCooldown.set(corrSymbol, now);
-      this.fetchQuote(corrSymbol).catch(() => {});
+      this.fetchQuote(corrSymbol).catch(() => { });
     }
 
     if (this._prefetchCooldown.size > 50) {

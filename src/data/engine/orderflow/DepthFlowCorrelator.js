@@ -15,8 +15,8 @@
 //   depthFlowCorrelator.onEvent((event) => { ... });
 // ═══════════════════════════════════════════════════════════════════
 
-import { depthEngine } from './DepthEngine.js';
-import { orderFlowEngine } from './OrderFlowEngine.js';
+import { depthEngine } from './DepthEngine.ts';
+import { orderFlowEngine } from './OrderFlowEngine.ts';
 import { pipelineLogger } from '../infra/DataPipelineLogger.js';
 
 // ─── Constants ─────────────────────────────────────────────────

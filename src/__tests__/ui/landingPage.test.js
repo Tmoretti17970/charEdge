@@ -35,7 +35,7 @@ describe('LandingPage — production hero page (Task 2.2.2)', () => {
     const source = await fs.promises.readFile('src/pages/LandingPage.jsx', 'utf8');
     expect(source).toContain('landing-features');
     expect(source).toContain('GPU Charting Engine');
-    expect(source).toContain('AI Coach');
+    expect(source).toContain('Smart Insights');
     expect(source).toContain('Trade Journal');
   });
 

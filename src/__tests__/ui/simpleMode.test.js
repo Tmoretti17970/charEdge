@@ -23,17 +23,19 @@ describe('Simple Mode — DEFAULT_SETTINGS', () => {
 
 describe('Simple Mode — Sidebar', () => {
   // We import NAV_ITEMS so we can test the filter logic
-  it('NAV_ITEMS includes coach by default', async () => {
+  // Wave 0: coach is quarantined from NAV_ITEMS for v1.0 launch scope
+  it('NAV_ITEMS does not include coach (Wave 0 quarantine)', async () => {
     const { NAV_ITEMS } = await import('../../app/layouts/Sidebar.jsx');
-    expect(NAV_ITEMS.some((item) => item.id === 'coach')).toBe(true);
+    expect(NAV_ITEMS.some((item) => item.id === 'coach')).toBe(false);
   });
 
-  it('NAV_ITEMS filter removes coach when simpleMode is true', async () => {
+  it('NAV_ITEMS filter works correctly when simpleMode is true', async () => {
     const { NAV_ITEMS } = await import('../../app/layouts/Sidebar.jsx');
     const simpleMode = true;
     const filtered = NAV_ITEMS.filter((item) => !simpleMode || item.id !== 'coach');
     expect(filtered.some((item) => item.id === 'coach')).toBe(false);
-    expect(filtered.length).toBe(NAV_ITEMS.length - 1);
+    // With coach already removed, filtering should return same length
+    expect(filtered.length).toBe(NAV_ITEMS.length);
   });
 
   it('NAV_ITEMS filter preserves all items when simpleMode is false', async () => {
@@ -144,14 +146,14 @@ describe('Simple Mode — SettingsPage sections', () => {
 describe('Simple Mode — Store persistence', () => {
   it('useUserStore exports partialize including simpleMode', async () => {
     // We test this indirectly by checking the store state includes simpleMode
-    const { useUserStore } = await import('../../state/useUserStore.js');
+    const { useUserStore } = await import('../../state/useUserStore.ts');
     const state = useUserStore.getState();
     expect(state).toHaveProperty('simpleMode');
     expect(typeof state.simpleMode).toBe('boolean');
   });
 
   it('update function can toggle simpleMode', async () => {
-    const { useUserStore } = await import('../../state/useUserStore.js');
+    const { useUserStore } = await import('../../state/useUserStore.ts');
     const initial = useUserStore.getState().simpleMode;
     useUserStore.getState().update({ simpleMode: !initial });
     expect(useUserStore.getState().simpleMode).toBe(!initial);

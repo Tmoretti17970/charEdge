@@ -21,7 +21,7 @@ export const CHANGELOG_ENTRIES = [
     items: [
       { type: 'new', text: 'Complete rebrand: charEdge → charEdge with ember/steel design language' },
       { type: 'new', text: 'Charolette memorial page, star particle loading animation, and "Charolette\'s Light" achievement' },
-      { type: 'new', text: 'AI Coach "Char" — educational trading assistant with psychology insights' },
+      { type: 'new', text: 'Smart Insights — educational trading analysis with psychology insights' },
       { type: 'new', text: 'Guided Tour — 8-step onboarding for new users' },
       { type: 'new', text: '"Simple Mode" toggle — hide advanced features for focused trading' },
       { type: 'new', text: 'Bottom sheet system with 30%/50%/90% snap points for mobile' },
@@ -64,18 +64,18 @@ export const CHANGELOG_ENTRIES = [
 
 function getTypeConfig() {
   return {
-    new:    { emoji: '✨', label: 'New',    color: C.g },
-    fix:    { emoji: '🔧', label: 'Fix',    color: C.r },
+    new: { emoji: '✨', label: 'New', color: C.g },
+    fix: { emoji: '🔧', label: 'Fix', color: C.r },
     polish: { emoji: '🎨', label: 'Polish', color: C.p },
-    perf:   { emoji: '⚡', label: 'Perf',   color: C.y },
+    perf: { emoji: '⚡', label: 'Perf', color: C.y },
   };
 }
 
 function getTagStyles() {
   return {
-    major:  { bg: `${C.b}20`, color: C.b, label: 'Major' },
-    minor:  { bg: `${C.g}20`, color: C.g, label: 'Minor' },
-    patch:  { bg: `${C.t3}20`, color: C.t3, label: 'Patch' },
+    major: { bg: `${C.b}20`, color: C.b, label: 'Major' },
+    minor: { bg: `${C.g}20`, color: C.g, label: 'Minor' },
+    patch: { bg: `${C.t3}20`, color: C.t3, label: 'Patch' },
   };
 }
 
@@ -320,11 +320,6 @@ export default function ChangelogPage() {
         </span>
       </div>
 
-      <style>{`
-        @media (prefers-reduced-motion: reduce) {
-          * { transition-duration: 0s !important; }
-        }
-      `}</style>
     </div>
   );
 }

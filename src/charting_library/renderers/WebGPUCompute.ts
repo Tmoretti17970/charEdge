@@ -24,6 +24,7 @@ import RSI_SHADER from '../shaders/compute/rsi.wgsl?raw';
 import BOLLINGER_SHADER from '../shaders/compute/bollinger.wgsl?raw';
 import LTTB_SHADER from '../shaders/compute/lttb.wgsl?raw';
 import VP_BIN_SHADER from '../shaders/compute/volumeProfile.wgsl?raw';
+import { logger } from '../../utils/logger';
 
 // ─── Type Definitions ────────────────────────────────────────
 
@@ -103,7 +104,7 @@ export class WebGPUCompute {
   private async _init(): Promise<void> {
     try {
       if (!navigator.gpu) {
-        console.info('[WebGPUCompute] WebGPU not available in this browser');
+        logger.engine.info('[WebGPUCompute] WebGPU not available in this browser');
         return;
       }
 
@@ -111,7 +112,7 @@ export class WebGPUCompute {
         powerPreference: 'high-performance',
       });
       if (!adapter) {
-        console.warn('[WebGPUCompute] No GPU adapter found');
+        logger.engine.warn('[WebGPUCompute] No GPU adapter found');
         return;
       }
 
@@ -124,7 +125,7 @@ export class WebGPUCompute {
       });
 
       this.device.lost.then((info) => {
-        console.error('[WebGPUCompute] Device lost:', info.message);
+        logger.engine.error('[WebGPUCompute] Device lost:', info.message);
         this._available = false;
       });
 
@@ -138,9 +139,9 @@ export class WebGPUCompute {
       this._pipelines.vpBin = this._createPipeline(VP_BIN_SHADER);
 
       this._available = true;
-      console.info('[WebGPUCompute] Initialized successfully');
+      logger.engine.info('[WebGPUCompute] Initialized successfully');
     } catch (err) {
-      console.warn('[WebGPUCompute] Init failed:', (err as Error).message);
+      logger.engine.warn('[WebGPUCompute] Init failed:', (err as Error).message);
     }
   }
 
@@ -154,7 +155,7 @@ export class WebGPUCompute {
       shaderModule.getCompilationInfo?.().then((info) => {
         for (const msg of info.messages) {
           if (msg.type === 'error') {
-            console.error(`[WebGPUCompute] Shader error: ${msg.message} (line ${msg.lineNum}:${msg.linePos})`);
+            logger.engine.error(`[WebGPUCompute] Shader error: ${msg.message} (line ${msg.lineNum}:${msg.linePos})`);
           }
         }
       }).catch(() => {});
@@ -167,7 +168,7 @@ export class WebGPUCompute {
         },
       });
     } catch (err) {
-      console.warn('[WebGPUCompute] Pipeline creation failed:', (err as Error).message);
+      logger.engine.warn('[WebGPUCompute] Pipeline creation failed:', (err as Error).message);
       return null;
     }
   }

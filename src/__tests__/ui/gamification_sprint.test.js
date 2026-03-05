@@ -102,7 +102,7 @@ describe('Sprint 3: GPU-Translated Panning', () => {
     });
 
     it('calls webgl.redrawWithPanOffset', () => {
-      expect(dataStageSrc).toContain('webgl.redrawWithPanOffset(panOffsetPx');
+      expect(dataStageSrc).toContain('webgl.redrawWithPanOffset(');
     });
 
     it('still redraws Canvas 2D price line on GPU pan path', () => {

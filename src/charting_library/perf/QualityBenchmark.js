@@ -1,3 +1,5 @@
+import { logger } from '../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — QualityBenchmark
 //
@@ -9,7 +11,7 @@
 //   const qb = new QualityBenchmark();
 //   const snap = qb.captureSnapshot(canvas, { name: 'baseline' });
 //   const cmp  = QualityBenchmark.compareSnapshots(golden, current);
-//   console.log(cmp.pass ? 'PASS' : 'FAIL', cmp.mse);
+//   logger.engine.info(cmp.pass ? 'PASS' : 'FAIL', cmp.mse);
 // ═══════════════════════════════════════════════════════════════════
 
 /**
@@ -71,7 +73,7 @@ export class QualityBenchmark {
           // Mock/unavailable — create zeroed data
           data = new Uint8ClampedArray(width * height * 4);
         }
-      } catch {
+      } catch (_) {
         data = new Uint8ClampedArray(width * height * 4);
       }
     } else {

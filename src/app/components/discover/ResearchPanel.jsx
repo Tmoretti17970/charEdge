@@ -62,7 +62,7 @@ export default function ResearchPanel({ onCompose }) {
   const [collapsed, setCollapsed] = useState(false);
   const [notes, setNotes] = useState(() => {
     try { return localStorage.getItem('tf-research-notes') || ''; }
-    catch { return ''; }
+    catch (_) { return ''; }
   });
   const [copilotInput, setCopilotInput] = useState('');
   const [copilotMessages, setCopilotMessages] = useState([]);
@@ -75,7 +75,7 @@ export default function ResearchPanel({ onCompose }) {
   // Persist notes
   const saveNotes = useCallback((val) => {
     setNotes(val);
-    try { localStorage.setItem('tf-research-notes', val); } catch {}
+    try { localStorage.setItem('tf-research-notes', val); } catch (_) { /* storage may be blocked */ }
   }, []);
 
   // Auto-scroll copilot

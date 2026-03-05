@@ -224,7 +224,7 @@ class _TickPersistence {
         };
         req.onerror = () => resolve([]);
       });
-    } catch {
+    } catch (_) {
       return [];
     }
   }
@@ -345,7 +345,7 @@ class _TickPersistence {
         };
         req.onerror = () => resolve({});
       });
-    } catch {
+    } catch (_) {
       return {};
     }
   }
@@ -538,7 +538,7 @@ class _TickPersistence {
         }
         this._totalFlushed += ticks.length;
       }
-    } catch {
+    } catch (_) {
       // Best effort — page is unloading
     }
   }

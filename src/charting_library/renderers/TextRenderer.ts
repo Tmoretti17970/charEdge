@@ -1,3 +1,5 @@
+import { logger } from '../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — TextRenderer
 //
@@ -78,7 +80,7 @@ export function drawSDFText(
       r._textAtlas = new TextAtlasCtor(r.gl);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.warn('[WebGLRenderer] TextAtlas init failed:', msg);
+      logger.engine.warn('[WebGLRenderer] TextAtlas init failed:', msg);
       return;
     }
   }

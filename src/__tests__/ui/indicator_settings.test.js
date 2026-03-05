@@ -123,7 +123,7 @@ describe('Sprint 13 · ChartEngineWidget — Indicator Settings Wiring', () => {
 
 // ─── 3. indicatorSlice — Template Helpers ────────────────────────
 describe('Sprint 13 · indicatorSlice — Template Persistence', () => {
-  const src = read('state/chart/indicatorSlice.js');
+  const src = read('state/chart/indicatorSlice.ts');
 
   it('has saveIndicatorTemplate action', () => {
     expect(src).toContain('saveIndicatorTemplate');

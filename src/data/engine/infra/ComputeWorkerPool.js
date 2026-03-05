@@ -143,7 +143,7 @@ class PoolWorker {
 
     try {
       this.worker.postMessage(taskData, transferables);
-    } catch {
+    } catch (_) {
       // Fallback: structured clone (slower but works for any data)
       this.worker.postMessage(taskData);
     }
@@ -415,7 +415,7 @@ class _ComputeWorkerPool {
     try {
       const { computeTask } = await import('./ComputeWorker.js');
       return computeTask(task);
-    } catch {
+    } catch (_) {
       throw new Error('Fallback computation failed');
     }
   }

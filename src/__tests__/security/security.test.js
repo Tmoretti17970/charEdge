@@ -11,14 +11,14 @@ import { describe, it, expect } from 'vitest';
 
 describe('SecureStore — passphrase support (Tier 3.1)', () => {
   it('exports setPassphrase and hasPassphrase', async () => {
-    const mod = await import('../../utils/SecureStore.js');
+    const mod = await import('../../utils/SecureStore.ts');
     expect(typeof mod.SecureStore.setPassphrase).toBe('function');
     expect(typeof mod.SecureStore.hasPassphrase).toBe('function');
   });
 
   it('derives key from passphrase when set, fingerprint when not', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/utils/SecureStore.js', 'utf8');
+    const source = await fs.promises.readFile('src/utils/SecureStore.ts', 'utf8');
     // _deriveKey should use _passphrase
     expect(source).toContain('_passphrase || _getFingerprint()');
     // passphrase should be stored in memory only
@@ -27,7 +27,7 @@ describe('SecureStore — passphrase support (Tier 3.1)', () => {
 
   it('setPassphrase validates input and clears on null/empty', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/utils/SecureStore.js', 'utf8');
+    const source = await fs.promises.readFile('src/utils/SecureStore.ts', 'utf8');
     // Should check for string type and non-empty
     expect(source).toContain("typeof phrase === 'string'");
     expect(source).toContain('phrase.length > 0');
@@ -35,7 +35,7 @@ describe('SecureStore — passphrase support (Tier 3.1)', () => {
 
   it('never persists passphrase to disk', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/utils/SecureStore.js', 'utf8');
+    const source = await fs.promises.readFile('src/utils/SecureStore.ts', 'utf8');
     // passphrase should never be in localStorage
     expect(source).not.toContain("localStorage.setItem('passphrase'");
     expect(source).not.toContain('localStorage.setItem(SALT_KEY, _passphrase');

@@ -1,16 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useSocialStore } from '../../../state/useSocialStore.js';
+// Wave 0: useSocialStore quarantined — social features removed from v1.0 scope
+// Profile data will be managed via user store in Wave 6 (Supabase auth)
 import { Card, Btn, inputStyle } from '../ui/UIKit.jsx';
-import TraderCard from '../ui/TraderCard.jsx';
+// Wave 0: TraderCard quarantined — social features removed from v1.0 scope
+function TraderCard() { return null; }
 import { SectionHeader, SettingRow } from './SettingsHelpers.jsx';
 
 const AVATAR_OPTIONS = ['🔥', '🐂', '🐻', '🦈', '🦅', '🐺', '🦁', '🐲', '🦊', '🎯', '💎', '⚡', '🌊', '🏔️', '🎲', '🧠'];
 
 export default function ProfileSection() {
-  const myProfile = useSocialStore((s) => s.myProfile);
-  const loadMyProfile = useSocialStore((s) => s.loadMyProfile);
-  const updateMyProfile = useSocialStore((s) => s.updateMyProfile);
+  // Wave 0: useSocialStore quarantined — using local defaults
+  const myProfile = null;
+  const loadMyProfile = useCallback(() => { }, []);
+  const updateMyProfile = useCallback(() => { }, []);
   const [profileForm, setProfileForm] = useState({});
 
   useEffect(() => { loadMyProfile(); }, [loadMyProfile]);

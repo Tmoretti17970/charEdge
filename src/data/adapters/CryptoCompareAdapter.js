@@ -97,7 +97,7 @@ export class CryptoCompareAdapter extends BaseAdapter {
           close: d.close,
           volume: d.volumefrom || d.volumeto || 0,
         }));
-    } catch {
+    } catch (_) {
       return null;
     }
   }
@@ -130,7 +130,7 @@ export class CryptoCompareAdapter extends BaseAdapter {
         low: d.LOW24HOUR || 0,
         open: d.OPEN24HOUR || 0,
       };
-    } catch {
+    } catch (_) {
       return null;
     }
   }

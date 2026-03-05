@@ -87,7 +87,7 @@ export default function JournalHeader({ journalTab, setJournalTab, openAddTrade,
             background: C.bg2,
             borderBottom: `1px solid ${C.bd}`,
             flexShrink: 0,
-            animation: 'tfSubTabsIn 0.2s ease forwards',
+            animation: 'scaleInSm 0.2s ease forwards',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -133,12 +133,6 @@ export default function JournalHeader({ journalTab, setJournalTab, openAddTrade,
           </div>
         </div>
       )}
-      <style>{`
-        @keyframes tfSubTabsIn {
-          from { opacity: 0; transform: translateY(-4px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </>
   );
 }

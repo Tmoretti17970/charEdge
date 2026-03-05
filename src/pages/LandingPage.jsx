@@ -169,9 +169,9 @@ export default function LandingPage() {
           />
           <FeatureCard
             icon="🧠"
-            title="AI Coach — Char"
+            title="Smart Insights"
             accent={C.p}
-            description="Pattern recognition, trade analysis, and psychology coaching. Identifies your strengths and blind spots. Educational analysis that grows with you."
+            description="Pattern recognition, trade analysis, and psychology insights. Identifies your strengths and blind spots. Educational analysis that grows with you."
           />
           <FeatureCard
             icon="📊"
@@ -215,7 +215,7 @@ export default function LandingPage() {
         <div className={s.pricingGrid}>
           {[
             { name: 'Free', price: '$0', desc: 'Charts + Journal', accent: C.t3 },
-            { name: 'Trader', price: '$14.99', desc: 'AI Coach + More', accent: C.b },
+            { name: 'Trader', price: '$14.99', desc: 'Smart Insights + More', accent: C.b },
             { name: 'Pro', price: '$29.99', desc: 'Full Power', accent: C.p },
           ].map((tier) => (
             <div

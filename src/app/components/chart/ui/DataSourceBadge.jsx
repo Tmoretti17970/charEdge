@@ -58,17 +58,11 @@ export default function DataSourceBadge({ isLive, wsSupported, wsStatus, dataSou
         border: `1px solid ${color}30`,
         fontWeight: 700,
         letterSpacing: '0.5px',
-        animation: pulse ? 'tfPulse 1.5s ease-in-out infinite' : 'none',
+        animation: pulse ? 'pulse 1.5s ease-in-out infinite' : 'none',
         flexShrink: 0,
       }}
     >
       {label}
-      <style>{`
-        @keyframes tfPulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-      `}</style>
     </div>
   );
 }

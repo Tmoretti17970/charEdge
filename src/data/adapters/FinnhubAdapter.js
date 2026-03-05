@@ -230,7 +230,7 @@ class _FinnhubAdapter {
    * @returns {Function} unsubscribe
    */
   subscribe(symbol, callback) {
-    if (!this._wsToken) return () => {};
+    if (!this._wsToken) return () => { };
 
     const upper = symbol.toUpperCase();
 
@@ -299,9 +299,14 @@ class _FinnhubAdapter {
         }
         return null;
       }
+      // Guard: Vite dev server returns HTML for unknown routes
+      const ct = res.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) {
+        return null;
+      }
       return await res.json();
     } catch (err) {
-      logger.data.warn('[FinnhubAdapter] Request failed:', err.message);
+      logger.data.debug('[FinnhubAdapter] Request failed:', err.message);
       return null;
     }
   }
@@ -338,12 +343,12 @@ class _FinnhubAdapter {
                   conditions: trade.c,
                 };
                 for (const cb of subs) {
-                  try { cb(tick); } catch { /* ignore */ }
+                  try { cb(tick); } catch (e) { logger.data.warn('Operation failed', e); }
                 }
               }
             }
           }
-        } catch {
+        } catch (_) {
           /* ignore */
         }
       };
@@ -360,7 +365,7 @@ class _FinnhubAdapter {
       this._ws.onerror = () => {
         this._wsConnected = false;
       };
-    } catch {
+    } catch (_) {
       this._ws = null;
     }
   }

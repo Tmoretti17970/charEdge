@@ -41,7 +41,7 @@ function evaluateCondition(condition, bars) {
   let computed;
   try {
     computed = indDef.compute(bars, mergedParams);
-  } catch {
+  } catch (_) {
     return { pass: false, actual: null, detail: 'Computation error' };
   }
 

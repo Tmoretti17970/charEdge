@@ -165,6 +165,55 @@ export function toRangeBars(bars, rangeSize) {
   return { rangeBars, rangeSize: rs };
 }
 
+/**
+ * Convert OHLCV bars into Heikin-Ashi smoothed candles.
+ * HA candles filter noise and make trends more visible.
+ *
+ * Formula:
+ *   HA-Close = (O + H + L + C) / 4
+ *   HA-Open  = (prev HA-Open + prev HA-Close) / 2
+ *   HA-High  = max(H, HA-Open, HA-Close)
+ *   HA-Low   = min(L, HA-Open, HA-Close)
+ *
+ * @param {Array} bars - Source OHLCV data
+ * @returns {Array} Heikin-Ashi bars (same structure, volume preserved)
+ */
+export function toHeikinAshi(bars) {
+  if (!bars || bars.length === 0) return [];
+
+  const ha = new Array(bars.length);
+
+  // First bar: averaged values
+  const b0 = bars[0];
+  const haClose0 = (b0.open + b0.high + b0.low + b0.close) / 4;
+  const haOpen0 = (b0.open + b0.close) / 2;
+  ha[0] = {
+    time: b0.time,
+    open: haOpen0,
+    close: haClose0,
+    high: Math.max(b0.high, haOpen0, haClose0),
+    low: Math.min(b0.low, haOpen0, haClose0),
+    volume: b0.volume || 0,
+  };
+
+  for (let i = 1; i < bars.length; i++) {
+    const b = bars[i];
+    const prev = ha[i - 1];
+    const haClose = (b.open + b.high + b.low + b.close) / 4;
+    const haOpen = (prev.open + prev.close) / 2;
+    ha[i] = {
+      time: b.time,
+      open: haOpen,
+      close: haClose,
+      high: Math.max(b.high, haOpen, haClose),
+      low: Math.min(b.low, haOpen, haClose),
+      volume: b.volume || 0,
+    };
+  }
+
+  return ha;
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // Phase 1 Deep Dive — New Chart Type Transforms
 // ═══════════════════════════════════════════════════════════════════

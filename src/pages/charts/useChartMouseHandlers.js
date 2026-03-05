@@ -49,9 +49,9 @@ export default function useChartMouseHandlers({
   }, [setHoverInfo]);
 
   const onDoubleClick = useCallback((e) => {
-    if (isMobile || multiMode || e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
-    setFocusMode(true);
-  }, [isMobile, multiMode, setFocusMode]);
+    // Focus mode is now activated via the 'F' key or a toolbar button, not double-click.
+    // Double-click on the chart is used for drawing interactions.
+  }, []);
 
   const onChartContextMenu = useCallback((e) => {
     if (isMobile || multiMode) return;

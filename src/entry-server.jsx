@@ -19,6 +19,7 @@ import PublicSymbolPage from './pages/public/PublicSymbolPage.jsx';
 import PublicSnapshotPage from './pages/public/PublicSnapshotPage.jsx';
 import PublicLeaderboardPage from './pages/public/PublicLeaderboardPage.jsx';
 import PublicProfilePage from './pages/public/PublicProfilePage.jsx';
+import { logger } from './utils/logger';
 
 const PAGE_COMPONENTS = {
   PublicSymbolPage,
@@ -68,7 +69,7 @@ export async function render(url) {
   try {
     data = await route.loader(params);
   } catch (err) {
-    console.error(`[SSR] Data loader error for ${route.id}:`, err.message);
+    logger.ui.error(`[SSR] Data loader error for ${route.id}:`, err.message);
   }
 
   // ─── Generate meta tags ─────────────────────────────────
@@ -78,7 +79,7 @@ export async function render(url) {
   // ─── Render component ───────────────────────────────────
   const Component = PAGE_COMPONENTS[route.component];
   if (!Component) {
-    console.warn(`[SSR] No component found for: ${route.component}`);
+    logger.ui.warn(`[SSR] No component found for: ${route.component}`);
     return { html: '', head, statusCode: 200 };
   }
 
@@ -89,7 +90,7 @@ export async function render(url) {
   try {
     html = renderToString(React.createElement(Component, props));
   } catch (err) {
-    console.error(`[SSR] Render error for ${route.id}:`, err.message);
+    logger.ui.error(`[SSR] Render error for ${route.id}:`, err.message);
     return { html: '', head, statusCode: 500 };
   }
 

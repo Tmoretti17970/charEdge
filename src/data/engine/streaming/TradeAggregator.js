@@ -1,3 +1,5 @@
+import { logger } from '../../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v16 — Trade Aggregator
 //
@@ -136,7 +138,7 @@ export class TradeAggregator {
     }
 
     if (this.onBar) {
-      try { this.onBar(bar); } catch { /* consumer error */ }
+      try { this.onBar(bar); } catch (e) { logger.data.warn('Operation failed', e); }
     }
 
     this._currentBar = null;
@@ -153,7 +155,7 @@ export class TradeAggregator {
     if (now - this._lastUpdateTime < this._config.throttleMs) return;
 
     this._lastUpdateTime = now;
-    try { this.onUpdate({ ...this._currentBar }); } catch { /* consumer error */ }
+    try { this.onUpdate({ ...this._currentBar }); } catch (e) { logger.data.warn('Operation failed', e); }
   }
 
   /**

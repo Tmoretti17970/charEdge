@@ -69,13 +69,26 @@ export function formatCountdown(ms) {
  * @param {boolean} [useUTC=true] - Sprint 9: Use UTC (true) or local time (false)
  * @returns {string}
  */
+// 8.1.3: Reusable Date objects to avoid per-call GC allocation
+const _sharedDate = new Date(0);
+const _sharedPrevDate = new Date(0);
+const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 export function formatTimeLabel(timestamp, tf, prevTimestamp, useUTC = true) {
   if (!timestamp || !isFinite(timestamp)) return '';
-  const d = new Date(timestamp);
+  // 8.1.3: Reuse shared Date object — avoid allocating new Date() per label
+  const ts = typeof timestamp === 'number' ? timestamp : +new Date(timestamp);
+  _sharedDate.setTime(ts);
+  const d = _sharedDate;
   const tfMs = tfToMs(tf);
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const months = _months;
 
-  const prev = prevTimestamp ? new Date(prevTimestamp) : null;
+  let prev = null;
+  if (prevTimestamp) {
+    const pts = typeof prevTimestamp === 'number' ? prevTimestamp : +new Date(prevTimestamp);
+    _sharedPrevDate.setTime(pts);
+    prev = _sharedPrevDate;
+  }
 
   // Sprint 9: UTC/local time accessor helpers
   const getYear = useUTC ? (dt) => dt.getUTCFullYear() : (dt) => dt.getFullYear();

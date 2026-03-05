@@ -68,7 +68,7 @@ export default function KeyboardShortcutsOverlay({ onClose }) {
         background: 'rgba(0,0,0,0.6)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
-        animation: 'tfShortcutsIn 0.2s ease-out',
+        animation: 'scaleInSm 0.2s ease-out',
       }}
     >
       <div
@@ -158,12 +158,6 @@ export default function KeyboardShortcutsOverlay({ onClose }) {
         </div>
       </div>
 
-      <style>{`
-        @keyframes tfShortcutsIn {
-          from { opacity: 0; transform: scale(0.95); }
-          to   { opacity: 1; transform: scale(1); }
-        }
-      `}</style>
     </div>
   );
 }

@@ -3,7 +3,7 @@
 // Visual mini-canvas thumbnails for chart type selection
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { C, F, CHART_TYPES } from '../../../../constants.js';
 
 // Draw a small preview chart on a mini canvas
@@ -110,17 +110,17 @@ function drawMiniChart(canvas, typeId, colors) {
   }
 }
 
-function MiniPreview({ type, isActive, onClick, onHover, onLeave, colors }) {
+function MiniPreview({ type, isActive, isHovered, onClick, onHover, onLeave, colors }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const pr = window.devicePixelRatio || 1;
-    canvas.width = 76 * pr;
-    canvas.height = 44 * pr;
-    canvas.style.width = '76px';
-    canvas.style.height = '44px';
+    canvas.width = 80 * pr;
+    canvas.height = 48 * pr;
+    canvas.style.width = '80px';
+    canvas.style.height = '48px';
     const ctx = canvas.getContext('2d');
     ctx.scale(pr, pr);
     drawMiniChart(canvas, type.engineId || type.id, colors);
@@ -135,48 +135,61 @@ function MiniPreview({ type, isActive, onClick, onHover, onLeave, colors }) {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 3,
-        padding: '6px 4px',
-        borderRadius: 8,
-        border: `1.5px solid ${isActive ? C.b : 'rgba(255,255,255,0.06)'}`,
-        background: isActive ? C.b + '12' : 'rgba(255,255,255,0.02)',
+        justifyContent: 'center',
+        gap: 5,
+        padding: '8px 6px 6px',
+        borderRadius: 10,
+        border: isActive
+          ? `1.5px solid ${C.b}`
+          : isHovered
+            ? '1.5px solid rgba(255,255,255,0.15)'
+            : '1.5px solid rgba(255,255,255,0.06)',
+        background: isActive
+          ? C.b + '14'
+          : isHovered
+            ? 'rgba(255,255,255,0.05)'
+            : 'rgba(255,255,255,0.02)',
         cursor: 'pointer',
         transition: 'all 0.15s ease',
+        minWidth: 0,
       }}
     >
-      <canvas ref={canvasRef} />
+      <canvas ref={canvasRef} style={{ borderRadius: 4 }} />
       <span style={{
-        fontSize: 8, fontWeight: 600, fontFamily: F,
-        color: isActive ? C.b : C.t3,
-        letterSpacing: '0.3px',
+        fontSize: 10, fontWeight: isActive ? 600 : 500, fontFamily: F,
+        color: isActive ? C.b : isHovered ? C.t1 : C.t3,
+        letterSpacing: '0.2px',
+        whiteSpace: 'nowrap',
+        transition: 'color 0.15s ease',
       }}>{type.label}</span>
     </button>
   );
 }
 
-export default function ChartTypePreview({ currentType, onSelect, onPreview, onPreviewEnd }) {
+export default function ChartTypePreview({ currentType, onSelect }) {
   const appearance = { upColor: '#26A69A', downColor: '#EF5350' };
+  const [hoveredId, setHoveredId] = useState(null);
 
   return (
     <div
       onClick={e => e.stopPropagation()}
       style={{
         position: 'absolute',
-        top: '100%',
+        top: 'calc(100% + 4px)',
         left: 0,
         zIndex: 100,
-        background: 'rgba(14, 16, 22, 0.92)',
+        background: 'rgba(14, 16, 22, 0.95)',
         backdropFilter: 'saturate(180%) blur(20px)',
         WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: 12,
-        padding: 8,
-        boxShadow: '0 16px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: 14,
+        padding: 10,
+        boxShadow: '0 20px 60px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)',
         animation: 'tfDropdownIn 0.15s ease',
         display: 'grid',
         gridTemplateColumns: 'repeat(5, 1fr)',
-        gap: 4,
-        minWidth: 420,
+        gap: 6,
+        minWidth: 480,
       }}
     >
       {CHART_TYPES.map((ct) => (
@@ -184,9 +197,10 @@ export default function ChartTypePreview({ currentType, onSelect, onPreview, onP
           key={ct.id}
           type={ct}
           isActive={(ct.engineId || ct.id) === currentType}
+          isHovered={hoveredId === ct.id}
           onClick={() => onSelect(ct.engineId || ct.id)}
-          onHover={() => onPreview?.(ct.engineId || ct.id)}
-          onLeave={() => onPreviewEnd?.()}
+          onHover={() => setHoveredId(ct.id)}
+          onLeave={() => setHoveredId(null)}
           colors={[appearance.upColor, appearance.downColor]}
         />
       ))}

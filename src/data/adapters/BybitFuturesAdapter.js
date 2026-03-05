@@ -270,12 +270,12 @@ class _BybitFuturesAdapter {
                   exchange: 'bybit',
                 };
                 for (const cb of cbs) {
-                  try { cb(liq); } catch { /* ignore */ }
+                  try { cb(liq); } catch (e) { logger.data.warn('Operation failed', e); }
                 }
               }
             }
           }
-        } catch { /* silent parse error */ }
+        } catch (e) { logger.data.warn('Operation failed', e); }
       };
 
       this._ws.onclose = () => {

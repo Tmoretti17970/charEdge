@@ -57,7 +57,7 @@ class _PrefetchPredictor {
         this._model = JSON.parse(raw);
         if (this._model.version !== 1) this._model = null;
       }
-    } catch { /* localStorage unavailable */ }
+    } catch (_) { /* localStorage unavailable */ }
 
     if (!this._model) {
       this._model = {
@@ -76,7 +76,7 @@ class _PrefetchPredictor {
   _saveModel() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this._model));
-    } catch { /* storage full or unavailable */ }
+    } catch (_) { /* storage full or unavailable */ }
   }
 
   // ─── Recording ──────────────────────────────────────────────

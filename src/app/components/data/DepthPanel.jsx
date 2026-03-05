@@ -14,7 +14,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { depthEngine } from '../../../data/engine/orderflow/DepthEngine.js';
+import { depthEngine } from '../../../data/engine/orderflow/DepthEngine.ts';
 
 function fmtNum(n) {
   if (n == null) return '—';

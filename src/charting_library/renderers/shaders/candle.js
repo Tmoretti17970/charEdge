@@ -24,6 +24,8 @@ uniform float u_mainH;      // main chart height in pixels
 uniform float u_panOffset;  // Sprint 3: horizontal pixel offset for GPU panning
 
 out float v_isBull;
+out float v_isWick;
+out vec2 v_uv;
 
 float priceToY(float price) {
   return u_mainH * (1.0 - (price - u_yMin) / (u_yMax - u_yMin));
@@ -31,6 +33,8 @@ float priceToY(float price) {
 
 void main() {
   v_isBull = a_isBull;
+  v_isWick = a_isWick;
+  v_uv = a_position;
 
   float halfW;
   float top, bottom;
@@ -68,13 +72,32 @@ export const CANDLE_FRAG = `#version 300 es
 precision highp float;
 
 in float v_isBull;
+in float v_isWick;
+in vec2 v_uv;
 
 uniform vec4 u_bullColor;
 uniform vec4 u_bearColor;
+uniform float u_hollow;     // 5A.3.2: 1.0 = hollow candles mode
+uniform float u_bodyWidth;  // body half-width for border calculation
 
 out vec4 fragColor;
 
 void main() {
-  fragColor = v_isBull > 0.5 ? u_bullColor : u_bearColor;
+  vec4 color = v_isBull > 0.5 ? u_bullColor : u_bearColor;
+
+  // 5A.3.2: Hollow mode — bullish bodies rendered as outlines
+  if (u_hollow > 0.5 && v_isBull > 0.5 && v_isWick < 0.5) {
+    // Distance from quad edge (0-0.5 range, 0 = edge, 0.5 = center)
+    float edgeX = min(v_uv.x, 1.0 - v_uv.x);
+    float edgeY = min(v_uv.y, 1.0 - v_uv.y);
+    float edgeDist = min(edgeX, edgeY);
+
+    // Border width: ~1.5px relative to body width
+    float border = clamp(1.5 / max(u_bodyWidth, 1.0), 0.02, 0.3);
+
+    if (edgeDist > border) discard; // hollow interior
+  }
+
+  fragColor = color;
 }
 `;

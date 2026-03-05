@@ -73,7 +73,7 @@ export default function useChartLocalState() {
   const [walkForwardOpen, setWalkForwardOpen] = useState(false);
   const [futuresOpen, setFuturesOpen] = useState(false);
   const [workspaceMode, setWorkspaceMode] = useState(() => {
-    try { return localStorage.getItem('charEdge-workspace-mode') === 'true'; } catch { return false; }
+    try { return localStorage.getItem('charEdge-workspace-mode') === 'true'; } catch (_) { return false; }
   });
 
   const chartRef = useRef(null);

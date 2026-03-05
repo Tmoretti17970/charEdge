@@ -13,7 +13,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { wsService, WS_STATUS, WebSocketService } from './WebSocketService.js';
+import { wsService, WS_STATUS, WebSocketService } from './WebSocketService.ts';
 import { useChartStore } from '../state/useChartStore.js';
 
 /**

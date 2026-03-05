@@ -1,0 +1,14 @@
+/* SettingsSlideOver — Quick Settings anchor positioning */
+
+.qsAnchor {
+    position: relative;
+    z-index: 10;
+}
+
+.qsAnchor>div {
+    position: absolute !important;
+    left: auto !important;
+    bottom: auto !important;
+    right: 20px !important;
+    top: 0 !important;
+}

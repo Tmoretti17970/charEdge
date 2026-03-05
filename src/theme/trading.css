@@ -1,0 +1,137 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * charEdge — Trading CSS
+ *
+ * Trade pill buttons, order entry, risk guard overlay, paper trading
+ * widget, and P&L-related styles.
+ *
+ * Extracted from components.css (Sprint: CSS Surgery)
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Trade Pill Buttons (compact Long/Short) ───────────────── */
+
+.tf-trade-pill {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 7px;
+    border-radius: 6px;
+    border: 1px solid var(--tf-bd);
+    background: transparent;
+    color: var(--tf-t2);
+    font-family: var(--tf-mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        transform 0.12s ease;
+    user-select: none;
+}
+
+.tf-trade-pill:hover {
+    background: rgba(236, 236, 239, 0.06);
+    color: var(--tf-t1);
+    transform: scale(1.05);
+}
+
+.tf-trade-pill:active {
+    transform: scale(0.96);
+}
+
+.tf-trade-pill[data-side='long'][data-active='true'] {
+    background: rgba(45, 212, 160, 0.12);
+    border-color: rgba(45, 212, 160, 0.35);
+    color: #2dd4a0;
+}
+
+.tf-trade-pill[data-side='short'][data-active='true'] {
+    background: rgba(242, 92, 92, 0.12);
+    border-color: rgba(242, 92, 92, 0.35);
+    color: #f25c5c;
+}
+
+.tf-trade-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+html.theme-light .tf-trade-pill:hover {
+    background: rgba(17, 19, 24, 0.04);
+}
+
+/* ─── Risk Guard Overlay ─────────────────────────────────────── */
+
+.tf-risk-guard {
+    position: absolute;
+    top: 52px;
+    right: 12px;
+    z-index: 40;
+    animation: tfFadeScale 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tf-risk-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    border: 1px solid transparent;
+}
+
+.tf-risk-pill:hover {
+    transform: scale(1.04);
+}
+
+.tf-risk-pill--safe {
+    background: rgba(38, 166, 154, 0.12);
+    color: #26A69A;
+    border-color: rgba(38, 166, 154, 0.2);
+}
+
+.tf-risk-pill--warning {
+    background: rgba(255, 167, 38, 0.12);
+    color: #FFA726;
+    border-color: rgba(255, 167, 38, 0.2);
+    animation: tfRiskPulse 2s ease-in-out infinite;
+}
+
+.tf-risk-pill--danger {
+    background: rgba(239, 83, 80, 0.15);
+    color: #EF5350;
+    border-color: rgba(239, 83, 80, 0.3);
+    animation: tfRiskPulse 1s ease-in-out infinite;
+}
+
+.tf-risk-pill--locked {
+    background: rgba(239, 83, 80, 0.2);
+    color: #D32F2F;
+    border-color: rgba(211, 47, 47, 0.4);
+}
+
+@keyframes tfRiskPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 currentColor;
+    }
+
+    50% {
+        box-shadow: 0 0 0 4px transparent;
+    }
+}
+
+.tf-risk-pill__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}

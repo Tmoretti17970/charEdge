@@ -1,8 +1,10 @@
+import { logger } from '../../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v16 — Data Pipeline Logger
 //
 // Centralized structured logging for the entire data pipeline.
-// Replaces scattered console.warn / catch {} patterns with a
+// Replaces scattered console.warn / catch (_) {} patterns with a
 // unified logger that tracks error budgets and surfaces issues.
 //
 // Features:
@@ -181,16 +183,16 @@ class _DataPipelineLogger {
     // Console output
     const prefix = `[${source}]`;
     if (level === 'error') {
-      console.error(prefix, message, err || '');
+      logger.data.error(prefix, message, err || '');
     } else if (level === 'warn') {
-      console.warn(prefix, message, err || '');
+      logger.data.warn(prefix, message, err || '');
     } else {
-      console.log(prefix, message);
+      logger.data.info(prefix, message);
     }
 
     // Notify subscribers
     for (const cb of this._subscribers) {
-      try { cb(entry); } catch { /* avoid infinite recursion */ }
+      try { cb(entry); } catch (e) { logger.data.warn('Operation failed', e); }
     }
 
     // Error budget tracking
@@ -210,7 +212,7 @@ class _DataPipelineLogger {
       this._errorBudgetBreached = true;
 
       for (const cb of this._alertCallbacks) {
-        try { cb(latestEntry); } catch { /* silent */ }
+        try { cb(latestEntry); } catch (e) { logger.data.warn('Operation failed', e); }
       }
 
       // Auto-reset after the window passes
@@ -255,12 +257,12 @@ class _DataPipelineLogger {
 
     // Add custom engine stats if provided
     if (opts.getEngineStats) {
-      try { report.engineStats = opts.getEngineStats(); } catch { /* skip */ }
+      try { report.engineStats = opts.getEngineStats(); } catch (e) { logger.data.warn('Operation failed', e); }
     }
 
     // Add custom perf stats if provided
     if (opts.getPerfStats) {
-      try { report.perfStats = opts.getPerfStats(); } catch { /* skip */ }
+      try { report.perfStats = opts.getPerfStats(); } catch (e) { logger.data.warn('Operation failed', e); }
     }
 
     // Trigger download if requested

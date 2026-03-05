@@ -60,7 +60,7 @@ export default function QuickSettings({ anchorRef, onClose }) {
         boxShadow: `0 12px 40px ${alpha(C.bg, 0.5)}, 0 2px 8px ${alpha(C.bg, 0.3)}`,
         padding: '6px 0',
         zIndex: 1000,
-        animation: 'quickSettingsIn 0.15s ease-out',
+        animation: 'scaleInSm 0.15s ease-out',
       }}
     >
       {/* Header */}
@@ -254,12 +254,6 @@ export default function QuickSettings({ anchorRef, onClose }) {
         All Settings…
       </div>
 
-      <style>{`
-        @keyframes quickSettingsIn {
-          from { opacity: 0; transform: translateY(8px) scale(0.96); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-      `}</style>
     </div>
   );
 }

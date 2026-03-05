@@ -3,14 +3,14 @@
 // End-to-end pipelines verifying modules work together.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../state/useUserStore.js';
+import { useUserStore } from '../../state/useUserStore.ts';
 import { describe, it, expect } from 'vitest';
 import { parseCSVRaw, exportCSV, importCSV } from '../../charting_library/datafeed/csv.js';
-import { StorageService } from '../../data/StorageService.js';
+import { StorageService } from '../../data/StorageService.ts';
 import { computeFast } from '../../app/features/analytics/analyticsFast.js';
-import { useJournalStore } from '../../state/useJournalStore.js';
-import { useAnalyticsStore } from '../../state/useAnalyticsStore.js';
-import { useUIStore } from '../../state/useUIStore.js';
+import { useJournalStore } from '../../state/useJournalStore.ts';
+import { useAnalyticsStore } from '../../state/useAnalyticsStore.ts';
+import { useUIStore } from '../../state/useUIStore.ts';
 import { genDemoData, genRandomTrades } from '../../data/demoData.js';
 import { groupTradesBy, groupTradesByTime } from '../../utils/groupTradesBy.js';
 import { compInd } from '../../charting_library/studies/compInd.js';

@@ -210,7 +210,7 @@ describe('Sprint 11 · ChartEngineWidget — Callback Wiring', () => {
 
 // ─── 8. featuresSlice (pre-existing) ─────────────────────────────
 describe('Sprint 11 · featuresSlice — Pane Height State', () => {
-  const src = read('state/chart/featuresSlice.js');
+  const src = read('state/chart/featuresSlice.ts');
 
   it('has paneHeights state', () => {
     expect(src).toContain('paneHeights');

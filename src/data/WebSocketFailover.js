@@ -13,7 +13,8 @@
 //   wsFailover.getHealthMetrics(); // combined health for both connections
 // ═══════════════════════════════════════════════════════════════════
 
-import { WebSocketService as WSClass, WS_STATUS } from './WebSocketService.js';
+import { WebSocketService as WSClass, WS_STATUS } from './WebSocketService.ts';
+import { logger } from '../utils/logger';
 
 // ─── Config ────────────────────────────────────────────────────
 const STANDBY_DELAY_MS = 2_000;        // Delay before standby connects
@@ -45,7 +46,7 @@ class _WebSocketFailover {
     try {
       this._enabled = typeof localStorage !== 'undefined' &&
         localStorage.getItem('charEdge:dualWs') === 'true';
-    } catch { /* SSR safe */ }
+    } catch (_) { /* SSR safe */ }
   }
 
   /**
@@ -211,7 +212,7 @@ class _WebSocketFailover {
   _switchTo(target) {
     if (target === this._active) return;
 
-    console.warn(`[WebSocketFailover] Switching to ${target === this._primary ? 'primary' : 'standby'}`);
+    logger.data.warn(`[WebSocketFailover] Switching to ${target === this._primary ? 'primary' : 'standby'}`);
     this._switchCount++;
 
     // Re-subscribe with real callbacks on the new active

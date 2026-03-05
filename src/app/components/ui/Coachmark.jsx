@@ -165,7 +165,7 @@ export default function Coachmark({
         borderRadius: 12,
         boxShadow: `0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px ${C.b}15`,
         backdropFilter: 'blur(16px)',
-        animation: 'tfCoachmarkIn 0.3s ease forwards',
+        animation: 'scaleInSm 0.3s ease forwards',
         fontFamily: F,
       }}
     >
@@ -243,13 +243,6 @@ export default function Coachmark({
         </button>
       )}
 
-      {/* Keyframe animation */}
-      <style>{`
-        @keyframes tfCoachmarkIn {
-          from { opacity: 0; transform: translateY(6px) scale(0.96); }
-          to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-      `}</style>
     </div>,
     document.body,
   );

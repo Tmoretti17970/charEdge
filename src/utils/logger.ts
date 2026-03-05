@@ -86,7 +86,7 @@ function _getErrorReporter(): ErrorReporter | null {
       _reportError = handler.reportError;
       return _reportError;
     }
-  } catch { /* ignore */ }
+  } catch (e) { logger.ui.warn('Operation failed', e); }
   return null;
 }
 
@@ -102,7 +102,7 @@ function _getPipelineLogger(): PipelineLogger | null {
       _pipelineLogger = pl;
       return _pipelineLogger;
     }
-  } catch { /* ignore */ }
+  } catch (e) { logger.ui.warn('Operation failed', e); }
   return null;
 }
 

@@ -93,7 +93,14 @@ export function refreshThemeCache() {
     if (val) C[key] = val;
   }
   // Derived: red with alpha for subtle red backgrounds
-  C.rS = C.r + '20';
+  // Use proper rgba parsing — C.r may be rgb() from computed styles
+  const rMatch = C.r.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+  if (rMatch) {
+    C.rS = `rgba(${rMatch[1]},${rMatch[2]},${rMatch[3]},0.13)`;
+  } else {
+    // Hex fallback
+    C.rS = C.r + '20';
+  }
 }
 
 export const F = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
@@ -103,18 +110,18 @@ export const M = "'JetBrains Mono', 'SF Mono', monospace";
 // Mirror of CSS custom properties for inline-styled components.
 export const GLASS = {
   // Surface backgrounds
-  subtle:  'rgba(22, 24, 29, 0.65)',   // Nav bars, toolbars
-  standard:'rgba(22, 24, 29, 0.78)',   // Panels, dropdowns
-  heavy:   'rgba(22, 24, 29, 0.88)',   // Modals, command palette
-  solid:   'rgba(22, 24, 29, 0.95)',   // Critical overlays
+  subtle: 'rgba(22, 24, 29, 0.65)',   // Nav bars, toolbars
+  standard: 'rgba(22, 24, 29, 0.78)',   // Panels, dropdowns
+  heavy: 'rgba(22, 24, 29, 0.88)',   // Modals, command palette
+  solid: 'rgba(22, 24, 29, 0.95)',   // Critical overlays
   // Blur presets (use as backdropFilter value)
-  blurSm:  'blur(8px) saturate(1.3)',
-  blurMd:  'blur(16px) saturate(1.5)',
-  blurLg:  'blur(24px) saturate(1.6)',
-  blurXl:  'blur(40px) saturate(1.8)',
+  blurSm: 'blur(8px) saturate(1.3)',
+  blurMd: 'blur(16px) saturate(1.5)',
+  blurLg: 'blur(24px) saturate(1.6)',
+  blurXl: 'blur(40px) saturate(1.8)',
   // Borders
-  border:       '1px solid rgba(255,255,255,0.06)',
-  borderHover:  '1px solid rgba(255,255,255,0.12)',
+  border: '1px solid rgba(255,255,255,0.06)',
+  borderHover: '1px solid rgba(255,255,255,0.12)',
   borderActive: '1px solid rgba(232,100,44,0.3)',
   // Backdrop
   backdrop: 'rgba(0,0,0,0.4)',
@@ -126,6 +133,6 @@ export const DEPTH = {
   2: '0 4px 16px rgba(0,0,0,0.25), 0 0 1px rgba(0,0,0,0.1)',
   3: '0 12px 40px rgba(0,0,0,0.35), 0 0 1px rgba(0,0,0,0.08)',
   4: '0 24px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04) inset',
-  innerGlow:       'inset 0 1px 0 rgba(255,255,255,0.04)',
+  innerGlow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
   innerGlowStrong: 'inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.03)',
 };

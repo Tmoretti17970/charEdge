@@ -1,0 +1,73 @@
+{
+    "extends": [
+        "stylelint-config-standard"
+    ],
+    "rules": {
+        "color-named": "never",
+        "color-no-hex": null,
+        "declaration-no-important": null,
+        "no-descending-specificity": null,
+        "selector-class-pattern": "^tf-[a-z][a-z0-9]*(-[a-z0-9]+)*(__[a-z0-9]+(-[a-z0-9]+)*)?$",
+        "custom-property-pattern": "^tf-[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+        "keyframes-name-pattern": "^tf[A-Z][a-zA-Z]+$",
+        "property-no-vendor-prefix": [
+            true,
+            {
+                "ignoreProperties": [
+                    "backdrop-filter",
+                    "tap-highlight-color",
+                    "text-size-adjust",
+                    "font-smoothing",
+                    "osx-font-smoothing"
+                ]
+            }
+        ],
+        "value-no-vendor-prefix": [
+            true,
+            {
+                "ignoreValues": [
+                    "optimize-contrast"
+                ]
+            }
+        ],
+        "font-family-no-missing-generic-family-keyword": [
+            true,
+            {
+                "ignoreFontFamilies": [
+                    "Inter",
+                    "JetBrains Mono",
+                    "SF Mono"
+                ]
+            }
+        ],
+        "at-rule-no-unknown": [
+            true,
+            {
+                "ignoreAtRules": [
+                    "layer",
+                    "property"
+                ]
+            }
+        ],
+        "function-no-unknown": [
+            true,
+            {
+                "ignoreFunctions": [
+                    "env"
+                ]
+            }
+        ]
+    },
+    "overrides": [
+        {
+            "files": [
+                "src/theme/chart.css",
+                "src/theme/trading.css",
+                "src/theme/social.css"
+            ],
+            "rules": {
+                "selector-class-pattern": null
+            }
+        }
+    ]
+}

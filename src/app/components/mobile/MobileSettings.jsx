@@ -18,7 +18,7 @@ import { C, F, M } from '../../../constants.js';
 import { radii } from '../../../theme/tokens.js';
 import { shallow } from '../../../utils/shallow.js';
 import { useJournalStore } from '../../../state/useJournalStore.js';
-import { useSocialStore } from '../../../state/useSocialStore.js';
+// Wave 0: useSocialStore quarantined — social features removed from v1.0 scope
 import { genDemoData } from '../../../data/demoData.js';
 import { Btn, inputStyle } from '../ui/UIKit.jsx';
 import PlaybookManager from '../../features/playbook/PlaybookManager.jsx';
@@ -829,9 +829,10 @@ function MobileCloudSync() {
 const AVATAR_OPTIONS = ['🔥', '🐂', '🐻', '🦈', '🦅', '🐺', '🦁', '🐲', '🦊', '🎯', '💎', '⚡', '🌊', '🏔️', '🎲', '🧠'];
 
 function ProfileContent() {
-  const myProfile = useSocialStore((s) => s.myProfile);
-  const loadMyProfile = useSocialStore((s) => s.loadMyProfile);
-  const updateMyProfile = useSocialStore((s) => s.updateMyProfile);
+  // Wave 0: useSocialStore quarantined — using local defaults
+  const myProfile = null;
+  const loadMyProfile = useCallback(() => { }, []);
+  const updateMyProfile = useCallback(() => { }, []);
   const [profileForm, setProfileForm] = useState({});
 
   useEffect(() => {

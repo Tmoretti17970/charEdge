@@ -20,7 +20,7 @@ function fmtTime(iso) {
   try {
     const d = new Date(iso);
     return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-  } catch {
+  } catch (_) {
     return '';
   }
 }
@@ -40,7 +40,7 @@ export function generateDebrief(trades, dateStr) {
     .filter((t) => {
       try {
         return new Date(t.date).toISOString().slice(0, 10) === target;
-      } catch {
+      } catch (_) {
         return false;
       }
     })
@@ -217,7 +217,7 @@ export function generateWeeklyDebrief(trades) {
     try {
       const d = new Date(t.date);
       return d >= weekAgo && d <= now;
-    } catch {
+    } catch (_) {
       return false;
     }
   });

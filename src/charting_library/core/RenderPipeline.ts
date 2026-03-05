@@ -27,6 +27,7 @@ import { LAYERS } from './LayerManager.js';
 import { DARK_THEME, LIGHT_THEME } from './ThemeManager.js';
 import { RenderCommandBuffer } from '../gpu/RenderCommandBuffer.js';
 import { executeGPUComputeStage } from './stages/GPUComputeStage.js';
+import { logger } from '../../utils/logger';
 
 // ─── Type Definitions ────────────────────────────────────────────
 
@@ -200,7 +201,7 @@ export class RenderPipeline {
       // Skip stage if none of its relevant changes occurred
       // Exception: CHANGED.ALL always runs (first frame, resize, etc.)
       if (changeMask !== CHANGED.ALL &&
-          (changeMask & stage.relevantChanges) === 0) {
+        (changeMask & stage.relevantChanges) === 0) {
         continue;
       }
 
@@ -213,13 +214,16 @@ export class RenderPipeline {
       try {
         stage.execute(frameState, ctx, engine);
       } catch (err) {
-        console.error(`[RenderPipeline] Stage "${stage.name}" failed:`, err);
+        logger.engine.error(`[RenderPipeline] Stage "${stage.name}" failed:`, err);
       }
       fb.endPhase(stage.name);
     }
 
     // Flush all deferred GPU commands (sorted by program/blend/texture/z-order)
     if (commandBuffer.size > 0 && engine._webglRenderer?.gl) {
+      // Clear WebGL canvas immediately before flushing — NOT earlier in DataStage —
+      // to prevent blank-frame flicker when the browser composites between clear and flush.
+      engine._webglRenderer.clear();
       commandBuffer.flush(engine._webglRenderer.gl);
     }
 
@@ -228,7 +232,10 @@ export class RenderPipeline {
       engine._sceneGraph.clearDirty();
     }
 
-    // Store for next frame's diff
+    // Store for next frame's diff (8.1.5: release old frame to pool)
+    if (this._prevFrameState?.release) {
+      this._prevFrameState.release();
+    }
     this._prevFrameState = frameState;
   }
 
@@ -286,7 +293,7 @@ export function createDefaultPipeline(stages: StageMap): RenderPipeline {
   // Stage 4: Drawings (user drawings — trendlines, fibs, etc.)
   // Triggers: drawings change, viewport change
   pipeline.addStage('drawings',
-    CHANGED.DRAWINGS | CHANGED.VIEWPORT | CHANGED.SIZE,
+    CHANGED.DRAWINGS | CHANGED.VIEWPORT | CHANGED.SIZE | CHANGED.DATA,
     stages.drawings
   );
 

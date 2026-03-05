@@ -172,7 +172,7 @@ export class OKXAdapter extends BaseAdapter {
           type: 'CRYPTO',
           exchange: 'OKX',
         }));
-    } catch {
+    } catch (_) {
       return [];
     }
   }
@@ -222,7 +222,7 @@ export class OKXAdapter extends BaseAdapter {
           if (event.data === 'pong') return;
           const msg = JSON.parse(event.data);
           this._handleMessage(msg);
-        } catch { /* ignore parse errors */ }
+        } catch (e) { logger.data.warn('Operation failed', e); }
       };
 
       this._ws.onclose = () => {
@@ -273,7 +273,7 @@ export class OKXAdapter extends BaseAdapter {
           side: trade.side,
         };
         for (const cb of callbacks) {
-          try { cb(tick); } catch { /* ignore */ }
+          try { cb(tick); } catch (e) { logger.data.warn('Operation failed', e); }
         }
       }
     }

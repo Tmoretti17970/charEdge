@@ -18,7 +18,7 @@ import {
   getRankForXP,
   getXPToNextLevel,
   XP_TABLE,
-} from '../../state/useGamificationStore.js';
+} from '../../state/useGamificationStore.ts';
 
 // Helper: reset store to clean state
 const reset = () =>

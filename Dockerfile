@@ -28,6 +28,8 @@ RUN npm ci --omit=dev 2>/dev/null || npm install --omit=dev
 # Copy built assets + server
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/server.js ./
+COPY --from=build /app/server ./server
+COPY --from=build /app/src/api ./src/api
 COPY --from=build /app/index.html ./
 
 # Non-root user

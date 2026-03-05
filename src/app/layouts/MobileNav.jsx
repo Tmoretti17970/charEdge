@@ -47,7 +47,8 @@ const TABS = [
   { id: 'journal', label: 'Home', icon: 'home' },
   { id: 'charts', label: 'Charts', icon: 'charts' },
   { id: '_quickadd', label: 'Add', icon: null, isFab: true },
-  { id: 'coach', label: 'Coach', icon: 'coach' },
+  // Wave 0: Coach quarantined from v1.0 launch scope
+  // { id: 'coach', label: 'Coach', icon: 'coach' },
   { id: '_settings', label: 'Settings', icon: 'settings', isSlideOver: true },
 ];
 

@@ -13,6 +13,7 @@ import tseslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 
 import unusedImports from 'eslint-plugin-unused-imports';
+import importPlugin from 'eslint-plugin-import';
 
 export default [
   // ─── Base JS recommended rules ───────────────────────────
@@ -37,6 +38,7 @@ export default [
       react,
       'react-hooks': reactHooks,
       'unused-imports': unusedImports,
+      'import': importPlugin,
     },
     languageOptions: {
       ecmaVersion: 'latest',
@@ -82,12 +84,10 @@ export default [
         args: 'after-used',
         argsIgnorePattern: '^_',
       }],
-      'no-console': ['warn', {
-        allow: ['warn', 'error', 'info'],
-      }],
+      'no-console': 'error',
       'no-debugger': 'warn',
       'no-duplicate-case': 'error',
-      'no-empty': ['warn', { allowEmptyCatch: true }],
+      'no-empty': ['error', { allowEmptyCatch: false }],
       'no-extra-boolean-cast': 'warn',
       'no-irregular-whitespace': 'error',
       'no-loss-of-precision': 'error',
@@ -111,6 +111,13 @@ export default [
       'no-var': 'error',
       'prefer-template': 'off', // Too aggressive for C.b + '18' patterns
       'no-restricted-globals': ['error', 'event', 'fdescribe'],
+
+      // ── Import Ordering ────────────────────────────────
+      'import/order': ['warn', {
+        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+        'newlines-between': 'never',
+        alphabetize: { order: 'asc', caseInsensitive: true },
+      }],
 
       // ── Style (deferred to Prettier) ──────────────────
       // All formatting rules disabled — Prettier handles these
@@ -143,11 +150,14 @@ export default [
 
   // ─── API files ───────────────────────────────────────────
   {
-    files: ['src/api/**/*.js'],
+    files: ['src/api/**/*.{js,ts}'],
     languageOptions: {
       globals: {
         ...globals.node,
       },
+    },
+    rules: {
+      'no-console': ['warn', { allow: ['info', 'warn', 'error'] }],
     },
   },
 
@@ -190,6 +200,8 @@ export default [
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
       }],
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/consistent-type-imports': ['warn', { prefer: 'type-imports', disallowTypeAnnotations: false }],
     },
   },
 

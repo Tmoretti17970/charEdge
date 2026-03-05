@@ -1,14 +1,51 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Pre-Trade Analyzer (H2.3)
+// charEdge — Pre-Trade Analyzer (H2.3 + 6.1.3)
 //
 // Matches a proposed trade setup against historical trade data to
 // provide confidence scores, similar trades, and warnings.
 //
 // Architecture: structured data in → structured data out.
-// Drop-in LLM replacement: swap recommendation strings for LLM calls.
+// 6.1.3: LLM-powered pattern explanation via LLMService.
 // ═══════════════════════════════════════════════════════════════════
 
 import { AI_DISCLAIMER } from './AIChartAnalysis.js';
+
+/**
+ * 6.1.3: LLM-powered pattern explanation.
+ * Sends trade setup context to LLMService for natural language explanation.
+ * Falls back to rule-based generateRecommendation() text.
+ *
+ * @param {Object} setup - { symbol, side, strategy, timeOfDay, emotion }
+ * @param {Object} stats - { winRate, avgPnl, sampleSize }
+ * @param {number} confidence - 'high' | 'medium' | 'low'
+ * @returns {Promise<string>} Natural language explanation
+ */
+export async function explainPattern(setup, stats, confidence) {
+  try {
+    const { llmService } = await import('./LLMService.ts');
+    if (!llmService.hasExternalProvider()) {
+      return generateRecommendation(setup, stats, confidence, []);
+    }
+
+    const prompt = `You are a trading coach. Explain this pattern analysis in 2-3 sentences.
+Be specific and actionable.
+
+Setup: ${setup.side || '?'} ${setup.symbol || '?'} using ${setup.strategy || 'unspecified'} strategy
+Time: ${setup.timeOfDay || 'unspecified'}  Emotion: ${setup.emotion || 'neutral'}
+Historical stats: ${stats.sampleSize} similar trades, ${stats.winRate}% win rate, avg P&L: $${stats.avgPnl}
+Confidence: ${confidence}`;
+
+    const response = await llmService.complete(prompt, {
+      maxTokens: 150,
+      temperature: 0.5,
+      systemPrompt: 'You are a data-driven trading coach. Be concise.',
+    });
+
+    return response.text;
+  } catch (_) {
+    return generateRecommendation(setup, stats, confidence, []);
+  }
+}
 
 /**
  * Analyze a proposed trade setup against historical performance.

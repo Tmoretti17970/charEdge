@@ -1,14 +1,56 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Journal Summarizer (H2.3)
+// charEdge — Journal Summarizer (H2.3 + 6.1.2)
 //
 // Weekly auto-summary of trading activity. Produces a human-readable
 // narrative from trade data, notes, and analytics.
 //
 // Architecture: structured data in → structured data out.
-// Drop-in LLM replacement: swap narrative template for LLM call.
+// 6.1.2: LLM-powered narrative via LLMService (falls back to template).
 // ═══════════════════════════════════════════════════════════════════
 
 import { AI_DISCLAIMER } from './AIChartAnalysis.js';
+
+/**
+ * 6.1.2: LLM-powered weekly summary.
+ * Sends structured trade data to LLMService for richer narrative.
+ * Falls back to template-based summarizeWeek() if LLM unavailable.
+ *
+ * @param {Object[]} trades
+ * @param {Object[]} [notes=[]]
+ * @param {Object|null} [analyticsResult=null]
+ * @returns {Promise<Object>} Weekly summary with LLM narrative
+ */
+export async function summarizeWeekWithLLM(trades, notes = [], analyticsResult = null) {
+  // Always compute structured data first
+  const base = summarizeWeek(trades, notes, analyticsResult);
+  if (base.tradeCount === 0) return base;
+
+  try {
+    const { llmService } = await import('./LLMService.ts');
+    if (!llmService.hasExternalProvider()) return base;
+
+    const prompt = `You are a trading coach reviewing a trader's weekly performance.
+Summarize this week concisely (3-5 sentences). Be encouraging but honest about areas to improve.
+
+Data:
+- Trades: ${base.tradeCount}, Win Rate: ${base.winRate}%, Net P&L: $${base.netPnl}
+- Top symbols: ${base.topSymbols.map(s => `${s.symbol} ($${s.pnl}, ${s.count} trades)`).join(', ')}
+- Best emotion: ${base.emotionBreakdown.best?.emotion || 'N/A'} ($${base.emotionBreakdown.best?.pnl || 0})
+- Worst emotion: ${base.emotionBreakdown.worst?.emotion || 'N/A'} ($${base.emotionBreakdown.worst?.pnl || 0})
+- Key moments: ${base.keyMoments.map(m => m.description).join('; ')}`;
+
+    const response = await llmService.complete(prompt, {
+      maxTokens: 256,
+      temperature: 0.6,
+      systemPrompt: 'You are a supportive trading coach. Keep responses concise and actionable.',
+    });
+
+    return { ...base, narrative: response.text, narrativeSource: response.provider };
+  } catch (_) {
+    // LLM unavailable — return template-based summary
+    return base;
+  }
+}
 
 /**
  * Summarize a week of trading activity.

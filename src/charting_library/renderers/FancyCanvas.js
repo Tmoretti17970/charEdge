@@ -142,7 +142,7 @@ export function createFancyCanvas(container, options = {}) {
     try {
       resizeObserver.observe(container, { box: ['device-pixel-content-box'] });
       useDevicePixelContentBox = true;
-    } catch {
+    } catch (_) {
       // Fallback for browsers without devicePixelContentBox
       resizeObserver.observe(container, { box: 'content-box' });
     }

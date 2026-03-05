@@ -17,6 +17,7 @@
 import { RenderNode } from './RenderNode.js';
 import { SpatialIndex } from './SpatialIndex.js';
 import { DirtyRegion } from './DirtyRegion.js';
+import { logger } from '../../utils/logger';
 
 export class SceneGraph {
   /**
@@ -53,7 +54,7 @@ export class SceneGraph {
   addNode(node, parentId) {
     const parent = parentId ? this._nodeMap.get(parentId) : this.root;
     if (!parent) {
-      console.warn(`[SceneGraph] Parent "${parentId}" not found, using root`);
+      logger.engine.warn(`[SceneGraph] Parent "${parentId}" not found, using root`);
       this.root.addChild(node);
     } else {
       parent.addChild(node);

@@ -1,0 +1,12 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — FeatureGate Styles
+   ═══════════════════════════════════════════════════════════════════ */
+
+.progressBar {
+  animation: featureProgressGlow 2s ease-in-out infinite;
+}
+
+@keyframes featureProgressGlow {
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: 0 0 8px var(--feature-gate-color, transparent); }
+}

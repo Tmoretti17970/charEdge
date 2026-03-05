@@ -11,19 +11,19 @@ describe('DataEncryption', () => {
   const hasCrypto = typeof globalThis.crypto?.subtle !== 'undefined';
 
   it('module exports expected functions', async () => {
-    const mod = await import('../../utils/DataEncryption.js');
+    const mod = await import('../../utils/DataEncryption.ts');
     expect(typeof mod.encryptData).toBe('function');
     expect(typeof mod.decryptData).toBe('function');
     expect(typeof mod.isEncryptionSupported).toBe('function');
   });
 
   it('isEncryptionSupported returns boolean', async () => {
-    const { isEncryptionSupported } = await import('../../utils/DataEncryption.js');
+    const { isEncryptionSupported } = await import('../../utils/DataEncryption.ts');
     expect(typeof isEncryptionSupported()).toBe('boolean');
   });
 
   it.skipIf(!hasCrypto)('round-trip encrypt/decrypt preserves data', async () => {
-    const { encryptData, decryptData } = await import('../../utils/DataEncryption.js');
+    const { encryptData, decryptData } = await import('../../utils/DataEncryption.ts');
 
     const original = {
       trades: [{ id: 't1', symbol: 'AAPL', pnl: 150.25 }],
@@ -41,7 +41,7 @@ describe('DataEncryption', () => {
   });
 
   it.skipIf(!hasCrypto)('wrong passphrase throws', async () => {
-    const { encryptData, decryptData } = await import('../../utils/DataEncryption.js');
+    const { encryptData, decryptData } = await import('../../utils/DataEncryption.ts');
 
     const data = { secret: 'hello world' };
     const encrypted = await encryptData(data, 'correctPassword');
@@ -50,7 +50,7 @@ describe('DataEncryption', () => {
   });
 
   it.skipIf(!hasCrypto)('empty object round-trips', async () => {
-    const { encryptData, decryptData } = await import('../../utils/DataEncryption.js');
+    const { encryptData, decryptData } = await import('../../utils/DataEncryption.ts');
 
     const original = {};
     const passphrase = 'test123';
@@ -61,7 +61,7 @@ describe('DataEncryption', () => {
   });
 
   it.skipIf(!hasCrypto)('large array round-trips', async () => {
-    const { encryptData, decryptData } = await import('../../utils/DataEncryption.js');
+    const { encryptData, decryptData } = await import('../../utils/DataEncryption.ts');
 
     const original = Array.from({ length: 1000 }, (_, i) => ({
       id: `trade_${i}`,
@@ -78,7 +78,7 @@ describe('DataEncryption', () => {
   });
 
   it.skipIf(!hasCrypto)('different encryptions produce different blobs (random salt/iv)', async () => {
-    const { encryptData } = await import('../../utils/DataEncryption.js');
+    const { encryptData } = await import('../../utils/DataEncryption.ts');
 
     const data = { test: true };
     const passphrase = 'same';
@@ -98,7 +98,7 @@ describe('DataEncryption', () => {
   });
 
   it('rejects corrupted data', async () => {
-    const { decryptData } = await import('../../utils/DataEncryption.js');
+    const { decryptData } = await import('../../utils/DataEncryption.ts');
     const tinyBlob = new Blob([new Uint8Array(10)]); // Too short
     await expect(decryptData(tinyBlob, 'pass')).rejects.toThrow(/too short/);
   });

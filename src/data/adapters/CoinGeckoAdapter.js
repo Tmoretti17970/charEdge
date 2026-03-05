@@ -109,7 +109,7 @@ export class CoinGeckoAdapter extends BaseAdapter {
         close,
         volume: 0,
       }));
-    } catch {
+    } catch (_) {
       return null;
     }
   }
@@ -143,7 +143,7 @@ export class CoinGeckoAdapter extends BaseAdapter {
         low: 0,
         open: 0,
       };
-    } catch {
+    } catch (_) {
       return null;
     }
   }
@@ -174,7 +174,7 @@ export class CoinGeckoAdapter extends BaseAdapter {
         type: 'CRYPTO',
         exchange: 'CoinGecko',
       }));
-    } catch {
+    } catch (_) {
       return [];
     }
   }

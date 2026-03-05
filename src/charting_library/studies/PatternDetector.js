@@ -1,3 +1,5 @@
+import { logger } from '../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v10 — Behavioral Pattern Detector (Sprint 4.1)
 //
@@ -36,28 +38,28 @@ function fmtPct(n) {
 function getHour(trade) {
   try {
     return new Date(trade.date).getHours();
-  } catch {
+  } catch (_) {
     return -1;
   }
 }
 function getDayOfWeek(trade) {
   try {
     return new Date(trade.date).getDay();
-  } catch {
+  } catch (_) {
     return -1;
   }
 }
 function getDateStr(trade) {
   try {
     return new Date(trade.date).toISOString().slice(0, 10);
-  } catch {
+  } catch (_) {
     return '';
   }
 }
 function minutesBetween(t1, t2) {
   try {
     return Math.abs(new Date(t1.date) - new Date(t2.date)) / 60000;
-  } catch {
+  } catch (_) {
     return Infinity;
   }
 }
@@ -606,7 +608,7 @@ export function detectPatterns(trades, options = {}) {
       const ruleInsights = rule(trades);
       insights.push(...ruleInsights);
     } catch (err) {
-      console.warn(`[PatternDetector] Rule failed:`, err.message);
+      logger.engine.warn(`[PatternDetector] Rule failed:`, err.message);
     }
   }
 

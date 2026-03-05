@@ -1,3 +1,5 @@
+// 🔒 FROZEN: No new gamification development until post-launch (Wave 10)
+// Existing functionality is maintained but not extended.
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Chart Challenges & Gamification (Sprint 18)
 // Achievement system, chart challenges, streaks, and XP tracking.
@@ -9,7 +11,7 @@ let _savedProgress = null;
 try {
   const raw = localStorage.getItem(GAMIFICATION_KEY);
   if (raw) _savedProgress = JSON.parse(raw);
-} catch {}
+} catch (_) { /* storage/API may be blocked */ }
 
 const ACHIEVEMENTS = [
   { id: 'first_drawing', name: '✏️ First Mark', desc: 'Create your first drawing', xp: 10, condition: (s) => s.totalDrawings >= 1 },
@@ -104,7 +106,7 @@ export function trackActivity(state, type, detail = {}) {
   updated.level = Math.floor(1 + Math.sqrt(updated.xp / 50));
 
   // Persist
-  try { localStorage.setItem(GAMIFICATION_KEY, JSON.stringify(updated)); } catch {}
+  try { localStorage.setItem(GAMIFICATION_KEY, JSON.stringify(updated)); } catch (_) { /* storage/API may be blocked */ }
 
   return { state: updated, newUnlocks };
 }

@@ -1,0 +1,28 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * charEdge — Theme CSS Barrel Index
+ *
+ * Single entry point that imports all theme modules in correct order.
+ * Replaces the old global.css + components.css monolith imports.
+ *
+ * Import this single file from main.jsx:
+ *   import './theme/index.css';
+ *
+ * Layer order: base → components → pages → utilities
+ * (defined in global.css via @layer)
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/* Core: design tokens, resets, scrollbars, keyframes, glass, accessibility */
+@import './global.css';
+
+/* Shared components: buttons, cards, nav, inputs, modals, toasts, skeletons */
+@import './components.css';
+
+/* Feature modules (extracted from monoliths) */
+@import './chart.css';
+/* Chart toolbar, status bar, minimap, HUD */
+@import './drawing.css';
+/* Drawing edit popup, sidebar, color picker */
+@import './trading.css';
+/* Trade pills, risk guard, P&L */
+@import './social.css';
+/* Social hub, feed, reactions, rooms */

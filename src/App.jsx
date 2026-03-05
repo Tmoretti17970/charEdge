@@ -17,7 +17,8 @@ import { useHotkeys } from './utils/useHotkeys.js';
 import { useUserStore } from './state/useUserStore.js';
 import { useUIStore } from './state/useUIStore.js';
 import { installGlobalErrorHandlers } from './utils/globalErrorHandler.js';
-import './utils/sentry.js'; // Sentry error monitoring (no-op without VITE_SENTRY_DSN)
+// Sentry is now consent-gated — see below in render
+import { useConsentStore } from './state/useConsentStore.js';
 import { C, F, M } from './constants.js';
 import KeyboardShortcuts from './app/components/ui/KeyboardShortcuts.jsx';
 import { useGamificationStore, XP_TABLE } from './state/useGamificationStore.js';
@@ -38,6 +39,7 @@ const SettingsSlideOver = React.lazy(() => import('./app/layouts/SettingsSlideOv
 const FocusOverlay = React.lazy(() => import('./app/components/ui/FocusOverlay.jsx'));
 const CookieConsent = React.lazy(() => import('./app/components/ui/CookieConsent.jsx'));
 const FeedbackWidget = React.lazy(() => import('./app/components/ui/FeedbackWidget.jsx'));
+const AgeVerificationGate = React.lazy(() => import('./app/components/ui/AgeVerificationGate.jsx'));
 const VercelAnalytics = React.lazy(() => import('@vercel/analytics/react').then(m => ({ default: m.Analytics })));
 const VercelSpeedInsights = React.lazy(() => import('@vercel/speed-insights/react').then(m => ({ default: m.SpeedInsights })));
 
@@ -49,17 +51,18 @@ if (typeof globalThis !== 'undefined') {
   setTimeout(() => {
     try {
       globalThis.__charEdge_notification_store__ = useNotificationLog;
-    } catch {}
+    } catch (_) { /* storage/API may be blocked */ }
   }, 0);
 }
 
 export default function App() {
-  const ready = useAppBoot();
+  const { ready, phase } = useAppBoot();
   const { isMobile } = useBreakpoints();
   const toggleNotifications = useNotificationLog((s) => s.togglePanel);
   const page = useUIStore((s) => s.page);
   const setPage = useUIStore((s) => s.setPage);
   const theme = useUserStore((s) => s.theme);
+  const analyticsConsent = useConsentStore((s) => s.analytics);
 
   // Keyboard shortcuts panel
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -109,9 +112,9 @@ export default function App() {
                     { type: 'info', duration: 8000 },
                   );
                 }, 2000);
-              }).catch(() => {}); // intentional: Toast import is best-effort UI
+              }).catch(() => { }); // intentional: Toast import is best-effort UI
             }
-          }).catch(() => {}); // intentional: dynamic import is best-effort
+          }).catch(() => { }); // intentional: dynamic import is best-effort
         }
       }
 
@@ -163,49 +166,60 @@ export default function App() {
   );
 
   if (!ready) {
-    return <LoadingScreen />;
+    return <LoadingScreen phase={phase} />;
   }
 
   return (
-    <div
-      key={theme}
-      className={isMobile ? styles.appRootMobile : styles.appRoot}
-    >
-      {/* Sprint 23: Skip-to-content for keyboard/screen-reader users */}
-      <a href="#tf-main-content" className={styles.skipLink}>Skip to content</a>
-      {!isMobile && <Sidebar />}
-      <ErrorBoundary resetKey={page}>
-        <div className={isMobile ? styles.mainAreaMobile : styles.mainArea}>
-          <DailyGuardBanner />
-          <div className={styles.mainContent} id="tf-main-content" role="main" aria-label="Page content">
-            <PageRouter />
-          </div>
+    <Suspense fallback={null}>
+      <AgeVerificationGate>
+        <div
+          key={theme}
+          className={isMobile ? styles.appRootMobile : styles.appRoot}
+        >
+          {/* Sprint 23: Skip-to-content for keyboard/screen-reader users */}
+          <a href="#tf-main-content" className={styles.skipLink}>Skip to content</a>
+          {!isMobile && <Sidebar />}
+          <ErrorBoundary resetKey={page}>
+            <div className={isMobile ? styles.mainAreaMobile : styles.mainArea}>
+              <DailyGuardBanner />
+              <div className={styles.mainContent} id="tf-main-content" role="main" aria-label="Page content">
+                <PageRouter />
+              </div>
+            </div>
+          </ErrorBoundary>
+          {isMobile && <MobileNav />}
+          <ToastContainer />
+          <Suspense fallback={null}>
+            <CommandPalette />
+            <GlobalQuickAddModal />
+            <NotificationPanel />
+            <OnboardingWizard />
+            <LevelUpModal />
+            <MilestoneModal />
+            <SettingsSlideOver />
+            <FocusOverlay />
+            <CookieConsent />
+            <FeedbackWidget />
+            {/* Consent-gated: only load analytics when user opted in */}
+            {analyticsConsent === true && <VercelAnalytics />}
+            {analyticsConsent === true && <VercelSpeedInsights />}
+          </Suspense>
+          <KeyboardShortcuts isOpen={shortcutsOpen} onClose={closeShortcuts} />
         </div>
-      </ErrorBoundary>
-      {isMobile && <MobileNav />}
-      <ToastContainer />
-      <Suspense fallback={null}>
-        <CommandPalette />
-        <GlobalQuickAddModal />
-        <NotificationPanel />
-        <OnboardingWizard />
-        <LevelUpModal />
-        <MilestoneModal />
-        <SettingsSlideOver />
-        <FocusOverlay />
-        <CookieConsent />
-        <FeedbackWidget />
-        <VercelAnalytics />
-        <VercelSpeedInsights />
-      </Suspense>
-      <KeyboardShortcuts isOpen={shortcutsOpen} onClose={closeShortcuts} />
-    </div>
+      </AgeVerificationGate>
+    </Suspense>
   );
 }
 
 // ─── Loading Screen ─────────────────────────────────────────────
 
-function LoadingScreen() {
+function LoadingScreen({ phase = 'connecting' }) {
+  const phaseText = {
+    connecting: 'Connecting…',
+    loading: 'Loading market data…',
+    computing: 'Computing indicators…',
+    ready: 'Ready',
+  }[phase] || 'Loading…';
   return (
     <div className={styles.loadingRoot}>
       {/* Brand icon with glow */}
@@ -217,7 +231,7 @@ function LoadingScreen() {
         <div className={styles.loadingGlow} />
       </div>
       <div className={styles.loadingTitle}>charEdge</div>
-      <div className={styles.loadingTagline}>Find Your Edge.</div>
+      <div className={styles.loadingTagline}>{phaseText}</div>
 
       {/* Progress bar instead of spinner */}
       <div className={styles.loadingBarTrack}>

@@ -95,7 +95,7 @@ export default function CommandPalette() {
   let flatIdx = 0;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 5000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '12vh', animation: 'cmdPaletteIn 0.15s ease-out' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 5000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '12vh', animation: 'fadeIn 0.15s ease-out' }}>
       {/* Backdrop */}
       <div
         onClick={() => setOpen(false)}
@@ -105,11 +105,11 @@ export default function CommandPalette() {
       {/* Palette */}
       <div style={{
         position: 'relative', width: 560, maxWidth: '92vw',
-        background: `rgba(${parseInt(C.sf.slice(1,3),16)||30},${parseInt(C.sf.slice(3,5),16)||30},${parseInt(C.sf.slice(5,7),16)||34},0.85)`,
+        background: `rgba(${parseInt(C.sf.slice(1, 3), 16) || 30},${parseInt(C.sf.slice(3, 5), 16) || 30},${parseInt(C.sf.slice(5, 7), 16) || 34},0.85)`,
         backdropFilter: 'blur(20px) saturate(1.5)', WebkitBackdropFilter: 'blur(20px) saturate(1.5)',
         border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, overflow: 'hidden',
         boxShadow: '0 24px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,0.04) inset',
-        animation: 'cmdSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+        animation: 'slideUpScale 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
       }}>
         {/* Search Input */}
         <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -163,10 +163,6 @@ export default function CommandPalette() {
         </div>
       </div>
 
-      <style>{`
-        @keyframes cmdPaletteIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes cmdSlideUp { from { opacity: 0; transform: translateY(12px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
-      `}</style>
     </div>
   );
 }

@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
+import { logger } from '../../../utils/logger';
 
 const STORAGE_KEY = 'charEdge-gesture-guide-seen';
 
@@ -64,14 +65,14 @@ export default function GestureGuide({ forceShow = false, onDismiss }) {
         const timer = setTimeout(() => setVisible(true), 1500);
         return () => clearTimeout(timer);
       }
-    } catch {}
+    } catch (e) { logger.ui.warn('Operation failed', e); }
   }, [forceShow]);
 
   const dismiss = useCallback(() => {
     setVisible(false);
     try {
       localStorage.setItem(STORAGE_KEY, '1');
-    } catch {}
+    } catch (_) { /* storage may be blocked */ }
     onDismiss?.();
   }, [onDismiss]);
 
@@ -186,7 +187,7 @@ export default function GestureGuide({ forceShow = false, onDismiss }) {
 export function resetGestureGuide() {
   try {
     localStorage.removeItem(STORAGE_KEY);
-  } catch {}
+  } catch (_) { /* storage may be blocked */ }
 }
 
 export { GestureGuide };

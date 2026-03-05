@@ -66,7 +66,7 @@ export default function DataPrivacySection() {
       for (const db of dbs) {
         if (db.name) indexedDB.deleteDatabase(db.name);
       }
-    } catch { /* indexedDB.databases() not supported in all browsers */ }
+    } catch (_) { /* indexedDB.databases() not supported in all browsers */ }
 
     // Clear OPFS (Origin Private File System)
     try {
@@ -76,19 +76,19 @@ export default function DataPrivacySection() {
           await root.removeEntry(name, { recursive: true });
         }
       }
-    } catch { /* OPFS not supported or empty */ }
+    } catch (_) { /* OPFS not supported or empty */ }
 
     // Unregister all service workers
     try {
       const registrations = await navigator.serviceWorker?.getRegistrations() || [];
       for (const reg of registrations) await reg.unregister();
-    } catch { /* SW not supported */ }
+    } catch (_) { /* SW not supported */ }
 
     // Clear all browser caches (Cache Storage API)
     try {
       const cacheNames = await caches?.keys() || [];
       for (const name of cacheNames) await caches.delete(name);
-    } catch { /* caches API not available */ }
+    } catch (_) { /* caches API not available */ }
 
     // Clear all localStorage (including SecureStore salt)
     localStorage.clear();

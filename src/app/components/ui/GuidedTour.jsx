@@ -207,7 +207,7 @@ export default function GuidedTour() {
             border: `2px solid ${C.b}`,
             boxShadow: `0 0 20px ${C.b}40, inset 0 0 20px ${C.b}20`,
             pointerEvents: 'none',
-            animation: 'tfTourPulse 2s ease-in-out infinite',
+            animation: 'pulse 2s ease-in-out infinite',
           }}
         />
       )}
@@ -226,7 +226,7 @@ export default function GuidedTour() {
           borderRadius: 14,
           boxShadow: '0 12px 48px rgba(0,0,0,0.5)',
           fontFamily: F,
-          animation: 'tfTourCardIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+          animation: 'scaleInSm 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
           zIndex: 2,
         }}
       >
@@ -301,17 +301,6 @@ export default function GuidedTour() {
         </div>
       </div>
 
-      {/* CSS Animations */}
-      <style>{`
-        @keyframes tfTourPulse {
-          0%, 100% { box-shadow: 0 0 20px ${C.b}40, inset 0 0 20px ${C.b}20; }
-          50%      { box-shadow: 0 0 30px ${C.b}60, inset 0 0 30px ${C.b}30; }
-        }
-        @keyframes tfTourCardIn {
-          from { opacity: 0; transform: translateY(8px) scale(0.95); }
-          to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-      `}</style>
     </div>
   );
 }

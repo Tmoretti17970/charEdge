@@ -6,13 +6,16 @@
 
 import { getAggregator, removeAggregator } from '../../data/OrderFlowAggregator.js';
 import { useChartStore } from '../../state/useChartStore.js';
-import { WS_STATUS } from '../../data/WebSocketService.js';
+import { WS_STATUS } from '../../data/WebSocketService.ts';
 import { isCrypto } from '../../constants.js';
+import { tickChannel } from '../core/TickChannel.js';
+import { logger } from '../../utils/logger';
 
 class DatafeedService {
   constructor() {
     this.cache = new Map(); // key: 'symbol_tf', value: { bars: [], status: 'idle'|'loading'|'ready', subscribers: Set() }
     this.sockets = new Map(); // key: 'symbol_tf', value: WebSocket
+    this._reconnectTimers = new Map(); // key → setTimeout id for pending reconnects
   }
 
   /**
@@ -69,7 +72,7 @@ class DatafeedService {
     const baseSym = symbol.toUpperCase().replace(/USDT$|BUSD$|USD$/, '');
     if (!isCrypto(baseSym)) {
       try {
-        const { fetchOHLC } = await import('../../data/FetchService.js');
+        const { fetchOHLC } = await import('../../data/FetchService.ts');
         // Map Binance-style timeframes to FetchService timeframe IDs
         const TF_MAP = {
           '1m': '1d', '3m': '1d', '5m': '1d', '15m': '5d', '30m': '5d',
@@ -93,7 +96,7 @@ class DatafeedService {
           });
           return;
         }
-      } catch { /* FetchService not available */ }
+      } catch (e) { logger.engine.warn('Operation failed', e); }
 
       // No data available from any source
       entry.status = 'error';
@@ -132,6 +135,9 @@ class DatafeedService {
         if (sub.onHistorical) sub.onHistorical(bars);
       });
 
+      // Push to TickChannel for direct engine delivery
+      tickChannel.pushHistorical(key, bars);
+
       // Start live multiplexed WebSocket updates
       this._startWebSocket(symbol, tf, key);
 
@@ -147,7 +153,20 @@ class DatafeedService {
   }
 
   _startWebSocket(symbol, tf, key) {
-    if (this.sockets.has(key)) return;
+    // Clean up any existing socket (prevents duplicate connections during rapid reconnect)
+    const existingWs = this.sockets.get(key);
+    if (existingWs) {
+      existingWs.onopen = null;
+      existingWs.onmessage = null;
+      existingWs.onclose = null;
+      existingWs.onerror = null;
+      try {
+        if (existingWs.readyState === WebSocket.OPEN) {
+          existingWs.close();
+        }
+      } catch (e) { logger.engine.warn('Operation failed', e); }
+      this.sockets.delete(key);
+    }
 
     const symLower = symbol.toLowerCase();
     const klineStream = `${symLower}@kline_${tf}`;
@@ -166,15 +185,26 @@ class DatafeedService {
       useChartStore.getState().setWsStatus(WS_STATUS.CONNECTED);
     };
 
-    ws.onerror = (err) => {
-      console.error('Binance Datafeed WS Error:', err);
+    ws.onerror = () => {
+      // Expected during symbol switching — suppress to avoid console noise
       useChartStore.getState().setWsStatus(WS_STATUS.DISCONNECTED);
     };
 
     ws.onclose = () => {
-      useChartStore.getState().setWsStatus(WS_STATUS.RECONNECTING);
       this.sockets.delete(key);
-      setTimeout(() => this._startWebSocket(symbol, tf, key), 5000);
+      // Only reconnect if the subscription is still active (not cleaned up)
+      if (this.cache.has(key) && this.cache.get(key).subscribers.size > 0) {
+        useChartStore.getState().setWsStatus(WS_STATUS.RECONNECTING);
+        const timer = setTimeout(() => {
+          this._reconnectTimers.delete(key);
+          if (this.cache.has(key) && this.cache.get(key).subscribers.size > 0) {
+            this._startWebSocket(symbol, tf, key);
+          }
+        }, 5000);
+        this._reconnectTimers.set(key, timer);
+      } else {
+        useChartStore.getState().setWsStatus(WS_STATUS.DISCONNECTED);
+      }
     };
 
     ws.onmessage = (evt) => {
@@ -216,7 +246,10 @@ class DatafeedService {
 
           entry.bars = updatedBars;
 
-          // Notify all subscribers of the new bars array
+          // Push through TickChannel (rAF-batched, bypasses React)
+          tickChannel.pushTick(key, updatedBars, bar);
+
+          // Notify React subscribers (for state updates like status/barCount)
           entry.subscribers.forEach(sub => {
             if (sub.onTick) sub.onTick(updatedBars, bar);
           });
@@ -234,7 +267,7 @@ class DatafeedService {
         }
       } catch (e) {
         // Parse error
-        console.warn('WS Parse Error', e);
+        logger.engine.warn('WS Parse Error', e);
       }
     };
 
@@ -243,9 +276,24 @@ class DatafeedService {
   _cleanup(key) {
     // Zero active subscribers, drop connection and cache
     // (Clearing cache prevents gaps when re-subscribing later)
+
+    // Cancel any pending reconnect timer first
+    const timer = this._reconnectTimers.get(key);
+    if (timer) {
+      clearTimeout(timer);
+      this._reconnectTimers.delete(key);
+    }
+
     const ws = this.sockets.get(key);
     if (ws) {
-      ws.close();
+      // Null handlers before close to prevent reconnect scheduling
+      ws.onopen = null;
+      ws.onmessage = null;
+      ws.onclose = null;
+      ws.onerror = null;
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
       this.sockets.delete(key);
     }
     this.cache.delete(key);

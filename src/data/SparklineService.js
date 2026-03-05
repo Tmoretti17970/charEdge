@@ -8,6 +8,7 @@
 import { isCrypto } from '../constants.js';
 import { YahooAdapter } from './adapters/YahooAdapter.js';
 import { toBinancePair } from './BinanceClient.js';
+import { logger } from '../utils/logger';
 
 /**
  * Fetch 24hr ticker price change statistics for one or multiple symbols.
@@ -34,7 +35,7 @@ export async function fetch24hTicker(symbols) {
         const data = await res.json();
         results.push(...(Array.isArray(data) ? data : [data]));
       }
-    } catch { /* silent */ }
+    } catch (e) { logger.data.warn('Operation failed', e); }
   }
 
   // ── Equities: Yahoo Finance quote for change% ──
@@ -59,9 +60,9 @@ export async function fetch24hTicker(symbols) {
               volume: String(candles.reduce((s, c) => s + (c.volume || 0), 0)),
             });
           }
-        } catch { /* skip this equity symbol */ }
+        } catch (e) { logger.data.warn('Operation failed', e); }
       }
-    } catch { /* Yahoo adapter unavailable */ }
+    } catch (e) { logger.data.warn('Operation failed', e); }
   }
 
   return results;
@@ -81,7 +82,7 @@ export async function fetchSparkline(symbol, isCryptoAsset = true) {
       const yahoo = new YahooAdapter();
       const candles = await yahoo.fetchOHLCV(s, '15m', { range: '1d' });
       if (candles && candles.length > 0) return candles.map(c => c.close);
-    } catch { /* Yahoo unavailable */ }
+    } catch (e) { logger.data.warn('Operation failed', e); }
     return [];
   }
 
@@ -95,7 +96,7 @@ export async function fetchSparkline(symbol, isCryptoAsset = true) {
     const raw = await res.json();
     if (!Array.isArray(raw)) return [];
     return raw.map((k) => parseFloat(k[4]));
-  } catch {
+  } catch (_) {
     return [];
   }
 }

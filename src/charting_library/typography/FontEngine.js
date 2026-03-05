@@ -217,7 +217,7 @@ export class FontEngine {
         this.clearCache();
       }
       return this._fontLoaded;
-    } catch {
+    } catch (_) {
       return false;
     }
   }
@@ -228,7 +228,7 @@ export class FontEngine {
     try {
       this._measureCanvas = new OffscreenCanvas(1, 1);
       this._measureCtx = this._measureCanvas.getContext('2d');
-    } catch {
+    } catch (_) {
       // Fallback for environments without OffscreenCanvas
       if (typeof document !== 'undefined') {
         this._measureCanvas = document.createElement('canvas');

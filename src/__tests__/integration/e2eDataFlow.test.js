@@ -306,7 +306,7 @@ describe('E2E: DataPipelineLogger', () => {
 describe('E2E: FetchService structural verification', () => {
   it('imports pipelineLogger and calls it on fetch paths', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/FetchService.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
 
     expect(source).toContain("import { pipelineLogger }");
     expect(source).toContain("pipelineLogger.debug('FetchService'");
@@ -316,7 +316,7 @@ describe('E2E: FetchService structural verification', () => {
 
   it('uses buildCacheKey from constants', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/FetchService.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
 
     expect(source).toContain("import { TFS, isCrypto, buildCacheKey }");
     expect(source).toContain("buildCacheKey(sym, tfId)");
@@ -324,7 +324,7 @@ describe('E2E: FetchService structural verification', () => {
 
   it('uses staleWhileRevalidate from swr.js', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/FetchService.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
 
     expect(source).toContain("import { staleWhileRevalidate }");
     expect(source).toContain("staleWhileRevalidate(cached,");
@@ -332,7 +332,7 @@ describe('E2E: FetchService structural verification', () => {
 
   it('has inflight deduplication', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/FetchService.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
 
     expect(source).toContain("_inflight.has(key)");
     expect(source).toContain("_inflight.set(key, promise)");
@@ -341,7 +341,7 @@ describe('E2E: FetchService structural verification', () => {
 
   it('has background refresh throttle (10s per key)', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/FetchService.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
 
     expect(source).toContain("_bgRefreshTimestamps");
     expect(source).toContain("10_000");
@@ -349,7 +349,7 @@ describe('E2E: FetchService structural verification', () => {
 
   it('warmCache targets adjacent timeframes', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/FetchService.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
 
     // Verify the ADJACENT map exists with entries for 1D
     expect(source).toContain("'1D': ['4h', '1w']");
@@ -402,7 +402,7 @@ describe('E2E: isStale utility', () => {
 describe('E2E: Full pipeline structure verification', () => {
   it('_doFetch calls validateCandleArray before caching', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/FetchService.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
 
     // Find the _doFetch function and verify validate call comes before write
     const doFetchStart = source.indexOf('async function _doFetch');
@@ -419,7 +419,7 @@ describe('E2E: Full pipeline structure verification', () => {
 
   it('_doFetch tries Binance first, then CoinGecko, then CryptoCompare for crypto', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/FetchService.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
 
     const doFetchStart = source.indexOf('async function _doFetch');
     const doFetchBody = source.slice(doFetchStart);
@@ -435,7 +435,7 @@ describe('E2E: Full pipeline structure verification', () => {
 
   it('_doFetch has OPFS offline fallback as last resort', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/FetchService.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
 
     const doFetchStart = source.indexOf('async function _doFetch');
     const doFetchBody = source.slice(doFetchStart);
@@ -448,7 +448,7 @@ describe('E2E: Full pipeline structure verification', () => {
 
   it('dispatches charEdge:data-warning event on total failure', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/FetchService.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
 
     expect(source).toContain("charEdge:data-warning");
     expect(source).toContain("_lastWarning");

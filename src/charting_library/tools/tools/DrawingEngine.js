@@ -116,9 +116,12 @@ export function createDrawingEngine(options = {}) {
   let smartGuides = true;
   let lastSnapInfo = null;
 
+  // ── Version counter (for FrameState change detection) ──
+  let _version = 0;
+
   // ── Emit helpers ──
-  function emit() { if (onChange) onChange([...drawings]); }
-  function emitState() { if (onStateChange) onStateChange(interactionState); }
+  function emit() { _version++; if (onChange) onChange([...drawings]); }
+  function emitState() { _version++; if (onStateChange) onStateChange(interactionState); }
   function setState(newState) { interactionState = newState; emitState(); }
 
   // ── Coordinate Conversion ──
@@ -566,6 +569,7 @@ export function createDrawingEngine(options = {}) {
     bringToFront(id) { bringToFrontImpl(getCrudCtx(), id); },
     sendToBack(id) { sendToBackImpl(getCrudCtx(), id); },
     get activeDrawing() { return activeDrawing; },
+    get version() { return _version; },
     dispose() { drawings = []; activeDrawing = null; activeTool = null; selectedDrawingId = null; },
   };
 }

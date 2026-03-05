@@ -13,27 +13,10 @@
 import React from 'react';
 import { C, F, M } from '../../../constants.js';
 
-// ─── Shimmer Keyframes (injected once) ─────────────────────────
-const SHIMMER_ID = 'ce-shimmer-keyframes';
-
-function ensureShimmerCSS() {
-  if (typeof document === 'undefined') return;
-  if (document.getElementById(SHIMMER_ID)) return;
-  const style = document.createElement('style');
-  style.id = SHIMMER_ID;
-  style.textContent = `
-    @keyframes ce-shimmer {
-      0% { background-position: -400px 0; }
-      100% { background-position: 400px 0; }
-    }
-  `;
-  document.head.appendChild(style);
-}
 
 // ─── Base Shimmer Bar ──────────────────────────────────────────
 
 function ShimmerBar({ width = '100%', height = 14, borderRadius = 6, style: extraStyle }) {
-  ensureShimmerCSS();
   return (
     <div style={{
       width,
@@ -41,7 +24,7 @@ function ShimmerBar({ width = '100%', height = 14, borderRadius = 6, style: extr
       borderRadius,
       background: `linear-gradient(90deg, ${C.sf} 25%, ${C.bd}40 50%, ${C.sf} 75%)`,
       backgroundSize: '800px 100%',
-      animation: 'ce-shimmer 1.5s ease-in-out infinite',
+      animation: 'shimmer 1.5s ease-in-out infinite',
       ...extraStyle,
     }} />
   );

@@ -109,13 +109,13 @@ export default function ChartSnapshotModal({ open, onClose, canvas, symbol, time
       ctx.fillText(watermarkText, w - Math.round(12 * scale), h - Math.round(8 * scale));
 
       return offscreen.toDataURL('image/png');
-    } catch { return null; }
+    } catch (_) { return null; }
   };
 
   useEffect(() => {
     if (open && canvas) {
       const url = captureHiDPI(canvas);
-      setPreviewUrl(url || (() => { try { return canvas.toDataURL('image/png'); } catch { return null; } })());
+      setPreviewUrl(url || (() => { try { return canvas.toDataURL('image/png'); } catch (_) { return null; } })());
       setTitle(`${symbol || 'Chart'} ${timeframe || ''} Analysis`);
       setDescription('');
       setCopyStatus('');
@@ -158,7 +158,7 @@ export default function ChartSnapshotModal({ open, onClose, canvas, symbol, time
       await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
       setCopyStatus('Copied!');
       setTimeout(() => setCopyStatus(''), 2000);
-    } catch {
+    } catch (_) {
       setCopyStatus('Failed');
       setTimeout(() => setCopyStatus(''), 2000);
     }
@@ -170,7 +170,7 @@ export default function ChartSnapshotModal({ open, onClose, canvas, symbol, time
       navigator.clipboard.writeText(embedSnippet);
       setCopyStatus('Embed copied!');
       setTimeout(() => setCopyStatus(''), 2000);
-    } catch {}
+    } catch (_) { /* storage may be blocked */ }
   };
 
   return (

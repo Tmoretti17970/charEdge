@@ -358,11 +358,18 @@ export function formatPrice(price) {
  * @param {string} timeframe - '1m', '5m', '15m', '1h', '4h', '1D', '1W'
  * @returns {string}
  */
+// 8.1.3: Reusable Date object to avoid per-call GC allocation in axis rendering
+const _csSharedDate = new Date(0);
+const _csMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 export function formatTimeLabel(timestamp, timeframe) {
-  const d = new Date(timestamp);
+  // 8.1.3: Reuse shared Date object — numeric-first fast path
+  const ts = typeof timestamp === 'number' ? timestamp : +new Date(timestamp);
+  _csSharedDate.setTime(ts);
+  const d = _csSharedDate;
   const hh = String(d.getHours()).padStart(2, '0');
   const mm = String(d.getMinutes()).padStart(2, '0');
-  const mon = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()];
+  const mon = _csMonths[d.getMonth()];
   const day = d.getDate();
   const year = d.getFullYear();
 

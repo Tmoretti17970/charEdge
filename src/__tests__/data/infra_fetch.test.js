@@ -54,7 +54,7 @@ function findDuplicateKeys(source, startMarker) {
 
 describe('FetchService — clearCache clears bgRefreshTimestamps', () => {
   it('clearCache empties both _cache and _bgRefreshTimestamps', async () => {
-    const { clearCache, cacheStats } = await import('../../data/FetchService.js');
+    const { clearCache, cacheStats } = await import('../../data/FetchService.ts');
     clearCache();
     const stats = cacheStats();
     expect(stats.memorySize).toBe(0);
@@ -63,7 +63,7 @@ describe('FetchService — clearCache clears bgRefreshTimestamps', () => {
 
 describe('FetchService — Cache import correctness', () => {
   it('uses cacheManager (consolidated) instead of raw dataCache', async () => {
-    const source = readSource('data/FetchService.js');
+    const source = readSource('data/FetchService.ts');
     const rawCacheImport = source.match(/\{ dataCache \}/g);
     expect(rawCacheImport).toBeNull();
     expect(source).toContain("cacheManager");
@@ -71,8 +71,8 @@ describe('FetchService — Cache import correctness', () => {
     expect(source).toContain("cacheManager.write");
   });
 
-  it('DataCache.js exports match what FetchService imports', async () => {
-    const mod = await import('../../data/DataCache.js');
+  it('DataCache.ts exports match what FetchService imports', async () => {
+    const mod = await import('../../data/DataCache.ts');
     expect(mod.dataCache).toBeDefined();
     expect(typeof mod.dataCache.getCandles).toBe('function');
     expect(typeof mod.dataCache.putCandles).toBe('function');
@@ -82,7 +82,7 @@ describe('FetchService — Cache import correctness', () => {
 
 describe('FetchService — CacheManager integration', () => {
   it('imports cacheManager instead of inline _cache', async () => {
-    const source = readSource('data/FetchService.js');
+    const source = readSource('data/FetchService.ts');
     expect(source).toContain("import { cacheManager } from './engine/infra/CacheManager.js'");
     expect(source).not.toContain('const _cache = new Map()');
     expect(source).not.toContain('function cacheSet(');
@@ -93,7 +93,7 @@ describe('FetchService — CacheManager integration', () => {
   });
 
   it('_doFetch uses circuit breakers for multi-tier fallback', async () => {
-    const source = readSource('data/FetchService.js');
+    const source = readSource('data/FetchService.ts');
     expect(source).toContain("withCircuitBreaker('binance'");
     expect(source).toContain("withCircuitBreaker('coingecko'");
     expect(source).toContain("withCircuitBreaker('cryptocompare'");
@@ -117,7 +117,7 @@ describe('FetchService — delta-only fetching support', () => {
   });
 
   it('_doFetch checks opfsBarStore.getLastCandleTime before Binance fetch', async () => {
-    const source = readSource('data/FetchService.js');
+    const source = readSource('data/FetchService.ts');
     expect(source).toContain('opfsBarStore.getLastCandleTime(sym, tfId)');
     expect(source).toContain('deltaStartTime');
   });
@@ -127,7 +127,7 @@ describe('FetchService — config maps have no duplicates', () => {
   let binanceSource, fetchSource;
   beforeAll(() => {
     binanceSource = readSource('data/BinanceClient.js');
-    fetchSource = readSource('data/FetchService.js');
+    fetchSource = readSource('data/FetchService.ts');
   });
 
   it('TTL map has no duplicate keys', () => { expect(findDuplicateKeys(fetchSource, 'const TTL')).toEqual([]); });
@@ -165,7 +165,7 @@ describe('FetchService — config maps have no duplicates', () => {
 
 describe('FetchService — uses static imports', () => {
   let source;
-  beforeAll(() => { source = readSource('data/FetchService.js'); });
+  beforeAll(() => { source = readSource('data/FetchService.ts'); });
 
   it('statically imports CoinGeckoAdapter', () => { expect(source).toContain("from './adapters/CoinGeckoAdapter.js'"); });
   it('statically imports CryptoCompareAdapter', () => { expect(source).toContain("from './adapters/CryptoCompareAdapter.js'"); });
@@ -308,7 +308,7 @@ describe('isCrypto — expanded CRYPTO_IDS + USDT suffix handling', () => {
 describe('WebSocketService — multiplexed combined streams', () => {
   it('subscribe returns a numeric subscription ID', async () => {
     vi.stubGlobal('WebSocket', class { constructor() { this.readyState = 0; } close() {} });
-    const { WebSocketService } = await import('../../data/WebSocketService.js');
+    const { WebSocketService } = await import('../../data/WebSocketService.ts');
     const ws = new WebSocketService();
     const subId = ws.subscribe('BTC', '1h', {});
     expect(typeof subId).toBe('number');
@@ -318,14 +318,14 @@ describe('WebSocketService — multiplexed combined streams', () => {
   });
 
   it('builds correct stream keys for combined endpoint', async () => {
-    const source = readSource('data/WebSocketService.js');
+    const source = readSource('data/WebSocketService.ts');
     expect(source).toContain('wss://data-stream.binance.vision/stream?streams=');
     expect(source).toContain('streams.join');
   });
 
   it('supports multiple concurrent subscriptions', async () => {
     vi.stubGlobal('WebSocket', class { constructor() { this.readyState = 0; } close() {} });
-    const { WebSocketService } = await import('../../data/WebSocketService.js');
+    const { WebSocketService } = await import('../../data/WebSocketService.ts');
     const ws = new WebSocketService();
     const sub1 = ws.subscribe('BTC', '1h', {});
     const sub2 = ws.subscribe('ETH', '1h', {});
@@ -341,7 +341,7 @@ describe('WebSocketService — multiplexed combined streams', () => {
 
   it('deduplicates same symbol+tf into single stream', async () => {
     vi.stubGlobal('WebSocket', class { constructor() { this.readyState = 0; } close() {} });
-    const { WebSocketService } = await import('../../data/WebSocketService.js');
+    const { WebSocketService } = await import('../../data/WebSocketService.ts');
     const ws = new WebSocketService();
     ws.subscribe('BTC', '1h', {});
     ws.subscribe('BTC', '1h', {});
@@ -353,7 +353,7 @@ describe('WebSocketService — multiplexed combined streams', () => {
   });
 
   it('isSupported still works as static method', async () => {
-    const { WebSocketService } = await import('../../data/WebSocketService.js');
+    const { WebSocketService } = await import('../../data/WebSocketService.ts');
     expect(WebSocketService.isSupported('BTC')).toBe(true);
     expect(WebSocketService.isSupported('BTCUSDT')).toBe(true);
     expect(WebSocketService.isSupported('AAPL')).toBe(false);
@@ -363,7 +363,7 @@ describe('WebSocketService — multiplexed combined streams', () => {
 
 describe('WebSocketService — StreamingIndicatorBridge wiring', () => {
   it('source contains StreamingIndicatorBridge import in onmessage handler', async () => {
-    const source = readSource('data/WebSocketService.js');
+    const source = readSource('data/WebSocketService.ts');
     expect(source).toContain('StreamingIndicatorBridge');
     expect(source).toContain('bridge.onTick');
     expect(source).toContain('price: bar.close');
@@ -373,13 +373,13 @@ describe('WebSocketService — StreamingIndicatorBridge wiring', () => {
 
 describe('WebSocketService — cached StreamingIndicatorBridge import', () => {
   it('does NOT have dynamic import() inside onmessage handler', async () => {
-    const source = readSource('data/WebSocketService.js');
+    const source = readSource('data/WebSocketService.ts');
     expect(source).toContain('_getStreamingBridge');
     expect(source).not.toContain("import('./engine/indicators/StreamingIndicatorBridge.js').then");
   });
 
   it('nulls WS handlers before close to prevent ping-after-close', async () => {
-    const source = readSource('data/WebSocketService.js');
+    const source = readSource('data/WebSocketService.ts');
     expect(source).toContain('this._ws.onmessage = null');
     expect(source).toContain('this._ws.onclose = null');
     expect(source).toContain('this._ws.onerror = null');
@@ -407,7 +407,7 @@ describe('WebSocketService — exponential backoff reconnection', () => {
   });
 
   it('sets RECONNECTING status on close and schedules reconnect', async () => {
-    const { WS_STATUS, WebSocketService: WsClass } = await import('../../data/WebSocketService.js');
+    const { WS_STATUS, WebSocketService: WsClass } = await import('../../data/WebSocketService.ts');
     const ws = new WsClass();
     const statuses = [];
     ws.subscribe('BTC', '1h', { onStatus: (s) => statuses.push(s) });
@@ -422,7 +422,7 @@ describe('WebSocketService — exponential backoff reconnection', () => {
   });
 
   it('does not reconnect on intentional unsubscribe', async () => {
-    const { WebSocketService: WsClass } = await import('../../data/WebSocketService.js');
+    const { WebSocketService: WsClass } = await import('../../data/WebSocketService.ts');
     const ws = new WsClass();
     const statuses = [];
     ws.subscribe('ETH', '1d', { onStatus: (s) => statuses.push(s) });
@@ -431,7 +431,7 @@ describe('WebSocketService — exponential backoff reconnection', () => {
   });
 
   it('source has reconnection logic with exponential backoff', async () => {
-    const source = readSource('data/WebSocketService.js');
+    const source = readSource('data/WebSocketService.ts');
     expect(source).toContain('_scheduleReconnect');
     expect(source).toContain('_reconnectAttempts');
     expect(source).toContain('_maxReconnectAttempts');
@@ -440,7 +440,7 @@ describe('WebSocketService — exponential backoff reconnection', () => {
   });
 
   it('exports WebSocketService class with reconnection fields', async () => {
-    const { WebSocketService } = await import('../../data/WebSocketService.js');
+    const { WebSocketService } = await import('../../data/WebSocketService.ts');
     const ws = new WebSocketService();
     expect(ws._reconnectAttempts).toBe(0);
     expect(ws._maxReconnectAttempts).toBe(10);
@@ -449,7 +449,7 @@ describe('WebSocketService — exponential backoff reconnection', () => {
   });
 
   it('onclose triggers reconnect when not intentional', async () => {
-    const { WebSocketService } = await import('../../data/WebSocketService.js');
+    const { WebSocketService } = await import('../../data/WebSocketService.ts');
     const ws = new WebSocketService();
     ws._subs.set(1, { streamKey: 'btcusdt@kline_1h', symbol: 'BTC', tf: '1h', callbacks: {} });
     let reconnectCalled = false;
@@ -462,7 +462,7 @@ describe('WebSocketService — exponential backoff reconnection', () => {
   });
 
   it('intentional unsubscribe-all does NOT reconnect', async () => {
-    const { WebSocketService } = await import('../../data/WebSocketService.js');
+    const { WebSocketService } = await import('../../data/WebSocketService.ts');
     const ws = new WebSocketService();
     ws._subs.set(1, { streamKey: 'test', callbacks: {} });
     ws.unsubscribe();
@@ -471,7 +471,7 @@ describe('WebSocketService — exponential backoff reconnection', () => {
   });
 
   it('subscribe + unsubscribe specific ID manages subs correctly', async () => {
-    const { WebSocketService } = await import('../../data/WebSocketService.js');
+    const { WebSocketService } = await import('../../data/WebSocketService.ts');
     const ws = new WebSocketService();
     ws._scheduleStreamUpdate = () => {};
     const id1 = ws.subscribe('BTC', '1h', {});
@@ -582,7 +582,7 @@ describe('DataProvider — backward compatibility', () => {
   let source;
   beforeAll(() => { source = readSource('data/DataProvider.js'); });
 
-  it('still imports dataCache from DataCache.js', () => { expect(source).toContain("from './DataCache.js'"); });
+  it('still imports dataCache from DataCache.ts', () => { expect(source).toContain("from './DataCache.ts'"); });
   it('still re-exports dataCache', () => { expect(source).toMatch(/export\s*{[^}]*dataCache/); });
 });
 
@@ -668,11 +668,11 @@ describe('isCrypto unification', () => {
 
   // TODO: un-skip when WebSocketService imports isCrypto from constants.js
   it.skip('WebSocketService imports isCrypto from constants.js', () => {
-    expect(readSource('data/WebSocketService.js')).toContain("import { isCrypto } from '../../constants.js'");
+    expect(readSource('data/WebSocketService.ts')).toContain("import { isCrypto } from '../../constants.js'");
   });
 
   it('WebSocketService has no inline BINANCE_SYMBOLS set', () => {
-    expect(readSource('data/WebSocketService.js')).not.toMatch(/new Set\(\[\s*'BTC'/);
+    expect(readSource('data/WebSocketService.ts')).not.toMatch(/new Set\(\[\s*'BTC'/);
   });
 
   it('AdaptivePoller has no local isCryptoSymbol function', () => {

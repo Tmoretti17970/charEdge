@@ -366,7 +366,7 @@ function SimpleModePicker() {
             Simple Mode
           </div>
           <div style={{ fontSize: 11, color: C.t3, lineHeight: 1.5 }}>
-            Hide advanced features like gamification, AI coach, and detailed analytics. Perfect for focused trading.
+            Hide advanced features like gamification, Smart Insights, and detailed analytics. Perfect for focused trading.
           </div>
         </div>
         <button

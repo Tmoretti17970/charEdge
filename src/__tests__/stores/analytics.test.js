@@ -7,7 +7,7 @@ import { describe, it, expect } from 'vitest';
 import { CanvasBuffer } from '../../charting_library/renderers/CanvasBuffer.js';
 import { LayoutCache } from '../../charting_library/core/LayoutCache.js';
 import { AnalyticsBridge } from '../../app/features/analytics/AnalyticsBridge.js';
-import { useAnalyticsStore } from '../../state/useAnalyticsStore.js';
+import { useAnalyticsStore } from '../../state/useAnalyticsStore.ts';
 
 // ─── Canvas stub for Node ───────────────────────────────────────
 function mkCanvas(w = 800, h = 400) {

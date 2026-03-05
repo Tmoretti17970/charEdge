@@ -42,7 +42,7 @@ export default function ConnectionStatus({ status, feedStatus, error, theme = 'd
             border: `2px solid ${isDark ? '#363A45' : '#E0E0E0'}`,
             borderTopColor: '#2962FF',
             borderRadius: '50%',
-            animation: 'tf-spin 0.8s linear infinite',
+            animation: 'spin 0.8s linear infinite',
           }}
         />
       )}
@@ -55,7 +55,7 @@ export default function ConnectionStatus({ status, feedStatus, error, theme = 'd
             height: 6,
             borderRadius: '50%',
             backgroundColor: wsConfig.color,
-            animation: wsConfig.pulse ? 'tf-pulse 1.5s ease-in-out infinite' : 'none',
+            animation: wsConfig.pulse ? 'pulse 1.5s ease-in-out infinite' : 'none',
           }}
         />
       )}
@@ -69,16 +69,6 @@ export default function ConnectionStatus({ status, feedStatus, error, theme = 'd
         </span>
       )}
 
-      {/* CSS animations */}
-      <style>{`
-        @keyframes tf-spin {
-          to { transform: rotate(360deg); }
-        }
-        @keyframes tf-pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-      `}</style>
     </div>
   );
 }

@@ -24,12 +24,12 @@ const THRESHOLDS = {
 };
 
 const STATUS = {
-  live:    { label: 'Live',    color: '#22c55e', dotColor: '#22c55e', pulse: true },
-  fresh:   { label: 'Fresh',   color: '#22c55e', dotColor: '#22c55e', pulse: false },
-  cached:  { label: 'Cached',  color: '#f59e0b', dotColor: '#f59e0b', pulse: false },
-  stale:   { label: 'Stale',   color: '#f97316', dotColor: '#f97316', pulse: false },
+  live: { label: 'Live', color: '#22c55e', dotColor: '#22c55e', pulse: true },
+  fresh: { label: 'Fresh', color: '#22c55e', dotColor: '#22c55e', pulse: false },
+  cached: { label: 'Cached', color: '#f59e0b', dotColor: '#f59e0b', pulse: false },
+  stale: { label: 'Stale', color: '#f97316', dotColor: '#f97316', pulse: false },
   offline: { label: 'Offline', color: '#ef4444', dotColor: '#ef4444', pulse: false },
-  unknown: { label: '—',       color: '#6b7280', dotColor: '#6b7280', pulse: false },
+  unknown: { label: '—', color: '#6b7280', dotColor: '#6b7280', pulse: false },
 };
 
 // ─── Helpers ───────────────────────────────────────────────────
@@ -132,7 +132,7 @@ export default function DataStalenessIndicator({ symbol, tfId, isLive = false })
           style={{
             ...styles.dot,
             backgroundColor: status.dotColor,
-            ...(status.pulse ? { animation: 'stalenessLivePulse 1.5s ease-in-out infinite' } : {}),
+            ...(status.pulse ? { animation: 'pulse 1.5s ease-in-out infinite' } : {}),
           }}
         />
         {status.label}{ageLabel}
@@ -146,12 +146,6 @@ export default function DataStalenessIndicator({ symbol, tfId, isLive = false })
         </div>
       )}
 
-      <style>{`
-        @keyframes stalenessLivePulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-      `}</style>
     </div>
   );
 }

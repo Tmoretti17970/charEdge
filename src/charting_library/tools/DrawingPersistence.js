@@ -9,7 +9,8 @@
 // Uses the unified charEdge-cache database (shared with DataCache).
 // ═══════════════════════════════════════════════════════════════════
 
-import { openCacheDB } from '../../data/DataCache.js';
+import { openCacheDB } from '../../data/DataCache.ts';
+import { logger } from '../../utils/logger';
 
 const STORE_NAME = 'drawings';
 
@@ -85,7 +86,7 @@ export async function saveDrawings(symbol, timeframe, drawings) {
       tx.onerror = () => reject(tx.error);
     });
   } catch (err) {
-    console.warn('[DrawingPersistence] Save failed:', err);
+    logger.engine.warn('[DrawingPersistence] Save failed:', err);
     // Fallback: try localStorage
     try {
       const key = buildKey(symbol, timeframe);
@@ -96,7 +97,7 @@ export async function saveDrawings(symbol, timeframe, drawings) {
         visible: d.visible !== false, meta: d.meta || {},
       }));
       localStorage.setItem(`tf-drawings-${key}`, JSON.stringify(data));
-    } catch {}
+    } catch (_) { /* storage may be blocked */ }
   }
 }
 
@@ -148,7 +149,7 @@ export async function loadDrawings(symbol, timeframe) {
       meta: d.meta || {},
     }));
   } catch (err) {
-    console.warn('[DrawingPersistence] Load failed, trying localStorage fallback:', err);
+    logger.engine.warn('[DrawingPersistence] Load failed, trying localStorage fallback:', err);
     // Fallback: try localStorage
     try {
       const key = buildKey(symbol, timeframe);
@@ -156,7 +157,7 @@ export async function loadDrawings(symbol, timeframe) {
       if (raw) {
         return JSON.parse(raw).map(d => ({ ...d, state: 'idle' }));
       }
-    } catch {}
+    } catch (_) { /* storage may be blocked */ }
     return [];
   }
 }
@@ -179,7 +180,7 @@ export async function clearDrawings(symbol, timeframe) {
       tx.onerror = () => reject(tx.error);
     });
   } catch (err) {
-    console.warn('[DrawingPersistence] Clear failed:', err);
+    logger.engine.warn('[DrawingPersistence] Clear failed:', err);
   }
 }
 
@@ -197,7 +198,7 @@ export async function listDrawingKeys() {
       req.onsuccess = () => resolve(req.result || []);
       req.onerror = () => resolve([]);
     });
-  } catch {
+  } catch (_) {
     return [];
   }
 }

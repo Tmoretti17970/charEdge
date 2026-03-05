@@ -17,8 +17,9 @@
 //   await storageAdapter.sync();             // push/pull with cloud
 // ═══════════════════════════════════════════════════════════════════
 
-import StorageService from './StorageService.js';
-import SecureStore from '../utils/SecureStore.js';
+import StorageService from './StorageService.ts';
+import SecureStore from '../utils/SecureStore.ts';
+import { logger } from '../utils/logger';
 
 // ─── I1.2: Auth State ───────────────────────────────────────────
 
@@ -43,7 +44,7 @@ async function _loadAuth() {
       // Re-encrypt if this was legacy plain-text data (migration)
       if (!saved._f) await _saveAuth();
     }
-  } catch {
+  } catch (_) {
     /* ignore */
   }
 }
@@ -60,7 +61,7 @@ async function _saveAuth() {
       provider: _authState.provider,
       _tokenExpiresAt: _authState._tokenExpiresAt,
     });
-  } catch {
+  } catch (_) {
     /* ignore */
   }
 }
@@ -191,7 +192,7 @@ async function _refreshToken() {
     );
 
     if (!res.ok) {
-      console.warn('[StorageAdapter] Token refresh failed:', res.status);
+      logger.data.warn('[StorageAdapter] Token refresh failed:', res.status);
       return false;
     }
 
@@ -204,7 +205,7 @@ async function _refreshToken() {
     await _saveAuth();
     return true;
   } catch (e) {
-    console.warn('[StorageAdapter] Token refresh error:', e.message);
+    logger.data.warn('[StorageAdapter] Token refresh error:', e.message);
     return false;
   }
 }
@@ -233,7 +234,7 @@ function _loadSyncQueue() {
   try {
     const raw = localStorage.getItem(SYNC_QUEUE_KEY);
     if (raw) _syncQueue = JSON.parse(raw);
-  } catch {
+  } catch (_) {
     _syncQueue = [];
   }
 }
@@ -244,14 +245,14 @@ function _saveSyncQueue() {
   } catch (err) {
     // Handle localStorage quota exceeded error
     if (err?.name === 'QuotaExceededError' || err?.code === 22) {
-      console.warn('[StorageAdapter] localStorage quota exceeded, trimming sync queue');
+      logger.data.warn('[StorageAdapter] localStorage quota exceeded, trimming sync queue');
       // Keep only the most recent 250 items
       _syncQueue = _syncQueue.slice(-250);
       try {
         localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(_syncQueue));
-      } catch {
+      } catch (_) {
         // If still too big, clear the queue entirely to prevent data loss on new writes
-        console.error('[StorageAdapter] Sync queue too large even after trim, clearing');
+        logger.data.error('[StorageAdapter] Sync queue too large even after trim, clearing');
         _syncQueue = [];
         localStorage.removeItem(SYNC_QUEUE_KEY);
       }
@@ -269,7 +270,7 @@ function _enqueue(table, op, data) {
     // Drop oldest items to make room
     const overflow = _syncQueue.length - SYNC_QUEUE_MAX + 1;
     _syncQueue.splice(0, overflow);
-    console.warn(`[StorageAdapter] Sync queue at capacity (${SYNC_QUEUE_MAX}), dropped ${overflow} oldest items`);
+    logger.data.warn(`[StorageAdapter] Sync queue at capacity (${SYNC_QUEUE_MAX}), dropped ${overflow} oldest items`);
   }
 
   _syncQueue.push({ table, op, data, ts: Date.now() });
@@ -584,7 +585,7 @@ const storageAdapter = {
 // _loadAuth is now async — call it and let it resolve in the background.
 // The sync queue loads synchronously, auth state resolves shortly after page load.
 _loadAuth().catch((err) => {
-  console.warn('[StorageAdapter] Auth load failed:', err?.message);
+  logger.data.warn('[StorageAdapter] Auth load failed:', err?.message);
 });
 _loadSyncQueue();
 

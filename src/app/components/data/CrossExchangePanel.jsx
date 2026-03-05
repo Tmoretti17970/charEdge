@@ -18,6 +18,7 @@ import { C, F, M } from '../../../constants.js';
 import { binanceFuturesAdapter } from '../../../data/adapters/BinanceFuturesAdapter.js';
 import { bybitFuturesAdapter } from '../../../data/adapters/BybitFuturesAdapter.js';
 import { fundingScanner } from '../../../data/engine/market/FundingArbitrageScanner.js';
+import { logger } from '../../../utils/logger';
 
 // ─── Formatters ────────────────────────────────────────────────
 
@@ -164,7 +165,7 @@ export default function CrossExchangePanel({ symbol = 'BTCUSDT' }) {
       // Funding opportunities
       const opps = fundingScanner.getOpportunities(10);
       setOpportunities(opps);
-    } catch { /* silent */ }
+    } catch (e) { logger.ui.warn('Operation failed', e); }
   }, [symbol]);
 
   useEffect(() => {
@@ -188,7 +189,7 @@ export default function CrossExchangePanel({ symbol = 'BTCUSDT' }) {
     return () => {
       clearInterval(timer);
       for (const unsub of unsubs.current) {
-        try { unsub(); } catch { /* ignore */ }
+        try { unsub(); } catch (e) { logger.ui.warn('Operation failed', e); }
       }
       unsubs.current = [];
     };

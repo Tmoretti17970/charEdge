@@ -1,3 +1,5 @@
+import { logger } from '../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — RenderCommandBuffer
 //
@@ -171,7 +173,7 @@ export class RenderCommandBuffer {
         cmd.drawFn(gl);
         drawCalls++;
       } catch (err) {
-        console.error(`[RenderCommandBuffer] Draw command "${cmd.label || '?'}" failed:`, err);
+        logger.engine.error(`[RenderCommandBuffer] Draw command "${cmd.label || '?'}" failed:`, err);
       }
     }
 

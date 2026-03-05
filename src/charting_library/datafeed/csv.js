@@ -342,7 +342,7 @@ function importCSV(text, existingTrades = []) {
         }
       }
     }
-  } catch {
+  } catch (_) {
     // BrokerProfiles detection failed — use generic mapping
   }
 

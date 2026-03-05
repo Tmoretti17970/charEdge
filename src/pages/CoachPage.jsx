@@ -1,10 +1,11 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Coach Page (H2.3)
+// charEdge — Smart Insights Page (H2.3)
 //
-// Dedicated AI coaching page with 3 tabs:
+// Dedicated insights page with 3 tabs:
 //   Report | Pre-Trade | Journal Summary
 //
-// Hero section shows overall coach grade, tabs switch content.
+// Hero section shows overall grade, tabs switch content.
+// (Rebranded from "AI Coach" / "Char" in Wave 0)
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useCallback, useMemo } from 'react';
@@ -44,7 +45,7 @@ export default function CoachPage() {
   const analytics = useMemo(() => {
     if (!trades || trades.length < 3) return null;
     try { return computeFast(trades, settings); }
-    catch { return null; }
+    catch (_) { return null; }
   }, [trades, settings]);
 
   const latestReport = weeklyReports[0] || null;
@@ -91,12 +92,12 @@ export default function CoachPage() {
             fontSize: 20, fontWeight: 800, color: C.t1, fontFamily: F,
             margin: 0,
           }}>
-            Char ✦
+            Smart Insights
           </h1>
           <div style={{ fontSize: 12, color: C.t3, fontFamily: M, marginTop: 2 }}>
             {latestReport
               ? `Score: ${latestReport.score}/100 • ${latestReport.comparison.trend === 'improving' ? '📈 Improving' : latestReport.comparison.trend === 'declining' ? '📉 Declining' : '→ Flat'}`
-              : 'Your personal trading coach'}
+              : 'Your personalized trading insights'}
           </div>
         </div>
       </div>

@@ -27,7 +27,7 @@ export default function AccountabilityWidget() {
     try {
       const saved = localStorage.getItem('tf-accountability-' + getTodayKey());
       return saved ? JSON.parse(saved) : { followedRules: null, rating: null, note: '' };
-    } catch { return { followedRules: null, rating: null, note: '' }; }
+    } catch (_) { return { followedRules: null, rating: null, note: '' }; }
   });
 
   // Today's performance snapshot
@@ -57,7 +57,7 @@ export default function AccountabilityWidget() {
     setCheckin(next);
     try {
       localStorage.setItem('tf-accountability-' + getTodayKey(), JSON.stringify(next));
-    } catch {}
+    } catch (_) { /* storage may be blocked */ }
   }, [checkin]);
 
   return (

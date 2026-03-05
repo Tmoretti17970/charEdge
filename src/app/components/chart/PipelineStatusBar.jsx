@@ -28,22 +28,22 @@ const STATUS_COLORS = {
 function getTickSpeedColor(rate) {
   if (rate >= 50) return '#22c55e';  // Fast — green
   if (rate >= 20) return '#5c9cf5';  // Good — info blue
-  if (rate >= 5)  return '#f59e0b';  // Moderate — amber
-  if (rate > 0)   return '#ef4444';  // Slow — red
+  if (rate >= 5) return '#f59e0b';  // Moderate — amber
+  if (rate > 0) return '#ef4444';  // Slow — red
   return '#6b7280';                  // None — gray
 }
 
 function getTickSpeedLabel(rate) {
   if (rate >= 50) return 'FAST';
   if (rate >= 20) return 'GOOD';
-  if (rate >= 5)  return 'SLOW';
-  if (rate > 0)   return 'WEAK';
+  if (rate >= 5) return 'SLOW';
+  if (rate > 0) return 'WEAK';
   return 'IDLE';
 }
 
 function getLatencyColor(ms) {
-  if (ms <= 50)   return '#22c55e';
-  if (ms <= 150)  return '#f59e0b';
+  if (ms <= 50) return '#22c55e';
+  if (ms <= 150) return '#f59e0b';
   return '#ef4444';
 }
 
@@ -200,16 +200,26 @@ const styles = {
     flex: 1,
   },
   reconnectingPulse: {
-    animation: 'statusPulse 1.5s ease-in-out infinite',
+    animation: 'pulse 1.5s ease-in-out infinite',
   },
 };
 
 // ─── Component ─────────────────────────────────────────────────
 
+/** Stale data threshold in ms (60 seconds) */
+const STALE_THRESHOLD = 60_000;
+
+function formatElapsed(ms) {
+  if (ms < 60_000) return `${Math.round(ms / 1000)}s ago`;
+  if (ms < 3_600_000) return `${Math.round(ms / 60_000)}m ago`;
+  return `${Math.round(ms / 3_600_000)}h ago`;
+}
+
 export default function PipelineStatusBar() {
   const [health, setHealth] = useState(null);
   const [showErrors, setShowErrors] = useState(false);
   const [recentErrors, setRecentErrors] = useState([]);
+  const [staleMs, setStaleMs] = useState(0);
   const sparklineRef = useRef([]);
   const lastTickTimeRef = useRef(Date.now());
   const latencyRef = useRef(0);
@@ -245,7 +255,11 @@ export default function PipelineStatusBar() {
           latencyRef.current = 0;
         }
         prevTickRateRef.current = h.tickRate;
-        lastTickTimeRef.current = now;
+
+        // Stale data detection: if ticks are flowing, reset the clock
+        if (h.tickRate > 0) lastTickTimeRef.current = now;
+        const elapsed = now - lastTickTimeRef.current;
+        setStaleMs(elapsed);
       }
     }, UPDATE_INTERVAL);
 
@@ -279,17 +293,7 @@ export default function PipelineStatusBar() {
 
   return (
     <div style={styles.bar} id="pipeline-status-bar">
-      {/* Inject keyframe animation */}
-      <style>{`
-        @keyframes statusPulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-        @keyframes dotPulse {
-          0%, 100% { box-shadow: 0 0 0 0 currentColor; }
-          50% { box-shadow: 0 0 6px 2px currentColor; }
-        }
-      `}</style>
+      {/* Pipeline status bar */}
 
       {/* ─── Connection Status Dot ─── */}
       <div style={styles.segment}>
@@ -301,15 +305,15 @@ export default function PipelineStatusBar() {
             backgroundColor: statusColor,
             color: statusColor,
             animation: isReconnecting
-              ? 'statusPulse 1.5s ease-in-out infinite'
-              : (health.overall === 'healthy' ? 'dotPulse 2s ease-in-out infinite' : 'none'),
+              ? 'pulse 1.5s ease-in-out infinite'
+              : (health.overall === 'healthy' ? 'pulse 2s ease-in-out infinite' : 'none'),
             flexShrink: 0,
           }}
         />
         <span style={{ color: statusColor, fontWeight: 600, fontSize: '10px' }}>
           {health.overall === 'healthy' ? 'Connected' :
-           health.overall === 'degraded' ? 'Degraded' :
-           health.overall === 'critical' ? 'Critical' : 'Offline'}
+            health.overall === 'degraded' ? 'Degraded' :
+              health.overall === 'critical' ? 'Critical' : 'Offline'}
         </span>
       </div>
 
@@ -384,7 +388,7 @@ export default function PipelineStatusBar() {
             <span style={{
               ...styles.value,
               color: health.performance.fps < 15 ? '#ef4444' :
-                     health.performance.fps < 30 ? '#f59e0b' : undefined,
+                health.performance.fps < 30 ? '#f59e0b' : undefined,
               fontSize: '10px',
             }}>
               {health.performance.fps}
@@ -402,6 +406,34 @@ export default function PipelineStatusBar() {
           {health.performance.qualityLevel}
         </span>
       </div>
+
+      {/* ─── Stale Data Banner ─── */}
+      {staleMs >= STALE_THRESHOLD && (
+        <>
+          <span style={styles.separator}>│</span>
+          <div
+            style={{
+              ...styles.segment,
+              color: '#f59e0b',
+              fontWeight: 700,
+              fontSize: '10px',
+              animation: 'pulse 2s ease-in-out infinite',
+            }}
+            title={`No data ticks received for ${formatElapsed(staleMs)}`}
+          >
+            <span style={{ fontSize: '11px' }}>⚠</span>
+            <span>Data stale</span>
+            <span style={{
+              ...styles.label,
+              color: '#f59e0b',
+              backgroundColor: 'rgba(245, 158, 11, 0.12)',
+              border: '1px solid rgba(245, 158, 11, 0.25)',
+            }}>
+              {formatElapsed(staleMs)}
+            </span>
+          </div>
+        </>
+      )}
 
       <div style={styles.spacer} />
 

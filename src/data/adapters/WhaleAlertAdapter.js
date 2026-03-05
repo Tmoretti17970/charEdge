@@ -154,7 +154,7 @@ class _WhaleAlertAdapter {
 
       CACHE.set('gas-prices', { data: result, expiry: Date.now() + 30000 });
       return result;
-    } catch {
+    } catch (_) {
       return null;
     }
   }

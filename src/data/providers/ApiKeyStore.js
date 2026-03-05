@@ -16,7 +16,8 @@
 //   setApiKey('polygon', 'pk_...');    // async (fire-and-forget)
 // ═══════════════════════════════════════════════════════════════════
 
-import SecureStore from '../../utils/SecureStore.js';
+import SecureStore from '../../utils/SecureStore.ts';
+import { logger } from '../../utils/logger';
 
 const SECURE_KEY = 'charEdge-apikeys'; // Single encrypted blob for all keys
 const LEGACY_PREFIX = 'charEdge-apikey-'; // Old per-key plain-text prefix
@@ -52,7 +53,7 @@ export function setApiKey(provider, key) {
   // Fire-and-forget encrypted persistence
   _persistKeys().catch((err) => {
     if (typeof console !== 'undefined') {
-      console.warn('[ApiKeyStore] Failed to persist keys:', err?.message);
+      logger.data.warn('[ApiKeyStore] Failed to persist keys:', err?.message);
     }
   });
 }
@@ -96,19 +97,19 @@ export async function initApiKeys() {
         if (legacyKey) {
           localStorage.removeItem(LEGACY_PREFIX + provider);
         }
-      } catch { /* SSR or private mode */ }
+      } catch (_) { /* SSR or private mode */ }
     }
 
     // 3. If we migrated any keys, persist them encrypted
     if (migrated) {
       await _persistKeys();
       if (typeof console !== 'undefined') {
-        console.info('[ApiKeyStore] Migrated legacy plain-text keys to encrypted storage');
+        logger.data.info('[ApiKeyStore] Migrated legacy plain-text keys to encrypted storage');
       }
     }
   } catch (err) {
     if (typeof console !== 'undefined') {
-      console.warn('[ApiKeyStore] Init failed, falling back to empty:', err?.message);
+      logger.data.warn('[ApiKeyStore] Init failed, falling back to empty:', err?.message);
     }
   }
 }

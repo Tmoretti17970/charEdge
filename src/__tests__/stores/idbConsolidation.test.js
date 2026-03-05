@@ -27,19 +27,19 @@ describe('UnifiedDB — unified database module', () => {
 describe('DataCache — uses UnifiedDB', () => {
   it('imports openUnifiedDB from UnifiedDB.js', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/DataCache.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/DataCache.ts', 'utf8');
     expect(source).toContain("import { openUnifiedDB } from './UnifiedDB.js'");
   });
 
   it('does NOT call indexedDB.open directly', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/DataCache.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/DataCache.ts', 'utf8');
     expect(source).not.toContain('indexedDB.open');
   });
 
   it('references charEdge-unified as DB_NAME', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/DataCache.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/DataCache.ts', 'utf8');
     expect(source).toContain("'charEdge-unified'");
     expect(source).not.toContain("'charEdge-cache'");
   });
@@ -72,13 +72,13 @@ describe('TickPersistence — uses UnifiedDB', () => {
 describe('StorageService — uses UnifiedDB', () => {
   it('imports openUnifiedDB from UnifiedDB.js', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/StorageService.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/StorageService.ts', 'utf8');
     expect(source).toContain("from './UnifiedDB.js'");
   });
 
   it('does NOT call indexedDB.open directly', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/StorageService.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/StorageService.ts', 'utf8');
     expect(source).not.toContain('indexedDB.open');
   });
 });
@@ -118,7 +118,7 @@ describe('CacheManager — proxies StorageService CRUD', () => {
 
   it('has _loadStorage() method for lazy StorageService import', () => {
     expect(source).toContain('_loadStorage()');
-    expect(source).toContain("import('../../StorageService.js')");
+    expect(source).toContain("import('../../StorageService.ts')");
   });
 
   it('exposes trades CRUD proxy with all methods', () => {
@@ -223,7 +223,7 @@ describe('CacheManager — proxies DataCache domain methods', () => {
 describe('DataCache — deprecation notice', () => {
   it('has @deprecated comment pointing to CacheManager', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/DataCache.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/DataCache.ts', 'utf8');
     expect(source).toContain('@deprecated');
     expect(source).toContain('CacheManager');
   });
@@ -232,7 +232,7 @@ describe('DataCache — deprecation notice', () => {
 describe('StorageService — deprecation notice', () => {
   it('has @deprecated comment pointing to CacheManager', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/data/StorageService.js', 'utf8');
+    const source = await fs.promises.readFile('src/data/StorageService.ts', 'utf8');
     expect(source).toContain('@deprecated');
     expect(source).toContain('CacheManager');
   });

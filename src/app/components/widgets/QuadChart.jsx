@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useRef, memo, Suspense, useCallback } from 'react';
 import { C, F, M, TFS } from '../../../constants.js';
-import { fetchOHLC } from '../../../data/FetchService.js';
+import { fetchOHLC } from '../../../data/FetchService.ts';
 import ChartEngineWidget from '../../components/chart/core/ChartEngineWidget.jsx';
 
 const DEFAULT_QUADS = [

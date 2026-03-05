@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — UnifiedDB (IDB Consolidation)
 //
@@ -58,7 +60,7 @@ function openUnifiedDB() {
     const timeout = setTimeout(() => {
       if (!settled) {
         settled = true;
-        console.warn('[UnifiedDB] Open timed out after 5s — falling back to in-memory');
+        logger.data.warn('[UnifiedDB] Open timed out after 5s — falling back to in-memory');
         reject(new Error('IndexedDB open timed out'));
       }
     }, 5000);
@@ -67,7 +69,7 @@ function openUnifiedDB() {
       const req = indexedDB.open(UNIFIED_DB_NAME, UNIFIED_DB_VERSION);
 
       req.onblocked = () => {
-        console.warn('[UnifiedDB] Database open blocked by another connection');
+        logger.data.warn('[UnifiedDB] Database open blocked by another connection');
         // Don't reject immediately — give it a chance to unblock.
         // The timeout above will catch it if it stays blocked.
       };
@@ -112,7 +114,7 @@ function openUnifiedDB() {
 
         // Run one-time migration in background (non-blocking)
         _migrateOldDBs(_db).catch((err) => {
-          console.warn('[UnifiedDB] Migration error (non-fatal):', err?.message);
+          logger.data.warn('[UnifiedDB] Migration error (non-fatal):', err?.message);
         });
 
         resolve(_db);
@@ -122,10 +124,10 @@ function openUnifiedDB() {
         if (settled) return;
         settled = true;
         clearTimeout(timeout);
-        console.warn('[UnifiedDB] Failed to open unified database');
+        logger.data.warn('[UnifiedDB] Failed to open unified database');
         reject(new Error('IndexedDB unavailable'));
       };
-    } catch {
+    } catch (_) {
       if (!settled) {
         settled = true;
         clearTimeout(timeout);
@@ -150,7 +152,7 @@ async function _migrateOldDBs(unifiedDb) {
   // Skip if already migrated
   try {
     if (localStorage.getItem(MIGRATION_FLAG)) return;
-  } catch { /* localStorage unavailable — skip migration check */ }
+  } catch (_) { /* localStorage unavailable — skip migration check */ }
 
   let migrated = false;
 
@@ -159,7 +161,7 @@ async function _migrateOldDBs(unifiedDb) {
     await _migrateCacheDB(unifiedDb);
     migrated = true;
   } catch (err) {
-    console.warn('[UnifiedDB] Cache migration skipped:', err?.message);
+    logger.data.warn('[UnifiedDB] Cache migration skipped:', err?.message);
   }
 
   // 2. Migrate charEdge-ticks
@@ -167,7 +169,7 @@ async function _migrateOldDBs(unifiedDb) {
     await _migrateTickDB(unifiedDb);
     migrated = true;
   } catch (err) {
-    console.warn('[UnifiedDB] Tick migration skipped:', err?.message);
+    logger.data.warn('[UnifiedDB] Tick migration skipped:', err?.message);
   }
 
   // 3. Migrate charEdge-os-v10
@@ -175,20 +177,20 @@ async function _migrateOldDBs(unifiedDb) {
     await _migrateUserDB(unifiedDb);
     migrated = true;
   } catch (err) {
-    console.warn('[UnifiedDB] User data migration skipped:', err?.message);
+    logger.data.warn('[UnifiedDB] User data migration skipped:', err?.message);
   }
 
   // Set flag so migration doesn't re-run
   try {
     localStorage.setItem(MIGRATION_FLAG, Date.now().toString());
-  } catch { /* ignore */ }
+  } catch (_) { /* ignore */ }
 
   // Delete old databases (fire-and-forget, non-blocking)
   if (migrated) {
     for (const dbName of OLD_DBS) {
       try {
         indexedDB.deleteDatabase(dbName);
-      } catch { /* silent */ }
+      } catch (_) { /* silent */ }
     }
   }
 }
@@ -264,7 +266,7 @@ function _openOldDB(name) {
       const req = indexedDB.open(name);
       req.onsuccess = (e) => resolve(e.target.result);
       req.onerror = () => resolve(null);
-    } catch {
+    } catch (_) {
       resolve(null);
     }
   });
@@ -278,7 +280,7 @@ function _readAllFromStore(db, storeName) {
       const req = store.getAll();
       req.onsuccess = () => resolve(req.result || []);
       req.onerror = () => resolve([]);
-    } catch {
+    } catch (_) {
       resolve([]);
     }
   });
@@ -294,7 +296,7 @@ function _writeAllToStore(db, storeName, records) {
       }
       tx.oncomplete = () => resolve();
       tx.onerror = () => resolve();
-    } catch {
+    } catch (_) {
       resolve();
     }
   });
@@ -310,7 +312,7 @@ function _addAllToStore(db, storeName, records) {
       }
       tx.oncomplete = () => resolve();
       tx.onerror = () => resolve();
-    } catch {
+    } catch (_) {
       resolve();
     }
   });

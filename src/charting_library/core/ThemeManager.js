@@ -1,3 +1,5 @@
+import { logger } from '../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Theme System
 // Dark and light themes matching TradingView's color palette.
@@ -257,7 +259,7 @@ export function createThemeManager(initialTheme = 'dark') {
   try {
     const raw = localStorage.getItem('tf_theme_overrides');
     if (raw) userOverrides = JSON.parse(raw);
-  } catch {}
+  } catch (_) { /* storage may be blocked */ }
 
   function getTheme() {
     return { ...currentTheme, ...userOverrides };
@@ -297,7 +299,7 @@ export function createThemeManager(initialTheme = 'dark') {
       // Persist
       try {
         localStorage.setItem('tf_theme', themeName);
-      } catch {}
+      } catch (_) { /* storage may be blocked */ }
 
       // Notify listeners
       for (const listener of listeners) {
@@ -319,7 +321,7 @@ export function createThemeManager(initialTheme = 'dark') {
       userOverrides[key] = value;
       try {
         localStorage.setItem('tf_theme_overrides', JSON.stringify(userOverrides));
-      } catch {}
+      } catch (_) { /* storage may be blocked */ }
       for (const listener of listeners) {
         listener(getTheme());
       }
@@ -332,7 +334,7 @@ export function createThemeManager(initialTheme = 'dark') {
       userOverrides = {};
       try {
         localStorage.removeItem('tf_theme_overrides');
-      } catch {}
+      } catch (_) { /* storage may be blocked */ }
       for (const listener of listeners) {
         listener(getTheme());
       }
@@ -415,13 +417,13 @@ export function createThemeManager(initialTheme = 'dark') {
           userOverrides = { ...parsed.overrides };
           try {
             localStorage.setItem('tf_theme_overrides', JSON.stringify(userOverrides));
-          } catch {}
+          } catch (_) { /* storage may be blocked */ }
         }
         for (const listener of listeners) {
           listener(getTheme());
         }
       } catch (e) {
-        console.warn('[ThemeManager] Invalid theme JSON:', e);
+        logger.engine.warn('[ThemeManager] Invalid theme JSON:', e);
       }
     },
 
@@ -434,7 +436,7 @@ export function createThemeManager(initialTheme = 'dark') {
         if (saved && THEMES[saved]) {
           this.setTheme(saved);
         }
-      } catch {}
+      } catch (_) { /* storage may be blocked */ }
     },
   };
 }

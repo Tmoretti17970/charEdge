@@ -58,7 +58,7 @@ export default function CharolettePage() {
             color: rose,
             marginBottom: 16,
             textShadow: `0 0 24px ${rose}50`,
-            animation: 'tfStarPulse 3s ease-in-out infinite',
+            animation: 'pulse 3s ease-in-out infinite',
           }}
           aria-hidden="true"
         >
@@ -247,15 +247,6 @@ export default function CharolettePage() {
         </div>
       </div>
 
-      <style>{`
-        @keyframes tfStarPulse {
-          0%, 100% { opacity: 0.8; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.05); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          * { animation-duration: 0s !important; }
-        }
-      `}</style>
     </div>
   );
 }

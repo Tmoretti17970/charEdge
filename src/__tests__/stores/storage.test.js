@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { StorageService } from '../../data/StorageService.js';
+import { StorageService } from '../../data/StorageService.ts';
 
 const mkTrade = (id, pnl = 100) => ({
   id,

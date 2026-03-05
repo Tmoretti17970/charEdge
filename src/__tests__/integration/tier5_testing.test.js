@@ -35,7 +35,7 @@ describe('5.4 — SecureStore Round-Trip', () => {
 
   it('base64 round-trip: encryptAndStore → loadAndDecrypt', async () => {
     // Dynamic import after localStorage mock is in place
-    const mod = await import('../../utils/SecureStore.js');
+    const mod = await import('../../utils/SecureStore.ts');
     const SS = mod.SecureStore;
 
     const testData = { apiKey: 'abc123', secret: 'xyz789', nested: { deep: true } };
@@ -65,7 +65,7 @@ describe('5.4 — SecureStore Round-Trip', () => {
   });
 
   it('legacy plain-text migration: returns object without _f field', async () => {
-    const mod = await import('../../utils/SecureStore.js');
+    const mod = await import('../../utils/SecureStore.ts');
     const SS = mod.SecureStore;
 
     // Simulate legacy data (pre-encryption era): plain JSON in localStorage
@@ -77,20 +77,20 @@ describe('5.4 — SecureStore Round-Trip', () => {
   });
 
   it('loadAndDecrypt returns null for missing key', async () => {
-    const mod = await import('../../utils/SecureStore.js');
+    const mod = await import('../../utils/SecureStore.ts');
     const result = await mod.SecureStore.loadAndDecrypt('nonexistent-key');
     expect(result).toBeNull();
   });
 
   it('loadAndDecrypt returns null for invalid JSON', async () => {
-    const mod = await import('../../utils/SecureStore.js');
+    const mod = await import('../../utils/SecureStore.ts');
     mockStorage.set('bad-json', '{not valid json!!!');
     const result = await mod.SecureStore.loadAndDecrypt('bad-json');
     expect(result).toBeNull();
   });
 
   it('clear removes the entry', async () => {
-    const mod = await import('../../utils/SecureStore.js');
+    const mod = await import('../../utils/SecureStore.ts');
     const SS = mod.SecureStore;
 
     await SS.encryptAndStore('to-clear', { data: 'sensitive' });
@@ -101,7 +101,7 @@ describe('5.4 — SecureStore Round-Trip', () => {
   });
 
   it('setPassphrase / hasPassphrase lifecycle', async () => {
-    const mod = await import('../../utils/SecureStore.js');
+    const mod = await import('../../utils/SecureStore.ts');
     const SS = mod.SecureStore;
 
     // Initially no passphrase
@@ -123,14 +123,14 @@ describe('5.4 — SecureStore Round-Trip', () => {
   });
 
   it('isEncryptionAvailable returns false in Node (no crypto.subtle)', async () => {
-    const mod = await import('../../utils/SecureStore.js');
+    const mod = await import('../../utils/SecureStore.ts');
     // Node.js doesn't have crypto.subtle in a normal test environment
     // Note: some newer Node versions may have it, so we just check it returns boolean
     expect(typeof mod.SecureStore.isEncryptionAvailable()).toBe('boolean');
   });
 
   it('multiple stores don\'t interfere with each other', async () => {
-    const mod = await import('../../utils/SecureStore.js');
+    const mod = await import('../../utils/SecureStore.ts');
     const SS = mod.SecureStore;
 
     const data1 = { portfolio: 'active', balance: 50000 };
@@ -156,7 +156,18 @@ describe('5.5 — SSR Smoke Tests', () => {
   let indexHtml;
 
   beforeEach(async () => {
-    serverSource = await fs.promises.readFile('server.js', 'utf8');
+    // Server was refactored into modules — load all server source files
+    const files = [
+      'server.js',
+      'server/middleware/security.js',
+      'server/middleware/rateLimiter.js',
+      'server/middleware/requestId.js',
+      'server/routes/rss.js',
+      'server/routes/proxy.js',
+      'server/ssr.js',
+    ];
+    const contents = await Promise.all(files.map(f => fs.promises.readFile(f, 'utf8')));
+    serverSource = contents.join('\n');
     indexHtml = await fs.promises.readFile('index.html', 'utf8');
   });
 
@@ -171,7 +182,7 @@ describe('5.5 — SSR Smoke Tests', () => {
   });
 
   it('/api/proxy/rss route exists', () => {
-    expect(serverSource).toContain("app.get('/api/proxy/rss'");
+    expect(serverSource).toContain("'/api/proxy/rss'");
   });
 
   it('catch-all * route exists for both dev and prod', () => {

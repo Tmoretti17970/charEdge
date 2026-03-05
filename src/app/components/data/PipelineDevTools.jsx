@@ -10,6 +10,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { logger } from '../../../utils/logger';
 
 // ─── Styles ────────────────────────────────────────────────────
 
@@ -152,38 +153,38 @@ export default function PipelineDevTools() {
         const { pipelineLogger } = await import('../../data/engine/DataPipelineLogger.js');
         snap.logger = pipelineLogger.getStats();
         snap.recentErrors = pipelineLogger.getRecentErrors(5);
-      } catch { snap.logger = null; }
+      } catch (_) { snap.logger = null; }
 
       // Pipeline Health Monitor
       try {
         const { pipelineHealthMonitor } = await import('../../data/engine/PipelineHealthMonitor.js');
         snap.health = pipelineHealthMonitor.getHealthSnapshot();
-      } catch { snap.health = null; }
+      } catch (_) { snap.health = null; }
 
       // Compute Worker Pool
       try {
         const { computePool } = await import('../../data/engine/ComputeWorkerPool.js');
         snap.workerPool = computePool.getStats();
-      } catch { snap.workerPool = null; }
+      } catch (_) { snap.workerPool = null; }
 
       // Ticker Plant
       try {
         const { tickerPlant } = await import('../../data/engine/streaming/TickerPlant.js');
         snap.tickerPlant = tickerPlant.getHealth();
         snap.adapterHealth = tickerPlant.getAdapterHealth?.() || {};
-      } catch { snap.tickerPlant = null; snap.adapterHealth = {}; }
+      } catch (_) { snap.tickerPlant = null; snap.adapterHealth = {}; }
 
       // Tick Persistence
       try {
         const { tickPersistence } = await import('../../data/engine/streaming/TickPersistence.js');
         snap.persistence = tickPersistence.getStats();
-      } catch { snap.persistence = null; }
+      } catch (_) { snap.persistence = null; }
 
       // Memory Budget
       try {
         const { memoryBudget } = await import('../../data/engine/MemoryBudget.js');
         snap.memory = memoryBudget.getSnapshot();
-      } catch { snap.memory = null; }
+      } catch (_) { snap.memory = null; }
 
       // Streaming Indicator Bridge
       try {
@@ -192,11 +193,11 @@ export default function PipelineDevTools() {
           workerActive: streamingIndicatorBridge.isWorkerActive?.() || false,
           activeSymbols: streamingIndicatorBridge.getActiveSymbols(),
         };
-      } catch { snap.indicators = null; }
+      } catch (_) { snap.indicators = null; }
 
       snap.timestamp = Date.now();
       setSnapshot(snap);
-    } catch { /* non-fatal */ }
+    } catch (e) { logger.ui.warn('Operation failed', e); }
   }, []);
 
   useEffect(() => {
@@ -216,7 +217,7 @@ export default function PipelineDevTools() {
     try {
       const { pipelineLogger } = await import('../../data/engine/DataPipelineLogger.js');
       pipelineLogger.exportTelemetry({ download: true });
-    } catch { /* non-fatal */ }
+    } catch (e) { logger.ui.warn('Operation failed', e); }
   }, []);
 
   if (!visible) return null;

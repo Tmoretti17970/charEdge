@@ -77,9 +77,16 @@ jobs:
         with:
           path: node_modules
           key: nm-${{ hashFiles('package-lock.json') }}
-      # Exclude flaky benchmark tests (timing assertions unreliable in CI).
-      # Will be fixed in Wave 4 (Task 4.3.3).
-      - run: npx vitest run --exclude='**/benchmarks/**'
+      # Benchmark guards (Task 4.3.3) use statistical p95 assertions,
+      # so they are CI-safe. Old flaky benchmarks are still excluded.
+      - run: npx vitest run --coverage --exclude='**/benchmarks/h1_benchmarks.test.js' --exclude='**/benchmarks/chartBenchmarks.test.js'
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
 
   build:
     name: Build + Bundle Size
@@ -113,6 +120,19 @@ jobs:
           fi
           echo "✅ Bundle size OK"
 
+      - name: Upload source maps to Sentry
+        if: github.ref == 'refs/heads/main'
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          if [ -n "$SENTRY_AUTH_TOKEN" ]; then
+            npx @sentry/cli sourcemaps upload --release=${{ github.sha }} dist/client/assets/
+          else
+            echo "⚠️  SENTRY_AUTH_TOKEN not set — skipping source map upload"
+          fi
+
   audit:
     name: Security Audit
     needs: install
@@ -129,3 +149,24 @@ jobs:
           key: nm-${{ hashFiles('package-lock.json') }}
       - run: npm audit --audit-level=high --production
         continue-on-error: true  # Track but don't block on advisory lag
+
+  sbom:
+    name: SBOM
+    needs: install
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: nm-${{ hashFiles('package-lock.json') }}
+      - run: npx @cyclonedx/cyclonedx-npm --output-file sbom.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
+          retention-days: 90

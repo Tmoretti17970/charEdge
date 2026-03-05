@@ -1,3 +1,5 @@
+import { logger } from '../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Crosshair Sync Bus
 //
@@ -21,7 +23,7 @@ try {
   if (typeof BroadcastChannel !== 'undefined') {
     bc = new BroadcastChannel('charEdge-crosshair');
   }
-} catch {
+} catch (_) {
   bc = null;
 }
 
@@ -37,12 +39,12 @@ function on(callback) {
 function emit(data) {
   // Notify local listeners
   for (const cb of listeners) {
-    try { cb(data); } catch { /* noop */ }
+    try { cb(data); } catch (e) { logger.engine.warn('Operation failed', e); }
   }
 
   // Notify other tabs / windows via BroadcastChannel
   if (bc) {
-    try { bc.postMessage(data); } catch { /* noop */ }
+    try { bc.postMessage(data); } catch (_) { /* noop */ }
   }
 
   // Also dispatch a CustomEvent for legacy consumers
@@ -60,7 +62,7 @@ function clear(sourceId) {
 if (bc) {
   bc.onmessage = (e) => {
     for (const cb of listeners) {
-      try { cb(e.data); } catch { /* noop */ }
+      try { cb(e.data); } catch (e) { logger.engine.warn('Operation failed', e); }
     }
   };
 }

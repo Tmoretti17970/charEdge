@@ -221,7 +221,7 @@ class _FinraAdapter {
    * Returns empty array — UI will show "data unavailable" message.
    */
   _computeShortInterestFallback(symbol) {
-    console.info(`[FinraAdapter] Short interest API unavailable for ${symbol}, returning empty`);
+    logger.data.info(`[FinraAdapter] Short interest API unavailable for ${symbol}, returning empty`);
     return [];
   }
 

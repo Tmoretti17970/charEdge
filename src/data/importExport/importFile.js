@@ -114,7 +114,7 @@ function _dedup(trades, existingHashes) {
         existingHashes.add(hash); // prevent intra-file dupes too
         unique.push(trade);
       }
-    } catch {
+    } catch (_) {
       // If hash fails (missing fields), keep the trade
       unique.push(trade);
     }

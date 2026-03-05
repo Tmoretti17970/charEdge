@@ -9,7 +9,7 @@
 // Falls back to local computation when engine isn't connected.
 // ═══════════════════════════════════════════════════════════════════
 
-import { orderFlowEngine } from './engine/orderflow/OrderFlowEngine.js';
+import { orderFlowEngine } from './engine/orderflow/OrderFlowEngine.ts';
 
 /**
  * Footprint Profile Structure:

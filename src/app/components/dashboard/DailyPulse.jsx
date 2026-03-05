@@ -12,6 +12,7 @@ import { C, F, M } from '../../../constants.js';
 import { useJournalStore } from '../../../state/useJournalStore.js';
 import { useGamificationStore } from '../../../state/useGamificationStore.js';
 import { fmtD } from '../../../utils.js';
+import { logger } from '../../../utils/logger';
 
 // ─── Helpers ────────────────────────────────────────────────────
 
@@ -44,7 +45,7 @@ export default function DailyPulse() {
   let traderName = '';
   try {
     traderName = useUserStore.getState()?.profile?.name || '';
-  } catch { /* settings store might not have profile */ }
+  } catch (e) { logger.ui.warn('Operation failed', e); }
 
   const greeting = getGreeting();
 

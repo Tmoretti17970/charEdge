@@ -291,7 +291,7 @@ class _FundingArbitrageScanner {
   /** @private */
   _emit(opportunity) {
     for (const cb of this._alertCallbacks) {
-      try { cb(opportunity); } catch { /* ignore */ }
+      try { cb(opportunity); } catch (e) { logger.data.warn('Operation failed', e); }
     }
   }
 }

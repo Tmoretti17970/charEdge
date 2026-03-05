@@ -51,7 +51,7 @@ try {
   const mod = await import('../../data/engine/DataPipeline.js');
   DATA_SOURCE = mod.DATA_SOURCE;
   DataPipelineClass = mod.dataPipeline?.constructor;
-} catch {
+} catch (_) {
   // Fallback: define constants inline if import chain fails
   DATA_SOURCE = {
     LIVE: 'live', ORACLE: 'oracle',

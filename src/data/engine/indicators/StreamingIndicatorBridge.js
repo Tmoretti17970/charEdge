@@ -1,3 +1,5 @@
+import { logger } from '../../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v15 — Streaming Indicator Bridge
 //
@@ -284,7 +286,7 @@ class _StreamingIndicatorBridge {
           const state = this._symbols.get(msg.symbol);
           if (state && state.subscribers.size > 0) {
             for (const cb of state.subscribers) {
-              try { cb(msg.values); } catch { /* ignore */ }
+              try { cb(msg.values); } catch (e) { logger.data.warn('Operation failed', e); }
             }
           }
         }
@@ -303,7 +305,7 @@ class _StreamingIndicatorBridge {
         this._worker = null;
         this._workerReady = false;
       };
-    } catch {
+    } catch (_) {
       this._worker = null;
     }
   }
@@ -385,7 +387,7 @@ class _StreamingIndicatorBridge {
     if (state.subscribers.size > 0) {
       const values = this.getValues(upper);
       for (const cb of state.subscribers) {
-        try { cb(values); } catch { /* ignore */ }
+        try { cb(values); } catch (e) { logger.data.warn('Operation failed', e); }
       }
     }
   }

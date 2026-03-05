@@ -25,7 +25,11 @@ test.describe('5.1 — E2E Smoke Tests', () => {
     page.on('pageerror', (err) => errors.push(err.message));
 
     await page.goto('/');
-    await page.waitForTimeout(3000); // Wait for async initialization
+    // Wait for app boot to complete (loading screen disappears)
+    await page.waitForFunction(
+      () => !document.querySelector('[class*="loadingRoot"]'),
+      { timeout: 15_000 }
+    );
 
     // Filter out known non-critical errors (WebSocket connections to external services)
     const criticalErrors = errors.filter(msg =>
@@ -78,9 +82,13 @@ test.describe('5.1 — E2E Smoke Tests', () => {
     const canvases = page.locator('canvas');
     const count = await canvases.count();
 
-    // There should be at least one canvas (the chart)
-    // Note: May be 0 if user is on a non-chart page by default
-    expect(count).toBeGreaterThanOrEqual(0);
+    // There should be at least one canvas if on chart page
+    // Navigate to ensure we're on chart page first
+    await page.keyboard.press('2');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
+    const finalCount = await canvases.count();
+    expect(finalCount).toBeGreaterThan(0);
   });
 
   test('health check endpoint responds', async ({ request }) => {

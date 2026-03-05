@@ -19,8 +19,9 @@
 //   await sessionManager.restore();   // Restore on page load
 // ═══════════════════════════════════════════════════════════════════
 
-import { openCacheDB } from '../../DataCache.js';
+import { openCacheDB } from '../../DataCache.ts';
 import { pipelineLogger } from '../infra/DataPipelineLogger.js';
+import { logger } from '../../../utils/logger';
 
 // ─── Constants ─────────────────────────────────────────────────
 
@@ -135,7 +136,7 @@ class _SessionManager {
           if (streamingMetrics.restoreState) {
             streamingMetrics.restoreState(snap.streamingMetrics);
           }
-        } catch { /* non-fatal */ }
+        } catch (e) { logger.data.warn('Operation failed', e); }
       }
 
       // Restore StreamingIndicatorBridge state
@@ -145,7 +146,7 @@ class _SessionManager {
           if (streamingIndicatorBridge.restoreState) {
             streamingIndicatorBridge.restoreState(snap.indicators);
           }
-        } catch { /* non-fatal */ }
+        } catch (e) { logger.data.warn('Operation failed', e); }
       }
 
       pipelineLogger.info('SessionManager',

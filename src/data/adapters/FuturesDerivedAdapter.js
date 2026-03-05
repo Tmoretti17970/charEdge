@@ -71,7 +71,7 @@ class _FuturesDerivedAdapter {
     // Immediately emit latest if available
     const latest = this._latest.get(upper);
     if (latest) {
-      try { callback(latest); } catch { /* ignore */ }
+      try { callback(latest); } catch (e) { logger.data.warn('Operation failed', e); }
     }
 
     return () => {
@@ -131,7 +131,7 @@ class _FuturesDerivedAdapter {
           if (data.type === 'derived_analytics' && data.symbol) {
             this._handleAnalytics(data);
           }
-        } catch {
+        } catch (_) {
           /* ignore malformed messages */
         }
       };
@@ -144,7 +144,7 @@ class _FuturesDerivedAdapter {
       this._ws.onerror = () => {
         this._setConnected(false);
       };
-    } catch {
+    } catch (_) {
       this._setConnected(false);
       this._attemptReconnect();
     }
@@ -159,7 +159,7 @@ class _FuturesDerivedAdapter {
     const subs = this._subscribers.get(symbol);
     if (subs) {
       for (const cb of subs) {
-        try { cb(data); } catch { /* ignore */ }
+        try { cb(data); } catch (e) { logger.data.warn('Operation failed', e); }
       }
     }
   }
@@ -182,7 +182,7 @@ class _FuturesDerivedAdapter {
     if (this._connected === value) return;
     this._connected = value;
     for (const cb of this._onStatusChange) {
-      try { cb(value); } catch { /* ignore */ }
+      try { cb(value); } catch (e) { logger.data.warn('Operation failed', e); }
     }
   }
 }

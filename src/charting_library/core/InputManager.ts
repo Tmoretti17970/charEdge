@@ -13,6 +13,7 @@ const ZOOM_SNAP = 0.5;          // Stop easing when within this many bars
 const PREFETCH_THRESHOLD = 50;  // Dispatch prefetch when within this many bars of left edge
 const OVERSCROLL_MAX = 40;      // Max overscroll in bars beyond edge
 const OVERSCROLL_SPRING = 0.85; // Spring-back factor per frame
+const RIGHT_MARGIN_FRAC = 0.5;  // Allow scrolling past last bar by this fraction of visibleBars (TradingView-style)
 
 // ─── Engine interface (avoids circular ChartEngine dependency) ────
 
@@ -99,7 +100,7 @@ interface EngineCallbacks {
 interface EngineRef {
   state: EngineState;
   topCanvas: HTMLCanvasElement;
-  bars: { length: number; [idx: number]: { time: number; open: number; high: number; low: number; close: number; volume: number } };
+  bars: { length: number;[idx: number]: { time: number; open: number; high: number; low: number; close: number; volume: number } };
   props: Record<string, unknown>;
   layers: LayerManager | null;
   indicators: unknown[];
@@ -223,11 +224,13 @@ export class InputManager {
     const S = eng.state;
 
     const step = (): void => {
-      // Rubber-band spring-back when overscrolled past edges
-      const maxScroll = Math.max(0, eng.bars.length - 10);
-      if (S.scrollOffset < 0) {
-        S.scrollOffset *= OVERSCROLL_SPRING;
-        if (Math.abs(S.scrollOffset) < 0.5) S.scrollOffset = 0;
+      // Spring-back when overscrolled past edges
+      const rightMargin = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
+      const minScroll = -rightMargin;
+      const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
+      if (S.scrollOffset < minScroll) {
+        S.scrollOffset = minScroll + (S.scrollOffset - minScroll) * OVERSCROLL_SPRING;
+        if (Math.abs(S.scrollOffset - minScroll) < 0.5) S.scrollOffset = minScroll;
         this._velocityX = 0;
       } else if (S.scrollOffset > maxScroll) {
         const over = S.scrollOffset - maxScroll;
@@ -236,7 +239,7 @@ export class InputManager {
         this._velocityX = 0;
       }
 
-      if (Math.abs(this._velocityX) < MIN_VELOCITY && S.scrollOffset >= 0 && S.scrollOffset <= maxScroll) {
+      if (Math.abs(this._velocityX) < MIN_VELOCITY && S.scrollOffset >= minScroll && S.scrollOffset <= maxScroll) {
         this._velocityX = 0;
         this._inertiaRaf = null;
         this._prefetchDispatched = false;
@@ -245,14 +248,14 @@ export class InputManager {
       }
 
       this._velocityX *= FRICTION;
-      // Allow overscroll past edges (rubber-band), clamped to OVERSCROLL_MAX
-      S.scrollOffset = Math.max(-OVERSCROLL_MAX, Math.min(maxScroll + OVERSCROLL_MAX, S.scrollOffset + this._velocityX));
+      S.scrollOffset = Math.max(minScroll - OVERSCROLL_MAX, Math.min(maxScroll + OVERSCROLL_MAX, S.scrollOffset + this._velocityX));
       S.mainDirty = true;
       S.topDirty = true;
       if (eng.layers) {
         eng.layers.markDirty(LAYERS.DATA);
         eng.layers.markDirty(LAYERS.INDICATORS);
         eng.layers.markDirty(LAYERS.UI);
+        eng.layers.markDirty(LAYERS.DRAWINGS);
       }
 
       // Sprint 1: Dispatch prefetch when near left edge
@@ -314,8 +317,9 @@ export class InputManager {
 
       // Anchor zoom around cursor position to keep price under cursor stable
       const barDelta = S.visibleBars - oldBars;
-      const maxScroll = Math.max(0, eng.bars.length - 10);
-      S.scrollOffset = Math.max(0, Math.min(maxScroll,
+      const rightMarginZoom = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
+      const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
+      S.scrollOffset = Math.max(-rightMarginZoom, Math.min(maxScroll,
         S.scrollOffset - barDelta * (1 - this._zoomAnchorFrac)
       ));
 
@@ -384,17 +388,19 @@ export class InputManager {
     if (S.dragging === 'time' && !consumed) {
       if (S.timeAxisZoom) {
         const dx = S.dragStartX - e.clientX;
-        const maxBars = Math.max(80, eng.bars.length);
+        const maxBars = Math.max(80, eng.bars.length + 20);
         S.visibleBars = Math.max(10, Math.min(maxBars, S.dragStartVisibleBars * Math.exp(dx * 0.005)));
       } else {
-        const maxScroll = Math.max(0, eng.bars.length - 10);
-        S.scrollOffset = Math.max(0, Math.min(maxScroll, S.dragStartOffset + (e.clientX - S.dragStartX) / R.bSp));
+        const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
+        const rightMarginDrag = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
+        S.scrollOffset = Math.max(-rightMarginDrag, Math.min(maxScroll, S.dragStartOffset + (e.clientX - S.dragStartX) / R.bSp));
       }
       S.mainDirty = true;
       if (eng.layers) {
         eng.layers.markDirty(LAYERS.DATA);
         eng.layers.markDirty(LAYERS.INDICATORS);
         eng.layers.markDirty(LAYERS.GRID);
+        eng.layers.markDirty(LAYERS.DRAWINGS);
       }
     } else if (S.dragging === 'price' && !consumed) {
       S.autoScale = false;
@@ -407,8 +413,9 @@ export class InputManager {
         eng.layers.markDirty(LAYERS.GRID);
       }
     } else if (S.dragging === 'chart' && !consumed) {
-      const maxScroll = Math.max(0, eng.bars.length - 10);
-      S.scrollOffset = Math.max(0, Math.min(maxScroll, S.dragStartOffset + (e.clientX - S.dragStartX) / R.bSp));
+      const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
+      const rightMarginChart = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
+      S.scrollOffset = Math.max(-rightMarginChart, Math.min(maxScroll, S.dragStartOffset + (e.clientX - S.dragStartX) / R.bSp));
       const dy = e.clientY - S.dragStartY;
       if (S.autoScale && Math.abs(dy) > 5) {
         S.autoScale = false;
@@ -552,7 +559,7 @@ export class InputManager {
       const localX = e.clientX - r.left;
       const localY = e.clientY - r.top;
       if (localX >= stnBtn.x && localX <= stnBtn.x + stnBtn.w &&
-          localY >= stnBtn.y && localY <= stnBtn.y + stnBtn.h) {
+        localY >= stnBtn.y && localY <= stnBtn.y + stnBtn.h) {
         this.scrollToNow();
         return;
       }
@@ -575,14 +582,14 @@ export class InputManager {
       S.dragStartOffset = S.scrollOffset;
       S.timeAxisZoom = e.ctrlKey || e.metaKey;
       this.tc.style.cursor = S.timeAxisZoom ? 'ew-resize' : 'grab';
-    } else    if (isPriceAxis) {
+    } else if (isPriceAxis) {
       // Check auto-fit button first
       const afBtn = S._autoFitBtn;
       if (afBtn) {
         const localX = e.clientX - r.left;
         const localY = e.clientY - r.top;
         if (localX >= afBtn.x && localX <= afBtn.x + afBtn.w &&
-            localY >= afBtn.y && localY <= afBtn.y + afBtn.h) {
+          localY >= afBtn.y && localY <= afBtn.y + afBtn.h) {
           S.autoScale = true;
           S.priceScale = 1;
           S.priceScroll = 0;
@@ -718,7 +725,7 @@ export class InputManager {
     if (isTrackpadPinch) {
       // ── Trackpad pinch-zoom: zoom with reduced sensitivity ──
       const d = Math.sign(e.deltaY);
-      const maxBars = Math.max(80, eng.bars.length);
+      const maxBars = Math.max(80, eng.bars.length + 20);
       const currentTarget = this._targetVisibleBars || S.visibleBars;
       // Reduced sensitivity (0.08 vs 0.15) for trackpad pinch
       // Sprint 5: No Math.round() — keep fractional during animation, snap at settle
@@ -736,14 +743,16 @@ export class InputManager {
       // Use deltaX for horizontal, deltaY for vertical trackpad scrolling
       const panDelta = (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? -e.deltaX : -e.deltaY);
       const barsDelta = panDelta / (R.bSp || 10);
-      const maxScroll = Math.max(0, eng.bars.length - 10);
-      S.scrollOffset = Math.max(0, Math.min(maxScroll, S.scrollOffset + barsDelta));
+      const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
+      const rightMarginPan = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
+      S.scrollOffset = Math.max(-rightMarginPan, Math.min(maxScroll, S.scrollOffset + barsDelta));
       S.mainDirty = true;
       S.topDirty = true;
       if (eng.layers) {
         eng.layers.markDirty(LAYERS.DATA);
         eng.layers.markDirty(LAYERS.INDICATORS);
         eng.layers.markDirty(LAYERS.UI);
+        eng.layers.markDirty(LAYERS.DRAWINGS);
       }
       // Sprint 1: Check for left-edge prefetch on trackpad scroll
       this._checkPrefetch(eng);
@@ -751,7 +760,7 @@ export class InputManager {
     } else {
       // ── Discrete mouse wheel: zoom (original behavior) ──
       const d = Math.sign(e.deltaY);
-      const maxBars = Math.max(80, eng.bars.length);
+      const maxBars = Math.max(80, eng.bars.length + 20);
       const currentTarget = this._targetVisibleBars || S.visibleBars;
       // Sprint 5: No Math.round() — keep fractional during animation, snap at settle
       const newTarget = Math.max(10, Math.min(maxBars, currentTarget * (1 + d * 0.15)));
@@ -788,6 +797,7 @@ export class InputManager {
         eng.layers.markDirty(LAYERS.DATA);
         eng.layers.markDirty(LAYERS.INDICATORS);
         eng.layers.markDirty(LAYERS.UI);
+        eng.layers.markDirty(LAYERS.DRAWINGS);
       }
       this._scrollToNowRaf = requestAnimationFrame(step);
     };
@@ -853,8 +863,9 @@ export class InputManager {
 
     if (this._touchMode === 'pan' && touches.length === 1) {
       const dx = touches[0].clientX - this._touchStartX;
-      const maxScroll = Math.max(0, eng.bars.length - 10);
-      S.scrollOffset = Math.max(0, Math.min(maxScroll, S.dragStartOffset + dx / R.bSp));
+      const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
+      const rightMarginTouch = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
+      S.scrollOffset = Math.max(-rightMarginTouch, Math.min(maxScroll, S.dragStartOffset + dx / R.bSp));
       S.mainDirty = true;
       S.topDirty = true;
 
@@ -889,15 +900,16 @@ export class InputManager {
         } else {
           // Horizontal pinch → bar count zoom (existing behavior)
           const scale = this._pinchStartDist / dist;
-          const maxBars = Math.max(80, eng.bars.length);
+          const maxBars = Math.max(80, eng.bars.length + 20);
           const newBars = Math.max(10, Math.min(maxBars, Math.round(this._pinchStartBars * scale)));
           const barDelta = newBars - S.visibleBars;
 
           S.visibleBars = newBars;
 
           // Anchor around pinch center
-          const maxScroll = Math.max(0, eng.bars.length - 10);
-          S.scrollOffset = Math.max(0, Math.min(maxScroll,
+          const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
+          const rightMarginPinch = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
+          S.scrollOffset = Math.max(-rightMarginPinch, Math.min(maxScroll,
             S.scrollOffset - barDelta * (1 - this._pinchAnchorFrac)
           ));
           S.mainDirty = true;

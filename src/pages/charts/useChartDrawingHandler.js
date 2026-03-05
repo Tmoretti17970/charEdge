@@ -10,7 +10,8 @@ import { useChartTradeHandler } from '../../app/components/chart/chart_ui/useCha
 import { TOOL_CONFIG, magnetSnap } from '../../charting_library/tools/drawingTools.js';
 import { exportChartPNG, copyChartToClipboard, generateShareURL } from '../../utils/chartExport.js';
 import { parseChartCommand } from '../../charting_library/ai/AICopilotEngine.js';
-import useScriptRunner from '../../charting_library/scripting/useScriptRunner.js';
+// Wave 0: scripting quarantined — stub useScriptRunner
+const useScriptRunner = () => ({ scriptOutputs: null, setEditorOutputs: () => { }, errors: [] });
 
 /**
  * Hook that manages drawing tool interactions, AI copilot commands,
@@ -151,7 +152,7 @@ export default function useChartDrawingHandler(chartRef) {
       const command = parseChartCommand(inputText);
 
       if (!command) {
-        import('../../app/components/ui/Toast.jsx').then(({ default: toast }) => toast.error("AI couldn't understand that command")).catch(() => {}); // intentional: Toast import is best-effort UI
+        import('../../app/components/ui/Toast.jsx').then(({ default: toast }) => toast.error("AI couldn't understand that command")).catch(() => { }); // intentional: Toast import is best-effort UI
         return { success: false, message: "I didn't quite catch that." };
       }
 
@@ -195,7 +196,7 @@ export default function useChartDrawingHandler(chartRef) {
 
       import('../../app/components/ui/Toast.jsx')
         .then(({ default: toast }) => toast.success(resultMessage))
-        .catch(() => {}); // intentional: Toast import is best-effort UI
+        .catch(() => { }); // intentional: Toast import is best-effort UI
 
       return { success: true, message: resultMessage };
     },

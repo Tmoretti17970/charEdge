@@ -41,15 +41,6 @@ export function executeDrawingStage(fs, ctx, engine) {
     mediaWidth: cW,
     mediaHeight: mainHeight,
   });
-
-  // ─── Sprint 17: Ghost Preview during CREATING state ─────────
-  if (engine.drawingEngine) {
-    const de = engine.drawingEngine;
-    const creating = de.activeDrawing;
-    if (creating && creating.state === 'creating' && creating.points?.length > 0) {
-      _drawGhostPreview(dCtx, de, creating, pr, cBW, mainBH);
-    }
-  }
 }
 
 /**

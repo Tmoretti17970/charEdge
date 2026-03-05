@@ -90,7 +90,7 @@ export async function fetchBinanceBatch(pair, interval, limit, endTime, startTim
       close: parseFloat(k[4]),
       volume: parseFloat(k[5]),
     }));
-  } catch {
+  } catch (_) {
     return null;
   }
 }

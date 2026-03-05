@@ -472,7 +472,7 @@ describe('formatTimeLabel', () => {
 // Drawing Undo/Redo Stack Tests
 // ═══════════════════════════════════════════════════════════════════
 
-import { useChartStore } from '../../state/useChartStore.js';
+import { useChartStore } from '../../state/useChartStore.ts';
 
 describe('Drawing Undo/Redo', () => {
   beforeEach(() => {
@@ -813,7 +813,7 @@ describe('detectVolumeSpikes', () => {
 // Chart Annotation Store Tests
 // ═══════════════════════════════════════════════════════════════════
 
-import { useAnnotationStore } from '../../state/useAnnotationStore.js';
+import { useAnnotationStore } from '../../state/useAnnotationStore.ts';
 
 describe('Annotation Store', () => {
   beforeEach(() => {

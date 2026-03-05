@@ -4,7 +4,8 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { safeParse, safeStringify, safeClone } from '../../utils/safeJSON.js';
-import { reportError, getErrorLog, clearErrorLog, safeAsync, safeSync } from '../../utils/globalErrorHandler.js';
+import { reportError, getErrorLog, clearErrorLog, safeAsync, safeSync } from '../../utils/globalErrorHandler.ts';
+import { logger } from '../../utils/logger';
 
 // ─── SafeJSON ───────────────────────────────────────────────────
 
@@ -36,14 +37,14 @@ describe('safeJSON', () => {
     });
 
     it('suppresses warnings in silent mode', () => {
-      const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const spy = vi.spyOn(logger.ui, 'warn').mockImplementation(() => { });
       safeParse('{bad}', null, { silent: true });
       expect(spy).not.toHaveBeenCalled();
       spy.mockRestore();
     });
 
     it('logs context in warnings', () => {
-      const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const spy = vi.spyOn(logger.ui, 'warn').mockImplementation(() => { });
       safeParse('{bad}', null, { context: 'test-ctx' });
       expect(spy).toHaveBeenCalledWith(expect.stringContaining('test-ctx'), expect.any(String));
       spy.mockRestore();
@@ -93,7 +94,7 @@ describe('safeJSON', () => {
 describe('globalErrorHandler', () => {
   beforeEach(() => {
     clearErrorLog();
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => { });
   });
 
   describe('reportError', () => {

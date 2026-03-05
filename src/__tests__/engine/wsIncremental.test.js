@@ -52,7 +52,7 @@ vi.stubGlobal('WebSocket', MockWebSocket);
 
 // Import after mocking
 const { _WebSocketService, WS_STATUS } = await import(
-  '../../data/WebSocketService.js'
+  '../../data/WebSocketService.ts'
 ).then((m) => ({
   _WebSocketService: m.WebSocketService,
   WS_STATUS: m.WS_STATUS,

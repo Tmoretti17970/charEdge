@@ -81,7 +81,7 @@ describe('DataPipeline — subscription cleanup', () => {
     try {
       const { dataPipeline } = await import('../../data/engine/DataPipeline.js');
       expect(dataPipeline._subscriptions).toBeInstanceOf(Map);
-    } catch {
+    } catch (_) {
       const source = await import('fs').then(fs =>
         fs.promises.readFile('src/data/engine/DataPipeline.js', 'utf8')
       );
@@ -240,7 +240,7 @@ describe('DataSharedWorker — cross-tab fetch dedup protocol', () => {
 
 describe('DepthEngine — handler nullification', () => {
   let source;
-  beforeAll(() => { source = readSource('data/engine/orderflow/DepthEngine.js'); });
+  beforeAll(() => { source = readSource('data/engine/orderflow/DepthEngine.ts'); });
 
   it('_disconnectWS nulls all 4 WS handlers before close()', () => {
     const disconnectIdx = source.indexOf('_disconnectWS(symbol)');
@@ -264,7 +264,7 @@ describe('DepthEngine — handler nullification', () => {
 
 describe('DepthEngine — relaxed silence threshold', () => {
   it('SILENCE_THRESHOLD_MS is >= 30000', async () => {
-    const source = readSource('data/engine/orderflow/DepthEngine.js');
+    const source = readSource('data/engine/orderflow/DepthEngine.ts');
     const match = source.match(/SILENCE_THRESHOLD_MS\s*=\s*(\d+)/);
     expect(match).not.toBeNull();
     expect(parseInt(match[1])).toBeGreaterThanOrEqual(30000);

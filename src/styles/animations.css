@@ -8,96 +8,431 @@
 
   /* ─── Entrance Animations ────────────────────────────────────── */
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
   }
 
   @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   @keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-12px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(-12px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   @keyframes slideInLeft {
-    from { opacity: 0; transform: translateX(-16px); }
-    to   { opacity: 1; transform: translateX(0); }
+    from {
+      opacity: 0;
+      transform: translateX(-16px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
   @keyframes slideInRight {
-    from { opacity: 0; transform: translateX(16px); }
-    to   { opacity: 1; transform: translateX(0); }
+    from {
+      opacity: 0;
+      transform: translateX(16px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
   @keyframes scaleIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to   { opacity: 1; transform: scale(1); }
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 
   @keyframes popIn {
-    0%   { opacity: 0; transform: scale(0.8); }
-    70%  { transform: scale(1.03); }
-    100% { opacity: 1; transform: scale(1); }
+    0% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+
+    70% {
+      transform: scale(1.03);
+    }
+
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 
   /* ─── Loading Animations ─────────────────────────────────────── */
   @keyframes shimmer {
-    0%   { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
+    0% {
+      background-position: -200% 0;
+    }
+
+    100% {
+      background-position: 200% 0;
+    }
   }
 
   @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50%      { opacity: 0.5; }
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.5;
+    }
   }
 
   @keyframes spin {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
+    from {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50%      { transform: translateY(-6px); }
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-6px);
+    }
   }
 
   /* ─── Chart-Specific ─────────────────────────────────────────── */
   @keyframes barCascade {
-    from { opacity: 0; transform: scaleY(0.3); transform-origin: bottom; }
-    to   { opacity: 1; transform: scaleY(1); }
+    from {
+      opacity: 0;
+      transform: scaleY(0.3);
+      transform-origin: bottom;
+    }
+
+    to {
+      opacity: 1;
+      transform: scaleY(1);
+    }
   }
 
   @keyframes volumeRise {
-    from { opacity: 0; transform: translateY(50%); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(50%);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   @keyframes crosshairFade {
-    0%   { opacity: 0; }
-    15%  { opacity: 1; }
-    85%  { opacity: 1; }
-    100% { opacity: 0; }
+    0% {
+      opacity: 0;
+    }
+
+    15% {
+      opacity: 1;
+    }
+
+    85% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* ─── Shared Entrance Animations ───────────────────────────────── */
+  @keyframes scaleInSm {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.96);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUpScale {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.97);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
 
   /* ─── Utility Classes ────────────────────────────────────────── */
-  .animate-fadeIn     { animation: fadeIn var(--dur-normal) var(--ease-out); }
-  .animate-fadeInUp   { animation: fadeInUp var(--dur-enter) var(--ease-out); }
-  .animate-fadeInDown { animation: fadeInDown var(--dur-enter) var(--ease-out); }
-  .animate-scaleIn    { animation: scaleIn var(--dur-enter) var(--ease-spring); }
-  .animate-popIn      { animation: popIn var(--dur-slow) var(--ease-spring); }
-  .animate-shimmer    {
-    background: linear-gradient(
-      90deg,
-      var(--c-bg-secondary) 25%,
-      var(--c-bg-tertiary) 50%,
-      var(--c-bg-secondary) 75%
-    );
+  .animate-fadeIn {
+    animation: fadeIn var(--dur-normal) var(--ease-out);
+  }
+
+  .animate-fadeInUp {
+    animation: fadeInUp var(--dur-enter) var(--ease-out);
+  }
+
+  .animate-fadeInDown {
+    animation: fadeInDown var(--dur-enter) var(--ease-out);
+  }
+
+  .animate-scaleIn {
+    animation: scaleIn var(--dur-enter) var(--ease-spring);
+  }
+
+  .animate-popIn {
+    animation: popIn var(--dur-slow) var(--ease-spring);
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(90deg,
+        var(--c-bg-secondary) 25%,
+        var(--c-bg-tertiary) 50%,
+        var(--c-bg-secondary) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
-  .animate-pulse      { animation: pulse 2s var(--ease-default) infinite; }
-  .animate-spin       { animation: spin 1s linear infinite; }
+
+  .animate-pulse {
+    animation: pulse 2s var(--ease-default) infinite;
+  }
+
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+
+  /* ─── Phase 4: Exit Animations (Task 4.2.6) ──────────────────── */
+  @keyframes fadeOut {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes fadeOutDown {
+    to {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+
+  @keyframes fadeOutUp {
+    to {
+      opacity: 0;
+      transform: translateY(-12px);
+    }
+  }
+
+  @keyframes scaleOut {
+    to {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+  }
+
+  @keyframes slideOutRight {
+    to {
+      opacity: 0;
+      transform: translateX(16px);
+    }
+  }
+
+  @keyframes slideOutLeft {
+    to {
+      opacity: 0;
+      transform: translateX(-16px);
+    }
+  }
+
+  .animate-fadeOut {
+    animation: fadeOut var(--dur-exit) var(--ease-in) forwards;
+  }
+
+  .animate-fadeOutDown {
+    animation: fadeOutDown var(--dur-exit) var(--ease-in) forwards;
+  }
+
+  .animate-fadeOutUp {
+    animation: fadeOutUp var(--dur-exit) var(--ease-in) forwards;
+  }
+
+  .animate-scaleOut {
+    animation: scaleOut var(--dur-exit) var(--ease-in) forwards;
+  }
+
+  .animate-slideOutRight {
+    animation: slideOutRight var(--dur-exit) var(--ease-in) forwards;
+  }
+
+  .animate-slideOutLeft {
+    animation: slideOutLeft var(--dur-exit) var(--ease-in) forwards;
+  }
+
+  /* ─── Phase 4: Stagger Animations (Task 4.2.5) ───────────────── */
+  .stagger-list>* {
+    animation: fadeInUp var(--dur-enter) var(--ease-out) both;
+  }
+
+  .stagger-list>*:nth-child(1) {
+    animation-delay: 0ms;
+  }
+
+  .stagger-list>*:nth-child(2) {
+    animation-delay: 50ms;
+  }
+
+  .stagger-list>*:nth-child(3) {
+    animation-delay: 100ms;
+  }
+
+  .stagger-list>*:nth-child(4) {
+    animation-delay: 150ms;
+  }
+
+  .stagger-list>*:nth-child(5) {
+    animation-delay: 200ms;
+  }
+
+  .stagger-list>*:nth-child(6) {
+    animation-delay: 250ms;
+  }
+
+  .stagger-list>*:nth-child(7) {
+    animation-delay: 300ms;
+  }
+
+  .stagger-list>*:nth-child(8) {
+    animation-delay: 350ms;
+  }
+
+  .stagger-list>*:nth-child(9) {
+    animation-delay: 400ms;
+  }
+
+  .stagger-list>*:nth-child(10) {
+    animation-delay: 450ms;
+  }
+
+  .stagger-list>*:nth-child(n+11) {
+    animation-delay: 500ms;
+  }
+
+  /* ─── Phase 4: Price Tick Flash (Task 4.2.7) ─────────────────── */
+  @keyframes tickFlashUp {
+    0% {
+      text-shadow: 0 0 8px rgba(38, 166, 154, 0.8);
+    }
+
+    100% {
+      text-shadow: none;
+    }
+  }
+
+  @keyframes tickFlashDown {
+    0% {
+      text-shadow: 0 0 8px rgba(239, 83, 80, 0.8);
+    }
+
+    100% {
+      text-shadow: none;
+    }
+  }
+
+  .tf-tick-up {
+    animation: tickFlashUp 600ms var(--ease-out);
+    color: var(--c-accent-green, #26A69A);
+  }
+
+  .tf-tick-down {
+    animation: tickFlashDown 600ms var(--ease-out);
+    color: var(--c-accent-red, #EF5350);
+  }
+
+  /* ─── Phase 4: View Transitions CSS (Task 4.2.2) ─────────────── */
+  @supports (view-transition-name: none) {
+
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: var(--dur-normal, 200ms);
+      animation-timing-function: var(--ease-out);
+    }
+
+    ::view-transition-old(root) {
+      animation-name: fadeOut;
+    }
+
+    ::view-transition-new(root) {
+      animation-name: fadeIn;
+    }
+
+    /* Named page morph transition */
+    ::view-transition-old(page-morph),
+    ::view-transition-new(page-morph) {
+      animation-duration: var(--dur-slow, 350ms);
+      animation-timing-function: var(--ease-spring);
+    }
+
+    ::view-transition-old(page-morph) {
+      animation-name: fadeOutUp;
+    }
+
+    ::view-transition-new(page-morph) {
+      animation-name: fadeInUp;
+    }
+  }
 }

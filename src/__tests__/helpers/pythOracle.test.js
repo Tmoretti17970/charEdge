@@ -427,7 +427,7 @@ describe('DataPipeline - Confidence Integration', () => {
     try {
       const mod = await import('../../data/engine/DataPipeline.js');
       pipeline = mod.dataPipeline;
-    } catch {
+    } catch (_) {
       pipeline = null;
     }
   });

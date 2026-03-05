@@ -12,13 +12,13 @@
 // C8.11 — QuickStatsBar
 // ═══════════════════════════════════════════════════════════════════
 
-import { useSocialStore } from '../../../state/useSocialStore.js';
+// Wave 0: useSocialStore quarantined — social features removed from v1.0 scope
 import { useMemo, memo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { Card } from '../ui/UIKit.jsx';
 import { fmtD } from '../../../utils.js';
 import { safeSum } from '../../../charting_library/model/Money.js';
-import PollCard from '../social/PollCard.jsx';
+// Wave 0: PollCard quarantined — social features removed from v1.0 scope
 
 // ─── Shared styles ──────────────────────────────────────────────
 const hdr = (_label, _icon) => ({
@@ -676,25 +676,12 @@ export const QuickStatsBar = memo(function QuickStatsBar({ result, todayPnl, _to
 // NEW — POLL OF THE DAY WIDGET
 // ═══════════════════════════════════════════════════════════════════
 
+// Wave 0: DashboardPollWidget placeholder — social features quarantined
 export const DashboardPollWidget = memo(function DashboardPollWidget() {
-  const polls = useSocialStore((s) => s.polls);
-  const activePoll = polls.find((p) => p.status === 'active');
-
-  if (!activePoll) {
-    return (
-      <Card style={{ padding: 0, overflow: 'hidden', height: '100%' }}>
-        <div style={hdr()}>🗳️ Community Poll</div>
-        <div style={{ padding: '20px 14px', fontSize: 13, color: C.t3, textAlign: 'center' }}>No active polls.</div>
-      </Card>
-    );
-  }
-
   return (
-    <Card style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      <div style={hdr()}>🗳️ Poll of the Day</div>
-      <div style={{ padding: '0 0px 0px' }}>
-        <PollCard pollId={activePoll.id} compact={true} />
-      </div>
+    <Card style={{ padding: 0, overflow: 'hidden', height: '100%' }}>
+      <div style={hdr()}>🗳️ Community Poll</div>
+      <div style={{ padding: '20px 14px', fontSize: 13, color: C.t3, textAlign: 'center' }}>Coming soon.</div>
     </Card>
   );
 });

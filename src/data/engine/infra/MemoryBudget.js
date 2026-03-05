@@ -17,10 +17,11 @@
 //   import { memoryBudget } from './MemoryBudget.js';
 //   memoryBudget.start();
 //   memoryBudget.register('OrderFlowEngine', () => estimateBytes());
-//   console.log(memoryBudget.getStatus());
+//   logger.data.info(memoryBudget.getStatus());
 // ═══════════════════════════════════════════════════════════════════
 
 import { pipelineLogger } from './DataPipelineLogger.js';
+import { logger } from '../../../utils/logger';
 
 // ─── Constants ─────────────────────────────────────────────────
 
@@ -112,7 +113,7 @@ class _MemoryBudget {
         const bytes = estimator();
         breakdown[name] = bytes;
         totalUsed += bytes;
-      } catch {
+      } catch (_) {
         breakdown[name] = 0;
       }
     }
@@ -209,7 +210,7 @@ class _MemoryBudget {
       }
 
       for (const cb of this._callbacks) {
-        try { cb(status); } catch { /* silent */ }
+        try { cb(status); } catch (e) { logger.data.warn('Operation failed', e); }
       }
     }
 
@@ -232,12 +233,12 @@ class _MemoryBudget {
       // 2. Evict TickPersistence hot cache
       if (this._degradationLevel >= 2) {
         try {
-          const { dataCache } = await import('../../DataCache.js');
+          const { dataCache } = await import('../../DataCache.ts');
           if (dataCache?.evictIfOverBudget) {
             await dataCache.evictIfOverBudget();
             pipelineLogger.info('MemoryBudget', 'Triggered DataCache eviction');
           }
-        } catch { /* non-fatal */ }
+        } catch (e) { logger.data.warn('Operation failed', e); }
       }
     } catch (err) {
       pipelineLogger.warn('MemoryBudget', 'Degradation action failed', err);

@@ -1,3 +1,5 @@
+import { logger } from '../../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Connection Pool (Phase 6: Polish & Optimize)
 //
@@ -334,8 +336,8 @@ export class ConnectionPool extends EventTarget {
    * @private
    */
   _closeEntry(entry) {
-    try { entry.dc?.close(); } catch { /* */ }
-    try { entry.pc?.close(); } catch { /* */ }
+    try { entry.dc?.close(); } catch (e) { logger.data.warn('Operation failed', e); }
+    try { entry.pc?.close(); } catch (e) { logger.data.warn('Operation failed', e); }
     entry.symbols.clear();
   }
 }

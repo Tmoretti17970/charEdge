@@ -142,7 +142,7 @@ class _DataEventBus {
       for (const handler of wildcardHandlers) {
         try {
           handler({ type, detail, timestamp });
-        } catch { /* silent */ }
+        } catch (e) { logger.data.warn('Operation failed', e); }
       }
     }
   }

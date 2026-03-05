@@ -70,7 +70,7 @@ export default function IndicatorLegendHeader({ data, hoverIdx, onEditIndicator 
               });
             }
           }
-        } catch {
+        } catch (_) {
           // Computation failed — show without values
         }
       }
@@ -306,7 +306,7 @@ function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator }) {
         boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
         zIndex: 100,
         fontFamily: F,
-        animation: 'tfQuickEditIn 0.2s ease forwards',
+        animation: 'scaleInSm 0.2s ease forwards',
       }}
     >
       {/* Header */}
@@ -431,13 +431,6 @@ function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator }) {
         />
       </div>
 
-      {/* Animation */}
-      <style>{`
-        @keyframes tfQuickEditIn {
-          from { opacity: 0; transform: translateY(-4px) scale(0.96); }
-          to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-      `}</style>
     </div>
   );
 }

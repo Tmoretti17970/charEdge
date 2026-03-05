@@ -16,7 +16,7 @@ import { describe, it, expect } from 'vitest';
 
 describe('SecureStore — encryption utility', () => {
   it('exports encryptAndStore, loadAndDecrypt, clear, isEncryptionAvailable', async () => {
-    const mod = await import('../../utils/SecureStore.js');
+    const mod = await import('../../utils/SecureStore.ts');
     expect(typeof mod.default.encryptAndStore).toBe('function');
     expect(typeof mod.default.loadAndDecrypt).toBe('function');
     expect(typeof mod.default.clear).toBe('function');
@@ -25,7 +25,7 @@ describe('SecureStore — encryption utility', () => {
 
   it('has PBKDF2 key derivation with 100k iterations', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/utils/SecureStore.js', 'utf8');
+    const source = await fs.promises.readFile('src/utils/SecureStore.ts', 'utf8');
     expect(source).toContain('PBKDF2_ITERATIONS = 100_000');
     expect(source).toContain("name: 'PBKDF2'");
     expect(source).toContain("name: 'AES-GCM'");
@@ -33,14 +33,14 @@ describe('SecureStore — encryption utility', () => {
 
   it('handles legacy plain-text migration (no _f field)', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/utils/SecureStore.js', 'utf8');
+    const source = await fs.promises.readFile('src/utils/SecureStore.ts', 'utf8');
     // loadAndDecrypt should handle objects without _f field (legacy data)
     expect(source).toContain('!envelope._f');
   });
 
   it('falls back to base64 when crypto.subtle unavailable', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/utils/SecureStore.js', 'utf8');
+    const source = await fs.promises.readFile('src/utils/SecureStore.ts', 'utf8');
     expect(source).toContain("_f: 'b64'");
     expect(source).toContain('_b64Encode');
     expect(source).toContain('_b64Decode');
@@ -55,7 +55,7 @@ describe('StorageAdapter — uses SecureStore for auth data', () => {
   it.skip('imports SecureStore', async () => {
     const fs = await import('fs');
     const source = await fs.promises.readFile('src/data/StorageAdapter.js', 'utf8');
-    expect(source).toContain("import SecureStore from '../../utils/SecureStore.js'");
+    expect(source).toContain("import SecureStore from '../../utils/SecureStore.ts'");
   });
 
   it('_saveAuth uses SecureStore.encryptAndStore (not localStorage.setItem)', async () => {
@@ -95,7 +95,7 @@ describe('ApiKeyStore — encrypted API key storage', () => {
   it('imports SecureStore', async () => {
     const fs = await import('fs');
     const source = await fs.promises.readFile('src/data/providers/ApiKeyStore.js', 'utf8');
-    expect(source).toContain("import SecureStore from '../../utils/SecureStore.js'");
+    expect(source).toContain("import SecureStore from '../../utils/SecureStore.ts'");
   });
 
   it('uses SecureStore.encryptAndStore for persistence', async () => {
@@ -134,10 +134,27 @@ describe('ApiKeyStore — encrypted API key storage', () => {
 
 // ─── Fix 2: CSP hardened — no unsafe-eval, no unsafe-inline ────
 
+
+// Server was refactored into modules — load all source files
+const _serverModules = [
+  'server.js',
+  'server/middleware/security.js',
+  'server/middleware/rateLimiter.js',
+  'server/middleware/requestId.js',
+  'server/routes/rss.js',
+  'server/routes/proxy.js',
+  'server/ssr.js',
+];
+async function _readServerSource() {
+  const fs = await import('node:fs');
+  const contents = await Promise.all(_serverModules.map(f => fs.promises.readFile(f, 'utf8')));
+  return contents.join('\n');
+}
+
 describe('CSP — hardened Content-Security-Policy', () => {
   it('does NOT contain unsafe-eval in script-src', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('server.js', 'utf8');
+    const source = await _readServerSource();
     // Find the script-src line
     const scriptSrc = source.match(/script-src[^"]+/)?.[0] || '';
     expect(scriptSrc).not.toContain('unsafe-eval');
@@ -145,39 +162,39 @@ describe('CSP — hardened Content-Security-Policy', () => {
 
   it('does NOT contain unsafe-inline in script-src', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('server.js', 'utf8');
+    const source = await _readServerSource();
     const scriptSrc = source.match(/script-src[^"]+/)?.[0] || '';
     expect(scriptSrc).not.toContain('unsafe-inline');
   });
 
   it('contains frame-ancestors none', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('server.js', 'utf8');
+    const source = await _readServerSource();
     expect(source).toContain("frame-ancestors 'none'");
   });
 
   it('contains base-uri and form-action directives', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('server.js', 'utf8');
+    const source = await _readServerSource();
     expect(source).toContain("base-uri 'self'");
     expect(source).toContain("form-action 'self'");
   });
 
   it('contains frame-ancestors directive', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('server.js', 'utf8');
+    const source = await _readServerSource();
     expect(source).toContain("frame-ancestors 'none'");
   });
 
   it('contains upgrade-insecure-requests', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('server.js', 'utf8');
+    const source = await _readServerSource();
     expect(source).toContain('upgrade-insecure-requests');
   });
 
   it('has HSTS header in production', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('server.js', 'utf8');
+    const source = await _readServerSource();
     expect(source).toContain('Strict-Transport-Security');
     expect(source).toContain('max-age=63072000');
     expect(source).toContain('includeSubDomains');
@@ -222,34 +239,34 @@ describe('Vercel — security headers in vercel.json', () => {
 describe('RSS proxy — rate limiting', () => {
   it('has rate limiter with 30 req/min per IP', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('server.js', 'utf8');
+    const source = await _readServerSource();
     expect(source).toContain('RATE_LIMIT_MAX = 30');
     expect(source).toContain('RATE_LIMIT_WINDOW_MS = 60_000');
-    expect(source).toContain('_checkRateLimit');
+    expect(source).toContain('checkRateLimit');
   });
 
   it('returns 429 when rate limit exceeded', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('server.js', 'utf8');
+    const source = await _readServerSource();
     expect(source).toContain('429');
     expect(source).toContain('Too many requests');
   });
 
   it('returns Retry-After header on 429', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('server.js', 'utf8');
+    const source = await _readServerSource();
     expect(source).toContain("Retry-After");
   });
 
   it('sets Retry-After header on 429 response', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('server.js', 'utf8');
+    const source = await _readServerSource();
     expect(source).toContain("res.setHeader('Retry-After'");
   });
 
   it('rate limiter has periodic cleanup', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('server.js', 'utf8');
+    const source = await _readServerSource();
     expect(source).toContain('_rateLimitMap.delete(ip)');
   });
 });

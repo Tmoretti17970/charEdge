@@ -130,8 +130,8 @@ describe('Sprint 3 — DataStage GPU pan fast-path', () => {
     expect(source).toContain('fs.endIdx === prevFs.endIdx');
   });
 
-  it('calls redrawWithPanOffset with pixel offset', () => {
-    expect(source).toContain('redrawWithPanOffset(panOffsetPx');
+  it('calls redrawWithPanOffset via command buffer', () => {
+    expect(source).toContain('redrawWithPanOffset(capturedPanOffset');
   });
 
   it('computes panOffsetPx from scrollDelta × barSpacing × pixelRatio', () => {

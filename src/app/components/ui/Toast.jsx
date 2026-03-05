@@ -1,10 +1,11 @@
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v10 — Toast Notification System
 // Sprint 4: Framer Motion entrance/exit, max 3 visible, glassmorphic
-// Usage: toast.success('Trade added') / toast.error('Import failed')
+// Sprint CSS Surgery: Added priority system (critical = persistent, no auto-dismiss)
+// Usage: toast.success('Trade added') / toast.critical('WebSocket disconnected')
 // ═══════════════════════════════════════════════════════════════════
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, forwardRef } from 'react';
 import { create } from 'zustand';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { C, F } from '../../../constants.js';
@@ -18,7 +19,7 @@ const useToastStore = create((set) => ({
   toasts: [],
   add: (toast) =>
     set((s) => ({
-      toasts: [...s.toasts.slice(-4), { ...toast, id: ++_toastId }],
+      toasts: [...s.toasts.slice(-6), { ...toast, id: ++_toastId, priority: toast.priority || 'normal' }],
     })),
   remove: (id) =>
     set((s) => ({
@@ -31,7 +32,7 @@ const useToastStore = create((set) => ({
 function _log(type, message, category) {
   try {
     notificationLog.push({ type, message, category: category || 'system' });
-  } catch {}
+  } catch (_) { /* storage/API may be blocked */ }
 }
 
 export const toast = {
@@ -70,14 +71,32 @@ export const toast = {
       actionFn,
     });
   },
+  /**
+   * Show a critical toast — persistent, requires manual close.
+   * Use for errors that need user attention (e.g. connection lost).
+   * @param {string} message
+   * @param {Object} [opts]
+   * @param {number} [opts.duration=0] - 0 = persistent (no auto-dismiss)
+   */
+  critical: (message, opts = {}) => {
+    _log('error', message, 'critical');
+    return useToastStore.getState().add({
+      type: 'error',
+      message,
+      duration: opts.duration || 0,
+      priority: 'critical',
+    });
+  },
 };
 
 // ─── Toast Container (Sprint 4: max 3 visible) ─────────────────
 
 export function ToastContainer() {
   const toasts = useToastStore((s) => s.toasts);
-  // Show max 3 toasts, newest at top
-  const visibleToasts = toasts.slice(-3);
+  // Sort: critical first, then normal. Max 2 critical + 3 normal
+  const criticalToasts = toasts.filter(t => t.priority === 'critical').slice(-2);
+  const normalToasts = toasts.filter(t => t.priority !== 'critical').slice(-3);
+  const visibleToasts = [...criticalToasts, ...normalToasts];
 
   return (
     <div
@@ -103,7 +122,7 @@ export function ToastContainer() {
 
 // ─── Individual Toast (Sprint 5: pause-on-hover) ─────────────────
 
-function Toast({ toast: t }) {
+const Toast = forwardRef(function Toast({ toast: t }, ref) {
   const remove = useToastStore((s) => s.remove);
   const prefersReducedMotion = useReducedMotion();
   const [paused, setPaused] = useState(false);
@@ -111,6 +130,7 @@ function Toast({ toast: t }) {
   const remainingRef = useRef(t.duration);
   const startTimeRef = useRef(null);
   const timerRef = useRef(null);
+  const isCritical = t.priority === 'critical';
 
   // Start / resume the dismiss timer
   const startTimer = useCallback(() => {
@@ -130,11 +150,13 @@ function Toast({ toast: t }) {
     }
   }, []);
 
-  // Initial start
+  // Initial start — skip auto-dismiss for critical toasts
   useEffect(() => {
-    startTimer();
-    // Kick off progress animation on next frame
-    requestAnimationFrame(() => setProgress(0));
+    if (!isCritical) {
+      startTimer();
+      // Kick off progress animation on next frame
+      requestAnimationFrame(() => setProgress(0));
+    }
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
@@ -169,19 +191,20 @@ function Toast({ toast: t }) {
   const motionProps = prefersReducedMotion
     ? {}
     : {
-        initial: { opacity: 0, x: 48, scale: 0.95 },
-        animate: { opacity: 1, x: 0, scale: 1 },
-        exit: { opacity: 0, x: 48, scale: 0.95 },
-        transition: {
-          type: 'spring',
-          stiffness: 400,
-          damping: 30,
-        },
-        layout: true,
-      };
+      initial: { opacity: 0, x: 48, scale: 0.95 },
+      animate: { opacity: 1, x: 0, scale: 1 },
+      exit: { opacity: 0, x: 48, scale: 0.95 },
+      transition: {
+        type: 'spring',
+        stiffness: 400,
+        damping: 30,
+      },
+      layout: true,
+    };
 
   return (
     <motion.div
+      ref={ref}
       {...motionProps}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -199,7 +222,9 @@ function Toast({ toast: t }) {
         minWidth: 260,
         maxWidth: 380,
         pointerEvents: 'auto',
-        boxShadow: `0 8px 24px rgba(0,0,0,.25), 0 0 0 1px ${c.color}08`,
+        boxShadow: isCritical
+          ? `0 8px 24px rgba(0,0,0,.35), 0 0 12px ${c.color}20, 0 0 0 1px ${c.color}15`
+          : `0 8px 24px rgba(0,0,0,.25), 0 0 0 1px ${c.color}08`,
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -261,6 +286,6 @@ function Toast({ toast: t }) {
       />
     </motion.div>
   );
-}
+});
 
 export default toast;

@@ -429,7 +429,7 @@ export class PythAdapter extends BaseAdapter {
               }
             }
           }
-        } catch {
+        } catch (_) {
           /* ignore individual message parse errors */
         }
       };

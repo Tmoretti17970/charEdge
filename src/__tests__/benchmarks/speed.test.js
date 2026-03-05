@@ -153,7 +153,7 @@ describe('4.3/4.4 — WebSocket Heartbeat & Health Metrics', () => {
   let WSClass;
 
   beforeEach(async () => {
-    const mod = await import('../../data/WebSocketService.js');
+    const mod = await import('../../data/WebSocketService.ts');
     WSClass = mod.WebSocketService;
   });
 
@@ -236,7 +236,7 @@ describe('4.3/4.4 — WebSocket Heartbeat & Health Metrics', () => {
 
 describe('4.1 — Trade Stream', () => {
   it('trade stream generates correct stream keys', async () => {
-    const mod = await import('../../data/WebSocketService.js');
+    const mod = await import('../../data/WebSocketService.ts');
     const ws = new mod.WebSocketService();
 
     // Subscribe to trades — the internal _tradeSubs should have a btcusdt@trade key
@@ -250,7 +250,7 @@ describe('4.1 — Trade Stream', () => {
   });
 
   it('kline and trade streams coexist', async () => {
-    const mod = await import('../../data/WebSocketService.js');
+    const mod = await import('../../data/WebSocketService.ts');
     const ws = new mod.WebSocketService();
 
     ws.subscribe('BTC', '1h', {});

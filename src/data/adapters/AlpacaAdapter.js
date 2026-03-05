@@ -168,7 +168,7 @@ export class AlpacaAdapter extends BaseAdapter {
             symbol: upper,
           });
         }
-      } catch {
+      } catch (_) {
         /* polling error — silent retry */
       }
     }, 5000);
@@ -200,7 +200,7 @@ export class AlpacaAdapter extends BaseAdapter {
           type: 'EQUITY',
           exchange: a.exchange,
         }));
-    } catch {
+    } catch (_) {
       return [];
     }
   }

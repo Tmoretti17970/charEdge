@@ -22,7 +22,7 @@ import ChartSkeleton from '../app/components/chart/ui/ChartSkeleton.jsx';
 const DrawingSidebar = React.lazy(() => import('../app/components/chart/tools/DrawingSidebar.jsx'));
 const LiveTicker = React.lazy(() => import('../app/misc/components/LiveTicker.jsx'));
 const DataQualityIndicator = React.lazy(() => import('../app/components/chart/ui/DataQualityIndicator.jsx').then(m => ({ default: m.DataQualityIndicator })));
-import { fetchSymbolSearch } from '../data/FetchService.js';
+import { fetchSymbolSearch } from '../data/FetchService.ts';
 import Coachmark from '../app/components/ui/Coachmark.jsx';
 
 // Extracted sub-modules

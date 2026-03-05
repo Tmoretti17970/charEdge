@@ -14,6 +14,7 @@ export interface CandleParams {
   yMin: number;
   yMax: number;
   mainH?: number;
+  hollow?: boolean; // 5A.3.2: hollow candles mode
   [key: string]: unknown;
 }
 
@@ -89,7 +90,7 @@ export function drawCandles(
 
     // Wick instance
     const wi = instanceCount * 7;
-    data[wi]     = x;
+    data[wi] = x;
     data[wi + 1] = b.open;
     data[wi + 2] = b.high;
     data[wi + 3] = b.low;
@@ -100,7 +101,7 @@ export function drawCandles(
 
     // Body instance
     const bi = instanceCount * 7;
-    data[bi]     = x;
+    data[bi] = x;
     data[bi + 1] = b.open;
     data[bi + 2] = b.high;
     data[bi + 3] = b.low;
@@ -122,6 +123,7 @@ export function drawCandles(
   gl.uniform1f(gl.getUniformLocation(prog, 'u_yMax'), params.yMax);
   gl.uniform1f(gl.getUniformLocation(prog, 'u_mainH'), mainH * pr);
   gl.uniform1f(gl.getUniformLocation(prog, 'u_panOffset'), 0.0);
+  gl.uniform1f(gl.getUniformLocation(prog, 'u_hollow'), params.hollow ? 1.0 : 0.0);
 
   // Bull/bear colors
   const bullRGBA = r._parseColor(theme.bullCandle || '#26A69A');
@@ -170,6 +172,9 @@ export function drawCandles(
 /**
  * Update only the last candle's instance data via bufferSubData.
  * Avoids full buffer re-upload on live ticks (~16ms → ~0.5ms).
+ *
+ * Layout from drawCandles is interleaved: [wick0, body0, wick1, body1, ...]
+ * Instance data stores RAW OHLC — the shader converts via u_yMin/u_yMax uniforms.
  */
 export function updateLastCandle(
   r: RendererRef,
@@ -177,45 +182,46 @@ export function updateLastCandle(
   params: CandleParams,
   theme: CandleTheme,
 ): boolean {
-  if (!r._available || !r._lastCandleInstanceCount) return false;
+  if (!r._available || !r._lastCandleInstanceCount || r._lastCandleInstanceCount < 2) return false;
 
   const gl = r.gl;
-  const prog = r._shaderLib.get('candle');
-  if (!prog) return false;
+  if (!r._buffers.candleInstances) return false;
 
-  const { pixelRatio: pr, barSpacing, startIdx, timeTransform, yMin, yMax } = params;
-  const mainH = r._lastCandleParams?.mainH || r.canvas.height;
+  const { pixelRatio: pr, barSpacing, startIdx, timeTransform } = params;
 
-  // Compute the last instance's data (7 floats)
-  const idx = r._lastCandleInstanceCount - 1;
-  const barIdx = startIdx + idx;
-  const x = (timeTransform?.indexToPixel?.(barIdx) ?? (idx * barSpacing)) * pr;
+  // Last bar number (0-indexed within visible range)
+  const lastBarNum = (r._lastCandleInstanceCount / 2) - 1;
+  // Interleaved: wick at even index, body at odd index
+  const wickIdx = r._lastCandleInstanceCount - 2;
+  const bodyIdx = r._lastCandleInstanceCount - 1;
+
+  // Compute x position — must match drawCandles' calculation
+  let x: number;
+  if (timeTransform) {
+    x = timeTransform.indexToPixel(startIdx + lastBarNum) * pr;
+  } else {
+    x = (lastBarNum + 0.5) * barSpacing * pr;
+  }
   const isBull = bar.close >= bar.open ? 1.0 : 0.0;
-  const p2y = (p: number): number => (1 - (p - yMin) / (yMax - yMin)) * mainH;
 
-  const updateData = new Float32Array([
-    x,
-    p2y(bar.open) || 0,
-    p2y(bar.high) || 0,
-    p2y(bar.low) || 0,
-    p2y(bar.close) || 0,
-    isBull,
-    0.0, // body instance (isWick=0)
-  ]);
-
-  // Write only the last instance (7 floats × 4 bytes)
-  const byteOffset = idx * 7 * 4;
   gl.bindBuffer(gl.ARRAY_BUFFER, r._buffers.candleInstances);
-  gl.bufferSubData(gl.ARRAY_BUFFER, byteOffset, updateData);
 
-  // Also update the wick instance (follows body instances)
-  const wickData = new Float32Array([x, p2y(bar.open) || 0, p2y(bar.high) || 0, p2y(bar.low) || 0, p2y(bar.close) || 0, isBull, 1.0]);
-  const wickOffset = (r._lastCandleInstanceCount + idx) * 7 * 4;
-  gl.bufferSubData(gl.ARRAY_BUFFER, wickOffset, wickData);
+  // Wick instance (isWick = 1.0) — store RAW OHLC, shader transforms
+  const wickData = new Float32Array([
+    x, bar.open, bar.high, bar.low, bar.close, isBull, 1.0
+  ]);
+  gl.bufferSubData(gl.ARRAY_BUFFER, wickIdx * 7 * 4, wickData);
 
-  // Redraw with existing state
-  r._lastCandleParams = { ...params, mainH };
+  // Body instance (isWick = 0.0)
+  const bodyData = new Float32Array([
+    x, bar.open, bar.high, bar.low, bar.close, isBull, 0.0
+  ]);
+  gl.bufferSubData(gl.ARRAY_BUFFER, bodyIdx * 7 * 4, bodyData);
+
+  // Save state for pan-only redraws
+  r._lastCandleParams = { ...params, mainH: r._lastCandleParams?.mainH || r.canvas.height };
   r._lastCandleTheme = theme;
 
   return true;
 }
+

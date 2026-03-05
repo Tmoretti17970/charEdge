@@ -113,6 +113,28 @@ export default function InsightsPage() {
         </p>
       </div>
 
+      {/* ─── Financial Disclaimer (SEC/FCA compliance) ──── */}
+      <div
+        role="note"
+        aria-label="Financial disclaimer"
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 8,
+          padding: '10px 14px',
+          marginBottom: 16,
+          borderRadius: 10,
+          background: `${C.y}08`,
+          border: `1px solid ${C.y}20`,
+        }}
+      >
+        <span style={{ fontSize: 14, lineHeight: 1, flexShrink: 0, marginTop: 1 }}>⚠️</span>
+        <span style={{ fontSize: 11, fontFamily: F, color: C.t3, lineHeight: 1.5 }}>
+          <strong style={{ color: C.t2 }}>For educational purposes only.</strong>{' '}
+          charEdge does not provide financial advice or trading recommendations. Always do your own research.
+        </span>
+      </div>
+
       {/* ─── Section 2: Hero Summary (when result exists) ──── */}
       {result && (
         <div

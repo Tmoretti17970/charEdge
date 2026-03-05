@@ -416,7 +416,7 @@ function loadLayout() {
       // Validate minimum structure before using
       if (json.layout && json.layout.type) return json;
     }
-  } catch {
+  } catch (_) {
     /* corrupt data, use default */
   }
   return LAYOUT_PRESETS.default.json;
@@ -425,7 +425,7 @@ function loadLayout() {
 function saveLayout(model) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(model.toJson()));
-  } catch {
+  } catch (_) {
     /* quota exceeded or private mode */
   }
 }
@@ -577,7 +577,7 @@ export default function WorkspaceLayout({ preset = null }) {
     try {
       localStorage.removeItem(STORAGE_KEY);
       window.location.reload();
-    } catch {}
+    } catch (_) { /* storage may be blocked */ }
   }, []);
 
   // Close preset dropdown on outside click

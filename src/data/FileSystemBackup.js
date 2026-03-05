@@ -15,7 +15,8 @@
 // with version info and timestamp.
 // ═══════════════════════════════════════════════════════════════════
 
-import StorageService from './StorageService.js';
+import StorageService from './StorageService.ts';
+import { logger } from '../utils/logger';
 
 // ─── Configuration ─────────────────────────────────────────────
 const BACKUP_INTERVAL_MS = 60_000; // 1 minute auto-save
@@ -107,12 +108,12 @@ export async function restoreBackupHandle() {
         _dirHandle = handle;
         return true;
       }
-    } catch {
+    } catch (_) {
       // Permission denied or requires user gesture — expected
     }
 
     return false;
-  } catch {
+  } catch (_) {
     return false;
   }
 }
@@ -152,7 +153,7 @@ export async function runBackup() {
         if (val !== null) {
           localStorageData[key] = JSON.parse(val);
         }
-      } catch {
+      } catch (_) {
         // Malformed JSON — skip
       }
     }
@@ -186,7 +187,7 @@ export async function runBackup() {
 
     return { ok: true, files: filesWritten };
   } catch (e) {
-    console.error('[FileSystemBackup] Backup failed:', e);
+    logger.data.error('[FileSystemBackup] Backup failed:', e);
     return { ok: false, error: e.message };
   }
 }
@@ -240,7 +241,7 @@ export async function restoreFromBackup() {
       for (const [key, value] of Object.entries(lsData)) {
         try {
           localStorage.setItem(key, JSON.stringify(value));
-        } catch {
+        } catch (_) {
           // Quota exceeded — skip
         }
       }
@@ -249,7 +250,7 @@ export async function restoreFromBackup() {
 
     return { ok: true, restored };
   } catch (e) {
-    console.error('[FileSystemBackup] Restore failed:', e);
+    logger.data.error('[FileSystemBackup] Restore failed:', e);
     return { ok: false, error: e.message };
   }
 }
@@ -266,7 +267,7 @@ export function startAutoSave() {
 
   _autoSaveInterval = setInterval(() => {
     runBackup().catch((e) => {
-      console.warn('[FileSystemBackup] Auto-save failed:', e);
+      logger.data.warn('[FileSystemBackup] Auto-save failed:', e);
     });
   }, BACKUP_INTERVAL_MS);
 
@@ -308,7 +309,7 @@ export async function downloadBackup() {
       try {
         const val = localStorage.getItem(key);
         if (val !== null) localStorageData[key] = JSON.parse(val);
-      } catch {}
+      } catch (_) { /* storage may be blocked */ }
     }
 
     const bundle = {
@@ -385,7 +386,7 @@ export async function uploadAndRestore(file) {
       for (const [key, value] of Object.entries(bundle.localStorage)) {
         try {
           localStorage.setItem(key, JSON.stringify(value));
-        } catch {}
+        } catch (_) { /* storage may be blocked */ }
       }
       restored.push(`localStorage (${Object.keys(bundle.localStorage).length} keys)`);
     }
@@ -438,7 +439,7 @@ async function _readJSON(filename) {
     const file = await fileHandle.getFile();
     const text = await file.text();
     return JSON.parse(text);
-  } catch {
+  } catch (_) {
     return null; // File doesn't exist yet
   }
 }
@@ -455,7 +456,7 @@ async function _persistHandle(handle) {
       tx.onerror = () => reject(tx.error);
     });
   } catch (e) {
-    console.warn('[FileSystemBackup] Failed to persist handle:', e);
+    logger.data.warn('[FileSystemBackup] Failed to persist handle:', e);
   }
 }
 
@@ -470,7 +471,7 @@ async function _loadHandle() {
       req.onerror = () => resolve(null);
     });
     return row?.handle ?? null;
-  } catch {
+  } catch (_) {
     return null;
   }
 }
@@ -481,7 +482,7 @@ async function _removeHandle() {
     const db = await _openHandleDB();
     const tx = db.transaction('handles', 'readwrite');
     tx.objectStore('handles').delete(HANDLE_STORAGE_KEY);
-  } catch {
+  } catch (_) {
     // Ignore
   }
 }

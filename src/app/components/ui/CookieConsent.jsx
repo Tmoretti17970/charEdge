@@ -9,6 +9,7 @@
 import { useConsentStore } from '../../../state/useConsentStore.js';
 import { C, F } from '../../../constants.js';
 import { GLASS, DEPTH } from '../../../constants.js';
+import cssStyles from './CookieConsent.module.css';
 
 export default function CookieConsent() {
   const analytics = useConsentStore((s) => s.analytics);
@@ -41,8 +42,8 @@ export default function CookieConsent() {
         borderTop: GLASS.border,
         boxShadow: DEPTH[3],
         fontFamily: F,
-        animation: 'tfConsentSlideUp 0.3s ease-out',
       }}
+      className={cssStyles.banner}
     >
       {/* Message */}
       <p
@@ -113,16 +114,6 @@ export default function CookieConsent() {
         </button>
       </div>
 
-      {/* Slide-up animation */}
-      <style>{`
-        @keyframes tfConsentSlideUp {
-          from { transform: translateY(100%); opacity: 0; }
-          to   { transform: translateY(0); opacity: 1; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          #tf-cookie-consent { animation: none !important; }
-        }
-      `}</style>
     </div>
   );
 }

@@ -234,7 +234,7 @@ export class KrakenAdapter extends BaseAdapter {
         try {
           const msg = JSON.parse(event.data);
           this._handleMessage(msg);
-        } catch { /* ignore parse errors */ }
+        } catch (e) { logger.data.warn('Operation failed', e); }
       };
 
       this._ws.onclose = () => {
@@ -254,7 +254,7 @@ export class KrakenAdapter extends BaseAdapter {
       this._ws.onerror = () => {
         this._wsConnected = false;
       };
-    } catch {
+    } catch (_) {
       this._ws = null;
     }
   }
@@ -292,7 +292,7 @@ export class KrakenAdapter extends BaseAdapter {
             this._lastPrices.set(pair, tick);
 
             for (const cb of subs) {
-              try { cb(tick); } catch { /* ignore */ }
+              try { cb(tick); } catch (e) { logger.data.warn('Operation failed', e); }
             }
           }
         }
@@ -360,7 +360,7 @@ export class KrakenAdapter extends BaseAdapter {
           type: 'CRYPTO',
           exchange: 'Kraken',
         }));
-    } catch {
+    } catch (_) {
       return [];
     }
   }

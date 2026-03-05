@@ -37,7 +37,7 @@ export default function TradeMarkerOverlay({ trade, onDismiss, onViewJournal }) 
         minWidth: 220,
         maxWidth: 280,
         boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-        animation: 'tradeOverlayIn 0.25s ease-out',
+        animation: 'scaleInSm 0.25s ease-out',
         fontFamily: F,
       }}
     >
@@ -149,12 +149,6 @@ export default function TradeMarkerOverlay({ trade, onDismiss, onViewJournal }) 
         📓 View in Journal
       </button>
 
-      <style>{`
-        @keyframes tradeOverlayIn {
-          from { opacity: 0; transform: translateY(-8px) scale(0.96); }
-          to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-      `}</style>
     </div>
   );
 }

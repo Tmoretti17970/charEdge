@@ -199,7 +199,7 @@ class _FredAdapter {
 
       const json = await resp.json();
       return json.seriess?.[0] || null;
-    } catch {
+    } catch (_) {
       return null;
     }
   }

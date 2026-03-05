@@ -1,3 +1,5 @@
+import { logger } from '../../utils/logger';
+
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — ShaderLibrary
 //
@@ -71,14 +73,14 @@ export class ShaderLibrary {
   get(name) {
     const entry = this._registry.get(name);
     if (!entry) {
-      console.warn(`[ShaderLibrary] Unknown shader: "${name}"`);
+      logger.engine.warn(`[ShaderLibrary] Unknown shader: "${name}"`);
       return null;
     }
 
     if (!entry.program) {
       entry.program = this._compile(entry.vert, entry.frag);
       if (!entry.program) {
-        console.error(`[ShaderLibrary] Failed to compile shader: "${name}"`);
+        logger.engine.error(`[ShaderLibrary] Failed to compile shader: "${name}"`);
         return null;
       }
     }
@@ -169,7 +171,7 @@ export class ShaderLibrary {
     gl.shaderSource(vert, vertSrc);
     gl.compileShader(vert);
     if (!gl.getShaderParameter(vert, gl.COMPILE_STATUS)) {
-      console.error('[ShaderLibrary] Vertex shader error:', gl.getShaderInfoLog(vert));
+      logger.engine.error('[ShaderLibrary] Vertex shader error:', gl.getShaderInfoLog(vert));
       gl.deleteShader(vert);
       return null;
     }
@@ -178,7 +180,7 @@ export class ShaderLibrary {
     gl.shaderSource(frag, fragSrc);
     gl.compileShader(frag);
     if (!gl.getShaderParameter(frag, gl.COMPILE_STATUS)) {
-      console.error('[ShaderLibrary] Fragment shader error:', gl.getShaderInfoLog(frag));
+      logger.engine.error('[ShaderLibrary] Fragment shader error:', gl.getShaderInfoLog(frag));
       gl.deleteShader(vert);
       gl.deleteShader(frag);
       return null;
@@ -190,7 +192,7 @@ export class ShaderLibrary {
     gl.linkProgram(program);
 
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      console.error('[ShaderLibrary] Link error:', gl.getProgramInfoLog(program));
+      logger.engine.error('[ShaderLibrary] Link error:', gl.getProgramInfoLog(program));
       gl.deleteProgram(program);
       gl.deleteShader(vert);
       gl.deleteShader(frag);

@@ -8,6 +8,7 @@ import React, { useMemo } from 'react';
 import { C, F, M } from '../../../../constants.js';
 import { useChartStore } from '../../../../state/useChartStore.js';
 import { INDICATORS } from '../../../../charting_library/studies/indicators/registry.js';
+import { logger } from '../../../../utils/logger';
 
 function fmt(v) {
   if (v == null || isNaN(v)) return '—';
@@ -56,7 +57,7 @@ export default function ChartInfoWindow({ data, barIdx, mouseY }) {
             });
           }
         }
-      } catch { /* ignore */ }
+      } catch (e) { logger.ui.warn('Operation failed', e); }
     }
     return result;
   }, [bar, indicators, data, barIdx]);

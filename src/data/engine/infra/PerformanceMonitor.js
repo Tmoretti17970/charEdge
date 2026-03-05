@@ -226,7 +226,7 @@ class _PerformanceMonitor {
     logger.engine.info(`[PerfMonitor] Quality: ${prevLevel} → ${level} (FPS: ${this._stats.fps}, Jank: ${this._stats.jankRate}%)`);
 
     for (const cb of this._callbacks) {
-      try { cb(level, config); } catch { /* ignore */ }
+      try { cb(level, config); } catch (e) { logger.data.warn('Operation failed', e); }
     }
   }
 }

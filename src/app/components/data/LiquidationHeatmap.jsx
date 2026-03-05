@@ -18,6 +18,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { binanceFuturesAdapter } from '../../../data/adapters/BinanceFuturesAdapter.js';
 import { bybitFuturesAdapter } from '../../../data/adapters/BybitFuturesAdapter.js';
+import { logger } from '../../../utils/logger';
 
 // ─── Constants ─────────────────────────────────────────────────
 
@@ -202,7 +203,7 @@ export default function LiquidationHeatmap({ symbol = 'BTCUSDT', currentPrice })
         bybit: bybitOI.value,
         totalOIValue: binValue + bybitValue,
       });
-    } catch { /* silent */ }
+    } catch (e) { logger.ui.warn('Operation failed', e); }
   }, [symbol, currentPrice, price]);
 
   useEffect(() => {
@@ -225,7 +226,7 @@ export default function LiquidationHeatmap({ symbol = 'BTCUSDT', currentPrice })
 
     return () => {
       clearInterval(timer);
-      for (const u of unsubs.current) { try { u(); } catch {} }
+      for (const u of unsubs.current) { try { u(); } catch (e) { logger.ui.warn('Operation failed', e); } }
       unsubs.current = [];
     };
   }, [symbol, currentPrice, fetchOI]);
