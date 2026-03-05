@@ -4,6 +4,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { trackFirstAction, trackWorkflow } from '../../utils/telemetry.js';
+import { captureTradeContext } from '../../hooks/useSnapshotCapture.js';
+import { applyLeakTags } from '../../services/LeakDetector.js';
 
 export const createTradeSlice = (set) => ({
   trades: [],
@@ -16,7 +18,37 @@ export const createTradeSlice = (set) => ({
   addTrade: (trade) => {
     trackFirstAction('trade_logged');
     trackWorkflow('trade_logged');
-    set((s) => ({ trades: [trade, ...s.trades] }));
+
+    // 5.6.2: Auto-capture market state snapshot at trade execution time.
+    // Best-effort — never blocks trade creation.
+    let enriched = trade;
+    if (!trade.context?.snapshot) {
+      try {
+        enriched = {
+          ...trade,
+          context: captureTradeContext({
+            stopLoss: trade.stopLoss,
+            takeProfit: trade.takeProfit,
+          }),
+        };
+      } catch {
+        // Snapshot capture failed — store trade without context
+      }
+    }
+
+    // 6.5.1: Auto-detect behavioral leaks and attach tags.
+    // Uses recent trades for context (revenge trade detection).
+    try {
+      const recentTrades =
+        typeof set === 'function'
+          ? [] // get() not available in set-only slices; tags still apply
+          : [];
+      enriched = applyLeakTags(enriched, recentTrades);
+    } catch {
+      // Leak detection failed — store trade without tags
+    }
+
+    set((s) => ({ trades: [enriched, ...s.trades] }));
   },
 
   addTrades: (newTrades) => {

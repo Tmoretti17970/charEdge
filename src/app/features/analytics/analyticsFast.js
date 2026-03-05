@@ -88,7 +88,7 @@ function computeFast(trades, settings = {}) {
 
   // J3.1: Day vs Hour Profit Heatmap Matrix
   const dayHourMatrix = Array.from({ length: 7 }, () =>
-    Array.from({ length: 24 }, () => ({ pnlCents: 0, count: 0, wins: 0 }))
+    Array.from({ length: 24 }, () => ({ pnlCents: 0, count: 0, wins: 0 })),
   ); // { playbook: { 0: {pnl,count}, 1: {...}, ... } }
 
   // Pre-sort index for streak computation
@@ -185,7 +185,7 @@ function computeFast(trades, settings = {}) {
 
     // J3.2: Tag Correlation
     if (Array.isArray(t.tags) && t.tags.length > 0) {
-      t.tags.forEach(tag => {
+      t.tags.forEach((tag) => {
         const normalizeTag = tag.toLowerCase().trim();
         if (!normalizeTag) return;
         if (!tagMap[normalizeTag]) {
@@ -242,7 +242,7 @@ function computeFast(trades, settings = {}) {
     const openMs = new Date(t.date).getTime();
 
     // Tilt Detection: Trade opened within 15 minutes (900,000 ms) of a recent loss ending
-    if (lastLossEndTimeMs > 0 && openMs > lastLossEndTimeMs && (openMs - lastLossEndTimeMs) <= 15 * 60 * 1000) {
+    if (lastLossEndTimeMs > 0 && openMs > lastLossEndTimeMs && openMs - lastLossEndTimeMs <= 15 * 60 * 1000) {
       tiltTradesCount++;
       tiltPnlCents += pnlC;
     }
@@ -403,15 +403,13 @@ function computeFast(trades, settings = {}) {
 
   // ─── H2.2: Calmar Ratio ─────────────────────────────────────
   // Calmar = annualized return % / max drawdown %
-  const annualizedReturnPct = numDays > 0
-    ? (totalPnl / accountProxy) * (252 / numDays) * 100
-    : 0;
-  const calmar = maxDd > 0 ? annualizedReturnPct / maxDd : (totalPnl > 0 ? Infinity : 0);
+  const annualizedReturnPct = numDays > 0 ? (totalPnl / accountProxy) * (252 / numDays) * 100 : 0;
+  const calmar = maxDd > 0 ? annualizedReturnPct / maxDd : totalPnl > 0 ? Infinity : 0;
 
   // ─── H2.2: Recovery Factor ──────────────────────────────────
   // Recovery = total P&L / max drawdown in dollars
   const maxDdDollars = accountProxy * (maxDd / 100);
-  const recoveryFactor = maxDdDollars > 0 ? totalPnl / maxDdDollars : (totalPnl > 0 ? Infinity : 0);
+  const recoveryFactor = maxDdDollars > 0 ? totalPnl / maxDdDollars : totalPnl > 0 ? Infinity : 0;
 
   // ─── H2.2: R-Multiple Distribution ──────────────────────────
   const rDistribution = computeRDistribution(trades);
@@ -446,7 +444,7 @@ function computeFast(trades, settings = {}) {
   const byDay = dayBuckets.map((b) => ({ name: b.name, pnl: fromC(b.pnlCents), count: b.count, wins: b.wins }));
   const byH = hourBuckets.map((b) => ({ hour: b.hour, pnl: fromC(b.pnlCents), count: b.count }));
   const bySt = {};
-  for (const [k, v] of Object.entries(strategyMap)) {
+  for (const [_k, v] of Object.entries(strategyMap)) {
     bySt[v.name] = { pnl: fromC(v.pnlCents), count: v.count, wins: v.wins };
   }
   const byEmo = {};
@@ -565,6 +563,16 @@ function computeFast(trades, settings = {}) {
     avgHoldTime: durationStats.avgMinutes,
     emotionCorrelation,
     streakImpact,
+    // 6.5.4: Structured expectancy for ExpectancyCard
+    expectancyDetail: {
+      value: expectancyR, // R-multiple expectancy
+      dollarValue: expectancy, // Dollar expectancy per trade
+      isNegative: expectancy < 0,
+      sampleSize: n,
+      winRate: winRate01,
+      avgWinR: avgLoss > 0 ? avgWin / avgLoss : 0,
+      avgLossR: 1, // By definition, loss = 1R
+    },
   };
 }
 
@@ -709,7 +717,14 @@ function computeRollingWindows(dailyEntries, dailyPnls) {
   return windows;
 }
 
-export { computeFast, MIN_SAMPLES, mcPropFirmPredict, computeRDistribution, computeEmotionCorrelation, computeStreakImpact };
+export {
+  computeFast,
+  MIN_SAMPLES,
+  mcPropFirmPredict,
+  computeRDistribution,
+  computeEmotionCorrelation,
+  computeStreakImpact,
+};
 export default computeFast;
 
 // ─── H2.2: R-Multiple Distribution ─────────────────────────────
@@ -720,9 +735,7 @@ export default computeFast;
  * @returns {{ buckets: Object[], mean: number, median: number, stdDev: number, count: number }}
  */
 function computeRDistribution(trades) {
-  const rValues = trades
-    .map((t) => t.rMultiple)
-    .filter((r) => r != null && isFinite(r));
+  const rValues = trades.map((t) => t.rMultiple).filter((r) => r != null && isFinite(r));
 
   if (rValues.length < 2) {
     return { buckets: [], mean: 0, median: 0, stdDev: 0, count: 0 };
@@ -772,13 +785,30 @@ function computeRDistribution(trades) {
 function computeEmotionCorrelation(trades) {
   const SENTIMENT = {
     // Negative
-    anxious: -1, fearful: -1, frustrated: -1, angry: -1, revenge: -1,
-    fomo: -1, greedy: -1, stressed: -1, panicked: -1, impatient: -1,
+    anxious: -1,
+    fearful: -1,
+    frustrated: -1,
+    angry: -1,
+    revenge: -1,
+    fomo: -1,
+    greedy: -1,
+    stressed: -1,
+    panicked: -1,
+    impatient: -1,
     // Neutral
-    neutral: 0, calm: 0, bored: 0, indifferent: 0, untagged: 0,
+    neutral: 0,
+    calm: 0,
+    bored: 0,
+    indifferent: 0,
+    untagged: 0,
     // Positive
-    confident: 1, focused: 1, disciplined: 1, patient: 1, euphoric: 0.5,
-    optimistic: 1, satisfied: 1,
+    confident: 1,
+    focused: 1,
+    disciplined: 1,
+    patient: 1,
+    euphoric: 0.5,
+    optimistic: 1,
+    satisfied: 1,
   };
 
   const pairs = [];
@@ -798,16 +828,15 @@ function computeEmotionCorrelation(trades) {
 
   // Finalize avgPnl
   for (const emo of Object.keys(emotionPnl)) {
-    emotionPnl[emo].avgPnl = emotionPnl[emo].count > 0
-      ? emotionPnl[emo].pnl / emotionPnl[emo].count
-      : 0;
+    emotionPnl[emo].avgPnl = emotionPnl[emo].count > 0 ? emotionPnl[emo].pnl / emotionPnl[emo].count : 0;
   }
 
   // Pearson r
   const n = pairs.length;
   if (n < 5) return { pearsonR: 0, sampleSize: n, emotions: emotionPnl };
 
-  let sumX = 0, sumY = 0;
+  let sumX = 0,
+    sumY = 0;
   for (let i = 0; i < n; i++) {
     sumX += pairs[i].sentiment;
     sumY += pairs[i].pnl;
@@ -815,7 +844,9 @@ function computeEmotionCorrelation(trades) {
   const meanX = sumX / n;
   const meanY = sumY / n;
 
-  let cov = 0, varX = 0, varY = 0;
+  let cov = 0,
+    varX = 0,
+    varY = 0;
   for (let i = 0; i < n; i++) {
     const dx = pairs[i].sentiment - meanX;
     const dy = pairs[i].pnl - meanY;
@@ -862,8 +893,10 @@ function computeStreakImpact(trades, sortedIdxs) {
     }
   }
 
-  let winStreakSum = 0, winStreakCount = 0;
-  let lossStreakSum = 0, lossStreakCount = 0;
+  let winStreakSum = 0,
+    winStreakCount = 0;
+  let lossStreakSum = 0,
+    lossStreakCount = 0;
   let totalSum = 0;
 
   for (let i = 0; i < n; i++) {
@@ -884,9 +917,8 @@ function computeStreakImpact(trades, sortedIdxs) {
   const avgPnlDuringLossStreak = lossStreakCount > 0 ? lossStreakSum / lossStreakCount : 0;
 
   // Streak sensitivity: how much worse/better are streak trades vs baseline
-  const streakSensitivity = avgPnlBaseline !== 0
-    ? ((avgPnlDuringWinStreak - avgPnlDuringLossStreak) / Math.abs(avgPnlBaseline))
-    : 0;
+  const streakSensitivity =
+    avgPnlBaseline !== 0 ? (avgPnlDuringWinStreak - avgPnlDuringLossStreak) / Math.abs(avgPnlBaseline) : 0;
 
   return { avgPnlDuringWinStreak, avgPnlDuringLossStreak, avgPnlBaseline, streakSensitivity };
 }
