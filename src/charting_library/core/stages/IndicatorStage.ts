@@ -23,6 +23,12 @@ export function executeIndicatorStage(fs, ctx, engine) {
   const { layers, theme: thm, indicatorCtx: iCtx } = ctx;
 
   if (!layers.isDirty(LAYERS.INDICATORS) && !fs.viewportChanged) return;
+
+  const R = engine.state.lastRender;
+  // If candle stage hasn't produced a render yet (p2y not available),
+  // skip but DON'T clear dirty — so we retry next frame.
+  if (!R) return;
+
   layers.clearDirty(LAYERS.INDICATORS);
 
   const {
@@ -31,9 +37,6 @@ export function executeIndicatorStage(fs, ctx, engine) {
     exactStart, endIdx, barSpacing: bSp, mediaWidth: mw,
     overlayInds, paneInds, paneCount, paneHeight,
   } = fs;
-
-  const R = engine.state.lastRender;
-  if (!R) return;
 
   const cBW = Math.round(cW * pr);
   const mainBH = Math.round(mainHeight * pr);
