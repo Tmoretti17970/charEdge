@@ -7,6 +7,23 @@
 import React, { useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../../constants.js';
 
+const kbdStyle = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  minWidth: 24,
+  height: 22,
+  padding: '0 6px',
+  background: `${C.sf}`,
+  border: `1px solid ${C.bd}`,
+  borderRadius: 5,
+  fontFamily: M,
+  fontSize: 11,
+  fontWeight: 600,
+  color: C.t1,
+  boxShadow: `0 1px 2px rgba(0,0,0,0.3)`,
+};
+
 const SHORTCUT_GROUPS = [
   {
     title: 'Navigation',
@@ -162,19 +179,3 @@ export default function KeyboardShortcutsOverlay({ onClose }) {
   );
 }
 
-const kbdStyle = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  minWidth: 24,
-  height: 22,
-  padding: '0 6px',
-  background: `${C.sf}`,
-  border: `1px solid ${C.bd}`,
-  borderRadius: 5,
-  fontFamily: M,
-  fontSize: 11,
-  fontWeight: 600,
-  color: C.t1,
-  boxShadow: `0 1px 2px rgba(0,0,0,0.3)`,
-};

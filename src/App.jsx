@@ -27,6 +27,7 @@ import { processPendingAchievements } from './app/components/ui/AchievementToast
 import styles from './App.module.css';
 
 import { useFocusStore } from './state/useFocusStore.js';
+import PasswordGate from './app/components/ui/PasswordGate.jsx';
 
 // Lazy-load overlay components (not needed on initial render)
 const CommandPalette = React.lazy(() => import('./app/components/ui/CommandPalette.jsx'));
@@ -170,44 +171,46 @@ export default function App() {
   }
 
   return (
-    <Suspense fallback={null}>
-      <AgeVerificationGate>
-        <div
-          key={theme}
-          className={isMobile ? styles.appRootMobile : styles.appRoot}
-        >
-          {/* Sprint 23: Skip-to-content for keyboard/screen-reader users */}
-          <a href="#tf-main-content" className={styles.skipLink}>Skip to content</a>
-          {!isMobile && <Sidebar />}
-          <ErrorBoundary resetKey={page}>
-            <div className={isMobile ? styles.mainAreaMobile : styles.mainArea}>
-              <DailyGuardBanner />
-              <div className={styles.mainContent} id="tf-main-content" role="main" aria-label="Page content">
-                <PageRouter />
+    <PasswordGate>
+      <Suspense fallback={null}>
+        <AgeVerificationGate>
+          <div
+            key={theme}
+            className={isMobile ? styles.appRootMobile : styles.appRoot}
+          >
+            {/* Sprint 23: Skip-to-content for keyboard/screen-reader users */}
+            <a href="#tf-main-content" className={styles.skipLink}>Skip to content</a>
+            {!isMobile && <Sidebar />}
+            <ErrorBoundary resetKey={page}>
+              <div className={isMobile ? styles.mainAreaMobile : styles.mainArea}>
+                <DailyGuardBanner />
+                <div className={styles.mainContent} id="tf-main-content" role="main" aria-label="Page content">
+                  <PageRouter />
+                </div>
               </div>
-            </div>
-          </ErrorBoundary>
-          {isMobile && <MobileNav />}
-          <ToastContainer />
-          <Suspense fallback={null}>
-            <CommandPalette />
-            <GlobalQuickAddModal />
-            <NotificationPanel />
-            <OnboardingWizard />
-            <LevelUpModal />
-            <MilestoneModal />
-            <SettingsSlideOver />
-            <FocusOverlay />
-            <CookieConsent />
-            <FeedbackWidget />
-            {/* Consent-gated: only load analytics when user opted in */}
-            {analyticsConsent === true && <VercelAnalytics />}
-            {analyticsConsent === true && <VercelSpeedInsights />}
-          </Suspense>
-          <KeyboardShortcuts isOpen={shortcutsOpen} onClose={closeShortcuts} />
-        </div>
-      </AgeVerificationGate>
-    </Suspense>
+            </ErrorBoundary>
+            {isMobile && <MobileNav />}
+            <ToastContainer />
+            <Suspense fallback={null}>
+              <CommandPalette />
+              <GlobalQuickAddModal />
+              <NotificationPanel />
+              <OnboardingWizard />
+              <LevelUpModal />
+              <MilestoneModal />
+              <SettingsSlideOver />
+              <FocusOverlay />
+              <CookieConsent />
+              <FeedbackWidget />
+              {/* Consent-gated: only load analytics when user opted in */}
+              {analyticsConsent === true && <VercelAnalytics />}
+              {analyticsConsent === true && <VercelSpeedInsights />}
+            </Suspense>
+            <KeyboardShortcuts isOpen={shortcutsOpen} onClose={closeShortcuts} />
+          </div>
+        </AgeVerificationGate>
+      </Suspense>
+    </PasswordGate>
   );
 }
 
