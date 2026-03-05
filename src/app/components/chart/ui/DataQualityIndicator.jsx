@@ -11,32 +11,38 @@ import React from 'react';
 import { C, F } from '../../../../constants.js';
 import { CONFIDENCE } from '../../../../data/engine/streaming/PriceAggregator.js';
 
-const CONFIDENCE_CONFIG = {
-  [CONFIDENCE.HIGH]: {
-    color: '#2dd4a0',
-    dots: 3,
-    label: 'High',
-    tooltip: 'Price confirmed by 3+ sources',
-  },
-  [CONFIDENCE.MEDIUM]: {
-    color: '#f0b64e',
-    dots: 2,
-    label: 'Med',
-    tooltip: 'Price from 2 sources',
-  },
-  [CONFIDENCE.LOW]: {
-    color: '#e8642c',
-    dots: 1,
-    label: 'Low',
-    tooltip: 'Single source — limited confidence',
-  },
-  [CONFIDENCE.STALE]: {
-    color: '#666',
-    dots: 0,
-    label: 'Stale',
-    tooltip: 'No fresh data — showing last known price',
-  },
-};
+let _confidenceConfig = null;
+function getConfidenceConfig() {
+  if (!_confidenceConfig) {
+    _confidenceConfig = {
+      [CONFIDENCE.HIGH]: {
+        color: '#2dd4a0',
+        dots: 3,
+        label: 'High',
+        tooltip: 'Price confirmed by 3+ sources',
+      },
+      [CONFIDENCE.MEDIUM]: {
+        color: '#f0b64e',
+        dots: 2,
+        label: 'Med',
+        tooltip: 'Price from 2 sources',
+      },
+      [CONFIDENCE.LOW]: {
+        color: '#e8642c',
+        dots: 1,
+        label: 'Low',
+        tooltip: 'Single source — limited confidence',
+      },
+      [CONFIDENCE.STALE]: {
+        color: '#666',
+        dots: 0,
+        label: 'Stale',
+        tooltip: 'No fresh data — showing last known price',
+      },
+    };
+  }
+  return _confidenceConfig;
+}
 
 function ConfidenceDots({ count, color }) {
   return (
@@ -58,7 +64,7 @@ function ConfidenceDots({ count, color }) {
 }
 
 export function DataQualityIndicator({ confidence, sourceCount, spread, sources }) {
-  const config = CONFIDENCE_CONFIG[confidence] || CONFIDENCE_CONFIG[CONFIDENCE.STALE];
+  const config = getConfidenceConfig()[confidence] || getConfidenceConfig()[CONFIDENCE.STALE];
 
   // Don't render if no aggregation data
   if (!confidence) return null;
@@ -121,7 +127,7 @@ export function DataQualityIndicator({ confidence, sourceCount, spread, sources 
  * Minimal inline variant for space-constrained areas.
  */
 export function DataQualityDot({ confidence }) {
-  const config = CONFIDENCE_CONFIG[confidence] || CONFIDENCE_CONFIG[CONFIDENCE.STALE];
+  const config = getConfidenceConfig()[confidence] || getConfidenceConfig()[CONFIDENCE.STALE];
   if (!confidence) return null;
 
   return (
