@@ -76,33 +76,33 @@
     </div>
   </noscript>
   <script>
-    // Error catcher — runs before module scripts to catch Safari/mobile JS crashes
+    // ─── Boot diagnostic — catches ALL failure modes including silent module load errors ───
+    window.__CE_ERRORS = [];
     window.addEventListener('error', function (e) {
-      var root = document.getElementById('root');
-      if (root && !root.hasChildNodes()) {
-        root.innerHTML = '<div style="padding:2rem;color:#ececef;font-family:sans-serif;text-align:center;max-width:500px;margin:auto;margin-top:20vh">' +
-          '<h2 style="color:#f59e0b;margin-bottom:1rem">⚠️ Loading Error</h2>' +
-          '<p style="font-size:13px;color:#888;margin-bottom:1rem">charEdge encountered an error loading on this browser.</p>' +
-          '<p style="font-size:11px;color:#ef4444;word-break:break-all;background:#1a1a2e;padding:12px;border-radius:8px;text-align:left">' +
-          (e.message || 'Unknown error') + '<br><br>' + (e.filename || '') + ':' + (e.lineno || '') +
-          '</p>' +
-          '<button onclick="location.reload()" style="margin-top:1rem;padding:10px 24px;border:none;border-radius:8px;background:#f59e0b;color:#fff;font-weight:700;cursor:pointer">Reload</button>' +
-          '</div>';
-      }
+      window.__CE_ERRORS.push('ERROR: ' + (e.message || 'Unknown') + ' @ ' + (e.filename || '?') + ':' + (e.lineno || '?'));
     });
     window.addEventListener('unhandledrejection', function (e) {
+      var msg = e.reason ? (e.reason.message || String(e.reason)) : 'Unknown rejection';
+      window.__CE_ERRORS.push('REJECT: ' + msg);
+    });
+    // After 5s, if React hasn't mounted, show diagnostics
+    setTimeout(function () {
       var root = document.getElementById('root');
-      if (root && !root.hasChildNodes()) {
-        var msg = e.reason ? (e.reason.message || String(e.reason)) : 'Unknown promise rejection';
-        root.innerHTML = '<div style="padding:2rem;color:#ececef;font-family:sans-serif;text-align:center;max-width:500px;margin:auto;margin-top:20vh">' +
-          '<h2 style="color:#f59e0b;margin-bottom:1rem">⚠️ Loading Error</h2>' +
-          '<p style="font-size:13px;color:#888;margin-bottom:1rem">charEdge encountered an error loading on this browser.</p>' +
-          '<p style="font-size:11px;color:#ef4444;word-break:break-all;background:#1a1a2e;padding:12px;border-radius:8px;text-align:left">' +
-          msg + '</p>' +
-          '<button onclick="location.reload()" style="margin-top:1rem;padding:10px 24px;border:none;border-radius:8px;background:#f59e0b;color:#fff;font-weight:700;cursor:pointer">Reload</button>' +
+      // Check if React actually rendered (it adds real DOM elements, not just comments)
+      var hasReactContent = root && root.querySelector && root.querySelector('[data-reactroot], div, section, main, form, button');
+      if (!hasReactContent) {
+        var errors = window.__CE_ERRORS;
+        var info = 'Browser: ' + navigator.userAgent + '\nErrors (' + errors.length + '):\n' + errors.join('\n');
+        root.innerHTML = '<div style="padding:2rem;color:#ececef;font-family:sans-serif;text-align:center;max-width:500px;margin:auto;margin-top:10vh">' +
+          '<h2 style="color:#f59e0b;margin-bottom:1rem;font-size:20px">charEdge failed to load</h2>' +
+          '<p style="font-size:13px;color:#aaa;margin-bottom:1.5rem">This browser may not be supported. Try Chrome or Firefox.</p>' +
+          '<pre style="font-size:10px;color:#ef4444;background:#1a1a2e;padding:12px;border-radius:8px;text-align:left;overflow:auto;max-height:300px;white-space:pre-wrap;word-break:break-all">' +
+          info.replace(/</g, '&lt;') +
+          '</pre>' +
+          '<button onclick="location.reload()" style="margin-top:1rem;padding:10px 24px;border:none;border-radius:8px;background:#f59e0b;color:#fff;font-weight:700;cursor:pointer;font-size:14px">Reload</button>' +
           '</div>';
       }
-    });
+    }, 5000);
   </script>
   <script type="module" src="/src/main.jsx"></script>
 </body>
