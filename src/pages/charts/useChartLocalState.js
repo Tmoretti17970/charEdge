@@ -45,7 +45,7 @@ export default function useChartLocalState() {
   const showQuickJournal = useChartStore((s) => s.showQuickJournal);
   const toggleQuickJournal = useChartStore((s) => s.toggleQuickJournal);
 
-  const openPanel = usePanelStore((s) => s.open);
+  const openPanel = usePanelStore((s) => s.openPanel);
   const { isMobile } = useBreakpoints();
   const enabledScriptCount = useScriptStore((s) => s.scripts.filter((sc) => sc.enabled).length);
 

@@ -1,6 +1,6 @@
 # charEdge — STRATEGIC TASK LIST v22.0
 
-> **March 6, 2026** | Score: **98**/100 | **328 / 637** tasks done (**51.5%**)
+> **March 6, 2026** | Score: **98**/100 | **338 / 637** tasks done (**53.1%**)
 > **Phase:** Launch Prep | **Target:** Beta Launch — April 15, 2026
 > **Codebase:** 1,080 files · 235,410 LOC · 270 TS (25%) · 156 tests · 17 E2E
 > **Architecture:** Unified Feedback Loop — Chart + Journal + AI are ONE organism
@@ -109,22 +109,22 @@
 
 ---
 
-## ⬜ Batch 19: Intelligence Pipe (~42h)
+## ✅ DONE — Batch 19: Intelligence Pipe (~42h)
 
-> **The Moat.** These create the defensible advantage no competitor has.
+> **Completed March 6, 2026.** The Moat — 10 intelligence features: Co-Pilot stream bar, Ghost Trade Engine, MFE/MAE tracker, TruePnL card, AlphaTag, Voice-to-Chart, trade narrative, decision tree, post-trade replay, MFE/MAE visualizer.
 
 | # | Task | ID | Status | Effort | Why Moat |
 |---|------|----|--------|--------|----------|
-| 1 | **Co-Pilot real-time wire** — FrameState→LLM→CopilotBar | 4.2.2 | ⬜ | 8h | #1 blue-ocean feature |
-| 2 | **Ghost Trade Engine** — drawing→AI watches→auto-journal | 4.1.9 | ⬜ | 6h | Zero competitors have this |
-| 3 | **MFE/MAE intra-trade tracking** | 4.1.3 | ⬜ | 4h | Pro-grade analytics |
-| 4 | **TruePnL** — fee/slippage decomposition | 4.1.4 | ⬜ | 3h | Honest P&L |
-| 5 | **AlphaTagEngine** — auto-tag trades with indicator signals | 4.1.11 | ⬜ | 4h | Makes journal queryable |
-| 6 | **Voice-to-Chart Note** — hold V, transcribe, pin to candle | 4.2.8 | ⬜ | 4h | Frictionless capture |
-| 7 | **LLM trade analysis narrative** | 4.2.3 | ⬜ | 3h | AI explains your trades |
-| 8 | **Decision Tree Journal** — forced-choice pre-trade classification | 4.3.16 | ⬜ | 4h | Unique workflow |
-| 9 | **Post-Trade Replay** — "Current vs Past Self" split panel | 4.1.16 | ⬜ | 4h | Learning accelerator |
-| 10 | **MAE/MFE Visualizer** — canvas shadow boxes + efficiency ratio | 4.1.12 | ⬜ | 6h | Visual trade analytics |
+| 1 | **Co-Pilot real-time wire** — FrameState→LLM→CopilotBar | 4.2.2 | ✅ | 8h | #1 blue-ocean feature |
+| 2 | **Ghost Trade Engine** — drawing→AI watches→auto-journal | 4.1.9 | ✅ | 6h | Zero competitors have this |
+| 3 | **MFE/MAE intra-trade tracking** | 4.1.3 | ✅ | 4h | Pro-grade analytics |
+| 4 | **TruePnL** — fee/slippage decomposition | 4.1.4 | ✅ | 3h | Honest P&L |
+| 5 | **AlphaTagEngine** — auto-tag trades with indicator signals | 4.1.11 | ✅ | 4h | Makes journal queryable |
+| 6 | **Voice-to-Chart Note** — hold V, transcribe, pin to candle | 4.2.8 | ✅ | 4h | Frictionless capture |
+| 7 | **LLM trade analysis narrative** | 4.2.3 | ✅ | 3h | AI explains your trades |
+| 8 | **Decision Tree Journal** — forced-choice pre-trade classification | 4.3.16 | ✅ | 4h | Unique workflow |
+| 9 | **Post-Trade Replay** — "Current vs Past Self" split panel | 4.1.16 | ✅ | 4h | Learning accelerator |
+| 10 | **MAE/MFE Visualizer** — canvas shadow boxes + efficiency ratio | 4.1.12 | ✅ | 6h | Visual trade analytics |
 
 ---
 
@@ -497,9 +497,9 @@
 | 14 | Indicator Settings | ✅ | 6 | 17h | TradingView-grade indicator dialogs |
 | 15 | Drawing Settings | ✅ | 5 | 12h | Fib per-level, coordinates, visibility |
 | 16 | Launch-Ready Security | ✅ | 10 | 21h | Security D → B+, WCAG AA, push, onboarding |
-| **17** | **Bug Sweep & Data Integrity** | ⬜ | **18** | **30h** | **12 critical bugs, PnL math, timestamps** |
-| **18** | **Engine Performance & 120fps** | ⬜ | **15** | **32h** | **ProMotion, physics, Retina clarity** |
-| **19** | **Intelligence Pipe** | ⬜ | **10** | **42h** | **Co-Pilot, Ghost Trades, Voice** |
+| 17 | Bug Sweep & Data Integrity | ✅ | 18 | 30h | 12 critical bugs, PnL math, timestamps |
+| 18 | Engine Performance & 120fps | ✅ | 15 | 32h | ProMotion, physics, Retina clarity |
+| 19 | Intelligence Pipe | ✅ | 10 | 42h | Co-Pilot, Ghost Trades, Voice |
 | **20** | **Data Resilience & Pipeline** | ⬜ | **10** | **28h** | **HeartbeatMonitor, round-robin, virtualization** |
 | **21** | **Drawing & Interaction Tools** | ⬜ | **13** | **25h** | **Magnet mode, hit-test, replay, equity curve** |
 | **22** | **Visual Design System** | ⬜ | **10** | **22h** | **Liquid Glass, z-index, OLED** |
@@ -511,9 +511,7 @@
 ### Score Projection
 
 ```
-Current:           █████████████████████░░  98/100   (Batches 14-16 done)
-After Batch 17:    █████████████████████░░  98       (bugs eliminated)
-After Batch 18-19: ██████████████████████░  98+      (120fps + intelligence moat)
+Current:           ██████████████████████░  98/100   (Batches 14-19 done)
 After Batch 20-22: ██████████████████████░  99       (resilience + visual design)
 After Batch 23-25: ███████████████████████  99+      (HFE + visionary features)
 ```
@@ -521,19 +519,21 @@ After Batch 23-25: ████████████████████�
 ### Critical Path to Beta Launch
 
 ```
-Batch 17 (30h) = Bug sweep — ship-safe  ← YOU ARE HERE
+Batch 17 (30h) = Bug sweep — ship-safe  ✅
          ↓
-   Batch 18 (32h) = 120fps engine
+   Batch 18 (32h) = 120fps engine  ✅
          ↓
-   Batch 19 (42h) = Intelligence moat live
+   Batch 19 (42h) = Intelligence moat live  ✅
          ↓
-   Batches 20-25 = Polish → Visionary
+   Batch 20 (28h) = Data resilience  ← YOU ARE HERE
+         ↓
+   Batches 21-25 = Tools → Visual → UX → Visionary
          ↓
    Batch 26 (20h) = Community launched
 ```
 
 > [!TIP]
-> **Bug sweep first.** Batch 17 fixes 12 confirmed bugs (WS leaks, PnL math, stale state) before adding features. Then engine performance (18) makes it feel premium, and the intelligence pipe (19) makes it defensible.
+> **Data resilience next.** Batch 20 hardens the data pipeline (heartbeat monitoring, API failover, candle virtualization) to make charEdge bullet-proof for real trading.
 
 ---
 
@@ -545,13 +545,13 @@ Batch 17 (30h) = Bug sweep — ship-safe  ← YOU ARE HERE
 PHASE 1  ██████████  100% (144 ✅   0 ⬜)  Foundation + Chart Excellence + Settings Upgrade
 PHASE 2  ███████░░░  52%  ( 59 ✅  55 ⬜)  Data & Engine Hardening + WebGPU + Pipeline  (+15 audit)
 PHASE 3  █████░░░░░  49%  ( 33 ✅  35 ⬜)  Ship & Production + Zero-Latency  (+22 audit)
-PHASE 4  ████░░░░░░  35%  ( 62 ✅ 115 ⬜)  Intelligence + Journal↔Chart + Dashboard  (+28 audit)
+PHASE 4  █████░░░░░  41%  ( 72 ✅ 105 ⬜)  Intelligence + Journal↔Chart + Dashboard  (+28 audit)
 PHASE 5  ░░░░░░░░░░   0%  (  0 ✅  39 ⬜)  Growth & Ecosystem
 PHASE 6  ░░░░░░░░░░   0%  (  0 ✅  27 ⬜)  Advanced / Think Harder
 FUTURE   ░░░░░░░░░░   0%  (  0 ✅  42 ⬜)  Post-Launch Horizon
-AUDIT    ░░░░░░░░░░   0%  (  0 ✅  77 ⬜)  19-Audit Consolidation (NEW)
+AUDIT    █████░░░░░  43%  ( 33 ✅  44 ⬜)  19-Audit Consolidation
 ────────────────────────────────────────────────────
-TOTAL    ████░░░░░░  46%  (295 ✅ 342 ⬜)  = 637 tracked tasks
+TOTAL    █████░░░░░  53%  (338 ✅ 299 ⬜)  = 637 tracked tasks
 ```
 
 ### Version History
@@ -574,7 +574,8 @@ TOTAL    ████░░░░░░  46%  (295 ✅ 342 ⬜)  = 637 tracked t
 | v21.1 | 560 | 285 | Batches 14+15 complete |
 | v21.2 | 560 | 295 | Batch 16 complete: Security D→B+ |
 | **v22.0** | **637** | **295** | **+77 from 19-audit consolidation: Batches 17-25 created (Bug Sweep, Engine 120fps, Intelligence Pipe, Data Resilience, Drawing Tools, Visual Design, Human Factors, UX Polish, Visionary Features)** |
-| **v22.1** | **637** | **328** | **Batches 17+18 complete: 18 bug fixes, 120fps engine (rAF unification, elastic pinch, Y-axis cross-fade), sanitizer hardening, test fixes** |
+| v22.1 | 637 | 328 | Batches 17+18 complete: 18 bug fixes, 120fps engine (rAF unification, elastic pinch, Y-axis cross-fade), sanitizer hardening, test fixes |
+| **v22.2** | **637** | **338** | **Batch 19 complete: Intelligence Pipe — Co-Pilot stream bar, GhostTradeEngine, MFEMAETracker, AlphaTagEngine, VoiceToChart, DecisionTreeJournal, TruePnLCard, TradeNarrativeCard, PostTradeReplayPanel, MFEMAEVisualizer (38 new tests)** |
 
 ### Audit Sources (19+ → 32)
 
@@ -602,8 +603,9 @@ TOTAL    ████░░░░░░  46%  (295 ✅ 342 ⬜)  = 637 tracked t
 | **16** | Launch Blockers | `EncryptedStore` activation, `sriHelper.js`, CSP Report-To + JSONL logging, expanded Permissions-Policy (11 APIs), `security.txt`/`SECURITY.md`, `contrastEnforcer.ts`, `ChartKeyboardNav.jsx` + ARIA, `BackupService.js` (strategy pattern), `PushManager.js` + SW push handlers, `coachmarkRegistry.ts` (12 skill-filtered tips) |
 | **17** | Bug Sweep & Data Integrity | 18 bugs fixed: WebSocket reconnect/failover, data pipeline guards, state persistence, PnL fee math, drawing coordinates, UTC timestamps, render guards |
 | **18** | Engine Performance & 120fps | 120Hz detection, dynamic FrameBudget, quintic-out physics, PixelRatio singleton, rAF loop unification (5→1), elastic pinch spring-back (0.3x + easeOutExpo), Y-axis tick cross-fade (120ms), drawing shadows, GPU depth separation |
+| **19** | Intelligence Pipe | `CopilotStreamBar.jsx` (real-time insight bar + template fallback), `GhostTradeEngine.ts` (drawing→ghost trades + live MFE/MAE), `MFEMAETracker.ts` (efficiency ratio), `AlphaTagEngine.ts` (14 indicator rules + per-tag analytics), `VoiceToChart.ts` (Web Speech API + IndexedDB), `DecisionTreeJournal.ts` (4-level pre-trade wizard), `TruePnLCard.jsx` (fee decomposition), `TradeNarrativeCard.jsx` (LLM/template story), `PostTradeReplayPanel.jsx` (MFE/MAE bands + reflection), `MFEMAEVisualizer.jsx` (scatter + bar chart) |
 
 ---
 
-> **charEdge v22.1** — 637 tasks tracked · 328 done · 309 remaining · 32 audit sources · Score 98/100
+> **charEdge v22.2** — 637 tasks tracked · 338 done · 299 remaining · 32 audit sources · Score 98/100
 > _"The modular, intelligent alternative — institutional-grade visualization + behavioral intelligence at retail pricing."_

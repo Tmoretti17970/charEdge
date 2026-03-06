@@ -22,6 +22,7 @@ import { useChartStore } from '../../state/useChartStore.js';
  */
 export default function useChartKeyboardHandler({
   setShowSnapshotPublisher,
+  setSnapshotModalOpen,
   setShowCopilot,
   setShowShortcuts,
   setShowInsights,
@@ -48,10 +49,11 @@ export default function useChartKeyboardHandler({
       if (e.key === 'Escape') {
         useChartStore.getState().setActiveTool(null);
       }
-      // Ctrl+S → open snapshot publisher
+      // Ctrl+S → open snapshot modal
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
-        setShowSnapshotPublisher(true);
+        if (setSnapshotModalOpen) setSnapshotModalOpen(true);
+        else if (setShowSnapshotPublisher) setShowSnapshotPublisher(true);
       }
       // Cmd+K / Ctrl+K → open AI Copilot
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -79,6 +81,12 @@ export default function useChartKeyboardHandler({
           setTf(tfMap[e.key]);
         }
       }
+      // Ctrl+I → toggle indicator panel (must be BEFORE plain 'i' handler)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+        e.preventDefault();
+        setShowIndicators((prev) => !prev);
+        return;
+      }
       // I key → toggle insights panel
       if (
         e.key === 'i' &&
@@ -87,11 +95,6 @@ export default function useChartKeyboardHandler({
         e.target.tagName !== 'TEXTAREA'
       ) {
         setShowInsights((prev) => !prev);
-      }
-      // Ctrl+I → toggle indicator panel
-      if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
-        e.preventDefault();
-        setShowIndicators((prev) => !prev);
       }
       // Drawing tool shortcuts (L, R, T, H)
       if (

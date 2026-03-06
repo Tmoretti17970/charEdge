@@ -70,6 +70,21 @@ export const createTradeSlice = (set, get) => ({
   setTradeMode: (on) => set({ tradeMode: on, showTradePanel: on }),
   setTradeSide: (side) => set({ tradeSide: side }),
 
+  // Convenience: enter/exit trade mode with side (used by ChartTradeToolbar)
+  enterTradeMode: (side = 'long') => set({ tradeMode: true, tradeSide: side, showTradePanel: true }),
+  exitTradeMode: () => set({
+    tradeMode: false,
+    showTradePanel: false,
+    pendingEntry: null,
+    pendingStopLoss: null,
+    pendingTakeProfit: null,
+    riskReward: null,
+    positionSize: null,
+    tradeNote: '',
+    tradePlaybook: null,
+    tradeSetup: '',
+  }),
+
   // ─── Levels ───────────────────────────────────────────────────
   setPendingEntry: (price) => {
     set({ pendingEntry: price });

@@ -113,7 +113,7 @@ function ChartsPageInner({ mountTime }) {
   } = useChartDataLoader();
 
   useChartKeyboardHandler({
-    setShowSnapshotPublisher, setShowCopilot, setShowShortcuts,
+    setShowSnapshotPublisher, setSnapshotModalOpen, setShowCopilot, setShowShortcuts,
     setShowInsights: state.setShowInsights, setShowIndicators, setDrawSidebarOpen, setFocusMode, setTf,
   });
 
@@ -157,6 +157,7 @@ function ChartsPageInner({ mountTime }) {
           fetchSymbolSearch={fetchSymbolSearch}
           onOpenPanel={(view) => openPanel(view)}
           onOpenCopilot={() => setShowCopilot(true)}
+          onSnapshot={() => setSnapshotModalOpen(true)}
           isLive={isLive} wsSupported={wsSupported} wsStatus={wsStatus}
           dataSource={dataSource} dataLoading={dataLoading}
           layoutMode={layoutMode} setLayoutMode={setLayoutMode}
@@ -267,7 +268,7 @@ function ChartsPageInner({ mountTime }) {
             )}
             {!dataLoading && dataSource === 'no_data' && (
               <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: 'var(--tf-bg)', display: 'flex' }}>
-                <NoDataState symbol={symbol} onSettingsClick={() => import('../app/components/ui/Toast.jsx').then(({ default: toast }) => toast.info('Navigate to Settings → API Keys to add your Polygon.io key.')).catch(() => {})} /> {/* intentional: Toast import is best-effort UI */}
+                <NoDataState symbol={symbol} onSettingsClick={() => import('../app/components/ui/Toast.jsx').then(({ default: toast }) => toast.info('Navigate to Settings → API Keys to add your Polygon.io key.')).catch(() => { })} /> {/* intentional: Toast import is best-effort UI */}
               </div>
             )}
             <ChartOverlays

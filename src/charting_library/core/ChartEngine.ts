@@ -219,6 +219,10 @@ export class ChartEngine {
   // Task 2.3.25: Live subscription tracking — countdown only fires when live data flows
   _hasLiveSubscription: boolean;
 
+  // Y-axis scale reset coordination: set by setProps() when symbol changes,
+  // consumed by setData() to reset the price scale even if bar count matches
+  _pendingScaleReset: boolean;
+
   /**
    * Create a new chart engine instance attached to a DOM container.
    * Initializes the 5-layer compositing system, WebGL renderer, WebGPU compute,
@@ -376,6 +380,7 @@ export class ChartEngine {
     // Task 2.3.25: Guard with _hasLiveSubscription — when no live data flows,
     // the interval is a no-op so the GPU can sleep at 0% utilization.
     this._hasLiveSubscription = false;
+    this._pendingScaleReset = false;
     this._countdownTick = 0;
     this._countdownInterval = setInterval(() => {
       if (!this._hasLiveSubscription) return;
@@ -572,6 +577,30 @@ export class ChartEngine {
       this.state.scrollOffset = 0;
     }
 
+    // Bug fix: Reset price scale when data set changes (symbol/TF switch)
+    // Without this, the Y-axis stays at the previous symbol's price range.
+    // Uses _pendingScaleReset flag (set by setProps) OR detects huge price range change.
+    if (bars.length > 0) {
+      const needsReset = this._pendingScaleReset;
+      // Heuristic: if the new data's midpoint is 5x different from old, force reset
+      if (!needsReset && this.bars.length > 0) {
+        const oldMid = (this.bars[this.bars.length - 1].high + this.bars[this.bars.length - 1].low) / 2;
+        const newMid = (bars[bars.length - 1].high + bars[bars.length - 1].low) / 2;
+        const ratio = oldMid > 0 ? newMid / oldMid : 0;
+        if (ratio < 0.2 || ratio > 5) {
+          this.state.priceScale = 1;
+          this.state.priceScroll = 0;
+          this.state.autoScale = true;
+        }
+      }
+      if (needsReset) {
+        this.state.priceScale = 1;
+        this.state.priceScroll = 0;
+        this.state.autoScale = true;
+        this._pendingScaleReset = false;
+      }
+    }
+
     this.bars = bars;
     // Populate typed array buffer for high-perf access
     this._barBuffer.fromArray(bars);
@@ -658,8 +687,14 @@ export class ChartEngine {
     this.timeframe = this.props.tf || this.timeframe;
     this.markDirty();
 
-    // Sprint 13.1: Auto-load drawings when symbol or timeframe changes
+    // Bug fix: Reset price scale when symbol or timeframe changes.
+    // Without this, the Y-axis stays locked to the previous symbol's range
+    // (e.g., BTC ~68000 when switching to AAPL ~260).
     if (this.symbol !== prevSymbol || this.timeframe !== prevTf) {
+      this.state.priceScale = 1;
+      this.state.priceScroll = 0;
+      this.state.autoScale = true;
+      this._pendingScaleReset = true; // Signal to setData() in case it arrives before this effect
       this.loadSavedDrawings();
     }
   }

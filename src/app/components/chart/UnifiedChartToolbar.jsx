@@ -147,6 +147,7 @@ export default function UnifiedChartToolbar({
   fetchSymbolSearch,
   onOpenPanel, // new prop to handle opening secondary panels in SlidePanel
   onOpenCopilot, // Phase 2 AI
+  onSnapshot, // Snapshot callback
   // Data source props for badge
   isLive, wsSupported, wsStatus, dataSource, dataLoading,
   // Layout
@@ -277,6 +278,7 @@ export default function UnifiedChartToolbar({
           onOpenPanel={onOpenPanel}
           onOpenCopilot={onOpenCopilot}
           onToggleAnalysis={onToggleAnalysis}
+          onSnapshot={onSnapshot}
           layoutMode={layoutMode} setLayoutMode={setLayoutMode}
         />
       </div>

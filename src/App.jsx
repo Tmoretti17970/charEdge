@@ -140,7 +140,10 @@ export default function App() {
     animationBudget.start();
 
     // Task 2.3.23: Check for crash recovery state on boot
+    let recoveryHandled = false;
     import('./charting_library/core/SessionRecovery.js').then(({ getRecoveryState, clearRecoveryState }) => {
+      if (recoveryHandled) return;
+      recoveryHandled = true;
       getRecoveryState().then((recovery) => {
         if (!recovery) return;
         // Show recovery toast via existing Toast system

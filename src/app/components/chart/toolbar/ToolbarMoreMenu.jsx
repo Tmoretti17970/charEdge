@@ -28,6 +28,7 @@ export default function ToolbarMoreMenu({
   onOpenPanel,
   onOpenCopilot,
   onToggleAnalysis,
+  onSnapshot,
   layoutMode, setLayoutMode,
 }) {
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -88,12 +89,12 @@ export default function ToolbarMoreMenu({
           <div className="tf-chart-dropdown-label">TRADING</div>
 
           {!isMobile && (
-            <MenuItem onClick={() => { setMoreMenuOpen(false); }}>
+            <div style={{ padding: '4px 8px' }}>
               <ChartTradeToolbar />
-            </MenuItem>
+            </div>
           )}
-          <MenuItem onClick={() => { useChartStore.getState().togglePositionSizer(); setMoreMenuOpen(false); }}>⚖️ Position Sizer</MenuItem>
-          <MenuItem onClick={() => { useChartStore.getState().toggleQuickJournal(); setMoreMenuOpen(false); }}>📝 Quick Journal</MenuItem>
+          <MenuItem onClick={() => { onOpenPanel('positionSizer'); setMoreMenuOpen(false); }}>⚖️ Position Sizer</MenuItem>
+          <MenuItem onClick={() => { onOpenPanel('quickJournal'); setMoreMenuOpen(false); }}>📝 Quick Journal</MenuItem>
 
           <div className="tf-chart-dropdown-sep" />
           <div className="tf-chart-dropdown-label">STRATEGY & AI</div>
@@ -121,7 +122,7 @@ export default function ToolbarMoreMenu({
           <MenuItem onClick={() => { onOpenPanel('scripts'); setMoreMenuOpen(false); }}>⌨️ Script Editor</MenuItem>
           <MenuItem onClick={() => { onOpenPanel('insights'); setMoreMenuOpen(false); }}>🧠 AI Insights</MenuItem>
           <MenuItem onClick={() => { onOpenPanel('annotations'); setMoreMenuOpen(false); }}>📝 Annotations</MenuItem>
-          <MenuItem onClick={() => { document.dispatchEvent(new KeyboardEvent('keydown', { key: 's', ctrlKey: true })); setMoreMenuOpen(false); }}>📸 Share Snapshot</MenuItem>
+          <MenuItem onClick={() => { onSnapshot && onSnapshot(); setMoreMenuOpen(false); }}>📸 Share Snapshot</MenuItem>
 
           <div className="tf-chart-dropdown-sep" />
           <div className="tf-chart-dropdown-label">OVERLAYS</div>
@@ -208,11 +209,11 @@ export default function ToolbarMoreMenu({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 5, padding: '4px 8px 8px' }}>
             {[
               { id: '1x1', label: 'Single', grid: [[1]] },
-              { id: '2x1', label: '2 Col', grid: [[1,1]] },
-              { id: '1x2', label: '2 Row', grid: [[1],[1]] },
-              { id: '3x1', label: '3 Col', grid: [[1,1,1]] },
-              { id: '1x3', label: '3 Row', grid: [[1],[1],[1]] },
-              { id: '2x2', label: 'Quad', grid: [[1,1],[1,1]] },
+              { id: '2x1', label: '2 Col', grid: [[1, 1]] },
+              { id: '1x2', label: '2 Row', grid: [[1], [1]] },
+              { id: '3x1', label: '3 Col', grid: [[1, 1, 1]] },
+              { id: '1x3', label: '3 Row', grid: [[1], [1], [1]] },
+              { id: '2x2', label: 'Quad', grid: [[1, 1], [1, 1]] },
             ].map(lo => {
               const isActive = layoutMode === lo.id;
               return (

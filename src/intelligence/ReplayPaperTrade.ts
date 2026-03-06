@@ -56,6 +56,8 @@ export class ReplayPaperTrade {
 
     /** Wire up to the replay engine's bar-advance events */
     connect(): void {
+        // Safety: engine may be a ChartEngine (no .on method) instead of ReplayEngine
+        if (typeof this.engine?.on !== 'function') return;
         this.unsubscribe = this.engine.on('bar-advance', (data: { bar: ReplayBar; index: number }) => {
             this.onBarAdvance(data.bar, data.index);
         });
