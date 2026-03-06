@@ -1,6 +1,6 @@
 # charEdge — STRATEGIC TASK LIST v22.0
 
-> **March 6, 2026** | Score: **98**/100 | **325 / 637** tasks done (**51%**)
+> **March 6, 2026** | Score: **98**/100 | **328 / 637** tasks done (**51.5%**)
 > **Phase:** Launch Prep | **Target:** Beta Launch — April 15, 2026
 > **Codebase:** 1,080 files · 235,410 LOC · 270 TS (25%) · 156 tests · 17 E2E
 > **Architecture:** Unified Feedback Loop — Chart + Journal + AI are ONE organism
@@ -85,9 +85,9 @@
 
 ---
 
-## ⬜ Batch 18: Engine Performance & 120fps (~32h)
+## ✅ DONE — Batch 18: Engine Performance & 120fps (~32h)
 
-> **Priority: HIGH.** 12/15 tasks complete. 120Hz detection, dynamic budgets, quintic-out physics, PixelRatio singleton, drawing shadows.
+> **Completed March 6, 2026.** 15/15 tasks done. 120Hz detection, dynamic budgets, quintic-out physics, PixelRatio singleton, drawing shadows, rAF unification, elastic pinch, Y-axis cross-fade.
 
 | # | Task | ID | Status | Effort | Source Audit |
 |---|------|----|----|--------|--------|
@@ -96,11 +96,11 @@
 | 3 | **Reduce pan layer dirtying** — only DATA+UI during inertia, not INDICATORS/DRAWINGS | B1.2 | ✅ | 2h | High-FPS Render |
 | 4 | **Dynamic `MicroJankDetector` budget** — accept configurable `budgetMs` | B1.3 | ✅ | 1h | High-FPS Render |
 | 5 | **Cache `getBoundingClientRect()`** in InputManager — invalidate on resize | B1.5 | ✅ | 1h | High-FPS Render |
-| 6 | **Unify inertia rAF into engine renderLoop** — eliminate 4 separate rAF loops | B1.6 | ⬜ | 3h | High-FPS Render |
+| 6 | **Unify inertia rAF into engine renderLoop** — eliminate 5 separate rAF loops | B1.6 | ✅ | 3h | High-FPS Render |
 | 7 | **Quintic-out pan deceleration** — replace linear `v *= 0.96` with time-normalized curve | B2.1 | ✅ | 3h | Interaction Physics |
 | 8 | **Float-precise zoom settle** — compute offset before integer snap | B2.2 | ✅ | 2h | Interaction Physics |
-| 9 | **Elastic touch pinch** — spring-back on release via `_targetVisibleBars` | B2.3 | ⬜ | 2h | Interaction Physics |
-| 10 | **Y-axis scale cross-fade** — interpolate tick step changes over 120ms | B2.4 | ⬜ | 3h | Interaction Physics |
+| 9 | **Elastic touch pinch** — spring-back on release with 0.3x resistance + easeOutExpo | B2.3 | ✅ | 2h | Interaction Physics |
+| 10 | **Y-axis scale cross-fade** — interpolate tick step changes over 120ms | B2.4 | ✅ | 3h | Interaction Physics |
 | 11 | **Centralized `PixelRatio.js` singleton** — replace 35+ ad-hoc DPR reads | B3.1 | ✅ | 3h | Sub-Pixel Retina |
 | 12 | **`snapToPixel` / `snapLineToPixel` utilities** — consistent half-pixel offset | B3.2 | ✅ | 2h | Sub-Pixel Retina |
 | 13 | **DPR change listener** — `onPixelRatioChange` for display switching | B3.3 | ✅ | 1h | Sub-Pixel Retina |
@@ -574,6 +574,7 @@ TOTAL    ████░░░░░░  46%  (295 ✅ 342 ⬜)  = 637 tracked t
 | v21.1 | 560 | 285 | Batches 14+15 complete |
 | v21.2 | 560 | 295 | Batch 16 complete: Security D→B+ |
 | **v22.0** | **637** | **295** | **+77 from 19-audit consolidation: Batches 17-25 created (Bug Sweep, Engine 120fps, Intelligence Pipe, Data Resilience, Drawing Tools, Visual Design, Human Factors, UX Polish, Visionary Features)** |
+| **v22.1** | **637** | **328** | **Batches 17+18 complete: 18 bug fixes, 120fps engine (rAF unification, elastic pinch, Y-axis cross-fade), sanitizer hardening, test fixes** |
 
 ### Audit Sources (19+ → 32)
 
@@ -599,8 +600,10 @@ TOTAL    ████░░░░░░  46%  (295 ✅ 342 ⬜)  = 637 tracked t
 | **14** | Indicator Settings | `SettingsTabShell`, `SettingsControls` (7 shared controls), 3-tab `IndicatorSettingsDialog` (Inputs/Style/Visibility), `indicatorSlice` extension (6 new actions), `ChartSettingsPanel` refactor |
 | **15** | Drawing Settings | `DrawingSettingsDialog` (Style with Fib levels/Coordinates/Visibility), `drawingSlice` defaults extension, gear icon bridge in `DrawingEditPopup` |
 | **16** | Launch Blockers | `EncryptedStore` activation, `sriHelper.js`, CSP Report-To + JSONL logging, expanded Permissions-Policy (11 APIs), `security.txt`/`SECURITY.md`, `contrastEnforcer.ts`, `ChartKeyboardNav.jsx` + ARIA, `BackupService.js` (strategy pattern), `PushManager.js` + SW push handlers, `coachmarkRegistry.ts` (12 skill-filtered tips) |
+| **17** | Bug Sweep & Data Integrity | 18 bugs fixed: WebSocket reconnect/failover, data pipeline guards, state persistence, PnL fee math, drawing coordinates, UTC timestamps, render guards |
+| **18** | Engine Performance & 120fps | 120Hz detection, dynamic FrameBudget, quintic-out physics, PixelRatio singleton, rAF loop unification (5→1), elastic pinch spring-back (0.3x + easeOutExpo), Y-axis tick cross-fade (120ms), drawing shadows, GPU depth separation |
 
 ---
 
-> **charEdge v22.0** — 637 tasks tracked · 295 done · 342 remaining · 32 audit sources · Score 98/100
+> **charEdge v22.1** — 637 tasks tracked · 328 done · 309 remaining · 32 audit sources · Score 98/100
 > _"The modular, intelligent alternative — institutional-grade visualization + behavioral intelligence at retail pricing."_
