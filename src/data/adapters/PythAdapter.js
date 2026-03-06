@@ -108,6 +108,8 @@ export class PythAdapter extends BaseAdapter {
     return !!this._resolveFeed(symbol);
   }
 
+  latencyTier() { return 'realtime'; }
+
   /**
    * Resolve a charEdge symbol to a Pyth feed entry.
    * Handles aliases: 'BTCUSDT' → 'BTC', 'AAPL' → 'AAPL', etc.

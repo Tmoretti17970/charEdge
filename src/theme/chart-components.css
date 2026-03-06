@@ -26,6 +26,25 @@ html.theme-light .tf-chart-toolbar {
   border-bottom-color: rgba(212, 215, 224, 0.7);
 }
 
+/* ─── Task 1.4.8: Toolbar Auto-Hide / Ghosting ──────────────── */
+/* After 5s of inactivity, toolbar fades to ghost state.
+   Hover or any interaction restores full opacity instantly. */
+
+.tf-chart-toolbar {
+  transition: opacity 0.3s ease;
+}
+
+.tf-chart-toolbar.tf-toolbar-ghost {
+  opacity: 0.2;
+  pointer-events: auto; /* Keep interactive so hover restores it */
+}
+
+.tf-chart-toolbar.tf-toolbar-ghost:hover,
+.tf-chart-toolbar.tf-toolbar-ghost:focus-within {
+  opacity: 1;
+  transition-duration: 0.15s;
+}
+
 /* ─── Toolbar Button (Pill-Style) ────────────────────────────── */
 
 .tf-chart-toolbar-btn {

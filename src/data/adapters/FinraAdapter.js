@@ -239,4 +239,5 @@ class _FinraAdapter {
 // ─── Singleton + Exports ──────────────────────────────────────
 
 export const finraAdapter = new _FinraAdapter();
+
 export default finraAdapter;

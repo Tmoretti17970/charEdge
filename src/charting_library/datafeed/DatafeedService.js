@@ -98,10 +98,12 @@ class DatafeedService {
         }
       } catch (e) { logger.engine.warn('Operation failed', e); }
 
-      // No data available from any source
+      // No data available from any source (expected for symbols without configured data feeds)
       entry.status = 'error';
+      const msg = `No data available for ${baseSym}`;
+      logger.engine.info(msg);
       entry.subscribers.forEach(sub => {
-        if (sub.onError) sub.onError(new Error(`No data available for ${baseSym}`));
+        if (sub.onError) sub.onError(new Error(msg));
       });
       return;
     }
@@ -195,12 +197,14 @@ class DatafeedService {
       // Only reconnect if the subscription is still active (not cleaned up)
       if (this.cache.has(key) && this.cache.get(key).subscribers.size > 0) {
         useChartStore.getState().setWsStatus(WS_STATUS.RECONNECTING);
+        const baseDelay = 5000;
+        const jitter = Math.random() * baseDelay * 0.5; // 0–2500ms jitter prevents thundering herd
         const timer = setTimeout(() => {
           this._reconnectTimers.delete(key);
           if (this.cache.has(key) && this.cache.get(key).subscribers.size > 0) {
             this._startWebSocket(symbol, tf, key);
           }
-        }, 5000);
+        }, baseDelay + jitter);
         this._reconnectTimers.set(key, timer);
       } else {
         useChartStore.getState().setWsStatus(WS_STATUS.DISCONNECTED);

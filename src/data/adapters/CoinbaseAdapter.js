@@ -87,6 +87,8 @@ export class CoinbaseAdapter extends BaseAdapter {
     return upper.endsWith('USDT') || upper.endsWith('USD') || upper.endsWith('USDC');
   }
 
+  latencyTier() { return 'realtime'; }
+
   async fetchOHLCV(symbol, interval = '1h', opts = {}) {
     const productId = toCoinbaseProductId(symbol);
     const granularity = INTERVAL_MAP[interval] || 3600;

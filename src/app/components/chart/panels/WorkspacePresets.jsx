@@ -17,12 +17,15 @@ export default function WorkspacePresets() {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveName, setSaveName] = useState('');
+  const [renamingId, setRenamingId] = useState(null); // Task 1.1.6: inline rename
+  const [renameValue, setRenameValue] = useState('');
   const ref = useRef(null);
 
   const activePreset = useWorkspaceStore((s) => s.activePreset);
   const workspaces = useWorkspaceStore((s) => s.workspaces);
   const applyPreset = useWorkspaceStore((s) => s.applyPreset);
   const remove = useWorkspaceStore((s) => s.remove);
+  const rename = useWorkspaceStore((s) => s.rename);
 
   // Close on outside click
   useEffect(() => {
@@ -64,6 +67,32 @@ export default function WorkspacePresets() {
     setSaving(false);
   }, [saveName]);
 
+  // Task 1.1.6: Commit inline rename
+  const commitRename = useCallback(() => {
+    if (renamingId && renameValue.trim()) {
+      rename(renamingId, renameValue.trim());
+    }
+    setRenamingId(null);
+    setRenameValue('');
+  }, [renamingId, renameValue, rename]);
+
+  // Task 1.1.6: Ctrl+1..4 keyboard shortcuts for built-in presets
+  useEffect(() => {
+    const handler = (e) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      const idx = parseInt(e.key) - 1;
+      if (idx >= 0 && idx < BUILT_IN_PRESETS.length) {
+        e.preventDefault();
+        const state = applyPreset(BUILT_IN_PRESETS[idx].id);
+        if (state) {
+          restoreState(state, { chartStore: useChartStore });
+        }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [applyPreset]);
+
   // Find active label
   const builtIn = BUILT_IN_PRESETS.find((p) => p.id === activePreset);
   const customWs = workspaces.find((w) => w.id === activePreset);
@@ -81,10 +110,10 @@ export default function WorkspacePresets() {
         style={{ gap: 4, fontSize: 11 }}
       >
         <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.6 }}>
-          <rect x="1" y="1" width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-          <rect x="8" y="1" width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-          <rect x="1" y="8" width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-          <rect x="8" y="8" width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.2" fill="none"/>
+          <rect x="1" y="1" width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.2" fill="none" />
+          <rect x="8" y="1" width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.2" fill="none" />
+          <rect x="1" y="8" width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.2" fill="none" />
+          <rect x="8" y="8" width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.2" fill="none" />
         </svg>
         {activeLabel && (
           <span style={{ maxWidth: 70, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -171,17 +200,48 @@ export default function WorkspacePresets() {
                       className="tf-chart-dropdown-item"
                       data-active={isActive || undefined}
                       onClick={() => handleLoadCustom(ws)}
+                      onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        setRenamingId(ws.id);
+                        setRenameValue(ws.name);
+                      }}
                       style={{ flex: 1, textAlign: 'left' }}
                     >
                       <span style={{ fontSize: 14, width: 22, textAlign: 'center', flexShrink: 0 }}>📂</span>
-                      <span style={{
-                        fontSize: 12,
-                        fontWeight: isActive ? 600 : 500,
-                        color: isActive ? C.b : C.t1,
-                        fontFamily: F,
-                      }}>
-                        {ws.name}
-                      </span>
+                      {renamingId === ws.id ? (
+                        <input
+                          autoFocus
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') commitRename();
+                            if (e.key === 'Escape') { setRenamingId(null); setRenameValue(''); }
+                            e.stopPropagation();
+                          }}
+                          onBlur={commitRename}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            flex: 1,
+                            background: C.bg,
+                            border: `1px solid ${C.bd}`,
+                            borderRadius: 4,
+                            padding: '2px 6px',
+                            fontSize: 12,
+                            fontFamily: F,
+                            color: C.t1,
+                            outline: 'none',
+                          }}
+                        />
+                      ) : (
+                        <span style={{
+                          fontSize: 12,
+                          fontWeight: isActive ? 600 : 500,
+                          color: isActive ? C.b : C.t1,
+                          fontFamily: F,
+                        }}>
+                          {ws.name}
+                        </span>
+                      )}
                       {isActive && (
                         <span style={{ marginLeft: 'auto', color: C.b, fontSize: 13, fontWeight: 700 }}>✓</span>
                       )}

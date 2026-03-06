@@ -58,6 +58,8 @@ export class BybitAdapter extends BaseAdapter {
     return upper.endsWith('USDT') || upper.endsWith('USDC');
   }
 
+  latencyTier() { return 'realtime'; }
+
   async fetchOHLCV(symbol, interval = '1h', opts = {}) {
     const bybitInterval = INTERVAL_MAP[interval] || '60';
     const limit = Math.min(opts.limit || 200, 1000);

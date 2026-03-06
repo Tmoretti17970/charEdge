@@ -275,20 +275,20 @@ function getLastWarning() {
 function warmCache(sym, currentTfId) {
   // Now warming all asset types since Yahoo provides equity data too
 
-  // Only warm 2 adjacent timeframes instead of all to reduce network load
+  // Only warm 1 adjacent timeframe to minimize rate-limit pressure
   const ADJACENT = {
-    '1m': ['5m', '15m'],
-    '5m': ['1m', '15m'],
-    '15m': ['5m', '30m'],
-    '30m': ['15m', '1h'],
-    '1h': ['30m', '4h'],
-    '4h': ['1h', '1D'],
-    '1D': ['4h', '1w'],
-    '1w': ['1D', '4h'],
+    '1m': ['5m'],
+    '5m': ['15m'],
+    '15m': ['1h'],
+    '30m': ['1h'],
+    '1h': ['4h'],
+    '4h': ['1D'],
+    '1D': ['1w'],
+    '1w': ['1D'],
   };
-  const toWarm = ADJACENT[currentTfId] || ['1m', '5m'];
+  const toWarm = ADJACENT[currentTfId] || ['1D'];
 
-  // Stagger fetches 300ms apart to avoid burst
+  // Stagger fetches 2s apart to avoid hitting Polygon's 5 req/min free tier limit
   toWarm.forEach((tfId, i) => {
     setTimeout(
       () => {
@@ -298,7 +298,7 @@ function warmCache(sym, currentTfId) {
         // Background fetch — errors silently caught
         fetchOHLC(sym, tfId).catch((err) => pipelineLogger.debug('FetchService', `Cache warm failed: ${sym}:${tfId}`, err));
       },
-      (i + 1) * 300,
+      (i + 1) * 2000,
     );
   });
 }

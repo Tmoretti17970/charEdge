@@ -225,4 +225,5 @@ class _CBOEAdapter {
 // ─── Singleton + Exports ──────────────────────────────────────
 
 export const cboeAdapter = new _CBOEAdapter();
+
 export default cboeAdapter;

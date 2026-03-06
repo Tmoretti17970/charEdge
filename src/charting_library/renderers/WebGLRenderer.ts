@@ -19,7 +19,7 @@ import { TextAtlas } from '../gpu/TextAtlas.js';
 import { ShaderLibrary } from '../gpu/ShaderLibrary.js';
 import { drawCandles as _drawCandles, updateLastCandle as _updateLastCandle } from './CandleRenderer.ts';
 import type { CandleParams, CandleTheme, CandleBar } from './CandleRenderer.ts';
-import { drawVolume as _drawVolume } from './VolumeRenderer.ts';
+import { drawVolume as _drawVolume, updateLastVolume as _updateLastVolume } from './VolumeRenderer.ts';
 import { drawLine as _drawLine, drawArea as _drawArea, drawAALine as _drawAALine } from './LineRenderer.ts';
 import { drawVolumeProfile as _drawVolumeProfile, drawHeatmap as _drawHeatmap } from './ProfileRenderer.ts';
 import { drawFibFill as _drawFibFill } from './FibRenderer.ts';
@@ -433,6 +433,14 @@ export class WebGLRenderer {
   /** Draw volume bars via WebGL. */
   drawVolume(bars: CandleBar[], params: RenderParams, theme: VolumeTheme): void {
     _drawVolume(this as any, bars, params, theme);
+  }
+
+  /**
+   * Update only the last volume bar's instance data via bufferSubData.
+   * Task 2.3.13: Avoids full volume buffer re-upload on live ticks.
+   */
+  updateLastVolume(bar: CandleBar, params: RenderParams, theme: VolumeTheme): boolean {
+    return _updateLastVolume(this as any, bar, params, theme);
   }
 
   // ─── Sprint 3: GPU-Translated Pan-Only Redraw ────────────────

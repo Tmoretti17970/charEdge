@@ -9,7 +9,9 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
 
 const STORAGE_KEY = 'charedge_pwa_dismissed';
+const SESSION_COUNT_KEY = 'charedge_pwa_sessions';
 const DISMISS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
+const MIN_SESSIONS = 3; // Show after 3rd session
 
 const PWAInstallPrompt = memo(function PWAInstallPrompt() {
     const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -17,6 +19,13 @@ const PWAInstallPrompt = memo(function PWAInstallPrompt() {
     const [installed, setInstalled] = useState(false);
 
     useEffect(() => {
+        // Track session count
+        const sessions = parseInt(localStorage.getItem(SESSION_COUNT_KEY) || '0', 10) + 1;
+        localStorage.setItem(SESSION_COUNT_KEY, String(sessions));
+
+        // Don't show until 3rd session
+        if (sessions < MIN_SESSIONS) return;
+
         // Check if already dismissed recently
         const dismissed = localStorage.getItem(STORAGE_KEY);
         if (dismissed && Date.now() - parseInt(dismissed, 10) < DISMISS_DURATION) return;
@@ -27,8 +36,8 @@ const PWAInstallPrompt = memo(function PWAInstallPrompt() {
         const handler = (e) => {
             e.preventDefault();
             setDeferredPrompt(e);
-            // Delay showing to avoid interrupting first visit
-            setTimeout(() => setVisible(true), 30_000);
+            // Delay showing to avoid interrupting current flow
+            setTimeout(() => setVisible(true), 15_000);
         };
 
         window.addEventListener('beforeinstallprompt', handler);

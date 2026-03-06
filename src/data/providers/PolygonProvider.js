@@ -3,6 +3,10 @@
 //
 // OHLCV fetching + WebSocket adapter for Polygon.io equities data.
 // Free tier: 5 req/min, delayed 15min for equities.
+//
+// All requests routed through /api/proxy/polygon/ — the server-side
+// proxy injects the API key from env vars, keeping it out of the
+// client JS bundle.
 // ═══════════════════════════════════════════════════════════════════
 
 import { isCrypto } from '../../constants.js';
@@ -10,6 +14,8 @@ import { getApiKey, hasApiKey } from './ApiKeyStore.js';
 import { logger } from '../../utils/logger';
 
 // ─── Polygon.io REST Adapter ────────────────────────────────────
+
+const PROXY_BASE = '/api/proxy/polygon';
 
 export const POLYGON_TF_MAP = {
   '1m': { multiplier: 1, timespan: 'minute', limit: 390 },
@@ -23,7 +29,7 @@ export const POLYGON_TF_MAP = {
 };
 
 /**
- * Fetch OHLCV from Polygon.io Aggregates API.
+ * Fetch OHLCV from Polygon.io Aggregates API (via server proxy).
  * Free tier: 5 req/min, delayed 15min for equities.
  *
  * @param {string} sym - Ticker symbol (e.g., 'AAPL')
@@ -31,31 +37,28 @@ export const POLYGON_TF_MAP = {
  * @returns {Array|null} OHLCV array or null
  */
 export async function fetchPolygon(sym, tfId) {
-  const key = getApiKey('polygon');
-  if (!key) return null;
-
   const tf = POLYGON_TF_MAP[tfId];
   if (!tf) return null;
 
   // Date range
   const to = new Date();
   const from = new Date();
-  // Date range based on timeframe — use TFS IDs (uppercase 1D, not 1d)
+  // Date range based on timeframe — fetch as much history as Polygon allows
   if (tfId === '1m') from.setDate(from.getDate() - 2);        // 1-minute: 2 days
-  else if (tfId === '5m') from.setDate(from.getDate() - 10);   // 5-minute: 10 days
-  else if (tfId === '15m') from.setDate(from.getDate() - 30);  // 15-minute: 30 days
-  else if (tfId === '30m') from.setDate(from.getDate() - 60);  // 30-minute: 60 days
-  else if (tfId === '1h') from.setDate(from.getDate() - 90);   // 1-hour: 90 days
-  else if (tfId === '4h') from.setDate(from.getDate() - 180);  // 4-hour: 180 days
-  else if (tfId === '1D') from.setFullYear(from.getFullYear() - 1); // Daily: 1 year
-  else if (tfId === '1w') from.setFullYear(from.getFullYear() - 5); // Weekly: 5 years
-  else from.setFullYear(from.getFullYear() - 1);               // Fallback: 1 year
+  else if (tfId === '5m') from.setDate(from.getDate() - 15);   // 5-minute: 15 days
+  else if (tfId === '15m') from.setDate(from.getDate() - 60);  // 15-minute: 60 days
+  else if (tfId === '30m') from.setDate(from.getDate() - 120); // 30-minute: 120 days
+  else if (tfId === '1h') from.setDate(from.getDate() - 180);  // 1-hour: 6 months
+  else if (tfId === '4h') from.setFullYear(from.getFullYear() - 1); // 4-hour: 1 year
+  else if (tfId === '1D') from.setFullYear(from.getFullYear() - 3); // Daily: 3 years
+  else if (tfId === '1w') from.setFullYear(from.getFullYear() - 10); // Weekly: 10 years
+  else from.setFullYear(from.getFullYear() - 3);               // Fallback: 3 years
 
   const fromStr = from.toISOString().slice(0, 10);
   const toStr = to.toISOString().slice(0, 10);
 
   try {
-    const url = `https://api.polygon.io/v2/aggs/ticker/${encodeURIComponent(sym)}/range/${tf.multiplier}/${tf.timespan}/${fromStr}/${toStr}?adjusted=true&sort=asc&limit=${tf.limit}&apiKey=${key}`;
+    const url = `${PROXY_BASE}/v2/aggs/ticker/${encodeURIComponent(sym)}/range/${tf.multiplier}/${tf.timespan}/${fromStr}/${toStr}?adjusted=true&sort=asc&limit=${tf.limit}`;
     const res = await fetch(url);
     if (!res.ok) return null;
 

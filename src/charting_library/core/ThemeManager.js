@@ -241,6 +241,127 @@ export const TRADINGVIEW_PRO_THEME = {
 THEMES['bloomberg'] = BLOOMBERG_THEME;
 THEMES['tradingview-pro'] = TRADINGVIEW_PRO_THEME;
 
+// Task 1.4.20: Colorblind-safe palettes (WCAG AA contrast ≥ 4.5:1)
+/** Deuteranopia-safe theme (blue/orange — avoids red-green confusion) */
+export const COLORBLIND_DEUTAN_THEME = {
+  name: 'colorblind-deutan',
+  background: '#131722',
+  foreground: '#D1D4DC',
+  axisBackground: '#1E222D',
+  axisBorder: 'rgba(54, 58, 69, 0.6)',
+  textPrimary: '#D1D4DC',
+  textSecondary: '#787B86',
+  textDisabled: '#4E5266',
+  gridColor: 'rgba(54, 58, 69, 0.3)',
+  crosshairColor: 'rgba(149, 152, 161, 0.5)',
+  candleUp: '#4393E5',    // Blue — safe for all CVD types
+  candleDown: '#E57A24',  // Orange — distinguishable from blue
+  candleUpWick: '#4393E5',
+  candleDownWick: '#E57A24',
+  volumeUp: 'rgba(67, 147, 229, 0.3)',
+  volumeDown: 'rgba(229, 122, 36, 0.3)',
+  lineColor: '#4393E5',
+  areaTopColor: 'rgba(67, 147, 229, 0.28)',
+  areaBottomColor: 'rgba(67, 147, 229, 0.02)',
+  currentPriceLine: '#787B86',
+  dividerColor: '#363A45',
+  dividerHover: '#4393E5',
+  toolbarBg: '#131722',
+  toolbarBorder: '#1E222D',
+  buttonHover: '#2A2E39',
+  buttonActive: '#4393E5',
+  accentColor: '#4393E5',
+  dangerColor: '#E57A24',
+  warningColor: '#FFD166',
+  successColor: '#4393E5',
+  tooltipBg: '#363A45',
+  tooltipText: '#D1D4DC',
+  scrollbarTrack: '#1E222D',
+  scrollbarThumb: '#363A45',
+};
+
+/** Tritanopia-safe theme (teal/magenta — avoids blue-yellow confusion) */
+export const COLORBLIND_TRITAN_THEME = {
+  name: 'colorblind-tritan',
+  background: '#131722',
+  foreground: '#D1D4DC',
+  axisBackground: '#1E222D',
+  axisBorder: 'rgba(54, 58, 69, 0.6)',
+  textPrimary: '#D1D4DC',
+  textSecondary: '#787B86',
+  textDisabled: '#4E5266',
+  gridColor: 'rgba(54, 58, 69, 0.3)',
+  crosshairColor: 'rgba(149, 152, 161, 0.5)',
+  candleUp: '#17BEBB',    // Teal — distinguishable for tritanopes
+  candleDown: '#CD5C94',  // Magenta — avoids blue confusion
+  candleUpWick: '#17BEBB',
+  candleDownWick: '#CD5C94',
+  volumeUp: 'rgba(23, 190, 187, 0.3)',
+  volumeDown: 'rgba(205, 92, 148, 0.3)',
+  lineColor: '#17BEBB',
+  areaTopColor: 'rgba(23, 190, 187, 0.28)',
+  areaBottomColor: 'rgba(23, 190, 187, 0.02)',
+  currentPriceLine: '#787B86',
+  dividerColor: '#363A45',
+  dividerHover: '#17BEBB',
+  toolbarBg: '#131722',
+  toolbarBorder: '#1E222D',
+  buttonHover: '#2A2E39',
+  buttonActive: '#17BEBB',
+  accentColor: '#17BEBB',
+  dangerColor: '#CD5C94',
+  warningColor: '#EAC435',
+  successColor: '#17BEBB',
+  tooltipBg: '#363A45',
+  tooltipText: '#D1D4DC',
+  scrollbarTrack: '#1E222D',
+  scrollbarThumb: '#363A45',
+};
+
+THEMES['colorblind-deutan'] = COLORBLIND_DEUTAN_THEME;
+THEMES['colorblind-tritan'] = COLORBLIND_TRITAN_THEME;
+
+// Task 4.9.3.2: Deep Sea OLED Dark Mode
+/** Deep Sea OLED theme (true black, warm-shifted, low blue-light) */
+export const DEEP_SEA_THEME = {
+  name: 'deep-sea',
+  background: '#000000',
+  foreground: '#f0e8d8',
+  axisBackground: '#050505',
+  axisBorder: 'rgba(26, 26, 22, 0.6)',
+  textPrimary: '#f0e8d8',
+  textSecondary: '#a09880',
+  textDisabled: '#6a6450',
+  gridColor: 'rgba(26, 26, 22, 0.3)',
+  crosshairColor: 'rgba(160, 152, 128, 0.4)',
+  candleUp: '#3dc78a',
+  candleDown: '#e85c5c',
+  candleUpWick: '#3dc78a',
+  candleDownWick: '#e85c5c',
+  volumeUp: 'rgba(61, 199, 138, 0.25)',
+  volumeDown: 'rgba(232, 92, 92, 0.25)',
+  lineColor: '#d4881e',
+  areaTopColor: 'rgba(212, 136, 30, 0.25)',
+  areaBottomColor: 'rgba(212, 136, 30, 0.02)',
+  currentPriceLine: '#a09880',
+  dividerColor: '#1a1a16',
+  dividerHover: '#d4881e',
+  toolbarBg: '#000000',
+  toolbarBorder: '#0a0a08',
+  buttonHover: '#121210',
+  buttonActive: '#d4881e',
+  accentColor: '#d4881e',
+  dangerColor: '#e85c5c',
+  warningColor: '#FFB020',
+  successColor: '#3dc78a',
+  tooltipBg: '#121210',
+  tooltipText: '#f0e8d8',
+  scrollbarTrack: '#050505',
+  scrollbarThumb: '#1a1a16',
+};
+
+THEMES['deep-sea'] = DEEP_SEA_THEME;
+
 /**
  * Create a theme manager for runtime theme switching.
  *

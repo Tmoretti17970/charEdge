@@ -13,6 +13,8 @@ import { persist } from 'zustand/middleware';
 
 export type AlertCondition = 'above' | 'below' | 'cross_above' | 'cross_below';
 
+export type AlertVisualStyle = 'price' | 'system' | 'indicator';
+
 export interface Alert {
     id: string;
     symbol: string;
@@ -23,6 +25,7 @@ export interface Alert {
     triggeredAt: string | null;
     createdAt: string;
     note: string;
+    style: AlertVisualStyle;
     _lastPrice: number | null;
 }
 
@@ -32,10 +35,12 @@ interface AddAlertParams {
     price: number;
     note?: string;
     repeating?: boolean;
+    style?: AlertVisualStyle;
 }
 
 export interface AlertState {
     alerts: Alert[];
+    pushSubscribed: boolean;
 }
 
 export interface AlertActions {
@@ -46,6 +51,7 @@ export interface AlertActions {
     updateLastPrice: (symbol: string, price: number) => void;
     clearTriggered: () => void;
     clearAll: () => void;
+    subscribeToPush: () => Promise<void>;
 }
 
 // ─── Store ──────────────────────────────────────────────────────
@@ -56,8 +62,9 @@ const useAlertStore = create<AlertState & AlertActions>()(
     persist(
         (set, _get) => ({
             alerts: [],
+            pushSubscribed: false,
 
-            addAlert: ({ symbol, condition, price, note = '', repeating = false }: AddAlertParams): string => {
+            addAlert: ({ symbol, condition, price, note = '', repeating = false, style = 'price' }: AddAlertParams): string => {
                 const alert: Alert = {
                     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
                     symbol: (symbol || '').toUpperCase(),
@@ -68,6 +75,7 @@ const useAlertStore = create<AlertState & AlertActions>()(
                     triggeredAt: null,
                     createdAt: new Date().toISOString(),
                     note,
+                    style,
                     _lastPrice: null,
                 };
                 set((s) => ({ alerts: [...s.alerts, alert] }));
@@ -112,6 +120,26 @@ const useAlertStore = create<AlertState & AlertActions>()(
             },
 
             clearAll: () => set({ alerts: [] }),
+
+            subscribeToPush: async () => {
+                if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+                try {
+                    const reg = await navigator.serviceWorker.ready;
+                    const sub = await reg.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: window.__VAPID_PUBLIC_KEY || '',
+                    });
+                    // Register with server
+                    await fetch('/api/push/subscribe', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(sub.toJSON()),
+                    });
+                    set({ pushSubscribed: true });
+                } catch (_) {
+                    /* push subscription failed — degrade gracefully */
+                }
+            },
         }),
         {
             name: ALERT_KEY,

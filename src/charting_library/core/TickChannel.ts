@@ -80,6 +80,8 @@ class _TickChannel {
      * @param latestBar - The most recent bar (for consumers that need it)
      */
     pushTick(key: string, bars: Bar[], latestBar: Bar): void {
+        // Task 2.3.34: Mark tick arrival for latency measurement
+        performance.mark('tick-in');
         this._pending.set(key, { bars, latestBar });
         if (this._rafId === null) {
             this._rafId = requestAnimationFrame(() => this._flush());
@@ -159,6 +161,13 @@ class _TickChannel {
         }
 
         this._pending.clear();
+
+        // Task 2.3.34: Measure tick-to-render latency
+        try {
+            performance.measure('tick-to-render', 'tick-in');
+            performance.clearMarks('tick-in');
+            performance.clearMeasures('tick-to-render');
+        } catch { /* no matching mark — ignore */ }
     }
 }
 

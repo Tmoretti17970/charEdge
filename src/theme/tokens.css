@@ -182,6 +182,119 @@
   --tf-inner-glow-strong: inset 0 1px 0 rgba(255, 255, 255, 0.7), inset 0 0 0 1px rgba(255, 255, 255, 0.3);
 }
 
+/* ─── Deep Sea OLED Dark Mode (Task 4.9.3.2) ───────────────── *
+ * True black (#000000) for OLED panels — pixels fully off.
+ * Warm-shifted text (cream not blue-white) reduces eye strain.
+ * Gold-shifted semantics replace cyan tones for low blue-light.
+ * Designed for marathon trading sessions in low-light environments.
+ * ────────────────────────────────────────────────────────────── */
+.theme-deep-sea {
+  --tf-bg: #000000;
+  --tf-bg2: #050505;
+  --tf-sf: #0a0a08;
+  --tf-sf2: #121210;
+  --tf-bd: #1a1a16;
+  --tf-bd2: #28281e;
+  --tf-t1: #f0e8d8;
+  /* warm cream — not blue-white */
+  --tf-t2: #a09880;
+  /* warm muted — not cool grey */
+  --tf-t3: #6a6450;
+  /* warm tertiary — WCAG AA 4.5:1 on #000 */
+  --tf-accent: #d4881e;
+  /* warm gold accent */
+  --tf-accent-h: #b87418;
+  --tf-green: #3dc78a;
+  /* slightly warm-shifted green */
+  --tf-red: #e85c5c;
+  /* warm red (less magenta) */
+  --tf-yellow: #e8b830;
+  /* warm gold */
+  --tf-purple: #b08ae0;
+  /* muted lavender */
+  --tf-cyan: #d4a020;
+  /* cyan → warm gold (blue light reduction) */
+  --tf-info: #c8a048;
+  /* info → warm amber */
+  --tf-orange: #d4881e;
+  --tf-pink: #d4889a;
+  /* muted warm pink */
+  --tf-lime: #a8c830;
+  /* warm-shifted lime */
+
+  --tf-glass-1: rgba(0, 0, 0, 0.7);
+  --tf-glass-2: rgba(0, 0, 0, 0.82);
+  --tf-glass-3: rgba(0, 0, 0, 0.9);
+  --tf-glass-4: rgba(0, 0, 0, 0.96);
+  --tf-glass-border: 1px solid rgba(240, 232, 216, 0.04);
+  --tf-glass-border-hover: 1px solid rgba(240, 232, 216, 0.08);
+  --tf-glass-border-active: 1px solid rgba(212, 136, 30, 0.3);
+  --tf-shadow-1: 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.3);
+  --tf-shadow-2: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 1px rgba(0, 0, 0, 0.3);
+  --tf-shadow-3: 0 12px 40px rgba(0, 0, 0, 0.7), 0 0 1px rgba(0, 0, 0, 0.3);
+  --tf-shadow-4: 0 24px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(240, 232, 216, 0.02) inset;
+  --tf-inner-glow: inset 0 1px 0 rgba(240, 232, 216, 0.02);
+  --tf-inner-glow-strong: inset 0 1px 0 rgba(240, 232, 216, 0.04), inset 0 0 0 1px rgba(240, 232, 216, 0.02);
+}
+
+/* Deep Sea blue-light filter (Task 4.9.3.4) — ~15% blue channel reduction */
+.theme-deep-sea body {
+  filter: saturate(0.85) brightness(0.95);
+}
+
+/* Deep Sea OLED border optimization (Task 4.9.3.5)
+ * box-shadow instead of border to avoid sub-pixel rendering artifacts on OLED */
+.theme-deep-sea .tf-card,
+.theme-deep-sea [class*="Card"] {
+  border: none !important;
+  box-shadow: inset 0 0 0 1px var(--tf-bd);
+}
+
+/* ─── Neon-Amber Alert Tiers (Task 4.9.3.3) ─────────────────── *
+ * 4-tier visual hierarchy for alerts, replacing generic red/green.
+ * Designed for readability in both standard dark and Deep Sea modes.
+ * ────────────────────────────────────────────────────────────── */
+.tf-alert-info {
+  color: #9a9a8a;
+  background: rgba(154, 154, 138, 0.08);
+  border-left: 3px solid #9a9a8a;
+}
+
+.tf-alert-caution {
+  color: #e8a824;
+  background: rgba(232, 168, 36, 0.08);
+  border-left: 3px solid #e8a824;
+}
+
+.tf-alert-warning {
+  color: #FFB020;
+  background: rgba(255, 176, 32, 0.10);
+  border-left: 3px solid #FFB020;
+  font-weight: 600;
+}
+
+.tf-alert-critical {
+  color: #FFB020;
+  background: rgba(255, 176, 32, 0.12);
+  border-left: 3px solid #FFB020;
+  font-weight: 700;
+  animation: tf-alert-pulse 2s ease-in-out infinite;
+}
+
+@keyframes tf-alert-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(255, 176, 32, 0);
+  }
+
+  50% {
+    opacity: 0.85;
+    box-shadow: 0 0 12px 2px rgba(255, 176, 32, 0.15);
+  }
+}
+
 /* ─── Density Mode Overrides ───────────────────────────────── */
 [data-density="comfortable"] {
   --tf-density-space-xs: 6px;

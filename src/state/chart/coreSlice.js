@@ -1,14 +1,31 @@
+// Task 1.1.3: BroadcastChannel for symbol link groups
+const _linkChannel = typeof BroadcastChannel !== 'undefined'
+  ? new BroadcastChannel('charEdge-symbol-link')
+  : null;
+
 export const createCoreSlice = (set, get) => ({
   symbol: 'BTC',
   tf: '1h',
   chartType: 'candlestick',
   scaleMode: 'linear',
   logScale: false,
+  linkGroup: null, // Task 1.1.3: null | 'A' | 'B' | 'C' | 'D'
 
-  setSymbol: (symbol) => set({ symbol: symbol.toUpperCase() }),
+  setSymbol: (symbol) => {
+    const upper = symbol.toUpperCase();
+    set({ symbol: upper });
+    // Task 1.1.3: Broadcast symbol change to linked charts
+    const group = get().linkGroup;
+    if (group && _linkChannel) {
+      _linkChannel.postMessage({ type: 'symbol-sync', group, symbol: upper });
+    }
+  },
   setTf: (tf) => set({ tf }),
   setChartType: (chartType) => set({ chartType }),
   setScaleMode: (mode) => set({ scaleMode: mode, logScale: mode === 'log' }),
+
+  // Task 1.1.3: Set link group for chart symbol syncing
+  setLinkGroup: (group) => set({ linkGroup: group }),
 
   setCandleMode: (mode) => {
     const map = { standard: 'candlestick', hollow: 'hollow', heikinashi: 'heikinashi', footprint: 'footprint' };
@@ -36,3 +53,4 @@ export const createCoreSlice = (set, get) => ({
     }
   },
 });
+

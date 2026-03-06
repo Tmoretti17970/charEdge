@@ -154,6 +154,7 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
       setPage={setPage} activeWidgets={activeWidgets}
       setActiveWidgets={setActiveWidgets} activePreset={activePreset}
       editMode={editMode} toggleEditMode={toggleEditMode} applyPreset={applyPreset}
+      onLayoutToggle={() => setLayoutMode((m) => (m === 'narrative' ? 'custom' : 'narrative'))}
     />
   );
 }

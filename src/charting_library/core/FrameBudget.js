@@ -292,7 +292,10 @@ class IndicatorCache {
    * @returns {string}
    */
   static key(ind) {
-    return `${ind.type}|${JSON.stringify(ind.params || {})}|${ind.color || ''}`;
+    // Task 2.3.28: Stable key — sort param keys to avoid JSON.stringify ordering instability
+    const params = ind.params || {};
+    const sortedParams = Object.keys(params).sort().map(k => `${k}=${params[k]}`).join('&');
+    return `${ind.type}|${sortedParams}|${ind.color || ''}`;
   }
 
   /**

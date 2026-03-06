@@ -7,8 +7,29 @@
 
 import { create } from 'zustand';
 
+// ─── URL → page key mapping ─────────────────────────────────────
+// Allows direct URL access (e.g. /speedtest, /charts) to resolve
+// to the correct internal page key on initial load.
+function getInitialPage() {
+  if (typeof window === 'undefined') return 'dashboard';
+  const path = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+  const ROUTE_MAP = {
+    speedtest: 'speedtest',
+    charts: 'charts',
+    settings: 'settings',
+    journal: 'journal',
+    telemetry: 'telemetry',
+    changelog: 'changelog',
+    privacy: 'privacy',
+    terms: 'terms',
+    landing: 'landing',
+    charolette: 'charolette',
+  };
+  return ROUTE_MAP[path] || 'dashboard';
+}
+
 const useUIStore = create((set) => ({
-  page: 'dashboard',
+  page: getInitialPage(),
   modal: null,
   confirmDialog: null,
   zenMode: false,

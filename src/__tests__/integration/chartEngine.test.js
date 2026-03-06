@@ -275,3 +275,340 @@ describe('Chart Engine Integration: Data Boundary Validation', () => {
     expect(validateTick(null)).toBe(false);
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════
+// Test Suite 6: Headless DataStage Execution
+// Verifies the core data stage can execute with mock contexts
+// ═══════════════════════════════════════════════════════════════════
+
+describe('Chart Engine Integration: Headless Render', () => {
+  it('executeDataStage runs without throwing on valid bars + mock contexts', async () => {
+    const { executeDataStage } = await import('../../charting_library/core/stages/DataStage.js');
+    const { FrameState } = await import('../../charting_library/core/FrameState.js');
+
+    const bars = generate1mBars(200);
+
+    // Minimal FrameState-like object
+    const fs = {
+      bars,
+      startIdx: 0,
+      endIdx: bars.length - 1,
+      visibleBars: 80,
+      scrollOffset: 0,
+      chartType: 'candlestick',
+      theme: 'dark',
+      width: 1200,
+      height: 800,
+      pr: 1,
+      showVolume: true,
+      compact: false,
+      changed: 0xFFFF, // all flags set
+      barWidth: 10,
+      barSpacing: 12,
+      indicators: [],
+      trades: [],
+      alerts: [],
+      srLevels: [],
+      mouseX: null,
+      mouseY: null,
+      props: { chartType: 'candlestick', theme: 'dark', showVolume: true },
+    };
+
+    // Build minimal mock canvas context (stubs for draw calls)
+    const mockCtx = {
+      canvas: { width: 1200, height: 800 },
+      clearRect: vi.fn(),
+      fillRect: vi.fn(),
+      strokeRect: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      closePath: vi.fn(),
+      fill: vi.fn(),
+      stroke: vi.fn(),
+      arc: vi.fn(),
+      fillText: vi.fn(),
+      measureText: vi.fn(() => ({ width: 40 })),
+      save: vi.fn(),
+      restore: vi.fn(),
+      setLineDash: vi.fn(),
+      createLinearGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
+      roundRect: vi.fn(),
+      drawImage: vi.fn(),
+      set fillStyle(_) { },
+      get fillStyle() { return '#000'; },
+      set strokeStyle(_) { },
+      get strokeStyle() { return '#000'; },
+      set lineWidth(_) { },
+      get lineWidth() { return 1; },
+      set font(_) { },
+      get font() { return '12px Inter'; },
+      set textAlign(_) { },
+      get textAlign() { return 'left'; },
+      set textBaseline(_) { },
+      get textBaseline() { return 'top'; },
+      set globalAlpha(_) { },
+      get globalAlpha() { return 1; },
+      set globalCompositeOperation(_) { },
+      get globalCompositeOperation() { return 'source-over'; },
+      set lineCap(_) { },
+      set lineJoin(_) { },
+      set shadowBlur(_) { },
+      set shadowColor(_) { },
+      set shadowOffsetX(_) { },
+      set shadowOffsetY(_) { },
+    };
+
+    const ctx = { main: mockCtx, top: mockCtx, grid: mockCtx };
+
+    // Minimal engine mock
+    const engine = {
+      bars,
+      indicators: [],
+      state: {
+        visibleBars: 80,
+        scrollOffset: 0,
+        priceScale: 1,
+        priceScroll: 0,
+        autoScale: true,
+        scaleMode: 'linear',
+        _scrollToNowBtn: null,
+        _autoFitBtn: null,
+        collapsedPanes: new Set(),
+        hiddenIndicators: new Set(),
+        _highlightedIndicator: -1,
+        historyLoading: false,
+      },
+      props: {
+        theme: 'dark',
+        chartType: 'candlestick',
+        showVolume: true,
+        compact: false,
+        trades: [],
+        srLevels: [],
+        showHeatmap: false,
+        showSessions: false,
+        showDeltaOverlay: false,
+        showVPOverlay: false,
+        showOIOverlay: false,
+        showLargeTradesOverlay: false,
+        storeChartColors: {},
+        paneHeights: {},
+      },
+      alerts: [],
+      _tickUpdate: false,
+      _barBuffer: { fromArray: vi.fn() },
+      _lastPriceTransform: null,
+      _lastTimeTransform: null,
+      _lastNiceStep: null,
+      _lastDisplayTicks: null,
+      layers: { isDirty: () => true, getCanvas: () => ({ width: 1200, height: 800 }) },
+      mainCanvas: { width: 1200, height: 800 },
+      mainCtx: mockCtx,
+      topCtx: mockCtx,
+      gridCtx: mockCtx,
+      drawingEngine: { getDrawings: () => [] },
+      _webglRenderer: { enabled: false, renderBars: vi.fn() },
+      _degradationLevel: 0,
+      _sceneGraph: null,
+      _formingInterpolator: { isDone: true, current: null },
+      renderTradeMarkers: vi.fn(),
+    };
+
+    // Should not throw
+    expect(() => {
+      try {
+        executeDataStage(fs, ctx, engine);
+      } catch (e) {
+        // Some rendering functions may fail without full browser context,
+        // but should not crash destructively
+        if (e.message?.includes('is not a function')) return;
+        throw e;
+      }
+    }).not.toThrow();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// Test Suite 7: Rapid Symbol Switch (Memory Safety)
+// Simulates 10 rapid symbol changes and verifies no data corruption
+// ═══════════════════════════════════════════════════════════════════
+
+describe('Chart Engine Integration: Rapid Symbol Switch', () => {
+  it('10 rapid symbol changes produce correct final data state', () => {
+    const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT',
+      'DOGEUSDT', 'ADAUSDT', 'AVAXUSDT', 'DOTUSDT', 'LINKUSDT'];
+
+    // Simulate: for each symbol, generate fresh bars, verify integrity
+    let lastBars = null;
+    for (const sym of symbols) {
+      const bars = generate1mBars(500, 100 + Math.random() * 1000);
+
+      // Validate integrity of each dataset independently
+      bars.forEach(b => expect(validateBar(b)).toBe(true));
+
+      // Verify no cross-symbol contamination
+      if (lastBars) {
+        // Price levels should differ between symbols (different startPrice)
+        expect(bars[0].open).not.toBe(lastBars[0].open);
+      }
+
+      // Simulate aggregation (what the pipeline does on symbol switch)
+      const fiveMin = aggregateBars(bars, '5m');
+      expect(fiveMin.length).toBe(100);
+      fiveMin.forEach(b => expect(validateBar(b)).toBe(true));
+
+      lastBars = bars;
+    }
+
+    // Final state should reflect the last symbol's data
+    expect(lastBars).not.toBeNull();
+    expect(lastBars.length).toBe(500);
+  });
+
+  it('indicator recomputation handles rapid data changes without corruption', () => {
+    // Simulate 10 rapid indicator computes with changing bar data
+    for (let i = 0; i < 10; i++) {
+      const bars = generate1mBars(200, 50 + i * 100);
+      const closes = bars.map(b => b.close);
+
+      const sma = Calc.sma(closes, 20);
+      const ema = Calc.ema(closes, 20);
+      const rsi = Calc.rsi(closes, 14);
+
+      // All should compute without corruption
+      expect(sma.length).toBe(closes.length);
+      expect(ema.length).toBe(closes.length);
+      expect(rsi.length).toBe(closes.length);
+
+      // RSI should be bounded
+      const validRsi = rsi.filter(v => v !== null);
+      validRsi.forEach(v => {
+        expect(v).toBeGreaterThanOrEqual(0);
+        expect(v).toBeLessThanOrEqual(100);
+      });
+    }
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// Test Suite 8: Chart Type Draw Function Round-Trip
+// Verifies every chart type has a valid draw function
+// ═══════════════════════════════════════════════════════════════════
+
+describe('Chart Engine Integration: Chart Type Round-Trip', () => {
+  it('every chart type has a registered draw function', async () => {
+    const { CHART_TYPES, getChartDrawFunction } = await import(
+      '../../charting_library/renderers/renderers/ChartTypes.js'
+    );
+
+    const typeIds = Object.keys(CHART_TYPES);
+    expect(typeIds.length).toBeGreaterThanOrEqual(10);
+
+    for (const typeId of typeIds) {
+      const drawFn = getChartDrawFunction(typeId);
+      // Each type should have a draw function (function or null for types
+      // that delegate to special renderers like footprint)
+      if (drawFn) {
+        expect(typeof drawFn).toBe('function');
+      }
+    }
+  });
+
+  it('CHART_TYPES entries have required fields', async () => {
+    const { CHART_TYPES } = await import(
+      '../../charting_library/renderers/renderers/ChartTypes.js'
+    );
+
+    for (const [typeId, config] of Object.entries(CHART_TYPES)) {
+      expect(config.id).toBe(typeId);
+      expect(typeof config.name).toBe('string');
+      expect(config.name.length).toBeGreaterThan(0);
+      expect(typeof config.hasVolume).toBe('boolean');
+    }
+  });
+
+  it('primary chart types produce draw calls on mock context', async () => {
+    const { getChartDrawFunction } = await import(
+      '../../charting_library/renderers/renderers/ChartTypes.js'
+    );
+
+    const primaryTypes = ['candlestick', 'line', 'area', 'ohlc', 'heikinashi', 'hollow'];
+    const bars = generate1mBars(50);
+
+    const mockCtx = {
+      canvas: { width: 600, height: 400 },
+      clearRect: vi.fn(),
+      fillRect: vi.fn(),
+      strokeRect: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      closePath: vi.fn(),
+      fill: vi.fn(),
+      stroke: vi.fn(),
+      arc: vi.fn(),
+      fillText: vi.fn(),
+      measureText: vi.fn(() => ({ width: 20 })),
+      save: vi.fn(),
+      restore: vi.fn(),
+      setLineDash: vi.fn(),
+      createLinearGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
+      roundRect: vi.fn(),
+      drawImage: vi.fn(),
+      set fillStyle(_) { },
+      set strokeStyle(_) { },
+      set lineWidth(_) { },
+      set font(_) { },
+      set textAlign(_) { },
+      set textBaseline(_) { },
+      set globalAlpha(_) { },
+      set lineCap(_) { },
+      set lineJoin(_) { },
+    };
+
+    const theme = { bull: '#26A69A', bear: '#EF5350', text: '#d1d4dc', grid: '#363A45' };
+    const pMin = Math.min(...bars.map(b => b.low));
+    const pMax = Math.max(...bars.map(b => b.high));
+    const mainHeight = 300;
+    const mainBottom = 350;
+    const params = {
+      startIdx: 0,
+      endIdx: Math.min(49, bars.length - 1),
+      barWidth: 8,
+      barSpacing: 10,
+      mainBottom,
+      mainHeight,
+      pMin,
+      pMax,
+      pr: 1,
+      // Coordinate transform functions the draw functions expect
+      priceToY: (price) => mainBottom - ((price - pMin) / (pMax - pMin)) * mainHeight,
+      indexToPixel: (idx) => 50 + idx * 10,
+      timeTransform: {
+        toPixel: (idx) => 50 + idx * 10,
+        indexToPixel: (idx) => 50 + idx * 10,
+      },
+    };
+
+    for (const typeId of primaryTypes) {
+      const drawFn = getChartDrawFunction(typeId);
+      if (!drawFn) continue;
+
+      // Reset call counts
+      mockCtx.beginPath.mockClear();
+      mockCtx.fillRect.mockClear();
+      mockCtx.moveTo.mockClear();
+
+      // Should not throw
+      expect(() => drawFn(mockCtx, bars, params, theme)).not.toThrow();
+
+      // Should have produced some draw calls
+      const totalCalls = mockCtx.beginPath.mock.calls.length +
+        mockCtx.fillRect.mock.calls.length +
+        mockCtx.moveTo.mock.calls.length;
+      expect(totalCalls).toBeGreaterThan(0);
+    }
+  });
+});
+

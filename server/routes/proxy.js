@@ -19,6 +19,18 @@ import { checkRateLimit, RATE_LIMIT_WINDOW_MS } from '../middleware/rateLimiter.
 
 /** @type {Record<string, ProxyConfig>} */
 const PROXY_CONFIGS = {
+    polygon: {
+        base: 'https://api.polygon.io',
+        envKey: 'POLYGON_API_KEY',
+        paramName: 'apiKey',
+        cache: 5,
+    },
+    alphavantage: {
+        base: 'https://www.alphavantage.co',
+        envKey: 'ALPHAVANTAGE_API_KEY',
+        paramName: 'apikey',
+        cache: 30,
+    },
     fmp: {
         base: 'https://financialmodelingprep.com/api/v3',
         envKey: 'FMP_API_KEY',
@@ -37,6 +49,12 @@ const PROXY_CONFIGS = {
         envKey: 'FINNHUB_API_KEY',
         paramName: 'token',
         cache: 5,
+    },
+    tiingo: {
+        base: 'https://api.tiingo.com',
+        envKey: 'TIINGO_API_TOKEN',
+        paramName: 'token',
+        cache: 60,
     },
 };
 

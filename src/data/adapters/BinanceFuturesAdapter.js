@@ -67,6 +67,8 @@ class _BinanceFuturesAdapter extends BaseAdapter {
        'LINK', 'UNI', 'ATOM', 'FIL', 'NEAR', 'APT', 'ARB', 'SUI', 'LTC'].includes(upper);
   }
 
+  latencyTier() { return 'realtime'; }
+
   // ─── Open Interest ─────────────────────────────────────────
 
   /**

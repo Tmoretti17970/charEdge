@@ -105,6 +105,8 @@ export class KrakenAdapter extends BaseAdapter {
     );
   }
 
+  latencyTier() { return 'realtime'; }
+
   // ─── REST: OHLCV ─────────────────────────────────────────────
 
   async fetchOHLCV(symbol, interval = '1h', opts = {}) {

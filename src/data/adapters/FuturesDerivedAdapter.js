@@ -190,4 +190,5 @@ class _FuturesDerivedAdapter {
 // ─── Singleton + Exports ──────────────────────────────────────────
 
 export const futuresDerivedAdapter = new _FuturesDerivedAdapter();
+
 export default futuresDerivedAdapter;

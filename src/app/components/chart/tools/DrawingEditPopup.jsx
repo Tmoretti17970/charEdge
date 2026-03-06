@@ -264,6 +264,29 @@ export default function DrawingEditPopup({ drawing, containerRect, engine, onClo
         <button className="tf-drawing-edit-action-btn" onClick={handleToggleLock} title={drawing.locked ? 'Unlock' : 'Lock'}>
           {drawing.locked ? '🔒' : '🔓'}
         </button>
+        {/* Task 1.4.18: Cross-TF drawing sync toggle */}
+        <button
+          className="tf-drawing-edit-action-btn"
+          onClick={() => {
+            if (engine) {
+              const d = engine.drawings.find(d => d.id === drawing.id);
+              if (d) {
+                d.syncAcrossTimeframes = !d.syncAcrossTimeframes;
+                // Trigger re-render
+                window.dispatchEvent(new CustomEvent('charEdge:update-drawing-style', {
+                  detail: { id: drawing.id, style: {} }
+                }));
+              }
+            }
+          }}
+          title={drawing.syncAcrossTimeframes ? 'Synced across timeframes — click to disable' : 'Show on current TF only — click to sync across all TFs'}
+          style={{
+            color: drawing.syncAcrossTimeframes ? '#42A5F5' : undefined,
+            fontWeight: drawing.syncAcrossTimeframes ? 700 : undefined,
+          }}
+        >
+          🔗
+        </button>
         <div style={{ flex: 1 }} />
         <button className="tf-drawing-edit-action-btn tf-drawing-edit-delete" onClick={handleDelete} title="Delete">
           🗑

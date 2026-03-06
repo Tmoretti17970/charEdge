@@ -9,6 +9,7 @@ import { useUserStore } from '../../../../state/useUserStore.js';
 import { logger } from '../../../../utils/logger.ts';
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useChartStore } from '../../../../state/useChartStore.js';
+import { useShallow } from 'zustand/react/shallow';
 import { useJournalStore } from '../../../../state/useJournalStore.js';
 import { useAlertStore } from '../../../../state/useAlertStore.js';
 import { useUIStore } from '../../../../state/useUIStore.js';
@@ -29,6 +30,9 @@ import DataStalenessIndicator from '../ui/DataStalenessIndicator.jsx';
 import ChartLoadingNarrative from '../overlays/ChartLoadingNarrative.jsx';
 import DataFallbackBanner from '../ui/DataFallbackBanner.jsx';
 import IndicatorSettingsDialog from '../panels/IndicatorSettingsDialog.jsx';
+import ChartAnalysisPanel from '../panels/ChartAnalysisPanel.jsx';
+import { startAutoSave, stopAutoSave } from '../../../../charting_library/core/SessionRecovery.js';
+import ZoomLoupe from '../overlays/ZoomLoupe.jsx';
 
 // ─── Constants ─────────────────────────────────────────────────────────
 import { resolveAdapterTimeframe } from '../../../../constants/TimeframeMap.ts';
@@ -60,26 +64,28 @@ export default function ChartEngineWidget({
   overrideSymbol, overrideTf, overrideIndicators, _showToolbar = false,
   showVolume = true, compact = false, srLevels, patternMarkers, divergences, children,
 }) {
-  const storeSymbol = useChartStore((s) => s.symbol);
-  const storeTf = useChartStore((s) => s.tf);
-  const chartType = useChartStore((s) => s.chartType);
-  const storeIndicators = useChartStore((s) => s.indicators);
-  const storeActiveTool = useChartStore((s) => s.activeTool);
-  const storeDrawingColor = useChartStore((s) => s.drawingColor);
-  const storeChartColors = useChartStore((s) => s.chartColors);
-  const setStoreData = useChartStore((s) => s.setData);
-  const magnetMode = useChartStore((s) => s.magnetMode);
-  const storeStickyMode = useChartStore((s) => s.stickyMode);
-  const showHeatmap = useChartStore((s) => s.showHeatmap);
-  const heatmapIntensity = useChartStore((s) => s.heatmapIntensity);
-  const showSessions = useChartStore((s) => s.showSessions);
-  const paneHeights = useChartStore((s) => s.paneHeights);
-  const historyLoading = useChartStore((s) => s.historyLoading); // Sprint 1/8: left-edge loading indicator
-  // Order Flow Overlays
-  const showDeltaOverlay = useChartStore((s) => s.showDeltaOverlay);
-  const showVPOverlay = useChartStore((s) => s.showVPOverlay);
-  const showOIOverlay = useChartStore((s) => s.showOIOverlay);
-  const showLargeTradesOverlay = useChartStore((s) => s.showLargeTradesOverlay);
+  // Task 2.3.29: Consolidated Zustand selector — single subscription via useShallow
+  const {
+    symbol: storeSymbol, tf: storeTf, chartType, indicators: storeIndicators,
+    activeTool: storeActiveTool, drawingColor: storeDrawingColor,
+    chartColors: storeChartColors, setData: setStoreData, magnetMode,
+    stickyMode: storeStickyMode, showHeatmap, heatmapIntensity, showSessions,
+    paneHeights, historyLoading, showDeltaOverlay, showVPOverlay,
+    showOIOverlay, showLargeTradesOverlay, linkGroup, setSymbol,
+    intelligence,
+  } = useChartStore(useShallow((s) => ({
+    symbol: s.symbol, tf: s.tf, chartType: s.chartType,
+    indicators: s.indicators, activeTool: s.activeTool,
+    drawingColor: s.drawingColor, chartColors: s.chartColors,
+    setData: s.setData, magnetMode: s.magnetMode,
+    stickyMode: s.stickyMode, showHeatmap: s.showHeatmap,
+    heatmapIntensity: s.heatmapIntensity, showSessions: s.showSessions,
+    paneHeights: s.paneHeights, historyLoading: s.historyLoading,
+    showDeltaOverlay: s.showDeltaOverlay, showVPOverlay: s.showVPOverlay,
+    showOIOverlay: s.showOIOverlay, showLargeTradesOverlay: s.showLargeTradesOverlay,
+    linkGroup: s.linkGroup, setSymbol: s.setSymbol,
+    intelligence: s.intelligence,
+  })));
 
   const theme = useUserStore((s) => s.theme);
   const trades = useJournalStore((s) => s.trades);
@@ -92,8 +98,35 @@ export default function ChartEngineWidget({
   const binanceSymbol = useMemo(() => resolveSymbol(symbol), [symbol]);
   const binanceTf = useMemo(() => resolveTf(tf), [tf]);
 
+  // Task 1.4.6: Zoom Loupe state for mobile precision
+  const [loupePos, setLoupePos] = useState({ x: 0, y: 0 });
+  const [loupeActive, setLoupeActive] = useState(false);
+  const loupeTouchTimer = useRef(null);
+
   // Auto-connect OrderFlowBridge + DepthEngine for crypto symbols
   useOrderFlowConnection(binanceSymbol, binanceTf);
+
+  // Task 1.1.3: Listen for symbol-sync broadcasts from other charts
+  useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') return;
+    const channel = new BroadcastChannel('charEdge-symbol-link');
+    const onMessage = (e) => {
+      const { type, group, symbol: newSymbol } = e.data || {};
+      if (type === 'symbol-sync' && group && group === linkGroup) {
+        // Only update if symbol actually changed to avoid loops
+        const current = useChartStore.getState().symbol;
+        if (current !== newSymbol) {
+          // Set symbol directly without broadcasting again (avoid infinite loop)
+          useChartStore.setState({ symbol: newSymbol });
+        }
+      }
+    };
+    channel.addEventListener('message', onMessage);
+    return () => {
+      channel.removeEventListener('message', onMessage);
+      channel.close();
+    };
+  }, [linkGroup]);
 
   const setPage = useUIStore((s) => s.setPage);
 
@@ -185,29 +218,25 @@ export default function ChartEngineWidget({
     return unsub;
   }, []);
 
-  // ScrollSyncBus: emit scroll position changes at 60fps
+  // ScrollSyncBus: emit scroll position changes when scrollOffset changes.
+  // Task 2.3.26: Replaced perpetual rAF loop with an efficient emission
+  // triggered from the engine's render cycle via a markDirty hook.
+  const lastEmittedOffset = useRef(-1);
   useEffect(() => {
-    let lastOffset = -1;
-    let rafId = 0;
-    const tick = () => {
-      const engine = engineRef.current;
-      if (engine && !scrollSyncMutedRef.current) {
-        const bars = engine.bars;
-        const offset = engine.state.scrollOffset;
-        if (bars?.length && Math.abs(offset - lastOffset) > 0.5) {
-          lastOffset = offset;
-          const maxScroll = Math.max(1, bars.length - engine.state.visibleBars);
-          scrollSyncBus.emit(paneIdRef.current, {
-            fraction: offset / maxScroll,
-            visibleBars: engine.state.visibleBars,
-          });
-        }
-      }
-      rafId = requestAnimationFrame(tick);
-    };
-    rafId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafId);
-  }, []);
+    // On each tick (barCount changes), check if offset changed and emit
+    const engine = engineRef.current;
+    if (!engine || scrollSyncMutedRef.current) return;
+    const bars = engine.bars;
+    const offset = engine.state.scrollOffset;
+    if (bars?.length && Math.abs(offset - lastEmittedOffset.current) > 0.5) {
+      lastEmittedOffset.current = offset;
+      const maxScroll = Math.max(1, bars.length - engine.state.visibleBars);
+      scrollSyncBus.emit(paneIdRef.current, {
+        fraction: offset / maxScroll,
+        visibleBars: engine.state.visibleBars,
+      });
+    }
+  });
 
   // Initialize Engine once
   useEffect(() => {
@@ -390,9 +419,21 @@ export default function ChartEngineWidget({
     };
     window.addEventListener('charEdge:open-indicator-settings', onOpenIndicatorSettings);
 
+    // Task 2.3.23: Start session recovery auto-save (every 30s)
+    const stopRecovery = startAutoSave(
+      () => engineRef.current,
+      () => ({
+        uiStore: useUIStore,
+        workspaceStore: { getState: () => ({}) },
+      }),
+    );
+
     if (onEngineReady) onEngineReady(engineRef.current);
 
     return () => {
+      // Task 2.3.23: Stop auto-save before destroy
+      stopRecovery();
+
       window.removeEventListener('charEdge:clear-drawings', onClearDrawings);
       window.removeEventListener('charEdge:delete-drawing', onDeleteDrawing);
       window.removeEventListener('charEdge:toggle-visibility', onToggleVisibility);
@@ -435,11 +476,16 @@ export default function ChartEngineWidget({
   }, [historyLoading]);
 
   // Sprint 8: Preserve viewport when older bars are prepended
+  // Uses queueMicrotask to ensure offset applies before next rAF frame (prevents white flash)
   const lastPrependCount = useChartStore((s) => s.lastPrependCount);
   useEffect(() => {
     if (!engineRef.current || !lastPrependCount) return;
-    // Offset scrollOffset by the number of new bars so the same candles stay visible
-    engineRef.current.state.scrollOffset += lastPrependCount;
+    // Apply offset synchronously and force immediate redraw to avoid blank frame
+    queueMicrotask(() => {
+      if (!engineRef.current) return;
+      engineRef.current.state.scrollOffset += lastPrependCount;
+      engineRef.current.markDirty();
+    });
     useChartStore.setState({ lastPrependCount: 0 }); // Reset after consuming
   }, [lastPrependCount]);
 
@@ -473,7 +519,8 @@ export default function ChartEngineWidget({
     const unsubscribe = datafeedService.subscribe(binanceSymbol, binanceTf, {
       onHistorical: (bars) => {
         barsRef.current = bars;
-        setBarCount(bars.length);
+        // Task 2.3.27: Only update React state when bar count changes
+        setBarCount(prev => prev === bars.length ? prev : bars.length);
         setStatus('ready');
         setStoreData(bars, 'binance');
         setDataSource('binance');
@@ -481,7 +528,8 @@ export default function ChartEngineWidget({
       },
       onTick: (bars, latestBar) => {
         barsRef.current = bars;
-        setBarCount(bars.length);
+        // Task 2.3.27: Only update React state when bar count changes
+        setBarCount(prev => prev === bars.length ? prev : bars.length);
         // Engine gets data directly from TickChannel (rAF-batched, bypasses React)
       },
       onError: (err) => {
@@ -519,8 +567,13 @@ export default function ChartEngineWidget({
       indicators.some((ind, i) => {
         const inst = indicatorInstancesRef.current[i];
         if (!inst || inst.indicatorId !== (ind.indicatorId || ind.type)) return true;
-        // Simple params check
-        return JSON.stringify(inst.params) !== JSON.stringify(ind.params);
+        // Task 2.3.28: Stable comparison — avoid JSON.stringify reference instability
+        const a = ind.params || {};
+        const b = inst.params || {};
+        const aKeys = Object.keys(a);
+        const bKeys = Object.keys(b);
+        if (aKeys.length !== bKeys.length) return true;
+        return aKeys.some(k => a[k] !== b[k]);
       });
 
     if (configChanged) {
@@ -568,8 +621,48 @@ export default function ChartEngineWidget({
     }
   }, [indicators, barCount]);
 
+  // Task 1.4.6: Touch-hold handlers for Zoom Loupe
+  const handleTouchStart = useCallback((e) => {
+    if (e.touches.length !== 1) return; // Only single-finger
+    const t = e.touches[0];
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = t.clientX - rect.left;
+    const y = t.clientY - rect.top;
+    setLoupePos({ x, y });
+
+    // Activate loupe after 200ms hold
+    if (loupeTouchTimer.current) clearTimeout(loupeTouchTimer.current);
+    loupeTouchTimer.current = setTimeout(() => {
+      setLoupeActive(true);
+    }, 200);
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    if (!e.touches.length) return;
+    const t = e.touches[0];
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setLoupePos({ x: t.clientX - rect.left, y: t.clientY - rect.top });
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (loupeTouchTimer.current) {
+      clearTimeout(loupeTouchTimer.current);
+      loupeTouchTimer.current = null;
+    }
+    setLoupeActive(false);
+  }, []);
+
   return (
-    <div data-container="chart" style={{ position: 'relative', width, height, overflow: 'hidden' }}>
+    <div
+      data-container="chart"
+      style={{ position: 'relative', width, height, overflow: 'hidden' }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+    >
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
 
       {status === 'loading' && (
@@ -587,7 +680,7 @@ export default function ChartEngineWidget({
               fetchOHLC(symbol, tf).then(({ data: newData, source }) => {
                 if (newData?.length) {
                   barsRef.current = newData;
-                  setBarCount(newData.length);
+                  setBarCount(prev => prev === newData.length ? prev : newData.length);
                   setStatus('ready');
                   setDataSource(source);
                   setStoreData(newData, source);
@@ -668,6 +761,30 @@ export default function ChartEngineWidget({
           onClose={() => setEditingIndicatorIdx(null)}
         />
       )}
+
+      {/* AI Analysis Panel — opt-in via Indicator Panel toggles */}
+      {intelligence?.enabled && engineRef.current?.bars?.length > 50 && (
+        <div style={{ position: 'absolute', top: 50, right: 8, zIndex: 20, maxHeight: 'calc(100% - 60px)', overflowY: 'auto' }}>
+          <ChartAnalysisPanel
+            bars={engineRef.current.bars}
+            symbol={symbol}
+            timeframe={tf}
+            onClose={() => useChartStore.getState().toggleIntelligenceMaster()}
+          />
+        </div>
+      )}
+
+      {/* Task 1.4.6: Precision Zoom Loupe for mobile */}
+      <ZoomLoupe
+        canvasRef={containerRef}
+        touchX={loupePos.x}
+        touchY={loupePos.y}
+        active={loupeActive}
+        price={engineRef.current?.state?.crosshairPrice
+          ? engineRef.current.state.crosshairPrice.toFixed(2)
+          : undefined
+        }
+      />
 
     </div>
   );

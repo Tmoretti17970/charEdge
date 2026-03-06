@@ -43,15 +43,12 @@ const SupabaseProvider = {
 
   async init() {
     try {
-      // Supabase SDK removed from dependencies (Phase 1 cleanup).
-      // To re-enable: npm i @supabase/supabase-js, then uncomment below.
-      // const { createClient } = await import('@supabase/supabase-js');
-      const url = import.meta.env?.VITE_SUPABASE_URL;
-      const key = import.meta.env?.VITE_SUPABASE_ANON_KEY;
-      if (!url || !key) return false;
+      // Use the pre-configured Supabase singleton
+      const { default: supabase } = await import('../data/supabaseClient.js');
+      if (!supabase) return false;
 
-      // SDK not available — fall back to local provider
-      return false;
+      this._client = supabase;
+      return true;
     } catch (_) {
       return false;
     }
@@ -111,11 +108,11 @@ const SupabaseProvider = {
   },
 
   onAuthStateChange(callback) {
-    if (!this._client) return () => {};
+    if (!this._client) return () => { };
     const { data } = this._client.auth.onAuthStateChange((event, session) => {
       callback(event, session);
     });
-    return data?.subscription?.unsubscribe || (() => {});
+    return data?.subscription?.unsubscribe || (() => { });
   },
 
   async resetPassword(email) {
@@ -157,14 +154,14 @@ const LocalProvider = {
   async signInOAuth() {
     return this.getUser();
   },
-  async signOut() {},
+  async signOut() { },
   async getToken() {
     return 'local-token';
   },
   onAuthStateChange() {
-    return () => {};
+    return () => { };
   },
-  async resetPassword() {},
+  async resetPassword() { },
 };
 
 // ─── Provider Selection ─────────────────────────────────────────

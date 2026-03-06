@@ -128,7 +128,7 @@ const IndicatorPaneSkeleton = memo(function IndicatorPaneSkeleton() {
       }}
     >
       {/* Simulated indicator line */}
-      <svg width="100%" height="40" viewBox="0 0 400 40" preserveAspectRatio="none" style={{ opacity: 0.15  }}>
+      <svg width="100%" height="40" viewBox="0 0 400 40" preserveAspectRatio="none" style={{ opacity: 0.15 }}>
         <polyline
           points="0,30 30,22 60,28 90,15 120,20 150,10 180,18 210,12 240,25 270,8 300,20 330,15 360,22 400,18"
           fill="none"
@@ -303,7 +303,7 @@ export default memo(function ChartSkeleton({ phase = 0, variant = 'chart' }) {
             />
             <span
               style={{
-                color: 'var(--tf-t3, #4e5266)',
+                color: 'var(--tf-t3, #7078a0)',
                 fontSize: 11,
                 fontFamily: "'Inter', sans-serif",
                 letterSpacing: '0.5px',

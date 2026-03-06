@@ -379,4 +379,5 @@ class _EdgarAdapter {
 // ─── Singleton + Exports ──────────────────────────────────────
 
 export const edgarAdapter = new _EdgarAdapter();
+
 export default edgarAdapter;

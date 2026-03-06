@@ -386,6 +386,15 @@ export function executeAxesStage(fs, ctx, engine) {
   mCtx.fillRect(pctX, toggleY, toggleW, toggleH);
   mCtx.fillStyle = scaleMode === 'percent' ? '#FFFFFF' : thm.axisText || '#787B86';
   mCtx.fillText('%', pctX + toggleW / 2, toggleY + toggleH / 2);
+
+  // Task 1.4.14: Y-axis lock toggle button
+  const lockX = pctX + toggleW + Math.round(4 * pr);
+  const isLocked = S.yAxisLocked;
+  mCtx.fillStyle = isLocked ? '#EF5350' : thm.bg || '#131722';
+  mCtx.fillRect(lockX, toggleY, toggleW, toggleH);
+  mCtx.fillStyle = isLocked ? '#FFFFFF' : thm.axisText || '#787B86';
+  mCtx.fillText(isLocked ? '🔒' : '🔓', lockX + toggleW / 2, toggleY + toggleH / 2);
+  S._yAxisLockBtn = { x: lockX / pr, y: toggleY / pr, w: toggleW / pr, h: toggleH / pr };
 }
 
 /**

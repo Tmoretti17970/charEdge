@@ -17,14 +17,14 @@ let _savedColors = null;
 try {
   const raw = localStorage.getItem('charEdge-chart-colors');
   if (raw) _savedColors = JSON.parse(raw);
-} catch (_) {}
+} catch (_) { }
 
 // Sprint 15: Load persisted chart type config
 let _savedChartTypeConfig = null;
 try {
   const raw = localStorage.getItem('charEdge-chart-type-config');
   if (raw) _savedChartTypeConfig = JSON.parse(raw);
-} catch (_) {}
+} catch (_) { }
 
 export const createUISlice = (set) => ({
   layoutMode: '1x1',
@@ -38,6 +38,26 @@ export const createUISlice = (set) => ({
 
   showVolume: true,
   showVolumeProfile: false,
+
+  // ── Context Menu ────────────────────────────────────────────────
+  contextMenu: null as { x: number; y: number; price: number; barIdx: number; date?: number } | null,
+  openContextMenu: (menu: { x: number; y: number; price: number; barIdx: number; date?: number }) =>
+    set({ contextMenu: menu }),
+  closeContextMenu: () => set({ contextMenu: null }),
+
+  // ── Quick Journal ───────────────────────────────────────────────
+  showQuickJournal: false,
+  toggleQuickJournal: () => set((s) => ({ showQuickJournal: !s.showQuickJournal })),
+
+  // ── Trade Mode ──────────────────────────────────────────────────
+  tradeMode: false,
+  tradeStep: 'idle' as 'idle' | 'entry' | 'sl' | 'tp' | 'ready',
+  startTradeMode: (side?: 'long' | 'short') =>
+    set({ tradeMode: true, tradeStep: 'entry' }),
+  exitTradeMode: () =>
+    set({ tradeMode: false, tradeStep: 'idle' }),
+  setTradeStep: (step: 'idle' | 'entry' | 'sl' | 'tp' | 'ready') =>
+    set({ tradeStep: step }),
 
   chartColors: _savedColors,
 
@@ -59,13 +79,13 @@ export const createUISlice = (set) => ({
       const merged = s.chartColors ? { ...s.chartColors, ...colors } : { ...colors };
       try {
         localStorage.setItem('charEdge-chart-colors', JSON.stringify(merged));
-      } catch (_) {}
+      } catch (_) { }
       return { chartColors: merged };
     }),
   resetChartColors: () => {
     try {
       localStorage.removeItem('charEdge-chart-colors');
-    } catch (_) {}
+    } catch (_) { }
     set({ chartColors: null });
   },
 
@@ -77,7 +97,7 @@ export const createUISlice = (set) => ({
       const next = { ...prev, [typeId]: typeConf };
       try {
         localStorage.setItem('charEdge-chart-type-config', JSON.stringify(next));
-      } catch (_) {}
+      } catch (_) { }
       return { chartTypeConfig: next };
     }),
   resetChartTypeConfig: (typeId) =>
@@ -86,7 +106,7 @@ export const createUISlice = (set) => ({
       delete prev[typeId];
       try {
         localStorage.setItem('charEdge-chart-type-config', JSON.stringify(prev));
-      } catch (_) {}
+      } catch (_) { }
       return { chartTypeConfig: prev };
     }),
 });

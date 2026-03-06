@@ -94,19 +94,35 @@ export function executeGridStage(fs, ctx, engine) {
   }
 
   // Compute horizontal grid line positions (price axis)
+  // Task 2.7.2: Auto-reduce ticks at small heights
   const horizontal = [];
-  for (const tick of niceStep.ticks) {
+  const maxPriceTicks = mainHeight < 200 ? 3 : mainHeight < 350 ? 5 : niceStep.ticks.length;
+  let priceTickCount = 0;
+  const priceTickStride = maxPriceTicks < niceStep.ticks.length
+    ? Math.ceil(niceStep.ticks.length / maxPriceTicks)
+    : 1;
+  for (let ti = 0; ti < niceStep.ticks.length; ti += priceTickStride) {
+    const tick = niceStep.ticks[ti];
     const y = R.p2y(tick);
     if (y >= 0 && y <= mainHeight) {
       horizontal.push({ y, isMajor: false });
+      priceTickCount++;
+      if (priceTickCount >= maxPriceTicks) break;
     }
   }
 
   // Compute vertical grid line positions (time axis)
+  // Task 2.3.24: Grid LOD — reduce density at high zoom
+  // Task 2.7.2: Auto-reduce ticks at small widths
   const vertical = [];
-  if (R.timeTransform && R.vis?.length > 0) {
-    const step = Math.max(1, Math.floor(R.vis.length / 8));
-    for (let i = 0; i < R.vis.length; i += step) {
+  const visibleBars = R.vis?.length ?? 0;
+  if (R.timeTransform && visibleBars > 0) {
+    // LOD: fewer grid lines at high zoom (<30 bars) or small width (<400px)
+    let divider = 8;
+    if (visibleBars < 30) divider = 4; // High zoom → sparser grid
+    if (cW < 400) divider = Math.max(3, divider / 2); // Small width → even sparser
+    const step = Math.max(1, Math.floor(visibleBars / divider));
+    for (let i = 0; i < visibleBars; i += step) {
       const x = R.timeTransform.indexToPixel(fs.startIdx + i);
       if (x >= 0 && x <= cW) {
         vertical.push({ x, isMajor: false });
@@ -142,7 +158,9 @@ export function executeGridStage(fs, ctx, engine) {
     gCtx.drawImage(_gridCache.canvas, 0, 0);
   } else {
     // Canvas2D fallback: draw grid lines to offscreen canvas
-    oCtx.fillStyle = thm.gridLine || 'rgba(54,58,69,0.3)';
+    // Task 2.3.24: Grid LOD opacity — reduce opacity at high zoom
+    const gridOpacity = visibleBars < 30 ? 0.15 : 0.3;
+    oCtx.fillStyle = thm.gridLine || `rgba(54,58,69,${gridOpacity})`;
     for (const line of horizontal) {
       const by = Math.round(line.y * pr);
       oCtx.fillRect(0, by, Math.round(cW * pr), Math.max(1, pr));

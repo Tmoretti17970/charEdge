@@ -6,6 +6,8 @@
 const ONBOARDING_DEFAULTS = {
   wizardComplete: false,
   wizardStep: 0,
+  ahaReached: false,
+  skipCount: 0,
   dismissedTips: [],
   discoveredFeatures: [],
   tourStep: -1,

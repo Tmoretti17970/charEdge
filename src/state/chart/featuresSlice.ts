@@ -18,12 +18,12 @@ export const createFeaturesSlice = (set) => ({
   setComparison: (symbol, data) => set({ comparisonSymbol: symbol, comparisonData: data }),
   clearComparison: () => set({ comparisonSymbol: null, comparisonData: null }),
 
-  // Intelligence
+  // Intelligence (all off by default — user must opt in)
   intelligence: {
-    enabled: true,
-    showSR: true,
-    showPatterns: true,
-    showDivergences: true,
+    enabled: false,
+    showSR: false,
+    showPatterns: false,
+    showDivergences: false,
     showAutoFib: false,
   },
 
@@ -144,10 +144,10 @@ export const createFeaturesSlice = (set) => ({
 
   // Phase 4: Preset Themes
   chartPresets: {
-    default:    { upColor: '#26A69A', downColor: '#EF5350', upWickColor: '#26A69A', downWickColor: '#EF5350', gridOpacity: 0.3 },
-    midnight:   { upColor: '#5C6BC0', downColor: '#EC407A', upWickColor: '#7986CB', downWickColor: '#F06292', gridOpacity: 0.15 },
-    ocean:      { upColor: '#00BCD4', downColor: '#FF7043', upWickColor: '#26C6DA', downWickColor: '#FF8A65', gridOpacity: 0.2 },
-    terminal:   { upColor: '#00E676', downColor: '#FF1744', upWickColor: '#69F0AE', downWickColor: '#FF5252', gridOpacity: 0.35 },
+    default: { upColor: '#26A69A', downColor: '#EF5350', upWickColor: '#26A69A', downWickColor: '#EF5350', gridOpacity: 0.3 },
+    midnight: { upColor: '#5C6BC0', downColor: '#EC407A', upWickColor: '#7986CB', downWickColor: '#F06292', gridOpacity: 0.15 },
+    ocean: { upColor: '#00BCD4', downColor: '#FF7043', upWickColor: '#26C6DA', downWickColor: '#FF8A65', gridOpacity: 0.2 },
+    terminal: { upColor: '#00E676', downColor: '#FF1744', upWickColor: '#69F0AE', downWickColor: '#FF5252', gridOpacity: 0.35 },
     monochrome: { upColor: '#B0BEC5', downColor: '#546E7A', upWickColor: '#CFD8DC', downWickColor: '#78909C', gridOpacity: 0.25 },
   },
   activePreset: 'default',

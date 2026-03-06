@@ -34,8 +34,8 @@ describe('Sprint 1 — FetchService initial load', () => {
     );
   });
 
-  it('defines INITIAL_LOAD_LIMIT = 300', () => {
-    expect(binanceSource).toContain('INITIAL_LOAD_LIMIT = 300');
+  it('defines INITIAL_LOAD_LIMIT = 500', () => {
+    expect(binanceSource).toContain('INITIAL_LOAD_LIMIT = 500');
   });
 
   it('uses INITIAL_LOAD_LIMIT for short timeframe limits', () => {

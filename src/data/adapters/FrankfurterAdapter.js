@@ -168,4 +168,5 @@ class _FrankfurterAdapter {
 // ─── Singleton + Exports ──────────────────────────────────────
 
 export const frankfurterAdapter = new _FrankfurterAdapter();
+
 export default frankfurterAdapter;

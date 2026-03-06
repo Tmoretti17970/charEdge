@@ -11,23 +11,23 @@ import { notifyThemeChange } from '../../hooks/useThemeVars.js';
 
 // ─── Accent Color Presets ────────────────────────────────────────
 export const ACCENT_PRESETS = [
-  { id: 'forge',    hex: '#e8642c', label: 'Forge Orange' },
-  { id: 'ocean',    hex: '#2962FF', label: 'Ocean Blue' },
-  { id: 'emerald',  hex: '#059669', label: 'Emerald' },
-  { id: 'violet',   hex: '#7c3aed', label: 'Violet' },
-  { id: 'rose',     hex: '#e11d48', label: 'Rose' },
-  { id: 'cyan',     hex: '#0891b2', label: 'Cyan' },
-  { id: 'amber',    hex: '#d97706', label: 'Amber' },
-  { id: 'fuchsia',  hex: '#c026d3', label: 'Fuchsia' },
+  { id: 'forge', hex: '#e8642c', label: 'Forge Orange' },
+  { id: 'ocean', hex: '#2962FF', label: 'Ocean Blue' },
+  { id: 'emerald', hex: '#059669', label: 'Emerald' },
+  { id: 'violet', hex: '#7c3aed', label: 'Violet' },
+  { id: 'rose', hex: '#e11d48', label: 'Rose' },
+  { id: 'cyan', hex: '#0891b2', label: 'Cyan' },
+  { id: 'amber', hex: '#d97706', label: 'Amber' },
+  { id: 'fuchsia', hex: '#c026d3', label: 'Fuchsia' },
 ];
 
 // ─── Chart Color Presets ─────────────────────────────────────────
 export const CHART_COLOR_PRESETS = [
-  { id: 'classic',    label: 'Classic',    bull: '#2dd4a0', bear: '#f25c5c' },
-  { id: 'neon',       label: 'Neon',       bull: '#00ff88', bear: '#ff3366' },
-  { id: 'monochrome', label: 'Mono',       bull: '#a0a0a0', bear: '#505050' },
-  { id: 'ocean',      label: 'Ocean',      bull: '#22d3ee', bear: '#6366f1' },
-  { id: 'sunset',     label: 'Sunset',     bull: '#f0b64e', bear: '#e8642c' },
+  { id: 'classic', label: 'Classic', bull: '#2dd4a0', bear: '#f25c5c' },
+  { id: 'neon', label: 'Neon', bull: '#00ff88', bear: '#ff3366' },
+  { id: 'monochrome', label: 'Mono', bull: '#a0a0a0', bear: '#505050' },
+  { id: 'ocean', label: 'Ocean', bull: '#22d3ee', bear: '#6366f1' },
+  { id: 'sunset', label: 'Sunset', bull: '#f0b64e', bear: '#e8642c' },
 ];
 
 // ─── Helpers (module-level, not in store) ────────────────────────
@@ -46,6 +46,13 @@ function resolveTheme(theme) {
   return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
 }
 
+/** Map theme name to its CSS class */
+function themeClass(resolved) {
+  if (resolved === 'light') return 'theme-light';
+  if (resolved === 'deep-sea') return 'theme-deep-sea';
+  return 'theme-dark';
+}
+
 /** Apply theme class to document root with smooth transition */
 function applyTheme(resolved) {
   const root = typeof document !== 'undefined' ? document.documentElement : null;
@@ -53,13 +60,9 @@ function applyTheme(resolved) {
 
   root.classList.add('tf-transitioning');
 
-  if (resolved === 'light') {
-    root.classList.add('theme-light');
-    root.classList.remove('theme-dark');
-  } else {
-    root.classList.add('theme-dark');
-    root.classList.remove('theme-light');
-  }
+  // Remove all theme classes, then add the resolved one
+  root.classList.remove('theme-dark', 'theme-light', 'theme-deep-sea');
+  root.classList.add(themeClass(resolved));
 
   setTimeout(() => root.classList.remove('tf-transitioning'), 400);
 }
@@ -111,7 +114,7 @@ export const createThemeSlice = (set, get) => ({
 
   toggleTheme() {
     const cur = get().theme;
-    const next = cur === 'dark' ? 'light' : cur === 'light' ? 'system' : 'dark';
+    const next = cur === 'dark' ? 'light' : cur === 'light' ? 'deep-sea' : cur === 'deep-sea' ? 'system' : 'dark';
     get().setTheme(next);
   },
 

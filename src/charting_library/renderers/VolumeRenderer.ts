@@ -85,7 +85,7 @@ export function drawVolume(
     }
 
     const vi = instanceCount * 3;
-    data[vi]     = x;
+    data[vi] = x;
     data[vi + 1] = b.volume || 0;
     data[vi + 2] = b.close >= b.open ? 1.0 : 0.0;
     instanceCount++;
@@ -143,4 +143,50 @@ export function drawVolume(
   r._lastVolumeMaxVol = maxVol;
   r._lastVolumeParams = { ...params, mainH, volTop, volH };
   r._lastVolumeTheme = theme;
+}
+
+/**
+ * Update only the last volume bar's instance data via bufferSubData.
+ * Avoids full buffer re-upload on live ticks.
+ *
+ * Task 2.3.13: Mirrors CandleRenderer.updateLastCandle pattern.
+ */
+export function updateLastVolume(
+  r: RendererRef,
+  bar: VolumeBar,
+  params: VolumeParams,
+  theme: VolumeTheme,
+): boolean {
+  if (!r._available || !r._lastVolumeInstanceCount || r._lastVolumeInstanceCount < 1) return false;
+
+  const gl = r.gl;
+  if (!r._buffers.volumeInstances) return false;
+
+  const { pixelRatio: pr, barSpacing, startIdx, timeTransform } = params;
+
+  // Last bar index in the instance buffer
+  const lastIdx = r._lastVolumeInstanceCount - 1;
+
+  // Compute x position — must match drawVolume's calculation
+  let x: number;
+  if (timeTransform) {
+    x = timeTransform.indexToPixel(startIdx + lastIdx) * pr;
+  } else {
+    x = (lastIdx + 0.5) * barSpacing * pr;
+  }
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, r._buffers.volumeInstances);
+
+  const volData = new Float32Array([
+    x,
+    bar.volume || 0,
+    bar.close >= bar.open ? 1.0 : 0.0,
+  ]);
+  gl.bufferSubData(gl.ARRAY_BUFFER, lastIdx * 3 * 4, volData);
+
+  // Update saved state
+  r._lastVolumeParams = { ...params, mainH: r._lastVolumeParams?.mainH || r.canvas.height / pr, volTop: r._lastVolumeParams?.volTop || 0, volH: r._lastVolumeParams?.volH || 0 };
+  r._lastVolumeTheme = theme;
+
+  return true;
 }

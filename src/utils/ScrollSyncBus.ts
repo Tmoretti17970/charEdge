@@ -44,6 +44,8 @@ class ScrollSyncBus {
      */
     emit(sourcePaneId: string, data: ScrollData): void {
         if (!this._enabled) return;
+        // Task 2.3.26: Skip when <2 listeners — nothing to sync in single-pane mode
+        if (this._listeners.size < 2) return;
 
         const now = performance.now();
         if (now - this._lastEmit < 16) {

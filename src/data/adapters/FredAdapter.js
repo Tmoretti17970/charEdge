@@ -229,4 +229,5 @@ class _FredAdapter {
 // ─── Singleton + Exports ──────────────────────────────────────
 
 export const fredAdapter = new _FredAdapter();
+
 export default fredAdapter;

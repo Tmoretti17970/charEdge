@@ -178,6 +178,8 @@ export class CoinGeckoAdapter extends BaseAdapter {
       return [];
     }
   }
+
+  latencyTier() { return 'delayed'; }
 }
 
 export default CoinGeckoAdapter;

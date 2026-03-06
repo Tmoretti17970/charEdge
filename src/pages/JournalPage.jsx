@@ -5,11 +5,12 @@
 //   1. Header — title, CTA, insight sub-tabs
 //   2. Top pane — Dashboard / Analytics / Notes / Plans
 //   3. Bottom pane — Logbook (filters, trade table)
+//   4. Inspector — §4.12 Liquid Glass modeless trailing inspector
 //
 // Mobile: delegates to JournalMobileView.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useJournalStore } from '../state/useJournalStore.js';
 import { useBreakpoints } from '../utils/useMediaQuery.js';
 
@@ -26,6 +27,9 @@ import { useCooldownEnforcer } from '../hooks/useCooldownEnforcer.js';
 import TradeFormModal from '../app/components/dialogs/TradeFormModal.jsx';
 import CSVImportModal from '../app/components/dialogs/CSVImportModal.jsx';
 // Wave 0: PublishTradeModal quarantined — social features removed from v1.0 scope
+
+// §4.12: Liquid Glass trailing inspector
+import TradingJournalInspector from '../app/components/journal/TradingJournalInspector.jsx';
 
 // Bulk selection
 import { useBulkSelection } from '../app/features/journal/journal_ui/BulkOperations.jsx';
@@ -49,6 +53,20 @@ export default function JournalPage() {
 
   // ─── Journal tab state ──────────────────────────────────────
   const [journalTab, setJournalTab] = useState('dashboard');
+
+  // ─── §4.12: Inspector state ─────────────────────────────────
+  const [inspectedTrade, setInspectedTrade] = useState(null);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
+
+  const openInspector = useCallback((trade) => {
+    setInspectedTrade(trade);
+    setInspectorOpen(true);
+  }, []);
+
+  const closeInspector = useCallback(() => {
+    setInspectorOpen(false);
+    setInspectedTrade(null);
+  }, []);
 
   // ─── Hooks ──────────────────────────────────────────────────
   const filters = useJournalFilters(trades);
@@ -80,20 +98,29 @@ export default function JournalPage() {
     // Keyboard handler dispatches these for edit/delete
     const onEditTrade = (e) => { if (e.detail) actions.handleEdit(e.detail); };
     const onDeleteConfirm = (e) => { if (e.detail) actions.setDeleteConfirm(e.detail); };
+    // §4.12: Open inspector from chart trade marker click
+    const onInspectTrade = (e) => {
+      if (e.detail) {
+        const trade = trades.find((t) => t.id === e.detail);
+        if (trade) openInspector(trade);
+      }
+    };
 
     window.addEventListener('charEdge:add-trade', onAddTrade);
     window.addEventListener('charEdge:import-csv', onImportCSV);
     window.addEventListener('charEdge:journal-tab', onJournalTab);
     window.addEventListener('charEdge:edit-trade', onEditTrade);
     window.addEventListener('charEdge:delete-confirm', onDeleteConfirm);
+    window.addEventListener('charEdge:inspect-trade', onInspectTrade);
     return () => {
       window.removeEventListener('charEdge:add-trade', onAddTrade);
       window.removeEventListener('charEdge:import-csv', onImportCSV);
       window.removeEventListener('charEdge:journal-tab', onJournalTab);
       window.removeEventListener('charEdge:edit-trade', onEditTrade);
       window.removeEventListener('charEdge:delete-confirm', onDeleteConfirm);
+      window.removeEventListener('charEdge:inspect-trade', onInspectTrade);
     };
-  }, [actions]);
+  }, [actions, trades, openInspector]);
 
   // ─── Keyboard shortcuts ─────────────────────────────────────
   useJournalKeyboardHandler({
@@ -117,20 +144,27 @@ export default function JournalPage() {
   // ═══════════════════════════════════════════════════════════════
   if (isMobile) {
     return (
-      <JournalMobileView
-        trades={trades}
-        journalTab={journalTab}
-        setJournalTab={setJournalTab}
-        result={result}
-        handleEdit={actions.handleEdit}
-        handleDelete={actions.handleDelete}
-        openAddTrade={actions.openAddTrade}
-        tradeFormOpen={actions.tradeFormOpen}
-        closeTradeForm={actions.closeTradeForm}
-        editTrade={actions.editTrade}
-        csvModalOpen={actions.csvModalOpen}
-        setCsvModalOpen={actions.setCsvModalOpen}
-      />
+      <>
+        <JournalMobileView
+          trades={trades}
+          journalTab={journalTab}
+          setJournalTab={setJournalTab}
+          result={result}
+          handleEdit={actions.handleEdit}
+          handleDelete={actions.handleDelete}
+          openAddTrade={actions.openAddTrade}
+          tradeFormOpen={actions.tradeFormOpen}
+          closeTradeForm={actions.closeTradeForm}
+          editTrade={actions.editTrade}
+          csvModalOpen={actions.csvModalOpen}
+          setCsvModalOpen={actions.setCsvModalOpen}
+        />
+        <TradingJournalInspector
+          trade={inspectedTrade}
+          isOpen={inspectorOpen}
+          onClose={closeInspector}
+        />
+      </>
     );
   }
 
@@ -194,6 +228,7 @@ export default function JournalPage() {
               setCsvModalOpen={actions.setCsvModalOpen}
               showAIGrades={showAIGrades}
               setShowAIGrades={setShowAIGrades}
+              onInspectTrade={openInspector}
             />
           }
           defaultTopHeight={typeof window !== 'undefined' ? window.innerHeight * 0.45 : 400}
@@ -212,6 +247,14 @@ export default function JournalPage() {
       />
       <CSVImportModal isOpen={actions.csvModalOpen} onClose={() => actions.setCsvModalOpen(false)} />
       {/* Wave 0: PublishTradeModal quarantined — social features removed from v1.0 scope */}
+
+      {/* §4.12: Liquid Glass Trailing Inspector */}
+      <TradingJournalInspector
+        trade={inspectedTrade}
+        isOpen={inspectorOpen}
+        onClose={closeInspector}
+      />
     </div>
   );
 }
+

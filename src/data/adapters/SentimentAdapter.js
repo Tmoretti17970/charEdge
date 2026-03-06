@@ -178,4 +178,5 @@ class _SentimentAdapter {
 // ─── Singleton + Exports ──────────────────────────────────────
 
 export const sentimentAdapter = new _SentimentAdapter();
+
 export default sentimentAdapter;

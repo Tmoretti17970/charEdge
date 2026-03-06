@@ -54,6 +54,7 @@ export default function DashboardCustomLayout({
     editMode,
     toggleEditMode,
     applyPreset,
+    onLayoutToggle,
 }) {
     const [showCustomizer, setShowCustomizer] = useState(false);
     const cols = isMobile ? 1 : isTablet ? 1 : 2;
@@ -191,7 +192,7 @@ export default function DashboardCustomLayout({
                 trades={trades}
                 computing={computing}
                 layoutMode="custom"
-                onLayoutToggle={() => { }}
+                onLayoutToggle={onLayoutToggle}
                 editMode={editMode}
                 onToggleEdit={toggleEditMode}
                 onCustomize={() => setShowCustomizer(true)}

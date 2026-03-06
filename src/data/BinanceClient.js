@@ -17,8 +17,8 @@ export const BINANCE_INTERVALS = {
   '1w': '1w',
 };
 
-/** Initial bar count per timeframe. Short TFs use 300 for fast first paint. */
-const INITIAL_LOAD_LIMIT = 300;
+/** Initial bar count per timeframe. 500 bars for deeper first paint. */
+const INITIAL_LOAD_LIMIT = 500;
 
 export const BINANCE_LIMITS = {
   '1m': INITIAL_LOAD_LIMIT,
@@ -33,10 +33,10 @@ export const BINANCE_LIMITS = {
 
 /** Max pages for backward pagination on longer timeframes. */
 const BINANCE_PAGINATE_PAGES = {
-  '1D': 3,
-  '1w': 2,
-  '4h': 2,
-  '1h': 2,
+  '1D': 5,   // 5 x 1000 = 5000 daily bars (~14 years)
+  '1w': 4,   // 4 x 1000 = 4000 weekly bars (~77 years — Binance will return what it has)
+  '4h': 3,   // 3 x 1000 = 3000 4h bars (~500 days)
+  '1h': 2,   // 2 x 1000 = 2000 1h bars (~83 days)
 };
 
 /**

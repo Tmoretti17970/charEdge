@@ -107,6 +107,28 @@ export async function initApiKeys() {
         logger.data.info('[ApiKeyStore] Migrated legacy plain-text keys to encrypted storage');
       }
     }
+
+    // 4. Seed from VITE_*_API_KEY env vars (defaults — user keys take priority)
+    const envMap = {
+      polygon: 'VITE_POLYGON_API_KEY',
+      alphavantage: 'VITE_ALPHAVANTAGE_API_KEY',
+      finnhub: 'VITE_FINNHUB_API_KEY',
+      fmp: 'VITE_FMP_API_KEY',
+      fred: 'VITE_FRED_API_KEY',
+      whalealert: 'VITE_WHALEALERT_API_KEY',
+      coingecko: 'VITE_COINGECKO_API_KEY',
+      etherscan: 'VITE_ETHERSCAN_API_KEY',
+    };
+    try {
+      const env = import.meta?.env;
+      if (env) {
+        for (const [provider, envKey] of Object.entries(envMap)) {
+          if (!_cache[provider] && env[envKey]) {
+            _cache[provider] = env[envKey];
+          }
+        }
+      }
+    } catch (_) { /* SSR / non-Vite environment */ }
   } catch (err) {
     if (typeof console !== 'undefined') {
       logger.data.warn('[ApiKeyStore] Init failed, falling back to empty:', err?.message);

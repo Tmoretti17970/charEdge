@@ -324,4 +324,7 @@ class _BybitFuturesAdapter {
 // ─── Singleton + Exports ──────────────────────────────────────
 
 export const bybitFuturesAdapter = new _BybitFuturesAdapter();
+/** Latency tier classification for adapter compliance */
+bybitFuturesAdapter.latencyTier = () => 'realtime';
+
 export default bybitFuturesAdapter;

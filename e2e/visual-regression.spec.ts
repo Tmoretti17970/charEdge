@@ -80,4 +80,32 @@ test.describe('Visual Regression', () => {
             fullPage: false,
         });
     });
+
+    // Deep Sea OLED theme tests (Task 4.9.3.2)
+    test('Deep Sea OLED theme screenshot', async ({ page }) => {
+        // Switch to Deep Sea theme
+        await page.evaluate(() => {
+            document.documentElement.classList.remove('theme-dark', 'theme-light');
+            document.documentElement.classList.add('theme-deep-sea');
+        });
+        await page.waitForTimeout(1000);
+
+        await expect(page).toHaveScreenshot('dashboard-deep-sea.png', {
+            maxDiffPixelRatio: 0.02,
+            fullPage: false,
+        });
+    });
+
+    test('light theme screenshot', async ({ page }) => {
+        await page.evaluate(() => {
+            document.documentElement.classList.remove('theme-dark', 'theme-deep-sea');
+            document.documentElement.classList.add('theme-light');
+        });
+        await page.waitForTimeout(1000);
+
+        await expect(page).toHaveScreenshot('dashboard-light.png', {
+            maxDiffPixelRatio: 0.02,
+            fullPage: false,
+        });
+    });
 });

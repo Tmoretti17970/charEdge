@@ -3,10 +3,15 @@
 //
 // OHLCV fetching for Alpha Vantage.
 // Free tier: 25 req/day. Generous intraday data.
+//
+// All requests routed through /api/proxy/alphavantage/ — the
+// server-side proxy injects the API key from env vars, keeping it
+// out of the client JS bundle.
 // ═══════════════════════════════════════════════════════════════════
 
-import { getApiKey } from './ApiKeyStore.js';
 import { logger } from '../../utils/logger';
+
+const PROXY_BASE = '/api/proxy/alphavantage';
 
 // ─── Alpha Vantage Timeframe Config ─────────────────────────────
 
@@ -22,7 +27,7 @@ export const AV_FUNCTIONS = {
 };
 
 /**
- * Fetch from Alpha Vantage.
+ * Fetch from Alpha Vantage (via server proxy).
  * Free tier: 25 req/day. Generous intraday data.
  *
  * @param {string} sym - Ticker symbol
@@ -30,14 +35,11 @@ export const AV_FUNCTIONS = {
  * @returns {Array|null} OHLCV array or null
  */
 export async function fetchAlphaVantage(sym, tfId) {
-  const key = getApiKey('alphavantage');
-  if (!key) return null;
-
   const cfg = AV_FUNCTIONS[tfId];
   if (!cfg) return null;
 
   try {
-    let url = `https://www.alphavantage.co/query?function=${cfg.fn}&symbol=${encodeURIComponent(sym)}&apikey=${key}&outputsize=compact`;
+    let url = `${PROXY_BASE}/query?function=${cfg.fn}&symbol=${encodeURIComponent(sym)}&outputsize=compact`;
     if (cfg.interval) url += `&interval=${cfg.interval}`;
 
     const res = await fetch(url);

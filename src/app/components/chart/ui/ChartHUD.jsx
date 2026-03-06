@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useChartStore } from '../../../../state/useChartStore.js';
 import { C } from '../../../../constants.js';
+import { updateFaviconBadge, resetFavicon } from '../../../../utils/faviconBadge';
 import h from './ChartHUD.module.css';
 
 const FADE_DELAY = 3000; // ms before auto-fade
@@ -54,6 +55,14 @@ export default function ChartHUD({ symbol, timeframe, lastPrice, data }) {
     ? ((priceChange / data[data.length - 2].close) * 100)
     : 0;
   const isPositive = priceChange >= 0;
+
+  // ── Favicon price badge — peripheral awareness ────────────
+  useEffect(() => {
+    if (lastPrice != null && isLive) {
+      updateFaviconBadge(priceChangePercent);
+    }
+    return () => resetFavicon();
+  }, [priceChangePercent, lastPrice, isLive]);
 
   return (
     <div

@@ -42,6 +42,7 @@ const SettingsSlideOver = React.lazy(() => import('./app/layouts/SettingsSlideOv
 const FocusOverlay = React.lazy(() => import('./app/components/ui/FocusOverlay.jsx'));
 const CookieConsent = React.lazy(() => import('./app/components/ui/CookieConsent.jsx'));
 const FeedbackWidget = React.lazy(() => import('./app/components/ui/FeedbackWidget.jsx'));
+const ReactionBarOverlay = React.lazy(() => import('./app/components/dialogs/ReactionBarOverlay.jsx'));
 const VercelAnalytics = React.lazy(() => import('@vercel/analytics/react').then(m => ({ default: m.Analytics })));
 const VercelSpeedInsights = React.lazy(() => import('@vercel/speed-insights/react').then(m => ({ default: m.SpeedInsights })));
 
@@ -137,6 +138,39 @@ export default function App() {
     useUserStore.getState().init();
     // Sprint D: Start animation budget monitoring
     animationBudget.start();
+
+    // Task 2.3.23: Check for crash recovery state on boot
+    import('./charting_library/core/SessionRecovery.js').then(({ getRecoveryState, clearRecoveryState }) => {
+      getRecoveryState().then((recovery) => {
+        if (!recovery) return;
+        // Show recovery toast via existing Toast system
+        import('./app/components/ui/Toast.jsx').then(({ default: toast }) => {
+          toast.action(
+            `💾 Restore session? (${recovery.symbol} ${recovery.timeframe})`,
+            'Restore →',
+            () => {
+              // Apply recovery state to stores
+              const chartStore = require('./state/useChartStore.js').useChartStore;
+              if (recovery.symbol) chartStore.getState().setSymbol(recovery.symbol);
+              if (recovery.timeframe) chartStore.getState().setTf(recovery.timeframe);
+              if (recovery.chartType) chartStore.getState().setChartType(recovery.chartType);
+              if (recovery.indicators?.length) {
+                // Clear + re-add indicators
+                const existing = chartStore.getState().indicators || [];
+                for (let i = existing.length - 1; i >= 0; i--) chartStore.getState().removeIndicator(i);
+                for (const ind of recovery.indicators) chartStore.getState().addIndicator(ind);
+              }
+              if (recovery.page) useUIStore.getState().setPage(recovery.page);
+              clearRecoveryState();
+            },
+            { type: 'info', duration: 12000 },
+          );
+          // Clear recovery state after 15s regardless (auto-dismiss)
+          setTimeout(() => clearRecoveryState(), 15000);
+        }).catch(() => { /* Toast import is best-effort */ });
+      }).catch(() => { /* recovery check is best-effort */ });
+    }).catch(() => { /* SessionRecovery import is best-effort */ });
+
     return () => animationBudget.stop();
   }, []);
 
@@ -274,6 +308,7 @@ export default function App() {
               <FocusOverlay />
               <CookieConsent />
               <FeedbackWidget />
+              <ReactionBarOverlay />
               {/* Consent-gated: only load analytics when user opted in */}
               {analyticsConsent === true && <VercelAnalytics />}
               {analyticsConsent === true && <VercelSpeedInsights />}

@@ -1,7 +1,14 @@
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — ConnectionStatus
 // Visual indicator for data feed connection state.
+// Enhanced with latency tier badges (Task 2.4.16) and RTT (Task 2.4.15).
 // ═══════════════════════════════════════════════════════════════════
+
+const TIER_CONFIG = {
+  realtime: { icon: '🟢', label: 'Real-Time', desc: '<10ms' },
+  fast: { icon: '🟡', label: 'Fast', desc: '<50ms' },
+  delayed: { icon: '🔴', label: 'Delayed', desc: '>100ms' },
+};
 
 /**
  * @param {Object} props
@@ -9,8 +16,10 @@
  * @param {string}  props.feedStatus - 'connected'|'connecting'|'disconnected'|'error'
  * @param {string}  [props.error]    - Error message
  * @param {string}  [props.theme='dark']
+ * @param {string}  [props.latencyTier] - 'realtime'|'fast'|'delayed'
+ * @param {number}  [props.rttMs]    - Round-trip time in ms
  */
-export default function ConnectionStatus({ status, feedStatus, error, theme = 'dark' }) {
+export default function ConnectionStatus({ status, feedStatus, error, theme = 'dark', latencyTier, rttMs }) {
   const isDark = theme === 'dark';
 
   const statusConfig = {
@@ -22,6 +31,12 @@ export default function ConnectionStatus({ status, feedStatus, error, theme = 'd
 
   const wsConfig = statusConfig[feedStatus] || statusConfig.disconnected;
   const isLoading = status === 'loading' || status === 'loading_more';
+  const tierInfo = latencyTier ? TIER_CONFIG[latencyTier] : null;
+
+  // RTT color coding
+  const rttColor = rttMs != null
+    ? rttMs < 50 ? '#26A69A' : rttMs < 200 ? '#FF9800' : '#EF5350'
+    : null;
 
   return (
     <div
@@ -62,6 +77,34 @@ export default function ConnectionStatus({ status, feedStatus, error, theme = 'd
 
       <span>{isLoading ? (status === 'loading_more' ? 'Loading history...' : 'Loading...') : wsConfig.label}</span>
 
+      {/* Latency tier badge */}
+      {tierInfo && !isLoading && (
+        <span
+          title={`${tierInfo.label} (${tierInfo.desc})`}
+          style={{
+            fontSize: 10,
+            opacity: 0.8,
+            cursor: 'help',
+          }}
+        >
+          {tierInfo.icon}
+        </span>
+      )}
+
+      {/* RTT display */}
+      {rttMs != null && !isLoading && (
+        <span
+          title={`Round-trip time: ${rttMs}ms`}
+          style={{
+            fontSize: 10,
+            color: rttColor,
+            fontFamily: 'var(--font-mono, monospace)',
+          }}
+        >
+          {rttMs}ms
+        </span>
+      )}
+
       {/* Error tooltip */}
       {error && (
         <span style={{ color: '#EF5350', fontSize: 10 }} title={error}>
@@ -72,3 +115,4 @@ export default function ConnectionStatus({ status, feedStatus, error, theme = 'd
     </div>
   );
 }
+

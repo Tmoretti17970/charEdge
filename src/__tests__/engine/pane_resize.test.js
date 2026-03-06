@@ -187,7 +187,8 @@ describe('Sprint 11 · ChartEngineWidget — Callback Wiring', () => {
   const src = read('app/components/chart/core/ChartEngineWidget.jsx');
 
   it('reads paneHeights from chart store', () => {
-    expect(src).toContain("useChartStore((s) => s.paneHeights)");
+    // Task 2.3.29: selectors consolidated via useShallow
+    expect(src).toContain('paneHeights: s.paneHeights');
   });
 
   it('passes paneHeights to engine props', () => {

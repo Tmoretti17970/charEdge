@@ -164,6 +164,13 @@ class _WebSocketService {
     /** @type {Array<{stream: string, data: Object}>} */
     this._pendingMessages = [];
     this._rafId = null;
+
+    // ── Task 2.3.16: Pre-allocated scratch objects (zero-alloc hot path) ──
+    // These are reused on every tick dispatch to avoid GC pressure.
+    // Safe because subscriber callbacks consume values synchronously.
+    this._scratchBar = { time: 0, open: 0, high: 0, low: 0, close: 0, volume: 0, isClosed: false };
+    this._scratchTrade = { price: 0, qty: 0, time: 0, isBuyerMaker: false };
+    this._scratchBridgeTick = { price: 0, volume: 0, time: 0, side: '' };
   }
 
   static isSupported(symbol) {
@@ -511,13 +518,19 @@ class _WebSocketService {
    */
   _flushMessages() {
     this._rafId = null;
+    // Task 2.3.16: Swap-and-truncate instead of allocating new array
     const batch = this._pendingMessages;
-    this._pendingMessages = [];
+    const len = batch.length;
+    if (len === 0) return;
 
-    for (let i = 0; i < batch.length; i++) {
+    // Process all queued messages
+    for (let i = 0; i < len; i++) {
       const { stream: msgStream, data: msg } = batch[i];
       this._dispatchMessage(msgStream, msg);
     }
+
+    // Truncate in-place — avoids creating a new [] per frame
+    batch.length = 0;
   }
 
   /**
@@ -529,15 +542,15 @@ class _WebSocketService {
     // ── Kline events ──
     if (msg.e === 'kline' && msg.k) {
       const k = msg.k;
-      const bar = {
-        time: k.t,
-        open: +k.o,
-        high: +k.h,
-        low: +k.l,
-        close: +k.c,
-        volume: +k.v,
-        isClosed: k.x,
-      };
+      // Task 2.3.16: Write to pre-allocated scratch bar (zero-alloc)
+      const bar = this._scratchBar;
+      bar.time = k.t;
+      bar.open = +k.o;
+      bar.high = +k.h;
+      bar.low = +k.l;
+      bar.close = +k.c;
+      bar.volume = +k.v;
+      bar.isClosed = k.x;
 
       for (const sub of this._subs.values()) {
         if (sub.streamKey === msgStream) {
@@ -546,28 +559,29 @@ class _WebSocketService {
         }
       }
 
-      // Wire streaming indicators
       try {
         const bridge = _getStreamingBridge();
         if (bridge) {
           const sym = msg.s || msgStream.split('@')[0].toUpperCase();
-          bridge.onTick(sym, {
-            price: bar.close,
-            volume: bar.volume,
-            time: bar.time,
-          });
+          // Task 2.3.16: Reuse scratch tick object
+          const tick = this._scratchBridgeTick;
+          tick.price = bar.close;
+          tick.volume = bar.volume;
+          tick.time = bar.time;
+          tick.side = '';
+          bridge.onTick(sym, tick);
         }
       } catch (e) { logger.data.warn('Operation failed', e); }
     }
 
     // ── Trade events (sub-second ticks) ──
     if (msg.e === 'trade') {
-      const trade = {
-        price: +msg.p,
-        qty: +msg.q,
-        time: msg.T,
-        isBuyerMaker: msg.m,
-      };
+      // Task 2.3.16: Write to pre-allocated scratch trade (zero-alloc)
+      const trade = this._scratchTrade;
+      trade.price = +msg.p;
+      trade.qty = +msg.q;
+      trade.time = msg.T;
+      trade.isBuyerMaker = msg.m;
 
       for (const sub of this._tradeSubs.values()) {
         if (sub.streamKey === msgStream) {
@@ -580,12 +594,13 @@ class _WebSocketService {
         const bridge = _getStreamingBridge();
         if (bridge) {
           const sym = msg.s || msgStream.split('@')[0].toUpperCase();
-          bridge.onTick(sym, {
-            price: trade.price,
-            volume: trade.qty,
-            time: trade.time,
-            side: trade.isBuyerMaker ? 'sell' : 'buy',
-          });
+          // Task 2.3.16: Reuse scratch tick object
+          const tick = this._scratchBridgeTick;
+          tick.price = trade.price;
+          tick.volume = trade.qty;
+          tick.time = trade.time;
+          tick.side = trade.isBuyerMaker ? 'sell' : 'buy';
+          bridge.onTick(sym, tick);
         }
       } catch (e) { logger.data.warn('Operation failed', e); }
     }

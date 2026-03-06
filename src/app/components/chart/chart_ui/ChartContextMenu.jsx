@@ -26,7 +26,7 @@ export default function ChartContextMenu({ menu, onClose, handlers, tradeMode, t
   // Close on outside click
   useEffect(() => {
     const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) onClose();
+      if (ref.current && !ref.current.contains(e.target)) onClose?.();
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -35,7 +35,7 @@ export default function ChartContextMenu({ menu, onClose, handlers, tradeMode, t
   // Close on Escape
   useEffect(() => {
     const handler = (e) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onClose?.();
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
@@ -68,7 +68,7 @@ export default function ChartContextMenu({ menu, onClose, handlers, tradeMode, t
       });
     }
     items.push(SEPARATOR);
-    items.push({ label: '✕ Exit Trade Mode', action: handlers.onExitTradeMode, color: C.t3 });
+    items.push({ label: '✕ Exit Trade Mode', action: () => handlers.onExitTradeMode?.(), color: C.t3 });
   } else {
     // Not in trade mode: show trade entry options
     items.push({
@@ -125,8 +125,8 @@ export default function ChartContextMenu({ menu, onClose, handlers, tradeMode, t
             className={`tf-btn ${s.menuItem}`}
             key={i}
             onClick={() => {
-              item.action();
-              onClose();
+              item.action?.();
+              onClose?.();
             }}
             style={{
               fontFamily: F,

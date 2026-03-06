@@ -82,6 +82,8 @@ export class OKXAdapter extends BaseAdapter {
     return upper.endsWith('USDT') || upper.endsWith('USDC');
   }
 
+  latencyTier() { return 'realtime'; }
+
   async fetchOHLCV(symbol, interval = '1h', opts = {}) {
     const instId = toOKXInstId(symbol);
     const bar = INTERVAL_MAP[interval] || '1H';

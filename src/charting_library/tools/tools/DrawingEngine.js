@@ -531,8 +531,21 @@ export function createDrawingEngine(options = {}) {
     get hoveredDrawingId() { return hoveredDrawingId; },
     get hoveredAnchorIdx() { return hoveredAnchorIdx; },
     setSceneGraph(sg) { _sceneGraph = sg; },
+    // Task 1.4.9: Per-tool cursor shapes — cursor changes based on active drawing tool
     get cursorHint() {
-      if (interactionState === STATE.CREATING) return 'crosshair';
+      if (interactionState === STATE.CREATING) {
+        const toolCursors = {
+          trendline: 'crosshair', ray: 'crosshair', segment: 'crosshair',
+          hline: 'crosshair', vline: 'crosshair',
+          rectangle: 'cell', ellipse: 'cell',
+          text: 'text', callout: 'text',
+          fib: 'crosshair', fibext: 'crosshair', fibarc: 'crosshair',
+          pitchfork: 'crosshair',
+          ruler: 'copy', pricerange: 'copy',
+          arrow_up: 'crosshair', arrow_down: 'crosshair',
+        };
+        return (activeTool && toolCursors[activeTool]) || 'crosshair';
+      }
       if (interactionState === STATE.DRAGGING) return 'grabbing';
       if (interactionState === STATE.MOVING) return 'grabbing';
       if (hoveredAnchorIdx >= 0) return 'grab';

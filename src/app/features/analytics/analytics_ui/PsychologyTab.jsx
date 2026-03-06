@@ -13,17 +13,20 @@ import { SectionLabel, WinRateByCategory, headerRow, dataRow } from './Analytics
 function PsychologyTab({ result, computing }) {
   const [aiEnabled, setAiEnabled] = useState(false);
 
+  // All hooks must be called before any early return (React Rules of Hooks)
+  const emotions = useMemo(
+    () => {
+      if (!result?.byEmo) return [];
+      return Object.entries(result.byEmo)
+        .map(([name, d]) => ({ name, ...d, wr: d.count > 0 ? (d.wins / d.count) * 100 : 0 }))
+        .sort((a, b) => b.pnl - a.pnl);
+    },
+    [result?.byEmo],
+  );
+
   if (!result || !result.byEmo) {
     return <div style={{ padding: 40, textAlign: 'center', color: C.t3 }}>{computing ? 'Computing psychology...' : 'No psychology data available.'}</div>;
   }
-
-  const emotions = useMemo(
-    () =>
-      Object.entries(result.byEmo)
-        .map(([name, d]) => ({ name, ...d, wr: d.count > 0 ? (d.wins / d.count) * 100 : 0 }))
-        .sort((a, b) => b.pnl - a.pnl),
-    [result.byEmo],
-  );
 
   const bestEmo = emotions[0];
   const worstEmo = emotions[emotions.length - 1];

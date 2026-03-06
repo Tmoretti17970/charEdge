@@ -15,6 +15,15 @@ const OVERSCROLL_MAX = 40;      // Max overscroll in bars beyond edge
 const OVERSCROLL_SPRING = 0.85; // Spring-back factor per frame
 const RIGHT_MARGIN_FRAC = 0.5;  // Allow scrolling past last bar by this fraction of visibleBars (TradingView-style)
 
+// Task 1.4.12: Y-axis spring physics constants
+const PRICE_FRICTION = 0.92;       // Faster decay than horizontal (tighter feel)
+const MIN_PRICE_VELOCITY = 0.0001; // Stop threshold for price velocity
+const PRICE_SPRING_BACK = 0.15;    // Spring-back stiffness when overscrolled
+
+// Task 1.4.13: Zoom momentum constants
+const ZOOM_MOMENTUM_WINDOW = 120;  // ms — consecutive wheel events within this window accumulate
+const ZOOM_MOMENTUM_DECAY = 0.92;  // Exponential decay per frame for zoom velocity
+
 // ─── Engine interface (avoids circular ChartEngine dependency) ────
 
 interface LegendHitRegion {
@@ -112,7 +121,7 @@ interface EngineRef {
   markDirty(): void;
 }
 
-type TouchMode = 'pan' | 'pinch' | null;
+type TouchMode = 'pan' | 'pinch' | 'workspace-swipe' | null;
 
 export class InputManager {
   engine: EngineRef;
@@ -132,6 +141,19 @@ export class InputManager {
   private _zoomRaf: number | null = null;
   private _zoomAnchorFrac: number = 0.5;
 
+  // Task 1.4.12: Y-axis spring physics state
+  private _priceVelocity: number = 0;
+  private _priceInertiaRaf: number | null = null;
+  private _priceDragSamples: [number, number, number] = [0, 0, 0];
+  private _priceDragIdx: number = 0;
+  private _lastPriceMoveTime: number = 0;
+  private _lastPriceMoveY: number = 0;
+
+  // Task 1.4.13: Zoom momentum state
+  private _zoomVelocity: number = 0;
+  private _lastWheelTime: number = 0;
+  private _zoomMomentumRaf: number | null = null;
+
   // Scroll-to-now animation state
   private _scrollToNowRaf: number | null = null;
 
@@ -148,6 +170,8 @@ export class InputManager {
   private _pinchStartOffset: number = 0;
   private _pinchStartPriceScale: number = 1;
   private _pinchAnchorFrac: number = 0.5;
+  // Task 2.3.33: Angular rejection for touch pinch
+  private _pinchStartAngle: number = 0;
 
   // Bound event handlers
   private _onAuxClick: (e: MouseEvent) => void;
@@ -196,6 +220,8 @@ export class InputManager {
     if (this._inertiaRaf) cancelAnimationFrame(this._inertiaRaf);
     if (this._zoomRaf) cancelAnimationFrame(this._zoomRaf);
     if (this._scrollToNowRaf) cancelAnimationFrame(this._scrollToNowRaf);
+    if (this._priceInertiaRaf) cancelAnimationFrame(this._priceInertiaRaf);
+    if (this._zoomMomentumRaf) cancelAnimationFrame(this._zoomMomentumRaf);
     // Sprint 4: Clean up GPU compositing hint
     this._clearWillChange();
   }
@@ -227,6 +253,8 @@ export class InputManager {
       // Spring-back when overscrolled past edges
       const rightMargin = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
       const minScroll = -rightMargin;
+      // maxScroll = furthest left the user can scroll (oldest bar at left edge)
+      // Must match the formula used by all other scroll handlers in this file
       const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
       if (S.scrollOffset < minScroll) {
         S.scrollOffset = minScroll + (S.scrollOffset - minScroll) * OVERSCROLL_SPRING;
@@ -268,10 +296,20 @@ export class InputManager {
   }
 
   // Sprint 1: Check if we should dispatch a prefetch event
+  private _lastPrefetchBarCount: number = 0;
+
   private _checkPrefetch(eng: EngineRef): void {
     const S = eng.state;
     const R = S.lastRender;
-    if (!R || this._prefetchDispatched) return;
+    if (!R) return;
+
+    // Reset prefetch flag when new bars have been loaded (enables chain-loading)
+    if (eng.bars.length !== this._lastPrefetchBarCount) {
+      this._lastPrefetchBarCount = eng.bars.length;
+      this._prefetchDispatched = false;
+    }
+
+    if (this._prefetchDispatched) return;
 
     // Calculate how many bars from the left edge we are
     const startIdx = Math.max(0, eng.bars.length - S.scrollOffset - S.visibleBars);
@@ -330,6 +368,97 @@ export class InputManager {
     this._zoomRaf = requestAnimationFrame(step);
   }
 
+  // ─── Task 1.4.12: Y-Axis Spring Physics (Price Inertia) ────
+  // On price-axis drag release, apply momentum + spring-back for iOS-like feel.
+  private _startPriceInertia(): void {
+    if (this._priceInertiaRaf) cancelAnimationFrame(this._priceInertiaRaf);
+    const eng = this.engine;
+    const S = eng.state;
+
+    const step = (): void => {
+      // Decay velocity
+      this._priceVelocity *= PRICE_FRICTION;
+
+      // Apply velocity to price scroll
+      S.priceScroll += this._priceVelocity;
+
+      // Spring-back when overscrolled (priceScroll too far from 0)
+      const maxDrift = 0.5; // Maximum allowed price drift as fraction of visible range
+      const R = S.lastRender;
+      const range = R ? (R.yMax - R.yMin) : 1;
+      const maxScroll = range * maxDrift;
+
+      if (Math.abs(S.priceScroll) > maxScroll) {
+        // Pull back toward boundary
+        const target = Math.sign(S.priceScroll) * maxScroll;
+        S.priceScroll += (target - S.priceScroll) * PRICE_SPRING_BACK;
+        this._priceVelocity *= 0.5; // Dampen velocity during spring-back
+      }
+
+      // Stop when velocity is negligible and within bounds
+      if (Math.abs(this._priceVelocity) < MIN_PRICE_VELOCITY && Math.abs(S.priceScroll) <= maxScroll) {
+        this._priceInertiaRaf = null;
+        return;
+      }
+
+      S.mainDirty = true;
+      if (eng.layers) {
+        eng.layers.markDirty(LAYERS.DATA);
+        eng.layers.markDirty(LAYERS.INDICATORS);
+        eng.layers.markDirty(LAYERS.GRID);
+      }
+      eng._scheduleDraw();
+      this._priceInertiaRaf = requestAnimationFrame(step);
+    };
+    this._priceInertiaRaf = requestAnimationFrame(step);
+  }
+
+  private _stopPriceInertia(): void {
+    this._priceVelocity = 0;
+    if (this._priceInertiaRaf) {
+      cancelAnimationFrame(this._priceInertiaRaf);
+      this._priceInertiaRaf = null;
+    }
+  }
+
+  // ─── Task 1.4.13: Zoom Momentum (Scroll Wheel Glide) ───────
+  // Consecutive wheel events accumulate zoom velocity; animation loop
+  // applies exponential decay for a smooth glide effect.
+  private _startZoomMomentum(): void {
+    if (this._zoomMomentumRaf) return; // Already running
+    const eng = this.engine;
+    const S = eng.state;
+
+    const step = (): void => {
+      this._zoomVelocity *= ZOOM_MOMENTUM_DECAY;
+
+      if (Math.abs(this._zoomVelocity) < 0.1) {
+        this._zoomVelocity = 0;
+        this._zoomMomentumRaf = null;
+        return;
+      }
+
+      const maxBars = Math.max(80, eng.bars.length + 20);
+      const oldBars = S.visibleBars;
+      // Apply momentum as multiplicative factor
+      S.visibleBars = Math.max(10, Math.min(maxBars, S.visibleBars * (1 + this._zoomVelocity * 0.001)));
+
+      // Anchor zoom
+      const barDelta = S.visibleBars - oldBars;
+      const rightMarginZ = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
+      const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
+      S.scrollOffset = Math.max(-rightMarginZ, Math.min(maxScroll,
+        S.scrollOffset - barDelta * (1 - this._zoomAnchorFrac)
+      ));
+
+      S.mainDirty = true;
+      S.topDirty = true;
+      eng._scheduleDraw();
+      this._zoomMomentumRaf = requestAnimationFrame(step);
+    };
+    this._zoomMomentumRaf = requestAnimationFrame(step);
+  }
+
   // Sprint 11: Find splitter index near a given Y position (CSS pixels).
   // Returns pane index (0 = first splitter) or -1 if not near any.
   private _hitTestSplitter(y: number): number {
@@ -360,7 +489,8 @@ export class InputManager {
     const eng = this.engine;
     const S = eng.state;
     const R = S.lastRender;
-    const consumed = eng.drawingEngine?.onMouseMove(pos.x, pos.y);
+    // Task 2.3.31: Skip drawing engine hit-testing during pan/zoom drags
+    const consumed = S.dragging ? false : eng.drawingEngine?.onMouseMove(pos.x, pos.y);
 
     if (!R) return;
 
@@ -412,6 +542,22 @@ export class InputManager {
         eng.layers.markDirty(LAYERS.INDICATORS);
         eng.layers.markDirty(LAYERS.GRID);
       }
+
+      // Task 1.4.12: Track Y-axis velocity for spring physics
+      const nowPrice = performance.now();
+      const dtPrice = nowPrice - this._lastPriceMoveTime;
+      if (dtPrice > 0 && dtPrice < 100) {
+        const R = S.lastRender;
+        const range = R ? (R.yMax - R.yMin) : 1;
+        const pricePerPixel = range / (R?.mainH || 400) / S.priceScale;
+        const dyFrame = e.clientY - this._lastPriceMoveY;
+        const sample = dyFrame * pricePerPixel * (16 / dtPrice);
+        this._priceDragSamples[this._priceDragIdx % 3] = sample;
+        this._priceDragIdx++;
+        this._priceVelocity = (this._priceDragSamples[0] + this._priceDragSamples[1] + this._priceDragSamples[2]) / 3;
+      }
+      this._lastPriceMoveTime = nowPrice;
+      this._lastPriceMoveY = e.clientY;
     } else if (S.dragging === 'chart' && !consumed) {
       const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
       const rightMarginChart = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
@@ -492,6 +638,9 @@ export class InputManager {
 
   onMouseLeave(): void {
     const S = this.engine.state;
+    // Task 2.3.30: When pointer is captured during drag, ignore mouseleave
+    // events — the pointer stays locked to the chart until mouseup.
+    if (S.dragging) return;
     S.mouseX = null;
     S.mouseY = null;
     S.hoverIdx = null;
@@ -560,6 +709,8 @@ export class InputManager {
       const localY = e.clientY - r.top;
       if (localX >= stnBtn.x && localX <= stnBtn.x + stnBtn.w &&
         localY >= stnBtn.y && localY <= stnBtn.y + stnBtn.h) {
+        // Task 1.4.10: Micro-animation — brief press pulse
+        S._btnPressAnim = { id: 'stn', time: performance.now() };
         this.scrollToNow();
         return;
       }
@@ -590,6 +741,8 @@ export class InputManager {
         const localY = e.clientY - r.top;
         if (localX >= afBtn.x && localX <= afBtn.x + afBtn.w &&
           localY >= afBtn.y && localY <= afBtn.y + afBtn.h) {
+          // Task 1.4.10: Micro-animation — brief press pulse
+          S._btnPressAnim = { id: 'af', time: performance.now() };
           S.autoScale = true;
           S.priceScale = 1;
           S.priceScroll = 0;
@@ -614,16 +767,40 @@ export class InputManager {
       if (localY >= toggleY && localY <= toggleY + toggleH) {
         if (localX >= logX && localX <= logX + toggleW) {
           S.scaleMode = S.scaleMode === 'log' ? 'linear' : 'log';
+          // Task 1.4.11: Animated scale transition — force re-autoScale with animation
+          S.autoScale = true;
+          S.priceScale = 1;
+          S.priceScroll = 0;
           S.mainDirty = true;
+          S.topDirty = true;
           eng._scheduleDraw();
           return;
         }
         if (localX >= pctX && localX <= pctX + toggleW) {
           S.scaleMode = S.scaleMode === 'percent' ? 'linear' : 'percent';
+          // Task 1.4.11: Animated scale transition — force re-autoScale with animation
+          S.autoScale = true;
+          S.priceScale = 1;
+          S.priceScroll = 0;
+          S.mainDirty = true;
+          S.topDirty = true;
+          eng._scheduleDraw();
+          return;
+        }
+        // Task 1.4.14: Y-axis lock toggle click
+        const lockX = pctX + toggleW + 4;
+        if (localX >= lockX && localX <= lockX + toggleW) {
+          S.yAxisLocked = !S.yAxisLocked;
           S.mainDirty = true;
           eng._scheduleDraw();
           return;
         }
+      }
+
+      // Task 1.4.14: Guard — block price dragging when Y-axis is locked
+      if (S.yAxisLocked) {
+        this.tc.style.cursor = 'not-allowed';
+        return;
       }
 
       S.dragging = 'price';
@@ -631,6 +808,12 @@ export class InputManager {
       S.dragStartPriceScale = S.priceScale;
       S.dragStartPriceScroll = S.priceScroll;
       this.tc.style.cursor = 'ns-resize';
+      // Task 1.4.12: Initialize price velocity tracking
+      this._stopPriceInertia();
+      this._lastPriceMoveTime = performance.now();
+      this._lastPriceMoveY = e.clientY;
+      this._priceDragSamples = [0, 0, 0];
+      this._priceDragIdx = 0;
     } else {
       S.dragging = 'chart';
       S.dragStartX = e.clientX;
@@ -639,6 +822,10 @@ export class InputManager {
       S.dragStartPriceScroll = S.priceScroll;
       this.tc.style.cursor = 'grabbing';
       this._setWillChange(); // Sprint 4: GPU compositing hint during pan
+      // Task 2.3.30: Capture pointer so crosshair persists when mouse exits chart
+      if ('setPointerCapture' in this.tc && (e as PointerEvent).pointerId != null) {
+        this.tc.setPointerCapture((e as PointerEvent).pointerId);
+      }
     }
   }
 
@@ -656,6 +843,10 @@ export class InputManager {
     // Sprint 13.2: Restore cursor from drawing engine hint
     const hint = eng.drawingEngine?.cursorHint;
     this.tc.style.cursor = hint || 'crosshair';
+    // Task 2.3.30: Release pointer capture after drag
+    if ('releasePointerCapture' in this.tc && (e as PointerEvent).pointerId != null) {
+      try { this.tc.releasePointerCapture((e as PointerEvent).pointerId); } catch (_) { /* not captured */ }
+    }
 
     if (!wasDrag) return;
     const moved = Math.abs(e.clientX - eng.state.dragStartX);
@@ -663,6 +854,11 @@ export class InputManager {
     // Start inertia if we were dragging the chart area and have velocity
     if (wasChartDrag && Math.abs(this._velocityX) > MIN_VELOCITY && moved > 10) {
       this._startInertia();
+    }
+
+    // Task 1.4.12: Start Y-axis spring physics if price axis was dragged with velocity
+    if (wasDrag === 'price' && Math.abs(this._priceVelocity) > MIN_PRICE_VELOCITY) {
+      this._startPriceInertia();
     }
 
     if (moved < 3 && eng.callbacks.onBarClick && eng.state.hoverIdx != null) {
@@ -696,6 +892,21 @@ export class InputManager {
       }
       eng.markDirty();
       return;
+    }
+
+    // Task 1.4.15: Double-click on Y-axis → auto-fit (gesture shortcut)
+    const R = S.lastRender;
+    if (R) {
+      const isPriceAxis = pos.x >= R.cW;
+      if (isPriceAxis) {
+        S.autoScale = true;
+        S.priceScale = 1;
+        S.priceScroll = 0;
+        S.mainDirty = true;
+        S.topDirty = true;
+        eng._scheduleDraw();
+        return;
+      }
     }
 
     this._stopInertia();
@@ -758,7 +969,7 @@ export class InputManager {
       this._checkPrefetch(eng);
       eng._scheduleDraw();
     } else {
-      // ── Discrete mouse wheel: zoom (original behavior) ──
+      // ── Discrete mouse wheel: zoom (original behavior + Task 1.4.13 momentum) ──
       const d = Math.sign(e.deltaY);
       const maxBars = Math.max(80, eng.bars.length + 20);
       const currentTarget = this._targetVisibleBars || S.visibleBars;
@@ -772,6 +983,18 @@ export class InputManager {
 
       this._targetVisibleBars = newTarget;
       this._startZoomAnimation();
+
+      // Task 1.4.13: Accumulate zoom momentum for glide effect
+      const now = performance.now();
+      if (now - this._lastWheelTime < ZOOM_MOMENTUM_WINDOW) {
+        // Consecutive wheel event — accumulate velocity
+        this._zoomVelocity += d * 8;
+      } else {
+        // Fresh wheel event — start fresh momentum
+        this._zoomVelocity = d * 5;
+      }
+      this._lastWheelTime = now;
+      this._startZoomMomentum();
     }
   }
 
@@ -843,13 +1066,34 @@ export class InputManager {
       this._velocityX = 0;
     } else if (touches.length === 2) {
       // Two fingers: pinch zoom
-      this._touchMode = 'pinch';
-      this._pinchStartDist = this._getTouchDistance(touches);
-      this._pinchStartBars = S.visibleBars;
-      this._pinchStartOffset = S.scrollOffset;
-      this._pinchStartPriceScale = S.priceScale; // Sprint 10: for vertical price pinch
-      const center = this._getTouchCenter(touches);
-      this._pinchAnchorFrac = R.cW > 0 ? center.x / R.cW : 0.5;
+      // Task 2.3.33: Compute angle between two touch points — reject near-vertical
+      // angles (2-finger scroll) to prevent accidental zoom.
+      const dx = Math.abs(touches[0].clientX - touches[1].clientX);
+      const dy = Math.abs(touches[0].clientY - touches[1].clientY);
+      this._pinchStartAngle = Math.atan2(dy, dx);
+      const MAX_PINCH_ANGLE = Math.PI / 3; // 60° — reject if fingers are mostly vertical
+      if (this._pinchStartAngle > MAX_PINCH_ANGLE) {
+        // Likely a 2-finger scroll, not a pinch — fall through to pan mode
+        this._touchMode = 'pan';
+        this._touchStartX = (touches[0].clientX + touches[1].clientX) / 2;
+        this._touchStartY = (touches[0].clientY + touches[1].clientY) / 2;
+        S.dragStartOffset = S.scrollOffset;
+        this._lastMoveTime = performance.now();
+        this._lastMoveX = this._touchStartX;
+        this._velocityX = 0;
+      } else {
+        this._touchMode = 'pinch';
+        this._pinchStartDist = this._getTouchDistance(touches);
+        this._pinchStartBars = S.visibleBars;
+        this._pinchStartOffset = S.scrollOffset;
+        this._pinchStartPriceScale = S.priceScale; // Sprint 10: for vertical price pinch
+        const center = this._getTouchCenter(touches);
+        this._pinchAnchorFrac = R.cW > 0 ? center.x / R.cW : 0.5;
+      }
+    } else if (touches.length === 3) {
+      // Task 1.1.8: Three fingers → workspace switch gesture
+      this._touchMode = 'workspace-swipe';
+      this._touchStartX = touches[1].clientX; // Use middle finger as reference
     }
   }
 
@@ -923,6 +1167,19 @@ export class InputManager {
     e.preventDefault();
     if (this._touchMode === 'pan' && Math.abs(this._velocityX) > MIN_VELOCITY) {
       this._startInertia();
+    }
+    // Task 1.1.8: 3-finger swipe → workspace switch
+    if (this._touchMode === 'workspace-swipe' && e.changedTouches.length > 0) {
+      const endX = e.changedTouches[0].clientX;
+      const dx = endX - this._touchStartX;
+      const SWIPE_THRESHOLD = 100; // px
+      if (Math.abs(dx) > SWIPE_THRESHOLD) {
+        const direction = dx < 0 ? 'next' : 'prev';
+        // Dispatch custom event for React layer to handle workspace navigation
+        window.dispatchEvent(new CustomEvent('charEdge:workspace-switch', {
+          detail: { direction },
+        }));
+      }
     }
     this._touchMode = null;
   }

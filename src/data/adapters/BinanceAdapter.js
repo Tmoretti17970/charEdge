@@ -40,6 +40,8 @@ export class BinanceAdapter extends BaseAdapter {
     return upper.endsWith('USDT') || upper.endsWith('BUSD') || upper.endsWith('BTC') || upper.endsWith('ETH');
   }
 
+  latencyTier() { return 'realtime'; }
+
   async fetchOHLCV(symbol, interval = '1h', opts = {}) {
     const binanceInterval = INTERVAL_MAP[interval] || '1h';
     const limit = opts.limit || 500;

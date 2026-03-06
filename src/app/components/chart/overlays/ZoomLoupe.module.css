@@ -1,0 +1,86 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * charEdge — Precision Zoom Loupe (Task 1.4.6)
+ *
+ * Magnifying glass overlay that appears above the user's finger
+ * during mobile drawing / precision interactions. Renders a 2×
+ * magnified portion of the chart canvas in a circular loupe.
+ *
+ * Activation:
+ *   - Touch-and-hold on chart canvas (> 200ms)
+ *   - During active drawing tool drag
+ *   - While crosshair lock is engaged
+ *
+ * Position: 60px above the touch point, clamped to viewport bounds.
+ * ═══════════════════════════════════════════════════════════════════ */
+
+.zoomLoupeContainer {
+    position: absolute;
+    pointer-events: none;
+    z-index: 600;
+    will-change: transform, opacity;
+}
+
+.zoomLoupeCircle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid rgba(245, 158, 11, 0.8);
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.6),
+        0 4px 24px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(245, 158, 11, 0.15);
+    background: #09090b;
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+}
+
+.zoomLoupeCircle.active {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.zoomLoupeCanvas {
+    width: 100%;
+    height: 100%;
+    image-rendering: crisp-edges;
+}
+
+/* Crosshair overlay inside the loupe */
+.zoomLoupeCrosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1px;
+    height: 100%;
+    background: rgba(245, 158, 11, 0.5);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.zoomLoupeCrosshairH {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: rgba(245, 158, 11, 0.5);
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+/* Price/time readout below loupe */
+.zoomLoupeReadout {
+    position: absolute;
+    bottom: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(245, 158, 11, 0.9);
+    white-space: nowrap;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+    letter-spacing: 0.3px;
+}

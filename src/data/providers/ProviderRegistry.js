@@ -10,6 +10,7 @@ import { fetchPolygon } from './PolygonProvider.js';
 import { fetchAlphaVantage } from './AlphaVantageProvider.js';
 import { pythAdapter } from '../adapters/PythAdapter.js';
 import { fmpAdapter } from '../adapters/FMPAdapter.js';
+import { tiingoAdapter } from '../adapters/TiingoAdapter.js';
 
 // ─── Equity Provider Chain ──────────────────────────────────────
 
@@ -18,9 +19,10 @@ import { fmpAdapter } from '../adapters/FMPAdapter.js';
  * First one with data wins.
  */
 export const EQUITY_PROVIDERS = [
-  { id: 'polygon', name: 'Polygon.io', fetch: fetchPolygon, needsKey: true },
-  { id: 'fmp', name: 'Financial Modeling Prep', fetch: (sym, tf) => fmpAdapter.fetchOHLCV(sym, tf), needsKey: true },
-  { id: 'alphavantage', name: 'Alpha Vantage', fetch: fetchAlphaVantage, needsKey: true },
+  { id: 'polygon', name: 'Polygon.io', fetch: fetchPolygon, needsKey: false },
+  { id: 'fmp', name: 'Financial Modeling Prep', fetch: (sym, tf) => fmpAdapter.fetchOHLCV(sym, tf), needsKey: false },
+  { id: 'tiingo', name: 'Tiingo', fetch: (sym, tf) => tiingoAdapter.fetchOHLCV(sym, tf), needsKey: false },
+  { id: 'alphavantage', name: 'Alpha Vantage', fetch: fetchAlphaVantage, needsKey: false },
   // Yahoo is handled in FetchService directly as legacy fallback
 ];
 
@@ -70,16 +72,16 @@ export function getProviderStatus() {
     },
     polygon: {
       name: 'Polygon.io',
-      hasKey: hasApiKey('polygon'),
-      needsKey: true,
+      hasKey: true,
+      needsKey: false,
       tier: 'free',
       features: ['Equities OHLCV', 'Options', 'Forex', 'Crypto', 'WebSocket (delayed)'],
       rateLimit: '5 req/min (free)',
     },
     alphavantage: {
       name: 'Alpha Vantage',
-      hasKey: hasApiKey('alphavantage'),
-      needsKey: true,
+      hasKey: true,
+      needsKey: false,
       tier: 'free',
       features: ['Equities OHLCV', 'Forex', 'Crypto', 'Fundamentals'],
       rateLimit: '25 req/day (free)',
@@ -158,11 +160,19 @@ export function getProviderStatus() {
     },
     fmp: {
       name: 'Financial Modeling Prep',
-      hasKey: hasApiKey('fmp'),
-      needsKey: true,
+      hasKey: true,
+      needsKey: false,
       tier: 'free',
       features: ['Equities OHLCV', 'Fundamentals', 'Earnings calendar', 'Sector performance', 'Screener'],
       rateLimit: '250 req/day (free)',
+    },
+    tiingo: {
+      name: 'Tiingo',
+      hasKey: false,
+      needsKey: false,
+      tier: 'free',
+      features: ['Equities OHLCV (EOD)', 'ETFs', 'IEX real-time quotes', 'Adjusted prices'],
+      rateLimit: '50 req/hr, 1000 req/day (free)',
     },
     whaleAlert: {
       name: 'Whale Alert',

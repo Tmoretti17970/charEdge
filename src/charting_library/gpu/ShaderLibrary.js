@@ -40,6 +40,11 @@ export class ShaderLibrary {
       pixelRatio: 1,
       time: 0,
     };
+
+    // Task 2.3.8: Async shader compilation via KHR_parallel_shader_compile
+    this._parallelCompileExt = gl.getExtension('KHR_parallel_shader_compile');
+    /** @type {number|null} COMPLETION_STATUS_KHR constant */
+    this._completionStatusKHR = this._parallelCompileExt ? 0x91B1 : null;
   }
 
   // ─── Registration ─────────────────────────────────────────────
@@ -82,6 +87,13 @@ export class ShaderLibrary {
       if (!entry.program) {
         logger.engine.error(`[ShaderLibrary] Failed to compile shader: "${name}"`);
         return null;
+      }
+    }
+
+    // Task 2.3.8: If async compilation is in flight, check if program is ready
+    if (this._completionStatusKHR && entry.program) {
+      if (!this.gl.getProgramParameter(entry.program, this._completionStatusKHR)) {
+        return null; // Still compiling — caller should fall back to Canvas 2D
       }
     }
 
@@ -170,20 +182,28 @@ export class ShaderLibrary {
     const vert = gl.createShader(gl.VERTEX_SHADER);
     gl.shaderSource(vert, vertSrc);
     gl.compileShader(vert);
-    if (!gl.getShaderParameter(vert, gl.COMPILE_STATUS)) {
-      logger.engine.error('[ShaderLibrary] Vertex shader error:', gl.getShaderInfoLog(vert));
-      gl.deleteShader(vert);
-      return null;
-    }
 
     const frag = gl.createShader(gl.FRAGMENT_SHADER);
     gl.shaderSource(frag, fragSrc);
     gl.compileShader(frag);
-    if (!gl.getShaderParameter(frag, gl.COMPILE_STATUS)) {
-      logger.engine.error('[ShaderLibrary] Fragment shader error:', gl.getShaderInfoLog(frag));
-      gl.deleteShader(vert);
-      gl.deleteShader(frag);
-      return null;
+
+    // Task 2.3.8: With KHR_parallel_shader_compile, skip sync status checks.
+    // Link immediately — the GPU driver compiles asynchronously.
+    // Completion is polled in get() via COMPLETION_STATUS_KHR.
+    if (!this._parallelCompileExt) {
+      // Synchronous fallback: check compile status immediately
+      if (!gl.getShaderParameter(vert, gl.COMPILE_STATUS)) {
+        logger.engine.error('[ShaderLibrary] Vertex shader error:', gl.getShaderInfoLog(vert));
+        gl.deleteShader(vert);
+        gl.deleteShader(frag);
+        return null;
+      }
+      if (!gl.getShaderParameter(frag, gl.COMPILE_STATUS)) {
+        logger.engine.error('[ShaderLibrary] Fragment shader error:', gl.getShaderInfoLog(frag));
+        gl.deleteShader(vert);
+        gl.deleteShader(frag);
+        return null;
+      }
     }
 
     const program = gl.createProgram();
@@ -191,12 +211,14 @@ export class ShaderLibrary {
     gl.attachShader(program, frag);
     gl.linkProgram(program);
 
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      logger.engine.error('[ShaderLibrary] Link error:', gl.getProgramInfoLog(program));
-      gl.deleteProgram(program);
-      gl.deleteShader(vert);
-      gl.deleteShader(frag);
-      return null;
+    if (!this._parallelCompileExt) {
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        logger.engine.error('[ShaderLibrary] Link error:', gl.getProgramInfoLog(program));
+        gl.deleteProgram(program);
+        gl.deleteShader(vert);
+        gl.deleteShader(frag);
+        return null;
+      }
     }
 
     gl.deleteShader(vert);

@@ -41,6 +41,7 @@ import { PersonaTierBanner } from './PersonaLayoutController.jsx';
 import BentoCustomizer from './BentoCustomizer.jsx';
 import WhatIfPanel from './WhatIfPanel.jsx';
 import WidgetSuggestionBanner from '../widgets/WidgetSuggestionBanner.jsx';
+import HUDBar from './HUDBar.jsx';
 import {
     DashHeader,
     NarrativeSectionHeader,
@@ -68,8 +69,17 @@ export default function DashboardNarrativeLayout({
     const [showAllWidgets, setShowAllWidgets] = useState(false);
     const sectionGap = isMobile ? 20 : 28;
 
+    // Task 4.9.1.1: AmbientBorder — compute aura color from overall risk
+    const ambientColor = (result?.totalPnl ?? 0) >= 0 ? 'rgba(45,212,160,0.08)' : 'rgba(242,92,92,0.08)';
+
     return (
-        <div className={s.page}>
+        <div className={s.page} style={{
+            position: 'relative',
+            boxShadow: `inset 0 0 80px ${ambientColor}`,
+            transition: 'box-shadow 1s ease',
+        }}>
+            {/* Task 4.9.1.2: HUD Bar — sticky glassmorphism bar */}
+            <HUDBar />
             <DashHeader
                 trades={trades}
                 computing={computing}
@@ -284,6 +294,9 @@ export default function DashboardNarrativeLayout({
             <PreMarketChecklist />
             <BentoCustomizer />
 
+            {/* Task 4.9.1.3: RiskDashboard always-visible — promoted from showAllWidgets gate */}
+            <RiskDashboard />
+
             {/* Advanced widgets progressive disclosure */}
             {!showAllWidgets ? (
                 <button
@@ -303,7 +316,6 @@ export default function DashboardNarrativeLayout({
                 <>
                     <AIInsightCard />
                     <SessionTimeline />
-                    <RiskDashboard />
                     <HeroTradeSpotlight />
                     <ProgressArc />
                     <AchievementShowcase />

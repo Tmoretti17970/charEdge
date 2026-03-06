@@ -167,12 +167,34 @@ export default function UnifiedChartToolbar({
   const showCustomTf = useChartStore((s) => s.showCustomTf);
   const toggleCustomTf = useChartStore((s) => s.toggleCustomTf);
 
+  // ─── Task 1.4.8: Toolbar Auto-Hide / Ghosting ──────────────
+  // After 5s of inactivity, fade toolbar to ghost state (opacity 0.2).
+  // Any interaction clears the ghost immediately.
+  const toolbarRef = useRef(null);
+  const ghostTimerRef = useRef(null);
+  const [isGhost, setIsGhost] = useState(false);
+
+  const resetGhostTimer = useCallback(() => {
+    setIsGhost(false);
+    if (ghostTimerRef.current) clearTimeout(ghostTimerRef.current);
+    ghostTimerRef.current = setTimeout(() => setIsGhost(true), 5000);
+  }, []);
+
+  useEffect(() => {
+    resetGhostTimer();
+    return () => { if (ghostTimerRef.current) clearTimeout(ghostTimerRef.current); };
+  }, [resetGhostTimer]);
+
   return (
     <div
-      className="tf-chart-toolbar"
+      ref={toolbarRef}
+      className={`tf-chart-toolbar${isGhost ? ' tf-toolbar-ghost' : ''}`}
       data-container="toolbar"
       role="toolbar"
       aria-label="Chart toolbar"
+      onMouseMove={resetGhostTimer}
+      onMouseDown={resetGhostTimer}
+      onKeyDown={resetGhostTimer}
       style={{
         gap: isMobile ? 2 : 4,
         ...(isMobile ? { padding: '0 6px', height: 'auto', overflow: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' } : {}),
@@ -187,8 +209,8 @@ export default function UnifiedChartToolbar({
           style={{ fontWeight: 700, fontSize: 13, letterSpacing: '0.5px', gap: 6 }}
         >
           <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.5 }}>
-            <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.3" fill="none"/>
-            <line x1="9.5" y1="9.5" x2="13" y2="13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+            <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.3" fill="none" />
+            <line x1="9.5" y1="9.5" x2="13" y2="13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
           </svg>
           {symbol}
           <span style={{ fontSize: 8, color: C.t3 }}>▼</span>
@@ -229,8 +251,8 @@ export default function UnifiedChartToolbar({
             title="Drawing Tools"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M10.5 1.5l2 2-8 8H2.5v-2l8-8z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              <line x1="8.5" y1="3.5" x2="10.5" y2="5.5" stroke="currentColor" strokeWidth="1" opacity="0.4"/>
+              <path d="M10.5 1.5l2 2-8 8H2.5v-2l8-8z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              <line x1="8.5" y1="3.5" x2="10.5" y2="5.5" stroke="currentColor" strokeWidth="1" opacity="0.4" />
             </svg>
           </ToolbarBtn>
         </>

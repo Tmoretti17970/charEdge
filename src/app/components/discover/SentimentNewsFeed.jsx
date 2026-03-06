@@ -30,7 +30,7 @@ const SENTIMENT_META = {
 const IMPACT_META = {
   high: { label: 'HIGH', color: '#f25c5c' },
   medium: { label: 'MED', color: '#f0b64e' },
-  low: { label: 'LOW', color: '#4e5266' },
+  low: { label: 'LOW', color: '#7078a0' },
 };
 
 export default function SentimentNewsFeed({ compact }) {

@@ -73,6 +73,12 @@ async function _doFetchPage(sym, tfId, beforeTime) {
     };
   }
 
-  // Non-crypto: no easy pagination, signal exhausted
-  return { data: [], hasMore: false };
+  // Non-crypto: paginate via equity provider chain (Polygon → FMP → AlphaVantage)
+  try {
+    const { fetchEquityPage } = await import('./providers/EquityPaginator.js');
+    return fetchEquityPage(sym, tfId, endTimeMs, PAGE_SIZE);
+  } catch (e) {
+    logger.data.warn('[HistoryPaginator] Equity pagination failed', e?.message);
+    return { data: [], hasMore: false };
+  }
 }

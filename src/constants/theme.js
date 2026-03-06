@@ -61,6 +61,35 @@ export const LIGHT_COLORS = {
   rS: '#e11d4820',
 };
 
+// Task 4.9.3.2: Deep Sea OLED Dark Mode
+// True black for OLED panels, warm-shifted text for eye strain reduction.
+export const DEEP_SEA_COLORS = {
+  bg: '#000000',
+  bg2: '#050505',
+  sf: '#0a0a08',
+  sf2: '#121210',
+  bd: '#1a1a16',
+  bd2: '#28281e',
+  t1: '#f0e8d8',
+  t2: '#a09880',
+  t3: '#6a6450',
+  b: '#d4881e',
+  bH: '#b87418',
+  g: '#3dc78a',
+  r: '#e85c5c',
+  y: '#e8b830',
+  p: '#b08ae0',
+  cyan: '#d4a020',
+  orange: '#d4881e',
+  pink: '#d4889a',
+  rose: '#c89898',
+  lime: '#a8c830',
+  info: '#c8a048',
+  bullish: '#3dc78a',
+  bearish: '#e85c5c',
+  rS: '#e85c5c20',
+};
+
 // ─── CSS Custom Property → C key mapping ────────────────────────
 const CSS_VAR_MAP = {
   bg: '--tf-bg', bg2: '--tf-bg2', sf: '--tf-sf', sf2: '--tf-sf2',

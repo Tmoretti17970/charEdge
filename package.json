@@ -27,6 +27,7 @@
     "docker:build": "docker build -t charedge .",
     "docker:run": "docker run -p 3000:3000 charedge",
     "docs:api": "typedoc",
+    "analyze": "npx -y vite-bundle-visualizer",
     "deploy:staging": "vercel --local-config vercel.staging.json",
     "prepare": "husky"
   },

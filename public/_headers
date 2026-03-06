@@ -1,0 +1,48 @@
+# ═══════════════════════════════════════════════════════════════════
+# charEdge — CDN Cache Headers (Task 3.2.7)
+#
+# Deploy this alongside the dist/ output for CDN/edge hosting.
+# Compatible with Netlify, Cloudflare Pages, Vercel (via vercel.json).
+#
+# Strategy:
+#   - Content-hashed assets (assets/*) get immutable + 1 year max-age
+#   - index.html and SW get no-cache (always revalidated)
+#   - Static assets (icons, manifest) get short cache + revalidation
+# ═══════════════════════════════════════════════════════════════════
+
+# ─── Immutable hashed assets (JS, CSS, fonts, images) ────────────
+# These filenames include a content hash, so they NEVER change.
+# Safe to cache indefinitely with immutable.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+# ─── HTML entry point — always revalidate ────────────────────────
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  X-Content-Type-Options: nosniff
+
+# ─── Service Worker — always revalidate ──────────────────────────
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# ─── Static assets (icons, manifest, etc.) ───────────────────────
+/icons/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/manifest.json
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/favicon.*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# ─── Critical CSS (unhashed, short cache) ────────────────────────
+/critical.css
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+# ─── Security headers (all pages) ───────────────────────────────
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()

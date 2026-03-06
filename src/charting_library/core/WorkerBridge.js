@@ -14,6 +14,7 @@ import { logger } from '../../utils/logger';
 export class WorkerBridge {
   constructor() {
     this._indicatorWorker = null;
+    this._dataStageWorker = null;
     this._pendingCallbacks = new Map();
     this._callbackId = 0;
 
@@ -21,6 +22,7 @@ export class WorkerBridge {
     this.hasWorkers = typeof Worker !== 'undefined';
 
     this._initIndicatorWorker();
+    this._initDataStageWorker();
   }
 
   // ─── Indicator Worker ───────────────────────────────────────
@@ -48,6 +50,102 @@ export class WorkerBridge {
       logger.engine.warn('[WorkerBridge] Failed to create indicator worker:', err.message);
       this._indicatorWorker = null;
     }
+  }
+
+  // ─── DataStage Worker ──────────────────────────────────────
+
+  _initDataStageWorker() {
+    if (!this.hasWorkers) return;
+
+    try {
+      this._dataStageWorker = new Worker(
+        new URL('./DataStageWorker.js', import.meta.url),
+        { type: 'module' }
+      );
+
+      this._dataStageWorker.onmessage = (e) => {
+        const { type, payload, id } = e.data;
+        if (type === 'transformResult') {
+          this._resolveCallback(`dataStage_${id}`, payload);
+        } else if (type === 'precomputeResult') {
+          this._resolveCallback(`precompute_${id}`, payload);
+        }
+      };
+
+      this._dataStageWorker.onerror = (err) => {
+        logger.engine.warn('[WorkerBridge] DataStage worker error:', err.message);
+      };
+    } catch (err) {
+      logger.engine.warn('[WorkerBridge] Failed to create DataStage worker:', err.message);
+      this._dataStageWorker = null;
+    }
+  }
+
+  /**
+   * Transform bars off-thread (Renko, Range, HeikinAshi).
+   * Falls back to null if no worker available (caller uses sync path).
+   *
+   * @param {Object} params — { bars, chartType, visibleBars, startIdx, endIdx, renkoBrickSize, rangeBarSize }
+   * @returns {Promise<Object|null>} — transformed bar typed arrays, or null if not applicable
+   */
+  transformBars(params) {
+    if (!this._dataStageWorker) return Promise.resolve(null);
+
+    // Only use worker for chart types that need transform
+    const needsTransform = params.chartType === 'renko'
+      || params.chartType === 'range'
+      || params.chartType === 'heikinashi';
+    if (!needsTransform) return Promise.resolve(null);
+
+    const id = ++this._callbackId;
+    return new Promise((resolve) => {
+      this._storeCallback(`dataStage_${id}`, resolve);
+
+      this._dataStageWorker.postMessage({
+        type: 'transformBars',
+        payload: params,
+        id,
+      });
+
+      // Timeout fallback — if worker is stuck, fall back to sync
+      setTimeout(() => {
+        if (this._pendingCallbacks.has(`dataStage_${id}`)) {
+          this._resolveCallback(`dataStage_${id}`, null);
+        }
+      }, 3000);
+    });
+  }
+
+  /**
+   * Pre-compute grid ticks and max volume off-thread.
+   *
+   * @param {Object} params — { yMin, yMax, mainHeight, bars, showVolume, startIdx, endIdx }
+   * @returns {Promise<Object|null>} — { gridTicks, niceStep, maxVolume }
+   */
+  precompute(params) {
+    if (!this._dataStageWorker) return Promise.resolve(null);
+
+    const id = ++this._callbackId;
+    return new Promise((resolve) => {
+      this._storeCallback(`precompute_${id}`, resolve);
+
+      this._dataStageWorker.postMessage({
+        type: 'precompute',
+        payload: params,
+        id,
+      });
+
+      setTimeout(() => {
+        if (this._pendingCallbacks.has(`precompute_${id}`)) {
+          this._resolveCallback(`precompute_${id}`, null);
+        }
+      }, 3000);
+    });
+  }
+
+  /** Whether the DataStage worker is available */
+  get hasDataStageWorker() {
+    return !!this._dataStageWorker;
   }
 
   /**
@@ -126,6 +224,11 @@ export class WorkerBridge {
       this._indicatorWorker.postMessage({ type: 'dispose' });
       this._indicatorWorker.terminate();
       this._indicatorWorker = null;
+    }
+    if (this._dataStageWorker) {
+      this._dataStageWorker.postMessage({ type: 'dispose' });
+      this._dataStageWorker.terminate();
+      this._dataStageWorker = null;
     }
     this._pendingCallbacks.clear();
   }

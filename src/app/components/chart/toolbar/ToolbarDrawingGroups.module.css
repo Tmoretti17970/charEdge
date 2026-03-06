@@ -37,3 +37,45 @@
   margin-left: auto;
   font-size: 12px;
 }
+
+/* ─── Task 2.7.4: Touch-friendly toolbar (44×44px Apple HIG) ── */
+@media (pointer: coarse) {
+  .groupWrapper {
+    gap: 2px;
+  }
+
+  .expandBtn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 8px;
+    font-size: 10px;
+  }
+
+  .toolIconWrap {
+    width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* ─── Task 2.7.1: Container query responsive breakpoints ───── */
+/* Applied via container-type: inline-size on chart wrapper */
+@container (max-width: 600px) {
+  .groupWrapper {
+    gap: 1px;
+  }
+
+  .dropdown {
+    min-width: 120px;
+  }
+}
+
+@container (max-width: 400px) {
+  .expandBtn {
+    padding: 1px 2px;
+    font-size: 7px;
+  }
+
+  .toolIconWrap {
+    width: 18px;
+  }
+}

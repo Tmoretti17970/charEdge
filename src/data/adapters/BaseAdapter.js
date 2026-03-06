@@ -82,6 +82,62 @@ export class BaseAdapter {
       searchSymbols: proto.searchSymbols !== base.searchSymbols,
     };
   }
+
+  /**
+   * Report adapter latency tier.
+   * Subclasses should override to reflect actual latency characteristics.
+   * @returns {'realtime' | 'fast' | 'delayed'}
+   */
+  latencyTier() {
+    return 'fast'; // default — subclasses override
+  }
 }
 
+/** Canonical OHLCV bar fields that every adapter must return */
+BaseAdapter.CANONICAL_BAR_FIELDS = ['time', 'open', 'high', 'low', 'close', 'volume'];
+
+/** Canonical quote fields */
+BaseAdapter.CANONICAL_QUOTE_FIELDS = ['price', 'change', 'changePct', 'volume', 'high', 'low', 'open'];
+
+/**
+ * Validate a bar object against the canonical format.
+ * @param {Object} bar
+ * @returns {{ valid: boolean, errors: string[] }}
+ */
+BaseAdapter.validateBar = function (bar) {
+  const errors = [];
+  if (!bar || typeof bar !== 'object') {
+    return { valid: false, errors: ['Bar is not an object'] };
+  }
+  for (const field of BaseAdapter.CANONICAL_BAR_FIELDS) {
+    if (!(field in bar)) {
+      errors.push(`Missing field: ${field}`);
+    } else if (typeof bar[field] !== 'number' || Number.isNaN(bar[field])) {
+      errors.push(`Field "${field}" must be a finite number, got ${typeof bar[field]}: ${bar[field]}`);
+    }
+  }
+  return { valid: errors.length === 0, errors };
+};
+
+/**
+ * Validate a quote object against the canonical format.
+ * @param {Object} quote
+ * @returns {{ valid: boolean, errors: string[] }}
+ */
+BaseAdapter.validateQuote = function (quote) {
+  const errors = [];
+  if (!quote || typeof quote !== 'object') {
+    return { valid: false, errors: ['Quote is not an object'] };
+  }
+  for (const field of BaseAdapter.CANONICAL_QUOTE_FIELDS) {
+    if (!(field in quote)) {
+      errors.push(`Missing field: ${field}`);
+    } else if (typeof quote[field] !== 'number') {
+      errors.push(`Field "${field}" must be a number, got ${typeof quote[field]}`);
+    }
+  }
+  return { valid: errors.length === 0, errors };
+};
+
 export default BaseAdapter;
+

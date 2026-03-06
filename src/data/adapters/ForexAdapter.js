@@ -212,4 +212,5 @@ class _ForexAdapter {
 // ─── Singleton + Exports ──────────────────────────────────────────
 
 export const forexAdapter = new _ForexAdapter();
+
 export default forexAdapter;

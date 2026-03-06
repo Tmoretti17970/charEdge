@@ -195,4 +195,5 @@ class _WhaleAlertAdapter {
 // ─── Singleton + Exports ──────────────────────────────────────
 
 export const whaleAlertAdapter = new _WhaleAlertAdapter();
+
 export default whaleAlertAdapter;

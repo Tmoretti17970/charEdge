@@ -31,7 +31,7 @@ function renderPriceLine(mCtx, bars, p2y, pr, cBW, mainBH, thm) {
   // Pulsing dot
   const dotX = cBW - Math.round(6 * pr);
   const dotR = Math.round(4 * pr);
-  const pulsePhase = (Date.now() % 2000) / 2000;
+  const pulsePhase = (performance.now() % 2000) / 2000;
   const pulseAlpha = 0.3 + Math.sin(pulsePhase * Math.PI * 2) * 0.2;
   const glowColor = last.close >= last.open
     ? `rgba(38,166,154,${(pulseAlpha * 0.3).toFixed(2)})`
@@ -132,6 +132,15 @@ export function executeDataStage(fs, ctx, engine) {
       pixelRatio: pr, barSpacing: bSp, startIdx: start,
       timeTransform, yMin, yMax,
     }, thm)) {
+      // Task 2.3.13: Also sub-update the last volume bar
+      if (fs.showVolume && webgl.updateLastVolume) {
+        webgl.updateLastVolume(lastBar, {
+          pixelRatio: pr, barSpacing: bSp, startIdx: start,
+          timeTransform: { indexToPixel: (idx) => timeTransform.indexToPixel(idx) },
+          mainH: mainHeight,
+        }, thm);
+      }
+
       // Queue a redraw command so the updated buffer data is rendered during flush
       const cmdBuf = ctx.commandBuffer;
       if (cmdBuf) {
@@ -447,7 +456,7 @@ export function executeDataStage(fs, ctx, engine) {
   let entranceAlpha = 1;
   let entranceOffsetX = 0;
   if (fs.loadTimestamp) {
-    const elapsed = Date.now() - fs.loadTimestamp;
+    const elapsed = performance.now() - fs.loadTimestamp;
     const duration = 300;
     if (elapsed < duration) {
       const t = elapsed / duration;
@@ -463,32 +472,94 @@ export function executeDataStage(fs, ctx, engine) {
   }
 
   // ─── Transform bars for Renko/Range/Heikin-Ashi ─────────────────────────
+  // Task 2.3.15: Off-thread bar transforms via DataStageWorker.
+  // Uses cached result pattern: dispatch async, use cached data in render.
   let renderBars = vis;
   let renderTimeTransform = timeTransform;
   let renderStart = start;
   const isRenko = chartType === 'renko';
   const isRange = chartType === 'range';
   const isHeikinAshi = chartType === 'heikinashi';
+  const needsTransform = isRenko || isRange || isHeikinAshi;
 
-  if (isRenko) {
-    const { bricks } = toRenkoBricks(bars, fs.renkoBrickSize);
-    const rEnd = bricks.length;
-    const rStart = Math.max(0, rEnd - fs.visibleBars);
-    renderBars = bricks.slice(rStart, rEnd);
-    renderStart = rStart;
-    renderTimeTransform = createTimeTransform(bricks, rStart, rStart, fs.visibleBars, cW);
-  } else if (isRange) {
-    const { rangeBars } = toRangeBars(bars, fs.rangeBarSize);
-    const rEnd = rangeBars.length;
-    const rStart = Math.max(0, rEnd - fs.visibleBars);
-    renderBars = rangeBars.slice(rStart, rEnd);
-    renderStart = rStart;
-    renderTimeTransform = createTimeTransform(rangeBars, rStart, rStart, fs.visibleBars, cW);
-  } else if (isHeikinAshi) {
-    // Heikin-Ashi transform: convert full bar array, then slice visible range
-    const haBars = toHeikinAshi(bars);
-    renderBars = haBars.slice(start, Math.min(haBars.length, endIdx + 2));
-    // renderStart and renderTimeTransform stay the same — HA preserves bar count
+  // Check for cached worker result from a previous frame's async dispatch
+  const workerBridge = engine._workerBridge;
+  const workerCache = engine._dataStageWorkerCache;
+  let usedWorkerCache = false;
+
+  if (needsTransform && workerCache
+    && workerCache.chartType === chartType
+    && workerCache.barCount === bars.length
+    && workerCache.bars) {
+    // Use cached worker-computed transformed bars
+    renderBars = workerCache.bars;
+    renderStart = workerCache.renderStart;
+    if (isRenko || isRange) {
+      renderTimeTransform = createTimeTransform(
+        workerCache.allTransformedBars || renderBars,
+        renderStart, renderStart, fs.visibleBars, cW
+      );
+    }
+    usedWorkerCache = true;
+  }
+
+  if (needsTransform && !usedWorkerCache) {
+    // Synchronous fallback (first frame or no worker available)
+    if (isRenko) {
+      const { bricks } = toRenkoBricks(bars, fs.renkoBrickSize);
+      const rEnd = bricks.length;
+      const rStart = Math.max(0, rEnd - fs.visibleBars);
+      renderBars = bricks.slice(rStart, rEnd);
+      renderStart = rStart;
+      renderTimeTransform = createTimeTransform(bricks, rStart, rStart, fs.visibleBars, cW);
+    } else if (isRange) {
+      const { rangeBars } = toRangeBars(bars, fs.rangeBarSize);
+      const rEnd = rangeBars.length;
+      const rStart = Math.max(0, rEnd - fs.visibleBars);
+      renderBars = rangeBars.slice(rStart, rEnd);
+      renderStart = rStart;
+      renderTimeTransform = createTimeTransform(rangeBars, rStart, rStart, fs.visibleBars, cW);
+    } else if (isHeikinAshi) {
+      const haBars = toHeikinAshi(bars);
+      renderBars = haBars.slice(start, Math.min(haBars.length, endIdx + 2));
+    }
+  }
+
+  // Dispatch async worker transform for NEXT frame (non-blocking)
+  if (needsTransform && workerBridge?.hasDataStageWorker) {
+    workerBridge.transformBars({
+      bars, chartType, visibleBars: fs.visibleBars,
+      startIdx: start, endIdx,
+      renkoBrickSize: fs.renkoBrickSize,
+      rangeBarSize: fs.rangeBarSize,
+    }).then((result: any) => {
+      if (!result) return;
+      // Reconstruct bar objects from typed arrays
+      const len = result.length;
+      const reconstructed = new Array(len);
+      const time = new Float64Array(result.time);
+      const open = new Float64Array(result.open);
+      const high = new Float64Array(result.high);
+      const low = new Float64Array(result.low);
+      const close = new Float64Array(result.close);
+      const volume = new Float64Array(result.volume);
+      for (let i = 0; i < len; i++) {
+        reconstructed[i] = {
+          time: time[i], open: open[i], high: high[i],
+          low: low[i], close: close[i], volume: volume[i],
+        };
+      }
+      // Cache for use in the next render frame
+      engine._dataStageWorkerCache = {
+        chartType,
+        barCount: bars.length,
+        bars: reconstructed,
+        renderStart: result.renderStart,
+        transformMeta: result.transformMeta,
+      };
+      // Mark dirty so next frame picks up the cached result
+      engine.markDirty();
+    }).catch(() => { /* worker timeout — sync fallback already handled */ });
   }
 
   // ─── Delegate to Chart Type Renderer ─────────────────────────
@@ -632,7 +703,7 @@ export function executeDataStage(fs, ctx, engine) {
   // ─── Sprint 1: Shimmer Bars (history loading ghost preview) ──
   if (engine.state.historyLoading && start <= 5) {
     const shimmerCount = 12;
-    const pulsePhase = (Date.now() % 1500) / 1500;
+    const pulsePhase = (performance.now() % 1500) / 1500;
     const baseAlpha = 0.08 + Math.sin(pulsePhase * Math.PI * 2) * 0.05;
     const shimmerColor = `rgba(41, 98, 255, ${baseAlpha.toFixed(3)})`;
 

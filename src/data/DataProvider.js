@@ -27,6 +27,7 @@ export { fredAdapter } from './adapters/FredAdapter.js';
 export { sentimentAdapter } from './adapters/SentimentAdapter.js';
 export { frankfurterAdapter } from './adapters/FrankfurterAdapter.js';
 export { fmpAdapter } from './adapters/FMPAdapter.js';
+export { tiingoAdapter } from './adapters/TiingoAdapter.js';
 export { whaleAlertAdapter } from './adapters/WhaleAlertAdapter.js';
 export { newsAggregator } from './NewsAggregator.js';
 export { derivedEngine } from './DerivedDataEngine.js';

@@ -46,6 +46,8 @@ export class YahooAdapter extends BaseAdapter {
     return !upper.endsWith('USDT') && !upper.endsWith('BUSD') && !upper.endsWith('USDC');
   }
 
+  latencyTier() { return 'delayed'; }
+
   async fetchOHLCV(symbol, interval = '1d', opts = {}) {
     const yahooInterval = INTERVAL_MAP[interval] || '1d';
     const range = opts.range || RANGE_MAP[interval] || '1y';
@@ -96,7 +98,7 @@ export class YahooAdapter extends BaseAdapter {
   subscribe(_symbol, _callback) {
     // Yahoo doesn't support WebSocket — return noop
     logger.data.warn('[YahooAdapter] Real-time subscriptions not supported');
-    return () => {};
+    return () => { };
   }
 
   async searchSymbols(query, limit = 10) {

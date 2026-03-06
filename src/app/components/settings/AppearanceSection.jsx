@@ -27,6 +27,7 @@ function ThemePicker() {
   const options = [
     { value: 'dark', label: 'Dark', icon: 'moon', desc: 'Easy on the eyes' },
     { value: 'light', label: 'Light', icon: 'sun', desc: 'Bright & clean' },
+    { value: 'deep-sea', label: 'Deep Sea', icon: 'anchor', desc: 'OLED black, warm tones' },
     { value: 'system', label: 'System', icon: 'monitor', desc: 'Follow OS' },
   ];
 
@@ -37,7 +38,7 @@ function ThemePicker() {
         Theme Mode
       </div>
       <div style={subHint()}>Choose your preferred interface theme</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
         {options.map((opt) => {
           const active = theme === opt.value;
           return (

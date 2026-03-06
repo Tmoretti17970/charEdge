@@ -10,6 +10,7 @@ export const createIndicatorSlice = (set) => ({
       params: ind.params || {},
       color: ind.color,
       visible: ind.visible !== false,
+      pane: ind.pane ?? undefined, // Task 1.4.19: Optional pane assignment
     };
     set((s) => ({ indicators: [...s.indicators, normalized] }));
   },
@@ -47,4 +48,22 @@ export const createIndicatorSlice = (set) => ({
     const existing = JSON.parse(localStorage.getItem(key) || '{}');
     return Object.keys(existing);
   },
+
+  // Task 1.4.19: Move indicator to a different pane (drag-and-drop stacking)
+  moveIndicatorToPane: (idx, targetPane) =>
+    set((s) => ({
+      indicators: s.indicators.map((ind, i) =>
+        i === idx ? { ...ind, pane: targetPane } : ind
+      ),
+    })),
+
+  // Task 1.4.19: Reorder indicators within the list (drag-and-drop reordering)
+  reorderIndicators: (fromIdx, toIdx) =>
+    set((s) => {
+      const list = [...s.indicators];
+      const [moved] = list.splice(fromIdx, 1);
+      list.splice(toIdx, 0, moved);
+      return { indicators: list };
+    }),
 });
+

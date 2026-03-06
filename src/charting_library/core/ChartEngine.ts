@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 import { DARK_THEME, LIGHT_THEME } from './ThemeManager.js';
 import { FrameBudget } from './FrameBudget.js';
+import { microJankDetector } from './MicroJankDetector.js';
 import { createChartDrawingSetup } from './ChartDrawingSetup.js';
 import { niceScale, formatPrice, createPriceTransform } from './CoordinateSystem.js';
 import { createTimeTransform } from './TimeAxis.js';
@@ -44,6 +45,7 @@ import { executeAxesStage } from './stages/AxesStage.js';
 import { executeUIStage } from './stages/UIStage.js';
 import { SceneGraph } from '../scene/SceneGraph.js';
 import { FormingCandleInterpolator } from './FormingCandleInterpolator.js';
+import { markCleanExit } from './SessionRecovery.js';
 
 // ─── Type Definitions ────────────────────────────────────────────
 
@@ -127,6 +129,7 @@ export interface EngineState {
   hiddenIndicators: Set<number>;
   _legendHitRegions: unknown[];
   timeAxisZoom?: boolean;
+  yAxisLocked: boolean; // Task 1.4.14: Y-axis lock toggle
   _scrollToNowBtn?: { x: number; y: number; w: number; h: number } | null;
   _autoFitBtn?: { x: number; y: number; w: number; h: number } | null;
   [key: string]: unknown;
@@ -209,6 +212,9 @@ export class ChartEngine {
   // Countdown
   _countdownTick: number;
   _countdownInterval: ReturnType<typeof setInterval>;
+
+  // Task 2.3.25: Live subscription tracking — countdown only fires when live data flows
+  _hasLiveSubscription: boolean;
 
   /**
    * Create a new chart engine instance attached to a DOM container.
@@ -305,6 +311,7 @@ export class ChartEngine {
       _highlightedIndicator: -1, // Sprint 12: legend click-to-highlight index
       hiddenIndicators: new Set(), // Sprint 12: visually hidden indicator indices
       _legendHitRegions: [],      // Sprint 12: [{x,y,w,h,type,idx}] for click detection
+      yAxisLocked: false,         // Task 1.4.14: Y-axis lock toggle
     };
 
     this.resize = this.resize.bind(this);
@@ -360,8 +367,12 @@ export class ChartEngine {
     });
 
     // Countdown timer: only repaint the lightweight UI layer every second.
+    // Task 2.3.25: Guard with _hasLiveSubscription — when no live data flows,
+    // the interval is a no-op so the GPU can sleep at 0% utilization.
+    this._hasLiveSubscription = false;
     this._countdownTick = 0;
     this._countdownInterval = setInterval(() => {
+      if (!this._hasLiveSubscription) return;
       this.layers.markDirty(LAYERS.UI);
       this.state.topDirty = true;
       this._countdownTick++;
@@ -386,6 +397,9 @@ export class ChartEngine {
    * ```
    */
   destroy(): void {
+    // Task 2.3.23: Mark clean shutdown so recovery prompt is suppressed
+    markCleanExit().catch(() => { /* best effort on unload */ });
+
     this.layers.dispose();
     this.inputManager.destroy();
     this.drawingEngine.dispose();
@@ -519,6 +533,9 @@ export class ChartEngine {
     // ─── Phase 1.1.2: Track tick vs new-bar updates ─────────────────
     this._tickUpdate = (bars.length > 0 && this.bars.length === bars.length);
 
+    // Task 2.3.25: Mark live subscription active on tick data
+    if (this._tickUpdate) this._hasLiveSubscription = true;
+
     // Task 8.2.1: Route forming candle animation through FormingCandleInterpolator
     if (this._tickUpdate) {
       const last = bars[bars.length - 1];
@@ -537,7 +554,7 @@ export class ChartEngine {
       this._animTarget = null;
       this._animCurrent = null;
       if (bars.length !== this.bars.length) {
-        this._loadTimestamp = Date.now();
+        this._loadTimestamp = performance.now();
       }
     }
     // ─── Auto-scroll to latest bar (Tier 1.4) ─────────────────────
@@ -548,12 +565,15 @@ export class ChartEngine {
     this.bars = bars;
     // Populate typed array buffer for high-perf access
     this._barBuffer.fromArray(bars);
-    // Mark data-dependent layers dirty
-    this.layers.markDirty(LAYERS.GRID);
+    // Task 2.3.27: Only mark DATA + UI dirty on tick updates — Grid and Indicators
+    // haven't changed (same bar count), so skip them to avoid redundant repaints.
     this.layers.markDirty(LAYERS.DATA);
-    this.layers.markDirty(LAYERS.INDICATORS);
-    this.state.mainDirty = true;
     this.state.topDirty = true;
+    if (!this._tickUpdate) {
+      this.layers.markDirty(LAYERS.GRID);
+      this.layers.markDirty(LAYERS.INDICATORS);
+      this.state.mainDirty = true;
+    }
     this._scheduleDraw();
 
     // ─── Drawing Alert Check (Sprint 4) ─────────────────────────
@@ -717,6 +737,8 @@ export class ChartEngine {
   renderLoop(): void {
     this.raf = null; // Clear pending rAF reference
     this.fb.beginFrame();
+    // Task 2.3.21: MicroJankDetector frame timing
+    microJankDetector.beginFrame();
 
     const S = this.state;
     const bars = this.bars;
@@ -795,5 +817,7 @@ export class ChartEngine {
     }
 
     this.fb.endFrame();
+    // Task 2.3.21: MicroJankDetector frame timing
+    microJankDetector.endFrame();
   }
 }

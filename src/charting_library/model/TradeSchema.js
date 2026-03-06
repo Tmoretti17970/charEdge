@@ -45,6 +45,15 @@ const TRADE_SCHEMA = {
   rating: { type: 'number', required: false, default: null, min: 1, max: 5 },
   ruleBreak: { type: 'boolean', required: false, default: false },
 
+  // Psychological Dimensions (§4.12 — Narrative Tools Architecture)
+  fomo: { type: 'number', required: false, default: null, min: 1, max: 10 },
+  impulse: { type: 'number', required: false, default: null, min: 1, max: 10 },
+  clarity: { type: 'number', required: false, default: null, min: 1, max: 10 },
+  preMood: { type: 'number', required: false, default: null, min: 1, max: 10 },
+  postMood: { type: 'number', required: false, default: null, min: 1, max: 10 },
+  confluences: { type: 'array', required: false, default: [] },
+  triggers: { type: 'array', required: false, default: [] },
+
   // Metadata
   _updatedAt: { type: 'string', required: false, default: null },
   _importedFrom: { type: 'string', required: false, default: null },
@@ -171,9 +180,9 @@ function normalizeTrade(trade) {
       val =
         typeof val === 'string'
           ? val
-              .split(',')
-              .map((s) => s.trim())
-              .filter(Boolean)
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
           : [];
     }
 

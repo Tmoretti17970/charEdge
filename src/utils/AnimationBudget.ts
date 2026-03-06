@@ -6,7 +6,7 @@
 // Respects prefers-reduced-motion automatically.
 // ═══════════════════════════════════════════════════════════════════
 
-import { logger } from '../../utils/logger.js';
+import { logger } from './logger.js';
 
 // ─── Types ───────────────────────────────────────────────────────
 

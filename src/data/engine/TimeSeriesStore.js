@@ -1,16 +1,19 @@
 // @ts-check
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — TimeSeriesStore (Task 5.1.1 + 5.1.6)
+// charEdge — TimeSeriesStore (Task 5.1.1 + 5.1.6 + 2.3.3)
 //
-// IndexedDB-backed block storage for OHLCV bar data.
+// OPFS-backed block storage for OHLCV bar data.
 // Provides in-memory LRU cache with automatic eviction and
-// transparent IndexedDB persistence for historical data.
+// transparent OPFS persistence via OPFSBarStore (binary format).
 //
 // Block architecture:
 //   - Bars are stored in blocks of BLOCK_SIZE (1000 bars)
 //   - Key: `{symbol}:{interval}:{blockIdx}`
 //   - In-memory LRU cache holds MAX_CACHED_BLOCKS blocks
-//   - Overflow spills to IndexedDB
+//   - Overflow persisted to OPFS (48 bytes/bar binary)
+//
+// Migration: Prior IndexedDB backend replaced with OPFS (Task 2.3.3)
+// for ~50% storage savings and direct binary read/write performance.
 //
 // Usage:
 //   import { TimeSeriesStore } from './TimeSeriesStore.js';
@@ -20,11 +23,10 @@
 //   const result = await store.read('BTC', '1m', startT, endT);
 // ═══════════════════════════════════════════════════════════════════
 
+import { opfsBarStore } from './infra/OPFSBarStore.js';
+
 /** @typedef {{ t: number, o: number, h: number, l: number, c: number, v: number }} Bar */
 
-const DB_NAME = 'charEdge-timeseries';
-const DB_VERSION = 1;
-const STORE_NAME = 'blocks';
 const BLOCK_SIZE = 1000;
 const MAX_CACHED_BLOCKS = 50;
 
@@ -82,48 +84,42 @@ class LRUCache {
     }
 }
 
+// ─── Format converters ──────────────────────────────────────────
+// TimeSeriesStore uses compact {t,o,h,l,c,v} internally.
+// OPFSBarStore uses {time(ISO),open,high,low,close,volume}.
+
+/** Convert compact bar to OPFS format */
+function _toOPFS(bar) {
+    return {
+        time: new Date(bar.t).toISOString(),
+        open: bar.o, high: bar.h, low: bar.l, close: bar.c, volume: bar.v,
+    };
+}
+
+/** Convert OPFS format to compact bar */
+function _fromOPFS(bar) {
+    return {
+        t: typeof bar.time === 'number' ? bar.time : new Date(bar.time).getTime(),
+        o: bar.open, h: bar.high, l: bar.low, c: bar.close, v: bar.volume || 0,
+    };
+}
+
 /**
- * IndexedDB-backed time series store with in-memory LRU cache.
+ * OPFS-backed time series store with in-memory LRU cache.
  */
 export class TimeSeriesStore {
     constructor() {
-        /** @type {IDBDatabase | null} */
-        this._db = null;
         /** @type {LRUCache<Bar[]>} */
         this._cache = new LRUCache(MAX_CACHED_BLOCKS);
         this._initialized = false;
     }
 
     /**
-     * Initialize the IndexedDB connection.
+     * Initialize the store. Lightweight — OPFS init is lazy.
      * Call once before any read/write operations.
      */
     async init() {
-        if (this._initialized) return;
-
-        // Skip IndexedDB in environments without it (Node.js tests)
-        if (typeof indexedDB === 'undefined') {
-            this._initialized = true;
-            return;
-        }
-
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-            request.onerror = () => reject(request.error);
-            request.onsuccess = () => {
-                this._db = request.result;
-                this._initialized = true;
-                resolve(undefined);
-            };
-
-            request.onupgradeneeded = (event) => {
-                const db = /** @type {IDBOpenDBRequest} */ (event.target).result;
-                if (!db.objectStoreNames.contains(STORE_NAME)) {
-                    db.createObjectStore(STORE_NAME);
-                }
-            };
-        });
+        this._initialized = true;
     }
 
     /**
@@ -150,7 +146,7 @@ export class TimeSeriesStore {
         // Sort by timestamp
         const sorted = [...bars].sort((a, b) => a.t - b.t);
 
-        // Split into blocks
+        // Split into blocks and cache
         for (let i = 0; i < sorted.length; i += BLOCK_SIZE) {
             const block = sorted.slice(i, i + BLOCK_SIZE);
             const blockIdx = Math.floor(i / BLOCK_SIZE);
@@ -158,9 +154,14 @@ export class TimeSeriesStore {
 
             // Write to LRU cache
             this._cache.set(key, block);
+        }
 
-            // Persist to IndexedDB
-            await this._writeIDB(key, block);
+        // Persist to OPFS (binary format, fire-and-forget for performance)
+        const opfsBars = sorted.map(_toOPFS);
+        try {
+            await opfsBarStore.putCandles(symbol, interval, opfsBars);
+        } catch (_) {
+            // OPFS write failure is non-fatal — data is still in LRU cache
         }
     }
 
@@ -176,28 +177,49 @@ export class TimeSeriesStore {
     async read(symbol, interval, startTime, endTime) {
         const result = [];
 
-        // Scan blocks (try cache first, then IDB)
+        // Fast path: scan LRU cache blocks
+        let foundInCache = false;
         for (let blockIdx = 0; blockIdx < 10000; blockIdx++) {
             const key = this._blockKey(symbol, interval, blockIdx);
+            const block = this._cache.get(key);
+            if (!block) break;
 
-            let block = this._cache.get(key);
-            if (!block) {
-                block = await this._readIDB(key);
-                if (!block) break; // No more blocks
-                this._cache.set(key, block); // Warm cache
-            }
-
-            // Filter bars in range
+            foundInCache = true;
             for (const bar of block) {
                 if (bar.t >= startTime && bar.t <= endTime) {
                     result.push(bar);
                 }
-                // Optimization: if we've passed endTime, stop early
                 if (bar.t > endTime) break;
             }
 
-            // If we found bars past endTime, no need to check more blocks
             if (block.length > 0 && block[block.length - 1].t > endTime) break;
+        }
+
+        if (foundInCache && result.length > 0) return result;
+
+        // Cache miss: read from OPFS and warm cache
+        try {
+            const opfsBars = await opfsBarStore.getCandles(symbol, interval);
+            if (!opfsBars.length) return result;
+
+            // Convert and split into blocks for caching
+            const compactBars = opfsBars.map(_fromOPFS);
+            for (let i = 0; i < compactBars.length; i += BLOCK_SIZE) {
+                const block = compactBars.slice(i, i + BLOCK_SIZE);
+                const blockIdx = Math.floor(i / BLOCK_SIZE);
+                const key = this._blockKey(symbol, interval, blockIdx);
+                this._cache.set(key, block);
+            }
+
+            // Filter to requested range
+            for (const bar of compactBars) {
+                if (bar.t >= startTime && bar.t <= endTime) {
+                    result.push(bar);
+                }
+                if (bar.t > endTime) break;
+            }
+        } catch (_) {
+            // OPFS read failure — return whatever we have from cache
         }
 
         return result;
@@ -224,50 +246,23 @@ export class TimeSeriesStore {
     /** Clear all cached and persisted data. */
     async clear() {
         this._cache.clear();
-        if (this._db) {
-            return new Promise((resolve, reject) => {
-                const tx = this._db.transaction(STORE_NAME, 'readwrite');
-                const store = tx.objectStore(STORE_NAME);
-                const req = store.clear();
-                req.onsuccess = () => resolve(undefined);
-                req.onerror = () => reject(req.error);
-            });
+        try {
+            await opfsBarStore.clear();
+        } catch (_) {
+            // OPFS clear failure is non-fatal
         }
     }
 
-    // ─── Private IndexedDB helpers ────────────────────────────────
-
     /**
-     * @param {string} key
-     * @param {Bar[]} block
+     * Check if OPFS persistence is available.
+     * @returns {boolean}
      */
-    async _writeIDB(key, block) {
-        if (!this._db) return;
-        return new Promise((resolve, reject) => {
-            const tx = this._db.transaction(STORE_NAME, 'readwrite');
-            const store = tx.objectStore(STORE_NAME);
-            const req = store.put(block, key);
-            req.onsuccess = () => resolve(undefined);
-            req.onerror = () => reject(req.error);
-        });
-    }
-
-    /**
-     * @param {string} key
-     * @returns {Promise<Bar[] | null>}
-     */
-    async _readIDB(key) {
-        if (!this._db) return null;
-        return new Promise((resolve, reject) => {
-            const tx = this._db.transaction(STORE_NAME, 'readonly');
-            const store = tx.objectStore(STORE_NAME);
-            const req = store.get(key);
-            req.onsuccess = () => resolve(req.result || null);
-            req.onerror = () => reject(req.error);
-        });
+    get isOPFS() {
+        return opfsBarStore.isAvailable();
     }
 }
 
 // Export for testing
 export { LRUCache, BLOCK_SIZE, MAX_CACHED_BLOCKS };
 export default TimeSeriesStore;
+

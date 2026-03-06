@@ -155,11 +155,11 @@ export default function DashboardHero({
         <div
           style={{
             ...text.dataHero,
-            fontSize: 34,
+            fontSize: 42,
             fontWeight: 800,
             color: pnlColor,
             letterSpacing: '-1.5px',
-            textShadow: `0 0 30px ${pnlColor}25`,
+            textShadow: `0 0 40px ${pnlColor}35, 0 0 80px ${pnlColor}15`,
             zIndex: 1,
           }}
         >
