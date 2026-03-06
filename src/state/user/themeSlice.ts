@@ -11,23 +11,23 @@ import { notifyThemeChange } from '../../hooks/useThemeVars.js';
 
 // ─── Accent Color Presets ────────────────────────────────────────
 export const ACCENT_PRESETS = [
-  { id: 'forge',    hex: '#e8642c', label: 'Forge Orange' },
-  { id: 'ocean',    hex: '#2962FF', label: 'Ocean Blue' },
-  { id: 'emerald',  hex: '#059669', label: 'Emerald' },
-  { id: 'violet',   hex: '#7c3aed', label: 'Violet' },
-  { id: 'rose',     hex: '#e11d48', label: 'Rose' },
-  { id: 'cyan',     hex: '#0891b2', label: 'Cyan' },
-  { id: 'amber',    hex: '#d97706', label: 'Amber' },
-  { id: 'fuchsia',  hex: '#c026d3', label: 'Fuchsia' },
+  { id: 'forge', hex: '#e8642c', label: 'Forge Orange' },
+  { id: 'ocean', hex: '#2962FF', label: 'Ocean Blue' },
+  { id: 'emerald', hex: '#059669', label: 'Emerald' },
+  { id: 'violet', hex: '#7c3aed', label: 'Violet' },
+  { id: 'rose', hex: '#e11d48', label: 'Rose' },
+  { id: 'cyan', hex: '#0891b2', label: 'Cyan' },
+  { id: 'amber', hex: '#d97706', label: 'Amber' },
+  { id: 'fuchsia', hex: '#c026d3', label: 'Fuchsia' },
 ];
 
 // ─── Chart Color Presets ─────────────────────────────────────────
 export const CHART_COLOR_PRESETS = [
-  { id: 'classic',    label: 'Classic',    bull: '#2dd4a0', bear: '#f25c5c' },
-  { id: 'neon',       label: 'Neon',       bull: '#00ff88', bear: '#ff3366' },
-  { id: 'monochrome', label: 'Mono',       bull: '#a0a0a0', bear: '#505050' },
-  { id: 'ocean',      label: 'Ocean',      bull: '#22d3ee', bear: '#6366f1' },
-  { id: 'sunset',     label: 'Sunset',     bull: '#f0b64e', bear: '#e8642c' },
+  { id: 'classic', label: 'Classic', bull: '#2dd4a0', bear: '#f25c5c' },
+  { id: 'neon', label: 'Neon', bull: '#00ff88', bear: '#ff3366' },
+  { id: 'monochrome', label: 'Mono', bull: '#a0a0a0', bear: '#505050' },
+  { id: 'ocean', label: 'Ocean', bull: '#22d3ee', bear: '#6366f1' },
+  { id: 'sunset', label: 'Sunset', bull: '#f0b64e', bear: '#e8642c' },
 ];
 
 // ─── Helpers (module-level, not in store) ────────────────────────
@@ -141,12 +141,21 @@ export const createThemeSlice = (set, get) => ({
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('charEdge-theme');
       if (!stored) {
-        const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-        if (prefersLight) {
-          theme = 'light';
-          set({ theme });
-        }
+        // Default to 'system' — respect OS preference automatically
+        theme = 'system';
+        set({ theme });
       }
+
+      // Listen for OS color scheme changes when theme is 'system'
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      mq.addEventListener('change', () => {
+        if (get().theme === 'system') {
+          const resolved = resolveTheme('system');
+          applyTheme(resolved);
+          refreshThemeCache();
+          notifyThemeChange();
+        }
+      });
     }
     const resolved = resolveTheme(theme);
     applyTheme(resolved);

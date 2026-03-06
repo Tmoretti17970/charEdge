@@ -145,7 +145,7 @@ describe('Benchmark: buildCacheKey performance', () => {
 
 describe('Benchmark: Circuit breaker overhead', () => {
   it('CLOSED circuit adds < 1ms overhead per call', async () => {
-    const { withCircuitBreaker, resetAllCircuits } = await import('../../data/engine/infra/AdapterCircuitBreaker.js');
+    const { withCircuitBreaker, resetAllCircuits } = await import('../../data/engine/infra/CircuitBreaker');
     resetAllCircuits();
 
     const start = performance.now();

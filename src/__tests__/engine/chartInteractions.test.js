@@ -8,6 +8,16 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
+// ─── Polyfill ResizeObserver for Node/vitest ─────────────────────
+if (typeof globalThis.ResizeObserver === 'undefined') {
+  globalThis.ResizeObserver = class ResizeObserver {
+    constructor(cb) { this._cb = cb; }
+    observe() { }
+    unobserve() { }
+    disconnect() { }
+  };
+}
+
 // ─── Mock Engine + Canvas Factory ───────────────────────────────
 
 function createMockCanvas() {
@@ -95,8 +105,8 @@ beforeEach(() => {
       removeEventListener: vi.fn(),
     };
   } else {
-    vi.spyOn(window, 'addEventListener').mockImplementation(() => {});
-    vi.spyOn(window, 'removeEventListener').mockImplementation(() => {});
+    vi.spyOn(window, 'addEventListener').mockImplementation(() => { });
+    vi.spyOn(window, 'removeEventListener').mockImplementation(() => { });
   }
 });
 
@@ -193,7 +203,7 @@ describe('5.2 — Mouse Interactions', () => {
   });
 
   it('onMouseMove updates mouseX, mouseY, hoverIdx', () => {
-    im.onMouseMove({ clientX: 150, clientY: 300, preventDefault: () => {} });
+    im.onMouseMove({ clientX: 150, clientY: 300, preventDefault: () => { } });
     const S = engine.state;
     expect(S.mouseX).toBe(150);
     expect(S.mouseY).toBe(300);
@@ -517,8 +527,8 @@ describe('5.2 — Touch Gesture Interactions', () => {
 
     im.onTouchEnd({ preventDefault: vi.fn() });
 
-    // RequestAnimationFrame should have been called (inertia started)
-    expect(globalThis.requestAnimationFrame).toHaveBeenCalled();
+    // B1.6: inertia now sets a boolean flag instead of calling requestAnimationFrame
+    expect(im._inertiaActive).toBe(true);
   });
 
   it('_getTouchCenter calculates center of two touches', () => {
@@ -558,7 +568,8 @@ describe('5.2 — Scroll to Now & Inertia', () => {
     engine.state.scrollOffset = 100;
     im.scrollToNow();
 
-    expect(globalThis.requestAnimationFrame).toHaveBeenCalled();
+    // B1.6: scrollToNow now sets a boolean flag instead of calling requestAnimationFrame
+    expect(im._scrollToNowActive).toBe(true);
   });
 
   it('scrollToNow stops any existing inertia', () => {
@@ -568,15 +579,14 @@ describe('5.2 — Scroll to Now & Inertia', () => {
     expect(im._velocityX).toBe(0);
   });
 
-  it('_stopInertia resets velocity and cancels RAF', () => {
+  it('_stopInertia resets velocity and clears active flag', () => {
     im._velocityX = 5;
-    im._inertiaRaf = 42;
+    im._inertiaActive = true;
 
     im._stopInertia();
 
     expect(im._velocityX).toBe(0);
-    expect(im._inertiaRaf).toBeNull();
-    expect(globalThis.cancelAnimationFrame).toHaveBeenCalledWith(42);
+    expect(im._inertiaActive).toBe(false);
   });
 });
 

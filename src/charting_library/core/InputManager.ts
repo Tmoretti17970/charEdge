@@ -127,23 +127,27 @@ export class InputManager {
   engine: EngineRef;
   tc: HTMLCanvasElement;
 
+  // B1.5: Cached bounding rect — invalidated on resize
+  private _cachedRect: DOMRect | null = null;
+  private _resizeObs: ResizeObserver | null = null;
+
   // Inertia state
   private _velocityX: number = 0;
   private _lastMoveTime: number = 0;
   private _lastMoveX: number = 0;
-  private _inertiaRaf: number | null = null;
+  private _inertiaActive: boolean = false;
   private _velocitySamples: [number, number, number] = [0, 0, 0];
   private _velocityIdx: number = 0;
   private _prefetchDispatched: boolean = false;
 
   // Smooth zoom state
   private _targetVisibleBars: number | null = null;
-  private _zoomRaf: number | null = null;
+  private _zoomActive: boolean = false;
   private _zoomAnchorFrac: number = 0.5;
 
   // Task 1.4.12: Y-axis spring physics state
   private _priceVelocity: number = 0;
-  private _priceInertiaRaf: number | null = null;
+  private _priceInertiaActive: boolean = false;
   private _priceDragSamples: [number, number, number] = [0, 0, 0];
   private _priceDragIdx: number = 0;
   private _lastPriceMoveTime: number = 0;
@@ -152,10 +156,17 @@ export class InputManager {
   // Task 1.4.13: Zoom momentum state
   private _zoomVelocity: number = 0;
   private _lastWheelTime: number = 0;
-  private _zoomMomentumRaf: number | null = null;
+  private _zoomMomentumActive: boolean = false;
 
   // Scroll-to-now animation state
-  private _scrollToNowRaf: number | null = null;
+  private _scrollToNowActive: boolean = false;
+
+  // B2.3: Elastic pinch spring-back state
+  private _pinchOverstretched: boolean = false;
+  private _pinchSpringActive: boolean = false;
+  private _pinchSpringTarget: number = 0;
+  private _pinchSpringStart: number = 0;
+  private _pinchSpringStartTime: number = 0;
 
   // Splitter drag state
   private _dragPaneIdx: number = 0;
@@ -203,6 +214,10 @@ export class InputManager {
     this.tc.addEventListener('touchend', this.onTouchEnd, { passive: false });
     this.tc.addEventListener('auxclick', this._onAuxClick);
     window.addEventListener('mouseup', this.onMouseUp);
+
+    // B1.5: Observe resize to invalidate cached rect
+    this._resizeObs = new ResizeObserver(() => { this._cachedRect = null; });
+    this._resizeObs.observe(this.tc);
   }
 
   destroy(): void {
@@ -217,17 +232,29 @@ export class InputManager {
     this.tc.removeEventListener('touchend', this.onTouchEnd);
     this.tc.removeEventListener('auxclick', this._onAuxClick);
     window.removeEventListener('mouseup', this.onMouseUp);
-    if (this._inertiaRaf) cancelAnimationFrame(this._inertiaRaf);
-    if (this._zoomRaf) cancelAnimationFrame(this._zoomRaf);
-    if (this._scrollToNowRaf) cancelAnimationFrame(this._scrollToNowRaf);
-    if (this._priceInertiaRaf) cancelAnimationFrame(this._priceInertiaRaf);
-    if (this._zoomMomentumRaf) cancelAnimationFrame(this._zoomMomentumRaf);
+    // B1.6: Stop all animations (no rAF IDs to cancel — engine-driven)
+    this._inertiaActive = false;
+    this._zoomActive = false;
+    this._scrollToNowActive = false;
+    this._priceInertiaActive = false;
+    this._zoomMomentumActive = false;
+    this._pinchSpringActive = false;
+    // B1.5: Disconnect resize observer
+    if (this._resizeObs) { this._resizeObs.disconnect(); this._resizeObs = null; }
     // Sprint 4: Clean up GPU compositing hint
     this._clearWillChange();
   }
 
+  // B1.5: Cached rect getter — avoids forced layout on every mouse event
+  private _getRect(): DOMRect {
+    if (!this._cachedRect) {
+      this._cachedRect = this.tc.getBoundingClientRect();
+    }
+    return this._cachedRect;
+  }
+
   getPos(e: MouseEvent): { x: number; y: number } {
-    const r = this.tc.getBoundingClientRect();
+    const r = this._getRect();
     return { x: e.clientX - r.left, y: e.clientY - r.top };
   }
 
@@ -243,56 +270,67 @@ export class InputManager {
     if (container) container.style.willChange = '';
   }
 
-  // ─── Inertia Animation ──────────────────────────────────────
+  // B2.1: Quintic-out inertia timing state
+  private _inertiaStartTime: number = 0;
+  private _inertiaStartVelocity: number = 0;
+  private _inertiaDuration: number = 800;
+
+  // ─── Inertia Animation (B2.1: Quintic-out deceleration) ──────
+  // B1.6: Converted to tick function driven by engine render loop
   private _startInertia(): void {
-    if (this._inertiaRaf) cancelAnimationFrame(this._inertiaRaf);
+    // B2.1: Record initial velocity and compute duration proportional to speed
+    this._inertiaStartVelocity = this._velocityX;
+    this._inertiaStartTime = performance.now();
+    this._inertiaDuration = Math.min(1200, Math.max(400, Math.abs(this._velocityX) * 120));
+    this._inertiaActive = true;
+    this.engine._scheduleDraw();
+  }
+
+  // B1.6: Inertia tick — called from tickAnimations()
+  private _tickInertia(): boolean {
     const eng = this.engine;
     const S = eng.state;
 
-    const step = (): void => {
-      // Spring-back when overscrolled past edges
-      const rightMargin = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
-      const minScroll = -rightMargin;
-      // maxScroll = furthest left the user can scroll (oldest bar at left edge)
-      // Must match the formula used by all other scroll handlers in this file
-      const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
-      if (S.scrollOffset < minScroll) {
-        S.scrollOffset = minScroll + (S.scrollOffset - minScroll) * OVERSCROLL_SPRING;
-        if (Math.abs(S.scrollOffset - minScroll) < 0.5) S.scrollOffset = minScroll;
-        this._velocityX = 0;
-      } else if (S.scrollOffset > maxScroll) {
-        const over = S.scrollOffset - maxScroll;
-        S.scrollOffset = maxScroll + over * OVERSCROLL_SPRING;
-        if (Math.abs(S.scrollOffset - maxScroll) < 0.5) S.scrollOffset = maxScroll;
-        this._velocityX = 0;
-      }
+    // Spring-back when overscrolled past edges
+    const rightMargin = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
+    const minScroll = -rightMargin;
+    const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
+    if (S.scrollOffset < minScroll) {
+      S.scrollOffset = minScroll + (S.scrollOffset - minScroll) * OVERSCROLL_SPRING;
+      if (Math.abs(S.scrollOffset - minScroll) < 0.5) S.scrollOffset = minScroll;
+      this._velocityX = 0;
+    } else if (S.scrollOffset > maxScroll) {
+      const over = S.scrollOffset - maxScroll;
+      S.scrollOffset = maxScroll + over * OVERSCROLL_SPRING;
+      if (Math.abs(S.scrollOffset - maxScroll) < 0.5) S.scrollOffset = maxScroll;
+      this._velocityX = 0;
+    }
 
-      if (Math.abs(this._velocityX) < MIN_VELOCITY && S.scrollOffset >= minScroll && S.scrollOffset <= maxScroll) {
-        this._velocityX = 0;
-        this._inertiaRaf = null;
-        this._prefetchDispatched = false;
-        this._clearWillChange(); // Sprint 4: Remove GPU hint when inertia stops
-        return;
-      }
+    // B2.1: Time-normalized quintic-out easing
+    const elapsed = performance.now() - this._inertiaStartTime;
+    const t = Math.min(1, elapsed / this._inertiaDuration);
+    if (t >= 1 || (Math.abs(this._velocityX) < MIN_VELOCITY && S.scrollOffset >= minScroll && S.scrollOffset <= maxScroll)) {
+      this._velocityX = 0;
+      this._inertiaActive = false;
+      this._prefetchDispatched = false;
+      this._clearWillChange();
+      return false;
+    }
 
-      this._velocityX *= FRICTION;
-      S.scrollOffset = Math.max(minScroll - OVERSCROLL_MAX, Math.min(maxScroll + OVERSCROLL_MAX, S.scrollOffset + this._velocityX));
-      S.mainDirty = true;
-      S.topDirty = true;
-      if (eng.layers) {
-        eng.layers.markDirty(LAYERS.DATA);
-        eng.layers.markDirty(LAYERS.INDICATORS);
-        eng.layers.markDirty(LAYERS.UI);
-        eng.layers.markDirty(LAYERS.DRAWINGS);
-      }
+    // Quintic-out: velocity = initialV * (1-t)^4 (derivative of quintic-out position)
+    const decay = Math.pow(1 - t, 4);
+    this._velocityX = this._inertiaStartVelocity * decay;
 
-      // Sprint 1: Dispatch prefetch when near left edge
-      this._checkPrefetch(eng);
+    S.scrollOffset = Math.max(minScroll - OVERSCROLL_MAX, Math.min(maxScroll + OVERSCROLL_MAX, S.scrollOffset + this._velocityX));
+    S.mainDirty = true;
+    S.topDirty = true;
+    if (eng.layers) {
+      eng.layers.markDirty(LAYERS.DATA);
+      eng.layers.markDirty(LAYERS.UI);
+    }
 
-      eng._scheduleDraw();
-      this._inertiaRaf = requestAnimationFrame(step);
-    };
-    this._inertiaRaf = requestAnimationFrame(step);
+    this._checkPrefetch(eng);
+    return true;
   }
 
   // Sprint 1: Check if we should dispatch a prefetch event
@@ -321,142 +359,143 @@ export class InputManager {
 
   private _stopInertia(): void {
     this._velocityX = 0;
-    if (this._inertiaRaf) {
-      cancelAnimationFrame(this._inertiaRaf);
-      this._inertiaRaf = null;
-    }
+    this._inertiaActive = false;
   }
 
   // ─── Smooth Zoom Animation ─────────────────────────────────
+  // B1.6: Converted to tick function driven by engine render loop
   private _startZoomAnimation(): void {
-    if (this._zoomRaf) return; // Already running
+    if (this._zoomActive) return; // Already running
+    this._zoomActive = true;
+    this.engine._scheduleDraw();
+  }
+
+  // B1.6: Zoom tick — called from tickAnimations()
+  private _tickZoom(): boolean {
     const eng = this.engine;
     const S = eng.state;
 
-    const step = (): void => {
-      if (this._targetVisibleBars === null) {
-        this._zoomRaf = null;
-        return;
-      }
+    if (this._targetVisibleBars === null) {
+      this._zoomActive = false;
+      return false;
+    }
 
-      const diff = this._targetVisibleBars - S.visibleBars;
-      if (Math.abs(diff) < ZOOM_SNAP) {
-        S.visibleBars = Math.round(this._targetVisibleBars);
-        this._targetVisibleBars = null;
-        this._zoomRaf = null;
-        S.mainDirty = true;
-        S.topDirty = true;
-        return;
-      }
-
-      // Lerp toward target
-      const oldBars = S.visibleBars;
-      S.visibleBars += diff * ZOOM_LERP;
-
-      // Anchor zoom around cursor position to keep price under cursor stable
-      const barDelta = S.visibleBars - oldBars;
-      const rightMarginZoom = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
-      const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
-      S.scrollOffset = Math.max(-rightMarginZoom, Math.min(maxScroll,
-        S.scrollOffset - barDelta * (1 - this._zoomAnchorFrac)
-      ));
-
+    const diff = this._targetVisibleBars - S.visibleBars;
+    if (Math.abs(diff) < ZOOM_SNAP) {
+      // B2.2: Compute offset correction with float precision BEFORE integer snap
+      const finalDiff = this._targetVisibleBars - S.visibleBars;
+      S.scrollOffset -= finalDiff * (1 - this._zoomAnchorFrac);
+      S.visibleBars = Math.round(this._targetVisibleBars);
+      this._targetVisibleBars = null;
+      this._zoomActive = false;
       S.mainDirty = true;
       S.topDirty = true;
-      this._zoomRaf = requestAnimationFrame(step);
-    };
-    this._zoomRaf = requestAnimationFrame(step);
+      return false;
+    }
+
+    // Lerp toward target
+    const oldBars = S.visibleBars;
+    S.visibleBars += diff * ZOOM_LERP;
+
+    // Anchor zoom around cursor position to keep price under cursor stable
+    const barDelta = S.visibleBars - oldBars;
+    const rightMarginZoom = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
+    const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
+    S.scrollOffset = Math.max(-rightMarginZoom, Math.min(maxScroll,
+      S.scrollOffset - barDelta * (1 - this._zoomAnchorFrac)
+    ));
+
+    S.mainDirty = true;
+    S.topDirty = true;
+    return true;
   }
 
   // ─── Task 1.4.12: Y-Axis Spring Physics (Price Inertia) ────
-  // On price-axis drag release, apply momentum + spring-back for iOS-like feel.
+  // B1.6: Converted to tick function driven by engine render loop
   private _startPriceInertia(): void {
-    if (this._priceInertiaRaf) cancelAnimationFrame(this._priceInertiaRaf);
+    this._priceInertiaActive = true;
+    this.engine._scheduleDraw();
+  }
+
+  // B1.6: Price inertia tick — called from tickAnimations()
+  private _tickPriceInertia(): boolean {
     const eng = this.engine;
     const S = eng.state;
 
-    const step = (): void => {
-      // Decay velocity
-      this._priceVelocity *= PRICE_FRICTION;
+    // Decay velocity
+    this._priceVelocity *= PRICE_FRICTION;
 
-      // Apply velocity to price scroll
-      S.priceScroll += this._priceVelocity;
+    // Apply velocity to price scroll
+    S.priceScroll += this._priceVelocity;
 
-      // Spring-back when overscrolled (priceScroll too far from 0)
-      const maxDrift = 0.5; // Maximum allowed price drift as fraction of visible range
-      const R = S.lastRender;
-      const range = R ? (R.yMax - R.yMin) : 1;
-      const maxScroll = range * maxDrift;
+    // Spring-back when overscrolled (priceScroll too far from 0)
+    const maxDrift = 0.5;
+    const R = S.lastRender;
+    const range = R ? (R.yMax - R.yMin) : 1;
+    const maxScroll = range * maxDrift;
 
-      if (Math.abs(S.priceScroll) > maxScroll) {
-        // Pull back toward boundary
-        const target = Math.sign(S.priceScroll) * maxScroll;
-        S.priceScroll += (target - S.priceScroll) * PRICE_SPRING_BACK;
-        this._priceVelocity *= 0.5; // Dampen velocity during spring-back
-      }
+    if (Math.abs(S.priceScroll) > maxScroll) {
+      const target = Math.sign(S.priceScroll) * maxScroll;
+      S.priceScroll += (target - S.priceScroll) * PRICE_SPRING_BACK;
+      this._priceVelocity *= 0.5;
+    }
 
-      // Stop when velocity is negligible and within bounds
-      if (Math.abs(this._priceVelocity) < MIN_PRICE_VELOCITY && Math.abs(S.priceScroll) <= maxScroll) {
-        this._priceInertiaRaf = null;
-        return;
-      }
+    // Stop when velocity is negligible and within bounds
+    if (Math.abs(this._priceVelocity) < MIN_PRICE_VELOCITY && Math.abs(S.priceScroll) <= maxScroll) {
+      this._priceInertiaActive = false;
+      return false;
+    }
 
-      S.mainDirty = true;
-      if (eng.layers) {
-        eng.layers.markDirty(LAYERS.DATA);
-        eng.layers.markDirty(LAYERS.INDICATORS);
-        eng.layers.markDirty(LAYERS.GRID);
-      }
-      eng._scheduleDraw();
-      this._priceInertiaRaf = requestAnimationFrame(step);
-    };
-    this._priceInertiaRaf = requestAnimationFrame(step);
+    S.mainDirty = true;
+    if (eng.layers) {
+      eng.layers.markDirty(LAYERS.DATA);
+      eng.layers.markDirty(LAYERS.INDICATORS);
+      eng.layers.markDirty(LAYERS.GRID);
+    }
+    return true;
   }
 
   private _stopPriceInertia(): void {
     this._priceVelocity = 0;
-    if (this._priceInertiaRaf) {
-      cancelAnimationFrame(this._priceInertiaRaf);
-      this._priceInertiaRaf = null;
-    }
+    this._priceInertiaActive = false;
   }
 
   // ─── Task 1.4.13: Zoom Momentum (Scroll Wheel Glide) ───────
-  // Consecutive wheel events accumulate zoom velocity; animation loop
-  // applies exponential decay for a smooth glide effect.
+  // B1.6: Converted to tick function driven by engine render loop
   private _startZoomMomentum(): void {
-    if (this._zoomMomentumRaf) return; // Already running
+    if (this._zoomMomentumActive) return; // Already running
+    this._zoomMomentumActive = true;
+    this.engine._scheduleDraw();
+  }
+
+  // B1.6: Zoom momentum tick — called from tickAnimations()
+  private _tickZoomMomentum(): boolean {
     const eng = this.engine;
     const S = eng.state;
 
-    const step = (): void => {
-      this._zoomVelocity *= ZOOM_MOMENTUM_DECAY;
+    this._zoomVelocity *= ZOOM_MOMENTUM_DECAY;
 
-      if (Math.abs(this._zoomVelocity) < 0.1) {
-        this._zoomVelocity = 0;
-        this._zoomMomentumRaf = null;
-        return;
-      }
+    if (Math.abs(this._zoomVelocity) < 0.1) {
+      this._zoomVelocity = 0;
+      this._zoomMomentumActive = false;
+      return false;
+    }
 
-      const maxBars = Math.max(80, eng.bars.length + 20);
-      const oldBars = S.visibleBars;
-      // Apply momentum as multiplicative factor
-      S.visibleBars = Math.max(10, Math.min(maxBars, S.visibleBars * (1 + this._zoomVelocity * 0.001)));
+    const maxBars = Math.max(80, eng.bars.length + 20);
+    const oldBars = S.visibleBars;
+    S.visibleBars = Math.max(10, Math.min(maxBars, S.visibleBars * (1 + this._zoomVelocity * 0.001)));
 
-      // Anchor zoom
-      const barDelta = S.visibleBars - oldBars;
-      const rightMarginZ = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
-      const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
-      S.scrollOffset = Math.max(-rightMarginZ, Math.min(maxScroll,
-        S.scrollOffset - barDelta * (1 - this._zoomAnchorFrac)
-      ));
+    // Anchor zoom
+    const barDelta = S.visibleBars - oldBars;
+    const rightMarginZ = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
+    const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
+    S.scrollOffset = Math.max(-rightMarginZ, Math.min(maxScroll,
+      S.scrollOffset - barDelta * (1 - this._zoomAnchorFrac)
+    ));
 
-      S.mainDirty = true;
-      S.topDirty = true;
-      eng._scheduleDraw();
-      this._zoomMomentumRaf = requestAnimationFrame(step);
-    };
-    this._zoomMomentumRaf = requestAnimationFrame(step);
+    S.mainDirty = true;
+    S.topDirty = true;
+    return true;
   }
 
   // Sprint 11: Find splitter index near a given Y position (CSS pixels).
@@ -666,7 +705,7 @@ export class InputManager {
 
     if (!R) return;
 
-    const r = this.tc.getBoundingClientRect();
+    const r = this._getRect();
     const isTimeAxis = e.clientY - r.top >= this.tc.clientHeight - (R.txH * R.pr) / R.pr;
     const isPriceAxis = e.clientX - r.left >= R.cW;
 
@@ -999,39 +1038,94 @@ export class InputManager {
   }
 
   // ─── Scroll to Now (animated) ────────────────────────────────
+  // B1.6: Converted to tick function driven by engine render loop
   scrollToNow(): void {
     this._stopInertia();
-    if (this._scrollToNowRaf) cancelAnimationFrame(this._scrollToNowRaf);
+    this._scrollToNowActive = true;
+    this.engine._scheduleDraw();
+  }
+
+  // B1.6: Scroll-to-now tick — called from tickAnimations()
+  private _tickScrollToNow(): boolean {
     const eng = this.engine;
     const S = eng.state;
 
-    const step = (): void => {
-      if (Math.abs(S.scrollOffset) < 0.5) {
-        S.scrollOffset = 0;
-        this._scrollToNowRaf = null;
-        S.mainDirty = true;
-        S.topDirty = true;
-        return;
-      }
-      S.scrollOffset *= 0.75; // Ease toward 0
+    if (Math.abs(S.scrollOffset) < 0.5) {
+      S.scrollOffset = 0;
+      this._scrollToNowActive = false;
       S.mainDirty = true;
       S.topDirty = true;
-      if (eng.layers) {
-        eng.layers.markDirty(LAYERS.DATA);
-        eng.layers.markDirty(LAYERS.INDICATORS);
-        eng.layers.markDirty(LAYERS.UI);
-        eng.layers.markDirty(LAYERS.DRAWINGS);
-      }
-      this._scrollToNowRaf = requestAnimationFrame(step);
-    };
-    this._scrollToNowRaf = requestAnimationFrame(step);
+      return false;
+    }
+    S.scrollOffset *= 0.75; // Ease toward 0
+    S.mainDirty = true;
+    S.topDirty = true;
+    if (eng.layers) {
+      eng.layers.markDirty(LAYERS.DATA);
+      eng.layers.markDirty(LAYERS.INDICATORS);
+      eng.layers.markDirty(LAYERS.UI);
+      eng.layers.markDirty(LAYERS.DRAWINGS);
+    }
+    return true;
+  }
+
+  // B2.3: Elastic pinch spring-back tick
+  private _tickPinchSpring(): boolean {
+    const SPRING_DURATION = 200; // ms
+    const elapsed = performance.now() - this._pinchSpringStartTime;
+    const t = Math.min(1, elapsed / SPRING_DURATION);
+    // easeOutExpo: 1 - 2^(-10t)
+    const ease = t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
+
+    const eng = this.engine;
+    const S = eng.state;
+    S.visibleBars = this._pinchSpringStart + (this._pinchSpringTarget - this._pinchSpringStart) * ease;
+
+    S.mainDirty = true;
+    S.topDirty = true;
+
+    if (t >= 1) {
+      S.visibleBars = this._pinchSpringTarget;
+      this._pinchSpringActive = false;
+      this._pinchOverstretched = false;
+      return false;
+    }
+    return true;
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // B1.6: PUBLIC API — Engine-driven animation tick
+  // ═══════════════════════════════════════════════════════════════
+
+  /**
+   * Tick all active animations. Called once per frame from ChartEngine.renderLoop().
+   * Returns `true` if any animation is still running (engine should continue rendering).
+   */
+  tickAnimations(): boolean {
+    let anyActive = false;
+    if (this._inertiaActive) anyActive = this._tickInertia() || anyActive;
+    if (this._zoomActive) anyActive = this._tickZoom() || anyActive;
+    if (this._priceInertiaActive) anyActive = this._tickPriceInertia() || anyActive;
+    if (this._zoomMomentumActive) anyActive = this._tickZoomMomentum() || anyActive;
+    if (this._scrollToNowActive) anyActive = this._tickScrollToNow() || anyActive;
+    if (this._pinchSpringActive) anyActive = this._tickPinchSpring() || anyActive;
+    return anyActive;
+  }
+
+  /**
+   * Returns `true` if any animation is currently active.
+   * Used by ChartEngine._needsNextFrame() to keep the render loop alive.
+   */
+  hasActiveAnimations(): boolean {
+    return this._inertiaActive || this._zoomActive || this._priceInertiaActive
+      || this._zoomMomentumActive || this._scrollToNowActive || this._pinchSpringActive;
   }
 
   // ─── Touch Gesture Support ─────────────────────────────────
   private _getTouchCenter(touches: TouchList): { x: number; y: number } {
     let x = 0, y = 0;
     for (let i = 0; i < touches.length; i++) {
-      const r = this.tc.getBoundingClientRect();
+      const r = this._getRect();
       x += touches[i].clientX - r.left;
       y += touches[i].clientY - r.top;
     }
@@ -1124,7 +1218,7 @@ export class InputManager {
       this._lastMoveX = touches[0].clientX;
 
       // Update crosshair position
-      const r = this.tc.getBoundingClientRect();
+      const r = this._getRect();
       S.mouseX = touches[0].clientX - r.left;
       S.mouseY = touches[0].clientY - r.top;
     } else if (this._touchMode === 'pinch' && touches.length >= 2) {
@@ -1143,11 +1237,29 @@ export class InputManager {
           S.mainDirty = true;
         } else {
           // Horizontal pinch → bar count zoom (existing behavior)
+          // B2.3: Allow elastic overstretch beyond min/max with resistance
           const scale = this._pinchStartDist / dist;
           const maxBars = Math.max(80, eng.bars.length + 20);
-          const newBars = Math.max(10, Math.min(maxBars, Math.round(this._pinchStartBars * scale)));
-          const barDelta = newBars - S.visibleBars;
+          const minBars = 10;
+          const rawBars = this._pinchStartBars * scale;
+          let newBars: number;
 
+          if (rawBars < minBars) {
+            // Elastic resistance below minimum: 30% of overshoot
+            const overshoot = minBars - rawBars;
+            newBars = minBars - overshoot * 0.3;
+            this._pinchOverstretched = true;
+          } else if (rawBars > maxBars) {
+            // Elastic resistance above maximum: 30% of overshoot
+            const overshoot = rawBars - maxBars;
+            newBars = maxBars + overshoot * 0.3;
+            this._pinchOverstretched = true;
+          } else {
+            newBars = Math.round(rawBars);
+            this._pinchOverstretched = false;
+          }
+
+          const barDelta = newBars - S.visibleBars;
           S.visibleBars = newBars;
 
           // Anchor around pinch center
@@ -1180,6 +1292,18 @@ export class InputManager {
           detail: { direction },
         }));
       }
+    }
+    // B2.3: Elastic pinch spring-back on release
+    if (this._touchMode === 'pinch' && this._pinchOverstretched) {
+      const eng = this.engine;
+      const S = eng.state;
+      const maxBars = Math.max(80, eng.bars.length + 20);
+      const minBars = 10;
+      this._pinchSpringStart = S.visibleBars;
+      this._pinchSpringTarget = S.visibleBars < minBars ? minBars : maxBars;
+      this._pinchSpringStartTime = performance.now();
+      this._pinchSpringActive = true;
+      eng._scheduleDraw();
     }
     this._touchMode = null;
   }

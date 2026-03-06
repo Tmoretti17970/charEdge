@@ -86,7 +86,7 @@ const useUserStore = create(
         }),
         {
             name: 'charEdge-user',
-            version: 1,
+            version: 2,
             partialize: (state: UserPersistedState) => ({
                 // Display unit
                 displayUnit: state.displayUnit,
@@ -99,12 +99,26 @@ const useUserStore = create(
                 chartColorPreset: state.chartColorPreset,
                 // Simple Mode
                 simpleMode: state.simpleMode,
+                // A3.2: Trading settings — prevent loss on force-quit
+                dailyLossLimit: state.dailyLossLimit,
+                defaultSymbol: state.defaultSymbol,
+                defaultTf: state.defaultTf,
+                accountSize: state.accountSize,
+                riskPerTrade: state.riskPerTrade,
+                riskPerTradePct: state.riskPerTradePct,
+                maxDailyTrades: state.maxDailyTrades,
+                maxOpenPositions: state.maxOpenPositions,
+                riskFreeRate: state.riskFreeRate,
+                positionSizing: state.positionSizing,
+                kellyFraction: state.kellyFraction,
+                activeRiskPreset: state.activeRiskPreset,
             }),
             migrate(persisted: UserPersistedState, version: number) {
                 if (version < 1) {
                     const legacy = migrateFromLegacyKeys();
                     return { ...persisted, ...legacy };
                 }
+                // v1 → v2: Trading settings now persisted (A3.2), no data transformation needed
                 return persisted;
             },
         },

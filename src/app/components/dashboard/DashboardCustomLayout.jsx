@@ -36,6 +36,7 @@ import WeeklyChallengeCard from '../widgets/WeeklyChallengeCard.jsx';
 import WeeklyReport from './WeeklyReport.jsx';
 import SimilarTrades from './SimilarTrades.jsx';
 import TradeReplayPanel from './TradeReplayPanel.jsx';
+import ExpectancyCard from './ExpectancyCard.jsx';
 import { DashHeader, OldSectionLabel, MetricRow } from './DashboardPrimitives.jsx';
 
 export default function DashboardCustomLayout({
@@ -109,6 +110,7 @@ export default function DashboardCustomLayout({
         debrief: <DailyDebriefWidget trades={trades} result={result} />,
         alerts: <SmartAlertFeedWidget alerts={[]} />,
         'context-perf': <ContextPerformanceWidget trades={trades} />,
+        expectancy: <ExpectancyCard />,
         'community-poll': <DashboardPollWidget />,
         'daily-challenge': <DailyChallengeCard />,
         'xp-activity': <XPActivityFeed />,

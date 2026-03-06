@@ -116,7 +116,7 @@ describe('Sprint 1/8: History Loading Indicator', () => {
 
   it('subscribes to historyLoading from store', () => {
     expect(widgetSrc).toContain('historyLoading');
-    expect(widgetSrc).toContain("useChartStore((s) => s.historyLoading)");
+    expect(widgetSrc).toContain('historyLoading: s.historyLoading');
   });
 
   it('renders loading indicator when historyLoading is true', () => {

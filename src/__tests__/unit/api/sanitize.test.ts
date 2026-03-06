@@ -19,7 +19,8 @@ describe('Sanitize Functions', () => {
         sanitizeInput()(req, res, next);
 
         expect(called).toBe(true);
-        expect(req.body.notes).toBe('alert("xss")Hello');
+        // DOMPurify correctly strips <script> tags AND their content
+        expect(req.body.notes).toBe('Hello');
         expect(req.body.notes).not.toContain('<script>');
         expect(req.body.title).toBe('Bold');
     });

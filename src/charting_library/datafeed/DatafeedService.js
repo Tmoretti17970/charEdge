@@ -234,21 +234,19 @@ class DatafeedService {
 
           const prev = entry.bars;
           const last = prev[prev.length - 1];
-          let updatedBars;
 
           if (last.time === bar.time) {
-            // Update current candle
+            // Update current candle in-place — O(1) instead of O(N) spread
             // Preserve the footprint attached by the aggregator
             bar.footprint = last.footprint;
             bar.poc = last.poc;
-            updatedBars = [...prev];
-            updatedBars[updatedBars.length - 1] = bar;
+            prev[prev.length - 1] = bar;
           } else {
-            // New candle added
-            updatedBars = [...prev, bar];
+            // Append new candle in-place — O(1) push instead of O(N) spread
+            prev.push(bar);
           }
 
-          entry.bars = updatedBars;
+          const updatedBars = prev;
 
           // Push through TickChannel (rAF-batched, bypasses React)
           tickChannel.pushTick(key, updatedBars, bar);
@@ -275,6 +273,30 @@ class DatafeedService {
       }
     };
 
+  }
+
+  /**
+   * Prepend older bars from scroll-back prefetch directly to the engine.
+   * Bypasses React subscribers — engine picks up via TickChannel.
+   * @param {string} symbol
+   * @param {string} tf
+   * @param {Array} olderBars - Bars to prepend (oldest first)
+   */
+  prependBars(symbol, tf, olderBars) {
+    const key = `${symbol}_${tf}`;
+    const entry = this.cache.get(key);
+    if (!entry || !olderBars?.length) return;
+
+    // Deduplicate by timestamp
+    const existingTimes = new Set(entry.bars.map(b => b.time));
+    const newBars = olderBars.filter(b => !existingTimes.has(b.time));
+    if (newBars.length === 0) return;
+
+    // Prepend in-place
+    entry.bars.unshift(...newBars);
+
+    // Push directly to engine via TickChannel (bypasses React)
+    tickChannel.pushHistorical(key, entry.bars);
   }
 
   _cleanup(key) {

@@ -66,6 +66,29 @@ const useAlertStore = create(
       },
 
       /**
+       * Add a compound alert with multiple conditions (AND/OR).
+       */
+      addCompoundAlert: ({ symbol, logic, conditions, note = '', repeating = false, style = 'price' }) => {
+        const alert = {
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+          symbol: (symbol || '').toUpperCase(),
+          condition: conditions[0]?.condition || 'above',
+          price: conditions[0]?.price || 0,
+          active: true,
+          repeating,
+          triggeredAt: null,
+          createdAt: new Date().toISOString(),
+          note,
+          style,
+          _lastPrice: null,
+          compoundLogic: logic,
+          conditions,
+        };
+        set((s) => ({ alerts: [...s.alerts, alert] }));
+        return alert.id;
+      },
+
+      /**
        * Remove an alert by ID.
        */
       removeAlert: (id) => {
@@ -194,6 +217,30 @@ function dispatchAlertToast(alert, currentPrice) {
  *
  * @param {Object} prices - Map of symbol → current price, e.g. { BTC: 97500, AAPL: 245 }
  */
+function evaluateSingleCondition(condition, targetPrice, currentPrice, lastPrice) {
+  switch (condition) {
+    case 'above': return currentPrice >= targetPrice;
+    case 'below': return currentPrice <= targetPrice;
+    case 'cross_above':
+      if (lastPrice == null) return false;
+      return lastPrice < targetPrice && currentPrice >= targetPrice;
+    case 'cross_below':
+      if (lastPrice == null) return false;
+      return lastPrice > targetPrice && currentPrice <= targetPrice;
+    default: return false;
+  }
+}
+
+function evaluateSubCondition(sub, currentPrice, lastPrice) {
+  if (sub.type === 'price') {
+    return evaluateSingleCondition(sub.condition, sub.price || 0, currentPrice, lastPrice);
+  }
+  if (sub.type === 'indicator' && sub.indicatorValue != null && sub.price != null) {
+    return evaluateSingleCondition(sub.condition, sub.price, sub.indicatorValue, null);
+  }
+  return false;
+}
+
 export function checkAlerts(prices) {
   if (!prices || typeof prices !== 'object') return;
 
@@ -206,26 +253,22 @@ export function checkAlerts(prices) {
 
     let triggered = false;
 
-    switch (alert.condition) {
-      case 'above':
-        triggered = price >= alert.price;
-        break;
-      case 'below':
-        triggered = price <= alert.price;
-        break;
-      case 'cross_above':
-        // On cold start (_lastPrice null), just record price — don't trigger
-        if (alert._lastPrice == null) break;
-        if (alert._lastPrice < alert.price && price >= alert.price) {
-          triggered = true;
-        }
-        break;
-      case 'cross_below':
-        if (alert._lastPrice == null) break;
-        if (alert._lastPrice > alert.price && price <= alert.price) {
-          triggered = true;
-        }
-        break;
+    // Compound alert: evaluate all sub-conditions with AND/OR logic
+    if (alert.conditions && alert.conditions.length > 0 && alert.compoundLogic) {
+      const results = alert.conditions.map((sub) =>
+        evaluateSubCondition(sub, price, alert._lastPrice),
+      );
+      triggered = alert.compoundLogic === 'AND'
+        ? results.every(Boolean)
+        : results.some(Boolean);
+    } else {
+      // Simple single-condition alert (backward compatible)
+      triggered = evaluateSingleCondition(
+        alert.condition,
+        alert.price,
+        price,
+        alert._lastPrice,
+      );
     }
 
     if (triggered) {

@@ -33,21 +33,21 @@ describe('Sprint 13 · IndicatorSettingsDialog — Component', () => {
     expect(src).toContain('INDICATOR_REGISTRY');
   });
 
-  it('auto-generates ParamSlider controls from params', () => {
-    expect(src).toContain('ParamSlider');
+  it('auto-generates RangeSlider controls from params', () => {
+    expect(src).toContain('RangeSlider');
     expect(src).toContain('schema.min');
     expect(src).toContain('schema.max');
     expect(src).toContain('schema.step');
     expect(src).toContain('schema.label');
   });
 
-  it('has ParamColor for line style customization', () => {
-    expect(src).toContain('ParamColor');
+  it('has ColorSwatch for line style customization', () => {
+    expect(src).toContain('ColorSwatch');
     expect(src).toContain('handleColorChange');
   });
 
-  it('has ParamToggle for boolean params', () => {
-    expect(src).toContain('ParamToggle');
+  it('has Toggle for boolean params', () => {
+    expect(src).toContain('Toggle');
   });
 
   it('calls updateIndicator for live preview', () => {
@@ -74,13 +74,15 @@ describe('Sprint 13 · IndicatorSettingsDialog — Component', () => {
     expect(src).toContain('indTemplate:');
   });
 
-  it('closes on Escape key', () => {
-    expect(src).toContain("e.key === 'Escape'");
+  it('closes on Escape via SettingsTabShell', () => {
+    // Escape handling now in SettingsTabShell
+    expect(src).toContain('SettingsTabShell');
+    expect(src).toContain('onClose');
   });
 
-  it('uses glassmorphism styling', () => {
-    expect(src).toContain('backdropFilter');
-    expect(src).toContain('blur');
+  it('uses SettingsTabShell for glassmorphism styling', () => {
+    // Glassmorphism now in SettingsTabShell
+    expect(src).toContain('SettingsTabShell');
   });
 });
 

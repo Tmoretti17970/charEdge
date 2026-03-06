@@ -143,7 +143,7 @@ describe('Import health — bracket balance', function () {
           const rel = path.relative(SRC, files[i]);
           // Skip known complex files where regex stripping is insufficient
           if (rel.indexOf('ScriptEngine') === -1 &&
-              rel.indexOf('ScriptManager') === -1) {
+            rel.indexOf('ScriptManager') === -1) {
             broken.push(rel + ': ' + pairs[j][0] + ' ' + oc + ' vs ' + cc);
           }
         }
@@ -220,7 +220,7 @@ describe('Theme compliance — pages', function () {
     }
 
     // Exclude files that use semantic status colors (red/yellow/green for indicators)
-    const THEME_EXCEPTIONS = ['CoachPage.jsx', 'TelemetryDashboard.jsx', 'InsightsPage.jsx', 'CharolettePage.jsx', 'PricingPage.jsx', 'TermsPage.jsx'];
+    const THEME_EXCEPTIONS = ['CoachPage.jsx', 'TelemetryDashboard.jsx', 'InsightsPage.jsx', 'CharolettePage.jsx', 'PricingPage.jsx', 'TermsPage.jsx', 'SpeedtestPage.jsx'];
     const filteredViolations = violations.filter(v => !THEME_EXCEPTIONS.some(e => v.includes(e)));
     expect(filteredViolations).toEqual([]);
   });

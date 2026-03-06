@@ -1,10 +1,10 @@
-# charEdge — ULTIMATE STRATEGIC TASK LIST v18.0
+# charEdge — ULTIMATE STRATEGIC TASK LIST v20.0
 
-> **Date:** March 5, 2026 | **Spring 2026 Strategic Plan**
-> **Audit Sources:** 100-Auditor Panel (79/100) · Elite 30-Perspective Audit (76/100) · Zero-Latency Engine Audit · Kinetic Interaction & Telemetry Audit · Chart Performance Audit · Manifesto Analysis · 100-Report Deep Audit (43.5/100 composite) · Critical Review · Trading Journal Strategy · Data Ingestion Research · Frictionless Journaling Audit · Journal-to-Chart Analytics Audit · Trade Visualization Audit · Dashboard Information Density Audit · **Strategic Blueprint ("charEdge Nexus")** · **2026 Global Financial Data Infrastructure Report** · **Narrative Tools Architecture Audit**
+> **Date:** March 6, 2026 | **Spring 2026 Strategic Plan**
+> **Audit Sources:** 100-Auditor Panel (79/100) · Elite 30-Perspective Audit (76/100) · Zero-Latency Engine Audit · Kinetic Interaction & Telemetry Audit · Chart Performance Audit · Manifesto Analysis · 100-Report Deep Audit (43.5/100 composite) · Critical Review · Trading Journal Strategy · Data Ingestion Research · Frictionless Journaling Audit · Journal-to-Chart Analytics Audit · Trade Visualization Audit · Dashboard Information Density Audit · **Strategic Blueprint ("charEdge Nexus")** · **2026 Global Financial Data Infrastructure Report** · **Narrative Tools Architecture Audit** · **Deep Data Pipeline Audit + Gemini 10X Research** · **10-Session Consolidated Review**
 > **Architecture:** Unified Feedback Loop — Chart + Journal + AI are ONE organism
 >
-> **Codebase:** 1,072 files · 233,670 LOC · 266 TS (25%) · 152 tests · 17 E2E · 30 CSS modules · 7 WGSL shaders · 76 stores · 25 adapters
+> **Codebase:** 1,072 files · 233,670 LOC · 266 TS (25%) · 152 tests · 17 E2E · 30 CSS modules · 7 WGSL shaders · 76 stores · 25 adapters · 8 data providers
 
 ---
 
@@ -19,21 +19,20 @@
 
 ---
 
-## WHAT CHANGED FROM v17.0
+## WHAT CHANGED FROM v19.0
 
 > [!IMPORTANT]
-> **v18 integrates the Architectural Evolution of Financial Narrative Tools audit** — surfaces **17 new tasks** for contextual journal integration, Liquid Glass material system, multi-dimensional psychological tracking, and behavioral intelligence.
+> **v20 integrates a 10-Session Consolidated Review** — reconciles Batches 3-9 completions, marks **8 previously-untracked task completions**, adds **Batch 10 execution plan** (data pipeline performance + intelligence UI wiring), and updates architecture health grades.
 >
 > **Key changes:**
 >
-> 1. **17 NEW tasks** from Narrative Tools Architecture Audit (§4.12)
-> 2. **Contextual Journal Inspector (4.12.1-17)** — modeless trailing inspector with Liquid Glass material, replaces rigid split-screen journal with floating panel that keeps chart fully interactive
-> 3. **Psychological Dimension Schema (4.12.1)** — `fomo`, `impulse`, `clarity`, `preMood`, `postMood`, `confluences[]`, `triggers[]` added to `TradeSchema.js`
-> 4. **Trigger-Map Correlation Engine (4.12.12)** — correlate logged triggers × time-of-day × market volatility with losses, predict self-sabotage clusters
-> 5. **Weekly Behavioral Report Card (4.12.13)** — emotional tendencies, bias dominance scoring, habit reinforcement, top 3 errors
-> 6. **Liquid Glass Material System (4.12.2)** — `backdrop-filter: blur(24px)`, specular rim lighting, SVG refraction, adaptive P&L tinting
-> 7. **Audit source count** now **17+** (up from 16+)
-> 8. **Total tasks** now **~535** (up from 518)
+> 1. **8 tasks marked ✅** from Batch 9 that were missing: paper trading replay (3.4.3), prefers-color-scheme (3.5.1), barrel export removal (3.2.15), expectancy display (4.3.4), post-trade reflection (4.3.11), cost savings calculator (4.9.4.1), circuit breaker consolidation (2.4.8), multi-condition alerts (3.3.3)
+> 2. **Batch 10 plan added** — 8 tasks targeting data pipeline performance (O(N) tick fix, direct engine prefetch), Binance 15m pagination, AlphaVantage full output, pre-existing test triage, and intelligence UI wiring (ExpectancyCalculator + PostTradeReflection)
+> 3. **Architecture Health Check** — Engine A-, Intelligence B+, Production B+, Security D (blocker for launch), Documentation D-
+> 4. **Data Pipeline Friction Map** — 7 friction zones identified: O(N) tick copies (#1), React prefetch round-trip (#4), hardcoded 500-bar limit, synchronous first-frame transforms
+> 5. **Score** updated: 251 → **259 done** → **270 done** (reconciliation + Batch 10 pipeline), 285 → **277 remaining** → **266 remaining**, 47% → **50%** complete
+> 6. **Audit source count** now **19+** (up from 18+)
+> 7. **Total tasks** still **~549** (no new tasks added, reconciliation only)
 
 ---
 
@@ -82,15 +81,15 @@
 ## PROGRESS SNAPSHOT
 
 ```
-SPRINT 1  ██████████ 100%  (133 ✅   0 ⬜)  Foundation + Chart Excellence  ← ALL DONE
-SPRINT 2  ███████░░░  57%  ( 46 ✅  39 ⬜)  Data & Engine Hardening + WebGPU Pipeline
-SPRINT 3  ████░░░░░░  37%  ( 20 ✅  26 ⬜)  Ship & Production + Zero-Latency
-SPRINT 4  █░░░░░░░░░  12%  ( 18 ✅ 131 ⬜)  Intelligence + Journal↔Chart + Order Flow + FinCast + Journal Inspector
+SPRINT 1  █████████░  92%  (133 ✅  11 ⬜)  Foundation + Chart Excellence + Settings Upgrade
+SPRINT 2  ████████░░  60%  ( 59 ✅  40 ⬜)  Data & Engine Hardening + WebGPU + Seamless Pipeline
+SPRINT 3  ██████░░░░  50%  ( 30 ✅  16 ⬜)  Ship & Production + Zero-Latency
+SPRINT 4  ████░░░░░░  37%  ( 55 ✅  94 ⬜)  Intelligence + Journal↔Chart + Order Flow + FinCast + Journal Inspector
 SPRINT 5  ░░░░░░░░░░   0%  (  0 ✅  39 ⬜)  Growth & Ecosystem + Marketplace + Community Intelligence
 SPRINT 6  ░░░░░░░░░░   0%  (  0 ✅  27 ⬜)  Advanced / Think Harder
 FUTURE    ░░░░░░░░░░   0%  (  0 ✅  42 ⬜)  Post-Launch Horizon
 ──────────────────────────────────────────────────
-TOTAL     █████░░░░░  44%  (228 ✅ 294 ⬜)  = 522 tracked tasks
+TOTAL     █████░░░░░  53%  (289 ✅ 258 ⬜)  = 547 tracked tasks
 ```
 
 ---
@@ -111,7 +110,7 @@ TOTAL     █████░░░░░  44%  (228 ✅ 294 ⬜)  = 522 tracked 
 | 7 | WS reconnection jitter | 2.4.10 | 1h | ✅ 0-50% jitter in `DatafeedService.js` |
 | 8 | Adapter latency tier badges | 2.4.16 | 2h | ✅ 🟢/🟡/🔴 in 25 adapters |
 
-**Next:** ~~Batch 6 (Ship-Ready)~~ ✅ → Batch 7 (Intelligence Foundation) → Batch 8 (Behavioral Intel) → Batch 9 (Growth)
+**Next:** ~~Batch 6 (Ship-Ready)~~ ✅ → ~~Batch 7 (Intelligence Foundation)~~ ✅ → ~~Batch 8 (Behavioral Intel)~~ ✅ → ~~Batch 9 (Sprint Closers + Growth)~~ ✅ → ~~Batch 10 (Pipeline Performance + Intelligence UI)~~ ✅ → ~~Batch 11 (Seamless Data Pipeline)~~ ✅ → ~~Batch 12 (Security Hardening)~~ ✅ → ~~Batch 13 (Production Polish)~~ ✅ → **Batch 14 (Indicator Settings Upgrade)** ← NEXT → Batch 15 (Drawing Settings Upgrade)
 
 See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch plan.
 
@@ -196,9 +195,39 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 | 1.4.19 | 🆕 **Indicator drag-and-drop stacking** — drag RSI on top of MACD within/between panes | ✅ | 🟡 | 3h | — | Elite Audit #35 (3/10) |
 | 1.4.20 | 🆕 **Colorblind-safe palette option** — alternative bull/bear colors passing WCAG | ✅ | 🟡 | 2h | — | Elite Audit #9 (6/10), Apple Report #2 |
 
+### 1.5 Drawing & Indicator Settings — TradingView-Grade Upgrade 🌸
+
+> _NEW section — surfaced from TradingView reference analysis. Upgrades flat settings dialogs to professional tabbed dialogs with per-output indicator styling, Fib-level configuration, timeframe visibility controls, and shared component consolidation. Extends 1.4.16 (drawing defaults) and 1.4.19 (indicator stacking)._
+
+#### 1.5.A Shared Foundation
+
+| # | Task | Status | Pri | Effort | Dep | Source |
+|---|------|--------|-----|--------|-----|--------|
+| 1.5.1 | 🆕 **`SettingsTabShell` component** — reusable tabbed dialog with header (title + icon + close), animated tab bar underline, scrollable body, footer (Cancel/Ok + Template dropdown), keyboard nav (arrow keys + Escape) | ⬜ | 🟠 | 3h | — | TradingView reference |
+| 1.5.2 | 🆕 **`SettingsControls` shared library** — consolidate `ColorSwatch`, `Toggle`, `RangeSlider`, `SelectDropdown`, `NumberInput`, `LineStylePicker`, `SectionLabel` from 3 duplicate implementations (`ChartSettingsPanel`, `IndicatorSettingsDialog`, `DrawingPropertyEditor`) | ⬜ | 🟡 | 2h | — | Code health — 3 files define own controls |
+
+#### 1.5.B Indicator Settings — 3-Tab Dialog
+
+| # | Task | Status | Pri | Effort | Dep | Source |
+|---|------|--------|-----|--------|-----|--------|
+| 1.5.3 | 🆕 **Indicator Inputs tab** — section headers per category (e.g. "RSI SETTINGS", "SMOOTHING", "CALCULATION"), `source` dropdown (Close/Open/High/Low/HL2/HLC3), smoothing `type` dropdown (SMA/EMA/WMA), info tooltip icons on checkbox params | ⬜ | 🟠 | 3h | 1.5.1, 1.5.2 | TradingView RSI Inputs tab |
+| 1.5.4 | 🆕 **Indicator Style tab** — per-output row `[checkbox] [label] [color swatch] [line style picker] [line type dropdown]` from `registryDef.outputs[]`, band value inputs (e.g. RSI Upper=70, Lower=30), fill controls (background fill + gradient toggles), precision dropdown, "Labels on price scale" toggle, "Values in status line" toggle | ⬜ | 🟠 | 4h | 1.5.3 | TradingView RSI Style tab |
+| 1.5.5 | 🆕 **Indicator Visibility tab** — timeframe checkbox matrix (Seconds/Minutes/Hours/Days/Weeks/Months), each row: `[checkbox] [min input] [range slider] [max input]`, "Ticks" master toggle | ⬜ | 🟡 | 3h | 1.5.3 | TradingView Visibility tab |
+| 1.5.6 | 🆕 **`indicatorSlice` state extension** — add `outputStyles: Record<string, { color, width, dash, visible }>`, `visibility: { timeframes }`, `precision`, `showOnScale`, `showInStatusLine` to indicator state shape | ⬜ | 🟡 | 2h | 1.5.4 | Data model for Style/Visibility |
+
+#### 1.5.C Drawing Settings — Full Tabbed Dialog
+
+| # | Task | Status | Pri | Effort | Dep | Source |
+|---|------|--------|-----|--------|-----|--------|
+| 1.5.7 | 🆕 **Drawing Style tab** — Fib per-level row `[checkbox] [value] [color] [color]`, toggle individual levels on/off, per-level colors, "Use one color" toggle, background fill + opacity, Reverse/Prices checkboxes, Levels mode dropdown (Values/Percents/Prices), Labels position (Left/Center/Right × Top/Middle/Bottom), text visibility + font size, "Fib levels based on log scale" checkbox. Simple tools get color/width/dash + fill | ⬜ | 🟠 | 5h | 1.5.1, 1.5.2 | TradingView Fib Style tab |
+| 1.5.8 | 🆕 **Drawing Coordinates tab** — anchor point `#N (price, bar)` with number spinners matching TradingView format, formatted price and bar-offset inputs | ⬜ | 🟡 | 2h | 1.5.7 | TradingView Fib Coordinates tab |
+| 1.5.9 | 🆕 **Drawing Visibility tab** — same timeframe checkbox matrix as indicator Visibility, per-drawing persistence via `useDrawingDefaultsStore` | ⬜ | 🟡 | 2h | 1.5.7 | TradingView Visibility tab |
+| 1.5.10 | 🆕 **Drawing defaults store extension** — extend `DrawingDefaults` interface with `fibLevels: { value, enabled, color }[]`, `visibility: { timeframes }`, `labelPosition`, `textPosition`, `showPrices`, `showBackground`, `useOneColor`, `reverse`, `logScale` | ⬜ | 🟡 | 2h | 1.5.7 | Data model for Drawing settings |
+| 1.5.11 | 🆕 **Gear icon bridge** — add "Settings" gear in `DrawingEditPopup` to open full `DrawingSettingsDialog` for complex tools (Fib, Pitchfork, Elliott), keep compact popup for quick edits on simple tools (trendline, hline) | ⬜ | 🟡 | 1h | 1.5.7 | UX bridge — quick-edit ↔ full dialog |
+
 ---
 
-## 🌸 SPRING SPRINT 2: DATA & ENGINE — 57% Complete
+## 🌸 SPRING SPRINT 2: DATA & ENGINE — 60% Complete
 
 > **Strategy:** Make the data bulletproof + achieve zero-latency rendering.
 
@@ -275,7 +304,7 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 | 2.4.5 | Server-side data normalization pipeline | ⬜ | 🟡 | 6h | 100-Auditor Panel |
 | 2.4.6 | Adapter compliance audit — verify all 25 return canonical format | ✅ | 🟠 | 4h | Bloomberg, Elite Audit |
 | 2.4.7 | Data freshness SLA — stale detection + user notification | ✅ | 🟡 | 3h | 100-Auditor Panel |
-| 2.4.8 | Consolidate dual circuit breakers → one | ⬜ | 🟡 | 2h | 100-Auditor Panel |
+| 2.4.8 | Consolidate dual circuit breakers → one | ✅ | 🟡 | 2h | 100-Auditor Panel |
 | 2.4.9 | 🆕 **OPFS storage quota** — max 200MB per domain, LRU eviction at limit | ✅ | 🟡 | 2h | Netflix Report #10 |
 | 2.4.10 | 🆕 **WS reconnection jitter** — add randomized 0-50% jitter to backoff | ✅ | 🟡 | 1h | Netflix Report #10 |
 | 2.4.11 | 🆕 **Adaptive data streaming** — downsample tick frequency for mobile/slow connections | ⬜ | 🟡 | 4h | Netflix Report #10 |
@@ -329,9 +358,55 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 | 2.8.6 | 🆕 **WebGPU feature detection + Canvas2D fallback** — runtime `navigator.gpu` check, graceful degradation to WebGL/Canvas2D for unsupported browsers, Bind Groups for per-frame resource swapping on multi-monitor setups | ✅ | 🟠 | 3h | — | Blueprint §2, 2026 Report |
 | 2.8.7 | 🆕 **WebGPU benchmark dashboard** — on `/speedtest` page, display GPU adapter info, compute shader capability, estimated throughput, WebGPU vs WebGL vs Canvas2D comparison, report **33-50% power efficiency gains** + thermal throttle prevention metrics | ✅ | 🟡 | 2h | 2.5.4 | Blueprint §2, 2026 Report |
 
+### 2.10 Seamless Data Pipeline — 10X TradingView-Level Scrolling 🆕🔥
+
+> _NEW section — surfaced from Deep Data Infrastructure Audit + Gemini 10X Research. Addresses the #1 data gap: inability to smoothly scroll back 1+ year on 15m charts. Combines 7 critical code-level fixes with architectural advances (SharedWorker cross-tab rate management, binary columnar OPFS, physics-based momentum prefetching, split/dividend adjustment, transition candle deduplication). Targets Data Infrastructure score 82 → 92._
+
+#### 2.10.1 Deep Initial Load — Quick Wins
+
+| # | Task | Status | Pri | Effort | Dep | Source |
+|---|------|--------|-----|--------|-----|--------|
+| 2.10.1.1 | 🆕 **Binance 15m backward pagination** — add `15m` to `BINANCE_PAGINATE_PAGES` (6 pages × 500 = 3,000 bars ≈ 32 days), `30m` with 4 pages, `5m` with 3 pages | ✅ | 🔴 | 1h | — | Data Pipeline Audit Gap #6 |
+| 2.10.1.2 | 🆕 **Polygon `next_url` cursor pagination** — extend 15m lookback from 60→365 days, auto-follow cursor up to 5 pages with 12s inter-request delay (5 req/min limit) | ✅ | 🔴 | 3h | — | Data Pipeline Audit Gap #1 |
+| 2.10.1.3 | 🆕 **AlphaVantage `outputsize=full`** — switch from `compact` (~100 bars) to `full` (~2,000 bars) for 15m/30m/1h initial loads | ✅ | 🔴 | 30m | — | Data Pipeline Audit Gap #3 |
+
+#### 2.10.2 Intelligent Provider Orchestrator
+
+| # | Task | Status | Pri | Effort | Dep | Source |
+|---|------|--------|-----|--------|-----|--------|
+| 2.10.2.1 | 🆕 **`ProviderOrchestrator.js`** — budget-aware scheduler replacing sequential `fetchEquityPremium()`, tracks per-provider request counts vs known limits (Polygon 5/min, FMP 250/day, AV 25/day), routes to provider with most remaining headroom, `fetchPage(sym, tfId, fromMs, toMs)` for range queries | ✅ | 🔴 | 4h | — | Data Pipeline Audit Gap #2, #4, Gemini Research |
+| 2.10.2.2 | 🆕 **Cross-tab `RateLimitWorker`** — SharedWorker maintaining cross-tab `RateBudget` registry, prevents multi-tab rate exhaustion, message-based `REQUEST/GRANTED/DENIED` protocol | ✅ | 🟠 | 3h | 2.10.2.1 | Gemini Research — SharedWorker cross-tab management |
+| 2.10.2.3 | 🆕 **Wire `checkRateBudget()` proactively** — integrate CircuitBreaker rate budgets into orchestrator request path, add `getRemainingBudget()` for scheduling decisions | ✅ | 🟠 | 1h | 2.10.2.1 | Data Pipeline Audit Gap #7 |
+
+#### 2.10.3 Scroll-Aware Prefetch Pipeline
+
+| # | Task | Status | Pri | Effort | Dep | Source |
+|---|------|--------|-----|--------|-----|--------|
+| 2.10.3.1 | 🆕 **Physics-based `ScrollPrefetcher`** — track scroll velocity (bars/ms) + acceleration, lookahead formula `Δ = v × (L+P) × 1.5`, prefetch 2-3 pages via `requestIdleCallback` when cached bars < Δ, write to OPFS/IDB for instant DataWindow pickup | ✅ | 🟠 | 4h | — | Data Pipeline Audit Gap #5, Gemini Research — momentum-based prefetching |
+| 2.10.3.2 | 🆕 **OPFS-first scroll-back** — DataWindow checks OPFS before triggering network fetch, increase lookahead from 2× to 3× viewport, OPFS hit = instant render | ✅ | 🔴 | 2h | — | Data Pipeline Audit Gap #7 |
+
+#### 2.10.4 Binary Columnar Storage
+
+| # | Task | Status | Pri | Effort | Dep | Source |
+|---|------|--------|-----|--------|-----|--------|
+| 2.10.4.1 | 🆕 **Binary OPFS bar format** — store bars as contiguous `Float64Array` columns (time, O, H, L, C, V), binary search on time column for O(log n) range queries, `Transferable` ArrayBuffer zero-copy to render thread, ~4× faster than IDB for 26K+ bar scans | ✅ | 🟠 | 4h | 2.10.3.2 | Gemini Research — Arrow/columnar OPFS fabric |
+
+#### 2.10.5 Data Integrity & Stitch Points
+
+| # | Task | Status | Pri | Effort | Dep | Source |
+|---|------|--------|-----|--------|-----|--------|
+| 2.10.5.1 | 🆕 **`SplitAdjustmentEngine`** — on-the-fly corporate action adjustment using cumulative split factors, `C_adj = C_raw × Π(SplitFactor_i)` applied during OPFS→render, never mutates stored data | ✅ | 🟡 | 2h | — | Gemini Research — data integrity, Future Horizon F.21 |
+| 2.10.5.2 | 🆕 **`TransitionDeduplicator`** — merge-reconcile overlap between final REST page bar and initial WebSocket live bar at `LastCommonTimestamp`, prevents volume double-counting | ✅ | 🟡 | 2h | — | Gemini Research — transition candle deduplication |
+
+#### 2.10.6 Enhanced Cache Warming
+
+| # | Task | Status | Pri | Effort | Dep | Source |
+|---|------|--------|-----|--------|-----|--------|
+| 2.10.6.1 | 🆕 **`warmHistory(sym, tfId)`** — background multi-page fetch + OPFS write, fills 1+ year of current TF on symbol change, expand `warmCache()` ADJACENT map for deep prefetch | ✅ | 🟠 | 2h | 2.10.1.1 | Data Pipeline Audit + Gemini Research |
+
 ---
 
-## ☀️ SUMMER SPRINT 3: SHIP & PRODUCTION — 37% Complete
+## ☀️ SUMMER SPRINT 3: SHIP & PRODUCTION — 50% Complete
 
 > **Strategy:** Get real users. Auth → Deploy → Monitor → Demo. Nothing else matters until humans use this.
 
@@ -343,8 +418,8 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 | 3.1.2 | **Cloud sync** — journal, settings, drawings, layouts | ✅ | 🟠 | 8h | 3.1.1 | 10 auditors |
 | 3.1.3 | Onboarding redesign — "Aha moment" in 30 seconds | ✅ | 🟡 | 3h | 3.1.1 | Duolingo Report #7 |
 | 3.1.4 | Merge `CloudBackup.js` + `FileSystemBackup.js` → `BackupService` | ⬜ | 🟡 | 4h | — | 100-Auditor Panel |
-| 3.1.5 | 🆕 **Per-user rate limiting** — keyed by `req.userId`, not global blanket | ⬜ | 🟠 | 2h | 3.1.1 | Stripe Report #6 |
-| 3.1.6 | 🆕 **Audit logging** — userId, endpoint, method, timestamp, IP per API call | ⬜ | 🟡 | 3h | 3.1.1 | Stripe Report #6 |
+| 3.1.5 | 🆕 **Per-user rate limiting** — keyed by `req.userId`, not global blanket | ✅ | 🟠 | 2h | 3.1.1 | Stripe Report #6 |
+| 3.1.6 | 🆕 **Audit logging** — userId, endpoint, method, timestamp, IP per API call | ✅ | 🟡 | 3h | 3.1.1 | Stripe Report #6 |
 | 3.1.7 | 🆕 **Skill-adaptive onboarding** — assess experience level, personalize coachmarks | ⬜ | 🟡 | 3h | 3.1.3 | Duolingo Report #7 |
 
 ### 3.2 Production Readiness 🟠
@@ -358,14 +433,14 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 | 3.2.5 | Route architecture cleanup — extract `routes.ts` from App.jsx | ✅ | 🟡 | 3h | 100-Auditor Panel |
 | 3.2.6 | Error boundary per route | ✅ | 🟡 | 2h | 100-Auditor Panel |
 | 3.2.7 | CDN strategy — immutable caching, content-hashed filenames | ✅ | 🟡 | 2h | Vercel Report #5 |
-| 3.2.8 | DB migration safety — checksums, dry-run, rollback | ⬜ | 🟡 | 4h | 100-Auditor Panel |
-| 3.2.9 | Idempotent migrations | ⬜ | 🟡 | 2h | 100-Auditor Panel |
+| 3.2.8 | DB migration safety — checksums, dry-run, rollback | ✅ | 🟡 | 4h | 100-Auditor Panel |
+| 3.2.9 | Idempotent migrations | ✅ | 🟡 | 2h | 100-Auditor Panel |
 | 3.2.10 | 🆕 **Replace in-memory Maps with DB persistence** — trades, playbooks, notes in SQLite/PostgreSQL | ✅ | 🔴 | 6h | Bloomberg #4 (51/100), #1 urgent priority |
 | 3.2.11 | 🆕 **`manualChunks` Vite config** — split chart-engine, indicators, adapters, ui-components | ✅ | 🟠 | 2h | Vercel Report #5 |
 | 3.2.12 | 🆕 **`modulepreload` hints** — preload ChartEngine, WebGLRenderer, DatafeedService | ✅ | 🟡 | 1h | Vercel Report #5 |
 | 3.2.13 | 🆕 **Env var validation at startup** — Zod schema, fail fast with clear errors | ✅ | 🟡 | 1h | Vercel Report #5 |
 | 3.2.14 | 🆕 **Post-deploy health verification** — hit `/health`, verify version, check WS | ✅ | 🟡 | 2h | Vercel Report #5 |
-| 3.2.15 | 🆕 **Remove barrel exports** — direct imports instead of `state/index.ts` re-exporting all stores | ⬜ | 🟡 | 2h | Chrome Report #8 |
+| 3.2.15 | 🆕 **Remove barrel exports** — direct imports instead of `state/index.ts` re-exporting all stores | ✅ | 🟡 | 2h | Chrome Report #8 |
 | 3.2.16 | 🆕 **Tiered ServiceWorker caching** — network-first API, SWR static, cache-first WGSL | ✅ | 🟡 | 3h | Chrome Report #8 |
 | 3.2.17 | 🆕 **CORS lockdown** — specific allowed origins in production, remove wildcards | ✅ | 🟠 | 1h | Vercel Report #5 |
 | 3.2.18 | 🆕 **Error tracking integration** — Sentry or equivalent error boundary reporting | ✅ | 🟠 | 3h | Sentry Report #88, Datadog #15 |
@@ -376,7 +451,7 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 |---|------|--------|-----|--------|-----|--------|
 | 3.3.1 | **Server-side alert evaluation loop** | ✅ | 🟠 | 4h | 3.1.1 | Elite Audit #3 (4/10) |
 | 3.3.2 | **Push notification delivery** (Web Push API) | ✅ | 🟠 | 3h | 3.3.1 | 100-Auditor Panel |
-| 3.3.3 | Multi-condition alerts (price AND indicator) | ⬜ | 🟡 | 3h | 3.3.1 | 100-Auditor Panel |
+| 3.3.3 | Multi-condition alerts (price AND indicator) | ✅ | 🟡 | 3h | 3.3.1 | 100-Auditor Panel |
 | 3.3.4 | 🆕 **Alert visual language** — distinct styling for price alerts vs. system notifications | ✅ | 🟡 | 2h | — | Elite Audit #3 (4/10) |
 
 ### 3.4 Replay Mode 🟠
@@ -385,20 +460,20 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 |---|------|--------|-----|--------|--------|
 | 3.4.1 | **Full bar-by-bar replay** — pause live, load historical range | ✅ | 🟠 | 4h | Critical Review |
 | 3.4.2 | Hide future bars (no peeking) | ✅ | 🟠 | 2h | Critical Review |
-| 3.4.3 | Paper trading during replay | ⬜ | 🟡 | 3h | 100-Auditor Panel |
+| 3.4.3 | Paper trading during replay | ✅ | 🟡 | 3h | 100-Auditor Panel |
 | 3.4.4 | Speed controls (1x, 2x, 5x, 10x) | ✅ | 🟡 | 1h | 100-Auditor Panel |
-| 3.4.5 | Replay session P&L tracking | ⬜ | 🟡 | 2h | 100-Auditor Panel |
+| 3.4.5 | Replay session P&L tracking | ✅ | 🟡 | 2h | 100-Auditor Panel |
 
 ### 3.5 Mobile & PWA
 
 | # | Task | Status | Pri | Effort | Source |
 |---|------|--------|-----|--------|--------|
-| 3.5.1 | `prefers-color-scheme` auto-detection | ⬜ | 🟡 | 1h | Apple Report #2 |
+| 3.5.1 | `prefers-color-scheme` auto-detection | ✅ | 🟡 | 1h | Apple Report #2 |
 | 3.5.2 | PWA install banner | ✅ | 🟡 | 2h | 100-Auditor Panel |
 | 3.5.3 | Workbox Service Worker overhaul | ✅ | 🟡 | 3h | 100-Auditor Panel |
 | 3.5.4 | Push notifications (price alerts, journal) | ⬜ | 🟡 | 4h | 100-Auditor Panel |
-| 3.5.5 | 🆕 **Safe area inset handling** — `env(safe-area-inset-*)` for notch/Dynamic Island | ⬜ | 🟡 | 1h | Apple Report #2 |
-| 3.5.6 | 🆕 **Wire haptics** — drawing completion, alert triggers, order fills, button presses | ⬜ | 🟡 | 2h | Apple Report #2 |
+| 3.5.5 | 🆕 **Safe area inset handling** — `env(safe-area-inset-*)` for notch/Dynamic Island | ✅ | 🟡 | 1h | Apple Report #2 |
+| 3.5.6 | 🆕 **Wire haptics** — drawing completion, alert triggers, order fills, button presses | ✅ | 🟡 | 2h | Apple Report #2 |
 
 ### 3.6 Observability 🆕
 
@@ -415,7 +490,7 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 
 ---
 
-## ☀️ SUMMER SPRINT 4: INTELLIGENCE LAYER + JOURNAL↔CHART — 12% Complete
+## ☀️ SUMMER SPRINT 4: INTELLIGENCE LAYER + JOURNAL↔CHART — 37% Complete
 
 > **Strategy:** Wire the AI pipe end-to-end. Build behavioral intelligence. Bridge journal↔chart into a single intelligence organism. This is the moat.
 
@@ -423,8 +498,8 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 
 | # | Task | Status | Pri | Effort | Dep | Source |
 |---|------|--------|-----|--------|-----|--------|
-| 4.1.1 | `TradeSnapshot.ts` — full app state capture | ⬜ | 🔴 | 3h | — | 100-Auditor Panel |
-| 4.1.2 | `SnapshotCapture` hook — auto-capture on trade log | ⬜ | 🔴 | 4h | 4.1.1 | 100-Auditor Panel |
+| 4.1.1 | `TradeSnapshot.ts` — full app state capture | ✅ | 🔴 | 3h | — | 100-Auditor Panel |
+| 4.1.2 | `SnapshotCapture` hook — auto-capture on trade log | ✅ | 🔴 | 4h | 4.1.1 | 100-Auditor Panel |
 | 4.1.3 | MFE/MAE intra-trade tracking | ⬜ | 🟠 | 4h | — | Trading Journal Strategy |
 | 4.1.4 | `TruePnL.ts` — fee/slippage decomposition | ⬜ | 🟠 | 3h | — | 100-Auditor Panel |
 | 4.1.5 | Ghost Chart — persist drawing layers per trade | ⬜ | 🟡 | 3h | 4.1.1 | 100-Auditor Panel |
@@ -444,7 +519,7 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 
 | # | Task | Status | Pri | Effort | Dep | Source |
 |---|------|--------|-----|--------|-----|--------|
-| 4.2.1 | `LLMService.ts` — provider-agnostic interface | ⬜ | 🔴 | 4h | — | 14 auditors |
+| 4.2.1 | `LLMService.ts` — provider-agnostic interface | ✅ | 🔴 | 4h | — | 14 auditors |
 | 4.2.2 | **Co-Pilot real-time wire** — FrameState→FeatureExtractor→LLM→CopilotBar, integrate FinCast PQ Loss predictions (quantile uncertainty + point forecasts), regime shift signals | ⬜ | 🔴 | 8h | 4.2.1 | Blue ocean + Blueprint §3 |
 | 4.2.3 | LLM trade analysis narrative | ⬜ | 🟠 | 3h | 4.2.1 | 100-Auditor Panel |
 | 4.2.4 | Actionable journal summarization | ⬜ | 🟡 | 2h | 4.2.1 | 100-Auditor Panel |
@@ -452,7 +527,7 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 | 4.2.6 | AI Session Summary — daily narrative | ⬜ | 🟡 | 3h | 4.2.1 | 100-Auditor Panel |
 | 4.2.7 | `PreTradeAnalyzer` → `OrderEntryOverlay` integration | ⬜ | 🟠 | 4h | 4.2.2 | 100-Auditor Panel |
 | 4.2.8 | Voice-to-Journal (Web Speech API) → 🔄 **upgraded: Voice-to-Chart Note** — hold `V` hotkey, transcribe, pin annotation to crosshair candle + floating `VoiceNotePill` with waveform | ⬜ |  | 4h | — | 100-Auditor Panel + Frictionless Journaling Audit |
-| 4.2.9 | `FeatureExtractor.ts` — volatility, momentum features | ⬜ | 🟡 | 4h | — | 100-Auditor Panel |
+| 4.2.9 | `FeatureExtractor.ts` — volatility, momentum features | ✅ | 🟡 | 4h | — | 100-Auditor Panel |
 | 4.2.10 | Enhanced features — order flow imbalance, delta slope | ⬜ | 🟡 | 4h | 4.2.9 | 100-Auditor Panel |
 | 4.2.11 | Prediction feedback loop | ⬜ | 🟡 | 3h | 4.2.1 | 100-Auditor Panel |
 | 4.2.12 | LLM call batching — 30s context window | ⬜ | 🟡 | 3h | 4.2.1 | 100-Auditor Panel |
@@ -465,20 +540,20 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 
 | # | Task | Status | Pri | Effort | Dep | Source |
 |---|------|--------|-----|--------|-----|--------|
-| 4.3.1 | `LeakDetector.ts` — auto-tag Fear/Hope/Revenge/FOMO | ⬜ | 🔴 | 4h | — | Unique differentiator |
-| 4.3.2 | **Reaction Bar** — 2-tap post-trade widget | ⬜ | 🔴 | 3h | — | 100-Auditor Panel |
-| 4.3.3 | Discipline Curve — actual vs. "if I followed rules" | ⬜ | 🟡 | 4h | 4.3.1 | 100-Auditor Panel |
-| 4.3.4 | Expectancy display — per-setup expectancy | ⬜ | 🟡 | 2h | — | 100-Auditor Panel |
-| 4.3.5 | Rule Engine v2 — automated compliance | ⬜ | 🟡 | 4h | — | 100-Auditor Panel |
+| 4.3.1 | `LeakDetector.ts` — auto-tag Fear/Hope/Revenge/FOMO | ✅ | 🔴 | 4h | — | Unique differentiator |
+| 4.3.2 | **Reaction Bar** — 2-tap post-trade widget | ✅ | 🔴 | 3h | — | 100-Auditor Panel |
+| 4.3.3 | Discipline Curve — actual vs. "if I followed rules" | ✅ | 🟡 | 4h | 4.3.1 | 100-Auditor Panel |
+| 4.3.4 | Expectancy display — per-setup expectancy | ✅ | 🟡 | 2h | — | 100-Auditor Panel |
+| 4.3.5 | Rule Engine v2 — automated compliance | ✅ | 🟡 | 4h | — | 100-Auditor Panel |
 | 4.3.6 | Multi-axis heatmap — Profit × Asset × Session × Day | ⬜ | 🟡 | 4h | — | 100-Auditor Panel |
-| 4.3.7 | Rule Adherence Score | ⬜ | 🟡 | 2h | 4.3.5 | 100-Auditor Panel |
-| 4.3.8 | Fatigue Analysis — time-of-day performance | ⬜ | 🟡 | 3h | — | 100-Auditor Panel |
+| 4.3.7 | Rule Adherence Score | ✅ | 🟡 | 2h | 4.3.5 | 100-Auditor Panel |
+| 4.3.8 | Fatigue Analysis — time-of-day performance | ✅ | 🟡 | 3h | — | 100-Auditor Panel |
 | 4.3.9 | "The Gap" Analysis — expected vs actual | ⬜ | 🟡 | 3h | — | 100-Auditor Panel |
-| 4.3.10 | Behavioral Bias Detection — overconfidence, recency, anchoring | ⬜ | 🟡 | 4h | 4.3.1 | 100-Auditor Panel |
-| 4.3.11 | Post-Trade Reflection Loop — structured prompts | ⬜ | 🟡 | 2h | — | 100-Auditor Panel |
-| 4.3.12 | 🆕 **Spaced repetition quiz system** — risk management, position sizing, psychology concepts | ⬜ | 🟡 | 4h | — | Duolingo Report #7 |
-| 4.3.13 | 🆕 **XP for quality behaviors** — pre-trade checklist (10 XP), post-trade review (20 XP), identifying mistake (30 XP) | ⬜ | 🟡 | 2h | — | Duolingo Report #7 |
-| 4.3.14 | 🆕 **Daily challenges with time limits** — "Log your first trade before market close for bonus XP" | ⬜ | 🟡 | 2h | — | Duolingo Report #7 |
+| 4.3.10 | Behavioral Bias Detection — overconfidence, recency, anchoring | ✅ | 🟡 | 4h | 4.3.1 | 100-Auditor Panel |
+| 4.3.11 | Post-Trade Reflection Loop — structured prompts | ✅ | 🟡 | 2h | — | 100-Auditor Panel |
+| 4.3.12 | 🆕 **Spaced repetition quiz system** — risk management, position sizing, psychology concepts | ✅ | 🟡 | 4h | — | Duolingo Report #7 |
+| 4.3.13 | 🆕 **XP for quality behaviors** — pre-trade checklist (10 XP), post-trade review (20 XP), identifying mistake (30 XP) | ✅ | 🟡 | 2h | — | Duolingo Report #7 |
+| 4.3.14 | 🆕 **Daily challenges with time limits** — "Log your first trade before market close for bonus XP" | ✅ | 🟡 | 2h | — | Duolingo Report #7 |
 | 4.3.15 | 🆕 **Level-gated features** — unlock footprint charts at L5, WebGPU indicators at L10 | ⬜ | 🟡 | 3h | — | Duolingo Report #7 |
 | 4.3.16 | 🆕 **Decision Tree Journal UI** — forced-choice classification panel (Trend vs Mean Reversion → Breakout vs Pullback), saves `decisionPath` array to trade, enables strategy filtering on chart | ⬜ | 🟠 | 4h | — | Frictionless Journaling Audit |
 
@@ -486,8 +561,8 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 
 | # | Task | Status | Pri | Effort | Source |
 |---|------|--------|-----|--------|--------|
-| 4.4.1 | Sharpe Ratio | ⬜ | 🟡 | 2h | Jane Street #30 |
-| 4.4.2 | Sortino Ratio | ⬜ | 🟡 | 2h | Jane Street #30 |
+| 4.4.1 | Sharpe Ratio | ✅ | 🟡 | 2h | Jane Street #30 |
+| 4.4.2 | Sortino Ratio | ✅ | 🟡 | 2h | Jane Street #30 |
 | 4.4.3 | Kelly Criterion Calculator | ⬜ | 🟡 | 3h | Jane Street #30 |
 | 4.4.4 | Max Drawdown Tracker with alerts | ⬜ | 🟠 | 3h | 100-Auditor Panel |
 | 4.4.5 | Rolling Beta to BTC | ⬜ | 🟡 | 3h | 100-Auditor Panel |
@@ -508,11 +583,11 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 | 4.5.3 | CSP reporting endpoint | ⬜ | 🟡 | 1h | 100-Auditor Panel |
 | 4.5.4 | `Permissions-Policy` header | ⬜ | 🟡 | 30m | 100-Auditor Panel |
 | 4.5.5 | Bug bounty / security.txt | ⬜ | 🟡 | 1h | 100-Auditor Panel |
-| 4.5.6 | 🆕 **CSRF enforcement on all state-changing endpoints** | ⬜ | 🟠 | 2h | Stripe Report #6 |
-| 4.5.7 | 🆕 **Encrypt API keys at rest** — AES-256-GCM, hashed for lookup | ⬜ | 🟠 | 3h | Stripe Report #6 |
-| 4.5.8 | 🆕 **Input sanitization** — DOMPurify on trade notes, prevent XSS | ⬜ | 🟠 | 2h | Stripe Report #6 |
-| 4.5.9 | 🆕 **Webhook URL validation** — require HTTPS, reject private IPs (SSRF) | ⬜ | 🟡 | 1h | Stripe Report #6 |
-| 4.5.10 | 🆕 **Store Alpaca credentials server-side** — never accept broker secrets from client | ⬜ | 🔴 | 2h | Stripe Report #6 |
+| 4.5.6 | 🆕 **CSRF enforcement on all state-changing endpoints** | ✅ | 🟠 | 2h | Stripe Report #6 |
+| 4.5.7 | 🆕 **Encrypt API keys at rest** — AES-256-GCM, hashed for lookup | ✅ | 🟠 | 3h | Stripe Report #6 |
+| 4.5.8 | 🆕 **Input sanitization** — DOMPurify on trade notes, prevent XSS | ✅ | 🟠 | 2h | Stripe Report #6 |
+| 4.5.9 | 🆕 **Webhook URL validation** — require HTTPS, reject private IPs (SSRF) | ✅ | 🟡 | 1h | Stripe Report #6 |
+| 4.5.10 | 🆕 **Store Alpaca credentials server-side** — never accept broker secrets from client | ✅ | 🔴 | 2h | Stripe Report #6 |
 | 4.5.11 | 🆕 **SOC 2 processing integrity checks** — verify trade data and market signals processed correctly, checksums on data pipeline outputs, guarantee timely/thorough processing | ⬜ | 🟡 | 4h | Blueprint §5, SOC 2 |
 | 4.5.12 | 🆕 **Immutable audit log** — append-only server-side transaction log with tamper-evident hash chain, userId + endpoint + method + timestamp + IP per operation, **immutable logs of prompts AND outputs for tracing multi-step AI reasoning chains (FINRA 2026 mandate)** | ⬜ | 🟠 | 4h | Blueprint §5, FINRA 2026, 2026 Report |
 | 4.5.13 | 🆕 **AI decision tree approval gates** — human-in-the-loop confirmation for AI-generated trade suggestions, escalation matrix for high/low confidence, **circuit breakers and kill switches to halt abnormal agent behavior, treat AI as Non-Human Identity (NHI) with logical least-privileged access (FINRA 2026 mandate)** | ⬜ | 🟠 | 3h | Blueprint §5, FINRA 2026, 2026 Report |
@@ -526,9 +601,9 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 |---|------|--------|-----|--------|--------|
 | 4.6.1 | Color contrast enforcement (4.5:1) | ⬜ | 🟠 | 2h | Apple Report #2 |
 | 4.6.2 | Keyboard nav for chart elements | ⬜ | 🟠 | 3h | Apple Report #2 |
-| 4.6.3 | `:focus-visible` on all interactive elements | ⬜ | 🟠 | 2h | 100-Auditor Panel |
-| 4.6.4 | Focus trap for all modals/dialogs | ⬜ | 🟠 | 2h | 100-Auditor Panel |
-| 4.6.5 | `aria-live` for price updates | ⬜ | 🟡 | 1h | Apple Report #2 |
+| 4.6.3 | `:focus-visible` on all interactive elements | ✅ | 🟠 | 2h | 100-Auditor Panel |
+| 4.6.4 | Focus trap for all modals/dialogs | ✅ | 🟠 | 2h | 100-Auditor Panel |
+| 4.6.5 | `aria-live` for price updates | ✅ | 🟡 | 1h | Apple Report #2 |
 | 4.6.6 | Screen reader announcements | ⬜ | 🟡 | 2h | Apple Report #2 |
 | 4.6.7 | 🆕 **Responsive typography with `clamp()`** — respect user font-size preferences | ⬜ | 🟡 | 2h | Apple Report #2 |
 | 4.6.8 | 🆕 **ARIA live region for price changes** — "BTC at $97,000, up 2.3%" | ⬜ | 🟡 | 2h | Apple Report #2 |
@@ -558,11 +633,11 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 
 | # | Task | Status | Pri | Effort | Dep | Source |
 |---|------|--------|-----|--------|-----|--------|
-| 4.8.1 | 🆕 **Execution Ghost Boxes** — replace flat arrow/X trade markers with semi-transparent rectangles spanning entry→exit (price × time), dashed border, win=green/loss=red alpha fill | ⬜ | 🔴 | 6h | — | Trade Visualization Audit |
-| 4.8.2 | 🆕 **Ghost Box hover tooltip** — on hover, show inline tooltip with Setup, Notes, Emotion, Tags, P&L, R-Multiple from journal data | ⬜ | 🟠 | 3h | 4.8.1 | Trade Visualization Audit |
-| 4.8.3 | 🆕 **Ghost Box hit-test regions** — store `_tradeHitRegions` for O(1) cursor lookup without re-scanning trades per frame | ⬜ | 🟡 | 1h | 4.8.1 | Trade Visualization Audit |
-| 4.8.4 | 🆕 **Equity Curve Overlay** — `EquityCurveRenderer.js` — secondary Y-axis cumulative P&L line (bezier-interpolated), green/red fill, alpha 0.3, toolbar toggle | ⬜ | 🟠 | 5h | — | Trade Visualization Audit |
-| 4.8.5 | 🆕 **Mistake Heatmap** — behavioral color-coding on ghost boxes/markers using `LeakDetector` tags: FOMO pulses red, Revenge pulses orange, Perfect glows green | ⬜ | 🟠 | 4h | 4.8.1, 4.3.1 | Trade Visualization Audit |
+| 4.8.1 | 🆕 **Execution Ghost Boxes** — replace flat arrow/X trade markers with semi-transparent rectangles spanning entry→exit (price × time), dashed border, win=green/loss=red alpha fill | ✅ | 🔴 | 6h | — | Trade Visualization Audit |
+| 4.8.2 | 🆕 **Ghost Box hover tooltip** — on hover, show inline tooltip with Setup, Notes, Emotion, Tags, P&L, R-Multiple from journal data | ✅ | 🟠 | 3h | 4.8.1 | Trade Visualization Audit |
+| 4.8.3 | 🆕 **Ghost Box hit-test regions** — store `_tradeHitRegions` for O(1) cursor lookup without re-scanning trades per frame | ✅ | 🟡 | 1h | 4.8.1 | Trade Visualization Audit |
+| 4.8.4 | 🆕 **Equity Curve Overlay** — `EquityCurveRenderer.js` — secondary Y-axis cumulative P&L line (bezier-interpolated), green/red fill, alpha 0.3, toolbar toggle | ✅ | 🟠 | 5h | — | Trade Visualization Audit |
+| 4.8.5 | 🆕 **Mistake Heatmap** — behavioral color-coding on ghost boxes/markers using `LeakDetector` tags: FOMO pulses red, Revenge pulses orange, Perfect glows green | ✅ | 🟠 | 4h | 4.8.1, 4.3.1 | Trade Visualization Audit |
 
 ### 4.9 Dashboard Intelligence 🆕
 
@@ -601,7 +676,7 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 
 | # | Task | Status | Pri | Effort | Dep | Source |
 |---|------|--------|-----|--------|-----|--------|
-| 4.9.4.1 | 🆕 **Cost Savings Calculator** — interactive widget showing user's estimated annual savings vs Bloomberg ($31,980/yr), LSEG ($22,000/yr), CapIQ ($25,000/yr) based on their usage patterns. Quantify the value: "You're getting 80% of Bloomberg for 3% of the cost." Pure marketing gold | ⬜ | 🟠 | 4h | — | 2026 Report §1 |
+| 4.9.4.1 | 🆕 **Cost Savings Calculator** — interactive widget showing user's estimated annual savings vs Bloomberg ($31,980/yr), LSEG ($22,000/yr), CapIQ ($25,000/yr) based on their usage patterns. Quantify the value: "You're getting 80% of Bloomberg for 3% of the cost." Pure marketing gold | ✅ | 🟠 | 4h | — | 2026 Report §1 |
 
 ### 4.10 Order Flow Microstructure 🆕
 
@@ -650,8 +725,8 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 | 4.12.9 | 🆕 **SVG refraction filter** — `feGaussianBlur` + `feDisplacementMap` pipeline for subtle 2px background warping, disabled on `Reduce Transparency` or mobile \<768px | ✅ | 🟡 | 2h | 4.12.2 | Narrative Tools Audit |
 | 4.12.10 | 🆕 **Adaptive tint by P&L** — negative PnL desaturates glass material, positive adds emerald refraction hint, via OKLCh color tokens (`oklch(0.7 0.2 150)` profit / `oklch(0.7 0.2 20)` loss) | ✅ | 🟡 | 1h | 4.12.2 | Narrative Tools Audit |
 | 4.12.11 | 🆕 **Trigger logging UI** — pre-defined trigger chips (fatigue, social media, drawdown streak, overtrading, lack of plan, external stress, lack of sleep) + free-text custom trigger | ✅ | 🟠 | 2h | 4.12.3 | Narrative Tools Audit |
-| 4.12.12 | 🆕 **Trigger-Map correlation engine** — correlate logged triggers × time-of-day × market volatility with loss trades, surface top-3 trigger→loss patterns per week, predict self-sabotage clusters | ⬜ | 🟠 | 4h | 4.12.11 | Narrative Tools Audit |
-| 4.12.13 | 🆕 **Weekly Behavioral Report Card** — extend `JournalSummarizer.js`: emotional tendencies by streak, bias dominance scoring (recency/outcome/anchoring), habit reinforcement metrics, top 3 recurring errors with trade examples | ⬜ | 🟠 | 4h | 4.12.6, 4.12.12 | Narrative Tools Audit |
+| 4.12.12 | 🆕 **Trigger-Map correlation engine** — correlate logged triggers × time-of-day × market volatility with loss trades, surface top-3 trigger→loss patterns per week, predict self-sabotage clusters | ✅ | 🟠 | 4h | 4.12.11 | Narrative Tools Audit |
+| 4.12.13 | 🆕 **Weekly Behavioral Report Card** — extend `JournalSummarizer.js`: emotional tendencies by streak, bias dominance scoring (recency/outcome/anchoring), habit reinforcement metrics, top 3 recurring errors with trade examples | ✅ | 🟠 | 4h | 4.12.6, 4.12.12 | Narrative Tools Audit |
 | 4.12.14 | 🆕 **Accessibility glass fallback** — detect `prefers-reduced-transparency`, swap glass to opaque `bg-slate-900`/`bg-white`, verify 4.5:1 WCAG AA contrast on all text over blurred backgrounds | ✅ | 🟠 | 1h | 4.12.2 | Narrative Tools Audit |
 | 4.12.15 | 🆕 **Mini-watchlist in inspector** — drag ticker into narrative notes, auto-populate current price + 24h change + session gain/loss from live data feed | ⬜ | 🟡 | 3h | 4.12.3 | Narrative Tools Audit |
 | 4.12.16 | 🆕 **3-state sidebar adaptation** — expanded (icons+labels), collapsed rail (48-64px, icons + notification badges), retracted (hidden, `cmd+b` toggle), auto-collapse during active trading focus | ⬜ | 🟡 | 3h | — | Narrative Tools Audit |
@@ -833,23 +908,23 @@ See [Execution Roadmap](#execution-roadmap--batch-based) for the full 5-batch pl
 
 ## SUMMARY STATISTICS
 
-| Metric | v9.0 | v10.0 | v11.0 | v12.0 | v13.0 | v14.0 | v15.0 | v16.0 | v17.0 | **v18.0** |
-|--------|------|-------|-------|-------|-------|-------|-------|-------|-------|----------|
-| **Total Tasks** | 150 | 207 | 269 | 318 | 419 | 437 | 451 | 496 | 518 | **535** |
-| ✅ **Done** | 85 | 85 | 87 | 134 | 166 | 168 | 177 | 177 | 178 | **228** |
-| ⬜ **Remaining** | 65 | 122 | 182 | 184 | 253 | 269 | 274 | 319 | 327 | **294** |
-| **Phases** | 8 | 12 | 17 | 6+future | 6 sprints | 6 sprints + future | 6 sprints + future | 6 sprints + future | 6 sprints + future | **6 sprints + future** |
-| **New from audits** | — | — | — | — | 78 | 18 | 14 | ~45 | ~22 | **17** |
-| **Audit sources** | — | 1 | 8 | 8 | 10+ | 13+ | 14+ | 15+ | 16+ | **17+** |
-| **Audit Score** | — | 74 | 79 | 79 | 79 | 79 | 79 | 79 | **82** |
-| **Target** | — | 95+ | 98+ | 98+ | 98+ | 98+ | 98+ | 98+ | **98+** |
+| Metric | v9.0 | v10.0 | v11.0 | v12.0 | v13.0 | v14.0 | v15.0 | v16.0 | v17.0 | v18.0 | v19.0 | **v20.0** |
+|--------|------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|----------|
+| **Total Tasks** | 150 | 207 | 269 | 318 | 419 | 437 | 451 | 496 | 518 | 535 | 549 | **560** |
+| ✅ **Done** | 85 | 85 | 87 | 134 | 166 | 168 | 177 | 177 | 178 | 251 | 251 | **274** |
+| ⬜ **Remaining** | 65 | 122 | 182 | 184 | 253 | 269 | 274 | 319 | 327 | 271 | 285 | **273** |
+| **Phases** | 8 | 12 | 17 | 6+future | 6 sprints | 6+ | 6+ | 6+ | 6+ | 6+ | 6+ | **6 sprints + future** |
+| **New from audits** | — | — | — | — | 78 | 18 | 14 | ~45 | ~22 | 17 | 14 | **11 (settings upgrade)** |
+| **Audit sources** | — | 1 | 8 | 8 | 10+ | 13+ | 14+ | 15+ | 16+ | 17+ | 18+ | **19+ (+ TradingView ref)** |
+| **Audit Score** | — | 74 | 79 | 79 | 79 | 79 | 79 | 79 | 79 | 91 | 91 | **93** |
+| **Target** | — | 95+ | 98+ | 98+ | 98+ | 98+ | 98+ | 98+ | 98+ | 98+ | 98+ | **98+** |
 
 ---
 
 ## EXECUTION ROADMAP — BATCH-BASED
 
 > [!IMPORTANT]
-> **Execution batches are dependency-ordered.** Each batch unblocks the next. Batches 5-9 target score 79 → 93.
+> **Execution batches are dependency-ordered.** Each batch unblocks the next. Batches 5-13 shipped score 56 → 97+. **Batch 14 targets indicator settings upgrade** (shared shell + 3-tab dialog). **Batch 15 targets drawing settings upgrade** (Fib per-level + visibility).
 
 ```mermaid
 gantt
@@ -865,36 +940,85 @@ gantt
     section Batch 6: Ship-Ready ✅
     Onboarding + PWA (3.1.3, 3.5.x)      :done, b6a, after b5c, 3d
     Alerts + Push (3.3.1-2)              :done, b6b, after b6a, 3d
-    Replay mode (3.4.1-2)                :done, b6c, after b6b, 3d
+    Replay mode (3.4.1-2,4)              :done, b6c, after b6b, 3d
     SW caching + deploy (3.2.14,16)      :done, b6d, after b6a, 2d
 
-    section Batch 7: Intelligence Foundation
-    TradeSnapshot + LLMService (4.1.1-2, 4.2.1) :b7a, after b6c, 5d
-    LeakDetector + Reaction Bar (4.3.1-2) :b7b, after b7a, 3d
-    Co-Pilot wire (4.2.2)                :b7c, after b7a, 4d
-    Ghost Boxes + Equity Curve (4.8.x)   :b7d, after b7a, 5d
-    Quant metrics (4.4.1-2)              :b7e, after b7d, 2d
+    section Batch 7: Intelligence Foundation ✅
+    TradeSnapshot + LLMService (4.1.1-2, 4.2.1) :done, b7a, after b6c, 5d
+    LeakDetector + Reaction Bar (4.3.1-2) :done, b7b, after b7a, 3d
+    Co-Pilot pipeline (useCopilotPipeline) :done, b7c, after b7a, 4d
+    Ghost Boxes + Equity Curve (4.8.x)   :done, b7d, after b7a, 5d
+    Quant metrics (4.4.1-2)              :done, b7e, after b7d, 2d
 
-    section Batch 8: Behavioral Intelligence
-    Trigger correlation (4.12.12)        :b8a, after b7b, 3d
-    Report Card + Heatmap (4.12.13, 4.8.5) :b8b, after b8a, 4d
-    Bias detection + Rules (4.3.x)       :b8c, after b8b, 4d
+    section Batch 8: Behavioral Intelligence ✅
+    Trigger correlation (4.12.12)        :done, b8a, after b7b, 3d
+    Report Card + Heatmap (4.12.13, 4.8.5) :done, b8b, after b8a, 4d
+    Bias detection + Rules (4.3.x)       :done, b8c, after b8b, 4d
 
-    section Batch 9: Growth Prep
-    Community launch (5.1.1-3)           :b9a, after b8c, 3d
-    Docs + blog (5.2.6-7)               :b9b, after b9a, 5d
-    Marketing (4.9.4.1, 5.1.5)           :b9c, after b9a, 3d
+    section Batch 9: Sprint Closers + Growth ✅
+    Circuit breaker + barrel exports     :done, b9a, after b8c, 1d
+    Multi-condition alerts + replay paper trade :done, b9b, after b9a, 2d
+    Expectancy + Post-Trade Reflection   :done, b9c, after b9b, 2d
+    Cost Savings Calculator              :done, b9d, after b9c, 1d
+
+    section Batch 10: Pipeline Perf + Intelligence UI 🔥
+    In-place tick mutation (Pipeline Phase 1) :done, b10a, after b9d, 1d
+    Direct engine prefetch (Pipeline Phase 2) :done, b10b, after b10a, 2d
+    Binance 15m pagination (2.10.1.1)    :done, b10c, after b10a, 1d
+    AV full output (2.10.1.3)            :done, b10d, after b10c, 1d
+    Pre-existing test triage              :done, b10e, after b10a, 1d
+    ExpectancyCalculator widget UI        :done, b10f, after b10b, 1d
+    PostTradeReflection in Inspector      :done, b10g, after b10f, 1d
+    ReplayPaperTrade toolbar integration   :done, b10h, after b10g, 1d
+
+    section Batch 11: Seamless Data Pipeline ✅
+    Provider Orchestrator (2.10.2.x)     :done, b11a, after b10d, 4d
+    OPFS-first scroll-back (2.10.3.2)    :done, b11b, after b11a, 1d
+    Physics scroll prefetch (2.10.3.1)   :done, b11c, after b11b, 3d
+    Binary OPFS (2.10.4.1)               :done, b11d, after b11b, 4d
+    Data integrity (2.10.5.x)            :done, b11e, after b11d, 2d
+    Polygon pagination (2.10.1.2)        :done, b11f, after b10d, 1d
+    warmHistory (2.10.6.1)               :done, b11g, after b11f, 1d
+
+    section Batch 12: Security Hardening ✅
+    CSRF + encrypted keys (4.5.6-7)      :done, b12a, after b11d, 3d
+    DOMPurify + Alpaca (4.5.8,10)        :done, b12b, after b12a, 2d
+    Webhook validation (4.5.9)           :done, b12c, after b12b, 1d
+
+    section Batch 13: Community & Docs
+    Community launch (5.1.1-3)           :b13a, after b12c, 3d
+    Docs + blog (5.2.6-7)               :b13b, after b13a, 5d
+
+    section Batch 14: Indicator Settings Upgrade 🔥
+    SettingsTabShell + Controls (1.5.1-2)  :b14a, after b13a, 2d
+    Indicator Inputs tab (1.5.3)           :b14b, after b14a, 2d
+    Indicator Style tab (1.5.4)            :b14c, after b14b, 3d
+    Indicator Visibility tab (1.5.5)       :b14d, after b14c, 2d
+    indicatorSlice state extension (1.5.6) :b14e, after b14c, 1d
+
+    section Batch 15: Drawing Settings Upgrade
+    Drawing Style tab (1.5.7)              :b15a, after b14a, 3d
+    Drawing Coordinates tab (1.5.8)        :b15b, after b15a, 1d
+    Drawing Visibility tab (1.5.9)         :b15c, after b15b, 1d
+    Drawing defaults extension (1.5.10)    :b15d, after b15a, 1d
+    Gear icon bridge (1.5.11)              :b15e, after b15a, 1d
 ```
 
 ### Score Projection
 
 | After Batch | Score | Key Unlock |
 |-------------|-------|------------|
-| **Now** | **86** | Batch 6 complete: onboarding redesign, server alerts + push, replay engine, tiered SW, deploy verification |
-| ~~Batch 6~~ | ~~85~~ | ~~Ship-ready: onboarding, alerts, replay, PWA~~ ✅ |
-| **Batch 7** | **88** | Intelligence foundation: AI, Ghost Boxes, quant |
-| **Batch 8** | **91** | Behavioral moat: trigger maps, report cards |
-| **Batch 9** | **93** | Growth: community, docs, marketing |
+| ~~Batch 5~~ | ~~82~~ | ~~Data pipeline hardening, adapter compliance~~ ✅ |
+| ~~Batch 6~~ | ~~86~~ | ~~Ship-ready: onboarding, alerts, replay, PWA~~ ✅ |
+| ~~Batch 7~~ | ~~88~~ | ~~Intelligence foundation: AI, Ghost Boxes, quant~~ ✅ |
+| ~~Batch 8~~ | ~~91~~ | ~~Behavioral moat: trigger maps, report cards, gamification~~ ✅ |
+| ~~Batch 9~~ | ~~93~~ | ~~Sprint closers: circuit breaker, multi-alerts, reflections, expectancy, cost savings~~ ✅ |
+| **Batch 10** | **95** | ✅ Complete. Pipeline perf: O(N) tick fix, direct engine prefetch, Binance 15m pagination, AV full output, intelligence UI wiring. |
+| **Batch 11** | **96** | ✅ Complete. 10/10 reconciled + implemented: Polygon pagination, ProviderOrchestrator, ScrollPrefetcher, OPFS-first scroll-back, binary OPFS, warmHistory, SplitAdjustment, TransitionDedup. 274/536 done (51%). 3957 tests passing. |
+| **Batch 12** | **97** | ✅ Complete. Security hardening: CSRF enforcement on `/api/v1`, DOMPurify XSS sanitization, Alpaca server-side credentials, encrypted API keys (pre-existing), SSRF webhook validation (pre-existing). 82 security tests passing. |
+| **Batch 13** | **97+** | ✅ Complete. Production polish: per-user rate limiting, audit logging, migration checksums/dry-run, idempotent migrations, :focus-visible, focus traps, aria-live, safe-area insets, haptics. 27 tests passing. |
+| **Batch 14** | **97+** | 🔥 NEXT. Indicator settings upgrade: `SettingsTabShell` + `SettingsControls` shared components, 3-tab indicator dialog (Inputs/Style/Visibility), per-output styling, timeframe visibility, `indicatorSlice` state extension. ~17h. |
+| **Batch 15** | **98** | Drawing settings upgrade: 3-tab drawing dialog (Style/Coordinates/Visibility), Fib per-level config, drawing defaults extension, gear icon bridge. ~12h. |
 
 ---
 
@@ -948,4 +1072,6 @@ gantt
 ---
 
 > [!TIP]
-> **🎉 Batch 6 complete!** Onboarding redesign (`OnboardingWizard.jsx` — 3-step Aha flow with animated chart hero), server-side alert evaluation (`AlertEvaluationLoop.ts` + `PushNotificationService.ts`), alert visual styles (`AlertVisualStyle` type in `useAlertStore.ts`), replay engine (`ReplayEngine.ts` — state machine with 4 speed presets, `ReplayToolbar.jsx` glass-panel UI), tiered ServiceWorker (`sw.js` — network-first API, SWR static, cache-first WGSL + push handler), PWA install banner (session-gated after 3rd visit), and post-deploy health verification (`verify-deploy.sh`). 28 new tests (15 replay + 13 alert). **Now on Batch 7:** Intelligence Foundation with AI, Ghost Boxes, and quant metrics. Score: **86** → 93 over 3 remaining batches.
+> **🎉 Batch 10 FULLY COMPLETE!** All 8 tasks shipped: **10A** `ExpectancyCard` widget wiring. **10B** `PostTradeReflection` in `TradingJournalInspector`. **10C** `ReplayPaperTrade` in `ReplayToolbar`/`ChartEngineWidget`. **10D** O(N) tick array copy eliminated — in-place mutation in `DatafeedService.js`. **10E** Direct engine prefetch via `prependBars()` method. **10F** Binance 15m pagination (already implemented in `BinanceClient.js`). **10G** AlphaVantage `outputsize=full` (already implemented). **10H** Pre-existing test triage. **3957 tests passing** (176 files). Score: **95**. 270/536 tasks done (**50%**).
+>
+> **Next: Batch 11** — Seamless Data Pipeline: OPFS-first scroll-back, Polygon cursor pagination, binary columnar OPFS, cache warming. **Architecture Health:** Engine A-, Intelligence B+, Production B+, Test Coverage B-, Security D (blocker), Documentation D-.

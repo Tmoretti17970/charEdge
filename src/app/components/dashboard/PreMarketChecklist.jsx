@@ -98,8 +98,7 @@ export default function PreMarketChecklist() {
   if (hour >= 16 && allDone) return null; // Full hide after market close if done
 
   return (
-    <div className="tf-container"
-      className="tf-premarket-checklist"
+    <div className="tf-container tf-premarket-checklist"
       style={{
         borderRadius: 10,
         background: allDone

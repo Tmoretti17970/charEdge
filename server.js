@@ -38,7 +38,7 @@ import {
   requestLogger,
   apiErrorHandler,
 } from './src/api/middleware.ts';
-import { generateCsrfToken } from './src/api/csrf.ts';
+import { generateCsrfToken, csrfProtect } from './src/api/csrf.ts';
 
 // ─── Environment Validation (fail-fast) ───────────────────────
 const env = validateEnv();
@@ -177,6 +177,7 @@ app.use('/api/v1', express.json({ limit: '1mb' }));
 app.use('/api/v1', apiCors({ origins: corsOrigins }));
 app.use('/api/v1', rateLimiter({ windowMs: 60_000, max: 120 }));
 app.use('/api/v1', apiKeyAuth(apiKeyStore));
+app.use('/api/v1', csrfProtect());
 app.use('/api/v1', requestLogger());
 app.use('/api/v1', createApiRouter({ _keyStore: apiKeyStore }));
 app.use('/api/v1', apiErrorHandler());

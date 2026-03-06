@@ -114,7 +114,7 @@ export function rateLimiter({ windowMs = 60_000, max = 60 }: RateLimiterOptions 
   }, 300_000);
 
   return (req: Request, res: Response, next: NextFunction): void => {
-    const key = req.apiKey?.id || req.ip || 'anonymous';
+    const key = req.userId || req.apiKey?.id || req.ip || 'anonymous';
     const now = Date.now();
     let entry = hits.get(key);
 
@@ -187,6 +187,56 @@ export function requestLogger(): RequestHandler {
       const keyId = req.apiKey?.id?.slice(0, 8) || 'no-key';
       // Server-side logging via process.stdout (ESLint-safe)
       process.stdout.write(`[API] ${method} ${originalUrl} → ${status} (${ms}ms) [${keyId}]\n`);
+    });
+
+    next();
+  };
+}
+
+// ─── Audit Logger ─────────────────────────────────────────────
+
+interface AuditLoggerOptions {
+  /** SQLite database instance */
+  getDb: () => { prepare: (sql: string) => { run: (...args: unknown[]) => void } } | null;
+  /** Methods to skip (default: GET, HEAD, OPTIONS) */
+  skipMethods?: string[];
+}
+
+/**
+ * Audit logging middleware — records userId, endpoint, method,
+ * timestamp, IP, and response status to the audit_log SQLite table.
+ * Non-blocking: writes happen in res.on('finish').
+ */
+export function auditLogger({ getDb, skipMethods = ['GET', 'HEAD', 'OPTIONS'] }: AuditLoggerOptions): RequestHandler {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (skipMethods.includes(req.method)) {
+      next();
+      return;
+    }
+
+    res.on('finish', () => {
+      try {
+        const db = getDb();
+        if (!db) return;
+
+        db.prepare(
+          `INSERT INTO audit_log (user_id, action, entity_type, entity_id, metadata, created_at)
+                     VALUES (?, ?, ?, ?, ?, ?)`
+        ).run(
+          req.userId || 'anonymous',
+          `${req.method} ${req.originalUrl}`,
+          req.baseUrl?.replace('/api/v1/', '') || 'api',
+          null,
+          JSON.stringify({
+            status: res.statusCode,
+            ip: req.ip || req.socket?.remoteAddress || 'unknown',
+            userAgent: (req.headers['user-agent'] || '').slice(0, 200),
+          }),
+          Date.now(),
+        );
+      } catch (_) {
+        // Non-critical — never block the response
+      }
     });
 
     next();

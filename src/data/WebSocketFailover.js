@@ -219,13 +219,13 @@ class _WebSocketFailover {
     const old = this._active;
     this._active = target;
 
-    // Unsubscribe real callbacks from old, subscribe on new
+    // A1.4: Clear standby's placeholder subs ONCE before re-subscribing all.
+    // Previously called target.unsubscribe() inside the loop, destroying earlier subs.
+    target.unsubscribe();
     for (const [subId, sub] of this._subscriptions) {
       if (sub.type === 'kline') {
-        target.unsubscribe(); // Clear standby's empty-callback subs
         target.subscribe(sub.args[0], sub.args[1], sub.args[2]);
       } else if (sub.type === 'trade') {
-        target.unsubscribe();
         target.subscribeTrades(sub.args[0], sub.args[1]);
       }
     }

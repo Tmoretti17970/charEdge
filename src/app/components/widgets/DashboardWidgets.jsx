@@ -701,6 +701,7 @@ export const WIDGET_REGISTRY = {
   goals: { id: 'goals', label: 'Goal Progress', icon: '🎯', span: 1, default: true, category: 'performance' },
   debrief: { id: 'debrief', label: 'Daily Debrief', icon: '☀️', span: 1, default: true, category: 'daily' },
   alerts: { id: 'alerts', label: 'Smart Alerts', icon: '🔔', span: 1, default: false, category: 'intelligence' },
+  expectancy: { id: 'expectancy', label: 'Expectancy', icon: '🎲', span: 1, default: true, category: 'intelligence' },
   'context-perf': {
     id: 'context-perf',
     label: 'Context Performance',
@@ -787,6 +788,7 @@ export const DASHBOARD_PRESETS = {
       'streaks',
       'rolling',
       'goals',
+      'expectancy',
       'recent-trades',
       'insights',
       'risk-metrics',
@@ -824,6 +826,6 @@ export const DASHBOARD_PRESETS = {
     label: 'Intelligence',
     icon: '🧠',
     description: 'Smart alerts, context performance, pattern insights',
-    widgets: ['stat-cards', 'debrief', 'alerts', 'context-perf', 'streaks', 'rolling', 'insights', 'recent-trades'],
+    widgets: ['stat-cards', 'debrief', 'alerts', 'expectancy', 'context-perf', 'streaks', 'rolling', 'insights', 'recent-trades'],
   },
 };

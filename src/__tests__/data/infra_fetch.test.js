@@ -366,8 +366,8 @@ describe('WebSocketService — StreamingIndicatorBridge wiring', () => {
     const source = readSource('data/WebSocketService.ts');
     expect(source).toContain('StreamingIndicatorBridge');
     expect(source).toContain('bridge.onTick');
-    expect(source).toContain('price: bar.close');
-    expect(source).toContain('volume: bar.volume');
+    expect(source).toContain('tick.price = bar.close');
+    expect(source).toContain('tick.volume = bar.volume');
   });
 });
 

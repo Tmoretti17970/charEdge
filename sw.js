@@ -279,3 +279,70 @@ self.addEventListener('message', (event) => {
     replayMutations();
   }
 });
+
+// ─── Push Notifications (Batch 16: 3.5.4) ───────────────────────
+// Receives push messages from the server and displays notifications.
+// Works even when all charEdge tabs are closed.
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  let payload;
+  try {
+    payload = event.data.json();
+  } catch {
+    // Plain text fallback
+    payload = {
+      title: 'charEdge Alert',
+      body: event.data.text(),
+    };
+  }
+
+  const title = payload.title || 'charEdge';
+  const options = {
+    body: payload.body || '',
+    icon: payload.icon || '/icons/icon-192.png',
+    badge: '/icons/badge-72.png',
+    tag: payload.tag || payload.data?.alertId || 'charedge-alert',
+    data: payload.data || { url: '/' },
+    requireInteraction: true,
+    vibrate: [200, 100, 200],
+    actions: [
+      { action: 'view', title: 'View Chart' },
+      { action: 'dismiss', title: 'Dismiss' },
+    ],
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
+});
+
+// Handle notification click — focus or open window
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  if (event.action === 'dismiss') return;
+
+  const url = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clients) => {
+        // Focus existing window if available
+        for (const client of clients) {
+          if (client.url.includes(self.location.origin) && 'focus' in client) {
+            client.focus();
+            client.postMessage({
+              type: 'notification-click',
+              url,
+              alertId: event.notification.data?.alertId,
+            });
+            return;
+          }
+        }
+        // No existing window — open new one
+        return self.clients.openWindow(url);
+      })
+  );
+});

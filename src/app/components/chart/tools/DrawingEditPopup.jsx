@@ -1,10 +1,5 @@
-// ═══════════════════════════════════════════════════════════════════
-// charEdge — Drawing Edit Popup
-// TradingView-style compact popup for editing drawing properties.
-// Appears on double-click of any drawing on the chart.
-// ═══════════════════════════════════════════════════════════════════
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import DrawingSettingsDialog from '../panels/DrawingSettingsDialog.jsx';
 
 const PRESET_COLORS = [
   '#2962FF', '#FF6D00', '#EF5350', '#26A69A', '#AB47BC',
@@ -38,6 +33,7 @@ export default function DrawingEditPopup({ drawing, containerRect, engine, onClo
   const [dash, setDash] = useState(drawing.style?.dash || []);
   const [showColorGrid, setShowColorGrid] = useState(false);
   const [points, setPoints] = useState(drawing.points.map(p => ({ ...p })));
+  const [showFullSettings, setShowFullSettings] = useState(false);
 
   // Position popup near the drawing
   const popupX = Math.min(drawing.pixelX + 16, (containerRect?.width || 800) - 300);
@@ -60,6 +56,15 @@ export default function DrawingEditPopup({ drawing, containerRect, engine, onClo
       document.removeEventListener('keydown', handleEscape, true);
     };
   }, [onClose]);
+
+  // Listen for external open-drawing-settings event (Batch 15)
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.detail?.id === drawing.id) setShowFullSettings(true);
+    };
+    window.addEventListener('charEdge:open-drawing-settings', handler);
+    return () => window.removeEventListener('charEdge:open-drawing-settings', handler);
+  }, [drawing.id]);
 
   const updateStyle = useCallback((key, value) => {
     if (!engine || !drawing.id) return;
@@ -85,17 +90,13 @@ export default function DrawingEditPopup({ drawing, containerRect, engine, onClo
   const handlePointChange = (idx, field, value) => {
     const numValue = parseFloat(value);
     if (isNaN(numValue)) return;
-
     const newPoints = [...points];
-    newPoints[idx] = { ...newPoints[idx], [field]: field === 'time' ? numValue : numValue };
+    newPoints[idx] = { ...newPoints[idx], [field]: numValue };
     setPoints(newPoints);
-
-    // Update drawing engine
     if (engine) {
       const d = engine.drawings.find(d => d.id === drawing.id);
       if (d && d.points[idx]) {
         d.points[idx] = { ...newPoints[idx] };
-        // Trigger re-render by calling the onChange callback
         window.dispatchEvent(new CustomEvent('charEdge:update-drawing-style', {
           detail: { id: drawing.id, style: {} }
         }));
@@ -128,7 +129,19 @@ export default function DrawingEditPopup({ drawing, containerRect, engine, onClo
     return isNaN(d.getTime()) ? null : d.getTime();
   };
 
+  // Show full settings dialog when requested
+  if (showFullSettings) {
+    return (
+      <DrawingSettingsDialog
+        drawing={drawing}
+        engine={engine}
+        onClose={() => { setShowFullSettings(false); onClose(); }}
+      />
+    );
+  }
+
   const toolLabel = TOOL_LABELS[drawing.type] || drawing.type;
+  const isComplexTool = DrawingSettingsDialog.isComplexTool(drawing.type);
 
   return (
     <div
@@ -144,6 +157,17 @@ export default function DrawingEditPopup({ drawing, containerRect, engine, onClo
       {/* Header */}
       <div className="tf-drawing-edit-header">
         <span className="tf-drawing-edit-title">{toolLabel}</span>
+        {/* Batch 15: Gear icon for complex tools → opens full tabbed dialog */}
+        {isComplexTool && (
+          <button
+            className="tf-drawing-edit-action-btn"
+            onClick={() => setShowFullSettings(true)}
+            title="Open full settings"
+            style={{ fontSize: 14, marginRight: 4 }}
+          >
+            ⚙
+          </button>
+        )}
         <button className="tf-drawing-edit-close" onClick={onClose}>✕</button>
       </div>
 

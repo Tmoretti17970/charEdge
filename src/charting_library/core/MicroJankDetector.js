@@ -14,7 +14,9 @@
 //   microJankDetector.onJank((evt) => console.warn('Jank:', evt));
 // ═══════════════════════════════════════════════════════════════════
 
-const BUDGET_MS = 16.67; // 60fps frame budget
+// B1.3: Budget is now configurable — defaults to 60fps (16.67ms)
+// but can be set from DisplayHz for 120Hz displays.
+const DEFAULT_BUDGET_MS = 16.67;
 
 class MicroJankDetector {
     _frameStart = 0;
@@ -25,7 +27,8 @@ class MicroJankDetector {
     _recentFrames = []; // circular buffer of last 60 frame times
     _bufferIdx = 0;
 
-    constructor() {
+    constructor(budgetMs = DEFAULT_BUDGET_MS) {
+        this._budgetMs = budgetMs;
         this._recentFrames = new Array(60).fill(0);
     }
 
@@ -43,14 +46,14 @@ class MicroJankDetector {
         this._recentFrames[this._bufferIdx % 60] = elapsed;
         this._bufferIdx++;
 
-        if (elapsed > BUDGET_MS) {
+        if (elapsed > this._budgetMs) {
             this._jankCount++;
             this._totalJankMs += elapsed;
 
             const evt = {
                 frameTime: elapsed,
-                budget: BUDGET_MS,
-                overshoot: elapsed - BUDGET_MS,
+                budget: this._budgetMs,
+                overshoot: elapsed - this._budgetMs,
                 frameNumber: this._frameCount,
                 timestamp: performance.now(),
             };

@@ -79,8 +79,7 @@ export default function AIInsightCard() {
   const typeLabel = TYPE_LABELS[insight.type] || 'INSIGHT';
 
   return (
-    <div className="tf-container"
-      className="tf-ai-insight-card"
+    <div className="tf-container tf-ai-insight-card"
       style={{
         padding: isMobile ? '14px 16px' : '16px 20px',
         borderRadius: 12,

@@ -1,9 +1,13 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Ghost Box Renderer (Tasks 4.8.1–3)
+// charEdge — Ghost Box Renderer (Tasks 4.8.1–3, 4.8.5)
 //
 // Renders semi-transparent entry→exit rectangles on the chart canvas.
 // Win = green alpha fill, Loss = red alpha fill, dashed border.
 // Stores `_tradeHitRegions[]` for O(1) cursor hit-testing.
+//
+// Heatmap mode (4.8.5): behavioral color-coding using LeakDetector
+// tags — FOMO pulses red, REVENGE pulses orange, FEAR pulses yellow,
+// clean trades glow green.
 // ═══════════════════════════════════════════════════════════════════
 
 // ─── Constants ──────────────────────────────────────────────────
@@ -16,6 +20,19 @@ const FLAT_COLOR = 'rgba(148, 163, 184, 0.08)';   // slate-400 @ 8%
 const FLAT_BORDER = 'rgba(148, 163, 184, 0.3)';
 const DASH_PATTERN = [6, 4];
 const BORDER_WIDTH = 1.5;
+
+// ─── Heatmap Colors (Task 4.8.5 — Mistake Heatmap) ──────────────
+
+/** @type {Record<string, {fill: string, border: string}>} */
+const HEATMAP_COLORS = {
+    FOMO: { fill: 'rgba(255, 60, 60, 0.18)', border: 'rgba(255, 60, 60, 0.6)' },
+    REVENGE: { fill: 'rgba(255, 140, 0, 0.18)', border: 'rgba(255, 140, 0, 0.6)' },
+    FEAR: { fill: 'rgba(255, 200, 0, 0.18)', border: 'rgba(255, 200, 0, 0.6)' },
+    HOPE: { fill: 'rgba(255, 180, 50, 0.14)', border: 'rgba(255, 180, 50, 0.5)' },
+    TILT: { fill: 'rgba(220, 80, 200, 0.16)', border: 'rgba(220, 80, 200, 0.5)' },
+    OVEREXPOSURE: { fill: 'rgba(180, 80, 255, 0.14)', border: 'rgba(180, 80, 255, 0.5)' },
+    CLEAN: { fill: 'rgba(34, 197, 94, 0.14)', border: 'rgba(34, 197, 94, 0.5)' },
+};
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -33,6 +50,7 @@ const BORDER_WIDTH = 1.5;
  * @property {string} [notes]
  * @property {string[]} [tags]
  * @property {number} [rMultiple]
+ * @property {string} [leakTag]  - LeakDetector tag for heatmap mode (FOMO, REVENGE, FEAR, etc.)
  */
 
 /**
@@ -51,6 +69,10 @@ export class GhostBoxRenderer {
         /** @type {HitRegion[]} */
         this._tradeHitRegions = [];
         this._visible = false;
+        /** @type {boolean} When true, colors reflect leak tags instead of win/loss */
+        this._heatmapMode = false;
+        /** @type {number} Animated pulse phase (0-1) for heatmap pulsing */
+        this._pulsePhase = 0;
     }
 
     /** Toggle visibility */
@@ -60,6 +82,30 @@ export class GhostBoxRenderer {
 
     get visible() {
         return this._visible;
+    }
+
+    /**
+     * Toggle heatmap mode (Task 4.8.5).
+     * When enabled, ghost box colors reflect LeakDetector tags
+     * instead of simple win/loss coloring.
+     * @param {boolean} enabled
+     */
+    setHeatmapMode(enabled) {
+        this._heatmapMode = enabled;
+    }
+
+    get heatmapMode() {
+        return this._heatmapMode;
+    }
+
+    /**
+     * Update pulse animation phase for heatmap pulsing effect.
+     * Call once per render frame (synced to rAF).
+     * @param {number} timestamp - from requestAnimationFrame
+     */
+    updatePulse(timestamp) {
+        // 2-second cycle, sinusoidal 0→1→0
+        this._pulsePhase = (Math.sin(timestamp / 1000 * Math.PI) + 1) / 2;
     }
 
     /**
@@ -113,7 +159,16 @@ export class GhostBoxRenderer {
             // Determine win/loss/flat
             const pnl = trade.pnl != null ? trade.pnl : (trade.exitPrice - trade.entryPrice) * (trade.side === 'short' ? -1 : 1);
             let fillColor, borderColor;
-            if (pnl > 0) {
+
+            if (this._heatmapMode && trade.leakTag) {
+                // ── Heatmap mode (4.8.5): color by behavioral tag ──
+                const hm = HEATMAP_COLORS[trade.leakTag] || HEATMAP_COLORS.CLEAN;
+                // Pulse alpha for problematic tags (not CLEAN)
+                const isPulse = trade.leakTag !== 'CLEAN';
+                const alphaMultiplier = isPulse ? 0.7 + this._pulsePhase * 0.3 : 1;
+                fillColor = this._adjustAlpha(hm.fill, alphaMultiplier);
+                borderColor = this._adjustAlpha(hm.border, alphaMultiplier);
+            } else if (pnl > 0) {
                 fillColor = WIN_COLOR;
                 borderColor = WIN_BORDER;
             } else if (pnl < 0) {
@@ -194,6 +249,19 @@ export class GhostBoxRenderer {
      */
     clear() {
         this._tradeHitRegions = [];
+    }
+
+    /**
+     * Adjust the alpha channel of an rgba() color string.
+     * @param {string} rgba - e.g. 'rgba(255, 60, 60, 0.18)'
+     * @param {number} multiplier - factor to multiply alpha by
+     * @returns {string}
+     */
+    _adjustAlpha(rgba, multiplier) {
+        const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),?\s*([\d.]+)?\)/);
+        if (!match) return rgba;
+        const a = parseFloat(match[4] || '1') * multiplier;
+        return `rgba(${match[1]}, ${match[2]}, ${match[3]}, ${Math.min(1, a).toFixed(3)})`;
     }
 }
 

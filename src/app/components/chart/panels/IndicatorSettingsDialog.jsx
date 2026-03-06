@@ -1,153 +1,72 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Indicator Settings Dialog (Sprint 13)
-// Opens on double-click indicator in legend. Auto-generates controls
-// from registry params schema. Live preview, reset, templates.
+// charEdge — Indicator Settings Dialog (Batch 14)
+// Full 3-tab dialog: Inputs / Style / Visibility
+// Uses SettingsTabShell for layout and SettingsControls for form controls.
+// Live preview, reset, templates, keyboard nav.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useChartStore } from '../../../../state/useChartStore.js';
 import { C, F, M } from '../../../../constants.js';
 import { INDICATORS as INDICATOR_REGISTRY } from '../../../../charting_library/studies/indicators/registry.js';
+import SettingsTabShell from '../../settings/SettingsTabShell.jsx';
+import {
+  ColorSwatch,
+  Toggle,
+  RangeSlider,
+  NumberInput,
+  SelectDropdown,
+  LineStylePicker,
+  SectionLabel,
+} from '../../settings/SettingsControls.jsx';
 
-// ─── Reusable Form Controls (matching ChartSettingsPanel style) ──
+// ─── Constants ──────────────────────────────────────────────────
 
-function ParamSlider({ label, value, min, max, step, onChange }) {
-  return (
-    <label
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '6px 0',
-        fontSize: 13,
-        fontFamily: F,
-        color: C.t1,
-      }}
-    >
-      <span style={{ flex: 1, minWidth: 80 }}>{label}</span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-        style={{ width: 90, accentColor: C.b }}
-      />
-      <input
-        type="number"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => {
-          const v = parseFloat(e.target.value);
-          if (!isNaN(v)) onChange(Math.max(min, Math.min(max, v)));
-        }}
-        style={{
-          width: 48,
-          padding: '3px 6px',
-          borderRadius: 6,
-          border: `1px solid ${C.bd}`,
-          background: C.sf,
-          color: C.t1,
-          fontFamily: M,
-          fontSize: 11,
-          textAlign: 'right',
-          outline: 'none',
-        }}
-      />
-    </label>
-  );
-}
+const TABS = [
+  { id: 'inputs', label: 'Inputs' },
+  { id: 'style', label: 'Style' },
+  { id: 'visibility', label: 'Visibility' },
+];
 
-function ParamColor({ label, color, onChange }) {
-  return (
-    <label
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '6px 0',
-        fontSize: 13,
-        fontFamily: F,
-        color: C.t1,
-        cursor: 'pointer',
-      }}
-    >
-      <span style={{ flex: 1 }}>{label}</span>
-      <div style={{ position: 'relative', width: 28, height: 28 }}>
-        <div
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: 6,
-            background: color,
-            border: `1px solid ${C.bd}`,
-          }}
-        />
-        <input
-          type="color"
-          value={color}
-          onChange={(e) => onChange(e.target.value)}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            opacity: 0,
-            cursor: 'pointer',
-          }}
-        />
-      </div>
-    </label>
-  );
-}
+const SOURCE_OPTIONS = [
+  { id: 'close', label: 'Close' },
+  { id: 'open', label: 'Open' },
+  { id: 'high', label: 'High' },
+  { id: 'low', label: 'Low' },
+  { id: 'hl2', label: 'HL2' },
+  { id: 'hlc3', label: 'HLC3' },
+  { id: 'ohlc4', label: 'OHLC4' },
+  { id: 'hlcc4', label: 'HLCC4' },
+];
 
-function ParamToggle({ label, checked, onChange }) {
-  return (
-    <label
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '6px 0',
-        fontSize: 13,
-        fontFamily: F,
-        color: C.t1,
-        cursor: 'pointer',
-      }}
-    >
-      <span style={{ flex: 1 }}>{label}</span>
-      <button
-        onClick={() => onChange(!checked)}
-        style={{
-          width: 36,
-          height: 20,
-          borderRadius: 10,
-          border: 'none',
-          padding: 2,
-          background: checked ? C.b : C.bd,
-          cursor: 'pointer',
-          transition: 'background 0.2s ease',
-          position: 'relative',
-        }}
-      >
-        <div
-          style={{
-            width: 16,
-            height: 16,
-            borderRadius: '50%',
-            background: '#fff',
-            transition: 'transform 0.2s ease',
-            transform: checked ? 'translateX(16px)' : 'translateX(0)',
-          }}
-        />
-      </button>
-    </label>
-  );
-}
+const PRECISION_OPTIONS = [
+  { id: 'auto', label: 'Auto' },
+  { id: '0', label: '0' },
+  { id: '1', label: '1' },
+  { id: '2', label: '2' },
+  { id: '3', label: '3' },
+  { id: '4', label: '4' },
+  { id: '5', label: '5' },
+  { id: '6', label: '6' },
+  { id: '7', label: '7' },
+  { id: '8', label: '8' },
+];
+
+const TIMEFRAMES = [
+  { id: 'sec', label: 'Sec' },
+  { id: 'min', label: 'Min' },
+  { id: 'hr', label: 'Hr' },
+  { id: 'day', label: 'Day' },
+  { id: 'wk', label: 'Wk' },
+  { id: 'mo', label: 'Mo' },
+];
+
+const WIDTH_OPTIONS = [
+  { id: 1, label: '1px' },
+  { id: 2, label: '2px' },
+  { id: 3, label: '3px' },
+  { id: 4, label: '4px' },
+];
 
 // ─── Template helpers ────────────────────────────────────────────
 
@@ -177,19 +96,25 @@ function listTemplates(indicatorId) {
 export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
   const indicators = useChartStore((s) => s.indicators);
   const updateIndicator = useChartStore((s) => s.updateIndicator);
+  const updateIndicatorOutputStyle = useChartStore((s) => s.updateIndicatorOutputStyle);
+  const setIndicatorVisibility = useChartStore((s) => s.setIndicatorVisibility);
+  const setIndicatorPrecision = useChartStore((s) => s.setIndicatorPrecision);
+  const setIndicatorSource = useChartStore((s) => s.setIndicatorSource);
+  const setIndicatorShowOnScale = useChartStore((s) => s.setIndicatorShowOnScale);
+  const setIndicatorShowInStatusLine = useChartStore((s) => s.setIndicatorShowInStatusLine);
 
   const indicator = indicators?.[indicatorIdx];
   const indicatorId = indicator?.indicatorId;
   const registryDef = indicatorId ? INDICATOR_REGISTRY?.[indicatorId] : null;
 
-  // Local state for live editing
+  // ─── Local state ──────────────────────────────────────────────
+  const [activeTab, setActiveTab] = useState('inputs');
   const [localParams, setLocalParams] = useState({});
   const [localColor, setLocalColor] = useState('');
   const [templateName, setTemplateName] = useState('');
   const [templates, setTemplates] = useState([]);
-  const dialogRef = useRef(null);
 
-  // Initialize local state from indicator
+  // ─── Initialize from indicator ────────────────────────────────
   useEffect(() => {
     if (!indicator || !registryDef) return;
     const defaults = {};
@@ -201,23 +126,7 @@ export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
     setTemplates(listTemplates(indicatorId));
   }, [indicatorIdx, indicatorId]);
 
-  // Close on Escape
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
-
-  // Close on outside click
-  useEffect(() => {
-    const onClick = (e) => {
-      if (dialogRef.current && !dialogRef.current.contains(e.target)) onClose();
-    };
-    setTimeout(() => window.addEventListener('mousedown', onClick), 100);
-    return () => window.removeEventListener('mousedown', onClick);
-  }, [onClose]);
-
-  // Live preview: update store on every param change
+  // ─── Live preview ─────────────────────────────────────────────
   const applyParams = useCallback((newParams, newColor) => {
     updateIndicator(indicatorIdx, {
       params: { ...newParams },
@@ -238,7 +147,7 @@ export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
     applyParams(localParams, color);
   }, [applyParams, localParams]);
 
-  // Reset to registry defaults
+  // ─── Reset ────────────────────────────────────────────────────
   const handleReset = useCallback(() => {
     if (!registryDef) return;
     const defaults = {};
@@ -251,7 +160,7 @@ export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
     applyParams(defaults, defaultColor);
   }, [registryDef, applyParams]);
 
-  // Save template
+  // ─── Templates ────────────────────────────────────────────────
   const handleSaveTemplate = useCallback(() => {
     const name = templateName.trim();
     if (!name || !indicatorId) return;
@@ -260,7 +169,6 @@ export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
     setTemplateName('');
   }, [indicatorId, localParams, localColor, templateName]);
 
-  // Load template
   const handleLoadTemplate = useCallback((name) => {
     const config = loadTemplate(indicatorId, name);
     if (!config) return;
@@ -272,117 +180,112 @@ export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
   if (!indicator || !registryDef) return null;
 
   const title = registryDef.label || registryDef.shortName || indicatorId?.toUpperCase() || 'Settings';
+  const outputs = registryDef.outputs || [];
+  const outputStyles = indicator.outputStyles || {};
+  const visibility = indicator.visibility || { timeframes: [], showAll: true };
 
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 10000,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'rgba(0,0,0,0.4)',
-        backdropFilter: 'blur(4px)',
-      }}
-    >
-      <div
-        ref={dialogRef}
-        className="indicator-settings-dialog"
-        style={{
-          width: 340,
-          maxHeight: '80vh',
-          background: 'rgba(22, 24, 29, 0.95)',
-          borderRadius: 14,
-          border: `1px solid ${C.bd}`,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Header */}
-        <div
+  // ─── Template footer ──────────────────────────────────────────
+  const templateFooter = (
+    <div>
+      <SectionLabel>Templates</SectionLabel>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+        <input
+          type="text"
+          placeholder="Template name..."
+          value={templateName}
+          onChange={(e) => setTemplateName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') handleSaveTemplate(); }}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '14px 16px 10px',
-            borderBottom: `1px solid ${C.bd}`,
+            flex: 1,
+            padding: '5px 8px',
+            borderRadius: 6,
+            border: `1px solid ${C.bd}`,
+            background: C.sf,
+            color: C.t1,
+            fontFamily: F,
+            fontSize: 12,
+            outline: 'none',
+          }}
+        />
+        <button
+          onClick={handleSaveTemplate}
+          disabled={!templateName.trim()}
+          style={{
+            padding: '5px 12px',
+            borderRadius: 6,
+            border: `1px solid ${C.b}40`,
+            background: C.b + '15',
+            color: C.b,
+            fontFamily: F,
+            fontSize: 11,
+            fontWeight: 600,
+            cursor: templateName.trim() ? 'pointer' : 'default',
+            opacity: templateName.trim() ? 1 : 0.4,
+            transition: 'all 0.12s ease',
           }}
         >
-          <div
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: '50%',
-              background: localColor,
-              flexShrink: 0,
-            }}
-          />
-          <span
-            style={{
-              flex: 1,
-              fontSize: 14,
-              fontWeight: 700,
-              fontFamily: F,
-              color: C.t1,
-            }}
-          >
-            {title}
-          </span>
-          <button
-            onClick={onClose}
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 8,
-              border: `1px solid ${C.bd}`,
-              background: 'transparent',
-              color: C.t2,
-              fontSize: 14,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.12s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = C.r + '20';
-              e.currentTarget.style.color = C.r;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = C.t2;
-            }}
-          >
-            ✕
-          </button>
+          Save
+        </button>
+      </div>
+      {templates.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+          {templates.map((name) => (
+            <button
+              key={name}
+              onClick={() => handleLoadTemplate(name)}
+              style={{
+                padding: '4px 10px',
+                borderRadius: 6,
+                border: `1px solid ${C.bd}`,
+                background: 'transparent',
+                color: C.t2,
+                fontFamily: F,
+                fontSize: 11,
+                cursor: 'pointer',
+                transition: 'all 0.12s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = C.b + '15';
+                e.currentTarget.style.borderColor = C.b + '40';
+                e.currentTarget.style.color = C.b;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.borderColor = C.bd;
+                e.currentTarget.style.color = C.t2;
+              }}
+            >
+              {name}
+            </button>
+          ))}
         </div>
+      )}
+    </div>
+  );
 
-        {/* Body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
-          {/* Parameters Section */}
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              color: C.t3,
-              fontFamily: F,
-              letterSpacing: 0.8,
-              marginBottom: 6,
-              textTransform: 'uppercase',
-            }}
-          >
-            Parameters
-          </div>
+  return (
+    <SettingsTabShell
+      title={title}
+      iconColor={localColor}
+      tabs={TABS}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      onClose={onClose}
+      onOk={onClose}
+      onCancel={() => { handleReset(); onClose(); }}
+      footerExtra={templateFooter}
+    >
+      {/* ═══ Inputs Tab ══════════════════════════════════════════ */}
+      {activeTab === 'inputs' && (
+        <div>
+          <SectionLabel>Parameters</SectionLabel>
 
           {Object.entries(registryDef.params || {}).map(([key, schema]) => {
             const val = localParams[key] ?? schema.default;
 
             if (typeof schema.default === 'boolean') {
               return (
-                <ParamToggle
+                <Toggle
                   key={key}
                   label={schema.label || key}
                   checked={val}
@@ -392,7 +295,7 @@ export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
             }
 
             return (
-              <ParamSlider
+              <RangeSlider
                 key={key}
                 label={schema.label || key}
                 value={val}
@@ -404,175 +307,272 @@ export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
             );
           })}
 
-          {/* Line Style Section */}
+          <SectionLabel>Source</SectionLabel>
+          <SelectDropdown
+            label="Input Source"
+            value={indicator.source || 'close'}
+            options={SOURCE_OPTIONS}
+            onChange={(v) => setIndicatorSource(indicatorIdx, v)}
+          />
+
+          {/* Info tooltip area */}
           <div
             style={{
-              fontSize: 10,
-              fontWeight: 700,
+              marginTop: 16,
+              padding: '8px 10px',
+              borderRadius: 6,
+              background: C.sf,
+              border: `1px solid ${C.bd}`,
+              fontSize: 11,
               color: C.t3,
               fontFamily: F,
-              letterSpacing: 0.8,
-              marginTop: 16,
-              marginBottom: 6,
-              textTransform: 'uppercase',
+              lineHeight: 1.5,
             }}
           >
-            Line Style
+            💡 {registryDef.name} — {registryDef.mode === 'overlay' ? 'Overlay indicator' : 'Pane indicator'}.
+            {Object.keys(registryDef.params || {}).length > 0 &&
+              ` Adjust parameters above for live preview.`}
           </div>
+        </div>
+      )}
 
-          <ParamColor
-            label="Color"
+      {/* ═══ Style Tab ═══════════════════════════════════════════ */}
+      {activeTab === 'style' && (
+        <div>
+          <SectionLabel>Line Style</SectionLabel>
+
+          {/* Primary color (backward compat) */}
+          <ColorSwatch
+            label="Primary Color"
             color={localColor}
             onChange={handleColorChange}
           />
 
-          {/* Templates Section */}
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              color: C.t3,
-              fontFamily: F,
-              letterSpacing: 0.8,
-              marginTop: 16,
-              marginBottom: 6,
-              textTransform: 'uppercase',
-            }}
-          >
-            Templates
-          </div>
+          {/* Per-output styling */}
+          {outputs.length > 1 && (
+            <>
+              <SectionLabel>Per-Output Styling</SectionLabel>
+              {outputs.map((out) => {
+                const style = outputStyles[out.key] || {
+                  color: out.color,
+                  width: out.width ?? 2,
+                  dash: out.dash || [],
+                  visible: true,
+                };
+                return (
+                  <div
+                    key={out.key}
+                    style={{
+                      padding: '8px 10px',
+                      marginBottom: 6,
+                      borderRadius: 8,
+                      background: C.sf,
+                      border: `1px solid ${C.bd}`,
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: 6,
+                      }}
+                    >
+                      <span style={{ fontSize: 12, fontFamily: F, color: C.t1, fontWeight: 600 }}>
+                        {out.label || out.key}
+                      </span>
+                      <button
+                        onClick={() => updateIndicatorOutputStyle(indicatorIdx, out.key, { visible: !style.visible })}
+                        title={style.visible ? 'Hide' : 'Show'}
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: 6,
+                          border: `1px solid ${C.bd}`,
+                          background: 'transparent',
+                          color: style.visible ? C.b : C.t3,
+                          fontSize: 12,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.12s ease',
+                        }}
+                      >
+                        {style.visible ? '👁' : '👁‍🗨'}
+                      </button>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <ColorSwatch
+                        color={style.color}
+                        onChange={(c) => updateIndicatorOutputStyle(indicatorIdx, out.key, { color: c })}
+                      />
+                      <SelectDropdown
+                        label="Width"
+                        value={style.width}
+                        options={WIDTH_OPTIONS}
+                        onChange={(w) => updateIndicatorOutputStyle(indicatorIdx, out.key, { width: parseInt(w) })}
+                      />
+                    </div>
+                    <LineStylePicker
+                      value={style.dash}
+                      onChange={(d) => updateIndicatorOutputStyle(indicatorIdx, out.key, { dash: d })}
+                    />
+                  </div>
+                );
+              })}
+            </>
+          )}
 
-          <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-            <input
-              type="text"
-              placeholder="Template name..."
-              value={templateName}
-              onChange={(e) => setTemplateName(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleSaveTemplate(); }}
+          {/* Fill controls for band indicators */}
+          {registryDef.fills && registryDef.fills.length > 0 && (
+            <>
+              <SectionLabel>Fill</SectionLabel>
+              <div
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: 6,
+                  background: C.sf,
+                  border: `1px solid ${C.bd}`,
+                  fontSize: 11,
+                  color: C.t3,
+                  fontFamily: F,
+                }}
+              >
+                {registryDef.fills.length} fill zone{registryDef.fills.length > 1 ? 's' : ''} configured from defaults.
+              </div>
+            </>
+          )}
+
+          {/* Precision & Status Line */}
+          <SectionLabel>Display</SectionLabel>
+          <SelectDropdown
+            label="Precision"
+            value={String(indicator.precision ?? 'auto')}
+            options={PRECISION_OPTIONS}
+            onChange={(v) => setIndicatorPrecision(indicatorIdx, v === 'auto' ? 'auto' : parseInt(v))}
+          />
+          <Toggle
+            label="Show on Price Scale"
+            checked={indicator.showOnScale !== false}
+            onChange={(v) => setIndicatorShowOnScale(indicatorIdx, v)}
+          />
+          <Toggle
+            label="Show in Status Line"
+            checked={indicator.showInStatusLine !== false}
+            onChange={(v) => setIndicatorShowInStatusLine(indicatorIdx, v)}
+          />
+        </div>
+      )}
+
+      {/* ═══ Visibility Tab ══════════════════════════════════════ */}
+      {activeTab === 'visibility' && (
+        <div>
+          <SectionLabel>Timeframe Visibility</SectionLabel>
+
+          <Toggle
+            label="Show on all timeframes"
+            checked={visibility.showAll !== false}
+            onChange={(v) => setIndicatorVisibility(indicatorIdx, { showAll: v, timeframes: v ? [] : visibility.timeframes })}
+          />
+
+          {!visibility.showAll && (
+            <div
               style={{
-                flex: 1,
-                padding: '5px 8px',
-                borderRadius: 6,
-                border: `1px solid ${C.bd}`,
-                background: C.sf,
-                color: C.t1,
-                fontFamily: F,
-                fontSize: 12,
-                outline: 'none',
-              }}
-            />
-            <button
-              onClick={handleSaveTemplate}
-              disabled={!templateName.trim()}
-              style={{
-                padding: '5px 12px',
-                borderRadius: 6,
-                border: `1px solid ${C.b}40`,
-                background: C.b + '15',
-                color: C.b,
-                fontFamily: F,
-                fontSize: 11,
-                fontWeight: 600,
-                cursor: templateName.trim() ? 'pointer' : 'default',
-                opacity: templateName.trim() ? 1 : 0.4,
-                transition: 'all 0.12s ease',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: 6,
+                marginTop: 10,
               }}
             >
-              Save
-            </button>
-          </div>
-
-          {templates.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-              {templates.map((name) => (
-                <button
-                  key={name}
-                  onClick={() => handleLoadTemplate(name)}
-                  style={{
-                    padding: '4px 10px',
-                    borderRadius: 6,
-                    border: `1px solid ${C.bd}`,
-                    background: 'transparent',
-                    color: C.t2,
-                    fontFamily: F,
-                    fontSize: 11,
-                    cursor: 'pointer',
-                    transition: 'all 0.12s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = C.b + '15';
-                    e.currentTarget.style.borderColor = C.b + '40';
-                    e.currentTarget.style.color = C.b;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.borderColor = C.bd;
-                    e.currentTarget.style.color = C.t2;
-                  }}
-                >
-                  {name}
-                </button>
-              ))}
+              {TIMEFRAMES.map((tf) => {
+                const isActive = visibility.timeframes?.includes(tf.id);
+                return (
+                  <button
+                    key={tf.id}
+                    onClick={() => {
+                      const tfs = visibility.timeframes || [];
+                      const next = isActive
+                        ? tfs.filter((t) => t !== tf.id)
+                        : [...tfs, tf.id];
+                      setIndicatorVisibility(indicatorIdx, { showAll: false, timeframes: next });
+                    }}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: 8,
+                      border: `1px solid ${isActive ? C.b + '60' : C.bd}`,
+                      background: isActive ? C.b + '15' : 'transparent',
+                      color: isActive ? C.b : C.t2,
+                      fontFamily: F,
+                      fontSize: 12,
+                      fontWeight: isActive ? 600 : 400,
+                      cursor: 'pointer',
+                      transition: 'all 0.12s ease',
+                    }}
+                  >
+                    {tf.label}
+                  </button>
+                );
+              })}
             </div>
           )}
-        </div>
 
-        {/* Footer */}
-        <div
-          style={{
-            padding: '10px 16px 14px',
-            borderTop: `1px solid ${C.bd}`,
-            display: 'flex',
-            gap: 8,
-          }}
-        >
-          <button
-            onClick={handleReset}
-            style={{
-              flex: 1,
-              padding: '8px 12px',
-              borderRadius: 8,
-              border: `1px solid ${C.bd}`,
-              background: 'transparent',
-              color: C.t2,
-              fontFamily: F,
-              fontSize: 12,
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = C.r + '15';
-              e.currentTarget.style.borderColor = C.r + '40';
-              e.currentTarget.style.color = C.r;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.borderColor = C.bd;
-              e.currentTarget.style.color = C.t2;
-            }}
-          >
-            Reset to Default
-          </button>
-          <button
-            onClick={onClose}
-            style={{
-              flex: 1,
-              padding: '8px 12px',
-              borderRadius: 8,
-              border: 'none',
-              background: C.b,
-              color: '#fff',
-              fontFamily: F,
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            Done
-          </button>
+          {/* Pane height for pane indicators */}
+          {registryDef.mode === 'pane' && (
+            <>
+              <SectionLabel>Pane</SectionLabel>
+              <div
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: 6,
+                  background: C.sf,
+                  border: `1px solid ${C.bd}`,
+                  fontSize: 11,
+                  color: C.t3,
+                  fontFamily: F,
+                  lineHeight: 1.5,
+                }}
+              >
+                📐 This indicator renders in a separate pane below the main chart.
+                {registryDef.paneConfig?.min !== undefined && (
+                  <> Scale: {registryDef.paneConfig.min} – {registryDef.paneConfig.max}.</>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Reset button */}
+          <div style={{ marginTop: 20 }}>
+            <button
+              onClick={handleReset}
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                borderRadius: 8,
+                border: `1px solid ${C.bd}`,
+                background: 'transparent',
+                color: C.t2,
+                fontFamily: F,
+                fontSize: 12,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = C.r + '15';
+                e.currentTarget.style.borderColor = C.r + '40';
+                e.currentTarget.style.color = C.r;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.borderColor = C.bd;
+                e.currentTarget.style.color = C.t2;
+              }}
+            >
+              Reset to Default
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </SettingsTabShell>
   );
 }

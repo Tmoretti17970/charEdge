@@ -91,8 +91,7 @@ export default function ProgressArc() {
   ];
 
   return (
-    <div className="tf-container"
-      className="tf-progress-arc"
+    <div className="tf-container tf-progress-arc"
       style={{
         padding: isMobile ? '12px 14px' : '14px 18px',
         borderRadius: 10,

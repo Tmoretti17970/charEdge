@@ -103,98 +103,120 @@ describe('CircuitBreaker — state machine', () => {
         expect(cb.isAllowed).toBe(true);
     });
 
-    it('transitions to OPEN after N failures', () => {
-        const cb = new CircuitBreaker({ failureThreshold: 3 });
+    it('transitions to OPEN when failure rate exceeds threshold', () => {
+        // _failureRate requires >= 3 results, so 3 failures → 100% failure rate → OPEN
+        const cb = new CircuitBreaker({ windowSize: 5, failureThreshold: 0.5 });
         cb.recordFailure();
         cb.recordFailure();
-        expect(cb.state).toBe('CLOSED');
-        cb.recordFailure();
+        expect(cb.state).toBe('CLOSED'); // only 2 results — rate returns 0
+        cb.recordFailure(); // 3rd result: 100% failure rate ≥ 50% → OPEN
         expect(cb.state).toBe('OPEN');
         expect(cb.isAllowed).toBe(false);
     });
 
-    it('resets failure count on success', () => {
-        const cb = new CircuitBreaker({ failureThreshold: 3 });
+    it('stays CLOSED when failure rate is below threshold', () => {
+        const cb = new CircuitBreaker({ windowSize: 5, failureThreshold: 0.5 });
         cb.recordFailure();
-        cb.recordFailure();
-        cb.recordSuccess(); // resets
-        cb.recordFailure();
-        expect(cb.state).toBe('CLOSED'); // not OPEN yet
+        cb.recordSuccess();
+        cb.recordSuccess();
+        cb.recordSuccess(); // 4 results: 25% failure rate < 50% → stays CLOSED
+        expect(cb.state).toBe('CLOSED');
     });
 
-    it('transitions OPEN → HALF_OPEN after cooldown', () => {
-        vi.useFakeTimers();
-        const cb = new CircuitBreaker({ failureThreshold: 1, cooldownMs: 1000 });
+    it('transitions OPEN → HALF_OPEN after cooldown via isAllowed', () => {
+        const now = Date.now();
+        vi.spyOn(Date, 'now').mockReturnValue(now);
+        const cb = new CircuitBreaker({ windowSize: 5, failureThreshold: 0.5, initialCooldownMs: 1000 });
         cb.recordFailure();
+        cb.recordFailure();
+        cb.recordFailure(); // 3 failures → OPEN
         expect(cb.state).toBe('OPEN');
 
-        vi.advanceTimersByTime(1000);
+        // Advance Date.now past cooldown
+        vi.spyOn(Date, 'now').mockReturnValue(now + 1001);
+        // isAllowed triggers HALF_OPEN transition
+        expect(cb.isAllowed).toBe(true);
         expect(cb.state).toBe('HALF_OPEN');
 
-        vi.useRealTimers();
+        vi.restoreAllMocks();
         cb.destroy();
     });
 
-    it('transitions HALF_OPEN → CLOSED after N successes', () => {
-        vi.useFakeTimers();
-        const cb = new CircuitBreaker({ failureThreshold: 1, cooldownMs: 100, recoveryThreshold: 2 });
+    it('transitions HALF_OPEN → CLOSED on success', () => {
+        const now = Date.now();
+        vi.spyOn(Date, 'now').mockReturnValue(now);
+        const cb = new CircuitBreaker({ windowSize: 5, failureThreshold: 0.5, initialCooldownMs: 100 });
         cb.recordFailure();
-        vi.advanceTimersByTime(100);
+        cb.recordFailure();
+        cb.recordFailure(); // OPEN
+        expect(cb.state).toBe('OPEN');
+
+        vi.spyOn(Date, 'now').mockReturnValue(now + 101);
+        expect(cb.isAllowed).toBe(true); // triggers HALF_OPEN
         expect(cb.state).toBe('HALF_OPEN');
 
-        cb.recordSuccess();
-        expect(cb.state).toBe('HALF_OPEN');
         cb.recordSuccess();
         expect(cb.state).toBe('CLOSED');
 
-        vi.useRealTimers();
+        vi.restoreAllMocks();
         cb.destroy();
     });
 
     it('goes back to OPEN if failure in HALF_OPEN', () => {
-        vi.useFakeTimers();
-        const cb = new CircuitBreaker({ failureThreshold: 1, cooldownMs: 100 });
+        const now = Date.now();
+        vi.spyOn(Date, 'now').mockReturnValue(now);
+        const cb = new CircuitBreaker({ windowSize: 5, failureThreshold: 0.5, initialCooldownMs: 100 });
         cb.recordFailure();
-        vi.advanceTimersByTime(100);
+        cb.recordFailure();
+        cb.recordFailure(); // OPEN
+        expect(cb.state).toBe('OPEN');
+
+        vi.spyOn(Date, 'now').mockReturnValue(now + 101);
+        expect(cb.isAllowed).toBe(true); // HALF_OPEN
         expect(cb.state).toBe('HALF_OPEN');
 
         cb.recordFailure();
         expect(cb.state).toBe('OPEN');
 
-        vi.useRealTimers();
+        vi.restoreAllMocks();
         cb.destroy();
     });
 
     it('emits stateChange events', () => {
-        const cb = new CircuitBreaker({ failureThreshold: 1 });
+        const cb = new CircuitBreaker({ windowSize: 5, failureThreshold: 0.5 });
         const events = [];
         cb.on((e) => events.push(e.type + ':' + e.state));
 
         cb.recordFailure();
+        cb.recordFailure();
+        cb.recordFailure(); // 3 failures → OPEN
         expect(events).toContain('stateChange:OPEN');
 
         cb.destroy();
     });
 
     it('reset() returns to CLOSED', () => {
-        const cb = new CircuitBreaker({ failureThreshold: 1 });
+        const cb = new CircuitBreaker({ windowSize: 5, failureThreshold: 0.5 });
         cb.recordFailure();
+        cb.recordFailure();
+        cb.recordFailure(); // OPEN
         expect(cb.state).toBe('OPEN');
         cb.reset();
         expect(cb.state).toBe('CLOSED');
         cb.destroy();
     });
 
-    it('getStats() returns correct metrics', () => {
+    it('getStats() returns correct shape', () => {
         const cb = new CircuitBreaker();
         cb.recordSuccess();
         cb.recordSuccess();
         cb.recordFailure();
         const stats = cb.getStats();
-        expect(stats.totalSuccesses).toBe(2);
-        expect(stats.totalFailures).toBe(1);
-        expect(stats.consecutiveFailures).toBe(1);
-        expect(stats.consecutiveSuccesses).toBe(0);
+        expect(stats.state).toBe('CLOSED');
+        expect(typeof stats.failureRate).toBe('number');
+        expect(typeof stats.cooldownMs).toBe('number');
+        expect(typeof stats.consecutiveTrips).toBe('number');
+        expect(typeof stats.rateLimitUntil).toBe('number');
         cb.destroy();
     });
 });

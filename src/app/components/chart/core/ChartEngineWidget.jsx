@@ -31,6 +31,8 @@ import ChartLoadingNarrative from '../overlays/ChartLoadingNarrative.jsx';
 import DataFallbackBanner from '../ui/DataFallbackBanner.jsx';
 import IndicatorSettingsDialog from '../panels/IndicatorSettingsDialog.jsx';
 import ChartAnalysisPanel from '../panels/ChartAnalysisPanel.jsx';
+import ReplayToolbar from '../ReplayToolbar.jsx';
+import { ReplayPaperTrade } from '../../../../intelligence/ReplayPaperTrade.js';
 import { startAutoSave, stopAutoSave } from '../../../../charting_library/core/SessionRecovery.js';
 import ZoomLoupe from '../overlays/ZoomLoupe.jsx';
 
@@ -73,6 +75,8 @@ export default function ChartEngineWidget({
     paneHeights, historyLoading, showDeltaOverlay, showVPOverlay,
     showOIOverlay, showLargeTradesOverlay, linkGroup, setSymbol,
     intelligence,
+    replayMode, replayIdx, replayPlaying,
+    toggleReplay, setReplayIdx, setReplayPlaying,
   } = useChartStore(useShallow((s) => ({
     symbol: s.symbol, tf: s.tf, chartType: s.chartType,
     indicators: s.indicators, activeTool: s.activeTool,
@@ -85,6 +89,8 @@ export default function ChartEngineWidget({
     showOIOverlay: s.showOIOverlay, showLargeTradesOverlay: s.showLargeTradesOverlay,
     linkGroup: s.linkGroup, setSymbol: s.setSymbol,
     intelligence: s.intelligence,
+    replayMode: s.replayMode, replayIdx: s.replayIdx, replayPlaying: s.replayPlaying,
+    toggleReplay: s.toggleReplay, setReplayIdx: s.setReplayIdx, setReplayPlaying: s.setReplayPlaying,
   })));
 
   const theme = useUserStore((s) => s.theme);
@@ -141,6 +147,21 @@ export default function ChartEngineWidget({
   const [editingIndicatorIdx, setEditingIndicatorIdx] = useState(null); // Sprint 13: indicator settings dialog
   const [highlightedTrade, setHighlightedTrade] = useState(null);
   const paneIdRef = useRef(`widget-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`);
+
+  // Paper trade bridge for replay mode
+  const paperTradeRef = useRef(null);
+  useEffect(() => {
+    if (replayMode && engineRef.current) {
+      // Lazy-create the bridge when replay is activated
+      if (!paperTradeRef.current) {
+        paperTradeRef.current = new ReplayPaperTrade(engineRef.current);
+        paperTradeRef.current.connect();
+      }
+    } else if (!replayMode && paperTradeRef.current) {
+      paperTradeRef.current.disconnect();
+      paperTradeRef.current = null;
+    }
+  }, [replayMode]);
 
   const closeContextMenu = useCallback(() => setCtxMenu(null), []);
   const closeEditPopup = useCallback(() => setEditPopup(null), []);
@@ -696,6 +717,23 @@ export default function ChartEngineWidget({
       )}
 
       {children}
+
+      {/* Replay Toolbar — shown during replay mode */}
+      {replayMode && (
+        <ReplayToolbar
+          replayState={replayPlaying ? 'playing' : 'paused'}
+          currentIndex={replayIdx}
+          totalBars={barCount}
+          speed={1}
+          onPlay={() => setReplayPlaying(true)}
+          onPause={() => setReplayPlaying(false)}
+          onStop={() => toggleReplay()}
+          onStep={() => setReplayIdx(replayIdx + 1)}
+          onSpeedChange={() => { }}
+          onSeek={(idx) => setReplayIdx(idx)}
+          paperTrade={paperTradeRef.current}
+        />
+      )}
 
       {/* Sprint 1/8: History Loading Indicator — left edge during scroll-left prefetch */}
       {historyLoading && (

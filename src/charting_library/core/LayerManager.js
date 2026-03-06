@@ -26,11 +26,11 @@
 
 /** Layer names in z-order */
 export const LAYERS = {
-  GRID:       'GRID',
-  DATA:       'DATA',
+  GRID: 'GRID',
+  DATA: 'DATA',
   INDICATORS: 'INDICATORS',
-  DRAWINGS:   'DRAWINGS',
-  UI:         'UI',
+  DRAWINGS: 'DRAWINGS',
+  UI: 'UI',
 };
 
 const LAYER_ORDER = [
@@ -63,6 +63,8 @@ export class LayerManager {
       const name = LAYER_ORDER[i];
       const canvas = document.createElement('canvas');
       canvas.style.cssText = `position:absolute;top:0;left:0;width:100%;height:100%;z-index:${i}`;
+      // E3.2: Promote DRAWINGS canvas to its own GPU compositing layer
+      if (name === LAYERS.DRAWINGS) canvas.style.transform = 'translateZ(0)';
 
       container.appendChild(canvas);
 

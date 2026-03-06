@@ -91,8 +91,8 @@ describe('Accessibility: Landmark Roles', () => {
 // ═══ Skip-to-Content Link ═══════════════════════════════════════
 describe('Accessibility: Skip Link', () => {
   it('tf-skip-link class exists in CSS', () => {
-    const globalCss = fs.readFileSync(path.resolve(SRC, 'theme/global.css'), 'utf8');
-    expect(globalCss).toContain('.tf-skip-link');
+    const css = fs.readFileSync(path.resolve(SRC, 'theme/utilities.css'), 'utf8');
+    expect(css).toContain('.tf-skip-link');
   });
 
   it('skip link is rendered in the app', () => {
@@ -173,28 +173,28 @@ describe('Accessibility: Contrast Ratios', () => {
 
 // ═══ Focus Visible CSS ══════════════════════════════════════════
 describe('Accessibility: Focus Management', () => {
-  it('global.css has :focus-visible rules', () => {
-    const globalCss = fs.readFileSync(path.resolve(SRC, 'theme/global.css'), 'utf8');
-    expect(globalCss).toContain(':focus-visible');
+  it('accessibility.css has :focus-visible rules', () => {
+    const css = fs.readFileSync(path.resolve(SRC, 'theme/accessibility.css'), 'utf8');
+    expect(css).toContain(':focus-visible');
   });
 
-  it('components.css has focus-visible for interactive elements', () => {
-    const componentsCss = fs.readFileSync(path.resolve(SRC, 'theme/components.css'), 'utf8');
-    expect(componentsCss).toContain('.tf-btn:focus-visible');
-    expect(componentsCss).toContain('.tf-nav-btn:focus-visible');
-    expect(componentsCss).toContain('.tf-icon-btn:focus-visible');
+  it('accessibility.css has focus-visible for interactive elements', () => {
+    const css = fs.readFileSync(path.resolve(SRC, 'theme/accessibility.css'), 'utf8');
+    expect(css).toContain('.tf-btn:focus-visible');
+    expect(css).toContain('.tf-nav-btn:focus-visible');
+    expect(css).toContain('.tf-icon-btn:focus-visible');
   });
 
   it('.tf-sr-only class is defined', () => {
-    const componentsCss = fs.readFileSync(path.resolve(SRC, 'theme/components.css'), 'utf8');
-    expect(componentsCss).toContain('.tf-sr-only');
+    const css = fs.readFileSync(path.resolve(SRC, 'theme/accessibility.css'), 'utf8');
+    expect(css).toContain('.tf-sr-only');
   });
 });
 
 // ═══ Touch Target Size ══════════════════════════════════════════
 describe('Accessibility: Touch Targets', () => {
-  it('components.css enforces 44px min on touch devices', () => {
-    const css = fs.readFileSync(path.resolve(SRC, 'theme/components.css'), 'utf8');
+  it('accessibility.css enforces 44px min on touch devices', () => {
+    const css = fs.readFileSync(path.resolve(SRC, 'theme/accessibility.css'), 'utf8');
     expect(css).toContain('pointer: coarse');
     expect(css).toContain('min-height: 44px');
     expect(css).toContain('min-width: 44px');
@@ -208,21 +208,21 @@ describe('Accessibility: Touch Targets', () => {
 
 // ═══ Reduced Motion ═════════════════════════════════════════════
 describe('Accessibility: Reduced Motion', () => {
-  it('global.css has prefers-reduced-motion media query', () => {
-    const css = fs.readFileSync(path.resolve(SRC, 'theme/global.css'), 'utf8');
+  it('accessibility.css has prefers-reduced-motion media query', () => {
+    const css = fs.readFileSync(path.resolve(SRC, 'theme/accessibility.css'), 'utf8');
     expect(css).toContain('prefers-reduced-motion: reduce');
   });
 
-  it('components.css has prefers-reduced-motion', () => {
-    const css = fs.readFileSync(path.resolve(SRC, 'theme/components.css'), 'utf8');
+  it('chart-components.css has prefers-reduced-motion', () => {
+    const css = fs.readFileSync(path.resolve(SRC, 'theme/chart-components.css'), 'utf8');
     expect(css).toContain('prefers-reduced-motion: reduce');
   });
 });
 
 // ═══ High Contrast Mode ═════════════════════════════════════════
 describe('Accessibility: High Contrast', () => {
-  it('global.css supports forced-colors mode', () => {
-    const css = fs.readFileSync(path.resolve(SRC, 'theme/global.css'), 'utf8');
+  it('utilities.css supports forced-colors mode', () => {
+    const css = fs.readFileSync(path.resolve(SRC, 'theme/utilities.css'), 'utf8');
     expect(css).toContain('forced-colors: active');
   });
 });

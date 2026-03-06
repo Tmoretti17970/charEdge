@@ -32,6 +32,8 @@ import { useAnalyticsStore } from './state/useAnalyticsStore.js';
 import { initTelemetry } from './utils/telemetry.js';
 import { setupAutoSave } from './autoSave.js';
 import { logger } from './utils/logger.js';
+import { encryptedStore } from './data/EncryptedStore.js';
+import { initApiKeys } from './data/providers/ApiKeyStore.js';
 
 // ─── Phase 1: Load from storage ─────────────────────────────────
 
@@ -44,8 +46,11 @@ export async function loadFromStorage() {
   logger.boot.info('Phase 1: Legacy migration...');
   await StorageService.migrateFromLegacy();
 
-  logger.boot.info('Phase 1: Loading from IndexedDB...');
+  // Initialize encrypted stores in parallel with IDB reads (Batch 16: 4.5.1)
+  logger.boot.info('Phase 1: Initializing encrypted stores + loading from IndexedDB...');
   const [
+    _encryptedStoreReady,
+    _apiKeysReady,
     tradesResult,
     playbooksResult,
     notesResult,
@@ -57,6 +62,8 @@ export async function loadFromStorage() {
     watchlistResult,
     gamificationResult,
   ] = await Promise.all([
+    encryptedStore.init().catch(e => logger.boot.warn('EncryptedStore init failed (non-fatal):', e?.message)),
+    initApiKeys().catch(e => logger.boot.warn('ApiKeyStore init failed (non-fatal):', e?.message)),
     StorageService.trades.getAll(),
     StorageService.playbooks.getAll(),
     StorageService.notes.getAll(),

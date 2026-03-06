@@ -39,7 +39,9 @@ export async function fetchAlphaVantage(sym, tfId) {
   if (!cfg) return null;
 
   try {
-    let url = `${PROXY_BASE}/query?function=${cfg.fn}&symbol=${encodeURIComponent(sym)}&outputsize=compact`;
+    // Task 2.10.1.3: Use 'full' for intraday (~2,000 bars) instead of 'compact' (~100 bars)
+    const outputSize = cfg.interval ? 'full' : 'compact';
+    let url = `${PROXY_BASE}/query?function=${cfg.fn}&symbol=${encodeURIComponent(sym)}&outputsize=${outputSize}`;
     if (cfg.interval) url += `&interval=${cfg.interval}`;
 
     const res = await fetch(url);

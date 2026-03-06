@@ -44,8 +44,7 @@ export default function HeroTradeSpotlight() {
   const sideLabel = (hero.side || '').toUpperCase() || '—';
 
   return (
-    <div className="tf-container"
-      className="tf-hero-trade"
+    <div className="tf-container tf-hero-trade"
       style={{
         padding: isMobile ? '14px 16px' : '16px 20px',
         borderRadius: 10,

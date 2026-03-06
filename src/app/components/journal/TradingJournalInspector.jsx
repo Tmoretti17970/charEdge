@@ -24,6 +24,12 @@ import { useJournalStore } from '../../../state/useJournalStore.js';
 import { C } from '../../../constants/theme.js';
 import { EMOJIS } from '../../../constants/chart.js';
 import css from './TradingJournalInspector.module.css';
+import {
+    REFLECTION_PROMPTS,
+    createReflection,
+    saveReflections,
+    loadReflections,
+} from '../../../intelligence/PostTradeReflection.js';
 
 // ─── Preset Data ────────────────────────────────────────────────
 
@@ -153,6 +159,33 @@ export default function TradingJournalInspector({ trade, isOpen, onClose, onSave
         tags: '',
     });
 
+    // ─── Reflection state ─────────────────────────────────────────
+    const [reflectionAnswers, setReflectionAnswers] = useState({});
+    const [reflectionOpen, setReflectionOpen] = useState(false);
+
+    // Hydrate reflections from localStorage when trade changes
+    useEffect(() => {
+        if (!trade?.id) { setReflectionAnswers({}); return; }
+        const all = loadReflections();
+        const existing = all.find((r) => r.tradeId === trade.id);
+        if (existing) {
+            const map = {};
+            for (const a of existing.answers) map[a.promptId] = a.answer;
+            setReflectionAnswers(map);
+        } else {
+            setReflectionAnswers({});
+        }
+    }, [trade?.id]);
+
+    const reflectionComplete = useMemo(
+        () => REFLECTION_PROMPTS.every((p) => reflectionAnswers[p.id] != null && reflectionAnswers[p.id] !== ''),
+        [reflectionAnswers],
+    );
+
+    const setReflectionAnswer = useCallback((promptId, value) => {
+        setReflectionAnswers((prev) => ({ ...prev, [promptId]: value }));
+    }, []);
+
     // Hydrate form from trade when it changes
     useEffect(() => {
         if (!trade) return;
@@ -242,9 +275,23 @@ export default function TradingJournalInspector({ trade, isOpen, onClose, onSave
         if (updateTrade) {
             updateTrade(trade.id, update);
         }
+
+        // Save reflections alongside trade
+        if (Object.keys(reflectionAnswers).length > 0) {
+            const answers = Object.entries(reflectionAnswers).map(([promptId, answer]) => ({
+                promptId,
+                answer,
+                timestamp: new Date().toISOString(),
+            }));
+            const reflection = createReflection(trade.id, trade.symbol || '', trade.pnl || 0, answers);
+            const all = loadReflections().filter((r) => r.tradeId !== trade.id);
+            all.push(reflection);
+            saveReflections(all);
+        }
+
         if (typeof onSave === 'function') onSave(update);
         handleClose();
-    }, [trade, form, updateTrade, onSave, handleClose]);
+    }, [trade, form, reflectionAnswers, updateTrade, onSave, handleClose]);
 
     // ─── Don't render when closed ─────────────────────────────────
     if (!isOpen && !closing) return null;
@@ -367,6 +414,61 @@ export default function TradingJournalInspector({ trade, isOpen, onClose, onSave
                             </button>
                         ))}
                     </div>
+
+                    {/* ═══ Post-Trade Reflection ═══ */}
+                    <div className={css.sectionLabel}
+                        style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}
+                        onClick={() => setReflectionOpen((v) => !v)}
+                    >
+                        <span style={{ fontSize: 10, transition: 'transform 0.2s', transform: reflectionOpen ? 'rotate(90deg)' : 'rotate(0)' }}>▶</span>
+                        Post-Trade Reflection
+                        {reflectionComplete && (
+                            <span style={{ fontSize: 11, color: '#34d399', marginLeft: 'auto', fontWeight: 700 }}>✅ Complete</span>
+                        )}
+                    </div>
+                    {reflectionOpen && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
+                            {REFLECTION_PROMPTS.map((prompt) => (
+                                <div key={prompt.id} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                    <label style={{ fontSize: 11, color: C.t2, fontWeight: 600 }}>{prompt.question}</label>
+                                    {prompt.inputType === 'select' && (
+                                        <select
+                                            value={reflectionAnswers[prompt.id] || ''}
+                                            onChange={(e) => setReflectionAnswer(prompt.id, e.target.value)}
+                                            style={{
+                                                background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.bd}`,
+                                                borderRadius: 6, padding: '5px 8px', fontSize: 11, color: C.t1,
+                                                fontFamily: 'inherit', outline: 'none',
+                                            }}
+                                        >
+                                            <option value="">— Select —</option>
+                                            {prompt.options?.map((o) => <option key={o} value={o}>{o}</option>)}
+                                        </select>
+                                    )}
+                                    {prompt.inputType === 'rating' && (
+                                        <PsychSlider
+                                            icon="📝" label="" value={reflectionAnswers[prompt.id] || null}
+                                            onChange={(v) => setReflectionAnswer(prompt.id, v)}
+                                            color="#60a5fa"
+                                        />
+                                    )}
+                                    {prompt.inputType === 'text' && (
+                                        <textarea
+                                            value={reflectionAnswers[prompt.id] || ''}
+                                            onChange={(e) => setReflectionAnswer(prompt.id, e.target.value)}
+                                            placeholder="Type your answer…"
+                                            rows={2}
+                                            style={{
+                                                background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.bd}`,
+                                                borderRadius: 6, padding: '6px 8px', fontSize: 11, color: C.t1,
+                                                fontFamily: 'inherit', resize: 'vertical', outline: 'none',
+                                            }}
+                                        />
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
                     {/* ═══ Execution Notes ═══ */}
                     <div className={css.sectionLabel}>Execution Notes</div>

@@ -490,7 +490,8 @@ class _WebSocketService {
       this._ws.onclose = () => {
         this._status = WS_STATUS.DISCONNECTED;
         this._notifyStatus();
-        if (!this._intentionalClose && this._subs.size > 0) {
+        // A1.2: Include _tradeSubs in reconnect check — trade-only streams must also reconnect
+        if (!this._intentionalClose && (this._subs.size + this._tradeSubs.size) > 0) {
           this._scheduleReconnect();
         }
       };
@@ -503,7 +504,8 @@ class _WebSocketService {
     } catch (_) {
       this._status = WS_STATUS.DISCONNECTED;
       this._notifyStatus();
-      if (!this._intentionalClose && this._subs.size > 0) {
+      // A1.2: Include _tradeSubs in reconnect check
+      if (!this._intentionalClose && (this._subs.size + this._tradeSubs.size) > 0) {
         this._scheduleReconnect();
       }
     }
@@ -622,6 +624,10 @@ class _WebSocketService {
   /** @private — Notify all subscribers of status change */
   _notifyStatus() {
     for (const sub of this._subs.values()) {
+      if (sub.callbacks.onStatus) sub.callbacks.onStatus(this._status);
+    }
+    // A1.3: Notify trade-stream subscribers too — prevents stale UI health indicators
+    for (const sub of this._tradeSubs.values()) {
       if (sub.callbacks.onStatus) sub.callbacks.onStatus(this._status);
     }
   }

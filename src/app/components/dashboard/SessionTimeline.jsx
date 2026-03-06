@@ -59,8 +59,7 @@ export default function SessionTimeline() {
   if (currentHour < 3 || currentHour > 22) return null;
 
   return (
-    <div className="tf-container"
-      className="tf-session-timeline"
+    <div className="tf-container tf-session-timeline"
       style={{
         padding: isMobile ? '10px 14px' : '12px 18px',
         borderRadius: 10,

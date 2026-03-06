@@ -2,16 +2,17 @@ import React, { useState } from 'react';
 import { C, F, M } from '../../../../constants.js';
 import { useChartStore } from '../../../../state/useChartStore.js';
 import { CHART_TYPES, getChartTypeDefaults } from '../../../../charting_library/renderers/renderers/ChartTypes.js';
+import { ColorSwatch, Toggle, RangeSlider, RadioGroup } from '../../settings/SettingsControls.jsx';
 
 // SVG Tab Icons
 const TabIcon = ({ children }) => <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ display: 'block' }}>{children}</svg>;
 
 const TAB_ICONS = {
-  appearance: <TabIcon><circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.2" fill="none"/><circle cx="5.5" cy="6" r="1.2" fill="currentColor" opacity="0.6"/><circle cx="8.5" cy="6" r="1.2" fill="currentColor" opacity="0.6"/><circle cx="7" cy="9" r="1.2" fill="currentColor" opacity="0.6"/></TabIcon>,
-  grid: <TabIcon><line x1="1" y1="4.5" x2="13" y2="4.5" stroke="currentColor" strokeWidth="0.8" opacity="0.5"/><line x1="1" y1="9.5" x2="13" y2="9.5" stroke="currentColor" strokeWidth="0.8" opacity="0.5"/><line x1="4.5" y1="1" x2="4.5" y2="13" stroke="currentColor" strokeWidth="0.8" opacity="0.5"/><line x1="9.5" y1="1" x2="9.5" y2="13" stroke="currentColor" strokeWidth="0.8" opacity="0.5"/><rect x="1" y="1" width="12" height="12" rx="1.5" stroke="currentColor" strokeWidth="1" fill="none"/></TabIcon>,
-  scale: <TabIcon><line x1="2" y1="12" x2="12" y2="12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><line x1="12" y1="2" x2="12" y2="12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><line x1="2" y1="12" x2="12" y2="2" stroke="currentColor" strokeWidth="0.8" strokeDasharray="2 1.5" opacity="0.5"/></TabIcon>,
-  crosshair: <TabIcon><line x1="7" y1="1" x2="7" y2="13" stroke="currentColor" strokeWidth="1" opacity="0.6"/><line x1="1" y1="7" x2="13" y2="7" stroke="currentColor" strokeWidth="1" opacity="0.6"/><circle cx="7" cy="7" r="2" stroke="currentColor" strokeWidth="1.2" fill="none"/></TabIcon>,
-  chartType: <TabIcon><rect x="2" y="3" width="3" height="8" rx="0.5" fill="currentColor" opacity="0.7"/><rect x="6" y="5" width="3" height="6" rx="0.5" fill="currentColor" opacity="0.5"/><rect x="10" y="4" width="3" height="7" rx="0.5" fill="currentColor" opacity="0.6"/></TabIcon>,
+  appearance: <TabIcon><circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.2" fill="none" /><circle cx="5.5" cy="6" r="1.2" fill="currentColor" opacity="0.6" /><circle cx="8.5" cy="6" r="1.2" fill="currentColor" opacity="0.6" /><circle cx="7" cy="9" r="1.2" fill="currentColor" opacity="0.6" /></TabIcon>,
+  grid: <TabIcon><line x1="1" y1="4.5" x2="13" y2="4.5" stroke="currentColor" strokeWidth="0.8" opacity="0.5" /><line x1="1" y1="9.5" x2="13" y2="9.5" stroke="currentColor" strokeWidth="0.8" opacity="0.5" /><line x1="4.5" y1="1" x2="4.5" y2="13" stroke="currentColor" strokeWidth="0.8" opacity="0.5" /><line x1="9.5" y1="1" x2="9.5" y2="13" stroke="currentColor" strokeWidth="0.8" opacity="0.5" /><rect x="1" y="1" width="12" height="12" rx="1.5" stroke="currentColor" strokeWidth="1" fill="none" /></TabIcon>,
+  scale: <TabIcon><line x1="2" y1="12" x2="12" y2="12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /><line x1="12" y1="2" x2="12" y2="12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /><line x1="2" y1="12" x2="12" y2="2" stroke="currentColor" strokeWidth="0.8" strokeDasharray="2 1.5" opacity="0.5" /></TabIcon>,
+  crosshair: <TabIcon><line x1="7" y1="1" x2="7" y2="13" stroke="currentColor" strokeWidth="1" opacity="0.6" /><line x1="1" y1="7" x2="13" y2="7" stroke="currentColor" strokeWidth="1" opacity="0.6" /><circle cx="7" cy="7" r="2" stroke="currentColor" strokeWidth="1.2" fill="none" /></TabIcon>,
+  chartType: <TabIcon><rect x="2" y="3" width="3" height="8" rx="0.5" fill="currentColor" opacity="0.7" /><rect x="6" y="5" width="3" height="6" rx="0.5" fill="currentColor" opacity="0.5" /><rect x="10" y="4" width="3" height="7" rx="0.5" fill="currentColor" opacity="0.6" /></TabIcon>,
 };
 
 const TABS = [
@@ -30,156 +31,6 @@ const THEME_PILLS = [
   { id: 'terminal', label: 'Terminal', colors: ['#00E676', '#FF1744'] },
   { id: 'monochrome', label: 'Mono', colors: ['#B0BEC5', '#546E7A'] },
 ];
-
-function ColorSwatch({ color, onChange, label }) {
-  return (
-    <label
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '6px 0',
-        fontSize: 13,
-        fontFamily: F,
-        color: C.t1,
-        cursor: 'pointer',
-      }}
-    >
-      <span style={{ flex: 1 }}>{label}</span>
-      <div style={{ position: 'relative', width: 28, height: 28 }}>
-        <div
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: 6,
-            background: color,
-            border: `1px solid ${C.bd}`,
-            cursor: 'pointer',
-          }}
-        />
-        <input
-          type="color"
-          value={color}
-          onChange={(e) => onChange(e.target.value)}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            opacity: 0,
-            cursor: 'pointer',
-          }}
-        />
-      </div>
-    </label>
-  );
-}
-
-function Toggle({ label, checked, onChange }) {
-  return (
-    <label
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '6px 0',
-        fontSize: 13,
-        fontFamily: F,
-        color: C.t1,
-        cursor: 'pointer',
-      }}
-    >
-      <span style={{ flex: 1 }}>{label}</span>
-      <button
-        onClick={() => onChange(!checked)}
-        style={{
-          width: 36,
-          height: 20,
-          borderRadius: 10,
-          border: 'none',
-          padding: 2,
-          background: checked ? C.b : C.bd,
-          cursor: 'pointer',
-          transition: 'background 0.2s ease',
-          position: 'relative',
-        }}
-      >
-        <div
-          style={{
-            width: 16,
-            height: 16,
-            borderRadius: '50%',
-            background: '#fff',
-            transition: 'transform 0.2s ease',
-            transform: checked ? 'translateX(16px)' : 'translateX(0)',
-          }}
-        />
-      </button>
-    </label>
-  );
-}
-
-function RangeSlider({ label, value, min, max, step, onChange, display }) {
-  return (
-    <label
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '6px 0',
-        fontSize: 13,
-        fontFamily: F,
-        color: C.t1,
-      }}
-    >
-      <span style={{ flex: 1 }}>{label}</span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-        style={{ width: 80, accentColor: C.b }}
-      />
-      <span style={{ fontFamily: M, fontSize: 11, color: C.t2, width: 30, textAlign: 'right' }}>
-        {display || value}
-      </span>
-    </label>
-  );
-}
-
-function RadioGroup({ label, options, value, onChange }) {
-  return (
-    <div style={{ padding: '6px 0' }}>
-      <div style={{ fontSize: 13, fontFamily: F, color: C.t1, marginBottom: 6 }}>{label}</div>
-      <div style={{ display: 'flex', gap: 4 }}>
-        {options.map((opt) => (
-          <button
-            key={opt.id}
-            onClick={() => onChange(opt.id)}
-            style={{
-              flex: 1,
-              padding: '5px 8px',
-              borderRadius: 6,
-              border: `1px solid ${value === opt.id ? C.b + '60' : C.bd}`,
-              background: value === opt.id ? C.b + '15' : 'transparent',
-              color: value === opt.id ? C.b : C.t2,
-              fontFamily: F,
-              fontSize: 11,
-              fontWeight: value === opt.id ? 600 : 400,
-              cursor: 'pointer',
-              transition: 'all 0.12s ease',
-            }}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 export default function ChartSettingsPanel({ onClose }) {
   const [tab, setTab] = useState('appearance');

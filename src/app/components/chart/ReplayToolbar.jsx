@@ -1,13 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════
-// charEdge — Replay Toolbar
-//
-// Floating control bar for chart replay mode.
-// Shows: Play/Pause, Stop, Step Forward, Speed selector, Progress bar.
-// Uses glass-panel styling consistent with the Trading Journal Inspector.
-//
-// Tasks: 3.4.1 (bar-by-bar), 3.4.2 (hide future), 3.4.4 (speed controls)
-// ═══════════════════════════════════════════════════════════════════
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { space, radii, text, transition } from '../../../theme/tokens.js';
@@ -30,12 +20,30 @@ export default function ReplayToolbar({
     onStep,
     onSpeedChange,
     onSeek,
+    paperTrade = null,
 }) {
+    const [qty, setQty] = useState(1);
+    const [stats, setStats] = useState(null);
+    const [tick, setTick] = useState(0);
+
+    // Refresh stats periodically when paper trading is active
+    useEffect(() => {
+        if (!paperTrade) return;
+        const iv = setInterval(() => {
+            setStats(paperTrade.getStats());
+            setTick((t) => t + 1);
+        }, 500);
+        return () => clearInterval(iv);
+    }, [paperTrade]);
+
     if (replayState === 'idle' || replayState === 'stopped') return null;
 
     const progress = totalBars > 0 ? (currentIndex / (totalBars - 1)) * 100 : 0;
     const isPlaying = replayState === 'playing';
     const isLoading = replayState === 'loading';
+
+    const hasOpenTrades = stats?.trades?.some((t) => t.status === 'open');
+    const totalPnl = stats?.totalPnl ?? 0;
 
     return (
         <div
@@ -58,6 +66,7 @@ export default function ReplayToolbar({
                 zIndex: 50,
                 userSelect: 'none',
                 minWidth: 360,
+                flexWrap: 'wrap',
             }}
         >
             {/* Replay badge */}
@@ -170,6 +179,121 @@ export default function ReplayToolbar({
             }}>
                 {currentIndex + 1} / {totalBars}
             </span>
+
+            {/* ─── Paper Trading Controls ─────────────────────── */}
+            {paperTrade && (
+                <>
+                    <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.1)' }} />
+
+                    {/* Quantity input */}
+                    <input
+                        type="number"
+                        min={0.01}
+                        step={0.01}
+                        value={qty}
+                        onChange={(e) => setQty(Math.max(0.01, Number(e.target.value) || 0.01))}
+                        title="Trade quantity"
+                        style={{
+                            width: 48,
+                            padding: '3px 6px',
+                            background: 'rgba(255,255,255,0.06)',
+                            border: '1px solid rgba(255,255,255,0.12)',
+                            borderRadius: 4,
+                            color: C.t1,
+                            fontSize: 10,
+                            fontFamily: M,
+                            textAlign: 'center',
+                            outline: 'none',
+                        }}
+                    />
+
+                    {/* Buy Long */}
+                    <button
+                        onClick={() => { paperTrade.placeTrade('long', qty); setStats(paperTrade.getStats()); }}
+                        title="Buy Long"
+                        style={{
+                            padding: '4px 10px',
+                            background: 'rgba(52, 211, 153, 0.15)',
+                            border: '1px solid rgba(52, 211, 153, 0.3)',
+                            borderRadius: 6,
+                            color: '#34d399',
+                            fontSize: 10,
+                            fontWeight: 700,
+                            fontFamily: F,
+                            cursor: 'pointer',
+                            transition: `all ${transition.fast}`,
+                        }}
+                    >
+                        📈 Long
+                    </button>
+
+                    {/* Sell Short */}
+                    <button
+                        onClick={() => { paperTrade.placeTrade('short', qty); setStats(paperTrade.getStats()); }}
+                        title="Sell Short"
+                        style={{
+                            padding: '4px 10px',
+                            background: 'rgba(248, 113, 113, 0.15)',
+                            border: '1px solid rgba(248, 113, 113, 0.3)',
+                            borderRadius: 6,
+                            color: '#f87171',
+                            fontSize: 10,
+                            fontWeight: 700,
+                            fontFamily: F,
+                            cursor: 'pointer',
+                            transition: `all ${transition.fast}`,
+                        }}
+                    >
+                        📉 Short
+                    </button>
+
+                    {/* Close All (only when positions open) */}
+                    {hasOpenTrades && (
+                        <button
+                            onClick={() => { paperTrade.closeAll(); setStats(paperTrade.getStats()); }}
+                            title="Close all open positions"
+                            style={{
+                                padding: '4px 8px',
+                                background: 'rgba(251, 191, 36, 0.15)',
+                                border: '1px solid rgba(251, 191, 36, 0.3)',
+                                borderRadius: 6,
+                                color: '#fbbf24',
+                                fontSize: 10,
+                                fontWeight: 700,
+                                fontFamily: F,
+                                cursor: 'pointer',
+                            }}
+                        >
+                            ✕ Close All
+                        </button>
+                    )}
+
+                    {/* P&L Stats */}
+                    {stats && stats.trades.length > 0 && (
+                        <div style={{
+                            display: 'flex',
+                            gap: 10,
+                            padding: '3px 10px',
+                            background: 'rgba(255,255,255,0.04)',
+                            borderRadius: 6,
+                            fontSize: 10,
+                            fontFamily: M,
+                        }}>
+                            <span style={{ color: totalPnl >= 0 ? '#34d399' : '#f87171', fontWeight: 700 }}>
+                                {totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(2)}
+                            </span>
+                            <span style={{ color: C.t3 }}>
+                                {stats.winCount}W / {stats.lossCount}L
+                            </span>
+                            {stats.winRate > 0 && (
+                                <span style={{ color: stats.winRate >= 0.5 ? '#34d399' : '#f87171' }}>
+                                    {Math.round(stats.winRate * 100)}%
+                                </span>
+                            )}
+                        </div>
+                    )}
+                </>
+            )}
         </div>
     );
 }

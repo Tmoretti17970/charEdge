@@ -286,6 +286,24 @@ export function getAllRateBudgetStats(): Record<string, { used: number; max: num
 }
 
 /**
+ * Get remaining request budget for a specific adapter.
+ * Returns Infinity if no budget is set.
+ * Task 2.10.2.3 — enables ProviderOrchestrator scheduling decisions.
+ */
+export function getRemainingBudget(adapterName: string): number {
+    const budget = _rateBudgets.get(adapterName);
+    if (!budget) return Infinity;
+
+    const now = Date.now();
+    if (now - budget.windowStart >= budget.windowMs) {
+        budget.currentCount = 0;
+        budget.windowStart = now;
+    }
+
+    return Math.max(0, budget.maxRequests - budget.currentCount);
+}
+
+/**
  * Wrap an async function with a circuit breaker for the named adapter.
  *
  * @param adapterName - e.g. 'binance', 'coingecko'
@@ -379,6 +397,7 @@ export default {
     setRateBudget,
     checkRateBudget,
     getAllRateBudgetStats,
+    getRemainingBudget,
     STATE,
     CircuitBreaker,
 };

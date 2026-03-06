@@ -29,7 +29,9 @@ export const createSettingsSlice = (set) => ({
 
   update: (updates) => set((s) => ({ ...s, ...updates })),
 
-  hydrateSettings: (saved = {}) => set({ ...DEFAULT_SETTINGS, ...saved }),
+  // A3.1: Merge onto current state instead of full-replace.
+  // Prevents in-session changes from being erased by cloud sync hydration.
+  hydrateSettings: (saved = {}) => set((state) => ({ ...DEFAULT_SETTINGS, ...state, ...saved })),
 
   resetSettings: () => set({ ...DEFAULT_SETTINGS }),
 });

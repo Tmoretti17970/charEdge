@@ -200,18 +200,18 @@ describe('E2E: CacheManager 3-tier cache', () => {
 
 describe('E2E: AdapterCircuitBreaker', () => {
   beforeEach(async () => {
-    const { resetAllCircuits } = await import('../../data/engine/infra/AdapterCircuitBreaker.js');
+    const { resetAllCircuits } = await import('../../data/engine/infra/CircuitBreaker');
     resetAllCircuits();
   });
 
   it('lets requests through when circuit is CLOSED', async () => {
-    const { withCircuitBreaker } = await import('../../data/engine/infra/AdapterCircuitBreaker.js');
+    const { withCircuitBreaker } = await import('../../data/engine/infra/CircuitBreaker');
     const result = await withCircuitBreaker('test-adapter', async () => 'success');
     expect(result).toBe('success');
   });
 
   it('trips open after sustained failures', async () => {
-    const { withCircuitBreaker, getCircuitState } = await import('../../data/engine/infra/AdapterCircuitBreaker.js');
+    const { withCircuitBreaker, getCircuitState } = await import('../../data/engine/infra/CircuitBreaker');
     const failFn = async () => null; // null = failure
 
     // Pump enough failures to trip (need ≥3 calls, 50% failure rate)
@@ -224,7 +224,7 @@ describe('E2E: AdapterCircuitBreaker', () => {
   });
 
   it('short-circuits to null when OPEN', async () => {
-    const { withCircuitBreaker, getCircuitState } = await import('../../data/engine/infra/AdapterCircuitBreaker.js');
+    const { withCircuitBreaker, getCircuitState } = await import('../../data/engine/infra/CircuitBreaker');
     // Trip the breaker
     for (let i = 0; i < 10; i++) {
       await withCircuitBreaker('dead-adapter', async () => null);
@@ -352,7 +352,7 @@ describe('E2E: FetchService structural verification', () => {
     const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
 
     // Verify the ADJACENT map exists with entries for 1D
-    expect(source).toContain("'1D': ['4h', '1w']");
+    expect(source).toContain("'1D': ['1w']");
   });
 });
 

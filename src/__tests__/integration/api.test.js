@@ -91,7 +91,7 @@ describe('6.1 — API Routes (routes.ts)', () => {
   // ── Playbooks / Notes / Plans CRUD ─────────────────────────
 
   it('has mountCRUD factory function', () => {
-    expect(routesSource).toContain('function mountCRUD(path: string, repo:');
+    expect(routesSource).toContain('function mountCRUD(');
   });
 
   it('mounts /playbooks CRUD', () => {
@@ -237,7 +237,7 @@ describe('6.1 — Server API Mount (server.js)', () => {
   });
 
   it('mounts middleware stack on /api/v1', () => {
-    expect(serverSource).toContain("app.use('/api/v1', apiCors()");
+    expect(serverSource).toContain("app.use('/api/v1', apiCors(");
     expect(serverSource).toContain("app.use('/api/v1', rateLimiter(");
     expect(serverSource).toContain("app.use('/api/v1', apiKeyAuth(");
     expect(serverSource).toContain("app.use('/api/v1', requestLogger()");

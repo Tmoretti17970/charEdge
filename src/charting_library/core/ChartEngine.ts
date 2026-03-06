@@ -204,6 +204,9 @@ export class ChartEngine {
   _lastDisplayTicks: unknown;
   _lastPriceTransform: unknown;
   _lastTimeTransform: unknown;
+  // B2.4: Y-axis tick cross-fade transition
+  _niceStepTransition: { startTime: number; fromTicks: number[]; toTicks: number[]; duration: number } | null;
+  _prevNiceStepKey: string;
 
   // Memory budget integration (P3-2)
   _degradationLevel: number;
@@ -346,6 +349,9 @@ export class ChartEngine {
     });
     // Temp storage for inter-stage data (niceStep, transforms)
     this._lastNiceStep = null;
+    // B2.4: Y-axis tick cross-fade transition state
+    this._niceStepTransition = null;
+    this._prevNiceStepKey = '';
     this._lastDisplayTicks = null;
     this._lastPriceTransform = null;
     this._lastTimeTransform = null;
@@ -472,6 +478,10 @@ export class ChartEngine {
   _needsNextFrame(): boolean {
     if (this.state.mainDirty || this.state.topDirty) return true;
     if (this.layers.anyDirty()) return true;
+    // B1.6: InputManager animations keep the render loop alive
+    if (this.inputManager?.hasActiveAnimations()) return true;
+    // B2.4: Y-axis tick cross-fade transition
+    if (this._niceStepTransition) return true;
     // Task 8.2.1: Animation in progress — keep rendering until interpolator settles
     if (!this._formingInterpolator.isDone) return true;
     // Live chart types that need continuous updates
@@ -739,6 +749,9 @@ export class ChartEngine {
     this.fb.beginFrame();
     // Task 2.3.21: MicroJankDetector frame timing
     microJankDetector.beginFrame();
+
+    // B1.6: Tick all InputManager animations (inertia, zoom, price, momentum, scroll-to-now)
+    this.inputManager.tickAnimations();
 
     const S = this.state;
     const bars = this.bars;

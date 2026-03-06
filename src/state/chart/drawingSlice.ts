@@ -3,14 +3,14 @@ let _savedQuickStyles = null;
 try {
   const raw = localStorage.getItem('charEdge-quick-styles');
   if (raw) _savedQuickStyles = JSON.parse(raw);
-} catch (_) {}
+} catch (_) { }
 
 // Load persisted per-tool style memory
 let _savedToolStyleMemory = null;
 try {
   const raw = localStorage.getItem('charEdge-tool-style-memory');
   if (raw) _savedToolStyleMemory = JSON.parse(raw);
-} catch (_) {}
+} catch (_) { }
 
 const DEFAULT_QUICK_STYLES = [
   { id: 'qs1', color: '#2962FF', lineWidth: 2, label: 'Blue' },
@@ -25,7 +25,14 @@ let _savedToolbarPosition = 'top';
 try {
   const raw = localStorage.getItem('charEdge-toolbar-position');
   if (raw && ['top', 'left', 'right'].includes(raw)) _savedToolbarPosition = raw;
-} catch (_) {}
+} catch (_) { }
+
+// Load persisted per-tool drawing defaults (Batch 15)
+let _savedDrawingDefaults = null;
+try {
+  const raw = localStorage.getItem('charEdge-drawing-defaults');
+  if (raw) _savedDrawingDefaults = JSON.parse(raw);
+} catch (_) { }
 
 export const createDrawingSlice = (set, get) => ({
   activeTool: null,
@@ -49,6 +56,9 @@ export const createDrawingSlice = (set, get) => ({
   // Sprint 12.3: Toolbar position memory (top | left | right)
   toolbarPosition: _savedToolbarPosition,
 
+  // Batch 15: Per-tool drawing defaults (fibLevels, visibility, labels, etc.)
+  drawingDefaults: _savedDrawingDefaults || {},
+
   setActiveTool: (tool) => set({ activeTool: tool }),
   setDrawingColor: (color) => set({ drawingColor: color }),
   toggleMagnetMode: () => set((s) => ({ magnetMode: !s.magnetMode })),
@@ -60,7 +70,7 @@ export const createDrawingSlice = (set, get) => ({
 
   // Sprint 12.3: Toolbar position (top | left | right)
   setToolbarPosition: (pos) => {
-    try { localStorage.setItem('charEdge-toolbar-position', pos); } catch (_) {}
+    try { localStorage.setItem('charEdge-toolbar-position', pos); } catch (_) { }
     set({ toolbarPosition: pos });
   },
 
@@ -71,20 +81,20 @@ export const createDrawingSlice = (set, get) => ({
     const styles = s.quickStyles.map((qs) =>
       qs.id === id ? { ...qs, ...updates } : qs
     );
-    try { localStorage.setItem('charEdge-quick-styles', JSON.stringify(styles)); } catch (_) {}
+    try { localStorage.setItem('charEdge-quick-styles', JSON.stringify(styles)); } catch (_) { }
     return { quickStyles: styles };
   }),
 
   addQuickStyle: (style) => set((s) => {
     const id = `qs_${Date.now()}`;
     const styles = [...s.quickStyles, { id, lineWidth: 2, label: 'Custom', ...style }];
-    try { localStorage.setItem('charEdge-quick-styles', JSON.stringify(styles)); } catch (_) {}
+    try { localStorage.setItem('charEdge-quick-styles', JSON.stringify(styles)); } catch (_) { }
     return { quickStyles: styles };
   }),
 
   removeQuickStyle: (id) => set((s) => {
     const styles = s.quickStyles.filter((qs) => qs.id !== id);
-    try { localStorage.setItem('charEdge-quick-styles', JSON.stringify(styles)); } catch (_) {}
+    try { localStorage.setItem('charEdge-quick-styles', JSON.stringify(styles)); } catch (_) { }
     return {
       quickStyles: styles,
       activeQuickStyleId: s.activeQuickStyleId === id ? null : s.activeQuickStyleId,
@@ -92,14 +102,14 @@ export const createDrawingSlice = (set, get) => ({
   }),
 
   resetQuickStyles: () => {
-    try { localStorage.removeItem('charEdge-quick-styles'); } catch (_) {}
+    try { localStorage.removeItem('charEdge-quick-styles'); } catch (_) { }
     set({ quickStyles: DEFAULT_QUICK_STYLES, activeQuickStyleId: null });
   },
 
   // Per-tool style memory
   setToolStyleMemory: (toolType, style) => set((s) => {
     const memory = { ...s.toolStyleMemory, [toolType]: style };
-    try { localStorage.setItem('charEdge-tool-style-memory', JSON.stringify(memory)); } catch (_) {}
+    try { localStorage.setItem('charEdge-tool-style-memory', JSON.stringify(memory)); } catch (_) { }
     return { toolStyleMemory: memory };
   }),
 
@@ -144,4 +154,18 @@ export const createDrawingSlice = (set, get) => ({
       drawingFuture: s.drawingFuture.slice(0, -1),
     });
   },
+
+  // Batch 15: Per-tool drawing defaults
+  setDrawingDefault: (toolType, defaults) => set((s) => {
+    const drawingDefaults = { ...s.drawingDefaults, [toolType]: { ...(s.drawingDefaults[toolType] || {}), ...defaults } };
+    try { localStorage.setItem('charEdge-drawing-defaults', JSON.stringify(drawingDefaults)); } catch (_) { }
+    return { drawingDefaults };
+  }),
+
+  resetDrawingDefaults: (toolType) => set((s) => {
+    const drawingDefaults = { ...s.drawingDefaults };
+    delete drawingDefaults[toolType];
+    try { localStorage.setItem('charEdge-drawing-defaults', JSON.stringify(drawingDefaults)); } catch (_) { }
+    return { drawingDefaults };
+  }),
 });

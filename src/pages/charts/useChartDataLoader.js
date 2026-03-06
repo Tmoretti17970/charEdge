@@ -235,6 +235,8 @@ export default function useChartDataLoader() {
   // When the chart engine detects the user is near the left edge,
   // it dispatches 'charEdge:prefetch-history'. We fetch older bars
   // and prepend them to the store.
+  // Task 2.10.3.2: OPFS-first scroll-back — check TimeSeriesStore
+  // before hitting the network for instant render.
   const prefetchHistory = useCallback(() => {
     const state = useChartStore.getState();
     if (state.historyLoading || state.historyExhausted) return;
@@ -242,15 +244,62 @@ export default function useChartDataLoader() {
     if (!oldest) return;
 
     state.setHistoryLoading(true);
-    fetchOHLCPage(symbol, tf, oldest)
-      .then(({ data: olderBars, hasMore }) => {
-        useChartStore.getState().prependData(olderBars);
-        if (!hasMore) {
-          useChartStore.setState({ historyExhausted: true });
+
+    // Task 2.10.3.2: Try OPFS/IDB binary cache first (instant, no network)
+    import('../../data/engine/TimeSeriesStore.ts')
+      .then(async ({ timeSeriesStore }) => {
+        await timeSeriesStore.init();
+
+        // Look back 3× viewport duration (matches DataWindow lookahead=3)
+        const viewportDuration = (state.data?.[state.data.length - 1]?.time ?? oldest) - (state.data?.[0]?.time ?? oldest);
+        const lookbackMs = Math.max(viewportDuration * 3, 86_400_000); // at least 1 day
+        const startT = oldest - lookbackMs;
+
+        const cachedBars = await timeSeriesStore.read(symbol, tf, startT, oldest - 1);
+        if (cachedBars?.length > 0) {
+          // OPFS hit — instant render, no network needed
+          logger.data.info(
+            `[OPFS-first] Cache hit: ${cachedBars.length} bars for ${symbol}@${tf} scroll-back`
+          );
+          const formatted = cachedBars.map(b => ({
+            time: new Date(b.t).toISOString(),
+            open: b.o, high: b.h, low: b.l, close: b.c, volume: b.v,
+          }));
+          // A2.2: Guard against stale prefetch from old symbol
+          if (useChartStore.getState().symbol === symbol) {
+            useChartStore.getState().prependData(formatted);
+          }
+          return;
+        }
+
+        // OPFS miss — fall back to network fetch
+        const { data: olderBars, hasMore } = await fetchOHLCPage(symbol, tf, oldest);
+        // A2.2: Guard against stale prefetch from old symbol
+        if (useChartStore.getState().symbol === symbol) {
+          useChartStore.getState().prependData(olderBars);
+          if (!hasMore) {
+            useChartStore.setState({ historyExhausted: true });
+          }
         }
       })
       .catch((err) => {
-        reportError(err, { source: 'ChartDataLoader.prefetchHistory' });
+        // TimeSeriesStore import failed or OPFS unavailable — direct network fetch
+        if (err?.name === 'AbortError') return;
+        fetchOHLCPage(symbol, tf, oldest)
+          .then(({ data: olderBars, hasMore }) => {
+            // A2.2: Guard against stale prefetch from old symbol
+            if (useChartStore.getState().symbol !== symbol) return;
+            useChartStore.getState().prependData(olderBars);
+            if (!hasMore) {
+              useChartStore.setState({ historyExhausted: true });
+            }
+          })
+          .catch((fetchErr) => {
+            reportError(fetchErr, { source: 'ChartDataLoader.prefetchHistory' });
+          });
+      })
+      // A2.1: Always reset historyLoading — prevents stuck state after OPFS hit or error
+      .finally(() => {
         useChartStore.getState().setHistoryLoading(false);
       });
   }, [symbol, tf]);
@@ -264,6 +313,10 @@ export default function useChartDataLoader() {
   // ── Sprint 2: Background prefetch for adjacent timeframes ──────
   // After initial data loads, warm the cache for nearby TFs so switching is instant.
   const adjacentPrefetchedRef = useRef(new Set());
+  // A2.3: Clear stale prefetch keys when symbol/tf changes
+  useEffect(() => {
+    adjacentPrefetchedRef.current.clear();
+  }, [symbol, tf]);
   useEffect(() => {
     const state = useChartStore.getState();
     if (!state.data?.length || adjacentPrefetchedRef.current.has(`${symbol}:${tf}`)) return;

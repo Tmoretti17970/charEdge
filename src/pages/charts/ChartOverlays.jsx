@@ -165,8 +165,8 @@ export default function ChartOverlays({
         </Suspense>
       )}
 
-      {/* Prop Firm Risk Guard Overlay */}
-      {!multiMode && !isMobile && (
+      {/* F3.3: Prop Firm Risk Guard Overlay — only mount when trade mode active */}
+      {!multiMode && !isMobile && tradeMode && (
         <Suspense fallback={null}>
           <RiskGuardOverlay />
         </Suspense>
@@ -179,17 +179,19 @@ export default function ChartOverlays({
         </Suspense>
       )}
 
-      {/* Quick Style Palette — floating when drawing tool is active */}
-      {!isMobile && !multiMode && (
+      {/* F3.2: Quick Style Palette — only mount when a drawing is selected */}
+      {!isMobile && !multiMode && selectedDrawingId && (
         <Suspense fallback={null}>
           <QuickStylePalette />
         </Suspense>
       )}
 
-      {/* Chart Trade Overlays */}
-      <Suspense fallback={null}>
-        <PositionSizer />
-      </Suspense>
+      {/* F3.1: Chart Trade Overlays — only mount PositionSizer when in trade mode */}
+      {tradeMode && (
+        <Suspense fallback={null}>
+          <PositionSizer />
+        </Suspense>
+      )}
       {showQuickJournal && (
         <Suspense fallback={null}>
           <QuickJournalPanel onClose={toggleQuickJournal} />

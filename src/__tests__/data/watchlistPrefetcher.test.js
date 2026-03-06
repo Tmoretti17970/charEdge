@@ -25,6 +25,17 @@ vi.mock('../../state/useWatchlistStore.ts', () => ({
     },
 }));
 
+// The actual import uses .js extension — mock both to be safe
+vi.mock('../../state/useWatchlistStore.js', () => ({
+    useWatchlistStore: {
+        getState: () => mockStoreState,
+        subscribe: (cb) => {
+            subscribeCallback = cb;
+            return mockUnsubscribe;
+        },
+    },
+}));
+
 vi.mock('../../constants.js', () => ({
     isCrypto: (sym) => ['BTC', 'ETH', 'SOL'].includes(sym),
 }));

@@ -1,8 +1,45 @@
 // @ts-check
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Security Headers Middleware
-// CSP, HSTS, X-Frame-Options, X-Content-Type-Options, XSS, Referrer
+// CSP, HSTS, X-Frame-Options, X-Content-Type-Options, XSS, Referrer,
+// Report-To (modern CSP reporting), Permissions-Policy (expanded)
 // ═══════════════════════════════════════════════════════════════════
+
+import { appendFileSync, mkdirSync, existsSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+// ─── CSP Violation Log ──────────────────────────────────────────
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const LOG_DIR = join(__dirname, '..', '..', 'logs');
+const CSP_LOG = join(LOG_DIR, 'csp-violations.jsonl');
+
+/** @param {object} entry */
+function _logCspViolation(entry) {
+    try {
+        if (!existsSync(LOG_DIR)) mkdirSync(LOG_DIR, { recursive: true });
+        appendFileSync(CSP_LOG, JSON.stringify(entry) + '\n');
+    } catch (_) {
+        // Fallback to console if file system fails
+        console.warn('[CSP Violation]', JSON.stringify(entry));
+    }
+}
+
+// ─── Expanded Permissions-Policy ────────────────────────────────
+const PERMISSIONS_POLICY = [
+    'camera=()',
+    'microphone=()',
+    'geolocation=()',
+    'payment=()',
+    'usb=()',
+    'bluetooth=()',
+    'serial=()',
+    'hid=()',
+    'midi=()',
+    'screen-wake-lock=(self)',
+    'display-capture=()',
+].join(', ');
 
 /**
  * Security headers middleware.
@@ -19,13 +56,20 @@ export function securityHeaders({ isProduction }) {
         res.setHeader('X-XSS-Protection', '1; mode=block');
         // Referrer policy
         res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-        // Permissions policy
-        res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+        // Expanded Permissions-Policy (Batch 16: 4.5.4)
+        res.setHeader('Permissions-Policy', PERMISSIONS_POLICY);
 
         // HSTS — enforce HTTPS (production only)
         if (isProduction) {
             res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
         }
+
+        // Report-To header (modern CSP reporting spec)
+        res.setHeader('Report-To', JSON.stringify({
+            group: 'csp-endpoint',
+            max_age: 86400,
+            endpoints: [{ url: '/api/csp-report' }],
+        }));
 
         // CSP — permissive enough for all data adapters + Google Fonts
         if (isProduction) {
@@ -43,6 +87,7 @@ export function securityHeaders({ isProduction }) {
                 "frame-ancestors 'none'",
                 "upgrade-insecure-requests",
                 "report-uri /api/csp-report",
+                "report-to csp-endpoint",
             ].join('; '));
         }
 
@@ -52,17 +97,34 @@ export function securityHeaders({ isProduction }) {
 
 /**
  * CSP violation report handler.
+ * Logs to structured JSONL file + console for production audit trail.
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
 export function cspReportHandler(req, res) {
     const report = req.body?.['csp-report'] || req.body;
     if (report) {
-        console.warn('[CSP Violation]', JSON.stringify({
+        const entry = {
             blockedUri: report['blocked-uri'],
             violatedDirective: report['violated-directive'],
             documentUri: report['document-uri'],
+            sourceFile: report['source-file'],
+            lineNumber: report['line-number'],
+            statusCode: report['status-code'],
             timestamp: new Date().toISOString(),
+            ip: req.ip || req.socket?.remoteAddress,
+            userAgent: req.get('user-agent'),
+        };
+
+        // Structured file log (production audit trail)
+        _logCspViolation(entry);
+
+        // Also console.warn for dev visibility
+        console.warn('[CSP Violation]', JSON.stringify({
+            blockedUri: entry.blockedUri,
+            violatedDirective: entry.violatedDirective,
+            documentUri: entry.documentUri,
+            timestamp: entry.timestamp,
         }));
     }
     res.status(204).end();

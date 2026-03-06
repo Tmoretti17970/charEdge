@@ -113,6 +113,28 @@ export function executeDataStage(fs, ctx, engine) {
   engine._lastPriceTransform = priceTransform;
   engine._lastTimeTransform = timeTransform;
 
+  // B2.4: Detect niceStep tick change → start cross-fade transition
+  const niceStepKey = niceStep.ticks?.join(',') ?? '';
+  if (engine._prevNiceStepKey && niceStepKey !== engine._prevNiceStepKey && !engine._niceStepTransition) {
+    // Parse previous tick positions from the key
+    const fromTicks = engine._prevNiceStepKey.split(',').map(Number).filter(n => !isNaN(n));
+    engine._niceStepTransition = {
+      startTime: performance.now(),
+      fromTicks,
+      toTicks: niceStep.ticks.slice(),
+      duration: 120,
+    };
+  }
+  engine._prevNiceStepKey = niceStepKey;
+
+  // B2.4: Clear expired cross-fade transition
+  if (engine._niceStepTransition) {
+    const elapsed = performance.now() - engine._niceStepTransition.startTime;
+    if (elapsed >= engine._niceStepTransition.duration) {
+      engine._niceStepTransition = null;
+    }
+  }
+
   // ═══════════════════════════════════════════════════════════════════
   // Phase 1.1.2: TICK-UPDATE FAST PATH
   // When only the last bar's OHLC changed (streaming tick), skip the

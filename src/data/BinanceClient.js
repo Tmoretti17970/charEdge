@@ -31,12 +31,15 @@ export const BINANCE_LIMITS = {
   '1w': 1000,
 };
 
-/** Max pages for backward pagination on longer timeframes. */
+/** Max pages for backward pagination — enables deep scroll-back history. */
 const BINANCE_PAGINATE_PAGES = {
-  '1D': 5,   // 5 x 1000 = 5000 daily bars (~14 years)
-  '1w': 4,   // 4 x 1000 = 4000 weekly bars (~77 years — Binance will return what it has)
-  '4h': 3,   // 3 x 1000 = 3000 4h bars (~500 days)
-  '1h': 2,   // 2 x 1000 = 2000 1h bars (~83 days)
+  '1D': 5,   // 5 × 1000 = 5,000 daily bars (~14 years)
+  '1w': 4,   // 4 × 1000 = 4,000 weekly bars (~77 years)
+  '4h': 3,   // 3 × 1000 = 3,000 4h bars (~500 days)
+  '1h': 2,   // 2 × 1000 = 2,000 1h bars (~83 days)
+  '15m': 6,  // 6 × 500 = 3,000 bars (~32 days) — Task 2.10.1.1
+  '30m': 4,  // 4 × 500 = 2,000 bars (~42 days) — Task 2.10.1.1
+  '5m': 3,   // 3 × 500 = 1,500 bars (~5 days) — Task 2.10.1.1
 };
 
 /**
@@ -114,12 +117,13 @@ export async function fetchBinance(sym, tfId, startTime) {
 
   const pages = [];
   let endTime = undefined;
+  const pageSize = limit >= 1000 ? 1000 : limit; // Sub-hourly uses 500, longer TFs use 1000
   for (let page = 0; page < maxPages; page++) {
-    const batch = await fetchBinanceBatch(pair, interval, 1000, endTime);
+    const batch = await fetchBinanceBatch(pair, interval, pageSize, endTime);
     if (!batch || batch.length === 0) break;
     pages.push(batch);
     endTime = batch[0]._openMs - 1;
-    if (batch.length < 1000) break;
+    if (batch.length < pageSize) break;
   }
   pages.reverse();
   const allBars = pages.flat();

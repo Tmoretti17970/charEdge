@@ -160,7 +160,7 @@ describe('Design Tokens', () => {
 // ═══ Light Theme CSS Vars ═══════════════════════════════════════
 
 describe('Light Theme CSS', () => {
-  const cssPath = path.resolve(__dirname, '../../theme/global.css');
+  const cssPath = path.resolve(__dirname, '../../theme/tokens.css');
   const css = fs.readFileSync(cssPath, 'utf8');
 
   it('global.css defines .theme-light with all color vars', () => {
@@ -196,7 +196,7 @@ describe('Light Theme CSS', () => {
 // ═══ Components CSS — Light Theme Parity ════════════════════════
 
 describe('Components CSS Light Theme', () => {
-  const cssPath = path.resolve(__dirname, '../../theme/components.css');
+  const cssPath = path.resolve(__dirname, '../../theme/chart-components.css');
   const css = fs.readFileSync(cssPath, 'utf8');
 
   it('has light theme card hover override', () => {

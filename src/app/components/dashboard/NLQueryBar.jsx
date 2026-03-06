@@ -192,8 +192,7 @@ export default function NLQueryBar() {
   }, [trades]);
 
   return (
-    <div className="tf-container"
-      className="tf-nl-query"
+    <div className="tf-container tf-nl-query"
       style={{
         borderRadius: 10,
         background: C.sf,

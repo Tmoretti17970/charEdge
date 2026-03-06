@@ -523,10 +523,32 @@ export function createApiRouter(services: ApiRouterServices = {}): Router {
         if (!base) return errorResponse(res, 400, 'BAD_REQUEST', `Invalid target: ${target}. Use paper, live, or data`);
 
         const alpacaPath = req.params[0] || '';
-        const keyId = req.headers['apca-api-key-id'] as string | undefined;
-        const secretKey = req.headers['apca-api-secret-key'] as string | undefined;
+
+        // ── Credential Resolution (server-side preferred) ───────
+        // Production: ALWAYS use server-side env vars (never accept from client)
+        // Development: fall back to client headers for paper trading convenience
+        const serverKeyId = process.env.ALPACA_KEY_ID;
+        const serverSecret = process.env.ALPACA_SECRET_KEY;
+        const isProduction = process.env.NODE_ENV === 'production';
+
+        let keyId: string | undefined;
+        let secretKey: string | undefined;
+
+        if (serverKeyId && serverSecret) {
+            // Server-side credentials take priority
+            keyId = serverKeyId;
+            secretKey = serverSecret;
+        } else if (!isProduction) {
+            // Development fallback: accept from client headers (paper trading only)
+            keyId = req.headers['apca-api-key-id'] as string | undefined;
+            secretKey = req.headers['apca-api-secret-key'] as string | undefined;
+        }
+
         if (!keyId || !secretKey) {
-            return errorResponse(res, 400, 'BAD_REQUEST', 'Missing APCA-API-KEY-ID or APCA-API-SECRET-KEY headers');
+            const msg = isProduction
+                ? 'Alpaca credentials not configured on server. Set ALPACA_KEY_ID and ALPACA_SECRET_KEY.'
+                : 'Missing APCA-API-KEY-ID or APCA-API-SECRET-KEY headers (or set ALPACA_KEY_ID/ALPACA_SECRET_KEY env vars).';
+            return errorResponse(res, 400, 'CREDENTIALS_MISSING', msg);
         }
 
         try {

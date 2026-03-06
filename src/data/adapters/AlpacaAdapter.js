@@ -48,6 +48,7 @@ export class AlpacaAdapter extends BaseAdapter {
     this._keyId = '';
     this._secretKey = '';
     this._isPaper = true;   // Default to paper trading
+    this._useProxy = false; // When true, route through server-side proxy
     this._pollTimers = new Map(); // symbol → interval timer
   }
 
@@ -58,15 +59,31 @@ export class AlpacaAdapter extends BaseAdapter {
    * @param {string} keyId - APCA-API-KEY-ID
    * @param {string} secretKey - APCA-API-SECRET-KEY
    * @param {boolean} [isPaper=true] - Use paper trading endpoint
+   * @param {{ useProxy?: boolean }} [options] - Additional options
+   * @param {boolean} [options.useProxy=false] - Route through server-side proxy
    */
-  configure(keyId, secretKey, isPaper = true) {
+  configure(keyId, secretKey, isPaper = true, options = {}) {
     this._keyId = keyId;
     this._secretKey = secretKey;
     this._isPaper = isPaper;
+    this._useProxy = options.useProxy || false;
+  }
+
+  /**
+   * Enable server-proxy mode (credentials stored server-side).
+   * In this mode, no API keys are needed on the client.
+   * @param {boolean} [isPaper=true] - Use paper trading endpoint
+   */
+  configureServerProxy(isPaper = true) {
+    this._useProxy = true;
+    this._isPaper = isPaper;
+    // No client-side keys needed — server reads from env vars
+    this._keyId = 'server-proxy';
+    this._secretKey = 'server-proxy';
   }
 
   get isConfigured() {
-    return !!this._keyId && !!this._secretKey;
+    return this._useProxy || (!!this._keyId && !!this._secretKey);
   }
 
   get _tradingBase() {
@@ -74,6 +91,7 @@ export class AlpacaAdapter extends BaseAdapter {
   }
 
   _headers() {
+    if (this._useProxy) return { 'Content-Type': 'application/json' };
     return {
       'APCA-API-KEY-ID': this._keyId,
       'APCA-API-SECRET-KEY': this._secretKey,
@@ -81,8 +99,30 @@ export class AlpacaAdapter extends BaseAdapter {
     };
   }
 
+  /**
+   * Resolve the fetch URL. In proxy mode, route through the server.
+   * @param {string} url - Direct Alpaca URL
+   * @returns {string} Resolved URL
+   * @private
+   */
+  _resolveUrl(url) {
+    if (!this._useProxy) return url;
+
+    // Route through server proxy: /api/v1/alpaca/{target}/{path}
+    // Determine target from URL
+    let target = 'data';
+    if (url.includes('paper-api.alpaca.markets')) target = 'paper';
+    else if (url.includes('api.alpaca.markets') && !url.includes('data.alpaca.markets')) target = 'live';
+
+    // Extract path after the domain
+    const urlObj = new URL(url);
+    const path = urlObj.pathname.replace(/^\//, '') + urlObj.search;
+    return `/api/v1/alpaca/${target}/${path}`;
+  }
+
   async _fetch(url, opts = {}) {
-    const res = await fetch(url, {
+    const resolvedUrl = this._resolveUrl(url);
+    const res = await fetch(resolvedUrl, {
       ...opts,
       headers: { ...this._headers(), ...opts.headers },
     });
@@ -150,7 +190,7 @@ export class AlpacaAdapter extends BaseAdapter {
   }
 
   subscribe(symbol, callback) {
-    if (!this.isConfigured) return () => {};
+    if (!this.isConfigured) return () => { };
 
     // Alpaca real-time requires SSE or WebSocket subscription.
     // For simplicity, poll the snapshot endpoint every 5 seconds.

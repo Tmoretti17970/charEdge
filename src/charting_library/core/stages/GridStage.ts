@@ -42,7 +42,9 @@ export function executeGridStage(fs, ctx, engine) {
   const { bitmapWidth: bw, bitmapHeight: bh, pixelRatio: pr, chartWidth: cW, mainHeight } = fs;
 
   // ─── Cache Check ─────────────────────────────────────────────
-  const cacheKey = _gridCacheKey(fs, engine) + `:${thm.bg}:${thm.gridLine}:${thm.fg}`;
+  // B2.4: Include transition state in cache key to invalidate during cross-fade
+  const transKey = engine._niceStepTransition ? `:t${Math.round(performance.now() - engine._niceStepTransition.startTime)}` : '';
+  const cacheKey = _gridCacheKey(fs, engine) + `:${thm.bg}:${thm.gridLine}:${thm.fg}${transKey}`;
 
   if (_gridCache.key === cacheKey && _gridCache.canvas) {
     // CACHE HIT — composite cached bitmap
@@ -101,13 +103,41 @@ export function executeGridStage(fs, ctx, engine) {
   const priceTickStride = maxPriceTicks < niceStep.ticks.length
     ? Math.ceil(niceStep.ticks.length / maxPriceTicks)
     : 1;
+
+  // B2.4: Cross-fade transition — track which ticks are new vs old
+  const transition = engine._niceStepTransition;
+  let transProgress = 1; // 1 = no transition, use full alpha
+  if (transition) {
+    const elapsed = performance.now() - transition.startTime;
+    transProgress = Math.min(1, elapsed / transition.duration);
+  }
+
   for (let ti = 0; ti < niceStep.ticks.length; ti += priceTickStride) {
     const tick = niceStep.ticks[ti];
     const y = R.p2y(tick);
     if (y >= 0 && y <= mainHeight) {
-      horizontal.push({ y, isMajor: false });
+      // B2.4: If in transition, new ticks fade in
+      const alpha = transition ? transProgress : 1;
+      horizontal.push({ y, isMajor: false, alpha });
       priceTickCount++;
       if (priceTickCount >= maxPriceTicks) break;
+    }
+  }
+
+  // B2.4: Also render fading-out old ticks during transition
+  if (transition && transProgress < 1) {
+    const oldTicks = transition.fromTicks;
+    const fadeOutAlpha = 1 - transProgress;
+    for (let ti = 0; ti < oldTicks.length; ti++) {
+      const tick = oldTicks[ti];
+      const y = R.p2y(tick);
+      if (y >= 0 && y <= mainHeight) {
+        // Only add if not already covered by a new tick at similar position
+        const alreadyCovered = horizontal.some(h => Math.abs(h.y - y) < 3);
+        if (!alreadyCovered) {
+          horizontal.push({ y, isMajor: false, alpha: fadeOutAlpha });
+        }
+      }
     }
   }
 
@@ -160,11 +190,16 @@ export function executeGridStage(fs, ctx, engine) {
     // Canvas2D fallback: draw grid lines to offscreen canvas
     // Task 2.3.24: Grid LOD opacity — reduce opacity at high zoom
     const gridOpacity = visibleBars < 30 ? 0.15 : 0.3;
-    oCtx.fillStyle = thm.gridLine || `rgba(54,58,69,${gridOpacity})`;
     for (const line of horizontal) {
       const by = Math.round(line.y * pr);
+      // B2.4: Apply per-line alpha during cross-fade transition
+      const lineAlpha = (line.alpha ?? 1) * gridOpacity;
+      oCtx.fillStyle = thm.gridLine || `rgba(54,58,69,${lineAlpha})`;
+      oCtx.globalAlpha = line.alpha ?? 1;
       oCtx.fillRect(0, by, Math.round(cW * pr), Math.max(1, pr));
     }
+    oCtx.globalAlpha = 1;
+    oCtx.fillStyle = thm.gridLine || `rgba(54,58,69,${gridOpacity})`;
     for (const line of vertical) {
       const bx = Math.round(line.x * pr);
       oCtx.fillRect(bx, 0, Math.max(1, pr), Math.round(mainHeight * pr));

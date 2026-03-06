@@ -44,7 +44,7 @@ describe('safeJSON', () => {
     });
 
     it('logs context in warnings', () => {
-      const spy = vi.spyOn(logger.ui, 'warn').mockImplementation(() => { });
+      const spy = vi.spyOn(console, 'warn').mockImplementation(() => { });
       safeParse('{bad}', null, { context: 'test-ctx' });
       expect(spy).toHaveBeenCalledWith(expect.stringContaining('test-ctx'), expect.any(String));
       spy.mockRestore();

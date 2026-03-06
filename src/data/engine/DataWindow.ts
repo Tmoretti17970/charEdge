@@ -51,8 +51,11 @@ class DataWindow {
     // Block loader function — injected by consumer (TimeSeriesStore.queryRange)
     private _blockLoader: ((startT: number, endT: number) => Promise<Bar[]>) | null = null;
 
+    // Task 2.10.3.2: OPFS loader — checked before network requests
+    private _opfsLoader: ((startT: number, endT: number) => Promise<Bar[]>) | null = null;
+
     constructor(options: DataWindowOptions = {}) {
-        this._lookahead = options.lookahead ?? 2;
+        this._lookahead = options.lookahead ?? 3; // Task 2.10.3.2: increased from 2 to 3
         this._minBarsThreshold = options.minBarsThreshold ?? 100;
         this._onDataChange = options.onDataChange;
     }
@@ -62,6 +65,11 @@ class DataWindow {
     /** Set the block loader function (from TimeSeriesStore) */
     setBlockLoader(loader: (startT: number, endT: number) => Promise<Bar[]>): void {
         this._blockLoader = loader;
+    }
+
+    /** Task 2.10.3.2: Set the OPFS loader — checked before network requests. */
+    setOpfsLoader(loader: (startT: number, endT: number) => Promise<Bar[]>): void {
+        this._opfsLoader = loader;
     }
 
     /** Set total bars available for the series (for progress tracking) */
@@ -158,17 +166,35 @@ class DataWindow {
             const fetchStart = startT - buffer;
             const fetchEnd = endT + buffer;
 
-            logger.data.info(
-                `[DataWindow] Fetching blocks for range [${new Date(fetchStart).toISOString()} → ${new Date(fetchEnd).toISOString()}]`
-            );
+            // Task 2.10.3.2: Try OPFS first — instant render, no loading spinner
+            let bars: Bar[] = [];
+            if (this._opfsLoader) {
+                try {
+                    bars = await this._opfsLoader(fetchStart, fetchEnd);
+                    if (bars.length > 0) {
+                        logger.data.info(
+                            `[DataWindow] OPFS hit: ${bars.length} bars for range [${new Date(fetchStart).toISOString()} → ${new Date(fetchEnd).toISOString()}]`
+                        );
+                    }
+                } catch {
+                    // OPFS failed — fall through to network
+                    bars = [];
+                }
+            }
 
-            const bars = await this._blockLoader(fetchStart, fetchEnd);
+            // Fall back to network block loader if OPFS didn't have enough data
+            if (bars.length === 0) {
+                logger.data.info(
+                    `[DataWindow] Fetching blocks for range [${new Date(fetchStart).toISOString()} → ${new Date(fetchEnd).toISOString()}]`
+                );
+                bars = await this._blockLoader(fetchStart, fetchEnd);
+            }
 
             this._bars = bars;
             if (bars.length > 0) {
                 this._loadedRange = {
-                    startT: bars[0].t,
-                    endT: bars[bars.length - 1].t,
+                    startT: bars[0]!.t,
+                    endT: bars[bars.length - 1]!.t,
                 };
             }
 

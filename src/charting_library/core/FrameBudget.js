@@ -32,20 +32,28 @@ const LOD_LEVELS = [
   { level: 3, volume: true, maxIndicators: 99, drawings: true, antiAlias: true }, // full
 ];
 
-// Frame time thresholds for LOD transitions (ms)
-const LOD_UP_THRESHOLD = 12; // Upgrade LOD when avg frame < 12ms (headroom)
-const LOD_DOWN_THRESHOLD = 20; // Degrade LOD when avg frame > 20ms (over budget)
+// Frame time thresholds for LOD transitions — base values for 60fps (16.67ms budget).
+// Scaled proportionally in the constructor for higher refresh rates.
+const BASE_LOD_UP_THRESHOLD = 12;
+const BASE_LOD_DOWN_THRESHOLD = 20;
 const LOD_HYSTERESIS = 8; // Frames to sustain before LOD change (prevents flicker)
 
 class FrameBudget {
   /**
    * @param {Object} [opts]
-   * @param {number} [opts.targetFps=60] - Target frames per second
+   * @param {number} [opts.targetFps=60] - Target frames per second (overridden by budgetMs)
+   * @param {number} [opts.budgetMs] - Frame budget in ms (e.g. 8.33 for 120Hz)
    * @param {number} [opts.windowSize=30] - Rolling average window (frames)
    */
   constructor(opts = {}) {
-    this._targetMs = 1000 / (opts.targetFps || 60); // 16.67ms default
+    // B1.1: Accept budgetMs directly from DisplayHz, or compute from targetFps
+    this._targetMs = opts.budgetMs || (1000 / (opts.targetFps || 60));
     this._windowSize = opts.windowSize || 30;
+
+    // Scale LOD thresholds proportional to budget (base: 16.67ms @ 60Hz)
+    const ratio = this._targetMs / 16.67;
+    this._lodUpThreshold = BASE_LOD_UP_THRESHOLD * ratio;
+    this._lodDownThreshold = BASE_LOD_DOWN_THRESHOLD * ratio;
 
     // Rolling frame time buffer (circular)
     this._times = new Float64Array(this._windowSize);
@@ -253,14 +261,15 @@ class FrameBudget {
 
     const avg = this.avgFrameMs;
 
-    if (avg > LOD_DOWN_THRESHOLD && this._lod > 0) {
+    // B1.1: Use instance-level thresholds scaled to detected Hz
+    if (avg > this._lodDownThreshold && this._lod > 0) {
       // Frames are slow — consider degrading
       this._lodHold++;
       if (this._lodHold >= LOD_HYSTERESIS) {
         this._lod--;
         this._lodHold = 0;
       }
-    } else if (avg < LOD_UP_THRESHOLD && this._lod < 3) {
+    } else if (avg < this._lodUpThreshold && this._lod < 3) {
       // Frames are fast — consider upgrading
       this._lodHold++;
       if (this._lodHold >= LOD_HYSTERESIS) {

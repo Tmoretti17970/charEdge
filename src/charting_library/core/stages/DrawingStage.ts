@@ -21,7 +21,13 @@ export function executeDrawingStage(fs, ctx, engine) {
   const { layers, drawingRenderer, drawingCtx: dCtx, sceneGraph } = ctx;
 
   if (!drawingRenderer || !fs.lod.drawings) return;
-  if (!layers.isDirty(LAYERS.DRAWINGS) && !fs.viewportChanged) return;
+  // A5.1/A5.2: Also re-render when scaleMode changes (Log↔Linear toggle causes price
+  // coordinate drift). Track previous scale mode to detect transitions.
+  const scaleModeChanged = engine._prevDrawingScaleMode !== undefined &&
+    engine._prevDrawingScaleMode !== engine.scaleMode;
+  engine._prevDrawingScaleMode = engine.scaleMode;
+
+  if (!layers.isDirty(LAYERS.DRAWINGS) && !fs.viewportChanged && !scaleModeChanged) return;
   layers.clearDirty(LAYERS.DRAWINGS);
 
   const { bitmapWidth: bw, bitmapHeight: bh, pixelRatio: pr, chartWidth: cW, mainHeight } = fs;
@@ -34,6 +40,14 @@ export function executeDrawingStage(fs, ctx, engine) {
   }
 
   dCtx.clearRect(0, 0, bw, bh);
+
+  // E3.1: Always-on drawing shadows for visual depth separation
+  dCtx.save();
+  dCtx.shadowColor = 'rgba(0, 0, 0, 0.18)';
+  dCtx.shadowBlur = 1.5 * pr;
+  dCtx.shadowOffsetX = 0;
+  dCtx.shadowOffsetY = 0.5 * pr;
+
   drawingRenderer.drawMain(dCtx, {
     pixelRatio: pr,
     bitmapWidth: cBW,
@@ -41,6 +55,9 @@ export function executeDrawingStage(fs, ctx, engine) {
     mediaWidth: cW,
     mediaHeight: mainHeight,
   });
+
+  // E3.1: Clear shadow state
+  dCtx.restore();
 }
 
 /**

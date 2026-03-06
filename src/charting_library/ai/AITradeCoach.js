@@ -298,6 +298,16 @@ function gradeExit(trade, ctx) {
           score += 10;
           feedback.push({ type: 'good', text: 'Good exit — captured most of the move' });
         }
+        // A4.2: Short-side exit analysis — check remaining downside after cover
+      } else if (trade.side === 'short') {
+        const moreDownside = ((trade.exitPrice - minAfter) / trade.exitPrice) * 100;
+        if (moreDownside > 2) {
+          score -= 5;
+          feedback.push({ type: 'improve', text: `Price dropped ${moreDownside.toFixed(1)}% more after cover — consider trailing your stop` });
+        } else {
+          score += 10;
+          feedback.push({ type: 'good', text: 'Good cover — captured most of the downside' });
+        }
       }
     }
   }

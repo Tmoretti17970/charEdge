@@ -55,17 +55,21 @@ export function rejectPrototypePollution(): RequestHandler {
 
 // ─── HTML / XSS Sanitizer ───────────────────────────────────────
 
-// Lightweight tag stripper — removes all HTML tags from strings.
-// For a financial app, there is no legitimate reason to have HTML in any field.
-const HTML_TAG_RE = /<[^>]*>/g;
-const SCRIPT_RE = /javascript:/gi;
-const EVENT_RE = /\bon\w+\s*=/gi;
+// DOMPurify provides robust defense against mutation XSS, SVG/MathML
+// vectors, and Unicode-encoded payloads that regex-based sanitizers miss.
+// For a financial app, zero HTML tags are allowed in any field.
+import DOMPurify from 'isomorphic-dompurify';
 
 function stripHtml(str: string): string {
-    return str
-        .replace(HTML_TAG_RE, '')
-        .replace(SCRIPT_RE, '')
-        .replace(EVENT_RE, '');
+    // Phase 1: DOMPurify strips all HTML tags
+    let clean = DOMPurify.sanitize(str, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+    // Phase 2: Strip inline event handlers (on*=...) from plain text
+    clean = clean.replace(/\bon\w+\s*=\s*(?:"[^"]*"|'[^']*'|\S+\([^)]*\)|\S+)/gi, '');
+    // Phase 3: Strip javascript: URIs
+    clean = clean.replace(/javascript\s*:/gi, '');
+    // Collapse extra whitespace from removals
+    clean = clean.replace(/\s{2,}/g, ' ').trim();
+    return clean;
 }
 
 /**
