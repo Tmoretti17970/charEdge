@@ -83,6 +83,9 @@ function computeFast(trades, settings = {}) {
   const assetClassMap = {}; // J2.2
   const durations = []; // J2.3: hold durations in minutes
   const durationPnls = []; // J2.3: paired P&L for duration correlation
+  // P1-C #18: Hold time split by winners vs losers
+  let winDurationSum = 0, winDurationCount = 0;
+  let lossDurationSum = 0, lossDurationCount = 0;
   // J2.4: playbook × day-of-week matrix
   const playbookDayMap = {};
 
@@ -209,6 +212,14 @@ function computeFast(trades, settings = {}) {
         const durationMin = (closeMs - openMs) / 60000;
         durations.push(durationMin);
         durationPnls.push(pnl);
+        // P1-C #18: Split hold time by winners/losers
+        if (pnl > 0) {
+          winDurationSum += durationMin;
+          winDurationCount++;
+        } else if (pnl < 0) {
+          lossDurationSum += durationMin;
+          lossDurationCount++;
+        }
       }
     }
 
@@ -561,6 +572,9 @@ function computeFast(trades, settings = {}) {
     recoveryFactor,
     rDistribution,
     avgHoldTime: durationStats.avgMinutes,
+    // P1-C #18: Hold time split by winners vs losers
+    avgHoldTimeWinners: winDurationCount > 0 ? winDurationSum / winDurationCount : 0,
+    avgHoldTimeLosers: lossDurationCount > 0 ? lossDurationSum / lossDurationCount : 0,
     emotionCorrelation,
     streakImpact,
     // 6.5.4: Structured expectancy for ExpectancyCard

@@ -262,12 +262,26 @@
   filter: saturate(0.85) brightness(0.95);
 }
 
-/* Deep Sea OLED border optimization (Task 4.9.3.5)
- * box-shadow instead of border to avoid sub-pixel rendering artifacts on OLED */
+/* Deep Sea OLED border optimization (P1-A #9)
+ * Invisible borders for OLED: rgba white at 4% opacity replaces solid borders.
+ * box-shadow instead of border avoids sub-pixel rendering artifacts.
+ * Extended to all common containers for complete OLED optimization. */
 .theme-deep-sea .tf-card,
-.theme-deep-sea [class*="Card"] {
+.theme-deep-sea [class*="Card"],
+.theme-deep-sea [class*="Panel"],
+.theme-deep-sea [class*="Dialog"],
+.theme-deep-sea [class*="Toolbar"],
+.theme-deep-sea [class*="Sidebar"] {
   border: none !important;
-  box-shadow: inset 0 0 0 1px var(--tf-bd);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+/* Ensure input fields and controls have minimal borders in deep sea */
+.theme-deep-sea input,
+.theme-deep-sea select,
+.theme-deep-sea textarea,
+.theme-deep-sea button {
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 /* ─── Neon-Amber Alert Tiers (Task 4.9.3.3) ─────────────────── *

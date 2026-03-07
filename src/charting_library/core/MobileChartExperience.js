@@ -153,6 +153,9 @@ export function getResponsiveChartConfig(width) {
       indicatorHeight: 60,
       toolbarPosition: 'bottom',
       compactMode: true,
+      priceAxisWidth: 48,    // P1-A #3: Collapsed from 72px
+      timeAxisHeight: 20,    // P1-A #4: Shrunk from 28px
+      autoHideToolbar: true, // P1-A #2: Auto-hide on small screens
     };
   }
   if (width < 768) {
@@ -166,6 +169,9 @@ export function getResponsiveChartConfig(width) {
       indicatorHeight: 80,
       toolbarPosition: 'bottom',
       compactMode: true,
+      priceAxisWidth: 48,    // P1-A #3: Collapsed from 72px
+      timeAxisHeight: 20,    // P1-A #4: Shrunk from 28px
+      autoHideToolbar: true, // P1-A #2: Auto-hide on small screens
     };
   }
   return {
@@ -178,5 +184,8 @@ export function getResponsiveChartConfig(width) {
     indicatorHeight: 100,
     toolbarPosition: 'top',
     compactMode: false,
+    priceAxisWidth: 72,     // Desktop default
+    timeAxisHeight: 28,     // Desktop default
+    autoHideToolbar: false, // Desktop: always visible
   };
 }

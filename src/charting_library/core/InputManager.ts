@@ -158,6 +158,11 @@ export class InputManager {
   private _lastWheelTime: number = 0;
   private _zoomMomentumActive: boolean = false;
 
+  // P1-A #1: Trackpad sensitivity calibration
+  private _trackpadSensitivity: number = 0.04; // Default reduced from 0.08
+  private _smoothedPinchDelta: number = 0; // Exponential smoothing accumulator
+  private _lastPinchTime: number = 0;
+
   // Scroll-to-now animation state
   private _scrollToNowActive: boolean = false;
 
@@ -861,6 +866,8 @@ export class InputManager {
       S.dragStartPriceScroll = S.priceScroll;
       this.tc.style.cursor = 'grabbing';
       this._setWillChange(); // Sprint 4: GPU compositing hint during pan
+      // P1-A #2: Dispatch pan-start event for auto-hide toolbar
+      window.dispatchEvent(new CustomEvent('charEdge:pan-start'));
       // Task 2.3.30: Capture pointer so crosshair persists when mouse exits chart
       if ('setPointerCapture' in this.tc && (e as PointerEvent).pointerId != null) {
         this.tc.setPointerCapture((e as PointerEvent).pointerId);
@@ -888,6 +895,10 @@ export class InputManager {
     }
 
     if (!wasDrag) return;
+    // P1-A #2: Dispatch pan-end event for auto-hide toolbar
+    if (wasChartDrag) {
+      window.dispatchEvent(new CustomEvent('charEdge:pan-end'));
+    }
     const moved = Math.abs(e.clientX - eng.state.dragStartX);
 
     // Start inertia if we were dragging the chart area and have velocity
@@ -973,13 +984,20 @@ export class InputManager {
     const isDiscreteWheel = e.deltaMode === 1 || (e.deltaMode === 0 && Math.abs(e.deltaY) >= 50);
 
     if (isTrackpadPinch) {
-      // ── Trackpad pinch-zoom: zoom with reduced sensitivity ──
-      const d = Math.sign(e.deltaY);
+      // ── Trackpad pinch-zoom: configurable sensitivity + exponential smoothing ──
+      // P1-A #1: Apply exponential smoothing (α=0.3) to eliminate jitter
+      const now = performance.now();
+      const elapsed = now - this._lastPinchTime;
+      const alpha = elapsed > 100 ? 1.0 : 0.3; // Reset smoothing after 100ms gap
+      this._smoothedPinchDelta = alpha * e.deltaY + (1 - alpha) * this._smoothedPinchDelta;
+      this._lastPinchTime = now;
+
+      const d = Math.sign(this._smoothedPinchDelta);
       const maxBars = Math.max(80, eng.bars.length + 20);
       const currentTarget = this._targetVisibleBars || S.visibleBars;
-      // Reduced sensitivity (0.08 vs 0.15) for trackpad pinch
+      // P1-A #1: Use configurable sensitivity (default 0.04, was hardcoded 0.08)
       // Sprint 5: No Math.round() — keep fractional during animation, snap at settle
-      const newTarget = Math.max(10, Math.min(maxBars, currentTarget * (1 + d * 0.08)));
+      const newTarget = Math.max(10, Math.min(maxBars, currentTarget * (1 + d * this._trackpadSensitivity)));
 
       if (R.cW > 0) {
         const pos = this.getPos(e);
@@ -1119,6 +1137,15 @@ export class InputManager {
   hasActiveAnimations(): boolean {
     return this._inertiaActive || this._zoomActive || this._priceInertiaActive
       || this._zoomMomentumActive || this._scrollToNowActive || this._pinchSpringActive;
+  }
+
+  // ─── P1-A #1: Trackpad Sensitivity Setter ──────────────────
+  /**
+   * Set trackpad pinch-to-zoom sensitivity.
+   * @param value — sensitivity multiplier (0.01–0.15, default 0.04)
+   */
+  setTrackpadSensitivity(value: number): void {
+    this._trackpadSensitivity = Math.max(0.01, Math.min(0.15, value));
   }
 
   // ─── Touch Gesture Support ─────────────────────────────────
