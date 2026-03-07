@@ -1,21 +1,95 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge v11 — Indicator Panel
-// Updated to use Sprint 5 indicator registry.
-// Groups indicators by overlay/pane, supports parameter editing.
+// charEdge v12 — Indicator Panel (Progressive Disclosure)
+//
+// Accordion-based indicator browser with:
+//   - Sticky glassmorphism header (search + AI toggle)
+//   - 4 collapsible categories: Moving Averages, Trend & Channels,
+//     Oscillators & Momentum, Volatility & Volume
+//   - Apple Settings–style active indicator list
+//   - Lucide icons + framer-motion animations
 // ═══════════════════════════════════════════════════════════════════
 
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, X, ChevronDown, Layers, LayoutPanelTop, Trash2, Eye, EyeOff, Sparkles } from 'lucide-react';
 import { useState, useCallback, useMemo } from 'react';
-import { C, F } from '../../../constants.js';
-import { ToggleSwitch } from '../ui/AppleHIG.jsx';
+import { INDICATORS } from '../../../charting_library/studies/indicators/registry.js';
+import { C, F, GLASS } from '../../../constants.js';
 import { useChartStore } from '../../../state/useChartStore.js';
-import {
-  INDICATORS,
-  getOverlayIndicators,
-  getPaneIndicators,
-} from '../../../charting_library/studies/indicators/registry.js';
+import { radii, transition, zIndex } from '../../../theme/tokens.js';
+import { alpha } from '../../../utils/colorUtils.js';
+import { ToggleSwitch, Tooltip } from '../ui/AppleHIG.jsx';
+
+// ─── Category Definitions ────────────────────────────────────────
+const CATEGORIES = [
+  {
+    id: 'moving-averages',
+    label: 'Moving Averages',
+    ids: ['sma', 'ema', 'wma', 'dema', 'tema', 'hma', 'vwma'],
+  },
+  {
+    id: 'trend-channels',
+    label: 'Trend & Channels',
+    ids: [
+      'bb',
+      'vwap',
+      'vrvp',
+      'ichimoku',
+      'keltner',
+      'donchian',
+      'linreg',
+      'supertrend',
+      'psar',
+      'sessionVwap',
+      'anchoredVwap',
+      'liquidationLevels',
+    ],
+  },
+  {
+    id: 'oscillators-momentum',
+    label: 'Oscillators & Momentum',
+    ids: [
+      'rsi',
+      'macd',
+      'stochastic',
+      'cci',
+      'williamsR',
+      'roc',
+      'aroon',
+      'momentum',
+      'ppo',
+      'dpo',
+      'trix',
+      'kst',
+      'coppock',
+      'squeeze',
+      'awesomeOsc',
+      'acceleratorOsc',
+      'chandeMO',
+      'chaikin',
+      'tsi',
+      'vortex',
+      'ultimateOsc',
+      'klinger',
+      'fearGreed',
+      'vwRsi',
+    ],
+  },
+  {
+    id: 'volatility-volume',
+    label: 'Volatility & Volume',
+    ids: ['atr', 'adx', 'mfi', 'obv', 'volumeDelta', 'cmf', 'adLine', 'stdDev', 'historicalVol', 'chaikinVol'],
+  },
+];
+
+// ─── Animation Config ────────────────────────────────────────────
+const accordionMotion = {
+  initial: { height: 0, opacity: 0 },
+  animate: { height: 'auto', opacity: 1, transition: { duration: 0.25, ease: [0.25, 0.1, 0.25, 1] } },
+  exit: { height: 0, opacity: 0, transition: { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] } },
+};
 
 /**
- * IndicatorPanel — Add, remove, and configure indicators.
+ * IndicatorPanel — Progressive Disclosure indicator browser.
  *
  * @param {Object} props
  * @param {boolean} props.isOpen     - Panel visibility
@@ -34,12 +108,15 @@ export default function IndicatorPanel({ isOpen, onClose }) {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [editingIdx, setEditingIdx] = useState(null);
+  const [openSections, setOpenSections] = useState({});
 
-  const overlayDefs = useMemo(() => getOverlayIndicators(), []);
-  const paneDefs = useMemo(() => getPaneIndicators(), []);
+  // Toggle accordion section
+  const toggleSection = useCallback((id) => {
+    setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
+  }, []);
 
-  // Filter by search
-  const filterFn = useCallback(
+  // Filter indicators by search query
+  const matchesSearch = useCallback(
     (def) => {
       if (!searchTerm) return true;
       const q = searchTerm.toLowerCase();
@@ -52,8 +129,25 @@ export default function IndicatorPanel({ isOpen, onClose }) {
     [searchTerm],
   );
 
-  const filteredOverlay = overlayDefs.filter(filterFn);
-  const filteredPane = paneDefs.filter(filterFn);
+  // Build filtered categories
+  const filteredCategories = useMemo(() => {
+    return CATEGORIES.map((cat) => {
+      const defs = cat.ids.map((id) => INDICATORS[id]).filter((def) => def && matchesSearch(def));
+      return { ...cat, defs };
+    }).filter((cat) => cat.defs.length > 0);
+  }, [matchesSearch]);
+
+  // When searching, auto-expand all matching categories
+  const effectiveOpenSections = useMemo(() => {
+    if (!searchTerm) return openSections;
+    const expanded = {};
+    for (const cat of filteredCategories) {
+      expanded[cat.id] = true;
+    }
+    return expanded;
+  }, [searchTerm, openSections, filteredCategories]);
+
+  const totalResults = filteredCategories.reduce((sum, c) => sum + c.defs.length, 0);
 
   // Add indicator with defaults
   const handleAdd = useCallback(
@@ -92,265 +186,246 @@ export default function IndicatorPanel({ isOpen, onClose }) {
         position: 'absolute',
         top: 8,
         right: 8,
-        width: 300,
+        width: 320,
         maxHeight: 'calc(100vh - 80px)',
-        background: C.sf,
-        border: `1px solid ${C.bd}`,
-        borderRadius: 8,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-        zIndex: 1000,
+        background: GLASS.standard,
+        backdropFilter: GLASS.blurLg,
+        WebkitBackdropFilter: GLASS.blurLg,
+        border: GLASS.border,
+        borderRadius: radii.xl,
+        boxShadow: '0 12px 40px rgba(0,0,0,0.35), 0 0 1px rgba(0,0,0,0.08)',
+        zIndex: zIndex.popover,
         display: 'flex',
         flexDirection: 'column',
         fontFamily: F,
         overflow: 'hidden',
       }}
     >
-      {/* Header */}
+      {/* ── Sticky Header ────────────────────────────────────── */}
       <div
         style={{
-          padding: '10px 12px',
-          borderBottom: `1px solid ${C.bd}`,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          position: 'sticky',
+          top: 0,
+          zIndex: 2,
+          background: GLASS.heavy,
+          backdropFilter: GLASS.blurXl,
+          WebkitBackdropFilter: GLASS.blurXl,
+          borderBottom: GLASS.border,
         }}
       >
-        <span style={{ color: C.t1, fontSize: 13, fontWeight: 600 }}>Indicators</span>
-        <button
-          onClick={onClose}
+        {/* Title bar */}
+        <div
           style={{
-            background: 'transparent',
-            border: 'none',
-            color: C.t3,
-            cursor: 'pointer',
-            fontSize: 16,
-            padding: '0 4px',
+            padding: '12px 14px 0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
           }}
         >
-          ✕
-        </button>
+          <span style={{ color: C.t1, fontSize: 14, fontWeight: 650, letterSpacing: '-0.01em' }}>Indicators</span>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: C.t3,
+              cursor: 'pointer',
+              padding: 4,
+              borderRadius: radii.sm,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: `color ${transition.fast}, background ${transition.fast}`,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = alpha(C.t3, 0.12);
+              e.currentTarget.style.color = C.t1;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = C.t3;
+            }}
+          >
+            <X size={15} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        {/* Search bar */}
+        <div style={{ padding: '10px 14px 0' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '7px 10px',
+              background: alpha(C.bg, 0.5),
+              border: `1px solid ${alpha(C.bd, 0.5)}`,
+              borderRadius: radii.md,
+              transition: `border-color ${transition.base}`,
+            }}
+          >
+            <Search size={13} color={C.t3} strokeWidth={2} />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search indicators..."
+              style={{
+                flex: 1,
+                background: 'transparent',
+                border: 'none',
+                color: C.t1,
+                fontSize: 12,
+                outline: 'none',
+                fontFamily: F,
+                padding: 0,
+              }}
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                style={{
+                  background: alpha(C.t3, 0.2),
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: 16,
+                  height: 16,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
+              >
+                <X size={10} color={C.t2} strokeWidth={3} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* AI Toggle */}
+        <div style={{ padding: '10px 14px 12px' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '8px 10px',
+              background: alpha(C.b, intelligence?.enabled ? 0.08 : 0.03),
+              border: `1px solid ${alpha(C.b, intelligence?.enabled ? 0.2 : 0.06)}`,
+              borderRadius: radii.md,
+              transition: `all ${transition.base}`,
+            }}
+          >
+            <Sparkles size={13} color={intelligence?.enabled ? C.b : C.t3} strokeWidth={2} />
+            <span style={{ flex: 1, fontSize: 12, color: C.t1, fontWeight: 500 }}>AI Analysis</span>
+            <ToggleSwitch checked={intelligence?.enabled ?? false} onChange={toggleIntelligenceMaster} size="sm" />
+          </div>
+        </div>
       </div>
 
-      {/* Search */}
-      <div style={{ padding: '8px 12px' }}>
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search indicators..."
-          style={{
-            width: '100%',
-            padding: '6px 10px',
-            background: C.bg2,
-            border: `1px solid ${C.bd}`,
-            borderRadius: 6,
-            color: C.t1,
-            fontSize: 12,
-            outline: 'none',
-            fontFamily: F,
-          }}
-        />
-      </div>
+      {/* ── Scrollable Content ────────────────────────────────── */}
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 0 8px' }}>
+        {/* AI Sub-toggles */}
+        <AnimatePresence>
+          {intelligence?.enabled && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              style={{ overflow: 'hidden' }}
+            >
+              <div style={{ padding: '4px 14px 8px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {[
+                  { key: 'showSR', label: 'Support & Resistance' },
+                  { key: 'showPatterns', label: 'Candlestick Patterns' },
+                  { key: 'showDivergences', label: 'RSI Divergences' },
+                ].map((item) => (
+                  <div
+                    key={item.key}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '6px 10px',
+                      borderRadius: radii.sm,
+                      background: alpha(C.sf2, 0.5),
+                    }}
+                  >
+                    <span style={{ fontSize: 11, color: C.t2 }}>{item.label}</span>
+                    <ToggleSwitch
+                      checked={intelligence[item.key]}
+                      onChange={() => toggleIntelligence(item.key)}
+                      size="sm"
+                    />
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      {/* Scrollable content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 0 8px' }}>
-        {/* Chart Intelligence (AI) */}
-        {(!searchTerm || 'intelligence ai patterns sr divergences'.includes(searchTerm.toLowerCase())) && (
-          <div style={{ marginBottom: 12 }}>
-            <SectionLabel>Chart Intelligence</SectionLabel>
-
-            <div style={{ padding: '4px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {/* Master Toggle */}
-              <ToggleSwitch
-                checked={intelligence?.enabled ?? false}
-                onChange={toggleIntelligenceMaster}
-                label="Enable AI Analysis"
-                size="md"
-              />
-
-              {/* Sub Toggles */}
-              {intelligence?.enabled && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 8 }}>
-                  <ToggleSwitch
-                    checked={intelligence.showSR}
-                    onChange={() => toggleIntelligence('showSR')}
-                    label="Support & Resistance"
-                  />
-                  <ToggleSwitch
-                    checked={intelligence.showPatterns}
-                    onChange={() => toggleIntelligence('showPatterns')}
-                    label="Candlestick Patterns"
-                  />
-                  <ToggleSwitch
-                    checked={intelligence.showDivergences}
-                    onChange={() => toggleIntelligence('showDivergences')}
-                    label="RSI Divergences"
-                  />
-                </div>
-              )}
+        {/* ── Active Indicators ─────────────────────────────── */}
+        {indicators.length > 0 && (
+          <div style={{ marginBottom: 4 }}>
+            <div
+              style={{
+                padding: '8px 14px 4px',
+                fontSize: 10,
+                fontWeight: 650,
+                color: C.t3,
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+              }}
+            >
+              Active · {indicators.length}
+            </div>
+            <div style={{ padding: '0 8px' }}>
+              {indicators.map((ind, idx) => (
+                <ActiveIndicatorRow
+                  key={idx}
+                  ind={ind}
+                  idx={idx}
+                  isEditing={editingIdx === idx}
+                  onToggleEdit={() => setEditingIdx(editingIdx === idx ? null : idx)}
+                  onToggleVisibility={() => toggleVisibility(idx)}
+                  onRemove={() => {
+                    removeIndicator(idx);
+                    if (editingIdx === idx) setEditingIdx(null);
+                  }}
+                  onParamChange={(key, val) => handleParamChange(idx, key, val)}
+                />
+              ))}
             </div>
           </div>
         )}
 
-        {/* Active indicators */}
-        {indicators.length > 0 && (
-          <>
-            <SectionLabel>Active ({indicators.length})</SectionLabel>
-            {indicators.map((ind, idx) => {
-              const id = ind.indicatorId || ind.type;
-              const def = INDICATORS[id];
-              const paramStr = Object.values(ind.params || {}).join(', ');
-              const isEditing = editingIdx === idx;
-
-              return (
-                <div key={idx}>
-                  <div
-                    style={{
-                      padding: '6px 12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                    }}
-                  >
-                    {/* Color dot */}
-                    <div
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        background: ind.color || def?.outputs[0]?.color || C.b,
-                        flexShrink: 0,
-                      }}
-                    />
-
-                    {/* Name + params */}
-                    <button
-                      onClick={() => setEditingIdx(isEditing ? null : idx)}
-                      style={{
-                        flex: 1,
-                        background: 'transparent',
-                        border: 'none',
-                        color: C.t1,
-                        fontSize: 12,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        padding: 0,
-                        fontFamily: F,
-                      }}
-                    >
-                      {def?.shortName || id}
-                      {paramStr && <span style={{ color: C.t3 }}> ({paramStr})</span>}
-                    </button>
-
-                    {/* Visibility toggle */}
-                    <button
-                      onClick={() => toggleVisibility(idx)}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: ind.visible !== false ? C.t2 : C.t3,
-                        cursor: 'pointer',
-                        fontSize: 12,
-                        padding: '0 2px',
-                        opacity: ind.visible !== false ? 1 : 0.4,
-                      }}
-                    >
-                      👁
-                    </button>
-
-                    {/* Remove */}
-                    <button
-                      onClick={() => {
-                        removeIndicator(idx);
-                        if (editingIdx === idx) setEditingIdx(null);
-                      }}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: C.r,
-                        cursor: 'pointer',
-                        fontSize: 11,
-                        padding: '0 2px',
-                      }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-
-                  {/* Parameter editor */}
-                  {isEditing && def && Object.keys(def.params).length > 0 && (
-                    <div
-                      style={{
-                        padding: '4px 12px 8px 28px',
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: 8,
-                      }}
-                    >
-                      {Object.entries(def.params).map(([key, config]) => (
-                        <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                          <label
-                            style={{
-                              fontSize: 10,
-                              color: C.t3,
-                              fontFamily: F,
-                            }}
-                          >
-                            {config.label || key}
-                          </label>
-                          <input
-                            type="number"
-                            value={ind.params?.[key] ?? config.default}
-                            min={config.min}
-                            max={config.max}
-                            step={config.step || 1}
-                            onChange={(e) => handleParamChange(idx, key, e.target.value)}
-                            style={{
-                              width: 60,
-                              padding: '3px 6px',
-                              background: C.bg,
-                              border: `1px solid ${C.bd}`,
-                              borderRadius: 4,
-                              color: C.t1,
-                              fontSize: 11,
-                              fontFamily: F,
-                              outline: 'none',
-                            }}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </>
-        )}
-
-        {/* Available overlays */}
-        {filteredOverlay.length > 0 && (
-          <>
-            <SectionLabel>Overlay</SectionLabel>
-            {filteredOverlay.map((def) => (
-              <IndicatorRow key={def.id} def={def} onAdd={() => handleAdd(def)} />
-            ))}
-          </>
-        )}
-
-        {/* Available pane indicators */}
-        {filteredPane.length > 0 && (
-          <>
-            <SectionLabel>Oscillators & Pane</SectionLabel>
-            {filteredPane.map((def) => (
-              <IndicatorRow key={def.id} def={def} onAdd={() => handleAdd(def)} />
-            ))}
-          </>
-        )}
+        {/* ── Accordion Sections ────────────────────────────── */}
+        {filteredCategories.map((cat) => (
+          <AccordionSection
+            key={cat.id}
+            category={cat}
+            isOpen={effectiveOpenSections[cat.id] ?? false}
+            onToggle={() => toggleSection(cat.id)}
+            onAdd={handleAdd}
+          />
+        ))}
 
         {/* No results */}
-        {filteredOverlay.length === 0 && filteredPane.length === 0 && searchTerm && (
-          <div style={{ padding: '16px 12px', textAlign: 'center', color: C.t3, fontSize: 12 }}>
-            No indicators match "{searchTerm}"
+        {totalResults === 0 && searchTerm && (
+          <div
+            style={{
+              padding: '32px 14px',
+              textAlign: 'center',
+              color: C.t3,
+              fontSize: 12,
+            }}
+          >
+            <Search size={20} color={C.t3} strokeWidth={1.5} style={{ marginBottom: 8, opacity: 0.5 }} />
+            <div>
+              No indicators match "<strong style={{ color: C.t2 }}>{searchTerm}</strong>"
+            </div>
           </div>
         )}
       </div>
@@ -358,28 +433,265 @@ export default function IndicatorPanel({ isOpen, onClose }) {
   );
 }
 
-// ─── Sub-components ──────────────────────────────────────────────
+// ─── Active Indicator Row (Apple Settings Style) ─────────────────
 
-function SectionLabel({ children }) {
+function ActiveIndicatorRow({ ind, idx: _idx, isEditing, onToggleEdit, onToggleVisibility, onRemove, onParamChange }) {
+  const [hovered, setHovered] = useState(false);
+  const id = ind.indicatorId || ind.type;
+  const def = INDICATORS[id];
+  const paramStr = Object.values(ind.params || {}).join(', ');
+
   return (
     <div
       style={{
-        padding: '6px 12px 2px',
-        fontSize: 10,
-        color: C.t3,
-        textTransform: 'uppercase',
-        letterSpacing: 1,
-        fontWeight: 600,
-        borderTop: `1px solid ${C.bd}`,
-        marginTop: 4,
+        marginBottom: 2,
+        borderRadius: radii.md,
+        overflow: 'hidden',
+        background: hovered ? alpha(C.sf2, 0.6) : alpha(C.sf, 0.4),
+        transition: `background ${transition.fast}`,
       }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
-      {children}
+      <div
+        style={{
+          padding: '7px 10px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          minHeight: 36,
+        }}
+      >
+        {/* Color dot */}
+        <div
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            background: ind.color || def?.outputs[0]?.color || C.b,
+            flexShrink: 0,
+            boxShadow: `0 0 6px ${alpha(ind.color || def?.outputs[0]?.color || C.b, 0.4)}`,
+          }}
+        />
+
+        {/* Name + params */}
+        <button
+          onClick={onToggleEdit}
+          style={{
+            flex: 1,
+            background: 'transparent',
+            border: 'none',
+            color: C.t1,
+            fontSize: 12,
+            fontWeight: 500,
+            cursor: 'pointer',
+            textAlign: 'left',
+            padding: 0,
+            fontFamily: F,
+          }}
+        >
+          {def?.shortName || id}
+          {paramStr && <span style={{ color: C.t3, fontWeight: 400 }}> ({paramStr})</span>}
+        </button>
+
+        {/* Mode badge icon */}
+        <Tooltip text={def?.mode === 'overlay' ? 'Overlay indicator' : 'Pane indicator'}>
+          <div style={{ color: C.t3, display: 'flex', alignItems: 'center', opacity: 0.6 }}>
+            {def?.mode === 'overlay' ? (
+              <Layers size={12} strokeWidth={2} />
+            ) : (
+              <LayoutPanelTop size={12} strokeWidth={2} />
+            )}
+          </div>
+        </Tooltip>
+
+        {/* Visibility toggle */}
+        <Tooltip text={ind.visible !== false ? 'Hide indicator' : 'Show indicator'}>
+          <button
+            onClick={onToggleVisibility}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: ind.visible !== false ? C.t2 : C.t3,
+              cursor: 'pointer',
+              padding: 2,
+              display: 'flex',
+              alignItems: 'center',
+              opacity: ind.visible !== false ? 0.8 : 0.4,
+              transition: `opacity ${transition.fast}`,
+              borderRadius: radii.xs,
+            }}
+          >
+            {ind.visible !== false ? <Eye size={13} strokeWidth={2} /> : <EyeOff size={13} strokeWidth={2} />}
+          </button>
+        </Tooltip>
+
+        {/* Delete — only visible on hover */}
+        <Tooltip text="Remove indicator">
+          <button
+            onClick={onRemove}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: C.r,
+              cursor: 'pointer',
+              padding: 2,
+              display: 'flex',
+              alignItems: 'center',
+              opacity: hovered ? 0.8 : 0,
+              transition: `opacity ${transition.fast}`,
+              pointerEvents: hovered ? 'auto' : 'none',
+              borderRadius: radii.xs,
+            }}
+          >
+            <Trash2 size={12} strokeWidth={2} />
+          </button>
+        </Tooltip>
+      </div>
+
+      {/* Parameter editor */}
+      <AnimatePresence>
+        {isEditing && def && Object.keys(def.params).length > 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div
+              style={{
+                padding: '2px 10px 8px 28px',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 8,
+              }}
+            >
+              {Object.entries(def.params).map(([key, config]) => (
+                <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <label
+                    style={{
+                      fontSize: 10,
+                      color: C.t3,
+                      fontFamily: F,
+                      fontWeight: 500,
+                    }}
+                  >
+                    {config.label || key}
+                  </label>
+                  <input
+                    type="number"
+                    value={ind.params?.[key] ?? config.default}
+                    min={config.min}
+                    max={config.max}
+                    step={config.step || 1}
+                    onChange={(e) => onParamChange(key, e.target.value)}
+                    style={{
+                      width: 60,
+                      padding: '4px 6px',
+                      background: alpha(C.bg, 0.5),
+                      border: `1px solid ${alpha(C.bd, 0.5)}`,
+                      borderRadius: radii.sm,
+                      color: C.t1,
+                      fontSize: 11,
+                      fontFamily: F,
+                      outline: 'none',
+                      transition: `border-color ${transition.base}`,
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-function IndicatorRow({ def, onAdd }) {
+// ─── Accordion Section ───────────────────────────────────────────
+
+function AccordionSection({ category, isOpen, onToggle, onAdd }) {
+  return (
+    <div style={{ borderTop: `1px solid ${alpha(C.bd, 0.3)}` }}>
+      {/* Accordion header */}
+      <button
+        onClick={onToggle}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          width: '100%',
+          padding: '10px 14px',
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          fontFamily: F,
+          transition: `background ${transition.fast}`,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = alpha(C.sf2, 0.4);
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent';
+        }}
+      >
+        <motion.div
+          animate={{ rotate: isOpen ? 0 : -90 }}
+          transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+          style={{ display: 'flex', alignItems: 'center', marginRight: 8, color: C.t3 }}
+        >
+          <ChevronDown size={13} strokeWidth={2.5} />
+        </motion.div>
+
+        <span
+          style={{
+            flex: 1,
+            textAlign: 'left',
+            fontSize: 12,
+            fontWeight: 600,
+            color: C.t1,
+            letterSpacing: '-0.01em',
+          }}
+        >
+          {category.label}
+        </span>
+
+        {/* Count badge */}
+        <span
+          style={{
+            fontSize: 10,
+            fontWeight: 600,
+            color: C.t3,
+            background: alpha(C.bd, 0.25),
+            padding: '2px 7px',
+            borderRadius: radii.pill,
+            minWidth: 20,
+            textAlign: 'center',
+          }}
+        >
+          {category.defs.length}
+        </span>
+      </button>
+
+      {/* Accordion body */}
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div {...accordionMotion} style={{ overflow: 'hidden' }}>
+            <div style={{ paddingBottom: 4 }}>
+              {category.defs.map((def) => (
+                <CatalogIndicatorRow key={def.id} def={def} onAdd={() => onAdd(def)} />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── Catalog Indicator Row ───────────────────────────────────────
+
+function CatalogIndicatorRow({ def, onAdd }) {
   const [hovered, setHovered] = useState(false);
   const paramStr = Object.entries(def.params)
     .map(([, config]) => config.default)
@@ -393,19 +705,21 @@ function IndicatorRow({ def, onAdd }) {
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 8,
+        gap: 10,
         width: '100%',
-        padding: '6px 12px',
-        background: hovered ? C.sf2 : 'transparent',
+        padding: '6px 14px 6px 36px',
+        background: hovered ? alpha(C.sf2, 0.5) : 'transparent',
         border: 'none',
         color: C.t1,
         fontSize: 12,
         cursor: 'pointer',
         textAlign: 'left',
         fontFamily: F,
-        transition: 'background 0.1s',
+        transition: `background ${transition.fast}`,
+        minHeight: 32,
       }}
     >
+      {/* Color dot — column-aligned */}
       <div
         style={{
           width: 8,
@@ -415,21 +729,27 @@ function IndicatorRow({ def, onAdd }) {
           flexShrink: 0,
         }}
       />
-      <span style={{ flex: 1 }}>
+
+      {/* Name + default params */}
+      <span style={{ flex: 1, fontWeight: 450 }}>
         {def.name}
-        {paramStr && <span style={{ color: C.t3, fontSize: 11 }}> ({paramStr})</span>}
+        {paramStr && <span style={{ color: C.t3, fontSize: 11, fontWeight: 400 }}> ({paramStr})</span>}
       </span>
-      <span
-        style={{
-          fontSize: 10,
-          color: C.t3,
-          background: C.bg2,
-          padding: '1px 5px',
-          borderRadius: 3,
-        }}
-      >
-        {def.mode === 'overlay' ? 'overlay' : 'pane'}
-      </span>
+
+      {/* Mode icon with tooltip */}
+      <Tooltip text={def.mode === 'overlay' ? 'Overlay — draws on chart' : 'Pane — separate panel'}>
+        <div
+          style={{
+            color: C.t3,
+            opacity: hovered ? 0.8 : 0.4,
+            display: 'flex',
+            alignItems: 'center',
+            transition: `opacity ${transition.fast}`,
+          }}
+        >
+          {def.mode === 'overlay' ? <Layers size={12} strokeWidth={2} /> : <LayoutPanelTop size={12} strokeWidth={2} />}
+        </div>
+      </Tooltip>
     </button>
   );
 }
