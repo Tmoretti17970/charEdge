@@ -192,10 +192,8 @@ export default defineConfig({
           if (id.includes('src/pages/InsightsPage') || id.includes('src/pages/TelemetryDashboard')) {
             return 'analytics';
           }
-          if (id.includes('src/pages/ChartsPage') || id.includes('src/pages/MarketsPage')) {
-            return 'chart-panels';
-          }
-          if (id.includes('src/app/features/chart') || id.includes('src/app/components/chart')) {
+          if (id.includes('src/pages/ChartsPage') || id.includes('src/pages/MarketsPage')
+            || id.includes('src/app/features/chart') || id.includes('src/app/components/chart')) {
             return 'chart-tools';
           }
         },
