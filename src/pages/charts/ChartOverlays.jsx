@@ -111,6 +111,7 @@ export default function ChartOverlays({
 }) {
   const selectedDrawingId = useChartStore((s) => s.selectedDrawingId);
   const showComparisonOverlay = useChartStore((s) => s.showComparisonOverlay);
+  const showDataWindow = useChartStore((s) => s.showDataWindow);
   const backtestPanelOpen = useBacktestStore((s) => s.panelOpen);
   const backtestResultsOpen = useBacktestStore((s) => s.resultsOpen);
   const strategyBuilderOpen = useStrategyBuilderStore((s) => s.panelOpen);
@@ -128,8 +129,8 @@ export default function ChartOverlays({
         </Suspense>
       )}
 
-      {/* Chart Info Window — floating OHLCV data on hover */}
-      {!multiMode && !isMobile && hoverInfo.barIdx >= 0 && (
+      {/* Chart Info Window — floating OHLCV data on hover (opt-in via ≡ menu) */}
+      {showDataWindow && !multiMode && !isMobile && hoverInfo.barIdx >= 0 && (
         <Suspense fallback={null}>
           <ChartInfoWindow
             data={data}

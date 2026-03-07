@@ -218,6 +218,7 @@ export default memo(function ChartSkeleton({ phase = 0, variant = 'chart' }) {
         flexDirection: 'column',
       }}
       role="progressbar"
+      aria-busy="true"
       aria-label="Loading chart data"
     >
       {/* Toolbar skeleton (always shown) */}

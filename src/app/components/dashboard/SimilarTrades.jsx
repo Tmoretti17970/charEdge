@@ -9,6 +9,7 @@
 
 import { useMemo, useState } from 'react';
 import { C, F, M } from '../../../constants.js';
+import { radii } from '../../../theme/tokens.js';
 import { useJournalStore } from '../../../state/useJournalStore.js';
 
 /**
@@ -106,7 +107,7 @@ export default function SimilarTrades({ criteria, compact = false }) {
       <div
         style={{
           padding: '10px 14px',
-          borderRadius: 10,
+          borderRadius: radii.md,
           background: C.sf2,
           border: `1px solid ${C.bd}`,
           display: 'flex',
@@ -134,7 +135,7 @@ export default function SimilarTrades({ criteria, compact = false }) {
   return (
     <div
       style={{
-        borderRadius: 12,
+        borderRadius: radii.md,
         background: C.sf,
         border: `1px solid ${C.bd}`,
         overflow: 'hidden',
@@ -164,7 +165,7 @@ export default function SimilarTrades({ criteria, compact = false }) {
         {/* Aggregate badge */}
         <div style={{
           display: 'flex', gap: 8, alignItems: 'center',
-          padding: '4px 10px', borderRadius: 8,
+          padding: '4px 10px', borderRadius: radii.sm,
           background: pnlColor + '10',
         }}>
           <span style={{ fontSize: 12, fontWeight: 700, fontFamily: M, color: pnlColor }}>
@@ -211,7 +212,7 @@ export default function SimilarTrades({ criteria, compact = false }) {
                 </span>
                 {t.playbook && (
                   <span style={{
-                    fontSize: 9, padding: '1px 6px', borderRadius: 4,
+                    fontSize: 9, padding: '1px 6px', borderRadius: radii.xs,
                     background: C.b + '12', color: C.b,
                   }}>
                     {t.playbook}

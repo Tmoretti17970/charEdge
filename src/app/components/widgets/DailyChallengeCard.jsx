@@ -39,9 +39,9 @@ export default function DailyChallengeCard() {
     <div
       style={{
         background: isComplete
-          ? `linear-gradient(135deg, ${alpha('#34C759', 0.08)}, ${alpha('#34C759', 0.02)})`
+          ? `linear-gradient(135deg, ${alpha(C.g, 0.08)}, ${alpha(C.g, 0.02)})`
           : alpha(C.sf, 0.6),
-        border: `1px solid ${isComplete ? alpha('#34C759', 0.3) : C.bd}`,
+        border: `1px solid ${isComplete ? alpha(C.g, 0.3) : C.bd}`,
         borderRadius: 16,
         padding: '16px 18px',
         position: 'relative',
@@ -58,7 +58,7 @@ export default function DailyChallengeCard() {
             width: 80,
             height: 80,
             borderRadius: '50%',
-            background: alpha('#34C759', 0.1),
+            background: alpha(C.g, 0.1),
             filter: 'blur(20px)',
             pointerEvents: 'none',
           }}
@@ -80,8 +80,8 @@ export default function DailyChallengeCard() {
             fontSize: 10,
             fontWeight: 700,
             fontFamily: M,
-            color: isComplete ? '#34C759' : '#FF9500',
-            background: isComplete ? alpha('#34C759', 0.12) : alpha('#FF9500', 0.12),
+            color: isComplete ? C.g : C.b,
+            background: isComplete ? alpha(C.g, 0.12) : alpha(C.b, 0.12),
             borderRadius: 6,
             padding: '3px 8px',
             whiteSpace: 'nowrap',
@@ -106,10 +106,10 @@ export default function DailyChallengeCard() {
           height: '100%',
           borderRadius: 3,
           background: isComplete
-            ? '#34C759'
-            : `linear-gradient(90deg, #007AFF, #AF52DE)`,
+            ? C.g
+            : `linear-gradient(90deg, ${C.info}, ${C.p})`,
           transition: 'width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
-          boxShadow: isComplete ? '0 0 8px rgba(52, 199, 89, 0.5)' : 'none',
+          boxShadow: isComplete ? `0 0 8px ${alpha(C.g, 0.5)}` : 'none',
         }} />
       </div>
 
@@ -117,7 +117,7 @@ export default function DailyChallengeCard() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ fontSize: 10, fontFamily: M, color: C.t3 }}>
           {isComplete ? (
-            <span style={{ color: '#34C759', fontWeight: 700 }}>✓ Completed!</span>
+            <span style={{ color: C.g, fontWeight: 700 }}>✓ Completed!</span>
           ) : (
             `${challenge.progress}/${challenge.target}`
           )}

@@ -13,10 +13,17 @@
   position: relative;
   z-index: 100;
   overflow: hidden;
+  backdrop-filter: var(--tf-depth-floating-blur);
+  -webkit-backdrop-filter: var(--tf-depth-floating-blur);
 }
 
-.collapsed { align-items: center; }
-.expanded { align-items: stretch; }
+.collapsed {
+  align-items: center;
+}
+
+.expanded {
+  align-items: stretch;
+}
 
 /* ─── Active Indicator Bar ───────────────────────────────────── */
 .activeBar {
@@ -39,14 +46,21 @@
   flex-shrink: 0;
 }
 
-.logoCollapsed { padding: 0; justify-content: center; }
-.logoExpanded { padding: 0 12px; justify-content: flex-start; }
+.logoCollapsed {
+  padding: 0;
+  justify-content: center;
+}
+
+.logoExpanded {
+  padding: 0 12px;
+  justify-content: flex-start;
+}
 
 .logoIcon {
   width: 32px;
   height: 32px;
   min-width: 32px;
-  border-radius: 9px;
+  border-radius: var(--tf-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -68,8 +82,13 @@
   display: flex;
 }
 
-.pnlCollapsed { justify-content: center; }
-.pnlExpanded { justify-content: stretch; }
+.pnlCollapsed {
+  justify-content: center;
+}
+
+.pnlExpanded {
+  justify-content: stretch;
+}
 
 /* ─── Divider ────────────────────────────────────────────────── */
 .divider {
@@ -79,12 +98,28 @@
   transition: width 0.2s ease, margin 0.2s ease;
 }
 
-.dividerExpanded { width: calc(100% - 24px); margin: 6px 12px 8px; }
-.dividerCollapsed { width: 24px; margin: 6px auto 8px; }
+.dividerExpanded {
+  width: calc(100% - 24px);
+  margin: 6px 12px 8px;
+}
+
+.dividerCollapsed {
+  width: 24px;
+  margin: 6px auto 8px;
+}
 
 /* ─── Widget Badges ──────────────────────────────────────────── */
-.xpBadge { flex-shrink: 0; display: flex; justify-content: center; margin-bottom: 2px; }
-.personaBadge { flex-shrink: 0; margin-bottom: 4px; }
+.xpBadge {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+.personaBadge {
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
 
 /* ─── Nav Group ──────────────────────────────────────────────── */
 .navGroup {
@@ -94,8 +129,13 @@
   flex: 1;
 }
 
-.navGroupCollapsed { padding: 0; }
-.navGroupExpanded { padding: 0 8px; }
+.navGroupCollapsed {
+  padding: 0;
+}
+
+.navGroupExpanded {
+  padding: 0 8px;
+}
 
 /* ─── Recent Symbols ─────────────────────────────────────────── */
 .recentDivider {
@@ -147,29 +187,58 @@
   transition: width 0.2s ease;
 }
 
-.bottomDivExpanded { width: 100%; margin: 4px 0 6px; }
-.bottomDivCollapsed { width: 24px; margin: 4px auto 6px; }
+.bottomDivExpanded {
+  width: 100%;
+  margin: 4px 0 6px;
+}
+
+.bottomDivCollapsed {
+  width: 24px;
+  margin: 4px auto 6px;
+}
 
 /* ─── NavButton ──────────────────────────────────────────────── */
 .navBtn {
   height: 40px;
-  border-radius: 10px;
-  border: none;
+  border-radius: var(--tf-radius-sm);
+  border: 1px solid transparent;
   display: flex;
   align-items: center;
   cursor: pointer;
   transition:
     background 0.15s,
     color 0.15s,
+    border-color 0.15s,
     transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
     width 0.2s ease;
   position: relative;
 }
 
-.navBtnCollapsed { width: 40px; justify-content: center; padding: 0; gap: 0; }
-.navBtnExpanded { width: 100%; justify-content: flex-start; gap: 10px; padding: 0 10px; }
+.navBtn:hover {
+  border-color: rgba(255, 255, 255, 0.04);
+}
 
-.navBtnActive { transform: scale(1.02); }
+html.theme-light .navBtn:hover {
+  border-color: rgba(0, 0, 0, 0.04);
+}
+
+.navBtnCollapsed {
+  width: 40px;
+  justify-content: center;
+  padding: 0;
+  gap: 0;
+}
+
+.navBtnExpanded {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 0 10px;
+}
+
+.navBtnActive {
+  transform: scale(1.02);
+}
 
 .navIconWrap {
   flex-shrink: 0;
@@ -203,9 +272,18 @@
 }
 
 /* ─── Footer ─────────────────────────────────────────────────── */
-.footer { flex-shrink: 0; text-align: center; }
-.footerExpanded { padding: 6px 12px 2px; }
-.footerCollapsed { padding: 6px 4px 2px; }
+.footer {
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.footerExpanded {
+  padding: 6px 12px 2px;
+}
+
+.footerCollapsed {
+  padding: 6px 4px 2px;
+}
 
 .footerLink {
   font-size: 10px;

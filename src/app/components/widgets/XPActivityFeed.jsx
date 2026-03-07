@@ -14,18 +14,18 @@ import { alpha } from '../../../utils/colorUtils.js';
 // ─── Source → Icon + Label mapping ─────────────────────────────
 
 const SOURCE_MAP = {
-  trade_logged:   { icon: '📊', label: 'Trade logged' },
-  notes_written:  { icon: '📝', label: 'Notes written' },
+  trade_logged: { icon: '📊', label: 'Trade logged' },
+  notes_written: { icon: '📝', label: 'Notes written' },
   checklist_done: { icon: '✅', label: 'Checklist completed' },
-  daily_debrief:  { icon: '☀️', label: 'Daily debrief' },
+  daily_debrief: { icon: '☀️', label: 'Daily debrief' },
   daily_goal_hit: { icon: '🎯', label: 'Daily goal hit' },
-  weekly_goal_hit:{ icon: '🏆', label: 'Weekly goal hit' },
-  streak_7:       { icon: '🔥', label: '7-day streak!' },
-  streak_30:      { icon: '🔥', label: '30-day streak!' },
-  streak_100:     { icon: '💎', label: '100-day streak!' },
-  chart_shared:   { icon: '📸', label: 'Chart shared' },
-  poll_voted:     { icon: '🗳️', label: 'Poll voted' },
-  trade_graded:   { icon: '📋', label: 'Trade graded' },
+  weekly_goal_hit: { icon: '🏆', label: 'Weekly goal hit' },
+  streak_7: { icon: '🔥', label: '7-day streak!' },
+  streak_30: { icon: '🔥', label: '30-day streak!' },
+  streak_100: { icon: '💎', label: '100-day streak!' },
+  chart_shared: { icon: '📸', label: 'Chart shared' },
+  poll_voted: { icon: '🗳️', label: 'Poll voted' },
+  trade_graded: { icon: '📋', label: 'Trade graded' },
   challenge_done: { icon: '⚡', label: 'Challenge completed' },
 };
 
@@ -167,7 +167,7 @@ export const XPActivityFeed = memo(function XPActivityFeed() {
                   fontSize: 11,
                   fontWeight: 700,
                   fontFamily: M,
-                  color: '#34C759',
+                  color: C.g,
                   flexShrink: 0,
                 }}>
                   +{entry.amount}

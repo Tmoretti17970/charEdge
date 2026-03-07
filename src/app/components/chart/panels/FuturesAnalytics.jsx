@@ -15,7 +15,7 @@ import { futuresDerivedAdapter } from '../../../../data/adapters/FuturesDerivedA
 // ─── Constants ──────────────────────────────────────────────────
 
 const INSTRUMENTS = [
-  { symbol: 'ES', name: 'E-mini S&P 500', color: '#2dd4a0' },
+  { symbol: 'ES', name: 'E-mini S&P 500', color: C.g },
   { symbol: 'NQ', name: 'E-mini Nasdaq', color: '#5c9cf5' },
   { symbol: 'CL', name: 'Crude Oil', color: '#e8642c' },
   { symbol: 'GC', name: 'Gold', color: '#f0b64e' },
@@ -25,7 +25,7 @@ const INSTRUMENTS = [
 
 function SignalBadge({ direction, confidence }) {
   const config = {
-    bullish:  { bg: 'rgba(45,212,160,0.15)', color: '#2dd4a0', icon: '▲', label: 'Bullish' },
+    bullish:  { bg: 'rgba(45,212,160,0.15)', color: C.g, icon: '▲', label: 'Bullish' },
     bearish:  { bg: 'rgba(232,100,44,0.15)',  color: '#e8642c', icon: '▼', label: 'Bearish' },
     neutral:  { bg: 'rgba(255,255,255,0.04)', color: C.t3,      icon: '—', label: 'Neutral' },
   }[direction] || { bg: 'rgba(255,255,255,0.04)', color: C.t3, icon: '—', label: '—' };
@@ -68,7 +68,7 @@ function MetricCell({ label, value, suffix = '', color, small = false }) {
 function VWAPBar({ deviation, aboveVwap }) {
   const clamped = Math.max(-2, Math.min(2, deviation));
   const pct = ((clamped + 2) / 4) * 100;
-  const color = aboveVwap ? '#2dd4a0' : '#e8642c';
+  const color = aboveVwap ? C.g : '#e8642c';
 
   return (
     <div style={{ flex: 1, minWidth: 60 }}>
@@ -99,7 +99,7 @@ function VWAPBar({ deviation, aboveVwap }) {
 }
 
 function DeltaGauge({ delta, direction }) {
-  const color = direction === 'positive' ? '#2dd4a0' : '#e8642c';
+  const color = direction === 'positive' ? C.g : '#e8642c';
   return (
     <MetricCell
       label="Cum. Delta"
@@ -110,7 +110,7 @@ function DeltaGauge({ delta, direction }) {
 }
 
 function RSIGauge({ rsi, zone }) {
-  const color = zone === 'overbought' ? '#e8642c' : zone === 'oversold' ? '#2dd4a0' : C.t1;
+  const color = zone === 'overbought' ? '#e8642c' : zone === 'oversold' ? C.g : C.t1;
   return <MetricCell label="RSI" value={rsi.toFixed(1)} color={color} />;
 }
 
@@ -232,7 +232,7 @@ export default function FuturesAnalytics({ onClose }) {
           </span>
           <div style={{
             width: 6, height: 6, borderRadius: '50%',
-            background: connected ? '#2dd4a0' : '#e8642c',
+            background: connected ? C.g : '#e8642c',
             boxShadow: connected ? '0 0 6px rgba(45,212,160,0.5)' : 'none',
           }} />
           <span style={{ fontSize: 9, color: C.t3, fontFamily: F }}>

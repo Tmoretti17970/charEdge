@@ -12,6 +12,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { BaseAdapter } from './BaseAdapter.js';
+import { logger } from '../../utils/logger';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -120,18 +121,48 @@ export class AlpacaAdapter extends BaseAdapter {
     return `/api/v1/alpaca/${target}/${path}`;
   }
 
-  async _fetch(url, opts = {}) {
+  async _fetch(url, opts = {}, _retryCount = 0) {
+    // Client-side rate limiting: 200ms between requests
+    const now = Date.now();
+    const wait = 200 - (now - (this._lastRequest || 0));
+    if (wait > 0) await new Promise(r => setTimeout(r, wait));
+    this._lastRequest = Date.now();
+
     const resolvedUrl = this._resolveUrl(url);
-    const res = await fetch(resolvedUrl, {
-      ...opts,
-      headers: { ...this._headers(), ...opts.headers },
-    });
-    if (!res.ok) {
+    try {
+      const res = await fetch(resolvedUrl, {
+        ...opts,
+        headers: { ...this._headers(), ...opts.headers },
+      });
+
+      if (res.status === 204) return null; // No content (e.g. DELETE)
+
+      if (res.ok) return res.json();
+
+      // 429 Too Many Requests — backoff and retry once
+      if (res.status === 429 && _retryCount < 1) {
+        logger.data.debug('[Alpaca] Rate limited — retrying in 3s');
+        await new Promise(r => setTimeout(r, 3000));
+        return this._fetch(url, opts, _retryCount + 1);
+      }
+
+      // 429 after retry or 503 Service Unavailable — fail silently
+      if (res.status === 429 || res.status === 503) {
+        logger.data.debug(`[Alpaca] ${res.status} — skipping request`);
+        return null;
+      }
+
+      // Other errors — still throw for real failures (auth, 404, etc.)
       const body = await res.text().catch(() => '');
       throw new Error(`Alpaca ${opts.method || 'GET'} ${url}: ${res.status} ${body}`);
+    } catch (err) {
+      // Network errors — fail silently
+      if (err.name === 'TypeError' || err.message?.includes('fetch')) {
+        logger.data.debug('[Alpaca] Network error:', err.message);
+        return null;
+      }
+      throw err;
     }
-    if (res.status === 204) return null; // No content (e.g. DELETE)
-    return res.json();
   }
 
   // ─── BaseAdapter Interface ──────────────────────────────────

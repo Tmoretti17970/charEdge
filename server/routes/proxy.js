@@ -1,3 +1,5 @@
+/* eslint-env node */
+/* global fetch, AbortSignal, URL, process */
 // @ts-check
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Exchange API Proxy Routes
@@ -156,6 +158,16 @@ export function createProxyRouter() {
                 signal: AbortSignal.timeout(15_000),
             });
 
+            // Absorb 429/503 so the browser doesn't show red "Failed to load resource" errors
+            if (upstream.status === 429) {
+                res.setHeader('Cache-Control', 'no-cache');
+                return res.status(200).json({ ok: false, rateLimited: true, provider, error: 'Upstream rate limited' });
+            }
+            if (upstream.status === 503) {
+                res.setHeader('Cache-Control', 'no-cache');
+                return res.status(200).json({ ok: false, unavailable: true, provider, error: 'Upstream service unavailable' });
+            }
+
             res.setHeader('Cache-Control', `public, max-age=${config.cache}`);
             res.status(upstream.status);
 
@@ -166,7 +178,7 @@ export function createProxyRouter() {
                 res.send(await upstream.text());
             }
         } catch {
-            res.status(502).json({ ok: false, error: 'Upstream proxy error' });
+            res.status(200).json({ ok: false, error: 'Upstream proxy error', provider });
         }
     });
 

@@ -8,6 +8,7 @@
 
 import React, { useMemo } from 'react';
 import { C, M, F } from '../../../constants.js';
+import { radii } from '../../../theme/tokens.js';
 import { useJournalStore } from '../../../state/useJournalStore.js';
 import { useBreakpoints } from '../../../utils/useMediaQuery.js';
 import { fmtD } from '../../../utils.js';
@@ -47,7 +48,7 @@ export default function HeroTradeSpotlight() {
     <div className="tf-container tf-hero-trade"
       style={{
         padding: isMobile ? '14px 16px' : '16px 20px',
-        borderRadius: 10,
+        borderRadius: radii.md,
         background: `linear-gradient(135deg, ${C.g}08, ${C.b}06)`,
         border: `1px solid ${C.g}20`,
         marginBottom: 14,
@@ -79,7 +80,7 @@ export default function HeroTradeSpotlight() {
             fontSize: 9,
             fontWeight: 700,
             padding: '2px 6px',
-            borderRadius: 3,
+            borderRadius: radii.xs,
             background: sideColor + '15',
             color: sideColor,
             fontFamily: M,
@@ -100,7 +101,7 @@ export default function HeroTradeSpotlight() {
         {hero.strategy && (
           <div style={{
             padding: '3px 8px',
-            borderRadius: 4,
+            borderRadius: radii.xs,
             background: C.b + '12',
             border: `1px solid ${C.b}20`,
           }}>

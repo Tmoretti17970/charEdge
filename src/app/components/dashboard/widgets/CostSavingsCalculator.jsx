@@ -7,6 +7,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useMemo } from 'react';
+import { C } from '../../../../constants/theme.js';
 
 // ─── Data ───────────────────────────────────────────────────────
 
@@ -145,7 +146,7 @@ export default function CostSavingsCalculator() {
                         style: { fontSize: '12px', color: 'var(--tf-text-muted, #888)', marginBottom: '4px' },
                     }, `vs ${comp.name}`),
                     React.createElement('div', {
-                        style: { fontSize: '28px', fontWeight: 700, color: '#2dd4a0' },
+                        style: { fontSize: '28px', fontWeight: 700, color: C.g },
                     }, `$${savings.toLocaleString()}`),
                     React.createElement('div', {
                         style: { fontSize: '12px', color: 'var(--tf-text-muted, #888)' },
@@ -168,7 +169,7 @@ export default function CostSavingsCalculator() {
                 style: { fontSize: '14px', color: 'var(--tf-text-muted, #888)', marginBottom: '4px' },
             }, 'Max Annual Savings'),
             React.createElement('div', {
-                style: { fontSize: '48px', fontWeight: 800, color: '#2dd4a0' },
+                style: { fontSize: '48px', fontWeight: 800, color: C.g },
             }, `$${maxSavings.toLocaleString()}`),
             React.createElement('div', {
                 style: { fontSize: '13px', color: 'var(--tf-text-muted, #888)' },

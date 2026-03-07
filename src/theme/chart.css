@@ -17,13 +17,13 @@
     background: var(--tf-glass-2);
     backdrop-filter: var(--tf-blur-lg);
     -webkit-backdrop-filter: var(--tf-blur-lg);
-    border-bottom: var(--tf-glass-border);
-    box-shadow: var(--tf-inner-glow);
+    /* Item 16: stripped triple-depth — blur-only depth cue */
+    border-bottom: none;
     flex-shrink: 0;
     overflow: visible;
     white-space: nowrap;
     position: relative;
-    z-index: 10;
+    z-index: var(--tf-z-sticky);
 }
 
 html.theme-light .tf-chart-toolbar {
@@ -69,7 +69,7 @@ html.theme-light .tf-chart-toolbar {
     background: rgba(232, 100, 44, 0.12);
     color: var(--tf-accent);
     font-weight: 600;
-    box-shadow: inset 0 0 12px rgba(232, 100, 44, 0.06);
+    /* Item 20: removed inner box-shadow glow — color shift only */
 }
 
 html.theme-light .tf-chart-toolbar-btn:hover {
@@ -150,7 +150,7 @@ html.theme-light .tf-capsule-slider {
     box-shadow: var(--tf-shadow-3), var(--tf-inner-glow-strong);
     animation: tfChartDropdownIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
     transform-origin: top center;
-    z-index: 1000;
+    z-index: var(--tf-z-popover);
 }
 
 html.theme-light .tf-chart-dropdown {
@@ -263,11 +263,12 @@ html.theme-light .tf-chart-dropdown-item[data-active='true'] {
     align-items: center;
     gap: 14px;
     padding: 0 14px;
-    height: 32px;
+    height: 26px;
+    /* Item 17: collapsed from 32px — 6px reclaimed for chart */
     background: var(--tf-glass-2);
     backdrop-filter: var(--tf-blur-md);
     -webkit-backdrop-filter: var(--tf-blur-md);
-    border-top: var(--tf-glass-border);
+    /* Item 17: removed border-top decoration for cleaner status bar */
     box-shadow: var(--tf-inner-glow);
     font-family: var(--tf-mono);
     font-size: 11px;
@@ -333,13 +334,13 @@ html.theme-light .tf-chart-status-bar .tf-status-close {
 }
 
 .tf-status-change[data-direction='up'] {
-    color: var(--tf-bullish, #2dd4a0);
-    background: rgba(45, 212, 160, 0.08);
+    color: var(--tf-bullish);
+    background: color-mix(in srgb, var(--tf-bullish) 8%, transparent);
 }
 
 .tf-status-change[data-direction='down'] {
-    color: var(--tf-bearish, #f25c5c);
-    background: rgba(242, 92, 92, 0.08);
+    color: var(--tf-bearish);
+    background: color-mix(in srgb, var(--tf-bearish) 8%, transparent);
 }
 
 .tf-status-change-arrow {
@@ -372,9 +373,9 @@ html.theme-light .tf-chart-status-bar .tf-status-close {
     position: relative;
     flex-shrink: 0;
     user-select: none;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
-    border-radius: 0 0 6px 6px;
-    margin: 0 4px 2px;
+    /* Item 19: flushed minimap to edges — removed margin + inset shadow */
+    border-radius: 0;
+    margin: 0;
     animation: tfMinimapFadeIn 0.3s ease;
 }
 
@@ -441,21 +442,9 @@ html.theme-light .tf-chart-minimap {
     image-rendering: crisp-edges;
 }
 
-.tf-chart-area::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 6px;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.08) 0%, transparent 100%);
-    pointer-events: none;
-    z-index: 2;
-}
+/* Item 18: Removed canopy shadow ::before — was obscuring candles near toolbar */
 
-html.theme-light .tf-chart-area::before {
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.03) 0%, transparent 100%);
-}
+/* html.theme-light .tf-chart-area::before removed */
 
 /* ─── Chart Skeleton Loading Shimmer ────────────────────────── */
 
@@ -538,7 +527,7 @@ html.theme-light .tf-chart-skeleton::after {
     right: 0;
     bottom: 0;
     pointer-events: none;
-    z-index: 5;
+    z-index: var(--tf-z-sticky);
     transition: opacity 0.4s ease;
 }
 
@@ -567,7 +556,7 @@ html.theme-light .tf-chart-skeleton::after {
     border: var(--tf-glass-border);
     border-radius: 12px;
     box-shadow: var(--tf-shadow-2);
-    z-index: 100;
+    z-index: var(--tf-z-sidebar);
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;

@@ -160,10 +160,10 @@ export const text = reactiveStyles({
   captionSm: () => ({ fontSize: 10, fontFamily: M, color: C.t3 }),
 
   // Data display — hero to small hierarchy
-  dataHero: () => ({ fontSize: 32, fontFamily: M, fontWeight: 700, color: C.t1 }),
-  dataLg: () => ({ fontSize: 20, fontFamily: M, fontWeight: 700, color: C.t1 }),
-  dataMd: () => ({ fontSize: 14, fontFamily: M, fontWeight: 600, color: C.t1 }),
-  dataSm: () => ({ fontSize: 12, fontFamily: M, fontWeight: 500, color: C.t2 }),
+  dataHero: () => ({ fontSize: 32, fontFamily: M, fontWeight: 700, color: C.t1, fontVariantNumeric: 'tabular-nums' }),
+  dataLg: () => ({ fontSize: 20, fontFamily: M, fontWeight: 700, color: C.t1, fontVariantNumeric: 'tabular-nums' }),
+  dataMd: () => ({ fontSize: 14, fontFamily: M, fontWeight: 600, color: C.t1, fontVariantNumeric: 'tabular-nums' }),
+  dataSm: () => ({ fontSize: 12, fontFamily: M, fontWeight: 500, color: C.t2, fontVariantNumeric: 'tabular-nums' }),
 
   // Mono / data (legacy compat)
   mono: () => ({ fontSize: 13, fontFamily: M, color: C.t1 }),

@@ -41,8 +41,8 @@ export const WeeklyChallengeCard = memo(function WeeklyChallengeCard() {
           justifyContent: 'space-between',
           alignItems: 'center',
           background: isComplete
-            ? `linear-gradient(135deg, ${alpha('#FFD700', 0.08)}, transparent)`
-            : `linear-gradient(135deg, ${alpha('#AF52DE', 0.06)}, transparent)`,
+            ? `linear-gradient(135deg, ${alpha(C.y, 0.08)}, transparent)`
+            : `linear-gradient(135deg, ${alpha(C.p, 0.06)}, transparent)`,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -63,8 +63,8 @@ export const WeeklyChallengeCard = memo(function WeeklyChallengeCard() {
             fontSize: 10,
             fontWeight: 700,
             fontFamily: M,
-            color: isComplete ? '#34C759' : '#AF52DE',
-            background: isComplete ? alpha('#34C759', 0.12) : alpha('#AF52DE', 0.1),
+            color: isComplete ? C.g : C.p,
+            background: isComplete ? alpha(C.g, 0.12) : alpha(C.p, 0.1),
             padding: '2px 8px',
             borderRadius: 6,
           }}
@@ -95,7 +95,7 @@ export const WeeklyChallengeCard = memo(function WeeklyChallengeCard() {
               borderRadius: 3,
               background: C.bd + '30',
               overflow: 'hidden',
-              border: isComplete ? '1px solid #FFD70040' : 'none',
+              border: isComplete ? `1px solid ${alpha(C.y, 0.25)}` : 'none',
             }}
           >
             <div
@@ -104,8 +104,8 @@ export const WeeklyChallengeCard = memo(function WeeklyChallengeCard() {
                 height: '100%',
                 borderRadius: 3,
                 background: isComplete
-                  ? 'linear-gradient(90deg, #FFD700, #FFA500)'
-                  : 'linear-gradient(90deg, #AF52DE, #DA7FF5)',
+                  ? `linear-gradient(90deg, ${C.y}, ${C.orange})`
+                  : `linear-gradient(90deg, ${C.p}, ${alpha(C.p, 0.7)})`,
                 transition: 'width 0.5s ease',
               }}
             />
@@ -128,7 +128,7 @@ export const WeeklyChallengeCard = memo(function WeeklyChallengeCard() {
               fontSize: 10,
               fontWeight: 700,
               fontFamily: M,
-              color: '#AF52DE',
+              color: C.p,
             }}
           >
             + {challenge.xpReward} XP

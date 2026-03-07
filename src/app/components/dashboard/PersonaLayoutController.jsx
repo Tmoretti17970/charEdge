@@ -14,6 +14,7 @@
 import { useUserStore } from '../../../state/useUserStore.js';
 import React, { useMemo } from 'react';
 import { C, M, F } from '../../../constants.js';
+import { radii } from '../../../theme/tokens.js';
 import { TIERS, TIER_CONFIG } from '../../../state/user/personaSlice.js';
 import { useBreakpoints } from '../../../utils/useMediaQuery.js';
 
@@ -83,7 +84,7 @@ export function PersonaTierBanner() {
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: isMobile ? '6px 12px' : '6px 16px',
-      borderRadius: 6,
+      borderRadius: radii.xs,
       background: config.color + '08',
       border: `1px solid ${config.color}15`,
       marginBottom: 10,

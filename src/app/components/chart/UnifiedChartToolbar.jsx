@@ -16,7 +16,7 @@ import DataSourceBadge from './ui/DataSourceBadge.jsx';
 
 // Extracted sub-components
 import ChartTypeSelector from './toolbar/ChartTypeSelector.jsx';
-import ToolbarMoreMenu from './toolbar/ToolbarMoreMenu.jsx';
+import CommandCenterMenu from './toolbar/CommandCenterMenu.jsx';
 
 // Lazy-load symbol search modal
 const SymbolSearchModal = React.lazy(() => import('./panels/SymbolSearchModal.jsx'));
@@ -271,7 +271,7 @@ export default function UnifiedChartToolbar({
           </Suspense>
         )}
         {/* SETTINGS / MORE MENU — Contains all moved toolbar items */}
-        <ToolbarMoreMenu
+        <CommandCenterMenu
           isMobile={isMobile}
           showTrades={showTrades} setShowTrades={setShowTrades}
           showObjectTree={showObjectTree} setShowObjectTree={setShowObjectTree}

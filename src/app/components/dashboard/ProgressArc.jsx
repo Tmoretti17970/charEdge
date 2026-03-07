@@ -8,6 +8,7 @@
 
 import React, { useMemo } from 'react';
 import { C, M, F } from '../../../constants.js';
+import { radii } from '../../../theme/tokens.js';
 import { useJournalStore } from '../../../state/useJournalStore.js';
 import { useBreakpoints } from '../../../utils/useMediaQuery.js';
 import { fmtD } from '../../../utils.js';
@@ -94,7 +95,7 @@ export default function ProgressArc() {
     <div className="tf-container tf-progress-arc"
       style={{
         padding: isMobile ? '12px 14px' : '14px 18px',
-        borderRadius: 10,
+        borderRadius: radii.md,
         background: C.sf,
         border: `1px solid ${C.bd}`,
         marginBottom: 14,
@@ -116,7 +117,7 @@ export default function ProgressArc() {
               fontSize: 8,
               fontWeight: 800,
               padding: '1px 6px',
-              borderRadius: 100,
+              borderRadius: radii.pill,
               background: C.g + '15',
               color: C.g,
               fontFamily: M,
@@ -137,7 +138,7 @@ export default function ProgressArc() {
         gap: 8,
       }}>
         {metrics.map((m) => (
-          <div key={m.label} style={{ padding: '8px 10px', borderRadius: 6, background: C.bg2 + '60' }}>
+          <div key={m.label} style={{ padding: '8px 10px', borderRadius: radii.xs, background: C.bg2 + '60' }}>
             <div style={{ fontSize: 8, fontWeight: 700, fontFamily: M, color: C.t3, letterSpacing: '0.04em', marginBottom: 4, textTransform: 'uppercase' }}>
               {m.label}
             </div>

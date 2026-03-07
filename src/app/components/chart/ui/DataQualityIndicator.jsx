@@ -16,7 +16,7 @@ function getConfidenceConfig() {
   if (!_confidenceConfig) {
     _confidenceConfig = {
       [CONFIDENCE.HIGH]: {
-        color: '#2dd4a0',
+        color: C.g,
         dots: 3,
         label: 'High',
         tooltip: 'Price confirmed by 3+ sources',

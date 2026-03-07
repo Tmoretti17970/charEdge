@@ -97,8 +97,22 @@ const CSS_VAR_MAP = {
   b: '--tf-accent', bH: '--tf-accent-h',
   g: '--tf-green', r: '--tf-red', y: '--tf-yellow', p: '--tf-purple',
   cyan: '--tf-cyan', orange: '--tf-orange', pink: '--tf-pink', lime: '--tf-lime',
-  info: '--tf-info', bullish: '--tf-green', bearish: '--tf-red',
+  info: '--tf-info', bullish: '--tf-bullish', bearish: '--tf-bearish',
 };
+
+/**
+ * Convert rgb()/rgba() to hex. Keeps hex strings untouched.
+ * This ensures C.g + '18' always produces valid hex alpha like "#05966918".
+ */
+function toHex(color) {
+  if (!color || color.startsWith('#')) return color;
+  const m = color.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+  if (!m) return color;
+  const r = parseInt(m[1], 10);
+  const g = parseInt(m[2], 10);
+  const b = parseInt(m[3], 10);
+  return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+}
 
 /**
  * Active color palette — backed by CSS custom properties.
@@ -119,7 +133,7 @@ export function refreshThemeCache() {
   const cs = getComputedStyle(root);
   for (const [key, cssVar] of Object.entries(CSS_VAR_MAP)) {
     const val = cs.getPropertyValue(cssVar).trim();
-    if (val) C[key] = val;
+    if (val) C[key] = toHex(val);
   }
   // Derived: red with alpha for subtle red backgrounds
   // Use proper rgba parsing — C.r may be rgb() from computed styles
@@ -199,3 +213,46 @@ const DEPTH_LIGHT = {
 };
 
 export const DEPTH = { ...DEPTH_DARK };
+
+// ─── Early Theme Init ────────────────────────────────────────────
+// Detect the current theme BEFORE React renders so C, GLASS, and DEPTH
+// have correct values from the very first component render.
+// This prevents the flash of dark-mode colors in light mode.
+(function earlyThemeInit() {
+  if (typeof document === 'undefined') return;
+  const root = document.documentElement;
+  // Check persisted theme from Zustand store or legacy key
+  const stored = (() => {
+    try {
+      // Primary: new consolidated user store
+      const userRaw = localStorage.getItem('charEdge-user');
+      if (userRaw) {
+        const parsed = JSON.parse(userRaw);
+        const theme = parsed?.state?.theme;
+        if (theme) return theme;
+      }
+      // Fallback: legacy theme store
+      const legacyRaw = localStorage.getItem('charEdge-theme');
+      if (legacyRaw) {
+        const parsed = JSON.parse(legacyRaw);
+        return parsed?.state?.theme || parsed?.theme || null;
+      }
+      return null;
+    } catch (_) { return null; }
+  })();
+  const resolved = stored === 'light' ? 'light'
+    : stored === 'system'
+      ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+      : stored || 'dark';
+
+  if (resolved === 'light') {
+    // Apply theme class so CSS vars are available instantly
+    root.classList.remove('theme-dark', 'theme-deep-sea');
+    root.classList.add('theme-light');
+    // Swap GLASS and DEPTH immediately
+    for (const k of Object.keys(GLASS_LIGHT)) GLASS[k] = GLASS_LIGHT[k];
+    for (const k of Object.keys(DEPTH_LIGHT)) DEPTH[k] = DEPTH_LIGHT[k];
+    // Swap C to light defaults (CSS vars may not be computed yet)
+    Object.assign(C, LIGHT_COLORS);
+  }
+})();

@@ -9,7 +9,7 @@ import { C, F, M } from '../../../constants.js';
 import { alpha } from '../../../utils/colorUtils.js';
 
 const ALERT_TYPES = {
-  price: { icon: '💰', label: 'Price Level', color: '#2dd4a0' },
+  price: { icon: '💰', label: 'Price Level', color: C.g },
   volume: { icon: '📊', label: 'Volume Spike', color: '#818cf8' },
   pattern: { icon: '📐', label: 'Pattern Complete', color: '#f0b64e' },
   earnings: { icon: '📅', label: 'Earnings Event', color: '#38bdf8' },
@@ -19,7 +19,7 @@ const ALERT_TYPES = {
 };
 
 const PRIORITY_META = {
-  critical: { label: 'Critical', color: '#f25c5c', icon: '🔴' },
+  critical: { label: 'Critical', color: C.r, icon: '🔴' },
   important: { label: 'Important', color: '#f0b64e', icon: '🟡' },
   fyi: { label: 'FYI', color: '#4e8bf5', icon: '🔵' },
 };
@@ -59,7 +59,7 @@ export default function SmartAlerts() {
           <span style={{ fontSize: 18 }}>🔔</span>
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>Smart Alerts</h3>
           {criticalCount > 0 && (
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#f25c5c', background: alpha('#f25c5c', 0.1), padding: '2px 7px', borderRadius: 4, fontFamily: M }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: C.r, background: alpha(C.r, 0.1), padding: '2px 7px', borderRadius: 4, fontFamily: M }}>
               {criticalCount} critical
             </span>
           )}

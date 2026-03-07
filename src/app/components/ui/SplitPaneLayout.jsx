@@ -1,10 +1,15 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { C } from '../../../constants.js';
+import { C, M } from '../../../constants.js';
 
 /**
  * SplitPaneLayout
  * Renders a resizable top pane and a bottom pane taking the remaining vertical space.
  * Includes a draggable handle for resizing.
+ *
+ * Props:
+ *   startBottomCollapsed — if true, starts with bottom pane hidden
+ *   bottomCollapsedLabel — label to show on the grab bar when bottom is collapsed
+ *   bottomCollapsedMeta  — secondary text (e.g. "41 trades") on the grab bar
  */
 export default function SplitPaneLayout({
   topPane,
@@ -14,12 +19,36 @@ export default function SplitPaneLayout({
   maxTopHeight = 800,
   collapsible = false,
   snapThreshold = 100,
+  startBottomCollapsed = false,
+  bottomCollapsedLabel = '',
+  bottomCollapsedMeta = '',
 }) {
-  const [topHeight, setTopHeight] = useState(defaultTopHeight);
-  const [isResizing, setIsResizing] = useState(false);
   const containerRef = useRef(null);
+  const [isResizing, setIsResizing] = useState(false);
 
-  const startResizing = useCallback((e) => {
+  // Compute initial top height: if startBottomCollapsed, use container height (set once on mount)
+  const [topHeight, setTopHeight] = useState(() => {
+    if (startBottomCollapsed && typeof window !== 'undefined') {
+      // Start with bottom collapsed — give all space to top
+      return window.innerHeight;
+    }
+    return defaultTopHeight;
+  });
+
+  // Track whether bottom is effectively collapsed
+  const isBottomCollapsed = containerRef.current
+    ? topHeight >= (containerRef.current.getBoundingClientRect().height - 50)
+    : startBottomCollapsed;
+
+  // On mount, if startBottomCollapsed, set topHeight to actual container height
+  useEffect(() => {
+    if (startBottomCollapsed && containerRef.current) {
+      const h = containerRef.current.getBoundingClientRect().height;
+      setTopHeight(h - 36); // leave room for the grab bar
+    }
+  }, [startBottomCollapsed]);
+
+  const startResizingHandler = useCallback((e) => {
     setIsResizing(true);
     e.preventDefault();
   }, []);
@@ -31,13 +60,14 @@ export default function SplitPaneLayout({
   const resize = useCallback(
     (e) => {
       if (isResizing && containerRef.current) {
-        // Calculate new height based on mouse Y relative to the container top
         const containerRect = containerRef.current.getBoundingClientRect();
-        // ClientY represents the mouse position. The new height is roughly the distance from the top of the container to the mouse.
         const newHeight = e.clientY - containerRect.top;
+        const containerH = containerRect.height;
 
-        // Constrain height
-        if (collapsible && newHeight < snapThreshold) {
+        // Snap bottom closed if dragged near bottom
+        if (collapsible && newHeight > containerH - 50) {
+          setTopHeight(containerH - 36);
+        } else if (collapsible && newHeight < snapThreshold) {
           setTopHeight(0);
         } else if (newHeight >= minTopHeight && newHeight <= maxTopHeight) {
           setTopHeight(newHeight);
@@ -68,19 +98,31 @@ export default function SplitPaneLayout({
 
   // Double click resizer to snap open/close
   const handleDoubleClick = () => {
+    if (!containerRef.current) return;
+    const containerH = containerRef.current.getBoundingClientRect().height;
+
     if (collapsible) {
-      if (topHeight > 0) {
-        setTopHeight(0); // Collapse
+      if (topHeight > containerH - 100) {
+        // Bottom is collapsed → expand it
+        setTopHeight(defaultTopHeight);
+      } else if (topHeight > 0) {
+        // Collapse bottom (maximize top)
+        setTopHeight(containerH - 36);
       } else {
-        setTopHeight(defaultTopHeight); // Expand
+        setTopHeight(defaultTopHeight);
       }
     } else {
       if (topHeight > minTopHeight + 50) {
-        setTopHeight(minTopHeight); // Collapse
+        setTopHeight(minTopHeight);
       } else {
-        setTopHeight(defaultTopHeight); // Expand
+        setTopHeight(defaultTopHeight);
       }
     }
+  };
+
+  // Expand bottom pane from collapsed state
+  const expandBottom = () => {
+    setTopHeight(defaultTopHeight);
   };
 
   return (
@@ -110,57 +152,76 @@ export default function SplitPaneLayout({
         {topPane}
       </div>
 
-      {/* Resizer Handle */}
+      {/* Resizer Handle / Grab Bar */}
       <div
-        onMouseDown={startResizing}
+        onMouseDown={startResizingHandler}
         onDoubleClick={handleDoubleClick}
         style={{
-          height: 8,
+          height: isBottomCollapsed ? 36 : 8,
           cursor: 'row-resize',
-          background: isResizing ? C.b + '40' : C.bd + '20',
+          background: isResizing ? C.b + '15' : isBottomCollapsed ? C.sf : C.bd + '20',
           borderTop: `1px solid ${C.bd}`,
-          borderBottom: `1px solid ${C.bd}`,
+          borderBottom: isBottomCollapsed ? 'none' : `1px solid ${C.bd}`,
           zIndex: 10,
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          transition: 'background 0.2s',
+          gap: 8,
+          transition: 'all 0.25s ease',
+          userSelect: 'none',
         }}
         title="Drag to resize, double-click to collapse/expand"
       >
-        {/* Visual grip indicator */}
-        <div
-          style={{
-            width: 32,
-            height: 2,
-            background: isResizing ? C.b : C.t3,
-            borderRadius: 1,
-            transition: 'background 0.2s',
-          }}
-        />
+        {isBottomCollapsed && bottomCollapsedLabel ? (
+          <>
+            {/* Grab pill */}
+            <div style={{
+              width: 32, height: 3, background: C.t3, borderRadius: 2, opacity: 0.4,
+              position: 'absolute', top: 4, left: '50%', transform: 'translateX(-50%)',
+            }} />
+            <button
+              onClick={expandBottom}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '0 12px', color: C.t2, fontFamily: M, fontSize: 11,
+              }}
+            >
+              <span style={{ fontSize: 13 }}>📓</span>
+              <span style={{ fontWeight: 600 }}>{bottomCollapsedLabel}</span>
+              {bottomCollapsedMeta && (
+                <span style={{ color: C.t3, fontSize: 10 }}>· {bottomCollapsedMeta}</span>
+              )}
+              <span style={{ color: C.t3, fontSize: 9, marginLeft: 4 }}>▲ pull up</span>
+            </button>
+          </>
+        ) : (
+          <div
+            style={{
+              width: 32, height: 2,
+              background: isResizing ? C.b : C.t3,
+              borderRadius: 1, transition: 'background 0.2s',
+            }}
+          />
+        )}
       </div>
 
       {/* Bottom Pane */}
       <div
         style={{
-          flex: 1, // Take remaining space
-          minHeight: 0, // CRITICAL for nested flexbox scrolling behavior
-          overflow: 'hidden', // Let children handle their own scrolling
+          flex: isBottomCollapsed ? '0 0 0px' : '1',
+          minHeight: 0,
+          overflow: isBottomCollapsed ? 'hidden' : 'hidden',
           display: 'flex',
           flexDirection: 'column',
+          transition: isResizing ? 'none' : 'flex 0.3s ease',
         }}
       >
-        {/* Overlay to prevent iframe/child pointer events from interfering with drag */}
         {isResizing && (
           <div
             style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 9999,
-              cursor: 'row-resize',
+              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+              zIndex: 9999, cursor: 'row-resize',
             }}
           />
         )}
@@ -169,3 +230,6 @@ export default function SplitPaneLayout({
     </div>
   );
 }
+
+
+

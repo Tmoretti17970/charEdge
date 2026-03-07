@@ -8,6 +8,7 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { C, M, F } from '../../../constants.js';
+import { radii } from '../../../theme/tokens.js';
 import { useGamificationStore } from '../../../state/useGamificationStore.js';
 import { useJournalStore } from '../../../state/useJournalStore.js';
 import { useBreakpoints } from '../../../utils/useMediaQuery.js';
@@ -78,7 +79,7 @@ export default function StreakCelebration() {
   return (
     <div className="tf-container tf-streak-celebration"
       style={{
-        borderRadius: 10,
+        borderRadius: radii.md,
         background: showCelebration
           ? `linear-gradient(135deg, ${currentMs?.color || C.g}15, ${C.b}08)`
           : C.sf,
@@ -124,7 +125,7 @@ export default function StreakCelebration() {
             {isAtRisk && (
               <span style={{
                 fontSize: 8, fontWeight: 800, padding: '1px 6px',
-                borderRadius: 100, background: C.y + '15', color: C.y, fontFamily: M,
+                borderRadius: radii.pill, background: C.y + '15', color: C.y, fontFamily: M,
               }}>
                 ⚠️ AT RISK
               </span>
@@ -132,7 +133,7 @@ export default function StreakCelebration() {
             {showCelebration && currentMs && (
               <span style={{
                 fontSize: 8, fontWeight: 800, padding: '1px 6px',
-                borderRadius: 100, background: currentMs.color + '15',
+                borderRadius: radii.pill, background: currentMs.color + '15',
                 color: currentMs.color, fontFamily: M,
                 animation: 'tf-pulse 1s infinite',
               }}>
@@ -155,7 +156,7 @@ export default function StreakCelebration() {
         }}>
           {/* Trading Streak */}
           <div style={{
-            padding: '8px 10px', borderRadius: 6,
+            padding: '8px 10px', borderRadius: radii.xs,
             background: C.bg2 + '60',
           }}>
             <div style={{
@@ -177,7 +178,7 @@ export default function StreakCelebration() {
 
           {/* Journaling Streak */}
           <div style={{
-            padding: '8px 10px', borderRadius: 6,
+            padding: '8px 10px', borderRadius: radii.xs,
             background: C.bg2 + '60',
           }}>
             <div style={{
@@ -199,7 +200,7 @@ export default function StreakCelebration() {
 
           {/* Profit Streak */}
           <div style={{
-            padding: '8px 10px', borderRadius: 6,
+            padding: '8px 10px', borderRadius: radii.xs,
             background: C.bg2 + '60',
           }}>
             <div style={{
@@ -254,7 +255,7 @@ export default function StreakCelebration() {
           <div style={{
             marginTop: 8,
             padding: '6px 10px',
-            borderRadius: 6,
+            borderRadius: radii.xs,
             background: C.y + '08',
             border: `1px solid ${C.y}15`,
             fontSize: 10,

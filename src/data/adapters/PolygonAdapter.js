@@ -75,15 +75,43 @@ export class PolygonAdapter extends BaseAdapter {
         return url.toString();
     }
 
-    /** @private */
-    async _fetch(path, params = {}) {
+    /** @private — rate-limited fetch with graceful error handling */
+    async _fetch(path, params = {}, _retryCount = 0) {
+        // Client-side rate limiting: 300ms between requests (~200 req/min)
+        const now = Date.now();
+        const wait = 300 - (now - (this._lastRequest || 0));
+        if (wait > 0) await new Promise(r => setTimeout(r, wait));
+        this._lastRequest = Date.now();
+
         const url = this._url(path, params);
-        const res = await fetch(url);
-        if (!res.ok) {
+        try {
+            const res = await fetch(url);
+            if (res.ok) return res.json();
+
+            // 429 Too Many Requests — backoff and retry once
+            if (res.status === 429 && _retryCount < 1) {
+                logger.data.debug('[Polygon] Rate limited — retrying in 3s');
+                await new Promise(r => setTimeout(r, 3000));
+                return this._fetch(path, params, _retryCount + 1);
+            }
+
+            // 429 after retry or 503 Service Unavailable — fail silently
+            if (res.status === 429 || res.status === 503) {
+                logger.data.debug(`[Polygon] ${res.status} — skipping request`);
+                return null;
+            }
+
+            // Other errors — still throw for real failures
             const body = await res.text().catch(() => '');
             throw new Error(`Polygon ${res.status}: ${body}`);
+        } catch (err) {
+            // Network errors — fail silently
+            if (err.name === 'TypeError' || err.message?.includes('fetch')) {
+                logger.data.debug('[Polygon] Network error:', err.message);
+                return null;
+            }
+            throw err;
         }
-        return res.json();
     }
 
     // ─── BaseAdapter Interface ──────────────────────────────────

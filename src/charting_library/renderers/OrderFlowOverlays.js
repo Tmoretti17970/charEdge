@@ -128,7 +128,7 @@ export function renderCVDLine(ctx, cvdData, params) {
 
   ctx.save();
   ctx.globalAlpha = 0.6;
-  ctx.strokeStyle = trend ? (C.g || '#2dd4a0') : (C.r || '#f25c5c');
+  ctx.strokeStyle = trend ? C.g : C.r;
   ctx.lineWidth = 1.5 * pr;
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
@@ -144,7 +144,7 @@ export function renderCVDLine(ctx, cvdData, params) {
 
   // Fill area under line
   ctx.globalAlpha = 0.1;
-  ctx.fillStyle = trend ? (C.g || '#2dd4a0') : (C.r || '#f25c5c');
+  ctx.fillStyle = trend ? C.g : C.r;
   ctx.lineTo(pW, pY + pH);
   ctx.lineTo(0, pY + pH);
   ctx.closePath();
@@ -192,11 +192,11 @@ export function renderVolumeProfile(ctx, vpData, params) {
     const barH = Math.max(2, 4 * pr); // Fixed height per level
 
     // Buy portion (right-aligned)
-    ctx.fillStyle = C.g || '#2dd4a0';
+    ctx.fillStyle = C.g;
     ctx.fillRect(rightEdge - barW, y - barH / 2, buyW, barH);
 
     // Sell portion
-    ctx.fillStyle = C.r || '#f25c5c';
+    ctx.fillStyle = C.r;
     ctx.fillRect(rightEdge - sellW, y - barH / 2, sellW, barH);
   }
 
@@ -271,7 +271,7 @@ export function renderLargeTradeMarkers(ctx, trades, params) {
     const radius = Math.min(Math.max(3, (trade.sigma || 2) * 2), 12) * pr;
 
     const isBuy = trade.side === 'buy';
-    const color = isBuy ? (C.g || '#2dd4a0') : (C.r || '#f25c5c');
+    const color = isBuy ? C.g : C.r;
 
     // Glow
     ctx.globalAlpha = 0.2;

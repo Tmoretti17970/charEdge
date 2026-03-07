@@ -13,10 +13,10 @@ const VIX_CHANGE = -1.2;
 
 const REGIME = VIX_CURRENT < 15 ? 'low' : VIX_CURRENT < 20 ? 'normal' : VIX_CURRENT < 30 ? 'elevated' : 'extreme';
 const REGIME_META = {
-  low: { label: 'Low Vol', color: '#2dd4a0', icon: '🟢', tip: 'Complacency — good for selling premium. Watch for vol expansion.' },
+  low: { label: 'Low Vol', color: C.g, icon: '🟢', tip: 'Complacency — good for selling premium. Watch for vol expansion.' },
   normal: { label: 'Normal', color: '#f0b64e', icon: '🟡', tip: 'Standard conditions. Balanced approach to sizing.' },
   elevated: { label: 'Elevated', color: '#e8642c', icon: '🟠', tip: 'Reduce size. Focus on defined-risk trades.' },
-  extreme: { label: 'Extreme', color: '#f25c5c', icon: '🔴', tip: 'Crisis mode. Small size only. Hedge existing positions.' },
+  extreme: { label: 'Extreme', color: C.r, icon: '🔴', tip: 'Crisis mode. Small size only. Hedge existing positions.' },
 };
 
 // VIX term structure (mock)

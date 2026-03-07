@@ -5,6 +5,8 @@
 // Extracted from useTournamentStore for useGamificationStore composition.
 // ═══════════════════════════════════════════════════════════════════
 
+import { C } from '../../constants/theme.js';
+
 const DAY = 86400000;
 const now = Date.now();
 
@@ -30,7 +32,7 @@ export const MOCK_TOURNAMENTS = [
       { rank: 6, name: 'You', avatar: '🔥', pnl: 1850, trades: 12, winRate: 67 },
     ],
     icon: '💰',
-    color: '#2dd4a0',
+    color: C.g,
   },
   {
     id: 'tourn_2',

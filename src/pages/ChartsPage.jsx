@@ -40,6 +40,7 @@ const QuadChart = React.lazy(() => import('../app/components/widgets/QuadChart.j
 const WorkspaceLayout = React.lazy(() => import('../app/layouts/WorkspaceLoader.jsx'));
 const FocusMode = React.lazy(() => import('../app/components/chart/overlays/FocusMode.jsx'));
 const AICopilotBar = React.lazy(() => import('../app/components/chart/AICopilotBar.jsx'));
+const ActionSidebar = React.lazy(() => import('../app/components/chart/ActionSidebar.jsx'));
 const TradeEntryBar = React.lazy(() => import('../app/components/chart/chart_ui/TradeEntryBar.jsx'));
 const WatchlistQuickBar = React.lazy(() => import('../app/components/chart/ui/WatchlistQuickBar.jsx'));
 const SwipeChartNav = React.lazy(() => import('../app/components/mobile/SwipeChartNav.jsx'));
@@ -173,12 +174,14 @@ function ChartsPageInner({ mountTime }) {
         <Coachmark tipId="charts_try_indicator" targetSel="[aria-label='Indicators'], .tf-chart-toolbar-btn-indicators" title="📊 Add an indicator" message="Try adding SMA, RSI, or MACD to enhance your analysis. Press Ctrl+I anytime." position="bottom" delay={3000} />
       )}
 
-      {/* AI Co-Pilot */}
-      {showCopilot && (
-        <Suspense fallback={null}>
-          <AICopilotBar onCommand={handleAICopilotCommand} onClose={() => setShowCopilot(false)} />
-        </Suspense>
-      )}
+      {/* AI Co-Pilot — Action Sidebar */}
+      <Suspense fallback={null}>
+        <ActionSidebar
+          isOpen={showCopilot}
+          onClose={() => setShowCopilot(false)}
+          activePanel="copilot"
+        />
+      </Suspense>
 
       {/* Data Warning Toast */}
       {!workspaceMode && dataWarning && (

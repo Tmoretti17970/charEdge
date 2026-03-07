@@ -6,29 +6,33 @@
 // but a compact row of frequently used commands.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo } from 'react';
-import { C, M, F } from '../../../constants.js';
+import React from 'react';
+import { C, M } from '../../../constants.js';
+import { radii } from '../../../theme/tokens.js';
 import { useBreakpoints } from '../../../utils/useMediaQuery.js';
+import { useUIStore } from '../../../state/useUIStore.js';
 
 // ─── Command Definitions ─────────────────────────────────────────
 
 const DASH_COMMANDS = [
-  { id: 'journal', emoji: '📝', label: 'Journal', shortcut: 'J', tab: 'journal' },
-  { id: 'chart', emoji: '📈', label: 'Charts', shortcut: 'C', tab: 'chart' },
-  { id: 'analytics', emoji: '📊', label: 'Analytics', shortcut: 'A', tab: 'analytics' },
-  { id: 'community', emoji: '🌐', label: 'Community', shortcut: 'D', tab: 'community' },
-  { id: 'settings', emoji: '⚙️', label: 'Settings', shortcut: ',', tab: 'settings' },
+  { id: 'journal', emoji: '📝', label: 'Journal', shortcut: 'J', page: 'journal' },
+  { id: 'charts', emoji: '📈', label: 'Charts', shortcut: 'C', page: 'charts' },
+  { id: 'analytics', emoji: '📊', label: 'Analytics', shortcut: 'A', page: 'journal' },
+  { id: 'discover', emoji: '🌐', label: 'Community', shortcut: 'D', page: 'discover' },
+  { id: 'settings', emoji: '⚙️', label: 'Settings', shortcut: ',', action: 'settings' },
 ];
 
 export default function DashboardCommands() {
   const { isMobile } = useBreakpoints();
+  const setPage = useUIStore((s) => s.setPage);
+  const toggleSettings = useUIStore((s) => s.toggleSettings);
 
-  const handleNav = (tab) => {
-    // Try to click sidebar nav button with matching data attribute
-    const btn = document.querySelector(`[data-tab="${tab}"], [data-nav="${tab}"]`);
-    if (btn) { btn.click(); return; }
-    // Fallback: dispatch custom event
-    window.dispatchEvent(new CustomEvent('tf-navigate', { detail: { tab } }));
+  const handleNav = (cmd) => {
+    if (cmd.action === 'settings') {
+      toggleSettings();
+    } else if (cmd.page) {
+      setPage(cmd.page);
+    }
   };
 
   if (isMobile) return null; // Desktop only — mobile uses bottom nav
@@ -52,13 +56,13 @@ export default function DashboardCommands() {
         <button
           key={cmd.id}
           className="tf-btn"
-          onClick={() => handleNav(cmd.tab)}
+          onClick={() => handleNav(cmd)}
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 4,
             padding: '4px 8px',
-            borderRadius: 4,
+            borderRadius: radii.xs,
             border: `1px solid ${C.bd}`,
             background: 'transparent',
             color: C.t2,
@@ -68,12 +72,12 @@ export default function DashboardCommands() {
             transition: 'all 0.1s',
           }}
           onMouseEnter={(e) => {
-            e.target.style.borderColor = C.b + '40';
-            e.target.style.background = C.b + '08';
+            e.currentTarget.style.borderColor = C.b + '40';
+            e.currentTarget.style.background = C.b + '08';
           }}
           onMouseLeave={(e) => {
-            e.target.style.borderColor = C.bd;
-            e.target.style.background = 'transparent';
+            e.currentTarget.style.borderColor = C.bd;
+            e.currentTarget.style.background = 'transparent';
           }}
         >
           <span style={{ fontSize: 11 }}>{cmd.emoji}</span>
@@ -95,3 +99,4 @@ export default function DashboardCommands() {
     </div>
   );
 }
+

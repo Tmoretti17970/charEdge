@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import s from './DashboardPanel.module.css';
 import { C, F, M, GLASS, DEPTH } from '../../../constants.js';
-import { text, layout, space, preset } from '../../../theme/tokens.js';
+import { text, layout, space, preset, radii } from '../../../theme/tokens.js';
 import { METRIC_TIPS } from '../../../utils.js';
 import { useUserStore } from '../../../state/useUserStore.js';
 import { StatCard, Card } from '../ui/UIKit.jsx';
@@ -201,7 +201,7 @@ export function BentoMetricCard({ label, value, color, data = [], inverse = fals
                     position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
                     marginBottom: 8, padding: '10px 14px', background: GLASS.standard,
                     backdropFilter: GLASS.blurMd, WebkitBackdropFilter: GLASS.blurMd,
-                    border: GLASS.border, borderRadius: 10, boxShadow: DEPTH[2],
+                    border: GLASS.border, borderRadius: radii.md, boxShadow: DEPTH[2],
                     zIndex: 50, maxWidth: 220, minWidth: 160, pointerEvents: 'none',
                 }}>
                     <div style={{ ...text.caption, fontWeight: 700, color: C.t1, marginBottom: 4 }}>{label}</div>

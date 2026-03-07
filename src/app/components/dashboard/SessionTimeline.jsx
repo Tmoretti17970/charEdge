@@ -8,6 +8,7 @@
 
 import React, { useMemo } from 'react';
 import { C, M, F } from '../../../constants.js';
+import { radii } from '../../../theme/tokens.js';
 import { useJournalStore } from '../../../state/useJournalStore.js';
 import { useBreakpoints } from '../../../utils/useMediaQuery.js';
 
@@ -62,7 +63,7 @@ export default function SessionTimeline() {
     <div className="tf-container tf-session-timeline"
       style={{
         padding: isMobile ? '10px 14px' : '12px 18px',
-        borderRadius: 10,
+        borderRadius: radii.md,
         background: C.sf,
         border: `1px solid ${C.bd}`,
         marginBottom: 14,
@@ -138,7 +139,7 @@ export default function SessionTimeline() {
               top: 8,
               width: 8,
               height: 8,
-              borderRadius: '50%',
+              borderRadius: radii.pill,
               background: (t.pnl || 0) >= 0 ? C.g : C.r,
               border: `2px solid ${C.sf}`,
               transform: 'translate(-4px, 2px)',

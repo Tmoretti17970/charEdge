@@ -9,6 +9,7 @@
 import { useUserStore } from '../../../state/useUserStore.js';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
+import { radii } from '../../../theme/tokens.js';
 import { useJournalStore } from '../../../state/useJournalStore.js';
 import { useBreakpoints } from '../../../utils/useMediaQuery.js';
 import { generateInsights } from './useAIInsights.js';
@@ -82,7 +83,7 @@ export default function AIInsightCard() {
     <div className="tf-container tf-ai-insight-card"
       style={{
         padding: isMobile ? '14px 16px' : '16px 20px',
-        borderRadius: 12,
+        borderRadius: radii.md,
         background: colors.bg(C),
         border: `1px solid ${colors.border(C)}`,
         marginBottom: 16,
@@ -104,7 +105,7 @@ export default function AIInsightCard() {
             alignItems: 'center',
             gap: 4,
             padding: '2px 8px',
-            borderRadius: 100,
+            borderRadius: radii.pill,
             background: colors.iconBg(C),
             border: `1px solid ${colors.accent(C)}30`,
           }}>
@@ -139,7 +140,7 @@ export default function AIInsightCard() {
             fontSize: 14,
             cursor: 'pointer',
             padding: '2px 4px',
-            borderRadius: 4,
+            borderRadius: radii.xs,
             lineHeight: 1,
             opacity: 0.6,
             transition: 'opacity 0.15s',
@@ -209,7 +210,7 @@ export default function AIInsightCard() {
               style={{
                 width: i === activeIdx ? 16 : 6,
                 height: 6,
-                borderRadius: 3,
+                borderRadius: radii.xs,
                 border: 'none',
                 background: i === activeIdx ? colors.accent(C) : C.t3 + '40',
                 cursor: 'pointer',

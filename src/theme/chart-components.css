@@ -12,13 +12,13 @@
   background: var(--tf-glass-2);
   backdrop-filter: var(--tf-blur-lg);
   -webkit-backdrop-filter: var(--tf-blur-lg);
-  border-bottom: var(--tf-glass-border);
-  box-shadow: var(--tf-inner-glow);
+  /* Item 16: stripped triple-depth — blur-only depth cue */
+  border-bottom: none;
   flex-shrink: 0;
   overflow: visible;
   white-space: nowrap;
   position: relative;
-  z-index: 10;
+  z-index: var(--tf-z-sticky);
 }
 
 html.theme-light .tf-chart-toolbar {
@@ -36,7 +36,8 @@ html.theme-light .tf-chart-toolbar {
 
 .tf-chart-toolbar.tf-toolbar-ghost {
   opacity: 0.2;
-  pointer-events: auto; /* Keep interactive so hover restores it */
+  pointer-events: auto;
+  /* Keep interactive so hover restores it */
 }
 
 .tf-chart-toolbar.tf-toolbar-ghost:hover,
@@ -83,7 +84,7 @@ html.theme-light .tf-chart-toolbar {
   background: rgba(232, 100, 44, 0.12);
   color: var(--tf-accent);
   font-weight: 600;
-  box-shadow: inset 0 0 12px rgba(232, 100, 44, 0.06);
+  /* Item 20: removed inner box-shadow glow — color shift only */
 }
 
 html.theme-light .tf-chart-toolbar-btn:hover {
@@ -165,7 +166,7 @@ html.theme-light .tf-capsule-slider {
   box-shadow: var(--tf-shadow-3), var(--tf-inner-glow-strong);
   animation: tfChartDropdownIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
   transform-origin: top center;
-  z-index: 1000;
+  z-index: var(--tf-z-popover);
 }
 
 html.theme-light .tf-chart-dropdown {
@@ -181,9 +182,11 @@ html.theme-light .tf-chart-dropdown {
     opacity: 0;
     transform: scale(0.92) translateY(-6px);
   }
+
   60% {
     transform: scale(1.01) translateY(1px);
   }
+
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
@@ -247,13 +250,11 @@ html.theme-light .tf-chart-dropdown-item[data-active='true'] {
 .tf-chart-dropdown-sep {
   height: 1px;
   margin: 4px 10px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--tf-bd) 30%,
-    var(--tf-bd) 70%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      var(--tf-bd) 30%,
+      var(--tf-bd) 70%,
+      transparent 100%);
 }
 
 /* ─── Soft Divider ───────────────────────────────────────────── */
@@ -263,13 +264,11 @@ html.theme-light .tf-chart-dropdown-item[data-active='true'] {
   height: 18px;
   margin: 0 3px;
   flex-shrink: 0;
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    var(--tf-bd) 30%,
-    var(--tf-bd) 70%,
-    transparent 100%
-  );
+  background: linear-gradient(180deg,
+      transparent 0%,
+      var(--tf-bd) 30%,
+      var(--tf-bd) 70%,
+      transparent 100%);
   opacity: 0.6;
 }
 
@@ -280,11 +279,12 @@ html.theme-light .tf-chart-dropdown-item[data-active='true'] {
   align-items: center;
   gap: 14px;
   padding: 0 14px;
-  height: 32px;
+  height: 26px;
+  /* Item 17: collapsed from 32px — 6px reclaimed for chart */
   background: var(--tf-glass-2);
   backdrop-filter: var(--tf-blur-md);
   -webkit-backdrop-filter: var(--tf-blur-md);
-  border-top: var(--tf-glass-border);
+  /* Item 17: removed border-top decoration for cleaner status bar */
   box-shadow: var(--tf-inner-glow);
   font-family: var(--tf-mono);
   font-size: 11px;
@@ -350,13 +350,13 @@ html.theme-light .tf-chart-status-bar .tf-status-close {
 }
 
 .tf-status-change[data-direction='up'] {
-  color: var(--tf-bullish, #2dd4a0);
-  background: rgba(45, 212, 160, 0.08);
+  color: var(--tf-bullish);
+  background: color-mix(in srgb, var(--tf-bullish) 8%, transparent);
 }
 
 .tf-status-change[data-direction='down'] {
-  color: var(--tf-bearish, #f25c5c);
-  background: rgba(242, 92, 92, 0.08);
+  color: var(--tf-bearish);
+  background: color-mix(in srgb, var(--tf-bearish) 8%, transparent);
 }
 
 .tf-status-change-arrow {
@@ -370,8 +370,15 @@ html.theme-light .tf-chart-status-bar .tf-status-close {
 }
 
 @keyframes tfCountdownPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* ─── Chart Minimap ──────────────────────────────────────────── */
@@ -389,8 +396,15 @@ html.theme-light .tf-chart-status-bar .tf-status-close {
 }
 
 @keyframes tfMinimapFadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 html.theme-light .tf-chart-minimap {
@@ -422,6 +436,7 @@ html.theme-light .tf-chart-minimap {
     transform: translateY(-100%);
     max-height: 0;
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -441,7 +456,8 @@ html.theme-light .tf-chart-minimap {
 /* Canvas containers: hardware-accelerated compositing */
 .tf-chart-area canvas {
   will-change: transform;
-  image-rendering: -webkit-optimize-contrast; /* Crisp on WebKit/Blink */
+  image-rendering: -webkit-optimize-contrast;
+  /* Crisp on WebKit/Blink */
   image-rendering: crisp-edges;
 }
 
@@ -496,15 +512,15 @@ html.theme-light .tf-chart-area::before {
 }
 
 .tf-trade-pill[data-side='long'][data-active='true'] {
-  background: rgba(45, 212, 160, 0.12);
-  border-color: rgba(45, 212, 160, 0.35);
-  color: #2dd4a0;
+  background: color-mix(in srgb, var(--tf-bullish) 12%, transparent);
+  border-color: color-mix(in srgb, var(--tf-bullish) 35%, transparent);
+  color: var(--tf-bullish);
 }
 
 .tf-trade-pill[data-side='short'][data-active='true'] {
-  background: rgba(242, 92, 92, 0.12);
-  border-color: rgba(242, 92, 92, 0.35);
-  color: #f25c5c;
+  background: color-mix(in srgb, var(--tf-bearish) 12%, transparent);
+  border-color: color-mix(in srgb, var(--tf-bearish) 35%, transparent);
+  color: var(--tf-bearish);
 }
 
 .tf-trade-dot {
@@ -625,7 +641,7 @@ html.theme-light .tf-drawing-edit-sep {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 8px;
-  z-index: 950;
+  z-index: var(--tf-z-popover);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -800,25 +816,504 @@ html.theme-light .tf-drawing-edit-actions {
 }
 
 .tf-drawing-edit-delete {
-  color: #EF5350;
+  color: var(--tf-bearish);
 }
 
 .tf-drawing-edit-delete:hover {
-  background: rgba(239, 83, 80, 0.12);
+  background: color-mix(in srgb, var(--tf-bearish) 12%, transparent);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Command Center — Tabbed Glassmorphism Menu
+ * Apple-tier progressive disclosure for chart tools.
+ * ═══════════════════════════════════════════════════════════════ */
+
+.tf-command-center {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  width: 340px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--tf-depth-overlay-bg);
+  backdrop-filter: var(--tf-depth-overlay-blur);
+  -webkit-backdrop-filter: var(--tf-depth-overlay-blur);
+  border: var(--tf-glass-border);
+  border-radius: var(--tf-radius-lg);
+  box-shadow: var(--tf-shadow-4), var(--tf-depth-overlay-specular);
+  animation: tfCommandCenterIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: top right;
+  z-index: var(--tf-z-popover);
+  overflow: hidden;
+}
+
+html.theme-light .tf-command-center {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(190, 195, 208, 0.5);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18), 0 0 0 0.5px rgba(0, 0, 0, 0.04) inset;
+}
+
+@keyframes tfCommandCenterIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(-8px);
+  }
+
+  60% {
+    transform: scale(1.005) translateY(1px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ─── Tab Bar ────────────────────────────────────────────────── */
+
+.tf-command-tabs {
+  display: flex;
+  gap: 1px;
+  padding: 6px 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tf-command-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+html.theme-light .tf-command-tabs {
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+.tf-command-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 10px 9px;
+  border: none;
+  background: transparent;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--tf-radius-sm) var(--tf-radius-sm) 0 0;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+  white-space: nowrap;
+  position: relative;
+}
+
+.tf-command-tab:hover {
+  color: var(--tf-t1);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+html.theme-light .tf-command-tab:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.tf-command-tab[data-active] {
+  color: var(--tf-accent);
+  font-weight: 600;
+  background: rgba(232, 100, 44, 0.06);
+}
+
+html.theme-light .tf-command-tab[data-active] {
+  background: rgba(212, 85, 30, 0.06);
+}
+
+/* Active tab bottom indicator */
+.tf-command-tab[data-active]::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--tf-accent);
+}
+
+.tf-command-tab-icon {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.tf-command-tab-label {
+  font-size: 11px;
+}
+
+/* ─── Tab Content ────────────────────────────────────────────── */
+
+.tf-command-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--tf-bd) transparent;
+  min-height: 120px;
+  max-height: 50vh;
+}
+
+/* ─── Command Item (Unified Row) ─────────────────────────────── */
+
+.tf-command-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-t1);
+  font-family: var(--tf-font);
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.tf-command-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.04);
+}
+
+html.theme-light .tf-command-item:hover {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.04);
+}
+
+.tf-command-item[data-active] {
+  background: rgba(232, 100, 44, 0.06);
+}
+
+.tf-command-item[data-accent] .tf-command-item-label {
+  color: var(--tf-accent);
+  font-weight: 500;
+}
+
+.tf-command-item-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tf-command-item-arrow {
+  font-size: 11px;
+  color: var(--tf-t3);
+  opacity: 0;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  transform: translateX(-3px);
+}
+
+.tf-command-item:hover .tf-command-item-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ─── Toggle Switch ──────────────────────────────────────────── */
+
+.tf-command-toggle {
+  width: 28px;
+  height: 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+  flex-shrink: 0;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+html.theme-light .tf-command-toggle {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.tf-command-toggle[data-on] {
+  background: rgba(232, 100, 44, 0.25);
+  border-color: rgba(232, 100, 44, 0.3);
+}
+
+html.theme-light .tf-command-toggle[data-on] {
+  background: rgba(212, 85, 30, 0.2);
+  border-color: rgba(212, 85, 30, 0.25);
+}
+
+.tf-command-toggle-dot {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--tf-t3);
+  transition:
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 0.15s ease;
+}
+
+.tf-command-toggle[data-on] .tf-command-toggle-dot {
+  transform: translateX(12px);
+  background: var(--tf-accent);
+}
+
+/* ─── Footer (Layout + Settings) ─────────────────────────────── */
+
+.tf-command-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 6px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+html.theme-light .tf-command-footer {
+  border-top-color: rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.015);
+}
+
+.tf-command-footer-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 4px 10px 6px;
+  font-family: var(--tf-font);
+}
+
+.tf-command-footer-sep {
+  height: 1px;
+  margin: 6px 8px;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.06) 30%,
+      rgba(255, 255, 255, 0.06) 70%,
+      transparent 100%);
+}
+
+html.theme-light .tf-command-footer-sep {
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(0, 0, 0, 0.06) 30%,
+      rgba(0, 0, 0, 0.06) 70%,
+      transparent 100%);
+}
+
+/* ─── Layout Picker (Subtle Redesign) ────────────────────────── */
+
+.tf-command-layout-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  padding: 2px 6px 6px;
+}
+
+.tf-command-layout-btn {
+  width: 100%;
+  aspect-ratio: 1.3;
+  padding: 5px;
+  background: transparent;
+  border: 1px solid var(--tf-bd);
+  border-radius: var(--tf-radius-sm);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: stretch;
+  justify-content: center;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.tf-command-layout-btn:hover {
+  border-color: color-mix(in srgb, var(--tf-accent) 60%, transparent);
+}
+
+.tf-command-layout-btn[data-active] {
+  border-color: color-mix(in srgb, var(--tf-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--tf-accent) 10%, transparent);
+}
+
+.tf-command-layout-row {
+  display: flex;
+  gap: 2px;
+  flex: 1;
+}
+
+.tf-command-layout-cell {
+  flex: 1;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.04);
+  transition: background 0.15s ease;
+}
+
+html.theme-light .tf-command-layout-cell {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.tf-command-layout-cell[data-active] {
+  background: color-mix(in srgb, var(--tf-accent) 30%, transparent);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Action Sidebar — iPadOS-style Docking Panel
+ * Slide-out glass pane for AI Copilot & Strategy Builder.
+ * ═══════════════════════════════════════════════════════════════ */
+
+.tf-action-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 360px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  background: var(--tf-depth-floating-bg);
+  backdrop-filter: var(--tf-depth-floating-blur);
+  -webkit-backdrop-filter: var(--tf-depth-floating-blur);
+  border-left: var(--tf-glass-border);
+  box-shadow: var(--tf-shadow-4), var(--tf-depth-floating-specular);
+  z-index: var(--tf-z-sidebar);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+html.theme-light .tf-action-sidebar {
+  background: rgba(255, 255, 255, 0.92);
+  border-left-color: rgba(190, 195, 208, 0.5);
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.08);
+}
+
+/* ─── Header ─────────────────────────────────────────────────── */
+
+.tf-action-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  flex-shrink: 0;
+  min-height: 48px;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+html.theme-light .tf-action-sidebar-header {
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.015);
+}
+
+.tf-action-sidebar-tabs {
+  display: flex;
+  gap: 2px;
+}
+
+.tf-action-sidebar-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--tf-radius-sm);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.tf-action-sidebar-tab:hover {
+  color: var(--tf-t1);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+html.theme-light .tf-action-sidebar-tab:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.tf-action-sidebar-tab[data-active] {
+  color: var(--tf-accent);
+  font-weight: 600;
+  background: rgba(232, 100, 44, 0.08);
+}
+
+html.theme-light .tf-action-sidebar-tab[data-active] {
+  background: rgba(212, 85, 30, 0.08);
+}
+
+.tf-action-sidebar-close {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--tf-radius-xs);
+  border: none;
+  background: transparent;
+  color: var(--tf-t3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tf-action-sidebar-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--tf-t1);
+}
+
+html.theme-light .tf-action-sidebar-close:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* ─── Content ────────────────────────────────────────────────── */
+
+.tf-action-sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--tf-bd) transparent;
 }
 
 /* ─── Reduced Motion Override ────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
+
   .tf-chart-dropdown,
+  .tf-command-center,
   .tf-countdown-urgent,
   .tf-data-warning,
   .tf-drawing-edit {
     animation: none !important;
   }
+
   .tf-chart-toolbar-btn,
   .tf-chart-tf-pill,
   .tf-trade-pill {
+    transition-duration: 0.01ms !important;
+  }
+
+  .tf-action-sidebar {
     transition-duration: 0.01ms !important;
   }
 }
@@ -836,27 +1331,23 @@ html.theme-light .tf-drawing-edit-actions {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.03) 20%,
-    rgba(255, 255, 255, 0.06) 50%,
-    rgba(255, 255, 255, 0.03) 80%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.03) 20%,
+      rgba(255, 255, 255, 0.06) 50%,
+      rgba(255, 255, 255, 0.03) 80%,
+      transparent 100%);
   background-size: 200% 100%;
   animation: shimmer 1.8s ease-in-out infinite;
 }
 
 html.theme-light .tf-chart-skeleton::after {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(0, 0, 0, 0.02) 20%,
-    rgba(0, 0, 0, 0.04) 50%,
-    rgba(0, 0, 0, 0.02) 80%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(0, 0, 0, 0.02) 20%,
+      rgba(0, 0, 0, 0.04) 50%,
+      rgba(0, 0, 0, 0.02) 80%,
+      transparent 100%);
   background-size: 200% 100%;
 }
 
@@ -890,102 +1381,265 @@ html.theme-light .tf-chart-skeleton::after {
  * ═══════════════════════════════════════════════════════════════════ */
 
 .tf-wf-panel {
-  position: absolute; right: 0; top: 40px; bottom: 0;
-  width: 340px; max-width: 40vw;
+  position: absolute;
+  right: 0;
+  top: 40px;
+  bottom: 0;
+  width: 340px;
+  max-width: 40vw;
   background: var(--tf-bg-elevated, #1E222D);
   border-left: 1px solid var(--tf-border, #363A45);
-  display: flex; flex-direction: column;
-  z-index: 50; overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  z-index: var(--tf-z-dropdown);
+  overflow-y: auto;
   font-family: var(--tf-font, system-ui);
 }
+
 .tf-wf-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 14px; border-bottom: 1px solid var(--tf-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--tf-border);
 }
+
 .tf-wf-header__title {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 13px; font-weight: 700; color: var(--tf-t1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--tf-t1);
 }
+
 .tf-wf-header__close {
-  background: none; border: none; color: var(--tf-t3); cursor: pointer;
-  font-size: 14px; padding: 4px; border-radius: 4px;
+  background: none;
+  border: none;
+  color: var(--tf-t3);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  border-radius: 4px;
 }
 
-.tf-wf-tabs { display: flex; gap: 4px; padding: 6px 14px; }
+.tf-wf-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 6px 14px;
+}
+
 .tf-wf-tab {
-  flex: 1; padding: 6px 10px; border: none; border-radius: 8px;
-  font-size: 11px; font-weight: 600; background: rgba(255,255,255,0.04);
-  color: var(--tf-t3); cursor: pointer;
+  flex: 1;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--tf-t3);
+  cursor: pointer;
 }
-.tf-wf-tab--active { background: rgba(232,100,44,0.12); color: var(--tf-accent); }
 
-.tf-wf-empty { padding: 30px 14px; text-align: center; color: var(--tf-t3); font-size: 12px; }
-.tf-wf-content { padding: 8px 14px; }
+.tf-wf-tab--active {
+  background: rgba(232, 100, 44, 0.12);
+  color: var(--tf-accent);
+}
+
+.tf-wf-empty {
+  padding: 30px 14px;
+  text-align: center;
+  color: var(--tf-t3);
+  font-size: 12px;
+}
+
+.tf-wf-content {
+  padding: 8px 14px;
+}
 
 .tf-wf-config {
-  display: flex; align-items: flex-end; gap: 8px; margin-bottom: 12px;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 12px;
 }
-.tf-wf-config-field { display: flex; flex-direction: column; gap: 2px; }
-.tf-wf-config-field label { font-size: 9px; color: var(--tf-t3); font-weight: 600; }
+
+.tf-wf-config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tf-wf-config-field label {
+  font-size: 9px;
+  color: var(--tf-t3);
+  font-weight: 600;
+}
+
 .tf-wf-config-field input {
-  width: 70px; background: rgba(255,255,255,0.04); border: 1px solid var(--tf-border);
-  border-radius: 6px; padding: 5px 8px; color: var(--tf-t1); font-size: 12px;
+  width: 70px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--tf-border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  color: var(--tf-t1);
+  font-size: 12px;
 }
+
 .tf-wf-run-btn {
-  flex: 1; padding: 8px 12px; border: none; border-radius: 8px;
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
   background: linear-gradient(135deg, #E8642C, #D4561E);
-  color: #fff; font-size: 11px; font-weight: 700; cursor: pointer;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
 }
-.tf-wf-run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.tf-wf-results { margin-top: 6px; }
+.tf-wf-run-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
-.tf-wf-score-row { display: flex; gap: 6px; margin-bottom: 10px; }
+.tf-wf-results {
+  margin-top: 6px;
+}
+
+.tf-wf-score-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
 .tf-wf-score {
-  flex: 1; padding: 10px; background: rgba(255,255,255,0.03);
-  border-radius: 10px; text-align: center;
+  flex: 1;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  text-align: center;
 }
-.tf-wf-score--good { border: 1px solid rgba(38,166,154,0.2); }
-.tf-wf-score--bad { border: 1px solid rgba(239,83,80,0.2); }
-.tf-wf-score__value { font-size: 18px; font-weight: 800; color: var(--tf-t1); }
-.tf-wf-score__label { font-size: 9px; color: var(--tf-t3); font-weight: 600; margin-top: 2px; }
+
+.tf-wf-score--good {
+  border: 1px solid rgba(38, 166, 154, 0.2);
+}
+
+.tf-wf-score--bad {
+  border: 1px solid rgba(239, 83, 80, 0.2);
+}
+
+.tf-wf-score__value {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--tf-t1);
+}
+
+.tf-wf-score__label {
+  font-size: 9px;
+  color: var(--tf-t3);
+  font-weight: 600;
+  margin-top: 2px;
+}
 
 .tf-wf-warning {
-  padding: 8px 10px; background: rgba(239,83,80,0.08);
-  border-radius: 6px; font-size: 11px; color: #EF5350; margin-bottom: 8px;
+  padding: 8px 10px;
+  background: rgba(239, 83, 80, 0.08);
+  border-radius: 6px;
+  font-size: 11px;
+  color: #EF5350;
+  margin-bottom: 8px;
 }
 
-.tf-wf-fold-table { border: 1px solid var(--tf-border); border-radius: 8px; overflow: hidden; }
-.tf-wf-fold-header, .tf-wf-fold-row {
-  display: grid; grid-template-columns: 40px 1fr 1fr 60px;
-  font-size: 10px; padding: 4px 8px;
+.tf-wf-fold-table {
+  border: 1px solid var(--tf-border);
+  border-radius: 8px;
+  overflow: hidden;
 }
+
+.tf-wf-fold-header,
+.tf-wf-fold-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 1fr 60px;
+  font-size: 10px;
+  padding: 4px 8px;
+}
+
 .tf-wf-fold-header {
-  background: rgba(255,255,255,0.04); color: var(--tf-t3);
-  font-weight: 700; padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--tf-t3);
+  font-weight: 700;
+  padding: 6px 8px;
 }
-.tf-wf-fold-row { color: var(--tf-t2); border-top: 1px solid rgba(255,255,255,0.03); }
 
-.tf-wf-mc-section { margin-bottom: 12px; }
-.tf-wf-mc-title { font-size: 11px; font-weight: 700; color: var(--tf-t1); margin-bottom: 6px; }
-.tf-wf-mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-.tf-wf-mc-stat {
-  display: flex; justify-content: space-between; padding: 4px 8px;
-  background: rgba(255,255,255,0.03); border-radius: 4px;
+.tf-wf-fold-row {
+  color: var(--tf-t2);
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
 }
-.tf-wf-mc-stat__label { font-size: 10px; color: var(--tf-t3); }
-.tf-wf-mc-stat__value { font-size: 10px; font-weight: 700; color: var(--tf-t1); font-family: 'SF Mono', monospace; }
-.tf-wf-mc-prob { font-size: 11px; color: var(--tf-t2); margin-top: 6px; text-align: center; }
+
+.tf-wf-mc-section {
+  margin-bottom: 12px;
+}
+
+.tf-wf-mc-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tf-t1);
+  margin-bottom: 6px;
+}
+
+.tf-wf-mc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.tf-wf-mc-stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+
+.tf-wf-mc-stat__label {
+  font-size: 10px;
+  color: var(--tf-t3);
+}
+
+.tf-wf-mc-stat__value {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--tf-t1);
+  font-family: 'SF Mono', monospace;
+}
+
+.tf-wf-mc-prob {
+  font-size: 11px;
+  color: var(--tf-t2);
+  margin-top: 6px;
+  text-align: center;
+}
 
 .tf-wf-mc-histogram {
-  display: flex; gap: 1px; height: 50px; align-items: flex-end;
+  display: flex;
+  gap: 1px;
+  height: 50px;
+  align-items: flex-end;
 }
+
 .tf-wf-mc-bar-container {
-  flex: 1; display: flex; align-items: flex-end; height: 100%;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
 }
+
 .tf-wf-mc-bar {
-  width: 100%; border-radius: 1px 1px 0 0;
-  min-height: 1px; opacity: 0.6;
+  width: 100%;
+  border-radius: 1px 1px 0 0;
+  min-height: 1px;
+  opacity: 0.6;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -994,7 +1648,8 @@ html.theme-light .tf-chart-skeleton::after {
 
 .tf-drawing-sidebar {
   position: absolute;
-  top: 44px; /* below toolbar */
+  top: 44px;
+  /* below toolbar */
   left: 0;
   bottom: 0;
   width: 44px;
@@ -1128,6 +1783,7 @@ html.theme-light .tf-drawing-sidebar-btn[data-active] {
     opacity: 0;
     transform: scale(0.9) translateY(-4px);
   }
+
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
@@ -1160,7 +1816,7 @@ html.theme-light .tf-drawing-sidebar-sep {
 /* Tooltip */
 .tf-draw-sidebar-tooltip {
   position: fixed;
-  z-index: 10000;
+  z-index: var(--tf-z-max);
   background: var(--tf-glass-3);
   backdrop-filter: var(--tf-blur-md);
   -webkit-backdrop-filter: var(--tf-blur-md);
@@ -1213,7 +1869,7 @@ html.theme-light .tf-draw-sidebar-tooltip-key {
   opacity: 0;
 }
 
-.tf-chart-hud > * {
+.tf-chart-hud>* {
   pointer-events: auto;
 }
 
@@ -1236,7 +1892,7 @@ html.theme-light .tf-draw-sidebar-tooltip-key {
   border: var(--tf-glass-border);
   border-radius: 12px;
   box-shadow: var(--tf-shadow-2);
-  z-index: 100;
+  z-index: var(--tf-z-sidebar);
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
@@ -1288,6 +1944,7 @@ html.theme-light .tf-draw-sidebar-tooltip-key {
 .tf-toolbar-slide::-webkit-scrollbar {
   width: 4px;
 }
+
 .tf-toolbar-slide::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.08);
   border-radius: 2px;
@@ -1311,13 +1968,27 @@ html.theme-light .tf-draw-sidebar-tooltip-key {
 }
 
 @keyframes tfSkelPulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.7; }
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
 }
 
 @keyframes tfSkelFadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1356,14 +2027,12 @@ html.theme-light .tf-toolbar-btn[data-active='true'] {
 
 /* Skeleton shimmer — lighter gradient for light mode */
 html.theme-light .tf-skeleton::after {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(0, 0, 0, 0.03) 40%,
-    rgba(0, 0, 0, 0.06) 50%,
-    rgba(0, 0, 0, 0.03) 60%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(0, 0, 0, 0.03) 40%,
+      rgba(0, 0, 0, 0.06) 50%,
+      rgba(0, 0, 0, 0.03) 60%,
+      transparent 100%);
 }
 
 /* Input focus — softer glow on light backgrounds */

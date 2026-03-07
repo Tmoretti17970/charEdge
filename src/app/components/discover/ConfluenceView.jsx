@@ -26,7 +26,7 @@ function genSignals(symbol) {
 
 const SYMBOLS = ['NVDA', 'META', 'AAPL', 'MSFT', 'GOOGL', 'TSLA', 'AMZN', 'AMD', 'SPY', 'QQQ', 'BTC', 'ETH'];
 
-const SIGNAL_COLORS = { bull: '#2dd4a0', bear: '#f25c5c', neutral: '#f0b64e' };
+const SIGNAL_COLORS = { bull: C.g, bear: C.r, neutral: '#f0b64e' };
 const SIGNAL_ICONS = { bull: '▲', bear: '▼', neutral: '—' };
 
 export default function ConfluenceView() {

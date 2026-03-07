@@ -1,5 +1,8 @@
 /* ═══════════════════════════════════════════════════════════════════
- * charEdge — Skeleton Loading Shimmer
+ * charEdge — Skeleton Loading Shimmer (Unified)
+ *
+ * Single skeleton system: .tf-skeleton for all loading states.
+ * Features: 200ms deferred display, crossfade reveal, a11y support.
  * ═══════════════════════════════════════════════════════════════════ */
 
 .tf-skeleton {
@@ -29,5 +32,105 @@
 
     100% {
         transform: translateX(100%);
+    }
+}
+
+/* ─── Deferred Skeleton (Audit Item 8) ─────────────────────────
+ * Don't show skeleton if content loads in <200ms.
+ * Prevents flash-of-skeleton on fast API responses.
+ * Usage: add .tf-skeleton-deferred alongside .tf-skeleton
+ * ────────────────────────────────────────────────────────────── */
+.tf-skeleton-deferred {
+    animation: tfSkeletonDeferredShow 0s 200ms forwards;
+    opacity: 0;
+}
+
+@keyframes tfSkeletonDeferredShow {
+    to {
+        opacity: 1;
+    }
+}
+
+/* ─── Skeleton → Content Crossfade (Audit Item 9) ──────────────
+ * Apply .tf-skeleton-reveal to the content container when
+ * it replaces the skeleton. Blurs out and fades in.
+ * ────────────────────────────────────────────────────────────── */
+.tf-skeleton-reveal {
+    animation: tfSkeletonReveal 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tfSkeletonReveal {
+    0% {
+        opacity: 0;
+        filter: blur(4px);
+        transform: scale(0.98);
+    }
+
+    100% {
+        opacity: 1;
+        filter: blur(0);
+        transform: scale(1);
+    }
+}
+
+/* ─── Accessibility (Audit Item 11) ────────────────────────────
+ * Containers with aria-busy="true" get reduced-motion shimmer.
+ * ────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    .tf-skeleton::after {
+        animation: none;
+    }
+
+    .tf-skeleton-reveal {
+        animation: none;
+    }
+
+    .tf-skeleton-deferred {
+        animation: none;
+        opacity: 1;
+    }
+}
+
+/* ─── ConnectionPulse Animation (Item 12) ──────────────────────
+ * Expanding ring pulse for the "Live" state indicator dot.
+ * ────────────────────────────────────────────────────────────── */
+@keyframes tfConnectionPulse {
+    0% {
+        box-shadow: 0 0 0 0 currentColor;
+    }
+
+    70% {
+        box-shadow: 0 0 0 4px transparent;
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 transparent;
+    }
+}
+
+/* ─── Radial Picker Animations (Item 21) ───────────────────────
+ * Entrance animations for TimeframeRadialPicker.
+ * ────────────────────────────────────────────────────────────── */
+@keyframes tfRadialIn {
+    from {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes tfRadialItemIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.3);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
     }
 }

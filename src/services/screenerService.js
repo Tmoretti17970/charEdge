@@ -6,6 +6,8 @@
 // Designed for future API integration.
 // ═══════════════════════════════════════════════════════════════════
 
+import { C } from '../constants/theme.js';
+
 // ─── Mock Asset Universe ────────────────────────────────────────
 
 const ASSET_UNIVERSE = [
@@ -39,7 +41,7 @@ export const SCAN_PRESETS = [
     label: 'Breakout Candidates',
     icon: '📈',
     description: 'Volume surge + testing resistance',
-    color: '#2dd4a0',
+    color: C.g,
     filter: (item) => item.change > 2 && item.volume > item.avgVolume * 1.3 && item.rsi > 55,
   },
   {
@@ -140,10 +142,10 @@ export async function fetchScreenerResults({
 }
 
 function getSignal(item) {
-  if (item.rsi > 70 && item.change > 3) return { label: 'Overbought', color: '#f25c5c', strength: 'strong' };
+  if (item.rsi > 70 && item.change > 3) return { label: 'Overbought', color: C.r, strength: 'strong' };
   if (item.rsi < 30) return { label: 'Oversold', color: '#f0b64e', strength: 'strong' };
-  if (item.change > 3 && item.volume > item.avgVolume * 1.5) return { label: 'Breakout', color: '#2dd4a0', strength: 'strong' };
-  if (item.price > item.ma20 && item.rsi > 55) return { label: 'Bullish', color: '#2dd4a0', strength: 'moderate' };
-  if (item.price < item.ma20 && item.rsi < 45) return { label: 'Bearish', color: '#f25c5c', strength: 'moderate' };
+  if (item.change > 3 && item.volume > item.avgVolume * 1.5) return { label: 'Breakout', color: C.g, strength: 'strong' };
+  if (item.price > item.ma20 && item.rsi > 55) return { label: 'Bullish', color: C.g, strength: 'moderate' };
+  if (item.price < item.ma20 && item.rsi < 45) return { label: 'Bearish', color: C.r, strength: 'moderate' };
   return { label: 'Neutral', color: '#8b8fa2', strength: 'weak' };
 }

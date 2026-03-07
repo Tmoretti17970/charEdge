@@ -398,9 +398,9 @@ function formatEarningsDate(dateStr) {
 }
 
 function getHeatColor(count) {
-  if (count >= 4) return '#f25c5c';
+  if (count >= 4) return C.r;
   if (count >= 2) return '#f0b64e';
-  return '#2dd4a0';
+  return C.g;
 }
 
 export { EarningsIntelligence };

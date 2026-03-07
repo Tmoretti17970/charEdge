@@ -78,13 +78,17 @@ export default function JournalLogbook({
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
         const available = window.innerHeight - rect.top - 24;
-        setContainerH(Math.max(300, available));
+        // Cap to content height so we don't leave huge empty space
+        const rowH = isTablet ? 54 : 44;
+        const headerH = isTablet ? 0 : 40;
+        const contentH = headerH + filteredTrades.length * rowH + 8;
+        setContainerH(Math.max(200, Math.min(available, contentH)));
       }
     };
     measure();
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
-  }, []);
+  }, [filteredTrades.length, isTablet]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, padding: 16 }}>

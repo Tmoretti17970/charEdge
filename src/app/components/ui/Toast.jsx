@@ -14,6 +14,10 @@ import { notificationLog } from '../../../state/useNotificationLog.js';
 // ─── Toast Store ────────────────────────────────────────────────
 
 let _toastId = 0;
+// Suppress non-critical toasts during startup to avoid notification flood
+const _bootTime = Date.now();
+const STARTUP_GRACE_MS = 3000;
+function _isStartup() { return Date.now() - _bootTime < STARTUP_GRACE_MS; }
 
 const useToastStore = create((set) => ({
   toasts: [],
@@ -38,6 +42,7 @@ function _log(type, message, category) {
 export const toast = {
   success: (message, duration = 3000) => {
     _log('success', message);
+    if (_isStartup()) return; // suppress during boot
     return useToastStore.getState().add({ type: 'success', message, duration });
   },
   error: (message, duration = 5000) => {
@@ -46,10 +51,12 @@ export const toast = {
   },
   warning: (message, duration = 4000) => {
     _log('warning', message);
+    if (_isStartup()) return; // suppress during boot
     return useToastStore.getState().add({ type: 'warning', message, duration });
   },
   info: (message, duration = 3000) => {
     _log('info', message);
+    if (_isStartup()) return; // suppress during boot
     return useToastStore.getState().add({ type: 'info', message, duration });
   },
   /**

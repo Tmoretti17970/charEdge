@@ -55,6 +55,10 @@ export const createFeaturesSlice = (set) => ({
   showStatusBar: true,
   toggleStatusBar: () => set((s) => ({ showStatusBar: !s.showStatusBar })),
 
+  // Data Window (OHLCV overlay on hover) — off by default
+  showDataWindow: false,
+  toggleDataWindow: () => set((s) => ({ showDataWindow: !s.showDataWindow })),
+
   // Depth Chart (Webull-style)
   showDepthChart: false,
   toggleDepthChart: () => set((s) => ({ showDepthChart: !s.showDepthChart })),

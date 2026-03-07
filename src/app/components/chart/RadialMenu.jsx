@@ -30,7 +30,7 @@ const SEGMENTS = [
         <polyline points="11,5 14,5 14,8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
       </svg>
     ),
-    color: '#2dd4a0',
+    color: C.g,
   },
   {
     id: 'alert',

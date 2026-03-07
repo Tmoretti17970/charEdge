@@ -73,8 +73,8 @@ function RoomCard({ room, onJoin }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div className="tf-live-dot" style={{
             width: 7, height: 7, borderRadius: '50%',
-            background: '#2dd4a0',
-            boxShadow: '0 0 6px #2dd4a0',
+            background: C.g,
+            boxShadow: `0 0 6px ${C.g}`,
           }} />
           <span style={{ fontSize: 11, fontWeight: 700, color: C.g, fontFamily: M }}>
             {onlineCount} online

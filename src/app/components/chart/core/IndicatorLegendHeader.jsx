@@ -249,7 +249,7 @@ export default function IndicatorLegendHeader({ data, hoverIdx, onEditIndicator 
 // ─── Sprint 11: Inline Quick-Edit Sub-component ─────────────────
 
 const COLOR_SWATCHES = [
-  '#22d3ee', '#2dd4a0', '#f59e0b', '#ef4444', '#a855f7',
+  '#22d3ee', C.g, '#f59e0b', '#ef4444', '#a855f7',
   '#f472b6', '#6366f1', '#e8642c', '#a3e635', '#ffffff',
 ];
 

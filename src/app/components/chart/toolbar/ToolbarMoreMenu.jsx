@@ -47,6 +47,8 @@ export default function ToolbarMoreMenu({
   const toggleDOM = useChartStore((s) => s.toggleDOM);
   const showMinimap = useChartStore((s) => s.showMinimap);
   const toggleMinimap = useChartStore((s) => s.toggleMinimap);
+  const showDataWindow = useChartStore((s) => s.showDataWindow);
+  const toggleDataWindow = useChartStore((s) => s.toggleDataWindow);
   const showStatusBar = useChartStore((s) => s.showStatusBar);
   const toggleStatusBar = useChartStore((s) => s.toggleStatusBar);
   const showDepthChart = useChartStore((s) => s.showDepthChart);
@@ -195,6 +197,9 @@ export default function ToolbarMoreMenu({
           </MenuItem>
           <MenuItem onClick={() => { toggleStatusBar(); setMoreMenuOpen(false); }}>
             {showStatusBar ? '📊 Hide Status Bar' : '📊 Status Bar'}
+          </MenuItem>
+          <MenuItem onClick={() => { toggleDataWindow(); setMoreMenuOpen(false); }}>
+            {showDataWindow ? '📋 Hide Data Window' : '📋 Data Window'}
           </MenuItem>
           <MenuItem onClick={() => { onOpenPanel('orderflow'); setMoreMenuOpen(false); }}>⚡ Order Flow</MenuItem>
           <MenuItem onClick={() => { onOpenPanel('derivatives'); setMoreMenuOpen(false); }}>📊 Derivatives</MenuItem>

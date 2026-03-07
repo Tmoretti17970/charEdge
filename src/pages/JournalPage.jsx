@@ -233,9 +233,12 @@ export default function JournalPage() {
           }
           defaultTopHeight={typeof window !== 'undefined' ? window.innerHeight * 0.45 : 400}
           minTopHeight={60}
-          maxTopHeight={typeof window !== 'undefined' ? window.innerHeight * 0.8 : 800}
+          maxTopHeight={typeof window !== 'undefined' ? window.innerHeight * 0.85 : 800}
           collapsible={true}
           snapThreshold={120}
+          startBottomCollapsed={true}
+          bottomCollapsedLabel="Logbook"
+          bottomCollapsedMeta={`${trades.length} trade${trades.length !== 1 ? 's' : ''}`}
         />
       </div>
 

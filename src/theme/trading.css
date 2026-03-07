@@ -42,15 +42,15 @@
 }
 
 .tf-trade-pill[data-side='long'][data-active='true'] {
-    background: rgba(45, 212, 160, 0.12);
-    border-color: rgba(45, 212, 160, 0.35);
-    color: #2dd4a0;
+    background: color-mix(in srgb, var(--tf-bullish) 12%, transparent);
+    border-color: color-mix(in srgb, var(--tf-bullish) 35%, transparent);
+    color: var(--tf-bullish);
 }
 
 .tf-trade-pill[data-side='short'][data-active='true'] {
-    background: rgba(242, 92, 92, 0.12);
-    border-color: rgba(242, 92, 92, 0.35);
-    color: #f25c5c;
+    background: color-mix(in srgb, var(--tf-bearish) 12%, transparent);
+    border-color: color-mix(in srgb, var(--tf-bearish) 35%, transparent);
+    color: var(--tf-bearish);
 }
 
 .tf-trade-dot {
@@ -70,7 +70,7 @@ html.theme-light .tf-trade-pill:hover {
     position: absolute;
     top: 52px;
     right: 12px;
-    z-index: 40;
+    z-index: var(--tf-z-dropdown);
     animation: tfFadeScale 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -92,9 +92,9 @@ html.theme-light .tf-trade-pill:hover {
 }
 
 .tf-risk-pill--safe {
-    background: rgba(38, 166, 154, 0.12);
-    color: #26A69A;
-    border-color: rgba(38, 166, 154, 0.2);
+    background: color-mix(in srgb, var(--tf-bullish) 12%, transparent);
+    color: var(--tf-bullish);
+    border-color: color-mix(in srgb, var(--tf-bullish) 20%, transparent);
 }
 
 .tf-risk-pill--warning {
@@ -105,9 +105,9 @@ html.theme-light .tf-trade-pill:hover {
 }
 
 .tf-risk-pill--danger {
-    background: rgba(239, 83, 80, 0.15);
-    color: #EF5350;
-    border-color: rgba(239, 83, 80, 0.3);
+    background: color-mix(in srgb, var(--tf-bearish) 15%, transparent);
+    color: var(--tf-bearish);
+    border-color: color-mix(in srgb, var(--tf-bearish) 30%, transparent);
     animation: tfRiskPulse 1s ease-in-out infinite;
 }
 

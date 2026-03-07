@@ -8,7 +8,7 @@
 import s from './DashboardPanel.module.css';
 import { useState } from 'react';
 import { C, F, M, GLASS } from '../../../constants.js';
-import { text } from '../../../theme/tokens.js';
+import { text, radii } from '../../../theme/tokens.js';
 import { fmtD, timeAgo, METRIC_TIPS } from '../../../utils.js';
 import { Card } from '../ui/UIKit.jsx';
 import { MilestoneBar } from '../ui/EmptyState.jsx';
@@ -155,7 +155,7 @@ export default function DashboardNarrativeLayout({
                                 style={{
                                     display: 'flex', alignItems: 'center', gap: 12,
                                     padding: '14px 16px', background: C.bg2,
-                                    border: `1px solid ${C.bd}`, borderRadius: 10,
+                                    border: `1px solid ${C.bd}`, borderRadius: radii.md,
                                     cursor: 'pointer', textAlign: 'left',
                                     transition: 'all 0.15s',
                                 }}
@@ -259,7 +259,7 @@ export default function DashboardNarrativeLayout({
                                     <span style={{
                                         color: t.side === 'long' ? C.g : C.r,
                                         background: (t.side === 'long' ? C.g : C.r) + '15',
-                                        padding: '2px 6px', borderRadius: 4, fontSize: 9,
+                                        padding: '2px 6px', borderRadius: radii.xs, fontSize: 9,
                                         fontWeight: 700, textTransform: 'uppercase'
                                     }}>
                                         {t.side}
@@ -303,14 +303,14 @@ export default function DashboardNarrativeLayout({
                     onClick={() => setShowAllWidgets(true)}
                     className="tf-glass-btn"
                     style={{
-                        width: '100%', padding: '14px 0', borderRadius: 12,
+                        width: '100%', padding: '14px 0', borderRadius: radii.md,
                         fontSize: 13, fontWeight: 600, fontFamily: F,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         gap: 8, marginBottom: sectionGap,
                     }}
                 >
                     ↓ Show All Widgets
-                    <span style={{ fontSize: 10, padding: '2px 8px', background: `${C.b}15`, borderRadius: 10, color: C.b }}>+5 more</span>
+                    <span style={{ fontSize: 10, padding: '2px 8px', background: `${C.b}15`, borderRadius: radii.md, color: C.b }}>+5 more</span>
                 </button>
             ) : (
                 <>
@@ -345,7 +345,7 @@ export default function DashboardNarrativeLayout({
                         className="tf-btn"
                         style={{
                             width: '100%', padding: '10px 0', background: 'transparent',
-                            border: `1px dashed ${C.bd}`, borderRadius: 10, color: C.t3,
+                            border: `1px dashed ${C.bd}`, borderRadius: radii.md, color: C.t3,
                             fontSize: 12, fontFamily: F, cursor: 'pointer',
                             marginBottom: sectionGap, transition: 'all 0.15s',
                         }}

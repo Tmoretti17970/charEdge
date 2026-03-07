@@ -22,13 +22,13 @@ const MOCK_NEWS = [
 ];
 
 const SENTIMENT_META = {
-  bullish: { icon: '🟢', color: '#2dd4a0', label: 'Bullish' },
-  bearish: { icon: '🔴', color: '#f25c5c', label: 'Bearish' },
+  bullish: { icon: '🟢', color: C.g, label: 'Bullish' },
+  bearish: { icon: '🔴', color: C.r, label: 'Bearish' },
   neutral: { icon: '🟡', color: '#f0b64e', label: 'Neutral' },
 };
 
 const IMPACT_META = {
-  high: { label: 'HIGH', color: '#f25c5c' },
+  high: { label: 'HIGH', color: C.r },
   medium: { label: 'MED', color: '#f0b64e' },
   low: { label: 'LOW', color: '#7078a0' },
 };

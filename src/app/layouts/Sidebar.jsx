@@ -164,9 +164,12 @@ export default function Sidebar() {
       animate={{ width: sidebarWidth, minWidth: sidebarWidth }}
       transition={{ type: 'spring', stiffness: 300, damping: 28 }}
       style={{
-        background: C.bg2,
-        borderRight: `1px solid ${C.bd}`,
-        boxShadow: `1px 0 8px ${C.bg}20`,
+        background: 'var(--tf-depth-floating-bg)',
+        backdropFilter: 'var(--tf-depth-floating-blur)',
+        WebkitBackdropFilter: 'var(--tf-depth-floating-blur)',
+        borderRight: 'var(--tf-glass-border)',
+        boxShadow: 'var(--tf-depth-floating-specular), 1px 0 8px rgba(0,0,0,0.15)',
+        fontFeatureSettings: '"tnum"',
       }}
     >
       {/* ─── Sliding Active Indicator Bar (Sprint 1: spring physics) ─ */}
@@ -549,8 +552,8 @@ function NavButton({ item, active, hovered, expanded, onHover, onClick }) {
         style={{
           width: expanded ? '100%' : 40,
           height: 40,
-          borderRadius: 10,
-          border: 'none',
+          borderRadius: 'var(--tf-radius-sm, 8px)',
+          border: '1px solid transparent',
           background: bg,
           display: 'flex',
           alignItems: 'center',

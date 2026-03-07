@@ -165,9 +165,9 @@ const SECTORS = [
 const TIMEFRAMES = ['1D', '1W', '1M', '3M', 'YTD'];
 
 const CYCLE_META = {
-  expansion: { color: '#2dd4a0', label: 'Expansion', icon: '📈' },
+  expansion: { color: C.g, label: 'Expansion', icon: '📈' },
   peak: { color: '#f0b64e', label: 'Peak', icon: '🔝' },
-  contraction: { color: '#f25c5c', label: 'Contraction', icon: '📉' },
+  contraction: { color: C.r, label: 'Contraction', icon: '📉' },
   trough: { color: '#c084fc', label: 'Trough', icon: '🔄' },
 };
 

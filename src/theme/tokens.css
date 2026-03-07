@@ -37,6 +37,22 @@
   --tf-chart-bull: #2dd4a0;
   --tf-chart-bear: #f25c5c;
 
+  /* Canonical bull/bear semantic colors (Audit Item 1) */
+  --tf-bullish: var(--tf-green);
+  --tf-bearish: var(--tf-red);
+
+  /* Semantic z-index scale (Audit Item 6) */
+  --tf-z-base: 0;
+  --tf-z-sticky: 10;
+  --tf-z-dropdown: 50;
+  --tf-z-sidebar: 100;
+  --tf-z-overlay: 200;
+  --tf-z-modal: 300;
+  --tf-z-toast: 400;
+  --tf-z-tooltip: 500;
+  --tf-z-popover: 1000;
+  --tf-z-max: 9999;
+
   /* Typography */
   --tf-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --tf-mono: 'JetBrains Mono', 'SF Mono', monospace;
@@ -186,6 +202,8 @@
   --tf-orange: #d4551e;
   --tf-pink: #db2777;
   --tf-lime: #65a30d;
+  --tf-bullish: var(--tf-green);
+  --tf-bearish: var(--tf-red);
 
   --tf-glass-1: rgba(255, 255, 255, 0.6);
   --tf-glass-2: rgba(255, 255, 255, 0.75);
@@ -241,6 +259,8 @@
   /* muted warm pink */
   --tf-lime: #a8c830;
   /* warm-shifted lime */
+  --tf-bullish: var(--tf-green);
+  --tf-bearish: var(--tf-red);
 
   --tf-glass-1: rgba(0, 0, 0, 0.7);
   --tf-glass-2: rgba(0, 0, 0, 0.82);

@@ -11,7 +11,7 @@
 import React, { useMemo } from 'react';
 import { useReducedMotion } from 'framer-motion';
 import { C, F, M, GLASS } from '../../../constants.js';
-import { gradient, text, space } from '../../../theme/tokens.js';
+import { gradient, text, space, radii } from '../../../theme/tokens.js';
 import { fmtD } from '../../../utils.js';
 import { Card } from '../ui/UIKit.jsx';
 import { useCountUp } from '../../../utils/useCountUp.js';
@@ -79,10 +79,11 @@ function TrendArrow({ current, previous }) {
         alignItems: 'center',
         gap: 3,
         fontWeight: 700,
+        fontVariantNumeric: 'tabular-nums',
         color: isUp ? C.g : C.r,
         background: (isUp ? C.g : C.r) + '12',
         padding: '2px 7px',
-        borderRadius: 6,
+        borderRadius: radii.xs,
         marginLeft: 6,
       }}
     >
@@ -159,6 +160,7 @@ export default function DashboardHero({
             fontWeight: 800,
             color: pnlColor,
             letterSpacing: '-1.5px',
+            fontVariantNumeric: 'tabular-nums',
             textShadow: `0 0 40px ${pnlColor}35, 0 0 80px ${pnlColor}15`,
             zIndex: 1,
           }}
@@ -183,7 +185,7 @@ export default function DashboardHero({
             width: 160,
             height: 160,
             background: `radial-gradient(circle, ${pnlColor}18, transparent 70%)`,
-            borderRadius: '50%',
+            borderRadius: radii.pill,
             pointerEvents: 'none',
           }}
         />

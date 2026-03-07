@@ -17,8 +17,8 @@ const TIPS = [
   { id: 6, category: 'risk', title: 'Correlation Risk in Your Portfolio', tip: 'Holding 5 tech stocks doesn\'t mean you\'re diversified. If they\'re all 0.85+ correlated with each other, a tech selloff hits your entire portfolio. Check the Correlation Matrix widget to spot hidden risk.', example: 'NVDA, AMD, and AVGO have 0.89 avg correlation — they move almost identically. Consider adding uncorrelated assets.', difficulty: 'intermediate' },
 ];
 
-const CATEGORIES = { technical: { icon: '📐', color: '#38bdf8' }, fundamental: { icon: '📊', color: '#2dd4a0' }, risk: { icon: '🛡️', color: '#f0b64e' }, psychology: { icon: '🧠', color: '#c084fc' } };
-const DIFFICULTIES = { beginner: { label: '🟢 Beginner', color: '#2dd4a0' }, intermediate: { label: '🟡 Intermediate', color: '#f0b64e' }, advanced: { label: '🔴 Advanced', color: '#f25c5c' } };
+const CATEGORIES = { technical: { icon: '📐', color: '#38bdf8' }, fundamental: { icon: '📊', color: C.g }, risk: { icon: '🛡️', color: '#f0b64e' }, psychology: { icon: '🧠', color: '#c084fc' } };
+const DIFFICULTIES = { beginner: { label: '🟢 Beginner', color: C.g }, intermediate: { label: '🟡 Intermediate', color: '#f0b64e' }, advanced: { label: '🔴 Advanced', color: C.r } };
 
 const QUIZ = {
   question: 'NVDA drops 5% on high volume but closes above its 50-day SMA. What do you do?',

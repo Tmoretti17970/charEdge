@@ -6,6 +6,7 @@
 import React, { useMemo, useState } from 'react';
 import ChartWrapper from '../chart/core/ChartWrapper.jsx';
 import { C, M } from '../../../constants.js';
+import { alpha } from '../../../utils/colorUtils.js';
 
 /**
  * @param {Array} eq - Equity curve array from computeFast: [{ date, pnl, daily, dd }]
@@ -27,7 +28,7 @@ function EquityCurveChart({ eq = [], height = 280, showBenchmark = false, showDr
       const halfK = Math.ceil(sigma * 3);
       const kernel = [];
       let ksum = 0;
-      for (let i = -halfK; i <= halfK; i++) { const v = Math.exp(-(i*i)/(2*sigma*sigma)); kernel.push(v); ksum += v; }
+      for (let i = -halfK; i <= halfK; i++) { const v = Math.exp(-(i * i) / (2 * sigma * sigma)); kernel.push(v); ksum += v; }
       for (let i = 0; i < kernel.length; i++) kernel[i] /= ksum;
       smoothed = points.map((pt, idx) => {
         let s = 0, w = 0;
@@ -59,111 +60,111 @@ function EquityCurveChart({ eq = [], height = 280, showBenchmark = false, showDr
 
     const datasets = [
       {
-            label: 'Equity',
-            data: values,
-            borderColor: isPositive ? C.g : C.r,
-            borderWidth: 2,
-            pointRadius: 0,
-            pointHitRadius: 8,
-            pointHoverRadius: 4,
-            pointHoverBackgroundColor: isPositive ? C.g : C.r,
-            tension: 0.3,
-            fill: {
-              target: 'origin',
-              above: isPositive ? C.g + '18' : C.r + '08',
-              below: C.r + '18',
-            },
-            yAxisID: 'y',
-            order: 1, // Draw equity on top
-          }
-        ];
+        label: 'Equity',
+        data: values,
+        borderColor: isPositive ? C.g : C.r,
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHitRadius: 8,
+        pointHoverRadius: 4,
+        pointHoverBackgroundColor: isPositive ? C.g : C.r,
+        tension: 0.3,
+        fill: {
+          target: 'origin',
+          above: isPositive ? C.g + '18' : C.r + '08',
+          below: C.r + '18',
+        },
+        yAxisID: 'y',
+        order: 1, // Draw equity on top
+      }
+    ];
 
-        // H2.2: Drawdown overlay
-        if (showDrawdown && eq.some((p) => p.dd > 0)) {
-          datasets.push({
-            label: 'Drawdown',
-            data: eq.map((p) => -p.dd), // negate so it draws downward
-            borderColor: C.r + '60',
-            borderWidth: 1,
-            pointRadius: 0,
-            tension: 0.3,
-            fill: {
-              target: 'origin',
-              above: 'transparent',
-              below: C.r + '15',
-            },
-            yAxisID: 'y1',
-            order: 3,
-          });
-        }
+    // H2.2: Drawdown overlay
+    if (showDrawdown && eq.some((p) => p.dd > 0)) {
+      datasets.push({
+        label: 'Drawdown',
+        data: eq.map((p) => -p.dd), // negate so it draws downward
+        borderColor: C.r + '60',
+        borderWidth: 1,
+        pointRadius: 0,
+        tension: 0.3,
+        fill: {
+          target: 'origin',
+          above: 'transparent',
+          below: C.r + '15',
+        },
+        yAxisID: 'y1',
+        order: 3,
+      });
+    }
 
-        // Ensure benchmark doesn't break if no length
-        if (showBenchmark && values.length > 0) {
-          // Illustrative benchmark: 10% annualized drift over the period
-          // In a real app, this would fetch SPY/BTC data
-          const daysTotal = Object.keys(eq).length;
-          const driftPerDay = 0.10 / 252; // 10% over 252 trading days
+    // Ensure benchmark doesn't break if no length
+    if (showBenchmark && values.length > 0) {
+      // Illustrative benchmark: 10% annualized drift over the period
+      // In a real app, this would fetch SPY/BTC data
+      const daysTotal = Object.keys(eq).length;
+      const driftPerDay = 0.10 / 252; // 10% over 252 trading days
 
-          let accountBase = 5000; // Assumed starting capital for relative comp
-          // We can size relative to the user's max absolute P&L to make the scale visible
-          if (values.length > 0) {
-            const maxVal = Math.max(...values.map(Math.abs));
-            accountBase = Math.max(5000, maxVal * 2);
-          }
+      let accountBase = 5000; // Assumed starting capital for relative comp
+      // We can size relative to the user's max absolute P&L to make the scale visible
+      if (values.length > 0) {
+        const maxVal = Math.max(...values.map(Math.abs));
+        accountBase = Math.max(5000, maxVal * 2);
+      }
 
-          let currentBmk = 0;
-          const bmkValues = eq.map(() => {
-            currentBmk += accountBase * driftPerDay; // simple linear/geometric drift
-            // Add a tiny bit of random noise for realism
-            const noise = (Math.random() - 0.5) * (accountBase * 0.005);
-            currentBmk += noise;
-            return currentBmk;
-          });
+      let currentBmk = 0;
+      const bmkValues = eq.map(() => {
+        currentBmk += accountBase * driftPerDay; // simple linear/geometric drift
+        // Add a tiny bit of random noise for realism
+        const noise = (Math.random() - 0.5) * (accountBase * 0.005);
+        currentBmk += noise;
+        return currentBmk;
+      });
 
-          datasets.push({
-            label: 'Benchmark (SPY 10% Drift)',
-            data: bmkValues,
-            borderColor: C.b, // Blurple/Accent
-            borderWidth: 2,
-            borderDash: [4, 4], // Dashed line to differentiate
-            pointRadius: 0,
-            pointHitRadius: 8,
-            tension: 0.2,
-            fill: false,
-            yAxisID: 'y',
-            order: 2,
-          });
-        }
+      datasets.push({
+        label: 'Benchmark (SPY 10% Drift)',
+        data: bmkValues,
+        borderColor: C.b, // Blurple/Accent
+        borderWidth: 2,
+        borderDash: [4, 4], // Dashed line to differentiate
+        pointRadius: 0,
+        pointHitRadius: 8,
+        tension: 0.2,
+        fill: false,
+        yAxisID: 'y',
+        order: 2,
+      });
+    }
 
     const scales = {
-          x: {
-            grid: { display: false },
-            ticks: {
-              maxTicksLimit: 8,
-              font: { family: M, size: 9 },
-              color: C.t3,
-            },
-            border: { display: false },
-          },
-          y: {
-            position: 'right',
-            grid: {
-              color: C.bd + '60',
-              drawTicks: false,
-            },
-            ticks: {
-              font: { family: M, size: 9 },
-              color: C.t3,
-              callback: (v) =>
-                v >= 1000
-                  ? `$${(v / 1000).toFixed(1)}k`
-                  : v <= -1000
-                    ? `-$${(Math.abs(v) / 1000).toFixed(1)}k`
-                    : `$${v.toFixed(0)}`,
-            },
-            border: { display: false },
-          },
-        };
+      x: {
+        grid: { display: false },
+        ticks: {
+          maxTicksLimit: 8,
+          font: { family: M, size: 9 },
+          color: C.t3,
+        },
+        border: { display: false },
+      },
+      y: {
+        position: 'right',
+        grid: {
+          color: C.bd + '60',
+          drawTicks: false,
+        },
+        ticks: {
+          font: { family: M, size: 9 },
+          color: C.t3,
+          callback: (v) =>
+            v >= 1000
+              ? `$${(v / 1000).toFixed(1)}k`
+              : v <= -1000
+                ? `-$${(Math.abs(v) / 1000).toFixed(1)}k`
+                : `$${v.toFixed(0)}`,
+        },
+        border: { display: false },
+      },
+    };
 
     // H2.2: Drawdown secondary axis
     if (showDrawdown) {
@@ -269,8 +270,8 @@ function EquityCurveChart({ eq = [], height = 280, showBenchmark = false, showDr
     borderRadius: '4px',
     border: 'none',
     cursor: 'pointer',
-    background: smoothMode === mode ? 'rgba(99, 102, 241, 0.25)' : 'rgba(148, 163, 184, 0.08)',
-    color: smoothMode === mode ? '#818cf8' : 'rgba(148, 163, 184, 0.7)',
+    background: smoothMode === mode ? alpha(C.info, 0.25) : alpha(C.t3, 0.08),
+    color: smoothMode === mode ? C.info : C.t3,
     fontWeight: smoothMode === mode ? 600 : 400,
     transition: 'all 0.15s ease',
   });

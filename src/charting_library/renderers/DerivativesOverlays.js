@@ -95,7 +95,7 @@ export function renderOIOverlay(ctx, oiData, params) {
 
   // Trend arrow
   ctx.fillText(trend ? '▲' : '▼', (20 + label.length * 6) * pr, pY + 10 * pr);
-  ctx.fillStyle = trend ? (C.g || '#2dd4a0') : (C.r || '#f25c5c');
+  ctx.fillStyle = trend ? C.g : C.r;
   ctx.fillText(trend ? '▲' : '▼', (20 + label.length * 6) * pr, pY + 10 * pr);
 
   ctx.restore();
@@ -132,7 +132,7 @@ export function renderFundingDots(ctx, fundingData, params) {
     const xp = Math.round(x * pr);
     const yp = Math.round(dotY * pr);
     const isPositive = fd.rate >= 0;
-    const color = isPositive ? (C.g || '#2dd4a0') : (C.r || '#f25c5c');
+    const color = isPositive ? C.g : C.r;
     const intensity = Math.min(Math.abs(fd.rate) * 10000, 1); // Scale 0.01% → 1.0
 
     // Outer glow
@@ -182,7 +182,7 @@ export function renderLiquidationMarkers(ctx, liquidations, params) {
     const xp = Math.round(x * pr);
     const yp = Math.round(priceToY(liq.price) * pr);
     const isLong = liq.type === 'long_liquidation';
-    const color = isLong ? (C.r || '#f25c5c') : (C.g || '#2dd4a0');
+    const color = isLong ? C.r : C.g;
 
     // Size based on USD value (log scale)
     const size = Math.min(Math.max(3, Math.log10(liq.quantityUsd || 1000) * 2.5), 15) * pr;

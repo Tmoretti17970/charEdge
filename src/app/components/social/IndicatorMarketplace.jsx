@@ -38,7 +38,7 @@ const COMMUNITY_SCRIPTS = [
     id: 'comm_5', name: 'Order Flow Imbalance', author: 'VolumeHunter', avatar: '📊', category: 'Volume',
     description: 'Detects aggressive buying/selling by analyzing volume delta and bid/ask imbalances.',
     installs: 756, rating: 4.5, ratings: 98, updated: '2026-02-19',
-    code: `const len = param('Period', 14, { min: 2, max: 50 });\nconst delta = ema(volume, len);\nhistogram(delta, { color: '#2dd4a0', label: 'OF Imbalance' });\n`,
+    code: `const len = param('Period', 14, { min: 2, max: 50 });\nconst delta = ema(volume, len);\nhistogram(delta, { color: C.g, label: 'OF Imbalance' });\n`,
   },
   {
     id: 'comm_6', name: 'VWAP Bands', author: 'MacroGuru', avatar: '🧠', category: 'Volatility',
