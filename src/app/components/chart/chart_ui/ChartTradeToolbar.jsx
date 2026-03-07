@@ -8,11 +8,9 @@ import { useChartStore } from '../../../../state/useChartStore.js';
 import { C, M } from '../../../../constants.js';
 
 export default function ChartTradeToolbar() {
-  const {
-    tradeMode,
-    enterTradeMode,
-    exitTradeMode,
-  } = useChartStore();
+  const tradeMode = useChartStore((s) => s.tradeMode);
+  const enterTradeMode = useChartStore((s) => s.enterTradeMode);
+  const exitTradeMode = useChartStore((s) => s.exitTradeMode);
 
   const isLong = tradeMode === 'long';
   const isShort = tradeMode === 'short';

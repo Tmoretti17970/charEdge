@@ -11,6 +11,7 @@
 import { getAggregator } from '../../../data/OrderFlowAggregator.js';
 import { renderDeltaHistogram, renderVolumeProfile, renderLargeTradeMarkers } from '../../renderers/OrderFlowOverlays.js';
 import { renderOIOverlay, renderLiquidationMarkers } from '../../renderers/DerivativesOverlays.js';
+import { drawSessionBands } from '../../renderers/ExchangeTimezoneOverlay.js';
 
 /**
  * Render order flow overlays onto the DATA layer.
@@ -33,6 +34,19 @@ export function executeOverlayStage(fs, ctx, _engine) {
   const R = _engine.state.lastRender;
   if (!R) return;
   const { p2y, timeTransform } = R;
+
+  // ─── P1-A #6: Exchange Timezone Session Bands ─────────────────
+  if (fs.showSessions && timeTransform?.indexToPixel) {
+    drawSessionBands({
+      ctx: mCtx,
+      visBars: vis,
+      pr,
+      chartHeight: Math.round(mainHeight * pr),
+      chartWidth: Math.round(cW * pr),
+      indexToPixel: timeTransform.indexToPixel,
+      startIdx: start,
+    });
+  }
 
   const aggregator = getAggregator(fs.aggregatorKey || `${symbol}_${timeframe}`);
 

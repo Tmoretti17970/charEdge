@@ -18,17 +18,15 @@ const STEPS = [
 ];
 
 export default function TradeEntryBar() {
-  const {
-    tradeMode,
-    tradeStep,
-    tradeSide,
-    pendingEntry,
-    pendingSL,
-    pendingTP,
-    setTradeSide,
-    exitTradeMode,
-    riskAmount,
-  } = useChartStore();
+  const tradeMode = useChartStore((s) => s.tradeMode);
+  const tradeStep = useChartStore((s) => s.tradeStep);
+  const tradeSide = useChartStore((s) => s.tradeSide);
+  const pendingEntry = useChartStore((s) => s.pendingEntry);
+  const pendingSL = useChartStore((s) => s.pendingSL);
+  const pendingTP = useChartStore((s) => s.pendingTP);
+  const setTradeSide = useChartStore((s) => s.setTradeSide);
+  const exitTradeMode = useChartStore((s) => s.exitTradeMode);
+  const riskAmount = useChartStore((s) => s.riskAmount);
 
   const rr = useMemo(
     () => calcRiskReward(pendingEntry?.price, pendingSL?.price, pendingTP?.price, tradeSide),

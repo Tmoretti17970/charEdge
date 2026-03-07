@@ -60,6 +60,24 @@ function RiskTab({ result, trades, computing }) {
             : '—'}
           color={C.t2}
         />
+        <StatCard
+          label="Hold Time (Winners)"
+          value={result.avgHoldTimeWinners > 0
+            ? (result.avgHoldTimeWinners >= 60
+              ? `${Math.floor(result.avgHoldTimeWinners / 60)}h ${Math.round(result.avgHoldTimeWinners % 60)}m`
+              : `${Math.round(result.avgHoldTimeWinners)}m`)
+            : '—'}
+          color={C.g}
+        />
+        <StatCard
+          label="Hold Time (Losers)"
+          value={result.avgHoldTimeLosers > 0
+            ? (result.avgHoldTimeLosers >= 60
+              ? `${Math.floor(result.avgHoldTimeLosers / 60)}h ${Math.round(result.avgHoldTimeLosers % 60)}m`
+              : `${Math.round(result.avgHoldTimeLosers)}m`)
+            : '—'}
+          color={result.avgHoldTimeLosers > result.avgHoldTimeWinners * 2 ? C.r : C.y}
+        />
         <StatCard label="Best Streak" value={`${result.best} wins`} color={C.g} />
         <StatCard label="Worst Streak" value={`${result.worst} losses`} color={C.r} />
         <StatCard label="Consec 3+ Loss" value={`${result.consLoss3.toFixed(1)}%`} color={result.consLoss3 > 3 ? C.r : C.t2} />

@@ -242,6 +242,7 @@ export default function ChartEngineWidget({
   // ScrollSyncBus: emit scroll position changes when scrollOffset changes.
   // Task 2.3.26: Replaced perpetual rAF loop with an efficient emission
   // triggered from the engine's render cycle via a markDirty hook.
+  // FIX: Added [barCount] deps — previously had NO deps causing infinite re-render loop (Error #185).
   const lastEmittedOffset = useRef(-1);
   useEffect(() => {
     // On each tick (barCount changes), check if offset changed and emit
@@ -257,7 +258,7 @@ export default function ChartEngineWidget({
         visibleBars: engine.state.visibleBars,
       });
     }
-  });
+  }, [barCount]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Initialize Engine once
   useEffect(() => {
@@ -498,6 +499,7 @@ export default function ChartEngineWidget({
 
   // Sprint 8: Preserve viewport when older bars are prepended
   // Uses queueMicrotask to ensure offset applies before next rAF frame (prevents white flash)
+  // FIX: Moved setState reset into queueMicrotask to avoid synchronous setState-during-render.
   const lastPrependCount = useChartStore((s) => s.lastPrependCount);
   useEffect(() => {
     if (!engineRef.current || !lastPrependCount) return;
@@ -506,8 +508,9 @@ export default function ChartEngineWidget({
       if (!engineRef.current) return;
       engineRef.current.state.scrollOffset += lastPrependCount;
       engineRef.current.markDirty();
+      // Reset after consuming — inside microtask to break synchronous setState cycle
+      useChartStore.setState({ lastPrependCount: 0 });
     });
-    useChartStore.setState({ lastPrependCount: 0 }); // Reset after consuming
   }, [lastPrependCount]);
 
   // Update tools

@@ -210,8 +210,10 @@ export class FrameState {
     const mh = layers.mediaHeight || bh / pr;
 
     const compact = !!props.compact;
-    const axW = compact ? 0 : 72;
-    const txH = compact ? 0 : 24;
+    // P1-A #3/#4: Responsive axis sizing — 48px price axis and 20px time axis on mobile
+    const isMobile = mw < 768;
+    const axW = compact ? 0 : (isMobile ? 48 : 72);
+    const txH = compact ? 0 : (isMobile ? 20 : 24);
     const chartWidth = mw - axW;
     const availHeight = mh - txH;
 

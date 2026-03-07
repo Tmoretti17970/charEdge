@@ -130,6 +130,13 @@ export function refreshThemeCache() {
     // Hex fallback
     C.rS = C.r + '20';
   }
+
+  // Swap GLASS & DEPTH to match current theme
+  const isLight = root.classList.contains('theme-light');
+  const glassSource = isLight ? GLASS_LIGHT : GLASS_DARK;
+  const depthSource = isLight ? DEPTH_LIGHT : DEPTH_DARK;
+  for (const k of Object.keys(glassSource)) GLASS[k] = glassSource[k];
+  for (const k of Object.keys(depthSource)) DEPTH[k] = depthSource[k];
 }
 
 export const F = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
@@ -137,26 +144,41 @@ export const M = "'JetBrains Mono', 'SF Mono', monospace";
 
 // ─── Sprint 3: Glass & Depth Tokens (JS-side) ────────────────────
 // Mirror of CSS custom properties for inline-styled components.
-export const GLASS = {
-  // Surface backgrounds
-  subtle: 'rgba(22, 24, 29, 0.65)',   // Nav bars, toolbars
-  standard: 'rgba(22, 24, 29, 0.78)',   // Panels, dropdowns
-  heavy: 'rgba(22, 24, 29, 0.88)',   // Modals, command palette
-  solid: 'rgba(22, 24, 29, 0.95)',   // Critical overlays
-  // Blur presets (use as backdropFilter value)
+// These are mutable objects that update on theme change via refreshThemeCache().
+
+const GLASS_DARK = {
+  subtle: 'rgba(22, 24, 29, 0.65)',
+  standard: 'rgba(22, 24, 29, 0.78)',
+  heavy: 'rgba(22, 24, 29, 0.88)',
+  solid: 'rgba(22, 24, 29, 0.95)',
   blurSm: 'blur(8px) saturate(1.3)',
   blurMd: 'blur(16px) saturate(1.5)',
   blurLg: 'blur(24px) saturate(1.6)',
   blurXl: 'blur(40px) saturate(1.8)',
-  // Borders
   border: '1px solid rgba(255,255,255,0.06)',
   borderHover: '1px solid rgba(255,255,255,0.12)',
   borderActive: '1px solid rgba(232,100,44,0.3)',
-  // Backdrop
   backdrop: 'rgba(0,0,0,0.4)',
 };
 
-export const DEPTH = {
+const GLASS_LIGHT = {
+  subtle: 'rgba(255, 255, 255, 0.7)',
+  standard: 'rgba(255, 255, 255, 0.82)',
+  heavy: 'rgba(255, 255, 255, 0.92)',
+  solid: 'rgba(255, 255, 255, 0.97)',
+  blurSm: 'blur(8px) saturate(1.2)',
+  blurMd: 'blur(16px) saturate(1.3)',
+  blurLg: 'blur(24px) saturate(1.4)',
+  blurXl: 'blur(40px) saturate(1.5)',
+  border: '1px solid rgba(0,0,0,0.08)',
+  borderHover: '1px solid rgba(0,0,0,0.15)',
+  borderActive: '1px solid rgba(212,85,30,0.35)',
+  backdrop: 'rgba(255,255,255,0.5)',
+};
+
+export const GLASS = { ...GLASS_DARK };
+
+const DEPTH_DARK = {
   0: 'none',
   1: '0 1px 3px rgba(0,0,0,0.2), 0 0 1px rgba(0,0,0,0.1)',
   2: '0 4px 16px rgba(0,0,0,0.25), 0 0 1px rgba(0,0,0,0.1)',
@@ -165,3 +187,15 @@ export const DEPTH = {
   innerGlow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
   innerGlowStrong: 'inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.03)',
 };
+
+const DEPTH_LIGHT = {
+  0: 'none',
+  1: '0 1px 3px rgba(0,0,0,0.06), 0 0 1px rgba(0,0,0,0.04)',
+  2: '0 4px 16px rgba(0,0,0,0.08), 0 0 1px rgba(0,0,0,0.04)',
+  3: '0 12px 40px rgba(0,0,0,0.12), 0 0 1px rgba(0,0,0,0.04)',
+  4: '0 24px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.02) inset',
+  innerGlow: 'inset 0 1px 0 rgba(255,255,255,0.5)',
+  innerGlowStrong: 'inset 0 1px 0 rgba(255,255,255,0.7), inset 0 0 0 1px rgba(255,255,255,0.3)',
+};
+
+export const DEPTH = { ...DEPTH_DARK };

@@ -7,7 +7,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useMemo } from 'react';
-import { C, M } from '../../../constants.js';
+import { C, M, GLASS } from '../../../constants.js';
 import { useJournalStore } from '../../../state/useJournalStore.js';
 import { useUserStore } from '../../../state/useUserStore.js';
 import { fmtD } from '../../../utils.js';
@@ -71,10 +71,10 @@ export default function HUDBar() {
                 gap: 24,
                 padding: '8px 20px',
                 marginBottom: 12,
-                background: 'rgba(8, 9, 10, 0.72)',
-                backdropFilter: 'blur(16px) saturate(1.5)',
-                WebkitBackdropFilter: 'blur(16px) saturate(1.5)',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                background: GLASS.subtle,
+                backdropFilter: GLASS.blurMd,
+                WebkitBackdropFilter: GLASS.blurMd,
+                borderBottom: GLASS.border,
                 borderRadius: '0 0 10px 10px',
                 fontFamily: M,
                 fontSize: 11,
@@ -89,13 +89,13 @@ export default function HUDBar() {
             />
 
             {/* Divider */}
-            <div style={{ width: 1, height: 18, background: 'rgba(255,255,255,0.08)' }} />
+            <div style={{ width: 1, height: 18, background: C.bd + '30' }} />
 
             {/* Open Risk */}
             <HudItem label="Risk" value={metrics.risk.level} color={metrics.risk.color} />
 
             {/* Divider */}
-            <div style={{ width: 1, height: 18, background: 'rgba(255,255,255,0.08)' }} />
+            <div style={{ width: 1, height: 18, background: C.bd + '30' }} />
 
             {/* Market Bias */}
             <HudItem label="Bias" value={metrics.bias.label} color={metrics.bias.color} />

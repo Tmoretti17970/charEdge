@@ -10,22 +10,20 @@ import { C, F, M } from '../../../../constants.js';
 import { calcRiskReward, calcPositionSize } from '../../../../state/chart/tradeSlice.js';
 
 export default function PositionSizer() {
-  const {
-    showPositionSizer,
-    togglePositionSizer,
-    accountSize,
-    riskPercent,
-    riskAmount,
-    riskMode,
-    setAccountSize,
-    setRiskPercent,
-    setRiskAmount,
-    setRiskMode,
-    pendingEntry,
-    pendingSL,
-    pendingTP,
-    tradeSide,
-  } = useChartStore();
+  const showPositionSizer = useChartStore((s) => s.showPositionSizer);
+  const togglePositionSizer = useChartStore((s) => s.togglePositionSizer);
+  const accountSize = useChartStore((s) => s.accountSize);
+  const riskPercent = useChartStore((s) => s.riskPercent);
+  const riskAmount = useChartStore((s) => s.riskAmount);
+  const riskMode = useChartStore((s) => s.riskMode);
+  const setAccountSize = useChartStore((s) => s.setAccountSize);
+  const setRiskPercent = useChartStore((s) => s.setRiskPercent);
+  const setRiskAmount = useChartStore((s) => s.setRiskAmount);
+  const setRiskMode = useChartStore((s) => s.setRiskMode);
+  const pendingEntry = useChartStore((s) => s.pendingEntry);
+  const pendingSL = useChartStore((s) => s.pendingSL);
+  const pendingTP = useChartStore((s) => s.pendingTP);
+  const tradeSide = useChartStore((s) => s.tradeSide);
 
   const entry = pendingEntry?.price;
   const sl = pendingSL?.price;
