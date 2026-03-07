@@ -7,7 +7,7 @@
 
 import { useUserStore } from '../../../state/useUserStore.js';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C, F, M, GLASS, DEPTH } from '../../../constants.js';
 import { useUIStore } from '../../../state/useUIStore.js';
 import { useJournalStore } from '../../../state/useJournalStore.js';
 import { useChartStore } from '../../../state/useChartStore.js';
@@ -105,14 +105,14 @@ export default function CommandPalette() {
       {/* Palette */}
       <div style={{
         position: 'relative', width: 560, maxWidth: '92vw',
-        background: `rgba(${parseInt(C.sf.slice(1, 3), 16) || 30},${parseInt(C.sf.slice(3, 5), 16) || 30},${parseInt(C.sf.slice(5, 7), 16) || 34},0.85)`,
-        backdropFilter: 'blur(20px) saturate(1.5)', WebkitBackdropFilter: 'blur(20px) saturate(1.5)',
-        border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, overflow: 'hidden',
-        boxShadow: '0 24px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,0.04) inset',
+        background: GLASS.heavy,
+        backdropFilter: GLASS.blurXl, WebkitBackdropFilter: GLASS.blurXl,
+        border: GLASS.border, borderRadius: 16, overflow: 'hidden',
+        boxShadow: DEPTH[4],
         animation: 'slideUpScale 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
       }}>
         {/* Search Input */}
-        <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ padding: '14px 18px', borderBottom: `1px solid ${C.bd}30`, display: 'flex', alignItems: 'center', gap: 12 }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C.b} strokeWidth="2" strokeLinecap="round" style={{ opacity: 0.8, flexShrink: 0 }}>
             <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
@@ -155,10 +155,10 @@ export default function CommandPalette() {
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '10px 18px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', gap: 16, fontSize: 10, color: C.t3, fontFamily: M }}>
-          <span><kbd style={{ padding: '1px 4px', borderRadius: 3, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', fontSize: 9, fontFamily: M }}>↑↓</kbd> navigate</span>
-          <span><kbd style={{ padding: '1px 4px', borderRadius: 3, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', fontSize: 9, fontFamily: M }}>↵</kbd> select</span>
-          <span><kbd style={{ padding: '1px 4px', borderRadius: 3, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', fontSize: 9, fontFamily: M }}>esc</kbd> close</span>
+        <div style={{ padding: '10px 18px', borderTop: `1px solid ${C.bd}30`, display: 'flex', gap: 16, fontSize: 10, color: C.t3, fontFamily: M }}>
+          <span><kbd style={{ padding: '1px 4px', borderRadius: 3, background: C.sf2, border: `1px solid ${C.bd}`, fontSize: 9, fontFamily: M }}>↑↓</kbd> navigate</span>
+          <span><kbd style={{ padding: '1px 4px', borderRadius: 3, background: C.sf2, border: `1px solid ${C.bd}`, fontSize: 9, fontFamily: M }}>↵</kbd> select</span>
+          <span><kbd style={{ padding: '1px 4px', borderRadius: 3, background: C.sf2, border: `1px solid ${C.bd}`, fontSize: 9, fontFamily: M }}>esc</kbd> close</span>
           <span style={{ marginLeft: 'auto', opacity: 0.7 }}>@sym for symbols &middot; &gt;cmd for commands</span>
         </div>
       </div>

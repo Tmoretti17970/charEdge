@@ -6,7 +6,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C, F, M, GLASS, DEPTH } from '../../../constants.js';
 
 /**
  * @param {Object} props
@@ -92,10 +92,10 @@ export default function SettingsTabShell({
                 style={{
                     width: 380,
                     maxHeight: '80vh',
-                    background: 'rgba(22, 24, 29, 0.95)',
+                    background: GLASS.solid,
                     borderRadius: 14,
                     border: `1px solid ${C.bd}`,
-                    boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+                    boxShadow: DEPTH[3],
                     display: 'flex',
                     flexDirection: 'column',
                     overflow: 'hidden',

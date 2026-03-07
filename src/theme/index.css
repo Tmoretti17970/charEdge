@@ -34,3 +34,5 @@
 /* AI trade grade, risk guard, strategy builder, paper trading, analysis panel */
 @import './saliency.css';
 /* Signal-state saliency + low-stress palette */
+@import './light-overrides.css';
+/* Comprehensive light theme fixes for inline-styled components */
