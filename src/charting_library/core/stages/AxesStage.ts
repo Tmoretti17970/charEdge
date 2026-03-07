@@ -104,9 +104,10 @@ export function executeAxesStage(fs, ctx, engine) {
     // Build exclusion zone around the current price badge
     const lastBar = bars[bars.length - 1];
     const exclusions = [];
+    const badgeHalf = Math.round(18 * pr); // match actual badge height (18px) + padding
     if (lastBar) {
       const badgeY = Math.round(p2y(lastBar.close) * pr);
-      exclusions.push({ center: badgeY, halfSize: Math.round(12 * pr) });
+      exclusions.push({ center: badgeY, halfSize: badgeHalf });
     }
     const filteredPriceLabels = filterOverlappingLabels(priceLabels, Math.round(22 * pr), exclusions);
 
@@ -281,17 +282,28 @@ export function executeAxesStage(fs, ctx, engine) {
   if (last) {
     const y = Math.round(p2y(last.close) * pr);
     const bH = Math.round(18 * pr);
-    mCtx.fillStyle = last.close >= last.open ? thm.bullCandle || '#26A69A' : thm.bearCandle || '#EF5350';
-    mCtx.fillRect(axX, y - bH / 2, bw - axX, bH);
-    mCtx.fillStyle = '#fff';
+    const badgeColor = last.close >= last.open ? thm.bullCandle || '#26A69A' : thm.bearCandle || '#EF5350';
     mCtx.font = `bold ${fnFs}px Arial`;
-    mCtx.textAlign = 'right';
-    mCtx.textBaseline = 'middle';
     let badgeVal = last.close;
     let badgeStr = formatPrice(badgeVal) + (scaleMode === 'percent' && percentBase > 0 ? '%' : '');
     if (scaleMode === 'percent' && percentBase > 0) {
       badgeStr = formatPrice(((badgeVal - percentBase) / percentBase) * 100) + '%';
     }
+    // Measure text and compute pill width — clamp to axis gutter
+    const textW = mCtx.measureText(badgeStr).width;
+    const pillPad = Math.round(6 * pr);
+    const pillW = Math.min(textW + pillPad * 2, bw - axX); // don't exceed axis gutter
+    const pillX = bw - pillW;
+    const pillR = Math.round(3 * pr);
+    // Draw rounded pill background
+    mCtx.fillStyle = badgeColor;
+    mCtx.beginPath();
+    mCtx.roundRect(pillX, y - bH / 2, pillW, bH, [pillR, 0, 0, pillR]);
+    mCtx.fill();
+    // Price text — right-aligned within pill
+    mCtx.fillStyle = '#fff';
+    mCtx.textAlign = 'right';
+    mCtx.textBaseline = 'middle';
     mCtx.fillText(badgeStr, bw - axP, y);
   }
 
@@ -310,12 +322,6 @@ export function executeAxesStage(fs, ctx, engine) {
       ? (thm.bullCandle || '#26A69A')
       : (thm.bearCandle || '#EF5350');
 
-    // Pill background
-    mCtx.fillStyle = cmColor;
-    mCtx.beginPath();
-    mCtx.roundRect(axX, cursorY - cmH / 2, bw - axX, cmH, cmR);
-    mCtx.fill();
-
     // Price text
     let cmText = formatPrice(cursorPrice);
     if (scaleMode === 'percent' && percentBase > 0) {
@@ -323,8 +329,20 @@ export function executeAxesStage(fs, ctx, engine) {
     } else if (scaleMode === 'percent') {
       cmText += '%';
     }
-    mCtx.fillStyle = '#FFFFFF';
     mCtx.font = `bold ${fnFs}px Arial`;
+    // Measure text and compute pill width — clamp to axis gutter
+    const cmTextW = mCtx.measureText(cmText).width;
+    const cmPad = Math.round(6 * pr);
+    const cmPillW = Math.min(cmTextW + cmPad * 2, bw - axX);
+    const cmPillX = bw - cmPillW;
+
+    // Pill background
+    mCtx.fillStyle = cmColor;
+    mCtx.beginPath();
+    mCtx.roundRect(cmPillX, cursorY - cmH / 2, cmPillW, cmH, [cmR, 0, 0, cmR]);
+    mCtx.fill();
+
+    mCtx.fillStyle = '#FFFFFF';
     mCtx.textAlign = 'right';
     mCtx.textBaseline = 'middle';
     mCtx.fillText(cmText, bw - axP, cursorY);
