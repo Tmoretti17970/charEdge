@@ -1,21 +1,20 @@
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v10 — Chart.js React Wrapper
 // Handles Chart.js lifecycle: create → update → destroy
-// Dark-themed defaults, responsive, retina-aware
+// Theme-reactive defaults, responsive, retina-aware
 // ═══════════════════════════════════════════════════════════════════
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import Chart from 'chart.js/auto';
 import { C } from '../../../../constants.js';
 
-// ─── Lazy initialisation (avoids Vite TDZ on `Chart` binding) ───
-let _defaultsApplied = false;
+// ─── Lazy plugin registration (once only) ───────────────────────
+let _pluginRegistered = false;
 
-function ensureDefaults() {
-  if (_defaultsApplied) return;
-  _defaultsApplied = true;
+function registerPlugins() {
+  if (_pluginRegistered) return;
+  _pluginRegistered = true;
 
-  // Register zoom/pan plugin only in browser (hammerjs requires window)
   if (typeof window !== 'undefined') {
     import('chartjs-plugin-zoom')
       .then((mod) => {
@@ -23,8 +22,13 @@ function ensureDefaults() {
       })
       .catch(() => { });
   }
+}
 
-  // Global Chart.js defaults for dark theme
+/**
+ * Apply Chart.js global defaults from the current C (theme) values.
+ * Called on every chart mount so light/dark mode is always in sync.
+ */
+function applyThemeDefaults() {
   Chart.defaults.color = C.t3;
   Chart.defaults.borderColor = C.bd;
   Chart.defaults.font.family = "'JetBrains Mono', monospace";
@@ -57,8 +61,23 @@ export default function ChartWrapper({ config, height = 240, style = {} }) {
   const canvasRef = useRef(null);
   const chartRef = useRef(null);
 
+  // Listen for theme changes to force chart re-creation
+  const [themeKey, setThemeKey] = useState(0);
   useEffect(() => {
-    ensureDefaults();
+    const observer = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        if (m.attributeName === 'class') {
+          setThemeKey((k) => k + 1);
+        }
+      }
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    registerPlugins();
+    applyThemeDefaults();
 
     if (!canvasRef.current || !config) return;
 
@@ -84,7 +103,7 @@ export default function ChartWrapper({ config, height = 240, style = {} }) {
         chartRef.current = null;
       }
     };
-  }, [config]);
+  }, [config, themeKey]);
 
   return (
     <div style={{ position: 'relative', height, width: '100%', ...style }}>
