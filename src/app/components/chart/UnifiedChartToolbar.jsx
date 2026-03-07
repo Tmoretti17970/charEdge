@@ -16,7 +16,9 @@ import DataSourceBadge from './ui/DataSourceBadge.jsx';
 
 // Extracted sub-components
 import ChartTypeSelector from './toolbar/ChartTypeSelector.jsx';
-import CommandCenterMenu from './toolbar/CommandCenterMenu.jsx';
+
+// Lazy-load CommandCenterMenu to prevent chunk evaluation order issues
+const CommandCenterMenu = React.lazy(() => import('./toolbar/CommandCenterMenu.jsx'));
 
 // Lazy-load symbol search modal
 const SymbolSearchModal = React.lazy(() => import('./panels/SymbolSearchModal.jsx'));
@@ -271,16 +273,18 @@ export default function UnifiedChartToolbar({
           </Suspense>
         )}
         {/* SETTINGS / MORE MENU — Contains all moved toolbar items */}
-        <CommandCenterMenu
-          isMobile={isMobile}
-          showTrades={showTrades} setShowTrades={setShowTrades}
-          showObjectTree={showObjectTree} setShowObjectTree={setShowObjectTree}
-          onOpenPanel={onOpenPanel}
-          onOpenCopilot={onOpenCopilot}
-          onToggleAnalysis={onToggleAnalysis}
-          onSnapshot={onSnapshot}
-          layoutMode={layoutMode} setLayoutMode={setLayoutMode}
-        />
+        <Suspense fallback={null}>
+          <CommandCenterMenu
+            isMobile={isMobile}
+            showTrades={showTrades} setShowTrades={setShowTrades}
+            showObjectTree={showObjectTree} setShowObjectTree={setShowObjectTree}
+            onOpenPanel={onOpenPanel}
+            onOpenCopilot={onOpenCopilot}
+            onToggleAnalysis={onToggleAnalysis}
+            onSnapshot={onSnapshot}
+            layoutMode={layoutMode} setLayoutMode={setLayoutMode}
+          />
+        </Suspense>
       </div>
 
       {/* Symbol Search Modal */}
