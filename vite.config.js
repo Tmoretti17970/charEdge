@@ -39,6 +39,7 @@ function modulepreloadPlugin() {
 // from .env.local server-side. Mirrors Vercel serverless functions.
 function apiProxyPlugin() {
   const PROXY_CONFIGS = {
+    alpaca: { base: 'https://data.alpaca.markets', authStyle: 'header', envKeys: { keyId: 'ALPACA_KEY_ID', secret: 'ALPACA_SECRET' }, headerMap: { keyId: 'APCA-API-KEY-ID', secret: 'APCA-API-SECRET-KEY' }, cache: 5 },
     polygon: { base: 'https://api.polygon.io', envKey: 'POLYGON_API_KEY', paramName: 'apiKey', cache: 5 },
     alphavantage: { base: 'https://www.alphavantage.co', envKey: 'ALPHAVANTAGE_API_KEY', paramName: 'apikey', cache: 30 },
     fmp: { base: 'https://financialmodelingprep.com/api/v3', envKey: 'FMP_API_KEY', paramName: 'apikey', cache: 30 },
@@ -63,10 +64,25 @@ function apiProxyPlugin() {
           return res.end(JSON.stringify({ ok: false, error: `Unknown provider: ${provider}` }));
         }
 
-        const apiKey = env[config.envKey];
-        if (!apiKey) {
-          res.writeHead(503, { 'Content-Type': 'application/json' });
-          return res.end(JSON.stringify({ ok: false, error: `${provider.toUpperCase()} API key not configured` }));
+        // Resolve auth — header-based (Alpaca) vs query-param (others)
+        const isHeaderAuth = config.authStyle === 'header';
+        const authHeaders = {};
+
+        if (isHeaderAuth && config.envKeys && config.headerMap) {
+          for (const [key, envName] of Object.entries(config.envKeys)) {
+            const val = env[envName];
+            if (!val) {
+              res.writeHead(503, { 'Content-Type': 'application/json' });
+              return res.end(JSON.stringify({ ok: false, error: `${provider.toUpperCase()} API key not configured` }));
+            }
+            authHeaders[config.headerMap[key]] = val;
+          }
+        } else {
+          const apiKey = env[config.envKey];
+          if (!apiKey) {
+            res.writeHead(503, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify({ ok: false, error: `${provider.toUpperCase()} API key not configured` }));
+          }
         }
 
         // Parse path and query
@@ -77,7 +93,9 @@ function apiProxyPlugin() {
             url.searchParams.set(param[0], param[1]);
           }
         }
-        url.searchParams.set(config.paramName, apiKey);
+        if (!isHeaderAuth) {
+          url.searchParams.set(config.paramName, env[config.envKey]);
+        }
         if (config.extraParams) {
           for (const [k, v] of Object.entries(config.extraParams)) {
             url.searchParams.set(k, v);
@@ -86,7 +104,7 @@ function apiProxyPlugin() {
 
         try {
           const upstream = await fetch(url.toString(), {
-            headers: { 'User-Agent': 'charEdge/1.0' },
+            headers: { 'User-Agent': 'charEdge/1.0', ...authHeaders },
             signal: AbortSignal.timeout(15000),
           });
 

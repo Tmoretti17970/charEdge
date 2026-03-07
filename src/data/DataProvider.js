@@ -14,6 +14,7 @@
 
 // ─── Provider modules ───────────────────────────────────────────
 export { getApiKey, setApiKey, hasApiKey, initApiKeys } from './providers/ApiKeyStore.js';
+export { fetchAlpaca } from './providers/AlpacaProvider.js';
 export { fetchPolygon, createPolygonWSAdapter } from './providers/PolygonProvider.js';
 export { fetchAlphaVantage } from './providers/AlphaVantageProvider.js';
 export { WSRouter, wsRouter, createPythWSAdapter, createKrakenWSAdapter } from './providers/WSRouter.js';

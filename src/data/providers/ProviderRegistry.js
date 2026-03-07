@@ -6,6 +6,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { hasApiKey } from './ApiKeyStore.js';
+import { fetchAlpaca } from './AlpacaProvider.js';
 import { fetchPolygon } from './PolygonProvider.js';
 import { fetchAlphaVantage } from './AlphaVantageProvider.js';
 import { pythAdapter } from '../adapters/PythAdapter.js';
@@ -19,6 +20,7 @@ import { tiingoAdapter } from '../adapters/TiingoAdapter.js';
  * First one with data wins.
  */
 export const EQUITY_PROVIDERS = [
+  { id: 'alpaca', name: 'Alpaca Markets', fetch: fetchAlpaca, needsKey: false },
   { id: 'polygon', name: 'Polygon.io', fetch: fetchPolygon, needsKey: false },
   { id: 'fmp', name: 'Financial Modeling Prep', fetch: (sym, tf) => fmpAdapter.fetchOHLCV(sym, tf), needsKey: false },
   { id: 'tiingo', name: 'Tiingo', fetch: (sym, tf) => tiingoAdapter.fetchOHLCV(sym, tf), needsKey: false },
@@ -61,6 +63,14 @@ export async function fetchEquityPremium(sym, tfId) {
  */
 export function getProviderStatus() {
   return {
+    alpaca: {
+      name: 'Alpaca Markets',
+      hasKey: true,
+      needsKey: false,
+      tier: 'free',
+      features: ['US Equities OHLCV (real-time)', 'Intraday + Daily', '200 req/min', 'Paper Trading'],
+      rateLimit: '200 req/min (free)',
+    },
     pyth: {
       name: 'Pyth Network',
       hasKey: false,

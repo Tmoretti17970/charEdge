@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Task 2.1.1 API Proxy Tests
+// charEdge — API Proxy Tests
 //
 // Verifies that API keys are server-side only:
 //   1. Vercel serverless functions exist
@@ -18,7 +18,7 @@ const ROOT = resolve('.');
 // ─── Vercel Serverless Functions ──────────────────────────────────
 
 describe('Vercel proxy functions — exist and export handler', () => {
-  const providers = ['fmp', 'fred', 'finnhub'];
+  const providers = ['fmp', 'fred', 'finnhub', 'polygon', 'tiingo', 'alphavantage', 'alpaca'];
 
   for (const p of providers) {
     it(`api/proxy/${p}.js exists`, () => {
@@ -40,7 +40,7 @@ describe('Vercel proxy functions — exist and export handler', () => {
 
 // ─── Server.js Proxy Routes ──────────────────────────────────────
 
-describe('server.js — proxy routes for FMP/FRED/Finnhub', () => {
+describe('server.js — proxy routes for all providers', () => {
   const serverSrc = [
       'server.js',
       'server/middleware/security.js',
@@ -51,11 +51,15 @@ describe('server.js — proxy routes for FMP/FRED/Finnhub', () => {
       'server/ssr.js',
     ].map(f => readFileSync(resolve(ROOT, f), 'utf8')).join('\n');
 
-  it('has PROXY_CONFIGS with fmp, fred, finnhub', () => {
+  it('has PROXY_CONFIGS with all providers', () => {
     expect(serverSrc).toContain('PROXY_CONFIGS');
     expect(serverSrc).toContain("fmp:");
     expect(serverSrc).toContain("fred:");
     expect(serverSrc).toContain("finnhub:");
+    expect(serverSrc).toContain("polygon:");
+    expect(serverSrc).toContain("tiingo:");
+    expect(serverSrc).toContain("alphavantage:");
+    expect(serverSrc).toContain("alpaca:");
   });
 
   it('has catch-all proxy route', () => {
@@ -66,6 +70,11 @@ describe('server.js — proxy routes for FMP/FRED/Finnhub', () => {
     expect(serverSrc).toContain('FMP_API_KEY');
     expect(serverSrc).toContain('FRED_API_KEY');
     expect(serverSrc).toContain('FINNHUB_API_KEY');
+    expect(serverSrc).toContain('POLYGON_API_KEY');
+    expect(serverSrc).toContain('TIINGO_API_TOKEN');
+    expect(serverSrc).toContain('ALPHAVANTAGE_API_KEY');
+    expect(serverSrc).toContain('ALPACA_KEY_ID');
+    expect(serverSrc).toContain('ALPACA_SECRET');
   });
 });
 
@@ -83,7 +92,6 @@ describe('FMPAdapter — proxied (no client-side key)', () => {
   });
 
   it('does NOT inject apikey param in requests', () => {
-    // The _request method should not add apikey
     const requestMethod = src.slice(src.indexOf('async _request('));
     expect(requestMethod).not.toContain("'apikey'");
     expect(requestMethod).not.toContain('apikey:');
@@ -127,7 +135,6 @@ describe('FinnhubAdapter — proxied REST (no client-side key)', () => {
   });
 
   it('does NOT call finnhub.io directly for REST', () => {
-    // Should not have the REST base URL
     expect(src).not.toContain("'https://finnhub.io/api/v1'");
   });
 
@@ -147,6 +154,87 @@ describe('FinnhubAdapter — proxied REST (no client-side key)', () => {
   });
 });
 
+// ─── PolygonProvider — uses proxy, no direct API calls ────────────
+
+describe('PolygonProvider — proxied (no client-side key)', () => {
+  const src = readFileSync(resolve(SRC, 'data/providers/PolygonProvider.js'), 'utf8');
+
+  it('calls /api/proxy/polygon', () => {
+    expect(src).toContain('/api/proxy/polygon');
+  });
+
+  it('does NOT call api.polygon.io directly', () => {
+    expect(src).not.toContain("'https://api.polygon.io'");
+  });
+});
+
+// ─── TiingoAdapter — uses proxy, no direct API calls ──────────────
+
+describe('TiingoAdapter — proxied (no client-side key)', () => {
+  const src = readFileSync(resolve(SRC, 'data/adapters/TiingoAdapter.js'), 'utf8');
+
+  it('calls /api/proxy/tiingo', () => {
+    expect(src).toContain('/api/proxy/tiingo');
+  });
+
+  it('does NOT call api.tiingo.com directly', () => {
+    expect(src).not.toContain("'https://api.tiingo.com'");
+  });
+
+  it('isConfigured always returns true', () => {
+    expect(src).toContain('get isConfigured() { return true; }');
+  });
+});
+
+// ─── AlphaVantageProvider — uses proxy, no direct API calls ───────
+
+describe('AlphaVantageProvider — proxied (no client-side key)', () => {
+  const src = readFileSync(resolve(SRC, 'data/providers/AlphaVantageProvider.js'), 'utf8');
+
+  it('calls /api/proxy/alphavantage', () => {
+    expect(src).toContain('/api/proxy/alphavantage');
+  });
+
+  it('does NOT call www.alphavantage.co directly', () => {
+    expect(src).not.toContain("'https://www.alphavantage.co'");
+  });
+});
+
+// ─── AlpacaProvider — uses proxy, no client-side keys ─────────────
+
+describe('AlpacaProvider — proxied (no client-side key)', () => {
+  const src = readFileSync(resolve(SRC, 'data/providers/AlpacaProvider.js'), 'utf8');
+
+  it('calls /api/proxy/alpaca', () => {
+    expect(src).toContain('/api/proxy/alpaca');
+  });
+
+  it('does NOT call data.alpaca.markets directly', () => {
+    expect(src).not.toContain("'https://data.alpaca.markets'");
+  });
+
+  it('does NOT contain APCA- headers (server-side only)', () => {
+    expect(src).not.toContain('APCA-API-KEY-ID');
+    expect(src).not.toContain('APCA-API-SECRET-KEY');
+  });
+});
+
+// ─── ProviderRegistry — Alpaca is first in equity chain ───────────
+
+describe('ProviderRegistry — equity provider ordering', () => {
+  const src = readFileSync(resolve(SRC, 'data/providers/ProviderRegistry.js'), 'utf8');
+
+  it('has alpaca as a provider', () => {
+    expect(src).toContain("id: 'alpaca'");
+  });
+
+  it('alpaca appears before polygon in EQUITY_PROVIDERS', () => {
+    const alpacaPos = src.indexOf("id: 'alpaca'");
+    const polygonPos = src.indexOf("id: 'polygon'");
+    expect(alpacaPos).toBeLessThan(polygonPos);
+  });
+});
+
 // ─── .env.example — has server-only env vars ──────────────────────
 
 describe('.env.example — API key env vars', () => {
@@ -162,6 +250,23 @@ describe('.env.example — API key env vars', () => {
 
   it('has FINNHUB_API_KEY', () => {
     expect(envSrc).toContain('FINNHUB_API_KEY');
+  });
+
+  it('has POLYGON_API_KEY', () => {
+    expect(envSrc).toContain('POLYGON_API_KEY');
+  });
+
+  it('has ALPACA_KEY_ID and ALPACA_SECRET', () => {
+    expect(envSrc).toContain('ALPACA_KEY_ID');
+    expect(envSrc).toContain('ALPACA_SECRET');
+  });
+
+  it('has TIINGO_API_TOKEN', () => {
+    expect(envSrc).toContain('TIINGO_API_TOKEN');
+  });
+
+  it('has ALPHAVANTAGE_API_KEY', () => {
+    expect(envSrc).toContain('ALPHAVANTAGE_API_KEY');
   });
 
   it('does NOT have VITE_FMP or VITE_FRED or VITE_FINNHUB', () => {

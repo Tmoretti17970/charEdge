@@ -30,6 +30,16 @@ const envSchema = z.object({
     STRIPE_SECRET_KEY: z.string().optional(),
     STRIPE_WEBHOOK_SECRET: z.string().optional(),
 
+    // ── Data Provider API Keys (server-side proxy) ───────────
+    ALPACA_KEY_ID: z.string().optional(),
+    ALPACA_SECRET: z.string().optional(),
+    POLYGON_API_KEY: z.string().optional(),
+    FMP_API_KEY: z.string().optional(),
+    TIINGO_API_TOKEN: z.string().optional(),
+    ALPHAVANTAGE_API_KEY: z.string().optional(),
+    FRED_API_KEY: z.string().optional(),
+    FINNHUB_API_KEY: z.string().optional(),
+
     // ── Feature Flags ───────────────────────────────────────
     ENABLE_SOCIAL: z.coerce.boolean().default(false),
     ENABLE_AI: z.coerce.boolean().default(false),
@@ -64,6 +74,26 @@ export function validateEnv(): Env {
     if (result.data.NODE_ENV === 'production' && result.data.JWT_SECRET === 'dev-secret-change-in-production!') {
         console.error('\n⚠️  WARNING: Using default JWT_SECRET in production! Set a secure value.\n');
         process.exit(1);
+    }
+
+    // Warn about missing data provider keys
+    const apiKeyChecks: Array<[string, keyof Env]> = [
+        ['Alpaca (best equity data)', 'ALPACA_KEY_ID'],
+        ['Polygon.io', 'POLYGON_API_KEY'],
+        ['FMP', 'FMP_API_KEY'],
+        ['Tiingo', 'TIINGO_API_TOKEN'],
+        ['Alpha Vantage', 'ALPHAVANTAGE_API_KEY'],
+        ['FRED', 'FRED_API_KEY'],
+        ['Finnhub', 'FINNHUB_API_KEY'],
+    ];
+
+    const missing = apiKeyChecks.filter(([, key]) => !result.data[key]);
+    if (missing.length > 0) {
+        console.warn('\n⚠️  Missing data provider API keys (charts will use fallback providers):');
+        for (const [name] of missing) {
+            console.warn(`   • ${name}`);
+        }
+        console.warn('   Set keys in .env.local — see .env.example for details.\n');
     }
 
     _env = result.data;

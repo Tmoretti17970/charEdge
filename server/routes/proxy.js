@@ -11,14 +11,24 @@ import { checkRateLimit, RATE_LIMIT_WINDOW_MS } from '../middleware/rateLimiter.
 /**
  * @typedef {Object} ProxyConfig
  * @property {string} base - Upstream API base URL
- * @property {string} envKey - Environment variable name for API key
- * @property {string} paramName - Query parameter name to inject API key
+ * @property {string} [envKey] - Environment variable name for API key (query-param auth)
+ * @property {string} [paramName] - Query parameter name to inject API key
  * @property {number} cache - Cache-Control max-age in seconds
  * @property {Record<string, string>} [extraParams] - Additional query parameters
+ * @property {'query'|'header'} [authStyle] - Auth injection style (default: 'query')
+ * @property {Record<string, string>} [envKeys] - Multiple env var names for header auth
+ * @property {Record<string, string>} [headerMap] - Map envKey → header name for header auth
  */
 
 /** @type {Record<string, ProxyConfig>} */
 const PROXY_CONFIGS = {
+    alpaca: {
+        base: 'https://data.alpaca.markets',
+        authStyle: 'header',
+        envKeys: { keyId: 'ALPACA_KEY_ID', secret: 'ALPACA_SECRET' },
+        headerMap: { keyId: 'APCA-API-KEY-ID', secret: 'APCA-API-SECRET-KEY' },
+        cache: 5,
+    },
     polygon: {
         base: 'https://api.polygon.io',
         envKey: 'POLYGON_API_KEY',
@@ -60,6 +70,9 @@ const PROXY_CONFIGS = {
 
 /**
  * Creates exchange API proxy router.
+ * Supports two auth styles:
+ *   - 'query' (default): inject API key as a query parameter
+ *   - 'header': inject API credentials as request headers
  * @returns {import('express').Router}
  */
 export function createProxyRouter() {
@@ -78,9 +91,24 @@ export function createProxyRouter() {
             return res.status(429).json({ ok: false, error: 'Rate limit exceeded' });
         }
 
-        const apiKey = process.env[config.envKey];
-        if (!apiKey) {
-            return res.status(503).json({ ok: false, error: `${provider.toUpperCase()} API key not configured` });
+        // Resolve auth credentials
+        const isHeaderAuth = config.authStyle === 'header';
+        const authHeaders = {};
+
+        if (isHeaderAuth && config.envKeys && config.headerMap) {
+            for (const [key, envName] of Object.entries(config.envKeys)) {
+                const val = process.env[envName];
+                if (!val) {
+                    return res.status(503).json({ ok: false, error: `${provider.toUpperCase()} API key not configured (missing ${envName})` });
+                }
+                const headerName = config.headerMap[key];
+                if (headerName) authHeaders[headerName] = val;
+            }
+        } else {
+            const apiKey = process.env[config.envKey];
+            if (!apiKey) {
+                return res.status(503).json({ ok: false, error: `${provider.toUpperCase()} API key not configured` });
+            }
         }
 
         const proxyPath = req.params[0] || '';
@@ -113,7 +141,9 @@ export function createProxyRouter() {
         for (const [k, v] of Object.entries(req.query)) {
             if (typeof v === 'string') url.searchParams.set(k, v);
         }
-        url.searchParams.set(config.paramName, apiKey);
+        if (!isHeaderAuth) {
+            url.searchParams.set(config.paramName, process.env[config.envKey]);
+        }
         if (config.extraParams) {
             for (const [k, v] of Object.entries(config.extraParams)) {
                 url.searchParams.set(k, v);
@@ -122,7 +152,7 @@ export function createProxyRouter() {
 
         try {
             const upstream = await fetch(url.toString(), {
-                headers: { 'User-Agent': 'charEdge/1.0' },
+                headers: { 'User-Agent': 'charEdge/1.0', ...authHeaders },
                 signal: AbortSignal.timeout(15_000),
             });
 
