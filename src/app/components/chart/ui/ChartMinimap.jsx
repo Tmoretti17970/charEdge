@@ -1,6 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Chart Minimap Navigator (Apple × TradingView Polish)
-// Compressed overview strip for quick data navigation.
+// Compressed overview strip with year labels, live beacon, and
+// gradient fog-of-war for quick data navigation.
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useRef, useEffect, useCallback, useState } from 'react';
@@ -9,16 +10,53 @@ import { alpha } from '../../../../utils/colorUtils.js';
 
 const MINIMAP_HEIGHT = 36;
 
+// ─── Year/Month Label Helpers ──────────────────────────────────
+
+/** Scan data for year/month boundaries and return label positions */
+function computeTimeLabels(data, canvasWidth) {
+  if (!data?.length) return [];
+  const labels = [];
+  const barW = canvasWidth / data.length;
+  let lastYear = -1;
+  let lastMonth = -1;
+
+  for (let i = 0; i < data.length; i++) {
+    const ts = data[i].t || data[i].time;
+    if (!ts) continue;
+    const d = new Date(ts);
+    const year = d.getFullYear();
+    const month = d.getMonth();
+
+    if (year !== lastYear) {
+      labels.push({ x: i * barW, text: String(year), isYear: true });
+      lastYear = year;
+      lastMonth = month;
+    } else if (month !== lastMonth) {
+      // Only show month labels if there's enough room (>40px apart)
+      const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const prev = labels.length > 0 ? labels[labels.length - 1].x : -Infinity;
+      const px = i * barW;
+      if (px - prev > 40) {
+        labels.push({ x: px, text: monthNames[month], isYear: false });
+      }
+      lastMonth = month;
+    }
+  }
+  return labels;
+}
+
 export default function ChartMinimap({ data, visibleBars = 80, scrollOffset = 0, onViewportChange }) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [dragging, setDragging] = useState(false);
   const dragStart = useRef({ x: 0, offset: 0 });
+  const beaconPhase = useRef(0);
+  const rafId = useRef(null);
 
   const totalBars = data?.length || 0;
 
-  // Render the minimap canvas
-  const render = useCallback(() => {
+  // Render the minimap canvas (accepts optional beacon alpha for animation)
+  const render = useCallback((beaconAlpha = 1) => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container || !data?.length) return;
@@ -92,23 +130,55 @@ export default function ChartMinimap({ data, visibleBars = 80, scrollOffset = 0,
     ctx.lineWidth = 1.2;
     ctx.stroke();
 
+    // ─── Year/Month Labels ───────────────────────────────────────
+    const labels = computeTimeLabels(data, w);
+    for (const lbl of labels) {
+      ctx.save();
+      ctx.font = lbl.isYear
+        ? 'bold 8px Inter, system-ui, sans-serif'
+        : '7px Inter, system-ui, sans-serif';
+      ctx.fillStyle = lbl.isYear ? alpha(C.b, 0.6) : alpha(C.b, 0.35);
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(lbl.text, lbl.x + 2, h - 1);
+      // Year tick mark
+      if (lbl.isYear) {
+        ctx.strokeStyle = alpha(C.b, 0.25);
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(lbl.x, 0);
+        ctx.lineTo(lbl.x, h);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
     // Viewport rectangle
     const vBars = Math.min(visibleBars, totalBars);
     const vpRight = w - (scrollOffset / totalBars) * w;
     const vpWidth = Math.max(12, (vBars / totalBars) * w);
     const vpLeft = Math.max(0, vpRight - vpWidth);
 
-    // Dim outside
-    ctx.fillStyle = 'rgba(0,0,0,0.4)';
-    const dimRadius = 4;
+    // ─── Fog-of-War (gradient dim) ──────────────────────────────
+    // Left fog: opaque at x=0, fading to transparent near viewport
     if (vpLeft > 0) {
+      const fogL = ctx.createLinearGradient(0, 0, vpLeft, 0);
+      fogL.addColorStop(0, 'rgba(0,0,0,0.55)');
+      fogL.addColorStop(0.7, 'rgba(0,0,0,0.4)');
+      fogL.addColorStop(1, 'rgba(0,0,0,0.05)');
+      ctx.fillStyle = fogL;
       ctx.beginPath();
-      ctx.roundRect(0, 0, vpLeft, h, [dimRadius, 0, 0, dimRadius]);
+      ctx.roundRect(0, 0, vpLeft, h, [4, 0, 0, 4]);
       ctx.fill();
     }
+    // Right fog: transparent near viewport, opaque at x=w
     if (vpRight < w) {
+      const fogR = ctx.createLinearGradient(vpRight, 0, w, 0);
+      fogR.addColorStop(0, 'rgba(0,0,0,0.05)');
+      fogR.addColorStop(0.3, 'rgba(0,0,0,0.4)');
+      fogR.addColorStop(1, 'rgba(0,0,0,0.55)');
+      ctx.fillStyle = fogR;
       ctx.beginPath();
-      ctx.roundRect(vpRight, 0, w - vpRight, h, [0, dimRadius, dimRadius, 0]);
+      ctx.roundRect(vpRight, 0, w - vpRight, h, [0, 4, 4, 0]);
       ctx.fill();
     }
 
@@ -134,12 +204,51 @@ export default function ChartMinimap({ data, visibleBars = 80, scrollOffset = 0,
     ctx.roundRect(Math.min(vpRight, w) - handleW - 1, hy, handleW, handleH, 2);
     ctx.fill();
     ctx.globalAlpha = 1;
+
+    // ─── Live-Candle Beacon ──────────────────────────────────────
+    // Pulsing dot at the rightmost (newest) candle position
+    const lastIdx = data.length - 1;
+    const beaconX = lastIdx * barW;
+    const beaconY = h - ((data[lastIdx].close - minP) / range) * (h - padY * 2) - padY;
+
+    // Outer glow
+    ctx.save();
+    ctx.globalAlpha = beaconAlpha * 0.25;
+    ctx.fillStyle = C.b;
+    ctx.beginPath();
+    ctx.arc(beaconX, beaconY, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Inner dot
+    ctx.globalAlpha = beaconAlpha;
+    ctx.fillStyle = C.b;
+    ctx.beginPath();
+    ctx.arc(beaconX, beaconY, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   }, [data, visibleBars, scrollOffset, totalBars]);
 
+  // Beacon animation loop — pulse the live dot
   useEffect(() => {
-    render();
-    window.addEventListener('resize', render);
-    return () => window.removeEventListener('resize', render);
+    let active = true;
+    const animate = () => {
+      if (!active) return;
+      beaconPhase.current += 0.04;
+      const pulse = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(beaconPhase.current));
+      render(pulse);
+      rafId.current = requestAnimationFrame(animate);
+    };
+    rafId.current = requestAnimationFrame(animate);
+    return () => {
+      active = false;
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+    };
+  }, [render]);
+
+  useEffect(() => {
+    const onResize = () => render();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, [render]);
 
   // Mouse interaction — drag viewport

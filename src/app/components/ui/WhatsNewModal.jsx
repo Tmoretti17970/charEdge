@@ -15,6 +15,19 @@ const STORAGE_KEY = 'charedge_last_seen_version';
  */
 const CHANGELOG = [
     {
+        version: '11.1.0',
+        date: '2026-03-06',
+        changes: [
+            { type: 'feature', text: 'Infinite-canvas minimap — year labels, live-candle beacon, gradient fog-of-war' },
+            { type: 'feature', text: 'Stream health border — ambient WS quality glow + latency badge' },
+            { type: 'feature', text: 'State architecture diagram — Mermaid-powered Zustand store map' },
+            { type: 'improvement', text: 'CI gates — axe-core accessibility, frame-time regression, web-vitals, benchmark guards' },
+            { type: 'improvement', text: 'README rewrite — hero section, quick start, tech stack, project structure' },
+            { type: 'improvement', text: 'Configuration schema — JSDoc typedefs for all chart constants' },
+            { type: 'improvement', text: 'Launch playbook — Product Hunt, Discord, Reddit, Twitter templates' },
+        ],
+    },
+    {
         version: '11.0.0',
         date: '2026-03-04',
         changes: [
@@ -46,7 +59,7 @@ const TYPE_COLORS = {
     breaking: 'var(--c-accent-red, #EF5350)',
 };
 
-const WhatsNewModal = memo(function WhatsNewModal({ currentVersion = '11.0.0' }) {
+const WhatsNewModal = memo(function WhatsNewModal({ currentVersion = '11.1.0' }) {
     const [visible, setVisible] = useState(false);
 
     useEffect(() => {

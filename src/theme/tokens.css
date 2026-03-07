@@ -53,11 +53,12 @@
   --tf-space-8: 32px;
   --tf-space-10: 40px;
 
-  /* Radii */
-  --tf-radius-sm: 4px;
-  --tf-radius-md: 8px;
-  --tf-radius-lg: 10px;
-  --tf-radius-xl: 14px;
+  /* Radii — Apple-aligned 6-step scale */
+  --tf-radius-xs: 4px;     /* tags, badges, small buttons */
+  --tf-radius-sm: 8px;     /* inputs, small cards */
+  --tf-radius-md: 12px;    /* cards, panels */
+  --tf-radius-lg: 16px;    /* modals, drawers */
+  --tf-radius-xl: 20px;    /* hero cards, dialog */
   --tf-radius-full: 9999px;
 
   /* ─── Type Scale (4px base grid) ─────────────────────────────── */
@@ -116,6 +117,25 @@
   --tf-glass-border: 1px solid rgba(255, 255, 255, 0.06);
   --tf-glass-border-hover: 1px solid rgba(255, 255, 255, 0.12);
   --tf-glass-border-active: 1px solid rgba(232, 100, 44, 0.3);
+
+  /* ─── Refractive Glass Depth Tiers (E1.1) ─────────────────── */
+  /*  Each tier adds increasing blur + specular highlight per Z-level.
+   *  surface = flat content | raised = cards | floating = panels/menus | overlay = modals */
+  --tf-depth-surface-bg: var(--tf-glass-1);
+  --tf-depth-surface-blur: var(--tf-blur-sm);
+  --tf-depth-surface-specular: inset 0 0.5px 0 rgba(255, 255, 255, 0.04);
+
+  --tf-depth-raised-bg: var(--tf-glass-2);
+  --tf-depth-raised-blur: var(--tf-blur-md);
+  --tf-depth-raised-specular: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 0 0 0.5px rgba(255, 255, 255, 0.03);
+
+  --tf-depth-floating-bg: var(--tf-glass-3);
+  --tf-depth-floating-blur: var(--tf-blur-lg);
+  --tf-depth-floating-specular: inset 0 1px 0 rgba(255, 255, 255, 0.09), inset 0 0 0 0.5px rgba(255, 255, 255, 0.04);
+
+  --tf-depth-overlay-bg: var(--tf-glass-4);
+  --tf-depth-overlay-blur: var(--tf-blur-xl);
+  --tf-depth-overlay-specular: inset 0 1.5px 0 rgba(255, 255, 255, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 
   --tf-shadow-0: none;
   --tf-shadow-1: 0 1px 3px rgba(0, 0, 0, 0.2), 0 0 1px rgba(0, 0, 0, 0.1);
@@ -323,3 +343,78 @@
   --tf-density-icon: 16px;
   --tf-density-radius: 6px;
 }
+
+/* ─── Glass Depth Utility Classes (E1.1) ───────────────────── *
+ * Apply `.tf-depth-{tier}` to any element for consistent
+ * glassmorphism with specular highlights per depth level.
+ * ────────────────────────────────────────────────────────────── */
+.tf-depth-surface {
+  background: var(--tf-depth-surface-bg);
+  backdrop-filter: var(--tf-depth-surface-blur);
+  -webkit-backdrop-filter: var(--tf-depth-surface-blur);
+  box-shadow: var(--tf-depth-surface-specular), var(--tf-shadow-0);
+}
+
+.tf-depth-raised {
+  background: var(--tf-depth-raised-bg);
+  backdrop-filter: var(--tf-depth-raised-blur);
+  -webkit-backdrop-filter: var(--tf-depth-raised-blur);
+  box-shadow: var(--tf-depth-raised-specular), var(--tf-shadow-1);
+}
+
+.tf-depth-floating {
+  background: var(--tf-depth-floating-bg);
+  backdrop-filter: var(--tf-depth-floating-blur);
+  -webkit-backdrop-filter: var(--tf-depth-floating-blur);
+  box-shadow: var(--tf-depth-floating-specular), var(--tf-shadow-2);
+}
+
+.tf-depth-overlay {
+  background: var(--tf-depth-overlay-bg);
+  backdrop-filter: var(--tf-depth-overlay-blur);
+  -webkit-backdrop-filter: var(--tf-depth-overlay-blur);
+  box-shadow: var(--tf-depth-overlay-specular), var(--tf-shadow-3);
+}
+
+/* ─── Clear Mode (E1.3) ────────────────────────────────────── *
+ * When `data-clear-mode` is set on <body>, glassmorphism surfaces
+ * adopt sampled colors from the underlying chart canvas.
+ * CSS variables set by useDynamicMaterial hook:
+ *   --tf-clear-bg : sampled with 55% opacity
+ *   --tf-clear-tint : sampled with 15% opacity
+ * ────────────────────────────────────────────────────────────── */
+[data-clear-mode] .tf-depth-surface,
+[data-clear-mode] .tf-depth-raised {
+  background: var(--tf-clear-bg, var(--tf-depth-surface-bg));
+  border-color: var(--tf-clear-tint, rgba(255, 255, 255, 0.06));
+}
+
+[data-clear-mode] .tf-depth-floating,
+[data-clear-mode] .tf-depth-overlay {
+  background: var(--tf-clear-bg, var(--tf-depth-floating-bg));
+}
+
+/* ─── Timeframe Switch Micro-Transition (E1.4) ─────────────── */
+[data-tf-switching] {
+  animation: tf-tf-switch 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tf-tf-switch {
+  0% {
+    filter: blur(2px);
+    transform: scale(0.995);
+    opacity: 0.85;
+  }
+  100% {
+    filter: blur(0);
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-tf-switching] {
+    animation: none !important;
+  }
+}
+

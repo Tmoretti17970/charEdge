@@ -40,10 +40,11 @@ export const cardPadding = {
 // ─── Border Radius ────────────────────────────────────────────
 export const radii = {
   none: 0,
-  sm: 4,
-  md: 8,
-  lg: 10,
-  xl: 14, // cards
+  xs: 4,     // tags, badges, small buttons
+  sm: 8,     // inputs, small cards
+  md: 12,    // cards, panels
+  lg: 16,    // modals, drawers
+  xl: 20,    // hero cards, dialogs
   pill: 9999,
 };
 
@@ -106,6 +107,8 @@ export const zIndex = {
   modal: 300,
   toast: 400,
   tooltip: 500,
+  popover: 1000,
+  topmost: 9999,
 };
 
 // ─── Transitions ──────────────────────────────────────────────

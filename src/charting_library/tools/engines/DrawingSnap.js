@@ -117,11 +117,38 @@ export function getSmartGuides(enabled, x, y, drawings, activeDrawing, anchorToP
  * @returns {{ price: number, time: number, snapInfo: object|null }}
  */
 export function doMagnetSnap(ctx) {
-  const { x, y, price, time, snapStrength, magnetSnap, drawings, activeDrawing, anchorToPixel, priceToPixel, indicatorData, hoverBarIdx, gridTicks } = ctx;
+  const { x, y, price, time, snapStrength, magnetSnap, drawings, activeDrawing, anchorToPixel, priceToPixel, indicatorData, hoverBarIdx, gridTicks, visibleBars } = ctx;
 
   if (!magnetSnap && snapStrength <= 0) return { price, time, snapInfo: null };
 
   const candidates = [];
+
+  // 0. Pixel-radius OHLC bar scan (D1.1) — highest priority
+  if (visibleBars && visibleBars.length > 0 && priceToPixel) {
+    const SCAN_RADIUS = 15;
+    for (const bar of visibleBars) {
+      const barX = bar.x;
+      if (Math.abs(x - barX) > SCAN_RADIUS) continue;
+      const ohlcEntries = [
+        { key: 'open',  price: bar.open,  py: bar.openY  ?? priceToPixel(bar.open) },
+        { key: 'high',  price: bar.high,  py: bar.highY  ?? priceToPixel(bar.high) },
+        { key: 'low',   price: bar.low,   py: bar.lowY   ?? priceToPixel(bar.low) },
+        { key: 'close', price: bar.close, py: bar.closeY ?? priceToPixel(bar.close) },
+      ];
+      for (const entry of ohlcEntries) {
+        const dist2d = Math.sqrt((x - barX) ** 2 + (y - entry.py) ** 2);
+        if (dist2d < SCAN_RADIUS) {
+          // D1.2: High/Low get 0.8× distance multiplier (win tiebreaks)
+          const adjustedDist = (entry.key === 'high' || entry.key === 'low') ? dist2d * 0.8 : dist2d;
+          candidates.push({
+            price: entry.price, time: bar.time || time,
+            label: entry.key.toUpperCase(), type: 'ohlc-scan',
+            priority: 0, dist: adjustedDist,
+          });
+        }
+      }
+    }
+  }
 
   // 1. External OHLC snap
   if (magnetSnap) {

@@ -18,6 +18,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { EventEmitter } from '../../utils/EventEmitter.ts';
+import { ReplayInterpolator } from './ReplayInterpolator.js';
+import type { OHLCBar } from './ReplayInterpolator.js';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -46,6 +48,7 @@ export interface DataProvider {
 export interface ReplayEvents {
     'state-change': { from: ReplayState; to: ReplayState };
     'bar-advance': { bar: ReplayBar; index: number; total: number; progress: number };
+    'tick-interpolate': { partialBar: OHLCBar; progress: number; index: number };
     'replay-complete': { totalBars: number; elapsedMs: number };
     'error': { message: string };
 }
@@ -68,10 +71,12 @@ export class ReplayEngine extends EventEmitter {
     private bars: ReplayBar[] = [];
     private visibleIndex = 0;
     private speed: SpeedMultiplier = 1;
-    private intervalId: ReturnType<typeof setInterval> | null = null;
+    private rafId: number | null = null;
     private dataProvider: DataProvider;
     private config: ReplayConfig | null = null;
     private startTime = 0;
+    private lastBarTime = 0;
+    private interpolator: ReplayInterpolator | null = null;
 
     constructor(dataProvider: DataProvider) {
         super();
@@ -205,15 +210,54 @@ export class ReplayEngine extends EventEmitter {
 
     private startAutoAdvance(): void {
         this.stopAutoAdvance();
+        this.lastBarTime = performance.now();
         const preset = SPEED_PRESETS.find((p) => p.value === this.speed) || SPEED_PRESETS[0];
-        this.intervalId = setInterval(() => this.advanceBar(), preset.intervalMs);
+        const intervalMs = preset.intervalMs;
+
+        const loop = (now: number) => {
+            if (this.state !== 'playing') return;
+
+            const elapsed = now - this.lastBarTime;
+            const barProgress = Math.min(elapsed / intervalMs, 1);
+
+            // Emit interpolation tick for smooth animation (D3.3)
+            if (this.interpolator && barProgress < 1) {
+                const partialBar = this.interpolator.getPartialBar(barProgress);
+                this.emit('tick-interpolate', {
+                    partialBar,
+                    progress: barProgress,
+                    index: this.visibleIndex,
+                });
+            }
+
+            if (elapsed >= intervalMs) {
+                this.lastBarTime = now;
+                this.advanceBar();
+                // Set up interpolator for the next bar
+                const nextBar = this.bars[this.visibleIndex];
+                if (nextBar) {
+                    this.interpolator = new ReplayInterpolator(nextBar);
+                }
+            }
+
+            this.rafId = requestAnimationFrame(loop);
+        };
+
+        // Initialize interpolator for the current bar
+        const currentBar = this.bars[this.visibleIndex];
+        if (currentBar) {
+            this.interpolator = new ReplayInterpolator(currentBar);
+        }
+
+        this.rafId = requestAnimationFrame(loop);
     }
 
     private stopAutoAdvance(): void {
-        if (this.intervalId) {
-            clearInterval(this.intervalId);
-            this.intervalId = null;
+        if (this.rafId !== null) {
+            cancelAnimationFrame(this.rafId);
+            this.rafId = null;
         }
+        this.interpolator = null;
     }
 
     destroy(): void {

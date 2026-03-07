@@ -25,6 +25,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { isCrypto } from '../constants.js';
+import { heartbeatMonitor } from './HeartbeatMonitor.js';
+import { backfillGaps } from './engine/GapBackfill.ts';
 
 // Cache StreamingIndicatorBridge import to avoid dynamic import() on every tick
 let _streamingBridge = null;
@@ -132,6 +134,10 @@ class _WebSocketService {
 
     // Debounce reconnect to batch rapid subscribe/unsubscribe calls
     this._reconnectDebounce = null;
+
+    // ── Gap-stitching state (C1.2) ──
+    this._disconnectedAt = 0;         // Timestamp when WS was last closed
+    this._isSilentReconnect = false;  // True during silentReconnect flow
 
     // ── Heartbeat state ──
     this._heartbeatTimer = null;
@@ -362,6 +368,11 @@ class _WebSocketService {
         if (added.length > 0) this._sendSubscribe(added);
         if (removed.length > 0) this._sendUnsubscribe(removed);
 
+        // ── Gap-stitching on reconnect (C1.2) ──
+        if (this._disconnectedAt > 0) {
+          this._stitchGaps();
+        }
+
         // ── Start heartbeat ping ──
         this._startHeartbeat();
       };
@@ -412,6 +423,11 @@ class _WebSocketService {
           // Update health metrics
           this._lastMessageTime = Date.now();
           this._messagesReceived++;
+
+          // Touch HeartbeatMonitor for data-level staleness tracking (C1.1)
+          if (msgStream) {
+            heartbeatMonitor.touch(msgStream);
+          }
 
           // ── Kline events ──
           if (msg.e === 'kline' && msg.k) {
@@ -590,9 +606,138 @@ class _WebSocketService {
     };
   }
 
+  // ─── Silent Reconnect (C1.3) ──────────────────────────────────
+
+  /**
+   * Silently reconnect without clearing subscriptions or notifying UI.
+   * Used by HeartbeatMonitor when data staleness is detected.
+   * Preserves all active subs and triggers gap-stitching on reconnect.
+   */
+  silentReconnect() {
+    if (this._isSilentReconnect) return; // Prevent re-entry
+    this._isSilentReconnect = true;
+    this._disconnectedAt = Date.now();
+
+    // Close WS without clearing subs
+    this._stopHeartbeat();
+    if (this._ws) {
+      this._ws.onopen = null;
+      this._ws.onmessage = null;
+      this._ws.onclose = null;
+      this._ws.onerror = null;
+      try { this._ws.close(); } catch { /* ignore */ }
+      this._ws = null;
+    }
+    this._currentStreams.clear();
+
+    // Set status to RECONNECTING (not DISCONNECTED)
+    this._status = WS_STATUS.RECONNECTING;
+    this._reconnectAttempts = 0;
+
+    // Reconnect immediately
+    this._connect();
+    this._isSilentReconnect = false;
+  }
+
+  // ─── Gap-Stitching (C1.2) ─────────────────────────────────────
+
+  /**
+   * Stitch gaps after reconnect by backfilling missed bars.
+   * Calls GapBackfill.ts for each active kline stream.
+   * @private
+   */
+  async _stitchGaps() {
+    if (!this._disconnectedAt) return;
+    const disconnectedAt = this._disconnectedAt;
+    this._disconnectedAt = 0;
+
+    // Collect unique {symbol, tf, streamKey} from kline subs
+    const streams = new Map();
+    for (const sub of this._subs.values()) {
+      if (!streams.has(sub.streamKey)) {
+        streams.set(sub.streamKey, { symbol: sub.symbol, tf: sub.tf });
+      }
+    }
+
+    if (streams.size === 0) return;
+
+    let totalStitched = 0;
+
+    for (const [sk, { symbol, tf }] of streams) {
+      try {
+        // Calculate interval in ms from timeframe
+        const intervalMs = this._tfToMs(tf);
+        if (!intervalMs) continue;
+
+        // Create a minimal bar array from disconnection time for gap detection
+        const fakeBars = [{ time: disconnectedAt, open: 0, high: 0, low: 0, close: 0, volume: 0 }];
+
+        const backfilled = await backfillGaps(fakeBars, symbol, tf, intervalMs, {
+          minGapMs: 60_000,    // 1 minute
+          maxGapMs: 86_400_000, // 24 hours
+          fetchBars: async (sym, interval, start, end) => {
+            // Use Binance REST klines endpoint for backfill
+            const binSym = toSymbol(sym).toUpperCase();
+            const binInterval = TF_MAP[interval] || '1h';
+            const url = `https://data-api.binance.vision/api/v3/klines?symbol=${binSym}&interval=${binInterval}&startTime=${start}&endTime=${end}&limit=1000`;
+            const resp = await fetch(url);
+            if (!resp.ok) return [];
+            const data = await resp.json();
+            return data.map(k => ({
+              time: k[0],
+              open: +k[1], high: +k[2], low: +k[3], close: +k[4],
+              volume: +k[5],
+            }));
+          },
+        });
+
+        // Filter out the fake bar and deliver real backfilled bars
+        const realBars = backfilled.filter(b => b.time !== disconnectedAt && b.open !== 0);
+        if (realBars.length > 0) {
+          totalStitched += realBars.length;
+          // Deliver to subscribers
+          for (const sub of this._subs.values()) {
+            if (sub.streamKey === sk && sub.callbacks.onBar) {
+              for (const bar of realBars) {
+                sub.callbacks.onBar({ ...bar, isClosed: true });
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn(`[WebSocketService] Gap-stitch failed for ${sk}:`, err?.message);
+      }
+    }
+
+    if (totalStitched > 0) {
+      console.info(`[WebSocketService] Gap-stitched ${totalStitched} bars across ${streams.size} streams`);
+    }
+  }
+
+  /**
+   * Convert timeframe string to milliseconds.
+   * @private
+   * @param {string} tf
+   * @returns {number|null}
+   */
+  _tfToMs(tf) {
+    const map = {
+      '1m': 60_000, '3m': 180_000, '5m': 300_000, '15m': 900_000, '30m': 1_800_000,
+      '1h': 3_600_000, '2h': 7_200_000, '4h': 14_400_000, '6h': 21_600_000,
+      '8h': 28_800_000, '12h': 43_200_000,
+      '1D': 86_400_000, '1d': 86_400_000, '3D': 259_200_000,
+      '1W': 604_800_000, '1w': 604_800_000, '1M': 2_592_000_000,
+    };
+    return map[tf] || null;
+  }
+
   /** @private — Close WebSocket and clear timers */
   _closeWs() {
     this._stopHeartbeat();
+    // Record disconnect time for gap-stitching (C1.2)
+    if (this._status === WS_STATUS.CONNECTED) {
+      this._disconnectedAt = Date.now();
+    }
     if (this._reconnectTimer) {
       clearTimeout(this._reconnectTimer);
       this._reconnectTimer = null;

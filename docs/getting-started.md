@@ -2,6 +2,45 @@
 
 Render your first interactive chart in under 10 lines.
 
+## Prerequisites
+
+- **Node.js** ≥ 20 (LTS recommended)
+- **npm** ≥ 9
+- A **Binance API key** (free tier works) for live market data, or skip for demo data
+
+## Setup
+
+```bash
+git clone https://github.com/Tmoretti17970/charEdge.git
+cd charEdge
+npm install
+
+# Copy the example env and add your API keys
+cp .env.example .env.local
+```
+
+Edit `.env.local` and add your keys:
+
+```env
+# Required for live data
+VITE_BINANCE_API_KEY=your_binance_api_key
+VITE_BINANCE_SECRET=your_binance_secret
+
+# Optional — enable AI features
+VITE_OPENAI_API_KEY=your_openai_key
+
+# Optional — auth & cloud sync
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+Start the dev server:
+
+```bash
+npm run dev
+# → Open http://localhost:5173
+```
+
 ## Quick Start
 
 ```jsx
@@ -97,5 +136,7 @@ engine.setProps({
 ## Next Steps
 
 - See [ARCHITECTURE.md](./ARCHITECTURE.md) for the render pipeline architecture
+- See [STATE_ARCHITECTURE.md](./STATE_ARCHITECTURE.md) for the Zustand store diagram
 - See [THEME_GUIDE.md](./THEME_GUIDE.md) for customizing colors and styles
 - See [DEV_WORKFLOW.md](./DEV_WORKFLOW.md) for development setup
+

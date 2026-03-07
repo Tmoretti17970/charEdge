@@ -14,6 +14,23 @@ import { C, F, M } from '../constants.js';
 
 export const CHANGELOG_ENTRIES = [
   {
+    version: '11.1.0',
+    date: '2026-03-06',
+    tag: 'minor',
+    title: 'Ship-Ready: P0 Complete',
+    items: [
+      { type: 'new', text: 'Infinite-canvas minimap — year/month labels, pulsing live-candle beacon, gradient fog-of-war' },
+      { type: 'new', text: 'Stream health border — ambient WebSocket quality glow (green/amber/red) + latency badge' },
+      { type: 'new', text: 'State architecture diagram with Mermaid — 35+ Zustand stores across 5 domain groups' },
+      { type: 'new', text: 'Launch playbook — Product Hunt, Discord server structure, Reddit templates, Twitter thread' },
+      { type: 'polish', text: 'README rewrite — hero section, feature table, quick start, tech stack, contributing' },
+      { type: 'polish', text: 'Getting Started guide — prerequisites, .env setup, verified commands' },
+      { type: 'polish', text: 'JSDoc configuration schema — @typedef ChartConfig with 14 documented fields' },
+      { type: 'perf', text: 'CI gates — axe-core accessibility, frame-time regression, web-vitals (LCP/CLS), benchmark guards' },
+      { type: 'perf', text: 'Benchmark CI job expanded — 10% threshold guards for CacheManager, DataValidator, SWR' },
+    ],
+  },
+  {
     version: '11.0.0',
     date: '2026-03-01',
     tag: 'major',

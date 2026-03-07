@@ -1,44 +1,104 @@
-# charEdge — Developer Documentation
+# charEdge
 
-**192 files · 53,197 lines · React 18 + Zustand + Canvas**
+> **Institutional-grade charting + behavioral intelligence at retail pricing.**
+
+[![CI](https://github.com/Tmoretti17970/charEdge/actions/workflows/ci.yml/badge.svg)](https://github.com/Tmoretti17970/charEdge/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+A WebGPU/Canvas hybrid charting engine with an integrated AI trading coach, journal system, and behavioral analytics — built for traders who want to understand *why* they trade, not just *what* they trade.
 
 ---
 
-| Document | Contents |
-|----------|----------|
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | System layers, data flow, routing, performance architecture, file organization, key conventions |
-| [COMPONENT_MAP.md](./COMPONENT_MAP.md) | Full component tree, React.memo boundaries (15), lazy loading (30), ARIA coverage, shared components |
-| [FILE_MANIFEST.md](./FILE_MANIFEST.md) | Every source file with line count and description, organized by layer (pages, components, engine, state, data, utils) |
-| [THEME_GUIDE.md](./THEME_GUIDE.md) | Color token reference (C object), dark/light palettes, usage patterns, design tokens (spacing, radii, shadows, z-index), remaining hardcoded colors |
+## ✨ Features
 
-## Quick Stats
+| Feature | What It Does |
+|---------|-------------|
+| **WebGPU/Canvas Hybrid Engine** | Renders 100K+ candles in <5ms with 120fps ProMotion support |
+| **AI Co-Pilot** | Real-time pattern detection, voice-to-chart, and trading bias analysis |
+| **Journal ↔ Chart Link** | Ghost boxes overlay your trade entries directly on the chart |
+| **Behavioral Intelligence** | Tilt detection, mistake heatmaps, decision trees, session cards |
+| **Quant Dashboard** | Sharpe, Sortino, Kelly Criterion, drawdown tracking, equity curves |
+| **Zero Idle Burn** | 0% rAF usage when not interacting — battery-friendly |
+| **Liquid Glass UI** | Apple-grade design with adaptive themes (Dark, Light, Deep Sea, Clear) |
 
-| Metric | Value |
-|--------|-------|
-| Source files | 200+ |
-| Source lines | 55,000+ |
-| Test files | 103 |
-| Test cases | 2,940 |
-| React.memo boundaries | 15 |
-| Lazy-loaded components | 30 |
-| Zustand stores | 35 |
-| ARIA attributes | 64 |
-| tf-btn classes | 166 |
-| Hardcoded colors (pages) | 0 |
-| Hardcoded colors (components) | 9 (intentional) |
-| Dead code quarantined | 48 files / 9,951 lines |
-
-## Dev Workflow
+## 🚀 Quick Start
 
 ```bash
-# Development (recommended)
-npm run dev          # Vite dev server with HMR
+# Clone the repo
+git clone https://github.com/Tmoretti17970/charEdge.git
+cd charEdge
 
-# Run tests
-npm test             # vitest run
-npm run test:watch   # vitest in watch mode
+# Install dependencies
+npm install
 
-# Build for production
-npm run build        # client + server bundles
-npm run preview      # preview production build
+# Copy environment config
+cp .env.example .env.local
+# Edit .env.local with your API keys (Binance, etc.)
+
+# Start development server
+npm run dev
+# → Open http://localhost:5173
 ```
+
+## 🏗️ Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Framework** | React 18 + Vite 6 |
+| **State** | Zustand 5 (35+ domain stores) |
+| **Rendering** | WebGPU + Canvas 2D (OffscreenCanvas workers) |
+| **Data** | Binance, AlphaVantage, Polygon adapters + IndexedDB/OPFS cache |
+| **Styling** | Vanilla CSS with design tokens + CSS custom properties |
+| **Testing** | Vitest (2,400+ tests) + Playwright (17 E2E specs) |
+| **Auth** | Supabase |
+| **Monitoring** | Sentry + Vercel Analytics + PostHog |
+| **Deployment** | Vercel (Edge) + Docker + Fly.io |
+
+## 📁 Project Structure
+
+```
+src/
+├── app/           # React components (pages, panels, widgets)
+├── charting_library/  # WebGL/Canvas rendering engine
+├── data/          # Data adapters, fetch services, streaming
+├── state/         # Zustand stores (35+ domain stores)
+├── utils/         # Shared utilities, color, math, format
+└── __tests__/     # Unit + integration tests
+e2e/               # Playwright E2E specs (accessibility, perf, visual)
+docs/              # Architecture, guides, sprint reports
+api/               # Serverless API routes
+server/            # Express SSR server
+```
+
+## 📖 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Architecture](docs/ARCHITECTURE.md) | System layers, data flow, performance |
+| [State Architecture](docs/STATE_ARCHITECTURE.md) | Zustand store diagram and domain groups |
+| [Getting Started](docs/getting-started.md) | Full setup guide with API key configuration |
+| [Component Map](docs/COMPONENT_MAP.md) | React component tree and boundaries |
+| [Theme Guide](docs/THEME_GUIDE.md) | Color tokens, design system reference |
+| [Deploy Guide](docs/DEPLOY.md) | Vercel, Docker, Fly.io deployment |
+
+## 🧪 Commands
+
+```bash
+npm run dev           # Vite dev server with HMR
+npm test              # Run vitest suite
+npm run test:watch    # Watch mode
+npm run test:coverage # Coverage report
+npm run test:e2e      # Playwright E2E tests
+npm run lint          # ESLint
+npm run lint:css      # Stylelint
+npm run build         # Production build (client + server)
+npm run analyze       # Bundle size visualization
+```
+
+## 🤝 Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community standards.
+
+## 📄 License
+
+[MIT](LICENSE) © charEdge Contributors

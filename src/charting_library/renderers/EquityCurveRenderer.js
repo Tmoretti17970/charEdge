@@ -6,6 +6,9 @@
 // Secondary Y-axis on the right side. Toolbar toggle.
 // ═══════════════════════════════════════════════════════════════════
 
+
+import { applySmoothing } from './equityCurveSmooth.js';
+
 // ─── Constants ──────────────────────────────────────────────────
 
 const PROFIT_LINE = 'rgba(34, 197, 94, 0.9)';    // green-500
@@ -43,14 +46,17 @@ export class EquityCurveRenderer {
      * @param {Function} timeToX - maps epoch ms → canvas X
      * @param {Object} chartArea - { left, right, top, bottom }
      */
-    render(ctx, equityPoints, timeToX, chartArea) {
+    render(ctx, equityPoints, timeToX, chartArea, smoothMode = 'raw') {
         if (!this._visible || !equityPoints || equityPoints.length < 2) return;
+
+        // Apply smoothing (D4.3)
+        const points_data = applySmoothing(equityPoints, smoothMode);
 
         const { left, right, top, bottom } = chartArea;
         const height = bottom - top;
 
         // Compute Y-scale from equity data
-        const pnls = equityPoints.map((p) => p.pnl);
+        const pnls = points_data.map((p) => p.pnl);
         const maxPnL = Math.max(...pnls, 0);
         const minPnL = Math.min(...pnls, 0);
         const range = Math.max(maxPnL - minPnL, 1);
@@ -82,7 +88,7 @@ export class EquityCurveRenderer {
 
         // Build the bezier path
         const points = [];
-        for (const ep of equityPoints) {
+        for (const ep of points_data) {
             const t = typeof ep.date === 'string' ? new Date(ep.date).getTime() : ep.date;
             const x = timeToX(t);
             if (x < left - 10 || x > right + 10) continue;

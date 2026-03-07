@@ -89,10 +89,10 @@ jobs:
           retention-days: 14
 
   perf:
-    name: Frame Budget Regression
+    name: Performance Benchmarks
     needs: install
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -104,6 +104,8 @@ jobs:
           key: nm-${{ hashFiles('package-lock.json') }}
       - name: Run FrameBudget benchmark
         run: npx vitest run src/__tests__/benchmarks/frameBudget.test.js
+      - name: Run Benchmark Guards (10% threshold)
+        run: npx vitest run src/__tests__/benchmarks/benchmarkGuards.test.js
 
   build:
     name: Build + Bundle Size
@@ -187,3 +189,60 @@ jobs:
           name: sbom
           path: sbom.json
           retention-days: 90
+
+  accessibility:
+    name: Accessibility (axe-core)
+    needs: install
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: nm-${{ hashFiles('package-lock.json') }}
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build:client
+      - name: Run axe-core accessibility audit
+        run: npx playwright test e2e/accessibility.spec.ts
+
+  frame-time:
+    name: Frame Time Regression
+    needs: install
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: nm-${{ hashFiles('package-lock.json') }}
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build:client
+      - name: Run frame time regression tests
+        run: npx playwright test e2e/frame-time-regression.spec.ts
+
+  web-vitals:
+    name: Web Vitals Gate
+    needs: install
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: nm-${{ hashFiles('package-lock.json') }}
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build:client
+      - name: Run Web Vitals performance budget
+        run: npx playwright test e2e/performance-budget.spec.ts

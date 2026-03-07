@@ -12,6 +12,7 @@
 
 import { RESOLUTION_MS, normalizeResolution } from './DataFeed.js';
 import { logger } from '../utils/logger';
+import { candleVirtualizer } from './engine/CandleVirtualizer.js';
 
 /**
  * @typedef {Object} DataManagerOptions
@@ -107,9 +108,11 @@ export function createDataManager(engine, dataFeed, options = {}) {
       }
 
       if (result.bars.length > 0) {
-        engine.setData(result.bars);
-        oldestTimestamp = result.bars[0].time;
-        hasMoreHistory = !result.noMore;
+        // B4.2: Pass bars through virtualizer before engine
+        const visibleBars = await candleVirtualizer.setData(symbol, normalizedRes, result.bars);
+        engine.setData(visibleBars);
+        oldestTimestamp = visibleBars[0]?.time || result.bars[0].time;
+        hasMoreHistory = !result.noMore || candleVirtualizer.hasMoreLeft(symbol, normalizedRes);
       }
 
       notifyState(false, 'ready');
@@ -118,6 +121,8 @@ export function createDataManager(engine, dataFeed, options = {}) {
       subscriptionId = dataFeed.subscribeBars(symbol, normalizedRes, (bar) => {
         if (disposed || currentSymbol !== symbol) return;
         engine.updateBar(bar);
+        // B4.2: Track bar in virtualizer for window management
+        candleVirtualizer.appendBar(symbol, normalizedRes, bar);
       });
     } catch (error) {
       notifyState(false, 'error', error.message);
@@ -150,6 +155,19 @@ export function createDataManager(engine, dataFeed, options = {}) {
     notifyState(true, 'loading_more');
 
     try {
+      // B4.2: Check virtualizer for evicted bars before fetching from REST
+      if (candleVirtualizer.hasMoreLeft(currentSymbol, currentResolution)) {
+        const restored = await candleVirtualizer.restoreLeft(currentSymbol, currentResolution, loadMoreBars);
+        if (restored.length > 0) {
+          engine.prependBars(restored);
+          oldestTimestamp = restored[0].time;
+          hasMoreHistory = candleVirtualizer.hasMoreLeft(currentSymbol, currentResolution) || true;
+          notifyState(false, 'ready');
+          return;
+        }
+      }
+
+      // Fallback: fetch from REST
       const resMs = RESOLUTION_MS[currentResolution] || 3_600_000;
       const to = oldestTimestamp - 1;
       const from = to - loadMoreBars * resMs;
@@ -267,6 +285,11 @@ export function createDataManager(engine, dataFeed, options = {}) {
       if (subscriptionId) {
         dataFeed.unsubscribeBars(subscriptionId);
         subscriptionId = null;
+      }
+
+      // B4.2: Clear virtualizer data for current symbol
+      if (currentSymbol) {
+        candleVirtualizer.clear(currentSymbol, currentResolution);
       }
 
       onStateChange = null;

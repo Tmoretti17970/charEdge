@@ -1,0 +1,66 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * charEdge — Signal-State Saliency CSS (F5.2)
+ *
+ * Indicators default to grayscale. When the useSaliency hook adds
+ * [data-salient], they transition to full color.
+ * Import from theme/index.css.
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/* Indicator elements default to grayscale when not salient */
+[data-indicator-key] {
+  filter: grayscale(1) opacity(0.55);
+  transition: filter 0.3s ease;
+}
+
+/* Salient = signal detected, show full color */
+[data-indicator-key][data-salient] {
+  filter: grayscale(0) opacity(1);
+}
+
+/* Optional color override from hook */
+[data-indicator-key][data-salient] {
+  color: var(--tf-salient-color, inherit);
+}
+
+/* Reduced motion: instant transition */
+@media (prefers-reduced-motion: reduce) {
+  [data-indicator-key] {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── Low-Stress Palette (F2.2) ─────────────────────────────── *
+ * Surgeon-grade desaturated colors for 12hr+ sessions.
+ * Lower saturation, warmer hue, reduced contrast.
+ * Toggle via: document.documentElement.dataset.palette = 'low-stress'
+ * ────────────────────────────────────────────────────────────── */
+[data-palette="low-stress"] {
+  --tf-bg: #0a0b0d;
+  --tf-bg2: #10121a;
+  --tf-sf: #181a22;
+  --tf-sf2: #1e2028;
+  --tf-bd: #2a2d38;
+  --tf-bd2: #33364a;
+  --tf-t1: #d8d8dc;
+  /* softer white — less blue */
+  --tf-t2: #8a8d9a;
+  --tf-t3: #656878;
+
+  --tf-accent: #c8784a;
+  /* muted amber-orange */
+  --tf-accent-h: #b06840;
+  --tf-green: #5ec89a;
+  /* softer green — 25% desaturated */
+  --tf-red: #d87070;
+  /* softer red — less aggressive */
+  --tf-yellow: #d0a850;
+  --tf-purple: #a088cc;
+  --tf-cyan: #60b8c8;
+  --tf-info: #7898d0;
+  --tf-orange: #c8784a;
+  --tf-pink: #c888a0;
+  --tf-lime: #90b050;
+
+  --tf-chart-bull: #5ec89a;
+  --tf-chart-bear: #d87070;
+}

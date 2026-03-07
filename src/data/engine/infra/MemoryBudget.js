@@ -221,6 +221,18 @@ class _MemoryBudget {
     pipelineLogger.info('MemoryBudget', `Triggering degradation (level ${this._degradationLevel})`);
 
     try {
+      // B4.3: Adjust CandleVirtualizer window size based on pressure level
+      try {
+        const { candleVirtualizer } = await import('../CandleVirtualizer.js');
+        if (candleVirtualizer) {
+          const windowSizes = { 0: 5000, 1: 3000, 2: 2000 };
+          const targetSize = windowSizes[this._degradationLevel] || 5000;
+          candleVirtualizer.setWindowSize(targetSize);
+          pipelineLogger.info('MemoryBudget',
+            `CandleVirtualizer window adjusted to ${targetSize} bars (level ${this._degradationLevel})`);
+        }
+      } catch (e) { logger.data.warn('CandleVirtualizer adjustment failed', e); }
+
       // 1. Shrink OrderFlowEngine buffers for inactive symbols
       const { orderFlowEngine } = await import('../orderflow/OrderFlowEngine.js');
       const activeSymbols = orderFlowEngine.getActiveSymbols();

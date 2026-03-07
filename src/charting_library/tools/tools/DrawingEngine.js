@@ -21,7 +21,7 @@
 import { createDrawing, TOOL_POINT_COUNT } from './DrawingModel.js';
 
 // ── Sub-modules ──────────────────────────────────────────────────
-import { hitTestDrawingBody, distToSegment } from '../engines/DrawingHitTest.js';
+import { hitTestDrawingBody, distToSegment, hitTestNearest as hitTestNearestImpl } from '../engines/DrawingHitTest.js';
 import {
   doMagnetSnap as doMagnetSnapImpl,
   applyAngleSnap as applyAngleSnapImpl,
@@ -115,6 +115,7 @@ export function createDrawingEngine(options = {}) {
   let angleSnap = false;
   let smartGuides = true;
   let lastSnapInfo = null;
+  let _visibleBars = [];
 
   // ── Version counter (for FrameState change detection) ──
   let _version = 0;
@@ -169,6 +170,7 @@ export function createDrawingEngine(options = {}) {
       x, y, price, time, snapStrength, magnetSnap,
       drawings, activeDrawing, anchorToPixel, priceToPixel,
       indicatorData: _indicatorData, hoverBarIdx: _hoverBarIdx, gridTicks: _gridTicks,
+      visibleBars: _visibleBars,
     });
     lastSnapInfo = result.snapInfo;
     return { price: result.price, time: result.time };
@@ -521,6 +523,7 @@ export function createDrawingEngine(options = {}) {
     setIndicatorData(indicators) { _indicatorData = indicators || []; },
     setHoverBarIdx(idx) { _hoverBarIdx = idx; },
     setGridTicks(ticks) { _gridTicks = ticks || []; },
+    setVisibleBars(bars) { _visibleBars = bars || []; },
 
     // ── Event handlers ──
     onMouseDown, onMouseMove, onMouseUp, onDoubleClick, onKeyDown,
@@ -531,6 +534,7 @@ export function createDrawingEngine(options = {}) {
     get hoveredDrawingId() { return hoveredDrawingId; },
     get hoveredAnchorIdx() { return hoveredAnchorIdx; },
     setSceneGraph(sg) { _sceneGraph = sg; },
+    hitTestNearest(x, y) { return hitTestNearestImpl(drawings, x, y, anchorToPixel); },
     // Task 1.4.9: Per-tool cursor shapes — cursor changes based on active drawing tool
     get cursorHint() {
       if (interactionState === STATE.CREATING) {

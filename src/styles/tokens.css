@@ -127,9 +127,10 @@
   --z-sticky: 200;
   --z-overlay: 300;
   --z-modal: 400;
-  --z-popover: 500;
   --z-toast: 600;
   --z-tooltip: 700;
+  --z-popover: 1000;
+  --z-topmost: 9999;
 
   /* ─── Container Query Breakpoints ──────────────────────── */
   /* Use with: @container (min-width: var(--cq-sm)) { ... }   */

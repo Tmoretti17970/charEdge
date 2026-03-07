@@ -3,7 +3,7 @@
 // Cumulative P&L line chart with gradient fill
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import ChartWrapper from '../chart/core/ChartWrapper.jsx';
 import { C, M } from '../../../constants.js';
 
@@ -13,11 +13,48 @@ import { C, M } from '../../../constants.js';
  * @param {boolean} showBenchmark - If true, overlays a benchmark index curve
  */
 function EquityCurveChart({ eq = [], height = 280, showBenchmark = false, showDrawdown = false }) {
-  const config = useMemo(() => {
-    if (!eq.length) return null;
+  const [smoothMode, setSmoothMode] = useState('raw');
 
-    const labels = eq.map((p) => p.date);
-    const values = eq.map((p) => p.pnl);
+  // D4.2: Apply smoothing to equity data
+  const smoothedEq = useMemo(() => {
+    if (!eq.length || smoothMode === 'raw') return eq;
+    // Build points array for smoothing
+    const points = eq.map(p => ({ date: p.date, pnl: p.pnl }));
+    let smoothed;
+    if (smoothMode === 'gaussian') {
+      // Inline Gaussian: 1D kernel, sigma=3
+      const sigma = 3;
+      const halfK = Math.ceil(sigma * 3);
+      const kernel = [];
+      let ksum = 0;
+      for (let i = -halfK; i <= halfK; i++) { const v = Math.exp(-(i*i)/(2*sigma*sigma)); kernel.push(v); ksum += v; }
+      for (let i = 0; i < kernel.length; i++) kernel[i] /= ksum;
+      smoothed = points.map((pt, idx) => {
+        let s = 0, w = 0;
+        for (let k = 0; k < kernel.length; k++) {
+          const j = idx + k - halfK;
+          if (j >= 0 && j < points.length) { s += points[j].pnl * kernel[k]; w += kernel[k]; }
+        }
+        return { ...eq[idx], pnl: w > 0 ? s / w : pt.pnl };
+      });
+    } else {
+      // WMA with period 5
+      const period = Math.min(5, points.length);
+      smoothed = points.map((pt, idx) => {
+        if (idx < period - 1) return { ...eq[idx] };
+        let ws = 0, tw = 0;
+        for (let j = 0; j < period; j++) { const wt = j + 1; ws += points[idx - period + 1 + j].pnl * wt; tw += wt; }
+        return { ...eq[idx], pnl: tw > 0 ? ws / tw : pt.pnl };
+      });
+    }
+    return smoothed;
+  }, [eq, smoothMode]);
+
+  const config = useMemo(() => {
+    if (!smoothedEq.length) return null;
+
+    const labels = smoothedEq.map((p) => p.date);
+    const values = smoothedEq.map((p) => p.pnl);
     const isPositive = values[values.length - 1] >= 0;
 
     const datasets = [
@@ -220,10 +257,33 @@ function EquityCurveChart({ eq = [], height = 280, showBenchmark = false, showDr
         },
       ],
     };
-  }, [eq, showBenchmark, showDrawdown]);
+  }, [smoothedEq, showBenchmark, showDrawdown]);
 
   if (!config) return null;
 
-  return <ChartWrapper config={config} height={height} />;
+  // D4.2: Smoothing toggle pills
+  const pillStyle = (mode) => ({
+    padding: '3px 10px',
+    fontSize: '10px',
+    fontFamily: 'Inter, system-ui, sans-serif',
+    borderRadius: '4px',
+    border: 'none',
+    cursor: 'pointer',
+    background: smoothMode === mode ? 'rgba(99, 102, 241, 0.25)' : 'rgba(148, 163, 184, 0.08)',
+    color: smoothMode === mode ? '#818cf8' : 'rgba(148, 163, 184, 0.7)',
+    fontWeight: smoothMode === mode ? 600 : 400,
+    transition: 'all 0.15s ease',
+  });
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', marginBottom: '4px' }}>
+        <button style={pillStyle('raw')} onClick={() => setSmoothMode('raw')}>Raw</button>
+        <button style={pillStyle('gaussian')} onClick={() => setSmoothMode('gaussian')}>Gaussian</button>
+        <button style={pillStyle('wma')} onClick={() => setSmoothMode('wma')}>WMA</button>
+      </div>
+      <ChartWrapper config={config} height={height} />
+    </div>
+  );
 }
 export default React.memo(EquityCurveChart);

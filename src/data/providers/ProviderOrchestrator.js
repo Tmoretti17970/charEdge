@@ -1,9 +1,10 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Provider Orchestrator (Task 2.10.2.1)
+// charEdge — Provider Orchestrator (Task 2.10.2.1 + C2.2 + C2.3)
 //
-// Budget-aware scheduler replacing sequential fetchEquityPremium().
+// Budget-aware scheduler with API key round-robin integration.
 // Tracks per-provider request counts vs known limits, routes to
-// provider with most remaining headroom.
+// provider with most remaining headroom, and rotates API keys
+// with race failover and Retry-After cooldowns.
 //
 // Known limits:
 //   • Polygon:        5 req/min
@@ -19,6 +20,7 @@ import {
     getRemainingBudget,
     checkRateBudget,
 } from '../../engine/infra/CircuitBreaker.ts';
+import { apiKeyRoundRobin, ApiKeyRoundRobin } from './ApiKeyRoundRobin.js';
 
 // ─── Provider Budget Definitions ────────────────────────────────
 
@@ -49,6 +51,19 @@ export function initProviderBudgets() {
     logger.data.info('[ProviderOrchestrator] Rate budgets initialized for:', Object.keys(PROVIDER_BUDGETS).join(', '));
 }
 
+/**
+ * Register API keys for round-robin rotation (C2.2).
+ * Call this at app startup with keys from config/env.
+ *
+ * @param {string} providerId - Provider identifier
+ * @param {string[]} keys - Array of API keys
+ */
+export function registerProviderKeys(providerId, keys) {
+    if (keys?.length) {
+        apiKeyRoundRobin.addProvider(providerId, keys);
+    }
+}
+
 // ─── Orchestrator ───────────────────────────────────────────────
 
 /**
@@ -56,13 +71,15 @@ export function initProviderBudgets() {
  * @property {string} id - Provider identifier (must match PROVIDER_BUDGETS key)
  * @property {string} name - Display name
  * @property {Function} fetch - (sym, tfId) => Promise<Array|null>
+ * @property {Function} [fetchWithKey] - (key, sym, tfId) => Promise<Array|null> (for round-robin)
  */
 
 /**
  * Budget-aware fetch that routes to the provider with the most remaining
- * headroom instead of always trying providers in fixed order.
+ * headroom. If the provider has round-robin keys registered, uses race
+ * failover for maximum reliability.
  *
- * @param {Array<{id: string, name: string, fetch: Function}>} providers - Ordered provider list
+ * @param {Array<ProviderEntry>} providers - Ordered provider list
  * @param {string} sym - Symbol to fetch
  * @param {string} tfId - Timeframe ID
  * @returns {Promise<{data: Array|null, source: string|null}>}
@@ -89,7 +106,20 @@ export async function fetchWithBudget(providers, sym, tfId) {
         if (!checkRateBudget(provider.id)) continue;
 
         try {
-            const data = await provider.fetch(sym, tfId);
+            let data;
+
+            // C2.2: If round-robin keys are registered, use race failover
+            if (apiKeyRoundRobin.hasProvider(provider.id) && provider.fetchWithKey) {
+                const result = await apiKeyRoundRobin.race(
+                    provider.id,
+                    (key) => provider.fetchWithKey(key, sym, tfId),
+                );
+                data = result?.data;
+            } else {
+                // Fallback: direct fetch without key rotation
+                data = await provider.fetch(sym, tfId);
+            }
+
             if (data?.length > 1) {
                 logger.data.info(
                     `[ProviderOrchestrator] ${provider.name} returned ${data.length} bars for ${sym}@${tfId} (${provider.remaining - 1} budget remaining)`
@@ -97,6 +127,14 @@ export async function fetchWithBudget(providers, sym, tfId) {
                 return { data, source: provider.id };
             }
         } catch (err) {
+            // C2.3: Parse Retry-After from 429 errors for cooldown tracking
+            if (err?.status === 429 || err?.response?.status === 429) {
+                const retryAfter = err?.response?.headers?.get?.('Retry-After');
+                const retryMs = ApiKeyRoundRobin.parseRetryAfter(retryAfter);
+                logger.data.warn(
+                    `[ProviderOrchestrator] ${provider.name} rate-limited (429), cooldown: ${retryMs || 'default'}ms`
+                );
+            }
             logger.data.warn(`[ProviderOrchestrator] ${provider.name} failed for ${sym}:`, err);
         }
     }
@@ -106,7 +144,7 @@ export async function fetchWithBudget(providers, sym, tfId) {
 
 /**
  * Fetch a specific page/range from a provider.
- * Used by ScrollPrefetcher for targeted historical fetches.
+ * Uses round-robin keys when available (C2.2).
  *
  * @param {string} providerId - Provider to use (e.g., 'binance')
  * @param {Function} fetchFn - (sym, tfId, fromMs, toMs) => Promise<Array|null>
@@ -114,9 +152,10 @@ export async function fetchWithBudget(providers, sym, tfId) {
  * @param {string} tfId - Timeframe ID
  * @param {number} fromMs - Start timestamp (ms)
  * @param {number} toMs - End timestamp (ms)
+ * @param {Function} [fetchWithKeyFn] - (key, sym, tfId, fromMs, toMs) => Promise<Array|null>
  * @returns {Promise<Array|null>}
  */
-export async function fetchPage(providerId, fetchFn, sym, tfId, fromMs, toMs) {
+export async function fetchPage(providerId, fetchFn, sym, tfId, fromMs, toMs, fetchWithKeyFn) {
     initProviderBudgets();
 
     const remaining = getRemainingBudget(providerId);
@@ -128,6 +167,15 @@ export async function fetchPage(providerId, fetchFn, sym, tfId, fromMs, toMs) {
     if (!checkRateBudget(providerId)) return null;
 
     try {
+        // C2.2: Use round-robin when keys are available
+        if (apiKeyRoundRobin.hasProvider(providerId) && fetchWithKeyFn) {
+            const result = await apiKeyRoundRobin.race(
+                providerId,
+                (key) => fetchWithKeyFn(key, sym, tfId, fromMs, toMs),
+            );
+            return result?.data || null;
+        }
+
         return await fetchFn(sym, tfId, fromMs, toMs);
     } catch (err) {
         logger.data.warn(`[ProviderOrchestrator] fetchPage failed for ${providerId}:`, err);
@@ -150,6 +198,10 @@ export function getProviderBudgets() {
             max: PROVIDER_BUDGETS[id].maxRequests,
             windowMs: PROVIDER_BUDGETS[id].windowMs,
             exhausted: remaining <= 0,
+            // C2.2: Include round-robin key status
+            roundRobin: apiKeyRoundRobin.hasProvider(id)
+                ? apiKeyRoundRobin.getStatus()[id]
+                : null,
         };
     }
     return result;
@@ -160,4 +212,5 @@ export default {
     fetchPage,
     getProviderBudgets,
     initProviderBudgets,
+    registerProviderKeys,
 };

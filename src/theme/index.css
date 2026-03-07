@@ -32,3 +32,5 @@
 /* Strategy backtester, walk-forward, Monte Carlo */
 @import './overlays.css';
 /* AI trade grade, risk guard, strategy builder, paper trading, analysis panel */
+@import './saliency.css';
+/* Signal-state saliency + low-stress palette */
