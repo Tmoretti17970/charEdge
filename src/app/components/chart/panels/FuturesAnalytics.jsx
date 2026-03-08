@@ -8,58 +8,77 @@
 // All values are derived computations, not raw exchange data.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { C, F } from '../../../../constants.js';
 import { futuresDerivedAdapter } from '../../../../data/adapters/FuturesDerivedAdapter.js';
 
 // ─── Constants ──────────────────────────────────────────────────
 
 const INSTRUMENTS = [
-  { symbol: 'ES', name: 'E-mini S&P 500', color: C.g },
+  { symbol: 'ES', name: 'E-mini S&P 500', color: null }, // uses C.g at render time
   { symbol: 'NQ', name: 'E-mini Nasdaq', color: '#5c9cf5' },
   { symbol: 'CL', name: 'Crude Oil', color: '#e8642c' },
   { symbol: 'GC', name: 'Gold', color: '#f0b64e' },
 ];
 
+/** Resolve instrument color lazily — avoids TDZ when C is in another chunk */
+function getInstrumentColor(inst) {
+  return inst.color || C.g;
+}
+
 // ─── Sub-Components ─────────────────────────────────────────────
 
 function SignalBadge({ direction, confidence }) {
   const config = {
-    bullish:  { bg: 'rgba(45,212,160,0.15)', color: C.g, icon: '▲', label: 'Bullish' },
-    bearish:  { bg: 'rgba(232,100,44,0.15)',  color: '#e8642c', icon: '▼', label: 'Bearish' },
-    neutral:  { bg: 'rgba(255,255,255,0.04)', color: C.t3,      icon: '—', label: 'Neutral' },
+    bullish: { bg: 'rgba(45,212,160,0.15)', color: C.g, icon: '▲', label: 'Bullish' },
+    bearish: { bg: 'rgba(232,100,44,0.15)', color: '#e8642c', icon: '▼', label: 'Bearish' },
+    neutral: { bg: 'rgba(255,255,255,0.04)', color: C.t3, icon: '—', label: 'Neutral' },
   }[direction] || { bg: 'rgba(255,255,255,0.04)', color: C.t3, icon: '—', label: '—' };
 
   return (
-    <div style={{
-      display: 'inline-flex', alignItems: 'center', gap: 4,
-      padding: '3px 8px', borderRadius: 6,
-      background: config.bg, fontFamily: F, fontSize: 11,
-    }}>
+    <div
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '3px 8px',
+        borderRadius: 6,
+        background: config.bg,
+        fontFamily: F,
+        fontSize: 11,
+      }}
+    >
       <span style={{ color: config.color, fontWeight: 700 }}>{config.icon}</span>
       <span style={{ color: config.color, fontWeight: 600 }}>{config.label}</span>
-      <span style={{ color: C.t3, fontSize: 9, marginLeft: 2 }}>
-        {(confidence * 100).toFixed(0)}%
-      </span>
+      <span style={{ color: C.t3, fontSize: 9, marginLeft: 2 }}>{(confidence * 100).toFixed(0)}%</span>
     </div>
   );
 }
 
 function MetricCell({ label, value, suffix = '', color, small = false }) {
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', gap: 1,
-      padding: small ? '2px 0' : '4px 0',
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1,
+        padding: small ? '2px 0' : '4px 0',
+      }}
+    >
       <span style={{ fontSize: 9, color: C.t3, fontFamily: F, letterSpacing: '0.3px', textTransform: 'uppercase' }}>
         {label}
       </span>
-      <span style={{
-        fontSize: small ? 12 : 14, fontWeight: 600, fontFamily: F,
-        fontVariantNumeric: 'tabular-nums',
-        color: color || C.t1,
-      }}>
-        {value}{suffix && <span style={{ fontSize: 9, color: C.t3, marginLeft: 2 }}>{suffix}</span>}
+      <span
+        style={{
+          fontSize: small ? 12 : 14,
+          fontWeight: 600,
+          fontFamily: F,
+          fontVariantNumeric: 'tabular-nums',
+          color: color || C.t1,
+        }}
+      >
+        {value}
+        {suffix && <span style={{ fontSize: 9, color: C.t3, marginLeft: 2 }}>{suffix}</span>}
       </span>
     </div>
   );
@@ -73,26 +92,43 @@ function VWAPBar({ deviation, aboveVwap }) {
   return (
     <div style={{ flex: 1, minWidth: 60 }}>
       <div style={{ fontSize: 9, color: C.t3, fontFamily: F, marginBottom: 2 }}>VWAP DEV</div>
-      <div style={{
-        height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.06)',
-        position: 'relative', overflow: 'hidden',
-      }}>
+      <div
+        style={{
+          height: 4,
+          borderRadius: 2,
+          background: 'rgba(255,255,255,0.06)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
         {/* Center line */}
-        <div style={{
-          position: 'absolute', top: 0, bottom: 0, left: '50%',
-          width: 1, background: 'rgba(255,255,255,0.15)',
-        }} />
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: '50%',
+            width: 1,
+            background: 'rgba(255,255,255,0.15)',
+          }}
+        />
         {/* Deviation indicator */}
-        <div style={{
-          position: 'absolute', top: 0, bottom: 0,
-          left: pct < 50 ? `${pct}%` : '50%',
-          width: `${Math.abs(pct - 50)}%`,
-          background: color, borderRadius: 2,
-          transition: 'all 0.3s ease',
-        }} />
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: pct < 50 ? `${pct}%` : '50%',
+            width: `${Math.abs(pct - 50)}%`,
+            background: color,
+            borderRadius: 2,
+            transition: 'all 0.3s ease',
+          }}
+        />
       </div>
       <div style={{ fontSize: 10, fontFamily: F, color, fontWeight: 600, marginTop: 2 }}>
-        {deviation >= 0 ? '+' : ''}{deviation.toFixed(3)}%
+        {deviation >= 0 ? '+' : ''}
+        {deviation.toFixed(3)}%
       </div>
     </div>
   );
@@ -100,13 +136,7 @@ function VWAPBar({ deviation, aboveVwap }) {
 
 function DeltaGauge({ delta, direction }) {
   const color = direction === 'positive' ? C.g : '#e8642c';
-  return (
-    <MetricCell
-      label="Cum. Delta"
-      value={delta >= 0 ? `+${delta.toFixed(0)}` : delta.toFixed(0)}
-      color={color}
-    />
-  );
+  return <MetricCell label="Cum. Delta" value={delta >= 0 ? `+${delta.toFixed(0)}` : delta.toFixed(0)} color={color} />;
 }
 
 function RSIGauge({ rsi, zone }) {
@@ -117,16 +147,20 @@ function RSIGauge({ rsi, zone }) {
 // ─── Instrument Card ────────────────────────────────────────────
 
 function InstrumentCard({ instrument, analytics }) {
+  const color = getInstrumentColor(instrument);
   if (!analytics) {
     return (
-      <div style={{
-        padding: 12, borderRadius: 8,
-        background: 'rgba(255,255,255,0.02)',
-        border: '1px solid rgba(255,255,255,0.06)',
-        opacity: 0.5,
-      }}>
+      <div
+        style={{
+          padding: 12,
+          borderRadius: 8,
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          opacity: 0.5,
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: instrument.color, opacity: 0.4 }} />
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, opacity: 0.4 }} />
           <span style={{ fontSize: 13, fontWeight: 700, fontFamily: F, color: C.t1 }}>{instrument.symbol}</span>
           <span style={{ fontSize: 10, color: C.t3 }}>{instrument.name}</span>
         </div>
@@ -136,19 +170,27 @@ function InstrumentCard({ instrument, analytics }) {
   }
 
   return (
-    <div style={{
-      padding: 12, borderRadius: 8,
-      background: 'rgba(255,255,255,0.03)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      transition: 'all 0.2s ease',
-    }}>
+    <div
+      style={{
+        padding: 12,
+        borderRadius: 8,
+        background: 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        transition: 'all 0.2s ease',
+      }}
+    >
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{
-            width: 8, height: 8, borderRadius: '50%', background: instrument.color,
-            boxShadow: `0 0 6px ${instrument.color}40`,
-          }} />
+          <div
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              background: color,
+              boxShadow: `0 0 6px ${color}40`,
+            }}
+          />
           <span style={{ fontSize: 13, fontWeight: 700, fontFamily: F, color: C.t1 }}>{instrument.symbol}</span>
           <span style={{ fontSize: 10, color: C.t3 }}>{instrument.name}</span>
         </div>
@@ -194,7 +236,7 @@ export default function FuturesAnalytics({ onClose }) {
       unsubs.push(
         futuresDerivedAdapter.subscribe(inst.symbol, (data) => {
           setAnalytics((prev) => ({ ...prev, [inst.symbol]: data }));
-        })
+        }),
       );
     }
 
@@ -209,7 +251,8 @@ export default function FuturesAnalytics({ onClose }) {
       className="tf-fade-in"
       style={{
         position: 'absolute',
-        top: 8, right: 8,
+        top: 8,
+        right: 8,
         width: 420,
         maxHeight: 'calc(100% - 16px)',
         overflowY: 'auto',
@@ -221,30 +264,38 @@ export default function FuturesAnalytics({ onClose }) {
       }}
     >
       {/* Header */}
-      <div style={{
-        padding: '10px 14px',
-        borderBottom: `1px solid ${C.bd}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
+      <div
+        style={{
+          padding: '10px 14px',
+          borderBottom: `1px solid ${C.bd}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, fontFamily: F, color: C.t1 }}>
-            Futures Analytics
-          </span>
-          <div style={{
-            width: 6, height: 6, borderRadius: '50%',
-            background: connected ? C.g : '#e8642c',
-            boxShadow: connected ? '0 0 6px rgba(45,212,160,0.5)' : 'none',
-          }} />
-          <span style={{ fontSize: 9, color: C.t3, fontFamily: F }}>
-            {connected ? 'LIVE' : 'OFFLINE'}
-          </span>
+          <span style={{ fontSize: 14, fontWeight: 700, fontFamily: F, color: C.t1 }}>Futures Analytics</span>
+          <div
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: connected ? C.g : '#e8642c',
+              boxShadow: connected ? '0 0 6px rgba(45,212,160,0.5)' : 'none',
+            }}
+          />
+          <span style={{ fontSize: 9, color: C.t3, fontFamily: F }}>{connected ? 'LIVE' : 'OFFLINE'}</span>
         </div>
         {onClose && (
           <button
             onClick={onClose}
             style={{
-              background: 'none', border: 'none', color: C.t3,
-              cursor: 'pointer', fontSize: 16, padding: '2px 4px',
+              background: 'none',
+              border: 'none',
+              color: C.t3,
+              cursor: 'pointer',
+              fontSize: 16,
+              padding: '2px 4px',
             }}
           >
             ×
@@ -253,11 +304,13 @@ export default function FuturesAnalytics({ onClose }) {
       </div>
 
       {/* Legal Notice */}
-      <div style={{
-        padding: '4px 14px',
-        background: 'rgba(255,255,255,0.02)',
-        borderBottom: `1px solid ${C.bd}`,
-      }}>
+      <div
+        style={{
+          padding: '4px 14px',
+          background: 'rgba(255,255,255,0.02)',
+          borderBottom: `1px solid ${C.bd}`,
+        }}
+      >
         <span style={{ fontSize: 8, color: C.t3, fontFamily: F, letterSpacing: '0.5px' }}>
           PROPRIETARY ANALYTICS — NOT A DATA FEED
         </span>
@@ -266,29 +319,34 @@ export default function FuturesAnalytics({ onClose }) {
       {/* Instrument Cards */}
       <div style={{ padding: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
         {INSTRUMENTS.map((inst) => (
-          <InstrumentCard
-            key={inst.symbol}
-            instrument={inst}
-            analytics={analytics[inst.symbol]}
-          />
+          <InstrumentCard key={inst.symbol} instrument={inst} analytics={analytics[inst.symbol]} />
         ))}
       </div>
 
       {/* Footer */}
       {!connected && (
-        <div style={{
-          padding: '8px 14px',
-          borderTop: `1px solid ${C.bd}`,
-          display: 'flex', alignItems: 'center', gap: 6,
-        }}>
+        <div
+          style={{
+            padding: '8px 14px',
+            borderTop: `1px solid ${C.bd}`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
           <span style={{ fontSize: 10, color: C.t3, fontFamily: F }}>
             Start the Broker Bridge to see live analytics:
           </span>
-          <code style={{
-            fontSize: 9, fontFamily: 'monospace',
-            padding: '2px 6px', borderRadius: 4,
-            background: 'rgba(255,255,255,0.04)', color: '#5c9cf5',
-          }}>
+          <code
+            style={{
+              fontSize: 9,
+              fontFamily: 'monospace',
+              padding: '2px 6px',
+              borderRadius: 4,
+              background: 'rgba(255,255,255,0.04)',
+              color: '#5c9cf5',
+            }}
+          >
             python bridge.py
           </code>
         </div>
