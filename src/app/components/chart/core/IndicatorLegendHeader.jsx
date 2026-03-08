@@ -248,18 +248,19 @@ export default function IndicatorLegendHeader({ data, hoverIdx, onEditIndicator 
 
 // ─── Sprint 11: Inline Quick-Edit Sub-component ─────────────────
 
-const COLOR_SWATCHES = [
-  '#22d3ee', C.g, '#f59e0b', '#ef4444', '#a855f7',
-  '#f472b6', '#6366f1', '#e8642c', '#a3e635', '#ffffff',
-];
-
-const LINE_STYLES = [
-  { id: 'solid', label: '━', title: 'Solid' },
-  { id: 'dashed', label: '╌', title: 'Dashed' },
-  { id: 'dotted', label: '···', title: 'Dotted' },
-];
-
 function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator }) {
+  // Defined inside the component to avoid TDZ — C may not be
+  // initialized at module-evaluation time in the bundled chunk.
+  const COLOR_SWATCHES = [
+    '#22d3ee', C.g, '#f59e0b', '#ef4444', '#a855f7',
+    '#f472b6', '#6366f1', '#e8642c', '#a3e635', '#ffffff',
+  ];
+
+  const LINE_STYLES = [
+    { id: 'solid', label: '━', title: 'Solid' },
+    { id: 'dashed', label: '╌', title: 'Dashed' },
+    { id: 'dotted', label: '···', title: 'Dotted' },
+  ];
   if (!indicator) return null;
 
   const regId = indicator.indicatorId || indicator.type;
