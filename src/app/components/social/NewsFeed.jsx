@@ -1,21 +1,64 @@
 import { useEffect, useState } from 'react';
 import { C, F } from '../../../constants.js';
 import { fetchMarketNews } from '../../../services/socialService.js';
+import LabsBadge from '../ui/LabsBadge.jsx';
 
 export default function NewsFeed({ category = 'all' }) {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const loadNews = () => {
+    setLoading(true);
+    setError(null);
+    fetchMarketNews(category)
+      .then((res) => {
+        setNews(res || []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err?.message || 'Failed to load news');
+        setLoading(false);
+      });
+  };
 
   useEffect(() => {
-    setLoading(true);
-    fetchMarketNews(category).then((res) => {
-      setNews(res);
-      setLoading(false);
-    });
+    loadNews();
   }, [category]);
 
   if (loading) {
-    return <div style={{ padding: 20, color: C.t3, textAlign: 'center' }}>Loading latest news...</div>;
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 20 }}>
+        {[1, 2, 3].map(i => (
+          <div key={i} style={{
+            background: C.bg2, borderRadius: 12, height: 180,
+            animation: 'pulse 1.5s ease-in-out infinite',
+            opacity: 0.5,
+          }} />
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: 20, color: C.t3, textAlign: 'center' }}>
+        <p style={{ margin: '0 0 8px', color: C.t2 }}>Could not load news</p>
+        <button
+          onClick={loadNews}
+          style={{
+            background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 8,
+            padding: '6px 16px', color: C.t1, cursor: 'pointer', fontSize: 13,
+          }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!news.length) {
+    return <div style={{ padding: 20, color: C.t3, textAlign: 'center' }}>No news available</div>;
   }
 
   // Format date helper
@@ -37,7 +80,9 @@ export default function NewsFeed({ category = 'all' }) {
           borderBottom: `1px solid ${C.bd}`,
         }}
       >
-        Market News
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          Market News <LabsBadge />
+        </span>
       </h3>
       {news.map((item) => (
         <a key={item.id} href={item.url} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>

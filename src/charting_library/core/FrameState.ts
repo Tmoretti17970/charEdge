@@ -266,7 +266,10 @@ export class FrameState {
       !prev ||
       startIdx !== prev.startIdx ||
       endIdx !== prev.endIdx ||
-      S.visibleBars !== prev.visibleBars
+      S.visibleBars !== prev.visibleBars ||
+      S.scrollOffset !== prev.scrollOffset ||
+      yMin !== prev.yMin ||
+      yMax !== prev.yMax
     );
 
     // Animation state

@@ -151,7 +151,7 @@ describe('B2.4: Y-axis scale cross-fade', () => {
     });
 
     it('GridStage renders cross-fade with per-line alpha', () => {
-        expect(gridStageSrc).toContain('line.alpha');
+        expect(gridStageSrc).toContain('hLine.alpha');
         expect(gridStageSrc).toContain('fadeOutAlpha');
         expect(gridStageSrc).toContain('transProgress');
     });

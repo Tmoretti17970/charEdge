@@ -91,6 +91,8 @@ class DatafeedService {
           if (!currentEntry) return;
           currentEntry.bars = bars;
           currentEntry.status = 'ready';
+          // Push to TickChannel so ChartEngine gets bars directly (matches crypto path)
+          tickChannel.pushHistorical(key, bars);
           currentEntry.subscribers.forEach(sub => {
             if (sub.onHistorical) sub.onHistorical(bars);
           });

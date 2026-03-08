@@ -10,6 +10,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { encryptedPersistStorage } from '../data/encryptedPersistStorage.js';
 
 import { createAuthSlice } from './user/authSlice.js';
 import { createPersonaSlice } from './user/personaSlice.js';
@@ -67,6 +68,7 @@ const useUserStore = create(
     {
       name: 'charEdge-user',
       version: 1,
+      storage: encryptedPersistStorage('settings'),
       partialize: (state) => ({
         // Display unit
         displayUnit: state.displayUnit,

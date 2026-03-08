@@ -35,6 +35,7 @@ const LONG_CACHE_TTL = 3600000; // 1 hour for fundamentals
 class FMPAdapter extends BaseAdapter {
   constructor() {
     super('fmp');
+    this._available = null; // null = untested, true/false = cached result
   }
 
   // Phase 2.1.1: API key managed server-side — always "configured"
@@ -42,6 +43,24 @@ class FMPAdapter extends BaseAdapter {
 
   // Legacy no-op — key is server-side now
   setApiKey(_key) { /* no-op: API key managed server-side */ }
+
+  // ─── Availability Gate ──────────────────────────────────────
+  // Probes the proxy once per session. If the key is missing (503)
+  // or forbidden (403), cache that and skip all future requests
+  // to avoid spamming red errors in the browser console.
+  async _checkAvailability() {
+    if (this._available !== null) return this._available;
+    try {
+      const res = await fetch(`${PROXY_BASE}/quote/AAPL`);
+      this._available = res.ok;
+      if (!this._available) {
+        logger.data.info(`[FMPAdapter] Proxy returned ${res.status} — provider disabled for this session`);
+      }
+    } catch {
+      this._available = false;
+    }
+    return this._available;
+  }
 
   // ─── OHLCV ───────────────────────────────────────────────────
 
@@ -184,6 +203,9 @@ class FMPAdapter extends BaseAdapter {
   // ─── Private ─────────────────────────────────────────────────
 
   async _request(endpoint, params = {}) {
+    // Gate: skip request if proxy is unavailable (key missing / forbidden)
+    if (!(await this._checkAvailability())) return null;
+
     const url = new URL(`${PROXY_BASE}/${endpoint}`, window.location.origin);
     for (const [k, v] of Object.entries(params)) {
       url.searchParams.set(k, String(v));

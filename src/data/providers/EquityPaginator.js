@@ -3,7 +3,8 @@
 //
 // Paginated history fetching for equities (stocks, ETFs).
 // Called by HistoryPaginator when isCrypto(sym) is false.
-// Uses the existing provider chain: Polygon → FMP → Alpha Vantage → Yahoo.
+// Uses the existing provider chain: Polygon → FMP → Yahoo.
+// Alpha Vantage removed (Task 1B.2) — 25 req/day, no unique data.
 // Returns { data: [...bars], hasMore: boolean }.
 // ═══════════════════════════════════════════════════════════════════
 
@@ -75,14 +76,7 @@ export async function fetchEquityPage(sym, tfId, endTimeMs, pageSize = 500) {
         }
     } catch (e) { logger.data.warn('[EquityPaginator] FMP page failed', e?.message); }
 
-    // 3. Alpha Vantage (full output mode gives up to 20 years)
-    try {
-        const bars = await _fetchAlphaVantagePage(sym, tfId, endTimeMs);
-        if (bars && bars.length > 0) {
-            const validated = validateCandleArray(bars);
-            return { data: validated, hasMore: validated.length >= Math.min(pageSize / 2, 50) };
-        }
-    } catch (e) { logger.data.warn('[EquityPaginator] AlphaVantage page failed', e?.message); }
+    // Alpha Vantage step removed (Task 1B.2) — 25 req/day, no unique data
 
     // All providers failed for this page
     return { data: [], hasMore: false };

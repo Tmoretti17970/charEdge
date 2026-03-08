@@ -129,13 +129,18 @@ export function renderOverlayIndicator(ctx, indicator, params) {
 
     ctx.beginPath();
     let started = false;
+    let lastPixelX = -Infinity;
 
     for (let i = startIdx; i <= endIdx && i < values.length; i++) {
       if (isNaN(values[i])) {
         started = false;
+        lastPixelX = -Infinity;
         continue;
       }
       const x = Math.round((i - startIdx + 0.5) * barSpacing * pr);
+      // Per-pixel-column dedup: skip if same pixel column as previous point
+      if (started && x === lastPixelX) continue;
+      lastPixelX = x;
       const y = Math.round(priceToY(values[i]) * pr);
       if (!started) {
         ctx.moveTo(x, y);
@@ -255,13 +260,18 @@ export function renderPaneIndicator(ctx, indicator, params, theme = {}) {
 
       ctx.beginPath();
       let started = false;
+      let lastPixelX = -Infinity;
 
       for (let i = startIdx; i <= endIdx && i < values.length; i++) {
         if (isNaN(values[i])) {
           started = false;
+          lastPixelX = -Infinity;
           continue;
         }
         const x = Math.round((i - startIdx + 0.5) * barSpacing * pr);
+        // Per-pixel-column dedup: skip if same pixel column as previous point
+        if (started && x === lastPixelX) continue;
+        lastPixelX = x;
         const y = Math.round(valToY(values[i]));
 
         if (!started) {

@@ -78,6 +78,7 @@ export function executeDataStage(fs, ctx, engine) {
     paneCount: fs.paneCount, paneInds: fs.paneInds, timeTransform,
     _splitterHoverIdx: engine.state._splitterHoverIdx, // Sprint 11
     collapsedPanes: fs.collapsedPanes || new Set(),     // Sprint 11
+    paneHeights: fs.paneHeights || {},                  // Per-pane height fractions for splitter hit-test
   };
 
   // Update drawing engine coordinate converters

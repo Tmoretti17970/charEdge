@@ -13,21 +13,21 @@ import { useFocusStore } from '../../../../state/useFocusStore.js';
 // ─── Popular Symbols (for typeahead) ────────────────────────────
 
 export const POPULAR_SYMBOLS = [
-  { sym: 'BTC', name: 'Bitcoin',    icon: '₿' },
-  { sym: 'ETH', name: 'Ethereum',   icon: 'Ξ' },
-  { sym: 'SOL', name: 'Solana',     icon: '◎' },
-  { sym: 'AAPL', name: 'Apple',     icon: '🍎' },
-  { sym: 'TSLA', name: 'Tesla',     icon: '⚡' },
-  { sym: 'SPY', name: 'S&P 500',    icon: '📊' },
+  { sym: 'BTC', name: 'Bitcoin', icon: '₿' },
+  { sym: 'ETH', name: 'Ethereum', icon: 'Ξ' },
+  { sym: 'SOL', name: 'Solana', icon: '◎' },
+  { sym: 'AAPL', name: 'Apple', icon: '🍎' },
+  { sym: 'TSLA', name: 'Tesla', icon: '⚡' },
+  { sym: 'SPY', name: 'S&P 500', icon: '📊' },
   { sym: 'QQQ', name: 'Nasdaq 100', icon: '📈' },
   { sym: 'NQ', name: 'Nasdaq Fut.', icon: '📉' },
-  { sym: 'ES', name: 'S&P Fut.',    icon: '📉' },
-  { sym: 'NVDA', name: 'NVIDIA',    icon: '🟢' },
-  { sym: 'AMZN', name: 'Amazon',    icon: '📦' },
+  { sym: 'ES', name: 'S&P Fut.', icon: '📉' },
+  { sym: 'NVDA', name: 'NVIDIA', icon: '🟢' },
+  { sym: 'AMZN', name: 'Amazon', icon: '📦' },
   { sym: 'MSFT', name: 'Microsoft', icon: '🪟' },
   { sym: 'GOOGL', name: 'Alphabet', icon: '🔍' },
-  { sym: 'META', name: 'Meta',      icon: '👤' },
-  { sym: 'AMD', name: 'AMD',        icon: '🔴' },
+  { sym: 'META', name: 'Meta', icon: '👤' },
+  { sym: 'AMD', name: 'AMD', icon: '🔴' },
 ];
 
 // ─── Command Registry ───────────────────────────────────────────
@@ -40,8 +40,7 @@ export function getCommands(actions) {
     // ─── NAVIGATION ──────────────────────────────────────────
     { id: 'nav-home', label: 'Go to Home', group: 'Navigate', shortcut: '1', icon: '🏠', action: () => actions.setPage('dashboard') },
     { id: 'nav-charts', label: 'Go to Charts', group: 'Navigate', shortcut: '2', icon: '📈', action: () => actions.setPage('charts') },
-    { id: 'nav-discover', label: 'Go to Discover', group: 'Navigate', shortcut: '3', icon: '🔍', action: () => actions.setPage('discover') },
-    { id: 'nav-settings', label: 'Open Settings', group: 'Navigate', shortcut: '4', icon: '⚙️', action: () => { useUIStore.getState().openSettings(); actions.close(); } },
+    { id: 'nav-settings', label: 'Open Settings', group: 'Navigate', shortcut: '3', icon: '⚙️', action: () => { useUIStore.getState().openSettings(); actions.close(); } },
 
     // ─── ACTIONS ─────────────────────────────────────────────
     { id: 'add-trade', label: 'Add New Trade', group: 'Actions', shortcut: 'Ctrl+N', icon: '➕', action: actions.addTrade },

@@ -127,17 +127,38 @@ export function createCandlestickRenderer(theme = DEFAULT_CANDLE_THEME) {
           const body = positionsBox(xMedia, bodyWidth, pixelRatio);
 
           if (currentTheme.fillBody) {
-            ctx.fillRect(body.position, bodyTop, body.length, bodyHeight);
+            // Apple-style rounded candle bodies (1px bitmap radius)
+            const r = Math.min(pixelRatio, bodyHeight / 2, body.length / 2);
+            if (r > 0.5 && ctx.roundRect) {
+              ctx.beginPath();
+              ctx.roundRect(body.position, bodyTop, body.length, bodyHeight, r);
+              ctx.fill();
+            } else {
+              ctx.fillRect(body.position, bodyTop, body.length, bodyHeight);
+            }
           } else {
-            // Outline only (hollow candles)
+            // Outline only (hollow candles) — rounded
             ctx.strokeStyle = ctx.fillStyle;
             ctx.lineWidth = wickBitmap;
-            ctx.strokeRect(
-              body.position + 0.5 * wickBitmap,
-              bodyTop + 0.5 * wickBitmap,
-              body.length - wickBitmap,
-              bodyHeight - wickBitmap,
-            );
+            const hr = Math.min(pixelRatio, (bodyHeight - wickBitmap) / 2, (body.length - wickBitmap) / 2);
+            if (hr > 0.5 && ctx.roundRect) {
+              ctx.beginPath();
+              ctx.roundRect(
+                body.position + 0.5 * wickBitmap,
+                bodyTop + 0.5 * wickBitmap,
+                body.length - wickBitmap,
+                bodyHeight - wickBitmap,
+                hr,
+              );
+              ctx.stroke();
+            } else {
+              ctx.strokeRect(
+                body.position + 0.5 * wickBitmap,
+                bodyTop + 0.5 * wickBitmap,
+                body.length - wickBitmap,
+                bodyHeight - wickBitmap,
+              );
+            }
           }
         }
       }

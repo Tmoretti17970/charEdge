@@ -77,6 +77,9 @@ const MIN_BARS_FOR_ANALYSIS = 25;
 
 export function useCopilotPipeline(): CopilotInsight & {
     requestNarrative: () => Promise<void>;
+    requestPulse: () => Promise<string>;
+    requestKeyLevels: () => Promise<any[]>;
+    requestSetupGrade: () => Promise<any>;
 } {
     const [insight, setInsight] = useState<CopilotInsight>({
         features: null,
@@ -137,28 +140,25 @@ export function useCopilotPipeline(): CopilotInsight & {
         };
     }, []);
 
-    // On-demand LLM narrative
+    // On-demand LLM narrative (or rich local analysis)
     const requestNarrative = useCallback(async () => {
         setInsight((prev) => ({ ...prev, loading: true }));
         try {
-            // Dynamic import to avoid loading LLM code unless needed
             const { llmService } = await import('../intelligence/LLMService.js');
             const state = useChartStore.getState() as any;
             const bars = state.data || [];
 
             if (!llmService.isAvailable || bars.length < MIN_BARS_FOR_ANALYSIS) {
-                // Generate template-based insight instead
+                // Use LocalInsightEngine for rich template-based analysis
                 const features = insight.features;
                 if (features) {
-                    const narrative = [
-                        `📊 **${state.symbol || 'Chart'} Analysis** (${state.tf || '—'})`,
-                        '',
-                        `**Momentum:** RSI at ${features.momentum.rsi.toFixed(0)} — ${insight.momentumLabel}`,
-                        `**Volatility:** ATR ratio ${features.volatility.atrRatio.toFixed(2)} — ${insight.volatilityLabel}`,
-                        `**Volume:** ${features.volume.volumeRatio.toFixed(1)}x average — ${insight.volumeLabel}`,
-                        '',
-                        `**Condition:** ${insight.conditionLabel}`,
-                    ].join('\n');
+                    const { localInsightEngine } = await import('../charting_library/ai/LocalInsightEngine.js');
+                    const result = localInsightEngine.generateFullAnalysis(
+                        features, state.symbol || 'Chart', state.tf || '—', bars,
+                    );
+                    const narrative = result.sections.map((s: any) =>
+                        `**${s.title}:** ${s.content}${s.detail ? `\n${s.detail}` : ''}`,
+                    ).join('\n\n');
                     setInsight((prev) => ({ ...prev, narrative, loading: false }));
                 } else {
                     setInsight((prev) => ({
@@ -170,7 +170,6 @@ export function useCopilotPipeline(): CopilotInsight & {
                 return;
             }
 
-            // Build a trade snapshot for LLM analysis
             const { captureSnapshotFromStore } = await import('../hooks/useSnapshotCapture.js');
             const snapshot = captureSnapshotFromStore();
             const response = await llmService.analyzeTradeSnapshot(snapshot as any);
@@ -188,7 +187,34 @@ export function useCopilotPipeline(): CopilotInsight & {
         }
     }, [insight.features, insight.momentumLabel, insight.volatilityLabel, insight.volumeLabel, insight.conditionLabel]);
 
-    return { ...insight, requestNarrative };
+    // Quick one-liner market state
+    const requestPulse = useCallback(async () => {
+        const features = insight.features;
+        if (!features) return '';
+        const { localInsightEngine } = await import('../charting_library/ai/LocalInsightEngine.js');
+        const state = useChartStore.getState() as any;
+        const { text } = localInsightEngine.generateMarketPulse(features, state.symbol, state.tf);
+        return text;
+    }, [insight.features]);
+
+    // Key S&R levels
+    const requestKeyLevels = useCallback(async () => {
+        const state = useChartStore.getState() as any;
+        const bars = state.data || [];
+        if (bars.length < 10) return [];
+        const { localInsightEngine } = await import('../charting_library/ai/LocalInsightEngine.js');
+        return localInsightEngine.generateKeyLevels(bars);
+    }, []);
+
+    // Setup quality grade
+    const requestSetupGrade = useCallback(async () => {
+        const features = insight.features;
+        if (!features) return null;
+        const { localInsightEngine } = await import('../charting_library/ai/LocalInsightEngine.js');
+        return localInsightEngine.gradeSetup(features);
+    }, [insight.features]);
+
+    return { ...insight, requestNarrative, requestPulse, requestKeyLevels, requestSetupGrade };
 }
 
 export default useCopilotPipeline;

@@ -36,7 +36,8 @@ export function createTimeTransform(bars, startIdx, exactStart, visibleBars, cha
      * @returns {number} Float index in the bars array.
      */
     pixelToIndex: (x) => {
-      return x / barSpacing - 0.5 + exactStart;
+      const raw = x / barSpacing - 0.5 + exactStart;
+      return Math.round(raw * 1e6) / 1e6;
     },
 
     /**
@@ -65,8 +66,16 @@ export function createTimeTransform(bars, startIdx, exactStart, visibleBars, cha
         return firstTime + Math.round(exactIdx * tfMs);
       }
 
-      const idx = Math.round(exactIdx);
-      return bars[idx]?.time || Date.now();
+      // Sub-bar interpolation for smooth drawing placement
+      const lo = Math.floor(exactIdx);
+      const hi = Math.ceil(exactIdx);
+      const clo = Math.max(0, Math.min(lo, bars.length - 1));
+      const chi = Math.max(0, Math.min(hi, bars.length - 1));
+      if (clo === chi) return bars[clo]?.time || Date.now();
+      const frac = exactIdx - lo;
+      const t0 = bars[clo]?.time || Date.now();
+      const t1 = bars[chi]?.time || Date.now();
+      return Math.round(t0 + frac * (t1 - t0));
     },
 
     /**

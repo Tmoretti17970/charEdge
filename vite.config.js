@@ -123,6 +123,9 @@ function apiProxyPlugin() {
 
 export default defineConfig({
   plugins: [react(), modulepreloadPlugin(), apiProxyPlugin()],
+  resolve: {
+    extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
+  },
   server: {
     port: 5173,
     open: true,

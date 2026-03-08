@@ -9,19 +9,13 @@ import { trackPageView } from '../../utils/telemetry.js';
 const JournalPage = React.lazy(() => import('../../pages/JournalPage.jsx'));
 const ChartsPage = React.lazy(() => import('../../pages/ChartsPage.jsx'));
 const SettingsPage = React.lazy(() => import('../../pages/SettingsPage.jsx'));
-// Wave 0: Quarantined — social/community removed from v1.0 launch scope
-// const CommunityPage = React.lazy(() => import('../../pages/CommunityPage.jsx'));
 const TelemetryDashboard = React.lazy(() => import('../../pages/TelemetryDashboard.jsx'));
-// Wave 0: Quarantined — AI Coach removed from v1.0 launch scope
-// const CoachPage = React.lazy(() => import('../../pages/CoachPage.jsx'));
 const CharolettePage = React.lazy(() => import('../../pages/CharolettePage.jsx'));
 const ChangelogPage = React.lazy(() => import('../../pages/ChangelogPage.jsx'));
 const PrivacyPage = React.lazy(() => import('../../pages/PrivacyPage.jsx'));
 const TermsPage = React.lazy(() => import('../../pages/TermsPage.jsx'));
 const LandingPage = React.lazy(() => import('../../pages/LandingPage.jsx'));
 const SpeedtestPage = React.lazy(() => import('../../pages/SpeedtestPage.jsx'));
-// Wave 0: Quarantined — pricing removed until Stripe integration
-// const PricingPage = React.lazy(() => import('../../pages/PricingPage.jsx'));
 
 // Prefetch Journal immediately (it's the default page) so it loads in background
 if (typeof window !== 'undefined') {
@@ -33,25 +27,14 @@ const PAGES = {
   dashboard: JournalPage,
   journal: JournalPage,
   charts: ChartsPage,
-  // Wave 0: Quarantined routes → fallback to JournalPage
-  discover: JournalPage,
-  coach: JournalPage,
   charolette: CharolettePage,
   changelog: ChangelogPage,
   privacy: PrivacyPage,
   terms: TermsPage,
   landing: LandingPage,
   speedtest: SpeedtestPage,
-  pricing: JournalPage, // Wave 0: Quarantined
   settings: SettingsPage,
   telemetry: TelemetryDashboard,
-  // Legacy routes → redirect to new locations
-  markets: JournalPage, // Wave 0: was CommunityPage
-  social: JournalPage, // Wave 0: was CommunityPage
-  insights: JournalPage,
-  analytics: JournalPage,
-  notes: JournalPage,
-  plans: JournalPage,
 };
 
 function SkeletonBlock({ w, h, style }) {
@@ -139,9 +122,7 @@ export default function PageRouter() {
     journal: 'Command Center',
     dashboard: 'Dashboard',
     charts: 'Charts',
-    coach: 'Smart Insights',
     charolette: "Charolette\u2019s Light",
-    discover: 'Discover',
     settings: 'Settings',
     telemetry: 'Telemetry',
     changelog: "What's New",
@@ -149,7 +130,6 @@ export default function PageRouter() {
     terms: 'Terms of Service',
     landing: 'Landing',
     speedtest: 'Speed Test',
-    pricing: 'Pricing',
   };
 
   // Sprint 1: Framer Motion page transition variants

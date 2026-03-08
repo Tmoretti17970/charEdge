@@ -18,10 +18,8 @@
 @import './components.css';
 
 /* Feature modules (extracted from monoliths) */
-@import './chart.css';
-/* Chart toolbar, status bar, minimap, HUD */
 @import './chart-components.css';
-/* Chart toolbar polish, skeleton, drawing sidebar, focus mode, light theme */
+/* Chart toolbar, status bar, minimap, HUD, drawing tools, trade pills */
 @import './drawing.css';
 /* Drawing edit popup, sidebar, color picker */
 @import './trading.css';

@@ -17,6 +17,7 @@ import { tickPersistence } from '../streaming/TickPersistence.js';
 import { streamingMetrics } from '../streaming/StreamingMetrics.js';
 import { performanceMonitor } from './PerformanceMonitor.js';
 import { pipelineLogger } from './DataPipelineLogger.js';
+import { tickChannel } from '../../../charting_library/core/TickChannel.ts';
 import { logger } from '../../../utils/logger';
 
 // ─── Constants ─────────────────────────────────────────────────
@@ -181,6 +182,7 @@ class _PipelineHealthMonitor {
         stats: depthStats,
       },
       activeMetrics: activeMetrics.length,
+      latency: tickChannel.getLatency(),  // Real tick-to-render latency (EMA, ms)
       timestamp: Date.now(),
     };
   }

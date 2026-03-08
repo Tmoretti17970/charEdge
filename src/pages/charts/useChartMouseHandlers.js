@@ -56,6 +56,7 @@ export default function useChartMouseHandlers({
   const onChartContextMenu = useCallback((e) => {
     if (isMobile || multiMode) return;
     e.preventDefault();
+    e.stopPropagation();
     const rect = e.currentTarget.getBoundingClientRect();
     const yFrac = (e.clientY - rect.top) / rect.height;
     const chartState = chartRef.current;

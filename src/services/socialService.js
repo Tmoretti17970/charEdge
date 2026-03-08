@@ -121,9 +121,67 @@ export const fetchTopPosts = async (category = 'all') => {
   return [cryptoPosts[0], macroPosts[0], cryptoPosts[1], macroPosts[1]];
 };
 
-export const fetchMarketNews = async (category = 'all') => {
-  await new Promise((r) => setTimeout(r, 800));
+// ─── Market News ────────────────────────────────────────────────
+// Task 1C.3: Wire to real NewsAggregator when VITE_REAL_NEWS=true.
+// Falls back to mock data when flag is off (dev/demo).
 
+import { newsAggregator } from '../data/NewsAggregator.js';
+
+export const fetchMarketNews = async (category = 'all') => {
+  // Feature flag: use real RSS when enabled
+  const useReal = typeof import.meta !== 'undefined'
+    && import.meta.env?.VITE_REAL_NEWS === 'true';
+
+  if (!useReal) return _mockMarketNews(category);
+
+  try {
+    let articles;
+    if (category === 'crypto') {
+      articles = await newsAggregator.fetchCryptoNews(10);
+    } else {
+      articles = await newsAggregator.fetchMarketNews({ limit: 10 });
+    }
+
+    if (!articles || articles.length === 0) {
+      // No articles from live RSS — fall back to mock
+      return _mockMarketNews(category);
+    }
+
+    // Map from NewsAggregator shape → UI shape
+    return articles.map((a, i) => ({
+      id: `live-${i}-${Date.now()}`,
+      title: a.title || 'Untitled',
+      source: a.source || _inferSource(a.link),
+      publishedAt: a.publishedAt || new Date().toISOString(),
+      url: a.link || '#',
+      imageUrl: a.image || _placeholderImage(category),
+      description: a.summary || '',
+    }));
+  } catch {
+    // RSS fetch failed — fall back to mock data gracefully
+    return _mockMarketNews(category);
+  }
+};
+
+function _inferSource(link) {
+  if (!link) return 'News';
+  if (link.includes('yahoo')) return 'Yahoo Finance';
+  if (link.includes('google')) return 'Google News';
+  if (link.includes('finnhub')) return 'Finnhub';
+  if (link.includes('reuters')) return 'Reuters';
+  if (link.includes('bloomberg')) return 'Bloomberg';
+  return 'News';
+}
+
+function _placeholderImage(category) {
+  return category === 'crypto'
+    ? 'https://images.unsplash.com/photo-1621416894569-0f39ed31d247?auto=format&fit=crop&w=400&q=80'
+    : 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=400&q=80';
+}
+
+// ─── Mock Data (kept for dev/demo mode) ─────────────────────────
+
+function _mockMarketNews(category) {
   const cryptoNews = [
     {
       id: 'n1',
@@ -173,4 +231,4 @@ export const fetchMarketNews = async (category = 'all') => {
   if (category === 'crypto') return cryptoNews;
   if (category === 'macro') return macroNews;
   return [cryptoNews[0], macroNews[0], cryptoNews[1], macroNews[1]];
-};
+}

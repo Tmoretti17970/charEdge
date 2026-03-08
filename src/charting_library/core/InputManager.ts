@@ -176,6 +176,8 @@ export class InputManager {
   // Splitter drag state
   private _dragPaneIdx: number = 0;
   private _dragStartFraction: number = 0.15;
+  // Strategy Item #12: Full-viewport overlay during splitter drag
+  private _dragOverlay: HTMLDivElement | null = null;
 
   // Touch gesture state
   private _touchMode: TouchMode = null;
@@ -246,6 +248,8 @@ export class InputManager {
     this._pinchSpringActive = false;
     // B1.5: Disconnect resize observer
     if (this._resizeObs) { this._resizeObs.disconnect(); this._resizeObs = null; }
+    // Strategy Item #12: Clean up drag overlay if engine is destroyed mid-drag
+    this._removeDragOverlay();
     // Sprint 4: Clean up GPU compositing hint
     this._clearWillChange();
   }
@@ -273,6 +277,24 @@ export class InputManager {
   private _clearWillChange(): void {
     const container = this.tc.parentElement;
     if (container) container.style.willChange = '';
+  }
+
+  // ─── Strategy Item #12: Drag Overlay ────────────────────────────
+  // Full-viewport transparent div captures all pointer events during splitter
+  // drag, preventing cursor loss when the pointer crosses React UI overlays.
+  private _createDragOverlay(cursor: string): void {
+    this._removeDragOverlay();
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `position:fixed;inset:0;z-index:999999;cursor:${cursor};pointer-events:all;`;
+    document.body.appendChild(overlay);
+    this._dragOverlay = overlay;
+  }
+
+  private _removeDragOverlay(): void {
+    if (this._dragOverlay) {
+      this._dragOverlay.remove();
+      this._dragOverlay = null;
+    }
   }
 
   // B2.1: Quintic-out inertia timing state
@@ -331,6 +353,9 @@ export class InputManager {
     S.topDirty = true;
     if (eng.layers) {
       eng.layers.markDirty(LAYERS.DATA);
+      eng.layers.markDirty(LAYERS.INDICATORS);
+      eng.layers.markDirty(LAYERS.DRAWINGS);
+      eng.layers.markDirty(LAYERS.GRID);
       eng.layers.markDirty(LAYERS.UI);
     }
 
@@ -412,6 +437,7 @@ export class InputManager {
 
     S.mainDirty = true;
     S.topDirty = true;
+    if (eng.layers) eng.layers.markAllDirty();
     return true;
   }
 
@@ -500,6 +526,7 @@ export class InputManager {
 
     S.mainDirty = true;
     S.topDirty = true;
+    if (eng.layers) eng.layers.markAllDirty();
     return true;
   }
 
@@ -508,10 +535,10 @@ export class InputManager {
   private _hitTestSplitter(y: number): number {
     const R = this.engine.state.lastRender;
     if (!R || R.paneCount <= 0) return -1;
-    const TOLERANCE = 4; // px
+    const TOLERANCE = 8; // px — generous for easy grabbing
     for (let i = 0; i < R.paneCount; i++) {
-      const splitterY = R.mainH + R.paneH * i;
-      if (Math.abs(y - splitterY) <= TOLERANCE) return i;
+      const sy = R.mainH + R.paneH * i;
+      if (Math.abs(y - sy) <= TOLERANCE) return i;
     }
     return -1;
   }
@@ -544,11 +571,14 @@ export class InputManager {
     const ri = Math.round(pos.x / R.bSp - 0.5);
     S.hoverIdx = Math.max(0, Math.min(eng.bars.length - 1, R.start + ri));
 
-    // Sprint 11: Splitter drag — update pane height fraction
+    // Sprint 11: Splitter drag — position-based pane resize
+    // Directly maps mouse Y to pane fraction for buttery tracking
+    // Drag UP = more pane space, drag DOWN = less pane space
     if (S.dragging === 'splitter' && !consumed) {
-      const dy = e.clientY - S.dragStartY;
-      const totalH = R.mainH + R.paneH * R.paneCount;
-      const newFraction = Math.max(0.08, Math.min(0.5, this._dragStartFraction + dy / totalH));
+      const availH = R.mainH + R.paneH * R.paneCount;
+      // Pane takes the space below the current mouse position
+      const panePixels = Math.max(0, availH - pos.y);
+      const newFraction = Math.max(0.08, Math.min(0.5, panePixels / availH));
       if (eng.callbacks.onPaneResize) {
         eng.callbacks.onPaneResize(this._dragPaneIdx, newFraction);
       }
@@ -584,6 +614,7 @@ export class InputManager {
       if (eng.layers) {
         eng.layers.markDirty(LAYERS.DATA);
         eng.layers.markDirty(LAYERS.INDICATORS);
+        eng.layers.markDirty(LAYERS.DRAWINGS);
         eng.layers.markDirty(LAYERS.GRID);
       }
 
@@ -620,6 +651,7 @@ export class InputManager {
       if (eng.layers) {
         eng.layers.markDirty(LAYERS.DATA);
         eng.layers.markDirty(LAYERS.INDICATORS);
+        eng.layers.markDirty(LAYERS.DRAWINGS);
         eng.layers.markDirty(LAYERS.GRID);
       }
 
@@ -743,6 +775,8 @@ export class InputManager {
       const paneHeightsMap = (eng.props.paneHeights || {}) as Record<number, number>;
       this._dragStartFraction = paneHeightsMap[splitterIdx] || 0.15;
       this.tc.style.cursor = 'row-resize';
+      // Strategy Item #12: Full-viewport overlay prevents cursor loss near overlays/dialogs
+      this._createDragOverlay('ns-resize');
       return;
     }
 
@@ -886,6 +920,8 @@ export class InputManager {
     const wasDrag = eng.state.dragging;
     const wasChartDrag = wasDrag === 'chart';
     eng.state.dragging = false;
+    // Strategy Item #12: Remove splitter drag overlay
+    this._removeDragOverlay();
     // Sprint 13.2: Restore cursor from drawing engine hint
     const hint = eng.drawingEngine?.cursorHint;
     this.tc.style.cursor = hint || 'crosshair';

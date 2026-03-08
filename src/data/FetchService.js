@@ -18,6 +18,7 @@ import { CoinGeckoAdapter } from './adapters/CoinGeckoAdapter.js';
 import { CryptoCompareAdapter } from './adapters/CryptoCompareAdapter.js';
 import { YahooAdapter } from './adapters/YahooAdapter.js';
 import { pipelineLogger } from './engine/infra/DataPipelineLogger.js';
+import { apiMeter } from './engine/infra/ApiMeter.js';
 import { fetchBinance } from './BinanceClient.js';
 import { fetch24hTicker, fetchSparkline } from './SparklineService.js';
 import { fetchOHLCPage } from './HistoryPaginator.js';
@@ -94,6 +95,7 @@ async function _doFetch(sym, tfId, tf, key) {
       }
     } catch { /* OPFS unavailable — full fetch */ }
     data = await withCircuitBreaker('binance', () => fetchBinance(sym, tfId, deltaStartTime));
+    apiMeter.record('binance', `${sym}:${tfId}`);
     // If delta fetch returned data, merge with CacheManager's last read (avoids double OPFS read)
     if (data && deltaStartTime) {
       try {
@@ -113,7 +115,25 @@ async function _doFetch(sym, tfId, tf, key) {
     if (data) source = 'binance';
   }
 
-  // ── Step 1.5: Crypto → CoinGecko (free, 365 days daily) ──────
+  // ── Step 1.5: Crypto → CryptoCompare (free, 100K/month, has volume) ──
+  // Moved before CoinGecko (Task 1B.3): higher rate limit + volume data
+  if (!data && isCrypto(sym)) {
+    data = await withCircuitBreaker('cryptocompare', async () => {
+      const cc = _cryptoCompareAdapter;
+      const CC_TF_MAP = {
+        '1m': '5m', '5m': '5m', '15m': '1h', '30m': '1h',
+        '1h': '1h', '4h': '1d', '1D': '1d', '1w': '1d',
+      };
+      const ccInterval = CC_TF_MAP[tfId] || '1d';
+      const candles = await cc.fetchOHLCV(sym, ccInterval);
+      apiMeter.record('cryptocompare', `${sym}:${ccInterval}`);
+      return (candles && candles.length > 1) ? candles : null;
+    });
+    if (data) source = 'cryptocompare';
+  }
+
+  // ── Step 1.6: Crypto → CoinGecko (free, 10K/month, no volume) ──
+  // Last-resort crypto fallback (lower rate limit, no volume data)
   if (!data && isCrypto(sym)) {
     data = await withCircuitBreaker('coingecko', async () => {
       const cg = _coinGeckoAdapter;
@@ -129,24 +149,10 @@ async function _doFetch(sym, tfId, tf, key) {
       };
       const cgTf = CG_TF_MAP[tfId] || { interval: '1d', days: 365 };
       const candles = await cg.fetchOHLCV(sym, cgTf.interval, { days: cgTf.days });
+      apiMeter.record('coingecko', `${sym}:${cgTf.interval}`);
       return (candles && candles.length > 1) ? candles : null;
     });
     if (data) source = 'coingecko';
-  }
-
-  // ── Step 1.6: Crypto → CryptoCompare (free, 2000 daily candles) ──
-  if (!data && isCrypto(sym)) {
-    data = await withCircuitBreaker('cryptocompare', async () => {
-      const cc = _cryptoCompareAdapter;
-      const CC_TF_MAP = {
-        '1m': '5m', '5m': '5m', '15m': '1h', '30m': '1h',
-        '1h': '1h', '4h': '1d', '1D': '1d', '1w': '1d',
-      };
-      const ccInterval = CC_TF_MAP[tfId] || '1d';
-      const candles = await cc.fetchOHLCV(sym, ccInterval);
-      return (candles && candles.length > 1) ? candles : null;
-    });
-    if (data) source = 'cryptocompare';
   }
 
   // ── Step 2: Equities → Premium providers (Polygon, FMP, Alpha Vantage)
@@ -155,6 +161,7 @@ async function _doFetch(sym, tfId, tf, key) {
       // Dynamic import to avoid circular dependency (DataProvider imports from FetchService consumers)
       const { fetchEquityPremium } = await import('./DataProvider.js');
       const result = await fetchEquityPremium(sym, tfId);
+      apiMeter.record(result?.source || 'polygon', `${sym}:${tfId}`);
       if (result && result.data) {
         source = result.source || 'polygon';
         return result.data;
@@ -180,6 +187,7 @@ async function _doFetch(sym, tfId, tf, key) {
       };
       const yahooTf = YAHOO_TF_MAP[tfId] || { interval: '1d', range: '1y' };
       const candles = await yahoo.fetchOHLCV(sym, yahooTf.interval, { range: yahooTf.range });
+      apiMeter.record('yahoo', `${sym}:${yahooTf.interval}`);
       if (candles && candles.length > 1) {
         return candles.map(c => ({
           time: typeof c.time === 'number' ? new Date(c.time).toISOString() : c.time,

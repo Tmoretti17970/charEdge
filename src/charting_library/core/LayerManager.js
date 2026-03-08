@@ -73,7 +73,10 @@ export class LayerManager {
         ? { alpha: false }
         : { alpha: true };
 
-      const ctx = canvas.getContext('2d', ctxOptions);
+      const ctx = canvas.getContext('2d', {
+        ...ctxOptions,
+        desynchronized: name === LAYERS.UI,
+      });
       this._layers.set(name, { canvas, ctx });
       this._dirty.set(name, true); // All dirty initially
     }

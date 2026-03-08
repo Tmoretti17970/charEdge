@@ -40,6 +40,9 @@ export function createDataManager(engine, dataFeed, options = {}) {
   let hasMoreHistory = true;
   let oldestTimestamp = Infinity;
   let disposed = false;
+  let loadFailCount = 0;
+  let loadCooldownUntil = 0;
+  const MAX_LOAD_RETRIES = 3;
 
   /** @type {((state: {loading: boolean, status: string, error?: string}) => void)|null} */
   let onStateChange = null;
@@ -78,6 +81,8 @@ export function createDataManager(engine, dataFeed, options = {}) {
     currentResolution = normalizedRes;
     hasMoreHistory = true;
     oldestTimestamp = Infinity;
+    loadFailCount = 0;
+    loadCooldownUntil = 0;
 
     // Update engine metadata
     engine.setSymbol(symbol);
@@ -151,6 +156,7 @@ export function createDataManager(engine, dataFeed, options = {}) {
    */
   async function loadMoreHistory() {
     if (disposed || isLoading || !hasMoreHistory || !currentSymbol) return;
+    if (Date.now() < loadCooldownUntil) return;
 
     notifyState(true, 'loading_more');
 
@@ -180,12 +186,20 @@ export function createDataManager(engine, dataFeed, options = {}) {
         engine.prependBars(result.bars);
         oldestTimestamp = result.bars[0].time;
         hasMoreHistory = !result.noMore;
+        loadFailCount = 0;
       } else {
         hasMoreHistory = false;
       }
 
       notifyState(false, 'ready');
     } catch (error) {
+      loadFailCount++;
+      if (loadFailCount >= MAX_LOAD_RETRIES) {
+        hasMoreHistory = false;
+        logger.data.warn('[DataManager] Max retries reached, stopping history load');
+      } else {
+        loadCooldownUntil = Date.now() + 1000 * Math.pow(2, loadFailCount - 1);
+      }
       notifyState(false, 'error', error.message);
       logger.data.error('[DataManager] Failed to load history:', error);
     }

@@ -102,6 +102,7 @@ export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
   const setIndicatorSource = useChartStore((s) => s.setIndicatorSource);
   const setIndicatorShowOnScale = useChartStore((s) => s.setIndicatorShowOnScale);
   const setIndicatorShowInStatusLine = useChartStore((s) => s.setIndicatorShowInStatusLine);
+  const updateIndicatorBands = useChartStore((s) => s.updateIndicatorBands);
 
   const indicator = indicators?.[indicatorIdx];
   const indicatorId = indicator?.indicatorId;
@@ -314,6 +315,47 @@ export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
             options={SOURCE_OPTIONS}
             onChange={(v) => setIndicatorSource(indicatorIdx, v)}
           />
+
+          {/* Strategy Item #13: Editable pane-config band levels (RSI 70/30, etc.) */}
+          {registryDef.paneConfig?.bands?.length > 0 && (
+            <>
+              <SectionLabel>Reference Lines</SectionLabel>
+              {registryDef.paneConfig.bands.map((band, bi) => {
+                const override = indicator.bandOverrides?.[bi] || {};
+                const currentValue = override.value ?? band.value;
+                const currentColor = override.color ?? band.color;
+                return (
+                  <div
+                    key={bi}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      marginBottom: 6,
+                      padding: '6px 10px',
+                      borderRadius: 6,
+                      background: C.sf,
+                      border: `1px solid ${C.bd}`,
+                    }}
+                  >
+                    <span style={{ fontSize: 11, color: C.t3, fontFamily: F, minWidth: 40 }}>
+                      {band.label || `Level ${bi + 1}`}
+                    </span>
+                    <NumberInput
+                      label=""
+                      value={currentValue}
+                      step={registryDef.paneConfig.max ? 1 : 0.1}
+                      onChange={(v) => updateIndicatorBands(indicatorIdx, bi, { value: v })}
+                    />
+                    <ColorSwatch
+                      color={currentColor}
+                      onChange={(c) => updateIndicatorBands(indicatorIdx, bi, { color: c })}
+                    />
+                  </div>
+                );
+              })}
+            </>
+          )}
 
           {/* Info tooltip area */}
           <div

@@ -40,6 +40,11 @@ const VP_BUCKET_DIVISOR = 100;  // Price bucket granularity: price / divisor →
 const LARGE_TRADE_SIGMA = 2.5;  // Standard deviations for "large trade" detection
 const TICK_SPEED_WINDOW = 5000; // 5-second window for tick speed
 const CLUSTER_WINDOW = 2000;    // 2-second window for cluster detection
+const CLUSTER_CHECK_INTERVAL = 10; // Only run cluster detection every Nth tick
+const CLUSTER_BUF_CAPACITY = 512;  // Max trades in cluster ring buffer
+const CLUSTER_FIELDS = 4;          // [price, volume, time, sideAsNum]
+const CVD_HISTORY_MAX = 5000;      // Max CVD history entries
+const CVD_HISTORY_TRIM = 1000;     // Entries to trim when max is hit
 const TRADE_SIZE_CAPACITY = 1000; // Rolling window for trade size stats
 const TICK_TS_CAPACITY = 500;     // Rolling window for tick timestamps
 
@@ -74,10 +79,10 @@ function priceBucket(price, tickSize) {
 /** Determine tick size based on price magnitude. */
 function autoTickSize(price) {
   if (price >= 10000) return 10;       // BTC: $10 buckets
-  if (price >= 1000)  return 1;        // ETH, stocks >$1k
-  if (price >= 100)   return 0.5;      // Mid-cap stocks
-  if (price >= 10)    return 0.1;      // Small stocks
-  if (price >= 1)     return 0.01;     // Penny range
+  if (price >= 1000) return 1;        // ETH, stocks >$1k
+  if (price >= 100) return 0.5;      // Mid-cap stocks
+  if (price >= 10) return 0.1;      // Small stocks
+  if (price >= 1) return 0.01;     // Penny range
   return 0.0001;                       // Sub-dollar / low-cap crypto
 }
 
@@ -128,8 +133,12 @@ class SymbolFlowState {
     this._tickTsHead = 0;
     this._tickTsCount = 0;
 
-    // Trade clustering
-    this.clusterBuffer = [];  // Recent trades for cluster detection
+    // Trade clustering — TypedArray ring buffer (zero-alloc)
+    this._clusterData = new Float64Array(CLUSTER_BUF_CAPACITY * CLUSTER_FIELDS);
+    this._clusterHead = 0;
+    this._clusterCount = 0;
+    this._clusterTickCounter = 0;  // Throttle: only check every Nth tick
+    this._clusterBucketMap = new Map(); // Reused per detection pass
     this.clusters = [];       // Detected clusters
 
     // Stats
@@ -145,7 +154,7 @@ class SymbolFlowState {
   pushTick(price, volume, time, isBuy, source) {
     const idx = this.tickHead % MAX_TICKS;
     const offset = idx * TICK_FIELDS;
-    this._tickData[offset]     = price;
+    this._tickData[offset] = price;
     this._tickData[offset + 1] = volume;
     this._tickData[offset + 2] = time;
     this._tickData[offset + 3] = isBuy ? 1 : 0;
@@ -239,7 +248,11 @@ class SymbolFlowState {
     this._tickTsData.fill(0);
     this._tickTsHead = 0;
     this._tickTsCount = 0;
-    this.clusterBuffer = [];
+    this._clusterData.fill(0);
+    this._clusterHead = 0;
+    this._clusterCount = 0;
+    this._clusterTickCounter = 0;
+    this._clusterBucketMap.clear();
     this.clusters = [];
     this.totalTicks = 0;
     this.totalBuyVol = 0;
@@ -306,42 +319,60 @@ class _OrderFlowEngine {
     state.cvdSampleCounter++;
     if (state.cvdSampleCounter >= 10) {
       state.cvdHistory.push({ time, cvd: state.cvd });
-      if (state.cvdHistory.length > 5000) state.cvdHistory.shift();
+      // Trim in bulk instead of O(N) shift() per tick
+      if (state.cvdHistory.length > CVD_HISTORY_MAX) {
+        state.cvdHistory = state.cvdHistory.slice(CVD_HISTORY_TRIM);
+      }
       state.cvdSampleCounter = 0;
     }
 
-    // 5. Update delta per candle (for each tracked timeframe)
+    // 5+7. Update delta AND footprint per candle in a SINGLE pass
+    //       (merged from two separate loops to halve Map lookups)
+    const bucket = priceBucket(price, state.vpTickSize);
     for (const tf of this._defaultTimeframes) {
       const tfMs = TF_MS[tf];
       if (!tfMs) continue;
-
-      if (!state.deltas.has(tf)) state.deltas.set(tf, new Map());
-      const candleMap = state.deltas.get(tf);
       const candleTime = snapToCandle(time, tfMs);
 
+      // ── Delta update ──
+      if (!state.deltas.has(tf)) state.deltas.set(tf, new Map());
+      const candleMap = state.deltas.get(tf);
       let candle = candleMap.get(candleTime);
       if (!candle) {
         candle = { buyVol: 0, sellVol: 0, delta: 0, count: 0, time: candleTime };
         candleMap.set(candleTime, candle);
-
-        // Evict old candles
         if (candleMap.size > MAX_CANDLE_HISTORY) {
           const oldest = candleMap.keys().next().value;
           candleMap.delete(oldest);
         }
       }
-
-      if (isBuy) {
-        candle.buyVol += vol;
-      } else {
-        candle.sellVol += vol;
-      }
+      if (isBuy) candle.buyVol += vol;
+      else candle.sellVol += vol;
       candle.delta = candle.buyVol - candle.sellVol;
       candle.count++;
+
+      // ── Footprint update ──
+      if (!state.footprints.has(tf)) state.footprints.set(tf, new Map());
+      const fpMap = state.footprints.get(tf);
+      if (!fpMap.has(candleTime)) {
+        fpMap.set(candleTime, new Map());
+        if (fpMap.size > MAX_CANDLE_HISTORY) {
+          const oldest = fpMap.keys().next().value;
+          fpMap.delete(oldest);
+        }
+      }
+      const priceLevels = fpMap.get(candleTime);
+      let level = priceLevels.get(bucket);
+      if (!level) {
+        level = { bidVol: 0, askVol: 0, totalVol: 0 };
+        priceLevels.set(bucket, level);
+      }
+      if (isBuy) level.askVol += vol;
+      else level.bidVol += vol;
+      level.totalVol += vol;
     }
 
     // 6. Update volume profile
-    const bucket = priceBucket(price, state.vpTickSize);
     let vpEntry = state.volumeProfile.get(bucket);
     if (!vpEntry) {
       vpEntry = { buyVol: 0, sellVol: 0, totalVol: 0 };
@@ -350,36 +381,6 @@ class _OrderFlowEngine {
     if (isBuy) vpEntry.buyVol += vol;
     else vpEntry.sellVol += vol;
     vpEntry.totalVol += vol;
-
-    // 7. Update footprint data (per candle, per price level)
-    for (const tf of this._defaultTimeframes) {
-      const tfMs = TF_MS[tf];
-      if (!tfMs) continue;
-
-      if (!state.footprints.has(tf)) state.footprints.set(tf, new Map());
-      const fpMap = state.footprints.get(tf);
-      const candleTime = snapToCandle(time, tfMs);
-
-      if (!fpMap.has(candleTime)) {
-        fpMap.set(candleTime, new Map());
-        // Evict old footprints
-        if (fpMap.size > MAX_CANDLE_HISTORY) {
-          const oldest = fpMap.keys().next().value;
-          fpMap.delete(oldest);
-        }
-      }
-
-      const priceLevels = fpMap.get(candleTime);
-      let level = priceLevels.get(bucket);
-      if (!level) {
-        level = { bidVol: 0, askVol: 0, totalVol: 0 };
-        priceLevels.set(bucket, level);
-      }
-
-      if (isBuy) level.askVol += vol;  // Buyer hits the ask → ask volume
-      else level.bidVol += vol;         // Seller hits the bid → bid volume
-      level.totalVol += vol;
-    }
 
     // 8. Track total buy/sell
     if (isBuy) state.totalBuyVol += vol;
@@ -407,24 +408,46 @@ class _OrderFlowEngine {
     // 10. Tick speed tracking — TypedArray ring buffer, no shift() calls
     state.pushTickTimestamp(time);
 
-    // 11. Trade clustering detection
-    state.clusterBuffer.push({ price, volume: vol, time, side });
-    const clusterCutoff = time - CLUSTER_WINDOW;
-    while (state.clusterBuffer.length > 0 && state.clusterBuffer[0].time < clusterCutoff) {
-      state.clusterBuffer.shift();
-    }
+    // 11. Trade clustering detection — TypedArray ring buffer, throttled
+    // Push into ring buffer (O(1), zero-alloc)
+    const clIdx = state._clusterHead % CLUSTER_BUF_CAPACITY;
+    const clOff = clIdx * CLUSTER_FIELDS;
+    state._clusterData[clOff] = price;
+    state._clusterData[clOff + 1] = vol;
+    state._clusterData[clOff + 2] = time;
+    state._clusterData[clOff + 3] = isBuy ? 1 : 0;
+    state._clusterHead++;
+    if (state._clusterCount < CLUSTER_BUF_CAPACITY) state._clusterCount++;
 
-    // Detect cluster: 5+ trades in window at same price bucket
-    if (state.clusterBuffer.length >= 5) {
-      const bucketCounts = new Map();
-      for (const t of state.clusterBuffer) {
-        const b = priceBucket(t.price, state.vpTickSize);
-        const prev = bucketCounts.get(b) || { count: 0, vol: 0, buyVol: 0, sellVol: 0 };
+    // Only run detection every Nth tick (clusters are 2s windows, checking
+    // every ~100ms at 100 t/s is plenty)
+    state._clusterTickCounter++;
+    if (state._clusterTickCounter >= CLUSTER_CHECK_INTERVAL && state._clusterCount >= 5) {
+      state._clusterTickCounter = 0;
+      const clCutoff = time - CLUSTER_WINDOW;
+      const bucketCounts = state._clusterBucketMap;
+      bucketCounts.clear();
+
+      // Scan ring buffer for trades within the cluster window
+      const clStart = state._clusterHead - state._clusterCount;
+      for (let ci = state._clusterCount - 1; ci >= 0; ci--) {
+        const ri = (clStart + ci) % CLUSTER_BUF_CAPACITY;
+        const ro = ri * CLUSTER_FIELDS;
+        const tTime = state._clusterData[ro + 2];
+        if (tTime < clCutoff) break; // timestamps are ordered
+        const tPrice = state._clusterData[ro];
+        const tVol = state._clusterData[ro + 1];
+        const tBuy = state._clusterData[ro + 3] === 1;
+        const b = priceBucket(tPrice, state.vpTickSize);
+        let prev = bucketCounts.get(b);
+        if (!prev) {
+          prev = { count: 0, vol: 0, buyVol: 0, sellVol: 0 };
+          bucketCounts.set(b, prev);
+        }
         prev.count++;
-        prev.vol += t.volume;
-        if (t.side === 'buy') prev.buyVol += t.volume;
-        else prev.sellVol += t.volume;
-        bucketCounts.set(b, prev);
+        prev.vol += tVol;
+        if (tBuy) prev.buyVol += tVol;
+        else prev.sellVol += tVol;
       }
 
       for (const [b, data] of bucketCounts) {
@@ -440,7 +463,6 @@ class _OrderFlowEngine {
             side: data.buyVol > data.sellVol ? 'buy' : 'sell',
           };
 
-          // Deduplicate: don't re-emit same cluster within window
           const lastCluster = state.clusters[state.clusters.length - 1];
           if (!lastCluster || lastCluster.price !== b || time - lastCluster.time > CLUSTER_WINDOW) {
             state.clusters.push(cluster);

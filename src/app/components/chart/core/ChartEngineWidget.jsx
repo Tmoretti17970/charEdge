@@ -148,6 +148,14 @@ export default function ChartEngineWidget({
   const [highlightedTrade, setHighlightedTrade] = useState(null);
   const paneIdRef = useRef(`widget-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`);
 
+  // P2: Staggered entrance — fires once on first data load
+  const hasEnteredRef = useRef(false);
+  const [showEntrance, setShowEntrance] = useState(false);
+
+  // P2: TF cross-dissolve
+  const prevTfRef = useRef(tf);
+  const [dissolving, setDissolving] = useState(false);
+
   // Paper trade bridge for replay mode
   const paperTradeRef = useRef(null);
   useEffect(() => {
@@ -548,6 +556,11 @@ export default function ChartEngineWidget({
         setStatus('ready');
         setStoreData(bars, 'binance');
         setDataSource('binance');
+        // P2: Trigger staggered entrance on first historical load
+        if (!hasEnteredRef.current) {
+          hasEnteredRef.current = true;
+          setShowEntrance(true);
+        }
         // TickChannel delivers to engine directly; this is for React state only
       },
       onTick: (bars, latestBar) => {
@@ -574,6 +587,17 @@ export default function ChartEngineWidget({
       if (unsubTick) unsubTick();
     };
   }, [binanceSymbol, binanceTf, setStoreData]);
+
+  // P2: TF cross-dissolve — trigger on timeframe change
+  useEffect(() => {
+    if (prevTfRef.current !== tf && hasEnteredRef.current) {
+      setDissolving(true);
+      const timer = setTimeout(() => setDissolving(false), 160);
+      prevTfRef.current = tf;
+      return () => clearTimeout(timer);
+    }
+    prevTfRef.current = tf;
+  }, [tf]);
 
   const indicatorInstancesRef = useRef([]);
 
@@ -607,6 +631,14 @@ export default function ChartEngineWidget({
         if (!INDICATORS[id]) return null;
         const instance = createIndicatorInstance(id, ind.params || {});
         if (ind.color && instance.outputs[0]) instance.outputs[0].color = ind.color;
+        // Strategy Item #13: Merge user band overrides onto registry default paneConfig
+        if (ind.bandOverrides && instance.paneConfig?.bands) {
+          instance.paneConfig = { ...instance.paneConfig };
+          instance.paneConfig.bands = instance.paneConfig.bands.map((band, bi) => {
+            const override = ind.bandOverrides[bi];
+            return override ? { ...band, ...override } : band;
+          });
+        }
         return instance;
       }).filter(Boolean);
 
@@ -681,6 +713,7 @@ export default function ChartEngineWidget({
   return (
     <div
       data-container="chart"
+      className={dissolving ? 'tf-chart-dissolve' : undefined}
       style={{ position: 'relative', width, height, overflow: 'hidden' }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}

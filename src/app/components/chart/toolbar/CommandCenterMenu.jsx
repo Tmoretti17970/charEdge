@@ -17,7 +17,7 @@ import ChartTradeToolbar from '../chart_ui/ChartTradeToolbar.jsx';
 // ─── Tab Definitions ──────────────────────────────────────────────
 const TABS = [
     { id: 'trading', label: 'Trading', icon: '◎' },
-    { id: 'strategy', label: 'Strategy & AI', icon: '✦' },
+    { id: 'strategy', label: 'Strategy', icon: '✦' },
     { id: 'tools', label: 'Tools', icon: '⬡' },
     { id: 'overlays', label: 'Overlays', icon: '◇' },
     { id: 'panels', label: 'Panels', icon: '▤' },
@@ -101,8 +101,6 @@ export default function CommandCenterMenu({
     showTrades, setShowTrades,
     showObjectTree, setShowObjectTree,
     onOpenPanel,
-    onOpenCopilot,
-    onToggleAnalysis,
     onSnapshot,
     layoutMode, setLayoutMode,
 }) {
@@ -187,8 +185,6 @@ export default function CommandCenterMenu({
                 active={strategyBuilderOpen}
                 onClick={() => { useStrategyBuilderStore.getState().togglePanel(); close(); }}
             />
-            <ActionItem label="AI Chart Analysis" onClick={() => { onToggleAnalysis && onToggleAnalysis(); close(); }} accent />
-            <ActionItem label="AI Copilot" onClick={() => { onOpenCopilot && onOpenCopilot(); close(); }} accent />
         </>
     );
 
@@ -199,7 +195,6 @@ export default function CommandCenterMenu({
             <ToggleItem label="Object Tree" active={showObjectTree} onClick={() => { setShowObjectTree(!showObjectTree); close(); }} />
             <ActionItem label={replayMode ? 'Exit Replay' : 'Bar Replay'} onClick={() => { toggleReplay(); close(); }} />
             <ActionItem label="Script Editor" onClick={() => { onOpenPanel('scripts'); close(); }} />
-            <ActionItem label="AI Insights" onClick={() => { onOpenPanel('insights'); close(); }} />
             <ActionItem label="Annotations" onClick={() => { onOpenPanel('annotations'); close(); }} />
             <ActionItem label="Share Snapshot" onClick={() => { onSnapshot && onSnapshot(); close(); }} />
         </>

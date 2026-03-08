@@ -83,7 +83,7 @@ describe('Sprint 14 · AxesStage — Crosshair Price Marker', () => {
   });
 
   it('uses roundRect for crosshair marker pill', () => {
-    expect(src).toContain('roundRect(axX, cursorY');
+    expect(src).toContain('roundRect(cmPillX, cursorY');
   });
 
   it('draws dashed horizontal line at crosshair Y', () => {

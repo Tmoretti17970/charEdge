@@ -10,14 +10,14 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, ChevronDown, Layers, LayoutPanelTop, Trash2, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Search, X, ChevronDown, Layers, LayoutPanelTop, Trash2, Eye, EyeOff, GripVertical } from 'lucide-react';
 import { useState, useCallback, useMemo } from 'react';
 import { INDICATORS } from '../../../charting_library/studies/indicators/registry.js';
 import { C, F, GLASS } from '../../../constants.js';
 import { useChartStore } from '../../../state/useChartStore.js';
 import { radii, transition, zIndex } from '../../../theme/tokens.js';
 import { alpha } from '../../../utils/colorUtils.js';
-import { ToggleSwitch, Tooltip } from '../ui/AppleHIG.jsx';
+import { Tooltip } from '../ui/AppleHIG.jsx';
 
 // ─── Category Definitions ────────────────────────────────────────
 const CATEGORIES = [
@@ -102,13 +102,39 @@ export default function IndicatorPanel({ isOpen, onClose }) {
   const updateIndicator = useChartStore((s) => s.updateIndicator);
   const toggleVisibility = useChartStore((s) => s.toggleIndicatorVisibility);
 
-  const intelligence = useChartStore((s) => s.intelligence);
-  const toggleIntelligence = useChartStore((s) => s.toggleIntelligence);
-  const toggleIntelligenceMaster = useChartStore((s) => s.toggleIntelligenceMaster);
-
   const [searchTerm, setSearchTerm] = useState('');
   const [editingIdx, setEditingIdx] = useState(null);
   const [openSections, setOpenSections] = useState({});
+
+  // ─── Drag state (DrawingSidebar pattern) ─────────────────────
+  const [pos, setPos] = useState(() => {
+    try {
+      const saved = localStorage.getItem('charEdge-indicator-panel-pos');
+      return saved ? JSON.parse(saved) : { x: window.innerWidth - 280, y: 48 };
+    } catch { return { x: window.innerWidth - 280, y: 48 }; }
+  });
+
+  const onDragStart = useCallback((e) => {
+    e.preventDefault();
+    const startX = e.clientX - pos.x;
+    const startY = e.clientY - pos.y;
+    const onMove = (ev) => {
+      setPos({
+        x: Math.max(0, Math.min(window.innerWidth - 260, ev.clientX - startX)),
+        y: Math.max(0, Math.min(window.innerHeight - 100, ev.clientY - startY)),
+      });
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      setPos((p) => {
+        try { localStorage.setItem('charEdge-indicator-panel-pos', JSON.stringify(p)); } catch { }
+        return p;
+      });
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }, [pos.x, pos.y]);
 
   // Toggle accordion section
   const toggleSection = useCallback((id) => {
@@ -183,10 +209,10 @@ export default function IndicatorPanel({ isOpen, onClose }) {
   return (
     <div
       style={{
-        position: 'absolute',
-        top: 8,
-        right: 8,
-        width: 320,
+        position: 'fixed',
+        left: pos.x,
+        top: pos.y,
+        width: 260,
         maxHeight: 'calc(100vh - 80px)',
         background: GLASS.standard,
         backdropFilter: GLASS.blurLg,
@@ -199,9 +225,10 @@ export default function IndicatorPanel({ isOpen, onClose }) {
         flexDirection: 'column',
         fontFamily: F,
         overflow: 'hidden',
+        userSelect: 'none',
       }}
     >
-      {/* ── Sticky Header ────────────────────────────────────── */}
+      {/* ── Drag Handle + Title ───────────────────────────────── */}
       <div
         style={{
           position: 'sticky',
@@ -213,16 +240,18 @@ export default function IndicatorPanel({ isOpen, onClose }) {
           borderBottom: GLASS.border,
         }}
       >
-        {/* Title bar */}
         <div
+          onMouseDown={onDragStart}
           style={{
-            padding: '12px 14px 0',
+            padding: '8px 10px 0',
             display: 'flex',
-            justifyContent: 'space-between',
             alignItems: 'center',
+            gap: 6,
+            cursor: 'grab',
           }}
         >
-          <span style={{ color: C.t1, fontSize: 14, fontWeight: 650, letterSpacing: '-0.01em' }}>Indicators</span>
+          <GripVertical size={12} color={C.t3} strokeWidth={2} style={{ opacity: 0.5, flexShrink: 0 }} />
+          <span style={{ color: C.t1, fontSize: 12, fontWeight: 650, letterSpacing: '-0.01em', flex: 1 }}>Indicators</span>
           <button
             onClick={onClose}
             style={{
@@ -230,7 +259,7 @@ export default function IndicatorPanel({ isOpen, onClose }) {
               border: 'none',
               color: C.t3,
               cursor: 'pointer',
-              padding: 4,
+              padding: 2,
               borderRadius: radii.sm,
               display: 'flex',
               alignItems: 'center',
@@ -246,25 +275,25 @@ export default function IndicatorPanel({ isOpen, onClose }) {
               e.currentTarget.style.color = C.t3;
             }}
           >
-            <X size={15} strokeWidth={2.5} />
+            <X size={13} strokeWidth={2.5} />
           </button>
         </div>
 
         {/* Search bar */}
-        <div style={{ padding: '10px 14px 0' }}>
+        <div style={{ padding: '6px 10px 0' }}>
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 8,
-              padding: '7px 10px',
+              gap: 6,
+              padding: '5px 8px',
               background: alpha(C.bg, 0.5),
               border: `1px solid ${alpha(C.bd, 0.5)}`,
               borderRadius: radii.md,
               transition: `border-color ${transition.base}`,
             }}
           >
-            <Search size={13} color={C.t3} strokeWidth={2} />
+            <Search size={12} color={C.t3} strokeWidth={2} />
             <input
               type="text"
               value={searchTerm}
@@ -275,7 +304,7 @@ export default function IndicatorPanel({ isOpen, onClose }) {
                 background: 'transparent',
                 border: 'none',
                 color: C.t1,
-                fontSize: 12,
+                fontSize: 11,
                 outline: 'none',
                 fontFamily: F,
                 padding: 0,
@@ -288,8 +317,8 @@ export default function IndicatorPanel({ isOpen, onClose }) {
                   background: alpha(C.t3, 0.2),
                   border: 'none',
                   borderRadius: '50%',
-                  width: 16,
-                  height: 16,
+                  width: 14,
+                  height: 14,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -297,82 +326,24 @@ export default function IndicatorPanel({ isOpen, onClose }) {
                   padding: 0,
                 }}
               >
-                <X size={10} color={C.t2} strokeWidth={3} />
+                <X size={9} color={C.t2} strokeWidth={3} />
               </button>
             )}
           </div>
         </div>
 
-        {/* AI Toggle */}
-        <div style={{ padding: '10px 14px 12px' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '8px 10px',
-              background: alpha(C.b, intelligence?.enabled ? 0.08 : 0.03),
-              border: `1px solid ${alpha(C.b, intelligence?.enabled ? 0.2 : 0.06)}`,
-              borderRadius: radii.md,
-              transition: `all ${transition.base}`,
-            }}
-          >
-            <Sparkles size={13} color={intelligence?.enabled ? C.b : C.t3} strokeWidth={2} />
-            <span style={{ flex: 1, fontSize: 12, color: C.t1, fontWeight: 500 }}>AI Analysis</span>
-            <ToggleSwitch checked={intelligence?.enabled ?? false} onChange={toggleIntelligenceMaster} size="sm" />
-          </div>
-        </div>
       </div>
 
       {/* ── Scrollable Content ────────────────────────────────── */}
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 0 8px' }}>
-        {/* AI Sub-toggles */}
-        <AnimatePresence>
-          {intelligence?.enabled && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              style={{ overflow: 'hidden' }}
-            >
-              <div style={{ padding: '4px 14px 8px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {[
-                  { key: 'showSR', label: 'Support & Resistance' },
-                  { key: 'showPatterns', label: 'Candlestick Patterns' },
-                  { key: 'showDivergences', label: 'RSI Divergences' },
-                ].map((item) => (
-                  <div
-                    key={item.key}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '6px 10px',
-                      borderRadius: radii.sm,
-                      background: alpha(C.sf2, 0.5),
-                    }}
-                  >
-                    <span style={{ fontSize: 11, color: C.t2 }}>{item.label}</span>
-                    <ToggleSwitch
-                      checked={intelligence[item.key]}
-                      onChange={() => toggleIntelligence(item.key)}
-                      size="sm"
-                    />
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 0 6px' }}>
 
         {/* ── Active Indicators ─────────────────────────────── */}
         {indicators.length > 0 && (
           <div style={{ marginBottom: 4 }}>
             <div
               style={{
-                padding: '8px 14px 4px',
-                fontSize: 10,
+                padding: '6px 10px 3px',
+                fontSize: 9,
                 fontWeight: 650,
                 color: C.t3,
                 textTransform: 'uppercase',
@@ -381,7 +352,7 @@ export default function IndicatorPanel({ isOpen, onClose }) {
             >
               Active · {indicators.length}
             </div>
-            <div style={{ padding: '0 8px' }}>
+            <div style={{ padding: '0 6px' }}>
               {indicators.map((ind, idx) => (
                 <ActiveIndicatorRow
                   key={idx}

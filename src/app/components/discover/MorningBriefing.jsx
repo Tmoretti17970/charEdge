@@ -19,6 +19,7 @@ import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { useJournalStore } from '../../../state/useJournalStore.js';
 import { useBriefingStore } from '../../../state/useBriefingStore.js';
 import { fetchBriefingData } from '../../../services/briefingService.js';
+import LabsBadge from '../ui/LabsBadge.jsx';
 
 // ═══════════════════════════════════════════════════════════════════
 // Main Component
@@ -111,6 +112,7 @@ export default function MorningBriefing() {
             >
               {briefing.greeting}, Trader
             </h2>
+            <LabsBadge />
             <span
               style={{
                 fontSize: 10,

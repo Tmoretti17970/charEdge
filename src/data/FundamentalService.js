@@ -5,6 +5,10 @@
 // Long TTL (1hr) since fundamentals don't change per-tick.
 // Stocks: returns null (no free fundamental API integrated yet).
 //
+// Task 1B.5: 24hr stats (high24h, low24h, priceChange24h) now
+// read from QuoteService cache (Binance/Yahoo, 60s TTL) instead
+// of redundantly fetching from CoinGecko.
+//
 // Data shape:
 //   { marketCap, volume24h, supply, maxSupply, ath, athDate,
 //     atl, atlDate, rank, priceChange24h, priceChange7d,
@@ -12,6 +16,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { CRYPTO_IDS, isCrypto } from '../constants.js';
+import { get24hStats } from './QuoteService.js';
 import { logger } from '../utils/logger';
 
 const CACHE_TTL = 3600_000; // 1 hour
@@ -62,12 +67,19 @@ export async function fetchFundamentals(symbol) {
     const json = await res.json();
     const md = json.market_data || {};
 
+    // Task 1B.5: Read 24hr stats from QuoteService cache (Binance, 60s TTL)
+    // instead of using CoinGecko's delayed values.
+    let quoteStats = null;
+    try {
+      quoteStats = await get24hStats(sym);
+    } catch { /* QuoteService unavailable — fall back to CoinGecko values */ }
+
     const data = {
       name: json.name || sym,
       symbol: (json.symbol || sym).toUpperCase(),
       rank: json.market_cap_rank || null,
       marketCap: md.market_cap?.usd || null,
-      volume24h: md.total_volume?.usd || null,
+      volume24h: quoteStats?.volume24h ?? md.total_volume?.usd ?? null,
       supply: md.circulating_supply || null,
       maxSupply: md.max_supply || null,
       totalSupply: md.total_supply || null,
@@ -79,14 +91,14 @@ export async function fetchFundamentals(symbol) {
       atl: md.atl?.usd || null,
       atlDate: md.atl_date?.usd || null,
 
-      // Price changes
-      priceChange24h: md.price_change_percentage_24h || null,
+      // Price changes — prefer QuoteService (Binance, real-time) over CoinGecko (delayed)
+      priceChange24h: quoteStats?.priceChange24h ?? md.price_change_percentage_24h ?? null,
       priceChange7d: md.price_change_percentage_7d || null,
       priceChange30d: md.price_change_percentage_30d || null,
 
-      // 24h range
-      high24h: md.high_24h?.usd || null,
-      low24h: md.low_24h?.usd || null,
+      // 24h range — prefer QuoteService
+      high24h: quoteStats?.high24h ?? md.high_24h?.usd ?? null,
+      low24h: quoteStats?.low24h ?? md.low_24h?.usd ?? null,
 
       // Misc
       fullyDilutedValuation: md.fully_diluted_valuation?.usd || null,

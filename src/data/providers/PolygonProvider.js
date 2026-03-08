@@ -159,28 +159,47 @@ export function createPolygonWSAdapter() {
       _onTick = onTick;
       _onStatus = onStatus;
 
-      // For now, use polling as WS adapter scaffold
-      // Poll every 15s for delayed equity data
+      // Task 1B.8: Use lightweight snapshot endpoint instead of full OHLCV refetch.
+      // Polygon snapshot returns only the latest price/candle data (~500B vs ~10KB).
       _status = 'connected';
       if (_onStatus) _onStatus(_status);
 
       _pollInterval = setInterval(async () => {
         try {
-          const result = await fetchPolygon(symbol, tf);
-          if (result?.length && _onCandle) {
-            const last = result[result.length - 1];
+          // Lightweight snapshot endpoint — returns last trade + today's agg
+          const snapshotUrl = `${PROXY_BASE}/v2/snapshot/locale/us/markets/stocks/tickers/${encodeURIComponent(symbol)}`;
+          const res = await fetch(snapshotUrl);
+          if (!res.ok) return;
+
+          const json = await res.json();
+          const ticker = json?.ticker;
+          if (!ticker) return;
+
+          // Extract last price from snapshot
+          const lastTrade = ticker.lastTrade || ticker.last_trade;
+          const todayAgg = ticker.day;
+
+          if (_onTick && lastTrade) {
+            _onTick({
+              price: lastTrade.p || lastTrade.price,
+              volume: lastTrade.s || lastTrade.size || 0,
+              time: new Date(lastTrade.t || Date.now()).toISOString(),
+            });
+          }
+
+          if (_onCandle && todayAgg) {
             _onCandle({
-              time: last.time,
-              open: last.open,
-              high: last.high,
-              low: last.low,
-              close: last.close,
-              volume: last.volume,
+              time: new Date().toISOString(),
+              open: todayAgg.o,
+              high: todayAgg.h,
+              low: todayAgg.l,
+              close: todayAgg.c,
+              volume: todayAgg.v || 0,
               isClosed: false,
             });
           }
         } catch (err) {
-          logger.data.warn(`[PolygonProvider] Equity poll failed for ${symbol}:`, err.message);
+          logger.data.warn(`[PolygonProvider] Equity snapshot poll failed for ${symbol}:`, err.message);
         }
       }, 15000);
     },

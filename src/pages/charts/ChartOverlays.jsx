@@ -29,7 +29,7 @@ const ComparisonOverlay = React.lazy(() => import('../../app/components/chart/ov
 const BacktestPanel = React.lazy(() => import('../../app/components/chart/panels/BacktestPanel.jsx'));
 const BacktestResults = React.lazy(() => import('../../app/components/chart/panels/BacktestResults.jsx'));
 const StrategyBuilder = React.lazy(() => import('../../app/components/chart/panels/StrategyBuilder.jsx'));
-const ChartAnalysisPanel = React.lazy(() => import('../../app/components/chart/panels/ChartAnalysisPanel.jsx'));
+const AIAnalysisPanel = React.lazy(() => import('../../app/components/panels/AIAnalysisPanel.jsx'));
 const WalkForwardPanel = React.lazy(() => import('../../app/components/chart/panels/WalkForwardPanel.jsx'));
 const FuturesAnalytics = React.lazy(() => import('../../app/components/chart/panels/FuturesAnalytics.jsx'));
 const PaperTradeWidget = React.lazy(() => import('../../app/components/chart/panels/PaperTradeWidget.jsx'));
@@ -108,6 +108,9 @@ export default function ChartOverlays({
   setShowMobileShare,
   isLive: _isLive,
   setShowIndicators: _setShowIndicators2,
+  // AI palette callbacks
+  setShowCopilot,
+  openPanel,
 }) {
   const selectedDrawingId = useChartStore((s) => s.selectedDrawingId);
   const showComparisonOverlay = useChartStore((s) => s.showComparisonOverlay);
@@ -215,6 +218,8 @@ export default function ChartOverlays({
             price={radialMenu.price}
             onClose={() => setRadialMenu(null)}
             onAction={(segId, subItemId, actionPrice) => {
+              // Close radial menu immediately so it doesn't overlap with activated tools
+              setRadialMenu(null);
               // ── Draw submenu ──
               if (segId === 'draw') {
                 if (subItemId === 'more') { setDrawSidebarOpen(true); return; }
@@ -336,13 +341,11 @@ export default function ChartOverlays({
         </Suspense>
       )}
 
-      {/* AI Chart Analysis */}
+      {/* AI Analysis Palette — draggable floating panel */}
       {chartAnalysisOpen && !multiMode && !isMobile && (
         <Suspense fallback={null}>
-          <ChartAnalysisPanel
-            bars={data}
-            symbol={symbol}
-            timeframe={tf}
+          <AIAnalysisPanel
+            isOpen={chartAnalysisOpen}
             onClose={() => setChartAnalysisOpen(false)}
           />
         </Suspense>

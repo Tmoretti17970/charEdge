@@ -11,12 +11,12 @@
 export function getRoundPriceLevels(price) {
   const absP = Math.abs(price);
   let intervals;
-  if (absP >= 10000)      intervals = [10000, 5000, 1000, 500];
-  else if (absP >= 1000)  intervals = [1000, 500, 100, 50];
-  else if (absP >= 100)   intervals = [100, 50, 25, 10];
-  else if (absP >= 10)    intervals = [10, 5, 1, 0.5];
-  else if (absP >= 1)     intervals = [1, 0.5, 0.25, 0.1];
-  else                    intervals = [0.1, 0.05, 0.01, 0.005];
+  if (absP >= 10000) intervals = [10000, 5000, 1000, 500];
+  else if (absP >= 1000) intervals = [1000, 500, 100, 50];
+  else if (absP >= 100) intervals = [100, 50, 25, 10];
+  else if (absP >= 10) intervals = [10, 5, 1, 0.5];
+  else if (absP >= 1) intervals = [1, 0.5, 0.25, 0.1];
+  else intervals = [0.1, 0.05, 0.01, 0.005];
 
   const levels = [];
   for (const iv of intervals) {
@@ -33,7 +33,7 @@ export function getRoundPriceLevels(price) {
 /** Format a round number for display */
 export function formatRound(n) {
   if (n >= 1000) return n.toLocaleString('en-US', { maximumFractionDigits: 0 });
-  if (n >= 1)    return n.toFixed(n % 1 === 0 ? 0 : 2);
+  if (n >= 1) return n.toFixed(n % 1 === 0 ? 0 : 2);
   return n.toPrecision(3);
 }
 
@@ -119,20 +119,20 @@ export function getSmartGuides(enabled, x, y, drawings, activeDrawing, anchorToP
 export function doMagnetSnap(ctx) {
   const { x, y, price, time, snapStrength, magnetSnap, drawings, activeDrawing, anchorToPixel, priceToPixel, indicatorData, hoverBarIdx, gridTicks, visibleBars } = ctx;
 
-  if (!magnetSnap && snapStrength <= 0) return { price, time, snapInfo: null };
+  if (snapStrength <= 0) return { price, time, snapInfo: null };
 
   const candidates = [];
 
   // 0. Pixel-radius OHLC bar scan (D1.1) — highest priority
   if (visibleBars && visibleBars.length > 0 && priceToPixel) {
-    const SCAN_RADIUS = 15;
+    const SCAN_RADIUS = snapStrength;
     for (const bar of visibleBars) {
       const barX = bar.x;
       if (Math.abs(x - barX) > SCAN_RADIUS) continue;
       const ohlcEntries = [
-        { key: 'open',  price: bar.open,  py: bar.openY  ?? priceToPixel(bar.open) },
-        { key: 'high',  price: bar.high,  py: bar.highY  ?? priceToPixel(bar.high) },
-        { key: 'low',   price: bar.low,   py: bar.lowY   ?? priceToPixel(bar.low) },
+        { key: 'open', price: bar.open, py: bar.openY ?? priceToPixel(bar.open) },
+        { key: 'high', price: bar.high, py: bar.highY ?? priceToPixel(bar.high) },
+        { key: 'low', price: bar.low, py: bar.lowY ?? priceToPixel(bar.low) },
         { key: 'close', price: bar.close, py: bar.closeY ?? priceToPixel(bar.close) },
       ];
       for (const entry of ohlcEntries) {

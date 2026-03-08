@@ -29,8 +29,7 @@ const ChartSettingsPanel = React.lazy(() => import('../../app/components/chart/p
 const HotkeyCustomizationPanel = React.lazy(() => import('../../app/components/chart/panels/HotkeyCustomizationPanel.jsx'));
 const ChartAnnotationsPanel = React.lazy(() => import('../../app/components/chart/panels/ChartAnnotationsPanel.jsx'));
 const ChartMinimap = React.lazy(() => import('../../app/components/chart/ui/ChartMinimap.jsx'));
-const ChartStatusBar = React.lazy(() => import('../../app/components/chart/ui/ChartStatusBar.jsx'));
-const PipelineStatusBar = React.lazy(() => import('../../app/components/chart/PipelineStatusBar.jsx'));
+const UnifiedStatusBar = React.lazy(() => import('../../app/components/chart/ui/UnifiedStatusBar.jsx'));
 const MTFPanel = React.lazy(() => import('../../app/components/chart/panels/MTFPanel.jsx'));
 const DOMLadder = React.lazy(() => import('../../app/components/chart/DOMLadder.jsx'));
 const DepthChart = React.lazy(() => import('../../app/components/chart/DepthChart.jsx'));
@@ -102,30 +101,9 @@ export default function ChartPanelManager({
     <>
       {/* ─── Indicator Panel — full catalog with editable params ─── */}
       {showIndicators && (
-        <div
-          className="tf-fade-in"
-          style={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            zIndex: 100,
-            ...(isMobile
-              ? {
-                top: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 50,
-                borderLeft: `1px solid ${C.bd}`,
-                width: '75%',
-                maxWidth: 280,
-              }
-              : {}),
-          }}
-        >
-          <Suspense fallback={null}>
-            <IndicatorPanel isOpen={showIndicators} onClose={() => setShowIndicators(false)} />
-          </Suspense>
-        </div>
+        <Suspense fallback={null}>
+          <IndicatorPanel isOpen={showIndicators} onClose={() => setShowIndicators(false)} />
+        </Suspense>
       )}
 
       {/* Object Tree Panel */}
@@ -153,17 +131,10 @@ export default function ChartPanelManager({
         </Suspense>
       )}
 
-      {/* ─── Chart Status Bar ─── */}
+      {/* ─── Unified Status Bar (Apple merge: OHLCV + Pipeline) ─── */}
       {!workspaceMode && showStatusBar && (
         <Suspense fallback={null}>
-          <ChartStatusBar />
-        </Suspense>
-      )}
-
-      {/* ─── Pipeline Health Status Bar ─── */}
-      {!workspaceMode && !isMobile && (
-        <Suspense fallback={null}>
-          <PipelineStatusBar />
+          <UnifiedStatusBar showPipeline={!isMobile} />
         </Suspense>
       )}
 

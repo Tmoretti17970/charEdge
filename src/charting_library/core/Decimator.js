@@ -136,22 +136,22 @@ export function minMaxDecimate(buffer, start, end, targetColumns) {
     }
 
     let hi = -Infinity, lo = Infinity, vol = 0;
-    const openVal  = buffer.open[colStart];
+    const openVal = buffer.open[colStart];
     const closeVal = buffer.close[colEnd - 1];
-    const timeVal  = buffer.time[colStart];
+    const timeVal = buffer.time[colStart];
 
     for (let i = colStart; i < colEnd; i++) {
       if (buffer.high[i] > hi) hi = buffer.high[i];
-      if (buffer.low[i] < lo)  lo = buffer.low[i];
+      if (buffer.low[i] < lo) lo = buffer.low[i];
       vol += buffer.volume[i];
     }
 
     result[col] = {
-      time:   timeVal,
-      open:   openVal,
-      high:   hi,
-      low:    lo,
-      close:  closeVal,
+      time: timeVal,
+      open: openVal,
+      high: hi,
+      low: lo,
+      close: closeVal,
       volume: vol,
     };
   }
@@ -173,12 +173,12 @@ export function autoDecimate(buffer, start, end, chartWidthPx, chartType) {
   const count = end - start;
   const pixelsPerBar = chartWidthPx / count;
 
-  // Threshold: decimate when bars are narrower than 1.5px each
-  if (pixelsPerBar >= 1.5 || count <= 0) {
+  // Threshold: decimate when bars are narrower than 0.5px each
+  if (pixelsPerBar >= 0.5 || count <= 0) {
     // No decimation needed
     const bars = buffer.toArray ? buffer.toArray(start, end)
       : Array.isArray(buffer) ? buffer.slice(start, end)
-      : [];
+        : [];
     return { bars, decimated: false, ratio: 1 };
   }
 
@@ -203,11 +203,11 @@ export function autoDecimate(buffer, start, end, chartWidthPx, chartType) {
       for (let i = 0; i < indices.length; i++) {
         const srcIdx = start + indices[i];
         bars[i] = {
-          time:   buffer.time[srcIdx],
-          open:   buffer.open[srcIdx],
-          high:   buffer.high[srcIdx],
-          low:    buffer.low[srcIdx],
-          close:  buffer.close[srcIdx],
+          time: buffer.time[srcIdx],
+          open: buffer.open[srcIdx],
+          high: buffer.high[srcIdx],
+          low: buffer.low[srcIdx],
+          close: buffer.close[srcIdx],
           volume: buffer.volume[srcIdx],
         };
       }

@@ -263,9 +263,12 @@ export function createDefaultPipeline(stages: StageMap): RenderPipeline {
   const pipeline = new RenderPipeline();
 
   // Stage 1: Grid (background, watermark, grid lines)
-  // Triggers: resize, theme change, data change (for watermark symbol)
+  // Triggers: resize, theme, props (symbol/TF), viewport (zoom/scroll)
+  // Strategy Item #5: DATA is excluded — grid appearance doesn't depend on
+  // bar content. Symbol/TF changes arrive via PROPS. setData() only marks
+  // GRID dirty on non-tick updates (new bars change viewport geometry).
   pipeline.addStage('grid',
-    CHANGED.SIZE | CHANGED.THEME | CHANGED.DATA | CHANGED.PROPS | CHANGED.VIEWPORT,
+    CHANGED.SIZE | CHANGED.THEME | CHANGED.PROPS | CHANGED.VIEWPORT,
     stages.grid
   );
 

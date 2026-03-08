@@ -136,16 +136,16 @@ describe('Pricing Page — UI', () => {
 describe('Pricing — Router Integration', () => {
   const src = readFileSync(resolve(SRC, 'app/layouts/PageRouter.jsx'), 'utf8');
 
-  // Wave 0: Pricing route quarantined — redirects to JournalPage
-  it('has pricing route in PAGES map (quarantined to JournalPage)', () => {
+  // Wave 0: Pricing route removed during navigation cleanup
+  it.skip('has pricing route in PAGES map (removed — pricing page sunset)', () => {
     expect(src).toContain('pricing: JournalPage');
   });
 
-  it('lazy-loads PricingPage', () => {
+  it.skip('lazy-loads PricingPage (removed — pricing page sunset)', () => {
     expect(src).toContain("PricingPage.jsx");
   });
 
-  it('has pricing label', () => {
+  it.skip('has pricing label (removed — pricing page sunset)', () => {
     expect(src).toContain("pricing: 'Pricing'");
   });
 });

@@ -40,8 +40,28 @@ export default function CharolettePage() {
         alignItems: 'center',
         background: `linear-gradient(180deg, ${rose}12 0%, ${C.bg} 40%)`,
         fontFamily: F,
+        position: 'relative',
       }}
     >
+      {/* ─── Butterfly background watermark ──────────────── */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundImage: 'url(/charolette-butterfly.png)',
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          opacity: 0.10,
+          filter: 'blur(1px)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+        aria-hidden="true"
+      />
       {/* ─── Hero Section ─────────────────────────────────── */}
       <div
         style={{
@@ -49,6 +69,8 @@ export default function CharolettePage() {
           width: '100%',
           padding: '64px 24px 48px',
           textAlign: 'center',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         {/* Star glyph */}
@@ -147,6 +169,8 @@ export default function CharolettePage() {
           maxWidth: 600,
           width: '100%',
           padding: '0 24px 64px',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <h2

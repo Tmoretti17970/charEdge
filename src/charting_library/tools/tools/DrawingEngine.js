@@ -111,7 +111,7 @@ export function createDrawingEngine(options = {}) {
   let _hoverBarIdx = -1;
   let _gridTicks = [];
   let _sceneGraph = null;
-  let snapStrength = 15;
+  let snapStrength = 0;
   let angleSnap = false;
   let smartGuides = true;
   let lastSnapInfo = null;
@@ -512,7 +512,7 @@ export function createDrawingEngine(options = {}) {
     setToolStyleMemory(toolType, style) { toolStyleMemory[toolType] = { ...style }; },
 
     // ── Enhanced snap API ──
-    setSnapStrength(val) { snapStrength = Math.max(3, Math.min(50, val)); },
+    setSnapStrength(val) { snapStrength = Math.max(0, Math.min(50, val)); },
     setAngleSnap(val) { angleSnap = val; },
     setSmartGuides(val) { smartGuides = val; },
     getSmartGuides(x, y) { return getSmartGuidesImpl(smartGuides, x, y, drawings, activeDrawing, anchorToPixel); },

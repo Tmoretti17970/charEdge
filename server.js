@@ -21,6 +21,7 @@ import { httpRequestLogger } from './server/middleware/httpLogger.js';
 import apiKeyStore from './server/apiKeyStore.js';
 import { createRssRouter } from './server/routes/rss.js';
 import { createProxyRouter } from './server/routes/proxy.js';
+import { createLlmRouter } from './server/routes/llm.js';
 import { setupProductionSSR, setupDevSSR } from './server/ssr.js';
 
 // ─── API Modules ─────────────────────────────────────────────────
@@ -157,6 +158,8 @@ app.get('/health/deep', (req, res) => {
 // ─── Proxy Routes ────────────────────────────────────────────────
 app.use(createRssRouter());
 app.use(createProxyRouter());
+app.use(express.json({ limit: '64kb' }));  // JSON body for LLM proxy
+app.use(createLlmRouter());
 
 // ─── Auth Routes (no API key required) ─────────────────────────────
 app.use('/api/auth', express.json({ limit: '64kb' }));

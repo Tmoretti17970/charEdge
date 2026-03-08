@@ -300,7 +300,7 @@ describe('5.6 — Bundle Size Budget', () => {
     expect(viteConfig).toContain("'analytics'");
   });
 
-  it('manualChunks has chunk for chart panels', () => {
+  it.skip('manualChunks has chunk for chart panels (removed — merged into chart-tools)', () => {
     expect(viteConfig).toContain("'chart-panels'");
   });
 

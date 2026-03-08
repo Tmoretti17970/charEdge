@@ -237,6 +237,9 @@ export default function useChartDataLoader() {
   // and prepend them to the store.
   // Task 2.10.3.2: OPFS-first scroll-back — check TimeSeriesStore
   // before hitting the network for instant render.
+  const prefetchFailCountRef = useRef(0);
+  const MAX_PREFETCH_RETRIES = 3;
+
   const prefetchHistory = useCallback(() => {
     const state = useChartStore.getState();
     if (state.historyLoading || state.historyExhausted) return;
@@ -268,6 +271,7 @@ export default function useChartDataLoader() {
           // A2.2: Guard against stale prefetch from old symbol
           if (useChartStore.getState().symbol === symbol) {
             useChartStore.getState().prependData(formatted);
+            prefetchFailCountRef.current = 0;
           }
           return;
         }
@@ -277,6 +281,7 @@ export default function useChartDataLoader() {
         // A2.2: Guard against stale prefetch from old symbol
         if (useChartStore.getState().symbol === symbol) {
           useChartStore.getState().prependData(olderBars);
+          prefetchFailCountRef.current = 0;
           if (!hasMore) {
             useChartStore.setState({ historyExhausted: true });
           }
@@ -290,12 +295,18 @@ export default function useChartDataLoader() {
             // A2.2: Guard against stale prefetch from old symbol
             if (useChartStore.getState().symbol !== symbol) return;
             useChartStore.getState().prependData(olderBars);
+            prefetchFailCountRef.current = 0;
             if (!hasMore) {
               useChartStore.setState({ historyExhausted: true });
             }
           })
           .catch((fetchErr) => {
             reportError(fetchErr, { source: 'ChartDataLoader.prefetchHistory' });
+            prefetchFailCountRef.current++;
+            if (prefetchFailCountRef.current >= MAX_PREFETCH_RETRIES) {
+              logger.data.warn('[ChartDataLoader] Max prefetch retries reached, stopping history load');
+              useChartStore.setState({ historyExhausted: true });
+            }
           });
       })
       // A2.1: Always reset historyLoading — prevents stuck state after OPFS hit or error
@@ -316,6 +327,7 @@ export default function useChartDataLoader() {
   // A2.3: Clear stale prefetch keys when symbol/tf changes
   useEffect(() => {
     adjacentPrefetchedRef.current.clear();
+    prefetchFailCountRef.current = 0;
   }, [symbol, tf]);
   useEffect(() => {
     const state = useChartStore.getState();

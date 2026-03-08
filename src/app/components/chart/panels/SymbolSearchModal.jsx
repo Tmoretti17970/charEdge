@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { C, F } from '../../../../constants.js';
+import { C, F, GLASS, DEPTH } from '../../../../constants.js';
 
 const RECENT_KEY = 'tf_recent_symbols';
 const MAX_RECENT = 8;
@@ -106,9 +106,9 @@ export default function SymbolSearchModal({ isOpen, onClose, onSelect, onSearch,
         alignItems: 'flex-start',
         justifyContent: 'center',
         paddingTop: '12vh',
-        background: 'rgba(0,0,0,0.5)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
+        background: GLASS.backdrop,
+        backdropFilter: GLASS.blurSm,
+        WebkitBackdropFilter: GLASS.blurSm,
         animation: 'tfFadeIn 0.15s ease',
       }}
     >
@@ -117,21 +117,21 @@ export default function SymbolSearchModal({ isOpen, onClose, onSelect, onSearch,
         style={{
           width: '100%',
           maxWidth: 480,
-          background: 'rgba(18, 20, 28, 0.92)',
-          backdropFilter: 'saturate(180%) blur(24px)',
-          WebkitBackdropFilter: 'saturate(180%) blur(24px)',
-          border: '1px solid rgba(255,255,255,0.08)',
+          background: GLASS.heavy,
+          backdropFilter: GLASS.blurLg,
+          WebkitBackdropFilter: GLASS.blurLg,
+          border: GLASS.border,
           borderRadius: 16,
-          boxShadow: '0 24px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)',
+          boxShadow: `${DEPTH[4]}, ${DEPTH.innerGlow}`,
           overflow: 'hidden',
           animation: 'tfModalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
         {/* Search Input */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 18px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ flexShrink: 0, opacity: 0.5 }}>
-            <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-            <line x1="12" y1="12" x2="16" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 18px 12px', borderBottom: GLASS.border }}>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ flexShrink: 0, opacity: 0.5, color: C.t2 }}>
+            <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.5" fill="none" />
+            <line x1="12" y1="12" x2="16" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
           <input
             ref={inputRef}
@@ -153,7 +153,7 @@ export default function SymbolSearchModal({ isOpen, onClose, onSelect, onSearch,
           />
           <kbd style={{
             padding: '2px 6px', borderRadius: 5,
-            background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+            background: C.sf2, border: `1px solid ${C.bd}`,
             fontSize: 10, color: C.t3, fontFamily: F,
           }}>ESC</kbd>
         </div>
@@ -171,7 +171,7 @@ export default function SymbolSearchModal({ isOpen, onClose, onSelect, onSearch,
               return (
                 <div key={`h-${item.header}`} style={{
                   padding: '8px 18px 4px',
-                  fontSize: 9, fontWeight: 700, color: C.t3,
+                  fontSize: 9, fontWeight: 700, color: C.b,
                   letterSpacing: '0.8px', fontFamily: F,
                 }}>{item.header}</div>
               );
@@ -190,7 +190,7 @@ export default function SymbolSearchModal({ isOpen, onClose, onSelect, onSearch,
                   gap: 10,
                   width: '100%',
                   padding: '8px 18px',
-                  background: isSelected ? 'rgba(255,255,255,0.06)' : 'transparent',
+                  background: isSelected ? C.sf2 : 'transparent',
                   border: 'none',
                   borderRadius: 0,
                   color: isActive ? C.b : C.t1,
@@ -213,7 +213,7 @@ export default function SymbolSearchModal({ isOpen, onClose, onSelect, onSearch,
         {/* Footer hint */}
         <div style={{
           display: 'flex', gap: 12, padding: '8px 18px',
-          borderTop: '1px solid rgba(255,255,255,0.04)',
+          borderTop: GLASS.border,
           fontSize: 10, color: C.t3, fontFamily: F,
         }}>
           <span>↑↓ Navigate</span>

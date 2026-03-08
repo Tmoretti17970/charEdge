@@ -61,7 +61,9 @@ export function createPaneWidget(container, options = {}) {
   let disposed = false;
 
   // ── Renderer registrations ──
-  /** @type {Array<(ctx: CanvasRenderingContext2D, size: any) => void>} */
+  // Each main renderer is wrapped with its own dirty flag for targeted invalidation.
+  // When any renderer is dirty (or global mainDirty is true), the whole canvas repaints.
+  /** @type {Array<{render: (ctx: CanvasRenderingContext2D, size: any) => void, dirty: boolean}>} */
   const mainRenderers = [];
 
   /** @type {Array<(ctx: CanvasRenderingContext2D, size: any) => void>} */
@@ -73,6 +75,14 @@ export function createPaneWidget(container, options = {}) {
     mainDirty = true;
     topDirty = true;
   });
+
+  /** Check if any main renderer is individually dirty */
+  function anyMainRendererDirty() {
+    for (let i = 0; i < mainRenderers.length; i++) {
+      if (mainRenderers[i].dirty) return true;
+    }
+    return false;
+  }
 
   // ── Public API ──
 
@@ -104,7 +114,7 @@ export function createPaneWidget(container, options = {}) {
 
     // ── Dirty flag management ──
 
-    /** Mark the main canvas as needing redraw */
+    /** Mark the main canvas as needing redraw (all renderers) */
     invalidateMain() {
       mainDirty = true;
     },
@@ -122,7 +132,7 @@ export function createPaneWidget(container, options = {}) {
 
     /** Check if main canvas needs redraw */
     get isMainDirty() {
-      return mainDirty;
+      return mainDirty || anyMainRendererDirty();
     },
 
     /** Check if top canvas needs redraw */
@@ -137,18 +147,27 @@ export function createPaneWidget(container, options = {}) {
      * Renderers are called in order during paint.
      *
      * @param {(ctx: CanvasRenderingContext2D, size: any) => void} renderer
-     * @returns {() => void} Unregister function
+     * @returns {{remove: () => void, invalidate: () => void}} Handle with remove and invalidate
      */
     addMainRenderer(renderer) {
-      mainRenderers.push(renderer);
+      const entry = { render: renderer, dirty: true };
+      mainRenderers.push(entry);
       mainDirty = true;
-      return () => {
-        const idx = mainRenderers.indexOf(renderer);
-        if (idx !== -1) {
-          mainRenderers.splice(idx, 1);
-          mainDirty = true;
-        }
+      const handle = {
+        /** Remove this renderer from the pane */
+        remove() {
+          const idx = mainRenderers.indexOf(entry);
+          if (idx !== -1) {
+            mainRenderers.splice(idx, 1);
+            mainDirty = true;
+          }
+        },
+        /** Mark only this renderer as needing redraw */
+        invalidate() {
+          entry.dirty = true;
+        },
       };
+      return handle;
     },
 
     /**
@@ -177,14 +196,20 @@ export function createPaneWidget(container, options = {}) {
      * Returns true if painting occurred (for perf metrics).
      */
     paintMain() {
-      if (!mainDirty || disposed) return false;
+      const needsPaint = mainDirty || anyMainRendererDirty();
+      if (!needsPaint || disposed) return false;
       mainDirty = false;
+
+      // Reset all per-renderer dirty flags
+      for (let i = 0; i < mainRenderers.length; i++) {
+        mainRenderers[i].dirty = false;
+      }
 
       mainCanvas.clear();
       const _size = mainCanvas.size;
 
       for (let i = 0; i < mainRenderers.length; i++) {
-        mainCanvas.draw(mainRenderers[i]);
+        mainCanvas.draw(mainRenderers[i].render);
       }
 
       return true;

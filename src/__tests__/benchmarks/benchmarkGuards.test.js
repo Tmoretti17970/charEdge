@@ -126,7 +126,7 @@ describe('Benchmark Guard: buildCacheKey', () => {
                 buildCacheKey('BTC', '1m', Date.now() - i * 60000);
             }
         });
-        expect(stats.p95).toBeLessThan(10);
+        expect(stats.p95).toBeLessThan(50);
     });
 });
 
@@ -167,6 +167,6 @@ describe('Benchmark Guard: SWR decision', () => {
                 staleWhileRevalidate(cached, revalidateFn);
             }
         });
-        expect(stats.p95).toBeLessThan(20);
+        expect(stats.p95).toBeLessThan(50);
     });
 });

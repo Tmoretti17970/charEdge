@@ -36,7 +36,7 @@ import PreMarketChecklist from './PreMarketChecklist.jsx';
 import StreakCelebration from './StreakCelebration.jsx';
 import AccountabilityWidget from './AccountabilityWidget.jsx';
 import WeeklyDigest from './WeeklyDigest.jsx';
-import DashboardCommands from './DashboardCommands.jsx';
+
 import { PersonaTierBanner } from './PersonaLayoutController.jsx';
 import BentoCustomizer from './BentoCustomizer.jsx';
 import WhatIfPanel from './WhatIfPanel.jsx';
@@ -211,7 +211,7 @@ export default function DashboardNarrativeLayout({
 
                 {/* Bento metric tiles */}
                 <BentoMetricCard label="Profit Factor" value={result.pf === Infinity ? '∞' : result.pf.toFixed(2)} color={result.pf >= 1.5 ? C.g : result.pf >= 1 ? C.y : C.r} data={result.eq.map(d => d.val || d.pnl)} tip={METRIC_TIPS['Profit Factor']} />
-                <BentoMetricCard label="Win/Loss Ratio" value={result.rr === Infinity ? '∞' : result.rr.toFixed(2)} color={C.t1} data={trades.map(t => t.pnl || 0)} tip={METRIC_TIPS['Win/Loss Ratio']} />
+                <BentoMetricCard label="Win/Loss Ratio" value={result.rr === Infinity ? '∞' : result.rr.toFixed(2)} color={result.rr >= 1.5 ? C.g : result.rr >= 1 ? C.info : C.r} data={trades.map(t => t.pnl || 0)} tip={METRIC_TIPS['Win/Loss Ratio']} />
                 <BentoMetricCard label="Max Drawdown" value={`${result.maxDd.toFixed(1)}%`} color={result.maxDd < 10 ? C.g : C.r} data={result.eq.map(d => Math.abs(d.dd || 0))} inverse tip={METRIC_TIPS['Max DD']} />
                 <BentoMetricCard label="Expectancy" value={fmtD(result.expectancy)} color={result.expectancy >= 0 ? C.g : C.r} tip={METRIC_TIPS['Expectancy']} />
 
@@ -290,7 +290,7 @@ export default function DashboardNarrativeLayout({
             <MorningBriefing />
             <WidgetSuggestionBanner />
             <PersonaTierBanner />
-            <DashboardCommands />
+
             <PreMarketChecklist />
             <BentoCustomizer />
 

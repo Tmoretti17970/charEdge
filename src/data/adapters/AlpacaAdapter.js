@@ -223,20 +223,96 @@ export class AlpacaAdapter extends BaseAdapter {
   subscribe(symbol, callback) {
     if (!this.isConfigured) return () => { };
 
-    // Alpaca real-time requires SSE or WebSocket subscription.
-    // For simplicity, poll the snapshot endpoint every 5 seconds.
     const upper = symbol.toUpperCase();
+
+    // Task 1B.7: Prefer Alpaca WebSocket for real-time trade data.
+    // Falls back to 5s REST poll if WS fails or proxy mode is active.
+    if (!this._useProxy && this._keyId && this._keyId !== 'server-proxy' && typeof WebSocket !== 'undefined') {
+      try {
+        const ws = new WebSocket('wss://stream.data.alpaca.markets/v2/iex');
+        let authenticated = false;
+
+        ws.onopen = () => {
+          ws.send(JSON.stringify({
+            action: 'auth',
+            key: this._keyId,
+            secret: this._secretKey,
+          }));
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const messages = JSON.parse(event.data);
+            for (const msg of messages) {
+              if (msg.T === 'success' && msg.msg === 'authenticated') {
+                authenticated = true;
+                ws.send(JSON.stringify({
+                  action: 'subscribe',
+                  trades: [upper],
+                }));
+              } else if (msg.T === 't' && msg.S === upper) {
+                callback({
+                  price: msg.p,
+                  volume: msg.s || 0,
+                  time: new Date(msg.t).getTime(),
+                  symbol: upper,
+                });
+              }
+            }
+          } catch { /* parse error */ }
+        };
+
+        ws.onerror = () => {
+          ws.close();
+          this._startRestPoll(upper, callback);
+        };
+
+        ws.onclose = () => {
+          if (authenticated) {
+            this._startRestPoll(upper, callback);
+          }
+        };
+
+        this._pollTimers.set(symbol, { type: 'ws', ws });
+
+        return () => {
+          try { ws.close(); } catch { /* already closed */ }
+          this._pollTimers.delete(symbol);
+        };
+      } catch {
+        // WebSocket construction failed — fall back
+      }
+    }
+
+    // Fallback: REST poll (5s)
+    this._startRestPoll(upper, callback);
+
+    return () => {
+      const entry = this._pollTimers.get(symbol);
+      if (entry?.type === 'ws') {
+        try { entry.ws.close(); } catch { /* */ }
+      } else if (entry?.timer) {
+        clearInterval(entry.timer);
+      } else if (entry) {
+        clearInterval(entry);
+      }
+      this._pollTimers.delete(symbol);
+    };
+  }
+
+  /** @private REST poll fallback for subscribe() */
+  _startRestPoll(symbol, callback) {
     const timer = setInterval(async () => {
       try {
         const data = await this._fetch(
-          `${ALPACA_DATA}/stocks/${upper}/snapshot`,
+          `${ALPACA_DATA}/stocks/${symbol}/snapshot`,
         );
         if (data?.latestTrade) {
           callback({
             price: data.latestTrade.p,
             volume: data.latestTrade.s || 0,
             time: new Date(data.latestTrade.t).getTime(),
-            symbol: upper,
+            symbol,
           });
         }
       } catch (_) {
@@ -244,12 +320,7 @@ export class AlpacaAdapter extends BaseAdapter {
       }
     }, 5000);
 
-    this._pollTimers.set(symbol, timer);
-
-    return () => {
-      clearInterval(timer);
-      this._pollTimers.delete(symbol);
-    };
+    this._pollTimers.set(symbol, { type: 'rest', timer });
   }
 
   async searchSymbols(query, limit = 10) {
@@ -392,8 +463,14 @@ export class AlpacaAdapter extends BaseAdapter {
    * Close all WebSocket/polling connections.
    */
   dispose() {
-    for (const [, timer] of this._pollTimers) {
-      clearInterval(timer);
+    for (const [, entry] of this._pollTimers) {
+      if (entry?.type === 'ws') {
+        try { entry.ws.close(); } catch { /* */ }
+      } else if (entry?.timer) {
+        clearInterval(entry.timer);
+      } else {
+        clearInterval(entry);
+      }
     }
     this._pollTimers.clear();
   }

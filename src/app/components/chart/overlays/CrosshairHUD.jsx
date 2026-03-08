@@ -21,7 +21,8 @@ import { C, M } from '../../../../../../constants.js';
 
 const HUD_OFFSET = 16;
 const EDGE_MARGIN = 12;
-const HUD_WIDTH = 180;
+const HUD_MIN = 120;
+const HUD_MAX = 220;
 const HUD_HEIGHT = 200;
 
 /**
@@ -35,6 +36,8 @@ export default function CrosshairHUD({ crosshairBus, chartRef, visible = true })
   const [data, setData] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
   const hudRef = useRef(null);
+  const prevCloseRef = useRef(null);
+  const [flashChange, setFlashChange] = useState(false);
 
   const handleCrosshairMove = useCallback(({ x, y, barData }) => {
     if (!barData || !visible) {
@@ -51,8 +54,8 @@ export default function CrosshairHUD({ crosshairBus, chartRef, visible = true })
     let hudY = y + HUD_OFFSET;
 
     // Flip horizontally if near right edge
-    if (hudX + HUD_WIDTH + EDGE_MARGIN > cw) {
-      hudX = x - HUD_WIDTH - HUD_OFFSET;
+    if (hudX + HUD_MAX + EDGE_MARGIN > cw) {
+      hudX = x - HUD_MAX - HUD_OFFSET;
     }
     // Flip vertically if near bottom edge
     if (hudY + HUD_HEIGHT + EDGE_MARGIN > ch) {
@@ -66,6 +69,13 @@ export default function CrosshairHUD({ crosshairBus, chartRef, visible = true })
     setPosition({ x: hudX, y: hudY });
     setData(barData);
     setIsVisible(true);
+
+    // Micro-fade: pulse when close price changes
+    if (prevCloseRef.current !== null && barData.close !== prevCloseRef.current) {
+      setFlashChange(true);
+      setTimeout(() => setFlashChange(false), 200);
+    }
+    prevCloseRef.current = barData.close;
   }, [visible, chartRef]);
 
   const handleCrosshairLeave = useCallback(() => {
@@ -106,7 +116,9 @@ export default function CrosshairHUD({ crosshairBus, chartRef, visible = true })
         position: 'absolute',
         left: position.x,
         top: position.y,
-        width: HUD_WIDTH,
+        width: 'auto',
+        minWidth: HUD_MIN,
+        maxWidth: HUD_MAX,
         padding: '10px 12px',
         borderRadius: 'var(--tf-radius-md)',
         border: 'var(--tf-glass-border)',
@@ -143,6 +155,8 @@ export default function CrosshairHUD({ crosshairBus, chartRef, visible = true })
         color: changeColor,
         fontWeight: 600,
         fontSize: 10,
+        opacity: flashChange ? 0.5 : 1,
+        transition: 'opacity 0.2s ease',
       }}>
         {isUp ? '▲' : '▼'} {change >= 0 ? '+' : ''}{formatPrice(change)} ({changePct}%)
       </div>

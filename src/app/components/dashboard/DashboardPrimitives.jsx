@@ -170,7 +170,7 @@ export function BentoMetricCard({ label, value, color, data = [], inverse = fals
         }).join(' ');
 
         sparkline = (
-            <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" style={{ marginTop: 'auto', opacity: 0.6 }}>
+            <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" style={{ marginTop: 'auto', opacity: 0.75 }}>
                 <polyline fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={points} />
             </svg>
         );

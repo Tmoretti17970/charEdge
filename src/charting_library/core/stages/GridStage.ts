@@ -73,7 +73,7 @@ export function executeGridStage(fs, ctx, engine) {
 
   // Watermark
   oCtx.save();
-  oCtx.globalAlpha = 0.06;
+  oCtx.globalAlpha = 0.03;
   const wmFs = Math.round(Math.min(cW, mainHeight) * 0.12 * pr);
   oCtx.font = `bold ${wmFs}px Arial`;
   oCtx.fillStyle = thm.fg || '#D1D4DC';
@@ -187,22 +187,31 @@ export function executeGridStage(fs, ctx, engine) {
     _gridCache.key = cacheKey;
     gCtx.drawImage(_gridCache.canvas, 0, 0);
   } else {
-    // Canvas2D fallback: draw grid lines to offscreen canvas
-    // Task 2.3.24: Grid LOD opacity — reduce opacity at high zoom
-    const gridOpacity = visibleBars < 30 ? 0.15 : 0.3;
-    for (const line of horizontal) {
-      const by = Math.round(line.y * pr);
-      // B2.4: Apply per-line alpha during cross-fade transition
-      const lineAlpha = (line.alpha ?? 1) * gridOpacity;
-      oCtx.fillStyle = thm.gridLine || `rgba(54,58,69,${lineAlpha})`;
-      oCtx.globalAlpha = line.alpha ?? 1;
-      oCtx.fillRect(0, by, Math.round(cW * pr), Math.max(1, pr));
+    // Canvas2D fallback: intersection dot-grid (Apple Notes style)
+    const dotRadius = Math.max(0.8, pr * 0.7);
+    const dotAlpha = visibleBars < 30 ? 0.12 : 0.22;
+    oCtx.fillStyle = thm.gridLine || `rgba(54,58,69,${dotAlpha})`;
+
+    for (const hLine of horizontal) {
+      oCtx.globalAlpha = (hLine.alpha ?? 1) * dotAlpha;
+      for (const vLine of vertical) {
+        const bx = Math.round(vLine.x * pr);
+        const by = Math.round(hLine.y * pr);
+        oCtx.beginPath();
+        oCtx.arc(bx, by, dotRadius, 0, Math.PI * 2);
+        oCtx.fill();
+      }
     }
     oCtx.globalAlpha = 1;
-    oCtx.fillStyle = thm.gridLine || `rgba(54,58,69,${gridOpacity})`;
-    for (const line of vertical) {
-      const bx = Math.round(line.x * pr);
-      oCtx.fillRect(bx, 0, Math.max(1, pr), Math.round(mainHeight * pr));
+
+    // Future zone fade: subtle gradient after last candle
+    const lastBarX = R.timeTransform?.indexToPixel(fs.startIdx + visibleBars - 1) ?? cW;
+    if (lastBarX < cW * 0.95) {
+      const grad = oCtx.createLinearGradient(lastBarX * pr, 0, cW * pr, 0);
+      grad.addColorStop(0, 'rgba(0,0,0,0)');
+      grad.addColorStop(1, 'rgba(0,0,0,0.035)');
+      oCtx.fillStyle = grad;
+      oCtx.fillRect(Math.round(lastBarX * pr), 0, Math.round((cW - lastBarX) * pr), Math.round(mainHeight * pr));
     }
 
     // Store completed cache and composite

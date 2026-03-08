@@ -16,6 +16,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { encryptedPersistStorage } from '../data/encryptedPersistStorage.js';
 
 // ─── Order Types ─────────────────────────────────────────────────
 
@@ -324,6 +325,7 @@ const usePaperTradeStore = create(
     {
       name: 'charEdge-paper-trading',
       version: 1,
+      storage: encryptedPersistStorage('trades'),
       partialize: (s) => ({
         initialBalance: s.initialBalance,
         balance: s.balance,

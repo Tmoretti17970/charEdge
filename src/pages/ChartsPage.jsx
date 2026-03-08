@@ -42,7 +42,6 @@ const FocusMode = React.lazy(() => import('../app/components/chart/overlays/Focu
 const AICopilotBar = React.lazy(() => import('../app/components/chart/AICopilotBar.jsx'));
 const ActionSidebar = React.lazy(() => import('../app/components/chart/ActionSidebar.jsx'));
 const TradeEntryBar = React.lazy(() => import('../app/components/chart/chart_ui/TradeEntryBar.jsx'));
-const WatchlistQuickBar = React.lazy(() => import('../app/components/chart/ui/WatchlistQuickBar.jsx'));
 const SwipeChartNav = React.lazy(() => import('../app/components/mobile/SwipeChartNav.jsx'));
 const GuidedTour = React.lazy(() => import('../app/components/ui/GuidedTour.jsx'));
 
@@ -192,12 +191,6 @@ function ChartsPageInner({ mountTime }) {
         </div>
       )}
 
-      {/* Watchlist Quick Bar */}
-      {!workspaceMode && !multiMode && (
-        <Suspense fallback={null}>
-          <WatchlistQuickBar currentSymbol={symbol} onSymbolChange={(sym) => { setSymbol(sym); setSymbolInput(sym); }} />
-        </Suspense>
-      )}
 
       {/* Live Ticker + Data Source Badge */}
       {!workspaceMode && (
@@ -241,7 +234,7 @@ function ChartsPageInner({ mountTime }) {
             style={{
               flex: 1, position: 'relative', minHeight: 0, overflow: 'hidden',
               opacity: (dataLoading && (!data || data.length === 0)) ? 0.5 : 1,
-              marginLeft: (drawSidebarOpen && !focusMode && !isMobile && !multiMode) ? 44 : 0,
+              marginLeft: 0,
               transition: 'opacity 0.25s ease, margin-left 0.28s cubic-bezier(0.34, 1.56, 0.64, 1)',
             }}
             onDoubleClick={onDoubleClick} onMouseMove={onMouseMove}
@@ -289,6 +282,8 @@ function ChartsPageInner({ mountTime }) {
               futuresOpen={futuresOpen} setFuturesOpen={setFuturesOpen}
               isLandscapeFullscreen={isLandscapeFullscreen} setIsLandscapeFullscreen={setIsLandscapeFullscreen}
               setShowMobileSettings={setShowMobileSettings} setShowMobileShare={setShowMobileShare}
+              setShowCopilot={setShowCopilot}
+              openPanel={(view) => openPanel(view)}
             />
           </div>
         </div>

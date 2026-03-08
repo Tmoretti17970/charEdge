@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { fetchXSentiment } from '../../../services/socialService.js';
 import { alpha } from '../../../utils/colorUtils.js';
+import LabsBadge from '../ui/LabsBadge.jsx';
 
 export default function XSentimentWidget({ category = 'all' }) {
   const [data, setData] = useState(null);
@@ -39,7 +40,7 @@ export default function XSentimentWidget({ category = 'all' }) {
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>X (Twitter) Sentiment</h3>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F, display: 'flex', alignItems: 'center', gap: 8 }}>X (Twitter) Sentiment <LabsBadge /></h3>
         <svg width="20" height="20" viewBox="0 0 24 24" fill={C.t2}>
           <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
         </svg>

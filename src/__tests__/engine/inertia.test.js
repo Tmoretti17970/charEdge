@@ -158,7 +158,7 @@ describe('Sprint 4 — InputManager CSS will-change', () => {
   it('clears will-change in destroy()', () => {
     // Extract enough chars after 'destroy()' to capture the full method body
     const destroyIdx = source.indexOf('destroy()');
-    const destroySection = destroyIdx >= 0 ? source.slice(destroyIdx, destroyIdx + 1200) : '';
+    const destroySection = destroyIdx >= 0 ? source.slice(destroyIdx, destroyIdx + 1800) : '';
     expect(destroySection).toContain('_clearWillChange');
   });
 });

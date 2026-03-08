@@ -40,6 +40,12 @@ describe('ReplayEngine', () => {
     let provider;
 
     beforeEach(() => {
+        // Polyfill requestAnimationFrame for Node/vitest
+        if (typeof globalThis.requestAnimationFrame === 'undefined') {
+            let rafId = 0;
+            globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => ++rafId) as typeof requestAnimationFrame;
+            globalThis.cancelAnimationFrame = (() => { }) as typeof cancelAnimationFrame;
+        }
         provider = createMockProvider(10);
         engine = new ReplayEngine(provider);
     });

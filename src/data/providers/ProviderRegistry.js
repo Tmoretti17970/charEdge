@@ -8,7 +8,7 @@
 import { hasApiKey } from './ApiKeyStore.js';
 import { fetchAlpaca } from './AlpacaProvider.js';
 import { fetchPolygon } from './PolygonProvider.js';
-import { fetchAlphaVantage } from './AlphaVantageProvider.js';
+// AlphaVantage removed from cascade — 25 req/day provides no unique data vs Polygon/FMP (Task 1B.2)
 import { pythAdapter } from '../adapters/PythAdapter.js';
 import { fmpAdapter } from '../adapters/FMPAdapter.js';
 import { tiingoAdapter } from '../adapters/TiingoAdapter.js';
@@ -24,7 +24,7 @@ export const EQUITY_PROVIDERS = [
   { id: 'polygon', name: 'Polygon.io', fetch: fetchPolygon, needsKey: false },
   { id: 'fmp', name: 'Financial Modeling Prep', fetch: (sym, tf) => fmpAdapter.fetchOHLCV(sym, tf), needsKey: false },
   { id: 'tiingo', name: 'Tiingo', fetch: (sym, tf) => tiingoAdapter.fetchOHLCV(sym, tf), needsKey: false },
-  { id: 'alphavantage', name: 'Alpha Vantage', fetch: fetchAlphaVantage, needsKey: false },
+  // Alpha Vantage removed (Task 1B.2) — 25 req/day, no unique data. Polygon/FMP/Tiingo cover equities.
   // Yahoo is handled in FetchService directly as legacy fallback
 ];
 

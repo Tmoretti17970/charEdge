@@ -16,50 +16,8 @@ export interface NavItem {
 }
 
 export const NAVIGATION: NavItem[] = [
-    {
-        id: 'charts',
-        label: 'Charts',
-        icon: '📊',
-        children: [
-            { id: 'chart', label: 'Live Chart', icon: '📈', path: '/chart', shortcut: '1' },
-            { id: 'scanner', label: 'Scanner', icon: '🔍', path: '/scanner', badge: 'beta' },
-            { id: 'screener', label: 'Screener', icon: '📋', path: '/screener' },
-            { id: 'discover', label: 'Discover', icon: '🧭', path: '/discover' },
-        ],
-    },
-    {
-        id: 'journal',
-        label: 'Journal',
-        icon: '📓',
-        children: [
-            { id: 'trades', label: 'Trades', icon: '💰', path: '/journal', shortcut: '2' },
-            { id: 'notes', label: 'Notes', icon: '📝', path: '/journal/notes' },
-            { id: 'plans', label: 'Trade Plans', icon: '🎯', path: '/journal/plans' },
-            { id: 'playbooks', label: 'Playbooks', icon: '📚', path: '/journal/playbooks' },
-        ],
-    },
-    {
-        id: 'analysis',
-        label: 'Analysis',
-        icon: '📉',
-        children: [
-            { id: 'dashboard', label: 'Dashboard', icon: '🏠', path: '/dashboard', shortcut: '3' },
-            { id: 'insights', label: 'Insights', icon: '💡', path: '/insights' },
-            { id: 'analytics', label: 'Analytics', icon: '📊', path: '/analytics' },
-            { id: 'paper-trade', label: 'Paper Trade', icon: '🎮', path: '/paper-trade' },
-        ],
-    },
-    {
-        id: 'social',
-        label: 'Community',
-        icon: '👥',
-        badge: 'new',
-        children: [
-            { id: 'feed', label: 'Feed', icon: '📡', path: '/social/feed' },
-            { id: 'live-rooms', label: 'Live Rooms', icon: '🔴', path: '/social/live' },
-            { id: 'copy-trade', label: 'Copy Trade', icon: '🔗', path: '/social/copy' },
-        ],
-    },
+    { id: 'journal', label: 'Journal', icon: '📓', path: '/journal', shortcut: '1' },
+    { id: 'charts', label: 'Charts', icon: '📈', path: '/charts', shortcut: '2' },
     {
         id: 'settings',
         label: 'Settings',

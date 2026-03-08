@@ -152,13 +152,20 @@ class _AnimationBudget {
         this._emit();
     }
 
+    private _lastLogTime = 0;
+
     private _suppress(): void {
         if (this._suppressed) return;
         this._suppressed = true;
         if (typeof document !== 'undefined') {
             document.body.classList.add(this._config.suppressClass);
         }
-        logger.ui.debug(`Animation budget exceeded (${this._activeCount}/${this._config.maxConcurrentAnimations}), suppressing`);
+        // Throttle log to once per 10s — this fires on every suppress/unsuppress cycle
+        const now = Date.now();
+        if (now - this._lastLogTime > 10_000) {
+            this._lastLogTime = now;
+            logger.ui.debug(`Animation budget exceeded (${this._activeCount}/${this._config.maxConcurrentAnimations}), suppressing`);
+        }
     }
 
     private _unsuppress(): void {

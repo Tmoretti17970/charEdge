@@ -160,4 +160,61 @@ export const createIndicatorSlice = (set) => ({
       list.splice(toIdx, 0, moved);
       return { indicators: list };
     }),
+
+  // Strategy Item #13: Update pane band values/colors (editable RSI 70/30, MACD zero-line, etc.)
+  updateIndicatorBands: (idx, bandIdx, updates) =>
+    set((s) => ({
+      indicators: s.indicators.map((ind, i) => {
+        if (i !== idx) return ind;
+        const bands = [...(ind.bandOverrides || [])];
+        bands[bandIdx] = { ...(bands[bandIdx] || {}), ...updates };
+        return { ...ind, bandOverrides: bands };
+      }),
+    })),
+
+  // ─── Strategy Item #11: Overrides API ─────────────────────────
+  // Apply a single override via dot-notation path (e.g. 'params.period', 'outputStyles.line.color')
+  applyOverride: (idx, path, value) =>
+    set((s) => ({
+      indicators: s.indicators.map((ind, i) => {
+        if (i !== idx) return ind;
+        return _deepSet({ ...ind }, path, value);
+      }),
+    })),
+
+  // Batch overrides: { 'params.period': 20, 'outputStyles.line.color': '#FF0' }
+  applyOverrides: (idx, overrides) =>
+    set((s) => ({
+      indicators: s.indicators.map((ind, i) => {
+        if (i !== idx) return ind;
+        let updated = { ...ind };
+        for (const [path, value] of Object.entries(overrides)) {
+          updated = _deepSet(updated, path, value);
+        }
+        return updated;
+      }),
+    })),
+
+  // Delete a saved indicator template
+  deleteIndicatorTemplate: (indicatorId, name) => {
+    const key = `indTemplate:${indicatorId}`;
+    const existing = JSON.parse(localStorage.getItem(key) || '{}');
+    delete existing[name];
+    localStorage.setItem(key, JSON.stringify(existing));
+  },
 });
+
+// ─── Deep Set Helper ────────────────────────────────────────────
+// Immutably sets a value at a dot-notation path.
+// e.g. _deepSet(obj, 'a.b.c', 42) → { ...obj, a: { ...obj.a, b: { ...obj.a.b, c: 42 } } }
+function _deepSet(obj, path, value) {
+  const parts = path.split('.');
+  if (parts.length === 1) {
+    return { ...obj, [parts[0]]: value };
+  }
+  const [head, ...rest] = parts;
+  return {
+    ...obj,
+    [head]: _deepSet(obj[head] || {}, rest.join('.'), value),
+  };
+}

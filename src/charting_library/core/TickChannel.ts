@@ -45,6 +45,12 @@ class _TickChannel {
     /** Priority levels per key: 1 = active chart, 0 = background/watchlist (8.1.4). */
     private _priority: Map<string, number> = new Map();
 
+    /** Exponential moving average of tick-to-render latency (ms). */
+    private _latencyEma: number = 0;
+
+    /** EMA smoothing factor (0.2 = responsive, 0.05 = very smooth). */
+    private static readonly _EMA_ALPHA = 0.15;
+
     // ─── Public API ─────────────────────────────────────────────
 
     /**
@@ -121,6 +127,14 @@ class _TickChannel {
     }
 
     /**
+     * Get the current tick-to-render latency (EMA smoothed, in ms).
+     * Returns 0 if no ticks have been processed yet.
+     */
+    getLatency(): number {
+        return Math.round(this._latencyEma * 10) / 10;
+    }
+
+    /**
      * Dispose all subscriptions and cancel pending flush.
      */
     dispose(): void {
@@ -131,6 +145,7 @@ class _TickChannel {
         this._pending.clear();
         this._subscribers.clear();
         this._priority.clear();
+        this._latencyEma = 0;
     }
 
     // ─── Private Methods ────────────────────────────────────────
@@ -162,9 +177,15 @@ class _TickChannel {
 
         this._pending.clear();
 
-        // Task 2.3.34: Measure tick-to-render latency
+        // Measure tick-to-render latency and feed into EMA
         try {
-            performance.measure('tick-to-render', 'tick-in');
+            const measure = performance.measure('tick-to-render', 'tick-in');
+            const dur = measure.duration;
+            if (this._latencyEma === 0) {
+                this._latencyEma = dur; // Seed EMA on first sample
+            } else {
+                this._latencyEma += _TickChannel._EMA_ALPHA * (dur - this._latencyEma);
+            }
             performance.clearMarks('tick-in');
             performance.clearMeasures('tick-to-render');
         } catch { /* no matching mark — ignore */ }

@@ -842,9 +842,12 @@ export class ChartEngine {
     if (S.mainDirty || S.topDirty || this.layers.anyDirty()) {
       const frameState = FrameState.create(this as any, lod as any, this._pipeline._prevFrameState);
 
-      // Mark layers dirty based on engine dirty flags
+      // Mark layers dirty based on engine dirty flags.
+      // Note: GRID is NOT included here — grid lines only change on viewport
+      // geometry changes (zoom, scroll, resize), which mark GRID dirty explicitly
+      // via InputManager/setData/setProps. This avoids ~30% redundant grid redraws
+      // during live tick streaming. (Strategy Item #5)
       if (S.mainDirty) {
-        this.layers.markDirty(LAYERS.GRID);
         this.layers.markDirty(LAYERS.DATA);
         this.layers.markDirty(LAYERS.INDICATORS);
       }

@@ -28,7 +28,7 @@ describe('Sprint 11 · InputManager — Splitter Drag', () => {
 
   it('detects splitter hit within tolerance', () => {
     expect(src).toContain('TOLERANCE');
-    expect(src).toContain('splitterY');
+    expect(src).toContain('const sy');
   });
 
   it('sets dragging to splitter on mousedown near splitter', () => {
@@ -122,7 +122,7 @@ describe('Sprint 11 · IndicatorStage — Pane Headers', () => {
 
   it('shows indicator value at crosshair', () => {
     expect(src).toContain('fs.hoverIdx');
-    expect(src).toContain('displayText');
+    expect(src).toContain('val.toFixed(2)');
   });
 
   it('renders collapse/expand toggle character', () => {

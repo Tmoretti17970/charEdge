@@ -11,6 +11,7 @@
 import React, { useState, useRef, useEffect, useCallback, useLayoutEffect, Suspense } from 'react';
 import { C, F, M, TFS } from '../../../constants.js';
 import { useChartStore } from '../../../state/useChartStore.js';
+import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { useBreakpoints } from '../../../utils/useMediaQuery.js';
 import DataSourceBadge from './ui/DataSourceBadge.jsx';
 
@@ -162,6 +163,9 @@ export default function UnifiedChartToolbar({
   const { isMobile } = useBreakpoints();
   const [searchModalOpen, setSearchModalOpen] = useState(false);
 
+  // Watchlist items for inline chips
+  const watchlistItems = useWatchlistStore((s) => s.items);
+
   // Chart Store State
   const tf = useChartStore((s) => s.tf);
   const setTf = useChartStore((s) => s.setTf);
@@ -170,17 +174,17 @@ export default function UnifiedChartToolbar({
   const showCustomTf = useChartStore((s) => s.showCustomTf);
   const toggleCustomTf = useChartStore((s) => s.toggleCustomTf);
 
-  // ─── Task 1.4.8: Toolbar Auto-Hide / Ghosting ──────────────
-  // After 5s of inactivity, fade toolbar to ghost state (opacity 0.2).
-  // Any interaction clears the ghost immediately.
+  // ─── Toolbar Compact Mode (Apple: no ghosting) ──────────────
+  // After 5s of inactivity, shrink toolbar to 32px (icons only).
+  // Symbol stays visible. Hover/focus restores full 44px.
   const toolbarRef = useRef(null);
   const ghostTimerRef = useRef(null);
-  const [isGhost, setIsGhost] = useState(false);
+  const [isCompact, setIsCompact] = useState(false);
 
   const resetGhostTimer = useCallback(() => {
-    setIsGhost(false);
+    setIsCompact(false);
     if (ghostTimerRef.current) clearTimeout(ghostTimerRef.current);
-    ghostTimerRef.current = setTimeout(() => setIsGhost(true), 5000);
+    ghostTimerRef.current = setTimeout(() => setIsCompact(true), 5000);
   }, []);
 
   useEffect(() => {
@@ -191,7 +195,7 @@ export default function UnifiedChartToolbar({
   return (
     <div
       ref={toolbarRef}
-      className={`tf-chart-toolbar${isGhost ? ' tf-toolbar-ghost' : ''}`}
+      className={`tf-chart-toolbar${isCompact ? ' tf-toolbar-compact' : ''}`}
       data-container="toolbar"
       role="toolbar"
       aria-label="Chart toolbar"
@@ -224,6 +228,52 @@ export default function UnifiedChartToolbar({
           dataSource={dataSource} dataLoading={dataLoading}
         />
       </div>
+
+      {/* WATCHLIST CHIPS — inline symbol toggles */}
+      {!isMobile && watchlistItems.length > 0 && (
+        <>
+          <Divider />
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 3,
+            overflow: 'hidden',
+            flexShrink: 1,
+            minWidth: 0,
+          }}>
+            {watchlistItems.slice(0, 5).map((item) => {
+              const sym = item.symbol;
+              const isActive = sym === symbol;
+              return (
+                <button
+                  key={sym}
+                  className="tf-chart-toolbar-btn"
+                  data-active={isActive || undefined}
+                  onClick={() => { onSearchSelect(sym); setSymbolInput(sym); }}
+                  title={sym}
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: isActive ? 700 : 500,
+                    padding: '2px 7px',
+                    flexShrink: 0,
+                    borderRadius: 10,
+                  }}
+                >
+                  {sym}
+                </button>
+              );
+            })}
+            {watchlistItems.length > 5 && (
+              <span style={{
+                fontSize: 9, color: C.t3, fontWeight: 600, padding: '2px 4px',
+                fontFamily: F,
+              }}>
+                +{watchlistItems.length - 5}
+              </span>
+            )}
+          </div>
+        </>
+      )}
 
       <Divider />
 
@@ -261,6 +311,27 @@ export default function UnifiedChartToolbar({
         </>
       )}
 
+      {/* AI Analysis Panel Toggle — subtle accent glow */}
+      {!isMobile && (
+        <>
+          <Divider />
+          <ToolbarBtn
+            active={false}
+            onClick={onToggleAnalysis}
+            title="AI Analysis"
+            style={{
+              background: 'rgba(232,100,44,0.08)',
+              boxShadow: '0 0 6px rgba(232,100,44,0.12)',
+              borderRadius: 8,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" fill="rgba(232,100,44,0.2)" />
+            </svg>
+          </ToolbarBtn>
+        </>
+      )}
+
       {/* Flex spacer */}
       <div style={{ flex: 1, minWidth: 4 }} />
 
@@ -279,8 +350,6 @@ export default function UnifiedChartToolbar({
             showTrades={showTrades} setShowTrades={setShowTrades}
             showObjectTree={showObjectTree} setShowObjectTree={setShowObjectTree}
             onOpenPanel={onOpenPanel}
-            onOpenCopilot={onOpenCopilot}
-            onToggleAnalysis={onToggleAnalysis}
             onSnapshot={onSnapshot}
             layoutMode={layoutMode} setLayoutMode={setLayoutMode}
           />

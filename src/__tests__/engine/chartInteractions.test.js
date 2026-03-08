@@ -98,15 +98,21 @@ beforeEach(() => {
   if (!globalThis.performance?.now) {
     globalThis.performance = { now: () => Date.now() };
   }
-  // Stub window.addEventListener/removeEventListener
+  // Stub window.addEventListener/removeEventListener/dispatchEvent
   if (typeof globalThis.window === 'undefined') {
     globalThis.window = {
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
     };
   } else {
     vi.spyOn(window, 'addEventListener').mockImplementation(() => { });
     vi.spyOn(window, 'removeEventListener').mockImplementation(() => { });
+    if (!window.dispatchEvent || typeof window.dispatchEvent !== 'function') {
+      window.dispatchEvent = vi.fn();
+    } else {
+      vi.spyOn(window, 'dispatchEvent').mockImplementation(() => { });
+    }
   }
 });
 

@@ -15,6 +15,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { alpha } from '../../../utils/colorUtils.js';
 import { SCAN_PRESETS, fetchScreenerResults } from '../../../services/screenerService.js';
+import LabsBadge from '../ui/LabsBadge.jsx';
 
 // ─── Asset Class Tabs ───────────────────────────────────────────
 
@@ -103,6 +104,7 @@ export default function SmartScreener() {
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>
             Smart Screener
           </h3>
+          <LabsBadge />
           <span
             style={{
               fontSize: 10,

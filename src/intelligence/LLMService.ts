@@ -87,21 +87,21 @@ class LLMService {
 
     /**
      * Auto-detect and configure from environment variables.
+     * LLM API keys are now server-side only — client just enables the feature.
      */
     autoDetect(): void {
         const env = typeof import.meta !== 'undefined' ? import.meta.env : {};
 
-        if (env?.VITE_OPENAI_API_KEY) {
+        // Server-side proxy mode: client enables LLM, server holds the keys
+        if (env?.VITE_LLM_PROVIDER === 'openai' || env?.VITE_LLM_ENABLED === 'true') {
             this.configure({
-                provider: 'openai',
-                apiKey: env.VITE_OPENAI_API_KEY,
-                model: env.VITE_OPENAI_MODEL || 'gpt-4o-mini',
+                provider: (env?.VITE_LLM_PROVIDER as LLMProvider) || 'openai',
+                model: env.VITE_LLM_MODEL || 'gpt-4o-mini',
             });
-        } else if (env?.VITE_ANTHROPIC_API_KEY) {
+        } else if (env?.VITE_LLM_PROVIDER === 'anthropic') {
             this.configure({
                 provider: 'anthropic',
-                apiKey: env.VITE_ANTHROPIC_API_KEY,
-                model: env.VITE_ANTHROPIC_MODEL || 'claude-3-haiku-20240307',
+                model: env.VITE_LLM_MODEL || 'claude-3-haiku-20240307',
             });
         } else if (env?.VITE_LLM_BASE_URL) {
             this.configure({
@@ -180,7 +180,7 @@ Provide empathetic but direct coaching. Prioritize the most impactful leak. Give
     private async _chat(messages: Message[]): Promise<LLMResponse> {
         if (!this._initialized) {
             return {
-                content: 'LLM not configured. Set VITE_OPENAI_API_KEY or VITE_ANTHROPIC_API_KEY in .env.local',
+                content: 'LLM not configured. Set VITE_LLM_ENABLED=true in .env.local and configure server-side API keys.',
                 model: 'none',
                 tokensUsed: 0,
                 latencyMs: 0,
@@ -214,57 +214,54 @@ Provide empathetic but direct coaching. Prioritize the most impactful leak. Give
     // ─── Provider Implementations ───────────────────────────────
 
     private async _chatOpenAI(messages: Message[], start: number): Promise<LLMResponse> {
-        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        // Route through server proxy — API key stays server-side
+        const res = await fetch('/api/proxy/llm', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this._config.apiKey}`,
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                model: this._config.model || 'gpt-4o-mini',
+                provider: 'openai',
                 messages,
-                max_tokens: this._config.maxTokens,
+                model: this._config.model || 'gpt-4o-mini',
+                maxTokens: this._config.maxTokens,
                 temperature: this._config.temperature,
             }),
         });
 
-        if (!res.ok) throw new Error(`OpenAI ${res.status}: ${await res.text()}`);
+        if (!res.ok) throw new Error(`LLM proxy ${res.status}: ${await res.text()}`);
         const data = await res.json();
 
+        if (data.ok === false) throw new Error(data.error || 'LLM proxy error');
+
         return {
-            content: data.choices[0]?.message?.content || '',
-            model: data.model,
+            content: data.choices?.[0]?.message?.content || '',
+            model: data.model || this._config.model || 'openai',
             tokensUsed: data.usage?.total_tokens || 0,
             latencyMs: performance.now() - start,
         };
     }
 
     private async _chatAnthropic(messages: Message[], start: number): Promise<LLMResponse> {
-        const systemMsg = messages.find(m => m.role === 'system')?.content || '';
-        const userMessages = messages.filter(m => m.role !== 'system');
-
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
+        // Route through server proxy — API key stays server-side
+        const res = await fetch('/api/proxy/llm', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': this._config.apiKey || '',
-                'anthropic-version': '2023-06-01',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+                provider: 'anthropic',
+                messages,
                 model: this._config.model || 'claude-3-haiku-20240307',
-                system: systemMsg,
-                messages: userMessages,
-                max_tokens: this._config.maxTokens,
+                maxTokens: this._config.maxTokens,
                 temperature: this._config.temperature,
             }),
         });
 
-        if (!res.ok) throw new Error(`Anthropic ${res.status}: ${await res.text()}`);
+        if (!res.ok) throw new Error(`LLM proxy ${res.status}: ${await res.text()}`);
         const data = await res.json();
+
+        if (data.ok === false) throw new Error(data.error || 'LLM proxy error');
 
         return {
             content: data.content?.[0]?.text || '',
-            model: data.model,
+            model: data.model || this._config.model || 'anthropic',
             tokensUsed: (data.usage?.input_tokens || 0) + (data.usage?.output_tokens || 0),
             latencyMs: performance.now() - start,
         };

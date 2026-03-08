@@ -15,6 +15,7 @@ import { C, F, M } from '../../../constants.js';
 import { ModalOverlay, Btn, inputStyle } from '../../components/ui/UIKit.jsx';
 import toast from '../../components/ui/Toast.jsx';
 import { createAnnotatedSnapshot } from '../../../utils/chartExport.js';
+import LabsBadge from '../../components/ui/LabsBadge.jsx';
 
 /**
  * Snapshot publisher modal.
@@ -139,7 +140,7 @@ export default function SnapshotPublisher({ isOpen, onClose, canvas, chartInfo =
             alignItems: 'center',
           }}
         >
-          <div style={{ fontSize: 14, fontWeight: 700, color: C.t1, fontFamily: F }}>Publish Snapshot</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: C.t1, fontFamily: F, display: 'flex', alignItems: 'center', gap: 8 }}>Publish Snapshot <LabsBadge /></div>
           <button
             className="tf-btn"
             onClick={onClose}

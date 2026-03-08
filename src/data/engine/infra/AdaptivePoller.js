@@ -25,10 +25,11 @@ import { isMarketOpen as _isMarketOpen } from '../../../utils/marketHours.js';
 
 const INTERVALS = {
   // Visible chart — highest priority
+  // (WS provides real-time; REST is SWR backup only)
   visible: {
-    marketOpen: 2000,     // 2s during market hours
+    marketOpen: 5000,     // 5s during market hours (was 2s — WS covers real-time)
     marketClosed: 30000,  // 30s after hours
-    crypto: 3000,         // 3s for crypto (24/7)
+    crypto: 5000,         // 5s for crypto (was 3s — Binance WS covers real-time)
     hidden: 15000,        // 15s when tab is hidden
   },
   // Watchlist item — medium priority
@@ -64,6 +65,7 @@ function isTabVisible() {
 class _AdaptivePoller {
   constructor() {
     this._tasks = new Map();        // taskId → { symbol, callback, priority, timerId }
+    this._dedupMap = new Map();     // 'symbol:priority' → taskId (1B.9: dedup)
     this._nextId = 1;
     this._cachedMarketOpen = null;
     this._marketCheckInterval = null;
@@ -96,6 +98,20 @@ class _AdaptivePoller {
    * @returns {number} Task ID (for cancellation)
    */
   schedule(symbol, callback, priority = 'visible') {
+    // Task 1B.9: Dedup — if this symbol+priority combo already has a task, 
+    // cancel the old one and replace with this one (prevents double-polling
+    // when a symbol is on both visible chart AND watchlist).
+    const dedupKey = `${symbol}:${priority}`;
+    if (this._dedupMap.has(dedupKey)) {
+      const existingId = this._dedupMap.get(dedupKey);
+      if (this._tasks.has(existingId)) {
+        // Already polling this symbol at this priority — skip
+        return existingId;
+      }
+      // Stale entry — clean up
+      this._dedupMap.delete(dedupKey);
+    }
+
     const id = this._nextId++;
     const interval = this._getInterval(symbol, priority);
 
@@ -113,6 +129,7 @@ class _AdaptivePoller {
       interval,
       lastPoll: Date.now(),
     });
+    this._dedupMap.set(dedupKey, id);
 
     // Execute immediately on first schedule
     try { callback(); } catch (e) { logger.data.warn('Operation failed', e); }
@@ -131,6 +148,11 @@ class _AdaptivePoller {
     if (task) {
       clearInterval(task.timerId);
       this._tasks.delete(taskId);
+      // Clean dedup map
+      const dedupKey = `${task.symbol}:${task.priority}`;
+      if (this._dedupMap.get(dedupKey) === taskId) {
+        this._dedupMap.delete(dedupKey);
+      }
     }
   }
 
@@ -221,6 +243,7 @@ class _AdaptivePoller {
       clearInterval(task.timerId);
     }
     this._tasks.clear();
+    this._dedupMap.clear();
     clearInterval(this._marketCheckInterval);
     if (typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this._onVisibilityChange);
