@@ -144,7 +144,7 @@ export function useCopilotPipeline(): CopilotInsight & {
     const requestNarrative = useCallback(async () => {
         setInsight((prev) => ({ ...prev, loading: true }));
         try {
-            const { llmService } = await import('../intelligence/LLMService.js');
+            const { llmService } = await import('../ai/LLMService.js');
             const state = useChartStore.getState() as unknown;
             const bars = state.data || [];
 

@@ -116,7 +116,7 @@ export default function TradeNarrativeCard({ trade }) {
 
         try {
             // Try LLM first
-            const { llmService } = await import('../../../intelligence/LLMService.ts');
+            const { llmService } = await import('../../../ai/LLMService.js');
             if (llmService.isAvailable()) {
                 const response = await llmService.analyzeTradeSnapshot(trade);
                 setNarrative(response.content);
