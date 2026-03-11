@@ -3,9 +3,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState } from 'react';
+import { validateScript } from '../../../charting_library/scripting/ScriptEngine.js';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
 import { useScriptStore } from '../../../state/useScriptStore.js';
+import { logger } from '@/observability/logger';
+import { alpha } from '@/shared/colorUtils';
 
 const CATEGORIES = ['All', 'Trend', 'Momentum', 'Volume', 'Volatility', 'Custom'];
 
@@ -89,6 +91,13 @@ export default function IndicatorMarketplace() {
   });
 
   const handleInstall = (script) => {
+    // P2 Security: validate script code before persisting
+    const validation = validateScript(script.code);
+    if (!validation.valid) {
+      logger.ui.warn(`[Marketplace] Blocked unsafe script "${script.name}":`, validation.error);
+      return;
+    }
+
     createScript({
       name: script.name,
       description: `${script.description} (by ${script.author})`,

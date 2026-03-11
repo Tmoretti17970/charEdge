@@ -9,7 +9,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { BaseAdapter } from './BaseAdapter.js';
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -188,6 +188,7 @@ export class PolygonAdapter extends BaseAdapter {
                 low: day.l || 0,
                 open: day.o || 0,
             };
+        // eslint-disable-next-line unused-imports/no-unused-vars
         } catch (_) {
             return null;
         }
@@ -252,6 +253,7 @@ export class PolygonAdapter extends BaseAdapter {
                 type: t.type || 'UNKNOWN',
                 exchange: t.primary_exchange || t.market || 'Polygon',
             }));
+        // eslint-disable-next-line unused-imports/no-unused-vars
         } catch (_) {
             return [];
         }
@@ -306,6 +308,7 @@ export class PolygonAdapter extends BaseAdapter {
                     setTimeout(() => this._initWebSocket(), 5000);
                 }
             };
+        // eslint-disable-next-line unused-imports/no-unused-vars
         } catch (_) {
             this._ws = null;
         }

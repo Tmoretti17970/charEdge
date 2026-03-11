@@ -4,35 +4,33 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useEffect, useState, useCallback, Suspense } from 'react';
-import { useAppBoot } from './AppBoot.js';
-import Sidebar from './app/layouts/Sidebar.jsx';
+import AuthGate from './app/components/auth/AuthGate.jsx';
+import { processPendingAchievements } from './app/components/ui/AchievementToast.jsx';
+import ErrorBoundary from './app/components/ui/ErrorBoundary.jsx';
+import KeyboardShortcuts from './app/components/ui/KeyboardShortcuts.jsx';
+import { ToastContainer } from './app/components/ui/Toast.jsx';
 import MobileNav from './app/layouts/MobileNav.jsx';
 import PageRouter from './app/layouts/PageRouter.jsx';
-import { ToastContainer } from './app/components/ui/Toast.jsx';
-import ErrorBoundary from './app/components/ui/ErrorBoundary.jsx';
+import Sidebar from './app/layouts/Sidebar.jsx';
 import DailyGuardBanner from './app/misc/components/DailyGuardBanner.jsx';
-import { useNotificationLog } from './state/useNotificationLog.js';
-import { useBreakpoints } from './utils/useMediaQuery.js';
-import { useHotkeys } from './utils/useHotkeys.js';
-import { useUserStore } from './state/useUserStore.js';
-import { useUIStore } from './state/useUIStore.js';
-import { installGlobalErrorHandlers } from './utils/globalErrorHandler.js';
-// Sentry is now consent-gated — see below in render
-import { useConsentStore } from './state/useConsentStore.js';
-import { C, F, M } from './constants.js';
-import KeyboardShortcuts from './app/components/ui/KeyboardShortcuts.jsx';
-import { useGamificationStore, XP_TABLE } from './state/useGamificationStore.js';
-import { useJournalStore } from './state/useJournalStore.js';
-import { processPendingAchievements } from './app/components/ui/AchievementToast.jsx';
 import styles from './App.module.css';
-
-import { useFocusStore } from './state/useFocusStore.js';
-import AuthGate from './app/components/auth/AuthGate.jsx';
-import { animationBudget } from './utils/AnimationBudget.js';
+import { useAppBoot } from './AppBoot.js';
 import { useAuthStore } from './state/useAuthStore.js';
+import { useConsentStore } from './state/useConsentStore';
+import { useFocusStore } from './state/useFocusStore.js';
+import { useGamificationStore, XP_TABLE } from './state/useGamificationStore';
+import { useJournalStore } from './state/useJournalStore';
+import { useNotificationLog } from './state/useNotificationLog.js';
+import { useUIStore } from './state/useUIStore';
+import { useUserStore } from './state/useUserStore';
+import { animationBudget } from '@/charting_library/utils/AnimationBudget.js';
+import { useHotkeys } from '@/hooks/useHotkeys';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
+import { installGlobalErrorHandlers } from '@/shared/globalErrorHandler';
+// Sentry is now consent-gated — see below in render
 
 // Lazy-load overlay components (not needed on initial render)
-const CommandPalette = React.lazy(() => import('./app/components/ui/CommandPalette.jsx'));
+const LogbookBridge = React.lazy(() => import('./app/components/ui/LogbookBridge.jsx'));
 const NotificationPanel = React.lazy(() => import('./app/components/panels/NotificationPanel.jsx'));
 const OnboardingWizard = React.lazy(() => import('./app/layouts/OnboardingWizard.jsx'));
 const GlobalQuickAddModal = React.lazy(() => import('./app/components/ui/GlobalQuickAddModal.jsx'));
@@ -68,10 +66,14 @@ class ChunkErrorBoundary extends React.Component {
     if (isChunkError) {
       // Only auto-reload once to avoid infinite loops
       const key = 'ce_chunk_reload';
-      const last = sessionStorage.getItem(key);
-      if (!last || Date.now() - Number(last) > 30000) {
-        sessionStorage.setItem(key, String(Date.now()));
-        window.location.reload();
+      try {
+        const last = sessionStorage.getItem(key);
+        if (!last || Date.now() - Number(last) > 30000) {
+          sessionStorage.setItem(key, String(Date.now()));
+          window.location.reload();
+        }
+      } catch {
+        // sessionStorage throws in some private browsing modes — skip reload guard
       }
     }
   }
@@ -111,10 +113,12 @@ class ChunkErrorBoundary extends React.Component {
 installGlobalErrorHandlers();
 
 // Expose notification store globally for error handler integration
-if (typeof globalThis !== 'undefined') {
+// Guard with typeof window to prevent SSR state leaks across requests
+if (typeof window !== 'undefined') {
   setTimeout(() => {
     try {
       globalThis.__charEdge_notification_store__ = useNotificationLog;
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { /* storage/API may be blocked */ }
   }, 0);
 }
@@ -151,16 +155,16 @@ export default function App() {
           toast.action(
             `💾 Restore session? (${recovery.symbol} ${recovery.timeframe})`,
             'Restore →',
-            () => {
+            async () => {
               // Apply recovery state to stores
-              const chartStore = require('./state/useChartStore.js').useChartStore;
+              const { useChartStore: chartStore } = await import('./state/useChartStore.js');
               if (recovery.symbol) chartStore.getState().setSymbol(recovery.symbol);
               if (recovery.timeframe) chartStore.getState().setTf(recovery.timeframe);
               if (recovery.chartType) chartStore.getState().setChartType(recovery.chartType);
               if (recovery.indicators?.length) {
                 // Clear + re-add indicators
                 const existing = chartStore.getState().indicators || [];
-                for (let i = existing.length - 1; i >= 0; i--) chartStore.getState().removeIndicator(i);
+                for (const ind of existing) chartStore.getState().removeIndicator(ind.id);
                 for (const ind of recovery.indicators) chartStore.getState().addIndicator(ind);
               }
               if (recovery.page) useUIStore.getState().setPage(recovery.page);
@@ -190,13 +194,13 @@ export default function App() {
       const trades = state.trades;
       const prevTrades = prevState.trades;
 
-      // Award XP for new trades
+      // Award XP for new trades (new trades are appended to the END of the array)
       if (trades.length > prevTrades.length) {
         const newCount = trades.length - prevTrades.length;
         for (let i = 0; i < newCount; i++) {
           useGamificationStore.getState().awardXP(XP_TABLE.trade_logged, 'trade_logged');
-          // Check for notes
-          const trade = trades[i];
+          // Check for notes — index from the END where new trades actually are
+          const trade = trades[trades.length - newCount + i];
           if (trade && trade.notes && trade.notes.trim().length > 10) {
             useGamificationStore.getState().awardXP(XP_TABLE.notes_written, 'notes_written');
           }
@@ -293,15 +297,15 @@ export default function App() {
             <ErrorBoundary resetKey={page}>
               <div className={isMobile ? styles.mainAreaMobile : styles.mainArea}>
                 <DailyGuardBanner />
-                <div className={styles.mainContent} id="tf-main-content" role="main" aria-label="Page content">
+                <main className={styles.mainContent} id="tf-main-content" aria-label="Page content">
                   <PageRouter />
-                </div>
+                </main>
               </div>
             </ErrorBoundary>
             {isMobile && <MobileNav />}
             <ToastContainer />
             <Suspense fallback={null}>{/* overlay modals — null fallback OK */}
-              <CommandPalette />
+              <LogbookBridge />
               <GlobalQuickAddModal />
               <NotificationPanel />
               <OnboardingWizard />

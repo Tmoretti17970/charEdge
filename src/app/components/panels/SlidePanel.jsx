@@ -4,8 +4,8 @@
 // spring animation, and integration with usePanelStore.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { C, F } from '../../../constants.js';
 import sp from './SlidePanel.module.css';
 
 const MAX_WIDTH = 800;

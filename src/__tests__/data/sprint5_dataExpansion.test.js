@@ -2,7 +2,7 @@
 // charEdge — Sprint 5 Data Expansion Tests
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 // ─── 6.5.1: Expanded Crypto List ────────────────────────────────
 

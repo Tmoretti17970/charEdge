@@ -17,7 +17,7 @@
 //   />
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { cacheManager } from '../../../../data/engine/infra/CacheManager.js';
 
 // ─── Helpers ───────────────────────────────────────────────────
@@ -119,6 +119,7 @@ export default function DataFallbackBanner({ symbol, tfId, dataSource, onRetry }
     setRetrying(true);
     try {
       await onRetry?.();
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       // retry failed — user can try again
     } finally {

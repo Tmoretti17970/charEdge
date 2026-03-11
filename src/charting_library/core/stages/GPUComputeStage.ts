@@ -45,10 +45,13 @@ export function executeGPUComputeStage(fs, ctx, engine) {
 
   if (gpuEligible.length === 0) return;
 
-  // Extract close prices once (shared across GPU shaders)
-  const closes = new Float32Array(bars.length);
-  for (let i = 0; i < bars.length; i++) {
-    closes[i] = bars[i].close;
+  // Collect close prices once (shared across GPU shaders)
+  // P3: Window size is configurable via engine props (default 2048).
+  const gpuWindowSize = engine._gpuWindowSize ?? 2048;
+  const windowedBars = bars.length > gpuWindowSize ? bars.slice(bars.length - gpuWindowSize) : bars;
+  const closes = new Float32Array(windowedBars.length);
+  for (let i = 0; i < windowedBars.length; i++) {
+    closes[i] = windowedBars[i].close;
   }
 
   // Dispatch GPU computations asynchronously
@@ -61,6 +64,11 @@ export function executeGPUComputeStage(fs, ctx, engine) {
         if (result) {
           ind.computed = result;
           ind._gpuComputed = true;
+          // Sprint 20 #125: Store JoinedBuffer ref for zero-copy render path
+          // Renderers check ind._gpuBuffer before falling back to CPU data
+          if (result._joinedBuffer) {
+            ind._gpuBuffer = result._joinedBuffer;
+          }
           // Mark indicators dirty so IndicatorStage re-renders
           if (ctx.layers) ctx.layers.markDirty?.('INDICATORS');
           engine.markDirty?.();
@@ -79,10 +87,11 @@ export function executeGPUComputeStage(fs, ctx, engine) {
 const GPU_INDICATOR_MAP = {
   ema: async (gpu, closes, params) => {
     const result = await gpu.computeEMA(closes, params.period || 20);
-    return result ? { ema: Array.from(result) } : null;
+    // P2 5.6: Keep Float32Array — no Array.from() conversion needed
+    return result ? { ema: result } : null;
   },
 
-  sma: async (gpu, closes, params) => {
+  sma: async (_gpu, _closes, _params) => {
     // SMA can be approximated via EMA with a large multiplier,
     // but for accuracy we skip GPU for SMA (no dedicated shader)
     return null;
@@ -90,7 +99,7 @@ const GPU_INDICATOR_MAP = {
 
   rsi: async (gpu, closes, params) => {
     const result = await gpu.computeRSI(closes, params.period || 14);
-    return result ? { rsi: Array.from(result) } : null;
+    return result ? { rsi: result } : null;
   },
 
   macd: async (gpu, closes, params) => {
@@ -101,9 +110,9 @@ const GPU_INDICATOR_MAP = {
       params.signal || 9
     );
     return result ? {
-      macd: Array.from(result.macd),
-      signal: Array.from(result.signal),
-      histogram: Array.from(result.histogram),
+      macd: result.macd,
+      signal: result.signal,
+      histogram: result.histogram,
     } : null;
   },
 
@@ -114,9 +123,9 @@ const GPU_INDICATOR_MAP = {
       params.stdDev || 2
     );
     return result ? {
-      middle: Array.from(result.middle),
-      upper: Array.from(result.upper),
-      lower: Array.from(result.lower),
+      middle: result.middle,
+      upper: result.upper,
+      lower: result.lower,
     } : null;
   },
 };

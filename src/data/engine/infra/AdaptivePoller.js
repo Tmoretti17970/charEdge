@@ -15,8 +15,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { isCrypto } from '../../../constants.js';
-import { logger } from '../../../utils/logger.ts';
-import { isMarketOpen as _isMarketOpen } from '../../../utils/marketHours.js';
+import { logger } from '@/observability/logger';
+import { isMarketOpen as _isMarketOpen } from '@/shared/marketHours';
 
 // MARKET_HOURS config removed — now uses shared marketHours.js utility
 // which includes holiday awareness and extended-hours detection.

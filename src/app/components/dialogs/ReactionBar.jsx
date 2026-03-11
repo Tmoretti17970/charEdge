@@ -9,9 +9,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { LEAK_TAGS } from '../../../services/LeakDetector.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
+import { useJournalStore } from '../../../state/useJournalStore';
 import styles from './ReactionBar.module.css';
+import { LEAK_TAGS } from '@/psychology/LeakDetectorService.js';
 
 // ─── Options ─────────────────────────────────────────────────────
 

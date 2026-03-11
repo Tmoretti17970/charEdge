@@ -4,8 +4,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useMemo } from 'react';
-import ChartWrapper from './core/ChartWrapper.jsx';
 import { C, M } from '../../../constants.js';
+import ChartWrapper from './core/ChartWrapper.jsx';
 
 /**
  * @param {Array} buckets - Array of { name, pnl, count, wins }

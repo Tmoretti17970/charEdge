@@ -100,85 +100,77 @@ export function positionsBox(mediaCenterX, mediaWidth, pixelRatio) {
 // ═══════════════════════════════════════════════════════════════════
 
 /**
- * Create a price-to-Y coordinate transformer for a given price range.
- * Returns functions that work in MEDIA (CSS) space — callers convert
- * to bitmap space via mediaToBitmap() when needed for rendering.
+ * PriceTransform — monomorphic price↔Y coordinate transformer.
+ * Single class with a `mode` field replaces 4 different closure objects,
+ * eliminating megamorphic dispatch at priceToY()/yToPrice() call sites.
  *
  * @param {number} priceMin    - Bottom of visible price range
  * @param {number} priceMax    - Top of visible price range
  * @param {number} chartHeight - Chart pane height in CSS pixels
- * @param {string} [scaleMode='linear'] - 'linear', 'log', or 'percent'
- * @param {number} [percentBase=0] - Base price for percentage calculation (only used if scaleMode === 'percent')
- * @returns {{ priceToY: (price: number) => number, yToPrice: (y: number) => number }}
+ * @param {string} [scaleMode='linear'] - 'linear', 'log', 'percent', or 'indexed'
+ * @param {number} [percentBase=0] - Base price for percent/indexed modes
  */
+class PriceTransform {
+  constructor(priceMin, priceMax, chartHeight, scaleMode = 'linear', percentBase = 0) {
+    this._mode = scaleMode;
+    this._chartHeight = chartHeight;
+    this._percentBase = percentBase;
+
+    if (scaleMode === 'log') {
+      this._logMin = Math.log(Math.max(priceMin, 1e-10));
+      this._logMax = Math.log(Math.max(priceMax, 1e-10));
+      this._logRange = this._logMax - this._logMin || 1;
+      this._range = 0;
+      this._priceMin = priceMin;
+    } else {
+      this._range = priceMax - priceMin || 1;
+      this._priceMin = priceMin;
+      this._logMin = 0;
+      this._logMax = 0;
+      this._logRange = 0;
+    }
+
+    // Bind methods so they work when destructured:
+    //   const p2y = priceTransform.priceToY;  // DataStage.ts:72
+    //   pixelToPrice: priceTransform.yToPrice  // DataStage.ts:87
+    this.priceToY = this.priceToY.bind(this);
+    this.yToPrice = this.yToPrice.bind(this);
+    this.formatTicks = this.formatTicks.bind(this);
+  }
+
+  priceToY(price) {
+    const h = this._chartHeight;
+    if (this._mode === 'log') {
+      const logP = Math.log(Math.max(price, 1e-10));
+      return h - ((logP - this._logMin) / this._logRange) * h;
+    }
+    return h - ((price - this._priceMin) / this._range) * h;
+  }
+
+  yToPrice(y) {
+    const h = this._chartHeight;
+    if (this._mode === 'log') {
+      const logP = this._logMin + ((h - y) / h) * this._logRange;
+      return Math.exp(logP);
+    }
+    return this._priceMin + ((h - y) / h) * this._range;
+  }
+
+  formatTicks(ticks) {
+    if (this._mode === 'percent' && this._percentBase > 0) {
+      const base = this._percentBase;
+      return ticks.map((t) => ((t - base) / base) * 100);
+    }
+    if (this._mode === 'indexed' && this._percentBase > 0) {
+      const base = this._percentBase;
+      return ticks.map((t) => (t / base) * 100);
+    }
+    return ticks;
+  }
+}
+
 export function createPriceTransform(priceMin, priceMax, chartHeight, scaleMode = 'linear', percentBase = 0) {
-  if (scaleMode === 'log') {
-    const logMin = Math.log(Math.max(priceMin, 1e-10));
-    const logMax = Math.log(Math.max(priceMax, 1e-10));
-    const logRange = logMax - logMin || 1;
-
-    return {
-      priceToY(price) {
-        const logP = Math.log(Math.max(price, 1e-10));
-        return chartHeight - ((logP - logMin) / logRange) * chartHeight;
-      },
-      yToPrice(y) {
-        const logP = logMin + ((chartHeight - y) / chartHeight) * logRange;
-        return Math.exp(logP);
-      },
-      formatTicks(ticks) {
-        return ticks;
-      },
-    };
-  }
-
-  if (scaleMode === 'percent' && percentBase > 0) {
-    // In percent mode, the visual scaling is linear, but the min/max represent raw prices
-    const range = priceMax - priceMin || 1;
-    return {
-      priceToY(price) {
-        return chartHeight - ((price - priceMin) / range) * chartHeight;
-      },
-      yToPrice(y) {
-        return priceMin + ((chartHeight - y) / chartHeight) * range;
-      },
-      formatTicks(ticks) {
-        // Return ticks as percentage values from base
-        return ticks.map((t) => ((t - percentBase) / percentBase) * 100);
-      },
-    };
-  }
-
-  // Sprint 10: Indexed to 100 — normalizes first visible bar to 100
-  if (scaleMode === 'indexed' && percentBase > 0) {
-    const range = priceMax - priceMin || 1;
-    return {
-      priceToY(price) {
-        return chartHeight - ((price - priceMin) / range) * chartHeight;
-      },
-      yToPrice(y) {
-        return priceMin + ((chartHeight - y) / chartHeight) * range;
-      },
-      formatTicks(ticks) {
-        return ticks.map((t) => (t / percentBase) * 100);
-      },
-    };
-  }
-
-  // Default linear
-  const range = priceMax - priceMin || 1;
-
-  return {
-    priceToY(price) {
-      return chartHeight - ((price - priceMin) / range) * chartHeight;
-    },
-    yToPrice(y) {
-      return priceMin + ((chartHeight - y) / chartHeight) * range;
-    },
-    formatTicks(ticks) {
-      return ticks;
-    },
-  };
+  return new PriceTransform(priceMin, priceMax, chartHeight, scaleMode, percentBase);
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -299,7 +291,16 @@ export function visiblePriceRange(bars, paddingPct = 0.05) {
  * @param {number} maxTicks  - Target number of ticks
  * @returns {{ min: number, max: number, step: number, ticks: number[] }}
  */
+// P2 5.3: Memoize niceScale — avoids redundant log/pow/ceil/floor during panning.
+// 4-slot LRU is enough for main pane + 3 indicator panes.
+const _niceScaleCache = new Map();
+const _NICE_CACHE_MAX = 4;
+
 export function niceScale(min, max, maxTicks = 8) {
+  const key = `${min}|${max}|${maxTicks}`;
+  const cached = _niceScaleCache.get(key);
+  if (cached) return cached;
+
   const range = max - min || 1;
   const roughStep = range / maxTicks;
 
@@ -326,30 +327,21 @@ export function niceScale(min, max, maxTicks = 8) {
     }
   }
 
-  return { min: niceMin, max: niceMax, step, ticks };
+  const result = { min: niceMin, max: niceMax, step, ticks };
+
+  // LRU eviction
+  if (_niceScaleCache.size >= _NICE_CACHE_MAX) {
+    const oldest = _niceScaleCache.keys().next().value;
+    _niceScaleCache.delete(oldest);
+  }
+  _niceScaleCache.set(key, result);
+
+  return result;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// Price Formatting
-// ═══════════════════════════════════════════════════════════════════
-
-/**
- * Auto-format price based on magnitude.
- * Crypto needs 2-8 decimals depending on price.
- * Equities typically need 2.
- *
- * @param {number} price
- * @returns {string}
- */
-export function formatPrice(price) {
-  const abs = Math.abs(price);
-  if (abs >= 10000) return price.toFixed(0);
-  if (abs >= 100) return price.toFixed(2);
-  if (abs >= 1) return price.toFixed(2);
-  if (abs >= 0.01) return price.toFixed(4);
-  if (abs >= 0.0001) return price.toFixed(6);
-  return price.toFixed(8);
-}
+// Sprint 9 #73: formatPrice consolidated into shared/formatting.ts.
+// Re-exported here for backward compatibility with existing import sites.
+export { formatPrice } from '../../shared/formatting';
 
 /**
  * Format timestamp for time axis labels based on timeframe.

@@ -65,6 +65,7 @@ export const createGoalSlice = (set, get) => ({
         try {
           const d = new Date(t.date);
           return d >= start && d <= end;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_) {
           return false;
         }

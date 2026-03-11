@@ -6,12 +6,12 @@
 // and a "share" option.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo } from 'react';
-import { C, M, F } from '../../../constants.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { useGamificationStore } from '../../../state/useGamificationStore.js';
-import { useBreakpoints } from '../../../utils/useMediaQuery.js';
+import { useMemo } from 'react';
+import { C, M } from '../../../constants.js';
+import { useGamificationStore } from '../../../state/useGamificationStore';
+import { useJournalStore } from '../../../state/useJournalStore';
 import { fmtD } from '../../../utils.js';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 export default function WeeklyDigest() {
   const trades = useJournalStore((s) => s.trades);

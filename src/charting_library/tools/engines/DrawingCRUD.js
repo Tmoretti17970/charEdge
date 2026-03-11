@@ -5,12 +5,9 @@
 // All functions receive a `ctx` context object for state access.
 // ═══════════════════════════════════════════════════════════════════
 
-let _idCounter = 0;
-
-/** Generate a short unique ID */
-export function generateId() {
-  return 'drw_' + Date.now().toString(36) + '_' + (++_idCounter).toString(36);
-}
+// BUG-13: Use unified ID generator from DrawingModel
+import { generateId } from '../tools/DrawingModel.js';
+export { generateId };
 
 /** Add a pre-built drawing */
 export function addDrawing(ctx, drawing) {
@@ -26,6 +23,8 @@ export function removeDrawing(ctx, id) {
     ctx.selectedDrawingId = null;
     ctx.setState('idle');
   }
+  // BUG-08: Immediately remove stale scene graph node
+  if (ctx.sceneGraph) ctx.sceneGraph.removeNode(`drw_${id}`);
   ctx.emit();
   return ctx.drawings;
 }
@@ -37,6 +36,12 @@ export function clearAll(ctx) {
   ctx.activeDrawing = null;
   ctx.activeTool = null;
   ctx.setState('idle');
+  // BUG-08: Purge all drawing nodes from scene graph immediately
+  if (ctx.sceneGraph?.root?.traverse) {
+    const ids = [];
+    ctx.sceneGraph.root.traverse(node => { if (node.type === 'drawing') ids.push(node.id); });
+    for (const nid of ids) ctx.sceneGraph.removeNode(nid);
+  }
   ctx.emit();
   return ctx.drawings;
 }
@@ -85,6 +90,7 @@ export function duplicateDrawing(ctx, id) {
 export function bringToFront(ctx, id) {
   const idx = ctx.drawings.findIndex(d => d.id === id);
   if (idx >= 0 && idx < ctx.drawings.length - 1) {
+    if (ctx.pushUndo) ctx.pushUndo(); // BUG-05: snapshot before z-order change
     const [d] = ctx.drawings.splice(idx, 1);
     ctx.drawings.push(d);
     ctx.emit();
@@ -95,6 +101,7 @@ export function bringToFront(ctx, id) {
 export function sendToBack(ctx, id) {
   const idx = ctx.drawings.findIndex(d => d.id === id);
   if (idx > 0) {
+    if (ctx.pushUndo) ctx.pushUndo(); // BUG-05: snapshot before z-order change
     const [d] = ctx.drawings.splice(idx, 1);
     ctx.drawings.unshift(d);
     ctx.emit();
@@ -243,6 +250,8 @@ export function selectGroup(ctx, groupId) {
 
 /** Bulk move all selected drawings by pixel offset */
 export function bulkMove(ctx, dx, dy) {
+  // BUG-12: Bail if coordinate converters aren't ready
+  if (!ctx.anchorToPixel || !ctx.pixelToAnchor) return;
   const ids = ctx.selectedDrawingIds.size > 0 ? ctx.selectedDrawingIds : new Set();
   for (const d of ctx.drawings) {
     if (!ids.has(d.id)) continue;

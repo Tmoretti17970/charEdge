@@ -127,7 +127,7 @@ export function renderAndCache(
     pixelRatio: number,
     params: Record<string, unknown>,
     computedStamp: number,
-    renderFn: (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | any) => void,
+    renderFn: (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | unknown) => void,
 ): OffscreenCanvas | HTMLCanvasElement {
     const key = buildCacheKey(
         indicatorId, startIdx, endIdx, barSpacing,
@@ -147,7 +147,7 @@ export function renderAndCache(
             canvas.height = height;
         }
         const ctx = canvas.getContext('2d')!;
-        entry = { canvas, ctx: ctx as any, key: '', age: 0, indicatorId };
+        entry = { canvas, ctx: ctx as unknown, key: '', age: 0, indicatorId };
         _entries.set(indicatorId, entry);
     }
 
@@ -176,7 +176,7 @@ export function cachedIndicatorRender(
     pixelRatio: number,
     params: Record<string, unknown>,
     computedStamp: number,
-    renderFn: (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | any) => void,
+    renderFn: (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | unknown) => void,
 ): OffscreenCanvas | HTMLCanvasElement {
     const cached = getCachedIndicator(
         indicatorId, startIdx, endIdx, barSpacing,
@@ -222,6 +222,7 @@ export function getIndicatorCacheStats(): { size: number; maxSize: number; entri
 
 // ─── Internal ───────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _evictStale(): void {
     if (_entries.size <= MAX_ENTRIES) return;
 

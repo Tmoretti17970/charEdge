@@ -1,8 +1,23 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Confluence Engine (Sprint 8)
+// charEdge — Confluence Engine (Sprint 8, Phase 3 Upgrade)
 // Detects when multiple indicators and price levels agree,
-// generating high-confluence signals with visual markers.
+// generating weighted high-confluence signals with visual markers.
 // ═══════════════════════════════════════════════════════════════════
+
+// ─── Signal Weights ──────────────────────────────────────────────
+const SIGNAL_WEIGHTS = {
+  rsi_oversold: 1.5,
+  rsi_overbought: 1.5,
+  bullish_divergence: 2.5,
+  bearish_divergence: 2.5,
+  macd_bull_cross: 2.0,
+  macd_bear_cross: 2.0,
+  at_support: 1.2,
+  at_resistance: 1.2,
+  volume_spike: 1.0,
+  ma_above: 0.5,
+  ma_below: 0.5,
+};
 
 /**
  * Analyze confluence: when multiple signals align.
@@ -30,17 +45,17 @@ export function analyzeConfluence(data) {
   if (rsi && rsi.length > lastIdx) {
     const rsiVal = rsi[lastIdx];
     const prevRsi = rsi[lastIdx - 1] || 50;
-    if (rsiVal < 30) { signals.push({ type: 'rsi_oversold', bias: 'bullish', strength: 1 - rsiVal / 30 }); bullishCount++; }
-    else if (rsiVal > 70) { signals.push({ type: 'rsi_overbought', bias: 'bearish', strength: (rsiVal - 70) / 30 }); bearishCount++; }
+    if (rsiVal < 30) { signals.push({ type: 'rsi_oversold', bias: 'bullish', strength: 1 - rsiVal / 30 }); bullishCount += SIGNAL_WEIGHTS.rsi_oversold; }
+    else if (rsiVal > 70) { signals.push({ type: 'rsi_overbought', bias: 'bearish', strength: (rsiVal - 70) / 30 }); bearishCount += SIGNAL_WEIGHTS.rsi_overbought; }
     else { neutralCount++; }
 
     // RSI divergence (basic)
     if (lastClose < prevClose && rsiVal > prevRsi) {
       signals.push({ type: 'bullish_divergence', bias: 'bullish', strength: 0.7, desc: 'Price lower, RSI higher' });
-      bullishCount++;
+      bullishCount += SIGNAL_WEIGHTS.bullish_divergence;
     } else if (lastClose > prevClose && rsiVal < prevRsi) {
       signals.push({ type: 'bearish_divergence', bias: 'bearish', strength: 0.7, desc: 'Price higher, RSI lower' });
-      bearishCount++;
+      bearishCount += SIGNAL_WEIGHTS.bearish_divergence;
     }
   }
 
@@ -55,10 +70,10 @@ export function analyzeConfluence(data) {
     // MACD crossover
     if (prevMacd <= prevSig && macdVal > macdSig) {
       signals.push({ type: 'macd_bull_cross', bias: 'bullish', strength: 0.8 });
-      bullishCount++;
+      bullishCount += SIGNAL_WEIGHTS.macd_bull_cross;
     } else if (prevMacd >= prevSig && macdVal < macdSig) {
       signals.push({ type: 'macd_bear_cross', bias: 'bearish', strength: 0.8 });
-      bearishCount++;
+      bearishCount += SIGNAL_WEIGHTS.macd_bear_cross;
     }
     // MACD above/below zero
     if (macdVal > 0) bullishCount += 0.5;
@@ -87,8 +102,8 @@ export function analyzeConfluence(data) {
         strength: level.strength || 0.5,
         desc: `Price at ${level.type} ${level.price.toFixed(2)}`,
       });
-      if (level.type === 'support') bullishCount++;
-      else bearishCount++;
+      if (level.type === 'support') bullishCount += SIGNAL_WEIGHTS.at_support;
+      else bearishCount += SIGNAL_WEIGHTS.at_resistance;
     }
   }
 

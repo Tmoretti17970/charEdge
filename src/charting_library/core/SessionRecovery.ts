@@ -15,12 +15,12 @@
 // Staleness: Recovery states older than 24h are ignored.
 // ═══════════════════════════════════════════════════════════════════
 
-import { logger } from '../../utils/logger.js';
 
 // ─── Constants ──────────────────────────────────────────────────
 
-const DB_NAME = 'charedge-session-recovery';
-const DB_VERSION = 1;
+import { openUnifiedDB } from '../../data/UnifiedDB.js';
+
+// P2 7.2: Consolidated into UnifiedDB — no longer uses private 'charedge-session-recovery'
 const STORE_NAME = 'session';
 const SESSION_KEY = 'charedge_session_v1';
 const SAVE_INTERVAL_MS = 30_000;       // Auto-save every 30 seconds
@@ -48,86 +48,39 @@ export interface RecoveryState {
     workspaceName: string | null;
 }
 
-// ─── IndexedDB Helpers ──────────────────────────────────────────
-
-let _db: IDBDatabase | null = null;
-let _dbPromise: Promise<IDBDatabase> | null = null;
-
-function openDB(): Promise<IDBDatabase> {
-    if (_db) return Promise.resolve(_db);
-    if (_dbPromise) return _dbPromise;
-
-    _dbPromise = new Promise((resolve, reject) => {
-        try {
-            const req = indexedDB.open(DB_NAME, DB_VERSION);
-
-            req.onupgradeneeded = () => {
-                const db = req.result;
-                if (!db.objectStoreNames.contains(STORE_NAME)) {
-                    db.createObjectStore(STORE_NAME);
-                }
-            };
-
-            req.onsuccess = () => {
-                _db = req.result;
-                resolve(_db);
-            };
-
-            req.onerror = () => {
-                logger.engine?.warn?.('[SessionRecovery] Failed to open IndexedDB', req.error);
-                _dbPromise = null;
-                reject(req.error);
-            };
-        } catch (err) {
-            _dbPromise = null;
-            reject(err);
-        }
-    });
-
-    return _dbPromise;
-}
+// ─── IndexedDB Helpers (P2 7.2: via UnifiedDB) ─────────────────
 
 async function idbPut(value: RecoveryState): Promise<void> {
-    try {
-        const db = await openDB();
+    const db = await openUnifiedDB();
+    return new Promise((resolve, reject) => {
         const tx = db.transaction(STORE_NAME, 'readwrite');
-        tx.objectStore(STORE_NAME).put(value, SESSION_KEY);
-        return new Promise((resolve, reject) => {
-            tx.oncomplete = () => resolve();
-            tx.onerror = () => reject(tx.error);
-        });
-    } catch (err) {
-        logger.engine?.warn?.('[SessionRecovery] idbPut failed', err);
-    }
+        const store = tx.objectStore(STORE_NAME);
+        store.put({ key: SESSION_KEY, ...value });
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
 }
 
 async function idbGet(): Promise<RecoveryState | null> {
-    try {
-        const db = await openDB();
+    const db = await openUnifiedDB();
+    return new Promise((resolve) => {
         const tx = db.transaction(STORE_NAME, 'readonly');
-        const req = tx.objectStore(STORE_NAME).get(SESSION_KEY);
-        return new Promise((resolve, reject) => {
-            req.onsuccess = () => resolve(req.result || null);
-            req.onerror = () => reject(req.error);
-        });
-    } catch (err) {
-        logger.engine?.warn?.('[SessionRecovery] idbGet failed', err);
-        return null;
-    }
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.get(SESSION_KEY);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+    });
 }
 
 async function idbDelete(): Promise<void> {
-    try {
-        const db = await openDB();
+    const db = await openUnifiedDB();
+    return new Promise((resolve) => {
         const tx = db.transaction(STORE_NAME, 'readwrite');
-        tx.objectStore(STORE_NAME).delete(SESSION_KEY);
-        return new Promise((resolve, reject) => {
-            tx.oncomplete = () => resolve();
-            tx.onerror = () => reject(tx.error);
-        });
-    } catch (err) {
-        logger.engine?.warn?.('[SessionRecovery] idbDelete failed', err);
-    }
+        const store = tx.objectStore(STORE_NAME);
+        store.delete(SESSION_KEY);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+    });
 }
 
 // ─── Session Recovery Public API ────────────────────────────────

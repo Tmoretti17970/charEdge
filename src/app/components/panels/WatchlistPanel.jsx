@@ -13,10 +13,10 @@
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
+import { useChartStore } from '../../../state/useChartStore';
+import { useJournalStore } from '../../../state/useJournalStore';
+import { useUIStore } from '../../../state/useUIStore';
 import { useWatchlistStore, groupByAssetClass, enrichWithTradeStats } from '../../../state/useWatchlistStore.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { useChartStore } from '../../../state/useChartStore.js';
-import { useUIStore } from '../../../state/useUIStore.js';
 
 const ASSET_ICONS = {
   futures: '📊',
@@ -42,34 +42,63 @@ export default function WatchlistPanel({ compact = false }) {
   // Data caches for sorting and display
   const [tickers, setTickers] = useState({});
   const [sparklines, setSparklines] = useState({});
-  const [sentiments, setSentiments] = useState({});
+  const [sentiments, _setSentiments] = useState({});
 
   useEffect(() => {
     let mounted = true;
     import('../../../data/FetchService.ts').then(async ({ fetch24hTicker, fetchSparkline }) => {
-      // Fetch all tickers and sparklines
-      const newTickers = { ...tickers };
-      const newSparklines = { ...sparklines };
-
-      for (const item of items) {
-        if (!newTickers[item.symbol]) {
-          const tData = await fetch24hTicker(item.symbol);
-          if (tData && tData.length > 0) newTickers[item.symbol] = tData[0];
+      // Batch fetch all tickers in one call (crypto symbols → single Binance request)
+      const symbolsToFetch = items.filter(i => !tickers[i.symbol]).map(i => i.symbol);
+      if (symbolsToFetch.length > 0) {
+        const tickerResults = await fetch24hTicker(symbolsToFetch);
+        const newTickers = { ...tickers };
+        for (const t of tickerResults) {
+          if (t?.symbol) newTickers[t.symbol.replace('USDT', '')] = t;
+          // Also store by raw symbol for non-crypto
+          if (t?.symbol) newTickers[t.symbol] = t;
         }
-        if (!newSparklines[item.symbol]) {
-          const sData = await fetchSparkline(item.symbol, item.assetClass === 'crypto');
-          if (sData && sData.length > 0) newSparklines[item.symbol] = sData;
-        }
+        if (mounted) setTickers(newTickers);
       }
 
-      if (mounted) {
-        setTickers(newTickers);
-        setSparklines(newSparklines);
+      // Sparklines: batchGetQuotes already includes sparkline data for
+      // crypto symbols. Only fetch individually for symbols missing data.
+      const { batchGetQuotes } = await import('../../../data/QuoteService.js');
+      const missingSparklines = items.filter(i => !sparklines[i.symbol]).map(i => i.symbol);
+      if (missingSparklines.length > 0) {
+        const quoteMap = await batchGetQuotes(missingSparklines);
+        const newSparklines = { ...sparklines };
+
+        // Use sparklines from batch quotes first
+        const stillMissing = [];
+        for (const sym of missingSparklines) {
+          const quote = quoteMap.get(sym.toUpperCase());
+          if (quote?.sparkline?.length > 0) {
+            newSparklines[sym] = quote.sparkline;
+          } else {
+            stillMissing.push(sym);
+          }
+        }
+
+        // Fallback: fetch remaining sparklines individually
+        if (stillMissing.length > 0) {
+          const sparkPromises = stillMissing.map(async (sym) => {
+            const item = items.find(i => i.symbol === sym);
+            const sData = await fetchSparkline(sym, item?.assetClass === 'crypto');
+            return { symbol: sym, data: sData };
+          });
+          const sparkResults = await Promise.all(sparkPromises);
+          for (const { symbol, data } of sparkResults) {
+            if (data && data.length > 0) newSparklines[symbol] = data;
+          }
+        }
+
+        if (mounted) setSparklines(newSparklines);
       }
     });
     return () => {
       mounted = false;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
 
   // Enrich with trade stats and sort

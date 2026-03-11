@@ -1,4 +1,4 @@
-import { logger } from '../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Real-Time Chart Collaboration Engine (Sprint 17)
@@ -48,6 +48,7 @@ export class CollabSession {
       }, 3000);
 
       return true;
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return false;
     }
@@ -126,6 +127,7 @@ export class CollabSession {
   // ─── Private ──────────────────────────────────────────────
 
   _send(data) {
+    // eslint-disable-next-line unused-imports/no-unused-vars
     try { this.channel?.postMessage(data); } catch (_) { /* storage may be blocked */ }
   }
 

@@ -10,15 +10,37 @@
 
 import { SITE_URL } from './meta.js';
 import { getAllPublicPaths } from './routes.js';
-import { logger } from '../utils/logger';
 
 /**
- * Generate sitemap.xml content.
- * @returns {string} XML string
+ * P2 8.3: Dynamic sitemap — fetches live symbol data for accurate lastmod.
+ * @returns {Promise<string>} XML string
  */
-export function generateSitemap() {
+export async function generateSitemap() {
   const paths = getAllPublicPaths();
-  const now = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+  // Fetch known symbols for dynamic /s/:symbol pages
+  let symbolPaths = [];
+  try {
+    const { openCacheDB } = await import('../data/DataCache.ts');
+    const db = await openCacheDB();
+    const tx = db.transaction('meta', 'readonly');
+    const store = tx.objectStore('meta');
+    const allMeta = await new Promise((resolve) => {
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => resolve([]);
+    });
+    symbolPaths = allMeta
+      .filter((m) => m.key && m.key.startsWith('candles:'))
+      .map((m) => {
+        const symbol = m.key.split(':')[1];
+        const lastmod = m.lastUpdated
+          ? new Date(m.lastUpdated).toISOString().split('T')[0]
+          : today;
+        return { path: `/s/${symbol}`, lastmod };
+      });
+  } catch { /* DataCache unavailable — use static paths only */ }
 
   const urls = paths.map((path) => {
     const priority = getPriority(path);
@@ -26,11 +48,21 @@ export function generateSitemap() {
 
     return `  <url>
     <loc>${SITE_URL}${path}</loc>
-    <lastmod>${now}</lastmod>
+    <lastmod>${today}</lastmod>
     <changefreq>${changefreq}</changefreq>
     <priority>${priority}</priority>
   </url>`;
   });
+
+  // Append dynamic symbol pages
+  for (const sp of symbolPaths) {
+    urls.push(`  <url>
+    <loc>${SITE_URL}${sp.path}</loc>
+    <lastmod>${sp.lastmod}</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>`);
+  }
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

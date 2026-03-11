@@ -9,13 +9,12 @@
 // This is NOT user-facing — it's for internal dev use only.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useAnalyticsStore } from '../state/useAnalyticsStore.js';
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { C, F, M } from '../constants.js';
-import { getAuditSummary, getPlatformCLS, getPhase5Summary, SIMPLIFICATION_MANIFESTO } from '../utils/cognitiveLoadAudit.js';
-import { ChartPerfMonitor } from '../charting_library/core/ChartPerfMonitor.js';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { StressTest } from '../charting_library/perf/StressTest.js';
-import { logger } from '../utils/logger';
+import { C, F, M } from '../constants.js';
+import { useAnalyticsStore } from '../state/useAnalyticsStore';
+import { getAuditSummary, getPlatformCLS, getPhase5Summary, SIMPLIFICATION_MANIFESTO } from '@/a11y/cognitiveLoadAudit';
+import { logger } from '@/observability/logger';
 
 function formatDuration(ms) {
   if (!ms || ms <= 0) return '—';
@@ -147,7 +146,7 @@ function DailyChart({ dailyMinutes }) {
 export default function TelemetryDashboard() {
   const kpis = useAnalyticsStore((s) => s.kpis);
   const pageViews = useAnalyticsStore((s) => s.pageViews);
-  const featureUsage = useAnalyticsStore((s) => s.featureUsage);
+  const _featureUsage = useAnalyticsStore((s) => s.featureUsage);
   const clickMap = useAnalyticsStore((s) => s.clickMap);
   const workflows = useAnalyticsStore((s) => s.workflows);
   const sessions = useAnalyticsStore((s) => s.sessions);

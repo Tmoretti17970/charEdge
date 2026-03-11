@@ -24,7 +24,7 @@ test.describe('Chart Workflow', () => {
         const chartsNav = page.locator('text=Charts').first();
         if (await chartsNav.isVisible({ timeout: 3000 }).catch(() => false)) {
             await chartsNav.click();
-            await page.waitForLoadState('networkidle');
+            await page.waitForLoadState('domcontentloaded');
         }
 
         // Chart should have at least one canvas
@@ -88,7 +88,6 @@ test.describe('Chart Workflow', () => {
     test('keyboard shortcut 2 navigates to Charts', async ({ page }) => {
         // Press '2' to navigate to Charts
         await page.keyboard.press('2');
-        await page.waitForTimeout(500);
 
         // Chart canvas should appear
         const canvas = page.locator('canvas').first();
@@ -104,7 +103,7 @@ test.describe('Chart Workflow', () => {
         if (await chartsNav.isVisible({ timeout: 3000 }).catch(() => false)) {
             await chartsNav.click();
         }
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         // Filter known non-critical errors
         const critical = errors.filter(msg =>

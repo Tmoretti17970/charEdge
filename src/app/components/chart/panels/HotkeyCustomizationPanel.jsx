@@ -3,9 +3,9 @@
 // Lets users view and rebind keyboard shortcuts.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { C, F } from '../../../../constants.js';
-import { logger } from '../../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 const STORAGE_KEY = 'charEdge-hotkeys';
 
@@ -54,6 +54,7 @@ export default function HotkeyCustomizationPanel({ onClose }) {
   const [hotkeys, setHotkeys] = useState(loadHotkeys);
   const [editingId, setEditingId] = useState(null);
   const [listening, setListening] = useState(false);
+  const [countdown, setCountdown] = useState(0);
 
   const handleRebind = useCallback((id) => {
     setEditingId(id);
@@ -62,6 +63,21 @@ export default function HotkeyCustomizationPanel({ onClose }) {
 
   useEffect(() => {
     if (!listening || !editingId) return;
+
+    // P2 4.2: Start 5-second countdown timer
+    setCountdown(5);
+    const countdownTimer = setInterval(() => {
+      setCountdown((c) => {
+        if (c <= 1) {
+          // Auto-cancel capture on timeout
+          setEditingId(null);
+          setListening(false);
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+
     const handler = (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -81,10 +97,14 @@ export default function HotkeyCustomizationPanel({ onClose }) {
         });
         setEditingId(null);
         setListening(false);
+        setCountdown(0);
       }
     };
     window.addEventListener('keydown', handler, true);
-    return () => window.removeEventListener('keydown', handler, true);
+    return () => {
+      window.removeEventListener('keydown', handler, true);
+      clearInterval(countdownTimer);
+    };
   }, [listening, editingId]);
 
   const resetAll = useCallback(() => {
@@ -159,7 +179,7 @@ export default function HotkeyCustomizationPanel({ onClose }) {
                     animation: editingId === hk.id ? 'pulse 1s infinite' : 'none',
                   }}
                 >
-                  {editingId === hk.id ? 'Press key...' : hk.key}
+                  {editingId === hk.id ? `Press key... ${countdown}s` : hk.key}
                 </button>
               </div>
             ))}

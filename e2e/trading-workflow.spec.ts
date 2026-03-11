@@ -8,10 +8,14 @@
 // This is the single most important E2E test — it validates the
 // entire user flow that makes charEdge valuable.
 //
+// P3 C3: All waitForTimeout calls replaced with deterministic waits.
+//
 // Run: npx playwright test e2e/trading-workflow.spec.ts
 // ═══════════════════════════════════════════════════════════════════
 
 import { test, expect } from '@playwright/test';
+
+const MODAL_SELECTOR = '[role="dialog"], [class*="modal"], [class*="Modal"], [class*="slide-over"]';
 
 /** Shared boot helper — waits for React to render */
 async function bootApp(page: any) {
@@ -26,8 +30,19 @@ async function bootApp(page: any) {
 /** Navigate to a page by keyboard shortcut */
 async function navigateTo(page: any, key: string) {
     await page.keyboard.press(key);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForFunction(
+        () => !document.querySelector('[class*="loadingRoot"], [class*="skeleton"]'),
+        { timeout: 10_000 }
+    );
+}
+
+/** Open trade form modal and return locator */
+async function openTradeForm(page: any) {
+    await page.keyboard.press('Control+n');
+    const modal = page.locator(MODAL_SELECTOR).first();
+    await modal.waitFor({ state: 'visible', timeout: 5_000 }).catch(() => { });
+    return modal;
 }
 
 /** Error collector — filters out known non-critical errors */
@@ -62,7 +77,6 @@ test.describe('Full Trading Workflow', () => {
         await expect(canvas).toBeVisible({ timeout: 10_000 });
 
         // ─── Step 2: Symbol search ──────────────────────────────
-        // Try to open symbol search via click or keyboard
         const symbolTrigger = page.locator(
             '[class*="symbol-search"], [class*="SymbolSearch"], [class*="symbol-display"], ' +
             'button:has-text("BTC"), button:has-text("BTCUSDT")'
@@ -70,7 +84,6 @@ test.describe('Full Trading Workflow', () => {
 
         if (await symbolTrigger.isVisible({ timeout: 5_000 }).catch(() => false)) {
             await symbolTrigger.click();
-            await page.waitForTimeout(500);
 
             const searchInput = page.locator(
                 'input[placeholder*="earch"], input[placeholder*="ymbol"], input[type="search"]'
@@ -78,48 +91,41 @@ test.describe('Full Trading Workflow', () => {
 
             if (await searchInput.isVisible({ timeout: 3_000 }).catch(() => false)) {
                 await searchInput.fill('ETH');
-                await page.waitForTimeout(1000);
-
-                // Click first result if visible
+                // Wait for search results
                 const result = page.locator(
                     '[class*="result"], [class*="Result"], [role="option"]'
                 ).first();
-                if (await result.isVisible({ timeout: 3_000 }).catch(() => false)) {
+
+                if (await result.isVisible({ timeout: 5_000 }).catch(() => false)) {
                     await result.click();
-                    await page.waitForTimeout(1000);
+                    // Wait for chart to update with new symbol
+                    await page.waitForFunction(
+                        () => !document.querySelector('[class*="loading"], [class*="spinner"]'),
+                        { timeout: 5_000 }
+                    ).catch(() => { });
                 } else {
-                    // Close search if no results
                     await page.keyboard.press('Escape');
                 }
             }
         }
 
         // ─── Step 3: Verify chart toolbar interaction ───────────
-        // Change timeframe (verifies toolbar is interactive)
         const tfPills = page.locator('.tf-chart-tf-pill');
         if (await tfPills.first().isVisible({ timeout: 5_000 }).catch(() => false)) {
             const pillCount = await tfPills.count();
             if (pillCount > 1) {
                 await tfPills.nth(1).click();
-                await page.waitForTimeout(500);
+                await expect(tfPills.nth(1)).toHaveAttribute('data-active', 'true', { timeout: 3_000 }).catch(() => { });
             }
         }
 
         // ─── Step 4: Open trade form and add a trade ────────────
-        // Open trade form via keyboard shortcut (Ctrl+N)
-        await page.keyboard.press('Control+n');
-        await page.waitForTimeout(800);
-
-        const modal = page.locator(
-            '[role="dialog"], [class*="modal"], [class*="Modal"], [class*="slide-over"]'
-        ).first();
+        const modal = await openTradeForm(page);
 
         if (await modal.isVisible({ timeout: 5_000 }).catch(() => false)) {
-            // Fill in required fields
-            // Symbol
+            // Fill in required fields — Symbol
             const symbolInput = modal.locator('input').first();
             await symbolInput.fill('BTCE2E');
-            await page.waitForTimeout(200);
 
             // P&L — find the P&L input (type=number after symbol)
             const pnlInput = modal.locator('input[type="number"]').first();
@@ -131,11 +137,10 @@ test.describe('Full Trading Workflow', () => {
             const addButton = modal.locator('button:has-text("Add Trade")');
             if (await addButton.isVisible({ timeout: 2_000 }).catch(() => false)) {
                 await addButton.click();
-                await page.waitForTimeout(1000);
 
-                // Toast confirmation should appear
+                // Wait for modal to close or toast to appear
                 const toast = page.locator('[class*="toast"], [class*="Toast"], [role="status"]').first();
-                if (await toast.isVisible({ timeout: 3_000 }).catch(() => false)) {
+                if (await toast.isVisible({ timeout: 5_000 }).catch(() => false)) {
                     const toastText = await toast.textContent();
                     expect(toastText).toContain('BTCE2E');
                 }
@@ -146,7 +151,7 @@ test.describe('Full Trading Workflow', () => {
                     const closeBtn = reviewModal.locator('button:has-text("Close"), button:has-text("Skip"), button:has-text("✕")').first();
                     if (await closeBtn.isVisible({ timeout: 1_000 }).catch(() => false)) {
                         await closeBtn.click();
-                        await page.waitForTimeout(500);
+                        await reviewModal.waitFor({ state: 'hidden', timeout: 3_000 }).catch(() => { });
                     } else {
                         await page.keyboard.press('Escape');
                     }
@@ -160,12 +165,9 @@ test.describe('Full Trading Workflow', () => {
         const mainContent = page.locator('#tf-main-content');
         await expect(mainContent).toBeVisible({ timeout: 5_000 });
 
-        // Check that the page has loaded with content
         const pageText = await mainContent.textContent();
         expect(pageText?.length).toBeGreaterThan(0);
 
-        // The dashboard/home page should now include stats that reflect our trade
-        // Look for any metric cards or trade-related content
         const metricCards = page.locator(
             '[class*="metric"], [class*="Metric"], [class*="stat"], [class*="Stat"], ' +
             '[class*="bento"], [class*="Bento"], [class*="card"], [class*="Card"]'
@@ -181,22 +183,18 @@ test.describe('Full Trading Workflow', () => {
     test('trade form validation prevents empty submission', async ({ page }) => {
         await bootApp(page);
 
-        // Open trade form
-        await page.keyboard.press('Control+n');
-        await page.waitForTimeout(800);
-
-        const modal = page.locator(
-            '[role="dialog"], [class*="modal"], [class*="Modal"]'
-        ).first();
+        const modal = await openTradeForm(page);
 
         if (await modal.isVisible({ timeout: 5_000 }).catch(() => false)) {
-            // Try to submit without filling required fields
             const addButton = modal.locator('button:has-text("Add Trade")');
             if (await addButton.isVisible({ timeout: 2_000 }).catch(() => false)) {
                 await addButton.click();
-                await page.waitForTimeout(500);
+                // Wait for validation error text to appear
+                await page.waitForFunction(
+                    () => document.querySelector('[role="dialog"], [class*="modal"]')?.textContent?.includes('Required'),
+                    { timeout: 3_000 }
+                ).catch(() => { });
 
-                // Validation errors should appear (symbol + P&L required)
                 const errorText = await modal.textContent();
                 expect(errorText).toContain('Required');
             }
@@ -206,26 +204,16 @@ test.describe('Full Trading Workflow', () => {
     test('trade form cancel does not add trade', async ({ page }) => {
         await bootApp(page);
 
-        // Open trade form
-        await page.keyboard.press('Control+n');
-        await page.waitForTimeout(800);
-
-        const modal = page.locator(
-            '[role="dialog"], [class*="modal"], [class*="Modal"]'
-        ).first();
+        const modal = await openTradeForm(page);
 
         if (await modal.isVisible({ timeout: 5_000 }).catch(() => false)) {
-            // Fill some data
             const symbolInput = modal.locator('input').first();
             await symbolInput.fill('CANCELTEST');
 
-            // Cancel
             const cancelButton = modal.locator('button:has-text("Cancel")');
             if (await cancelButton.isVisible({ timeout: 2_000 }).catch(() => false)) {
                 await cancelButton.click();
-                await page.waitForTimeout(500);
-
-                // Modal should be closed
+                // Wait for modal to close
                 await expect(modal).not.toBeVisible({ timeout: 3_000 });
             }
         }
@@ -247,9 +235,7 @@ test.describe('Full Trading Workflow', () => {
 
         // Navigate Settings (3)
         await navigateTo(page, '3');
-        await page.waitForTimeout(1000);
 
-        // Settings slide-over or page should appear
         const settings = page.locator(
             '[class*="settings"], [class*="Settings"], [class*="slide-over"]'
         ).first();
@@ -258,8 +244,9 @@ test.describe('Full Trading Workflow', () => {
         }
 
         // Back to Charts (2)
-        await page.keyboard.press('Escape'); // Close settings if slide-over
-        await page.waitForTimeout(300);
+        await page.keyboard.press('Escape');
+        // Wait for slide-over to close
+        await settings.waitFor({ state: 'hidden', timeout: 3_000 }).catch(() => { });
         await navigateTo(page, '2');
         await expect(canvas).toBeVisible({ timeout: 10_000 });
 
@@ -270,19 +257,16 @@ test.describe('Full Trading Workflow', () => {
     test('progressive disclosure: More Details expands trade form', async ({ page }) => {
         await bootApp(page);
 
-        await page.keyboard.press('Control+n');
-        await page.waitForTimeout(800);
-
-        const modal = page.locator(
-            '[role="dialog"], [class*="modal"], [class*="Modal"]'
-        ).first();
+        const modal = await openTradeForm(page);
 
         if (await modal.isVisible({ timeout: 5_000 }).catch(() => false)) {
-            // "More Details" button should be visible
             const moreDetails = modal.locator('button:has-text("More Details")');
             if (await moreDetails.isVisible({ timeout: 2_000 }).catch(() => false)) {
                 await moreDetails.click();
-                await page.waitForTimeout(500);
+
+                // Wait for the expanded section to appear
+                const lessDetails = modal.locator('button:has-text("Less Details")');
+                await expect(lessDetails).toBeVisible({ timeout: 2_000 });
 
                 // Additional fields should now be visible (Qty, Entry, Exit)
                 const qtyInput = modal.locator('input[placeholder="1"]');
@@ -291,10 +275,6 @@ test.describe('Full Trading Workflow', () => {
                     await qtyInput.isVisible({ timeout: 2_000 }).catch(() => false) ||
                     await entryInput.isVisible({ timeout: 2_000 }).catch(() => false)
                 ).toBeTruthy();
-
-                // "Less Details" should now appear
-                const lessDetails = modal.locator('button:has-text("Less Details")');
-                await expect(lessDetails).toBeVisible({ timeout: 2_000 });
             }
         }
     });

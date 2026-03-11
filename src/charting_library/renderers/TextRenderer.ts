@@ -1,4 +1,4 @@
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — TextRenderer
@@ -70,6 +70,7 @@ export function drawSDFText(
   r: RendererRef,
   entries: SDFTextEntry[],
   params: SDFTextParams,
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   TextAtlasCtor: TextAtlasConstructor,
 ): void {
   if (!r._available || !entries?.length) return;

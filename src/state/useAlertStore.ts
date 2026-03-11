@@ -9,6 +9,11 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+// ─── Transient Price Tracking ───────────────────────────────────
+// Stored outside Zustand to avoid triggering set()/persist on every tick.
+// This map is never persisted — it's ephemeral runtime state.
+const _lastPrices = new Map<string, number>();
+
 // ─── Types ──────────────────────────────────────────────────────
 
 export type AlertCondition = 'above' | 'below' | 'cross_above' | 'cross_below';
@@ -38,7 +43,6 @@ export interface Alert {
     createdAt: string;
     note: string;
     style: AlertVisualStyle;
-    _lastPrice: number | null;
     // Multi-condition fields (optional, backward-compatible)
     compoundLogic?: CompoundAlertLogic;
     conditions?: AlertSubCondition[];
@@ -101,7 +105,6 @@ const useAlertStore = create<AlertState & AlertActions>()(
                     createdAt: new Date().toISOString(),
                     note,
                     style,
-                    _lastPrice: null,
                 };
                 set((s) => ({ alerts: [...s.alerts, alert] }));
                 return alert.id;
@@ -119,7 +122,6 @@ const useAlertStore = create<AlertState & AlertActions>()(
                     createdAt: new Date().toISOString(),
                     note,
                     style,
-                    _lastPrice: null,
                     compoundLogic: logic,
                     conditions,
                 };
@@ -153,9 +155,8 @@ const useAlertStore = create<AlertState & AlertActions>()(
             },
 
             updateLastPrice: (symbol: string, price: number) => {
-                set((s) => ({
-                    alerts: s.alerts.map((a) => (a.symbol === symbol ? { ...a, _lastPrice: price } : a)),
-                }));
+                // Write to transient Map — no Zustand set(), no localStorage write
+                _lastPrices.set(symbol, price);
             },
 
             clearTriggered: () => {
@@ -181,6 +182,7 @@ const useAlertStore = create<AlertState & AlertActions>()(
                         body: JSON.stringify(sub.toJSON()),
                     });
                     set({ pushSubscribed: true });
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 } catch (_) {
                     /* push subscription failed — degrade gracefully */
                 }
@@ -188,12 +190,6 @@ const useAlertStore = create<AlertState & AlertActions>()(
         }),
         {
             name: ALERT_KEY,
-            partialize: (state: AlertState) => ({
-                alerts: state.alerts.map((a) => ({
-                    ...a,
-                    _lastPrice: null,
-                })),
-            }),
         },
     ),
 );
@@ -217,6 +213,7 @@ function sendNotification(title: string, body: string): void {
                 tag: 'charEdge-alert',
                 renotify: true,
             });
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_) {
             /* notifications may fail in some contexts */
         }
@@ -289,10 +286,13 @@ export function checkAlerts(prices: Record<string, number>): void {
 
         let triggered = false;
 
+        // Read last price from transient Map (not from alert state)
+        const lastPrice = _lastPrices.get(alert.symbol) ?? null;
+
         // Compound alert: evaluate all sub-conditions with AND/OR logic
         if (alert.conditions && alert.conditions.length > 0 && alert.compoundLogic) {
             const results = alert.conditions.map((sub) =>
-                evaluateSubCondition(sub, price, alert._lastPrice),
+                evaluateSubCondition(sub, price, lastPrice),
             );
             triggered = alert.compoundLogic === 'AND'
                 ? results.every(Boolean)
@@ -303,7 +303,7 @@ export function checkAlerts(prices: Record<string, number>): void {
                 alert.condition,
                 alert.price,
                 price,
-                alert._lastPrice,
+                lastPrice,
             );
         }
 

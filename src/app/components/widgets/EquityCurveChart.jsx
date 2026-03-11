@@ -4,9 +4,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useMemo, useState } from 'react';
-import ChartWrapper from '../chart/core/ChartWrapper.jsx';
 import { C, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import ChartWrapper from '../chart/core/ChartWrapper.jsx';
+import { alpha } from '@/shared/colorUtils';
 
 /**
  * @param {Array} eq - Equity curve array from computeFast: [{ date, pnl, daily, dd }]
@@ -63,7 +63,7 @@ function EquityCurveChart({ eq = [], height = 280, showBenchmark = false, showDr
         label: 'Equity',
         data: values,
         borderColor: isPositive ? C.g : C.r,
-        borderWidth: 2,
+        borderWidth: 3,
         pointRadius: 0,
         pointHitRadius: 8,
         pointHoverRadius: 4,
@@ -71,8 +71,8 @@ function EquityCurveChart({ eq = [], height = 280, showBenchmark = false, showDr
         tension: 0.3,
         fill: {
           target: 'origin',
-          above: isPositive ? C.g + '18' : C.r + '08',
-          below: C.r + '18',
+          above: isPositive ? C.g + '28' : C.r + '10',
+          below: C.r + '28',
         },
         yAxisID: 'y',
         order: 1, // Draw equity on top
@@ -102,7 +102,7 @@ function EquityCurveChart({ eq = [], height = 280, showBenchmark = false, showDr
     if (showBenchmark && values.length > 0) {
       // Illustrative benchmark: 10% annualized drift over the period
       // In a real app, this would fetch SPY/BTC data
-      const daysTotal = Object.keys(eq).length;
+      const _daysTotal = Object.keys(eq).length;
       const driftPerDay = 0.10 / 252; // 10% over 252 trading days
 
       let accountBase = 5000; // Assumed starting capital for relative comp
@@ -149,8 +149,7 @@ function EquityCurveChart({ eq = [], height = 280, showBenchmark = false, showDr
       y: {
         position: 'right',
         grid: {
-          color: C.bd + '60',
-          drawTicks: false,
+          display: false,
         },
         ticks: {
           font: { family: M, size: 9 },
@@ -258,6 +257,7 @@ function EquityCurveChart({ eq = [], height = 280, showBenchmark = false, showDr
         },
       ],
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [smoothedEq, showBenchmark, showDrawdown]);
 
   if (!config) return null;

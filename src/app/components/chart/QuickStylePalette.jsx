@@ -4,8 +4,8 @@
 // Shows 5 saved color/width combos for one-click style switching.
 // Inspired by Procreate's recent colors palette.
 // ═══════════════════════════════════════════════════════════════════
-import React, { useState, useCallback } from 'react';
-import { useChartStore } from '../../../state/useChartStore.js';
+import { useState, useCallback } from 'react';
+import { useChartToolsStore } from '../../../state/useChartStore';
 
 const PALETTE_COLORS = [
   '#2962FF', '#EF5350', '#26A69A', '#FF9800', '#AB47BC',
@@ -71,14 +71,14 @@ function WidthDot({ width, active, onClick }) {
 }
 
 export default function QuickStylePalette() {
-  const activeTool = useChartStore((s) => s.activeTool);
-  const quickStyles = useChartStore((s) => s.quickStyles);
-  const activeQuickStyleId = useChartStore((s) => s.activeQuickStyleId);
-  const setActiveQuickStyle = useChartStore((s) => s.setActiveQuickStyle);
-  const updateQuickStyle = useChartStore((s) => s.updateQuickStyle);
-  const setDrawingColor = useChartStore((s) => s.setDrawingColor);
-  const stickyMode = useChartStore((s) => s.stickyMode);
-  const toggleStickyMode = useChartStore((s) => s.toggleStickyMode);
+  const activeTool = useChartToolsStore((s) => s.activeTool);
+  const quickStyles = useChartToolsStore((s) => s.quickStyles);
+  const activeQuickStyleId = useChartToolsStore((s) => s.activeQuickStyleId);
+  const setActiveQuickStyle = useChartToolsStore((s) => s.setActiveQuickStyle);
+  const updateQuickStyle = useChartToolsStore((s) => s.updateQuickStyle);
+  const setDrawingColor = useChartToolsStore((s) => s.setDrawingColor);
+  const stickyMode = useChartToolsStore((s) => s.stickyMode);
+  const toggleStickyMode = useChartToolsStore((s) => s.toggleStickyMode);
 
   const [showEditor, setShowEditor] = useState(false);
   const [editingId, setEditingId] = useState(null);

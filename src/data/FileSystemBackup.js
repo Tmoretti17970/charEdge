@@ -15,8 +15,8 @@
 // with version info and timestamp.
 // ═══════════════════════════════════════════════════════════════════
 
-import StorageService from './StorageService.ts';
-import { logger } from '../utils/logger';
+import StorageService from './StorageService';
+import { logger } from '@/observability/logger';
 
 // ─── Configuration ─────────────────────────────────────────────
 const BACKUP_INTERVAL_MS = 60_000; // 1 minute auto-save
@@ -108,11 +108,13 @@ export async function restoreBackupHandle() {
         _dirHandle = handle;
         return true;
       }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       // Permission denied or requires user gesture — expected
     }
 
     return false;
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return false;
   }
@@ -153,6 +155,7 @@ export async function runBackup() {
         if (val !== null) {
           localStorageData[key] = JSON.parse(val);
         }
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) {
         // Malformed JSON — skip
       }
@@ -241,6 +244,7 @@ export async function restoreFromBackup() {
       for (const [key, value] of Object.entries(lsData)) {
         try {
           localStorage.setItem(key, JSON.stringify(value));
+        // eslint-disable-next-line unused-imports/no-unused-vars
         } catch (_) {
           // Quota exceeded — skip
         }
@@ -309,6 +313,7 @@ export async function downloadBackup() {
       try {
         const val = localStorage.getItem(key);
         if (val !== null) localStorageData[key] = JSON.parse(val);
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { /* storage may be blocked */ }
     }
 
@@ -386,6 +391,7 @@ export async function uploadAndRestore(file) {
       for (const [key, value] of Object.entries(bundle.localStorage)) {
         try {
           localStorage.setItem(key, JSON.stringify(value));
+        // eslint-disable-next-line unused-imports/no-unused-vars
         } catch (_) { /* storage may be blocked */ }
       }
       restored.push(`localStorage (${Object.keys(bundle.localStorage).length} keys)`);
@@ -439,6 +445,7 @@ async function _readJSON(filename) {
     const file = await fileHandle.getFile();
     const text = await file.text();
     return JSON.parse(text);
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return null; // File doesn't exist yet
   }
@@ -471,6 +478,7 @@ async function _loadHandle() {
       req.onerror = () => resolve(null);
     });
     return row?.handle ?? null;
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return null;
   }
@@ -482,6 +490,7 @@ async function _removeHandle() {
     const db = await _openHandleDB();
     const tx = db.transaction('handles', 'readwrite');
     tx.objectStore('handles').delete(HANDLE_STORAGE_KEY);
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     // Ignore
   }

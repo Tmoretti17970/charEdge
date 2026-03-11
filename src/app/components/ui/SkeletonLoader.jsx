@@ -10,8 +10,7 @@
 //   <SkeletonLoader variant="metric" count={4} />
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 
 
 // ─── Base Shimmer Bar ──────────────────────────────────────────

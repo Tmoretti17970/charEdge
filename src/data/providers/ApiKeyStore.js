@@ -16,8 +16,8 @@
 //   setApiKey('polygon', 'pk_...');    // async (fire-and-forget)
 // ═══════════════════════════════════════════════════════════════════
 
-import SecureStore from '../../utils/SecureStore.ts';
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
+import SecureStore from '@/security/SecureStore';
 
 const SECURE_KEY = 'charEdge-apikeys'; // Single encrypted blob for all keys
 const LEGACY_PREFIX = 'charEdge-apikey-'; // Old per-key plain-text prefix
@@ -97,6 +97,7 @@ export async function initApiKeys() {
         if (legacyKey) {
           localStorage.removeItem(LEGACY_PREFIX + provider);
         }
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { /* SSR or private mode */ }
     }
 
@@ -128,6 +129,7 @@ export async function initApiKeys() {
           }
         }
       }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { /* SSR / non-Vite environment */ }
   } catch (err) {
     if (typeof console !== 'undefined') {

@@ -14,7 +14,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../constants.js';
-import { useTemplateStore } from '../../state/useTemplateStore.js';
+import { useTemplateStore } from '../../state/useTemplateStore';
 
 export default function TemplateSelector({ indicators, chartType, onApply }) {
   const templates = useTemplateStore((s) => s.templates);

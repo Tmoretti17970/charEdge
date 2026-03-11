@@ -1,4 +1,3 @@
-import type { Request, Response, NextFunction, Router } from 'express';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Redis Service
 //
@@ -130,6 +129,7 @@ export async function pingRedis() {
             latencyMs: Math.round(performance.now() - start),
             mode: _useMemory ? 'memory' : 'redis',
         };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
         return { ok: false, latencyMs: Math.round(performance.now() - start), mode: 'error' };
     }

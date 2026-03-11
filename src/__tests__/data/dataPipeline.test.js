@@ -3,7 +3,7 @@
 // Tests the orchestrator, source classification, and relay wiring.
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock browser APIs that DataPipeline and its dependencies need
 vi.stubGlobal('BroadcastChannel', class {

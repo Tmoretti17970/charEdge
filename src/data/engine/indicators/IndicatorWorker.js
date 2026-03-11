@@ -20,9 +20,37 @@
 // The `id` field is a correlation ID so the bridge can match responses.
 // ═══════════════════════════════════════════════════════════════════
 
-// ─── Inline Helpers (copied from IndicatorLibrary to avoid import issues) ──
+// ─── WASM Integration ──────────────────────────────────────────
+
+let wasmModule = null;
+
+async function initWasm() {
+  try {
+    const wasm = await import('../../../charting_library/core/wasmBridge.js');
+    await wasm.wasmReady;
+    if (wasm.isWasmAvailable()) {
+      wasmModule = wasm;
+    }
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  } catch (_err) {
+    // no-op
+  }
+}
+
+initWasm();
+
+// ─── Inline Helpers (WASM-accelerated with JS fallback) ────────
 
 function sma(values, period) {
+  // WASM fast path — convert to Float64Array and back
+  if (wasmModule) {
+    const f64 = new Float64Array(values.length);
+    for (let i = 0; i < values.length; i++) f64[i] = values[i] ?? 0;
+    const result = wasmModule.wasmSMA(f64, period);
+    if (result) return Array.from(result, v => isNaN(v) ? null : v);
+  }
+
+  // JS fallback
   const result = [];
   for (let i = 0; i < values.length; i++) {
     if (i < period - 1) {
@@ -36,7 +64,16 @@ function sma(values, period) {
   return result;
 }
 
-function ema(values, period) {
+function _ema(values, period) {
+  // WASM fast path
+  if (wasmModule) {
+    const f64 = new Float64Array(values.length);
+    for (let i = 0; i < values.length; i++) f64[i] = values[i] ?? 0;
+    const result = wasmModule.wasmEMA(f64, period);
+    if (result) return Array.from(result, v => isNaN(v) ? null : v);
+  }
+
+  // JS fallback
   const result = [];
   const multiplier = 2 / (period + 1);
   let prev = null;

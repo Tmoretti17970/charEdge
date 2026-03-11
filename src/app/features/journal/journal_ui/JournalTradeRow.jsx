@@ -5,10 +5,10 @@
 
 import React from 'react';
 import { C, M } from '../../../../constants.js';
-import { Btn } from '../../../components/ui/UIKit.jsx';
 import { fmtD } from '../../../../utils.js';
-import { ContextBadge } from './JournalEvolution.jsx';
+import { Btn } from '../../../components/ui/UIKit.jsx';
 import { gradeTrade } from '../../analytics/analyticsFast.js';
+import { ContextBadge } from './JournalEvolution.jsx';
 
 const GRID_COLS = '28px 100px 80px 55px 1fr 80px 100px';
 const GRID_COLS_NO_CHECK = '100px 80px 55px 1fr 80px 100px';

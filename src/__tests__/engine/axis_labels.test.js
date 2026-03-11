@@ -6,9 +6,9 @@
 //   2. AxesStage: crosshair price marker in Y-axis gutter
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import { describe, it, expect } from 'vitest';
 
 const ROOT = resolve(__dirname, '..', '..');
 const read = (rel) => readFileSync(resolve(ROOT, rel), 'utf-8');
@@ -29,6 +29,7 @@ describe('Sprint 14 · UIStage — Colored Price/Time Labels', () => {
   });
 
   it('uses bold font for price label', () => {
+    // eslint-disable-next-line no-template-curly-in-string
     expect(src).toContain('`bold ${axFs}px Arial`');
   });
 

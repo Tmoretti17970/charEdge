@@ -5,8 +5,8 @@
 // Positioned near ConnectionStatus component.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect } from 'react';
-import offlineManager from '../../../data/engine/OfflineManager.ts';
+import { useState, useEffect } from 'react';
+import offlineManager from '../../../data/engine/OfflineManager';
 import styles from './OfflineBadge.module.css';
 
 function OfflineBadge() {

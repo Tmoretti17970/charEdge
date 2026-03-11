@@ -7,7 +7,6 @@
 
 import { useEffect, useState, useRef, useCallback, forwardRef } from 'react';
 import { create } from 'zustand';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { C, F } from '../../../constants.js';
 import { notificationLog } from '../../../state/useNotificationLog.js';
 
@@ -22,9 +21,17 @@ function _isStartup() { return Date.now() - _bootTime < STARTUP_GRACE_MS; }
 const useToastStore = create((set) => ({
   toasts: [],
   add: (toast) =>
-    set((s) => ({
-      toasts: [...s.toasts.slice(-6), { ...toast, id: ++_toastId, priority: toast.priority || 'normal' }],
-    })),
+    set((s) => {
+      // P2 2.4: Dedupe — skip if same type+message exists within 2s
+      const now = Date.now();
+      const isDupe = s.toasts.some(
+        (t) => t.type === toast.type && t.message === toast.message && (now - (t._addedAt || 0)) < 2000
+      );
+      if (isDupe) return s;
+      return {
+        toasts: [...s.toasts.slice(-6), { ...toast, id: ++_toastId, priority: toast.priority || 'normal', _addedAt: now }],
+      };
+    }),
   remove: (id) =>
     set((s) => ({
       toasts: s.toasts.filter((t) => t.id !== id),
@@ -36,6 +43,7 @@ const useToastStore = create((set) => ({
 function _log(type, message, category) {
   try {
     notificationLog.push({ type, message, category: category || 'system' });
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) { /* storage/API may be blocked */ }
 }
 
@@ -118,11 +126,9 @@ export function ToastContainer() {
         pointerEvents: 'none',
       }}
     >
-      <AnimatePresence mode="popLayout">
-        {visibleToasts.map((t) => (
-          <Toast key={t.id} toast={t} />
-        ))}
-      </AnimatePresence>
+      {visibleToasts.map((t) => (
+        <Toast key={t.id} toast={t} />
+      ))}
     </div>
   );
 }
@@ -131,7 +137,9 @@ export function ToastContainer() {
 
 const Toast = forwardRef(function Toast({ toast: t }, ref) {
   const remove = useToastStore((s) => s.remove);
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useRef(
+    typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+  );
   const [paused, setPaused] = useState(false);
   const [progress, setProgress] = useState(100);
   const remainingRef = useRef(t.duration);
@@ -161,7 +169,6 @@ const Toast = forwardRef(function Toast({ toast: t }, ref) {
   useEffect(() => {
     if (!isCritical) {
       startTimer();
-      // Kick off progress animation on next frame
       requestAnimationFrame(() => setProgress(0));
     }
     return () => {
@@ -172,7 +179,6 @@ const Toast = forwardRef(function Toast({ toast: t }, ref) {
   const handleMouseEnter = useCallback(() => {
     setPaused(true);
     pauseTimer();
-    // Freeze progress at current visual position
     const elapsed = startTimeRef.current ? Date.now() - startTimeRef.current : 0;
     const pct = Math.max(0, (1 - elapsed / t.duration) * 100);
     setProgress(pct);
@@ -181,7 +187,6 @@ const Toast = forwardRef(function Toast({ toast: t }, ref) {
   const handleMouseLeave = useCallback(() => {
     setPaused(false);
     startTimer();
-    // Resume progress animation
     requestAnimationFrame(() => setProgress(0));
   }, [startTimer]);
 
@@ -194,25 +199,16 @@ const Toast = forwardRef(function Toast({ toast: t }, ref) {
 
   const c = colors[t.type] || colors.info;
 
-  // Sprint 4: Framer Motion variants
-  const motionProps = prefersReducedMotion
+  // CSS keyframe entrance animation
+  const animationStyle = prefersReducedMotion.current
     ? {}
     : {
-      initial: { opacity: 0, x: 48, scale: 0.95 },
-      animate: { opacity: 1, x: 0, scale: 1 },
-      exit: { opacity: 0, x: 48, scale: 0.95 },
-      transition: {
-        type: 'spring',
-        stiffness: 400,
-        damping: 30,
-      },
-      layout: true,
+      animation: 'tf-toast-in 250ms cubic-bezier(0.32, 0.72, 0, 1) both',
     };
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      {...motionProps}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{
@@ -234,6 +230,7 @@ const Toast = forwardRef(function Toast({ toast: t }, ref) {
           : `0 8px 24px rgba(0,0,0,.25), 0 0 0 1px ${c.color}08`,
         position: 'relative',
         overflow: 'hidden',
+        ...animationStyle,
       }}
     >
       <span style={{ fontSize: 14, color: c.color, flexShrink: 0 }}>{c.icon}</span>
@@ -291,7 +288,7 @@ const Toast = forwardRef(function Toast({ toast: t }, ref) {
           opacity: 0.6,
         }}
       />
-    </motion.div>
+    </div>
   );
 });
 

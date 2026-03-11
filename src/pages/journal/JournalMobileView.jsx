@@ -3,12 +3,11 @@
 // Extracted from JournalPage (Phase 0.1 decomposition)
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
-import { C, F } from '../../constants.js';
-import MobileJournal from '../../app/components/mobile/MobileJournal.jsx';
-import { MobileAnalytics } from '../../app/components/mobile/MobileAnalytics.jsx';
-import TradeFormModal from '../../app/components/dialogs/TradeFormModal.jsx';
 import CSVImportModal from '../../app/components/dialogs/CSVImportModal.jsx';
+import TradeFormModal from '../../app/components/dialogs/TradeFormModal.jsx';
+import { MobileAnalytics } from '../../app/components/mobile/MobileAnalytics.jsx';
+import MobileJournal from '../../app/components/mobile/MobileJournal.jsx';
+import { C, F } from '../../constants.js';
 
 export default function JournalMobileView({
   trades,

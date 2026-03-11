@@ -5,8 +5,8 @@
 // Large pill buttons, progress dots, skip & back support.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useCallback, useMemo } from 'react';
-import { DecisionTreeJournal } from '../../../intelligence/DecisionTreeJournal.ts';
+import { useState, useCallback, useMemo } from 'react';
+import { DecisionTreeJournal } from '@/journal/DecisionTreeJournal';
 
 const FONT = 'var(--forge-font, Inter, sans-serif)';
 
@@ -56,7 +56,7 @@ export default function DecisionTreeModal({ onComplete, onClose, config }) {
 
     if (!node) return null;
 
-    const progress = tree.getProgress();
+    const _progress = tree.getProgress();
 
     return (
         <div style={OVERLAY}>

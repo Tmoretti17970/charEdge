@@ -17,6 +17,7 @@
 
 /* ── Base Touch Optimizations ─────────────────────────────────── */
 @media (pointer: coarse) {
+
   button,
   [role='button'],
   a,
@@ -30,7 +31,8 @@
   input,
   textarea,
   select {
-    font-size: 16px !important; /* Prevent iOS zoom on focus */
+    font-size: 16px !important;
+    /* Prevent iOS zoom on focus */
   }
 
   /* Disable text selection on interactive elements */
@@ -51,8 +53,7 @@
 }
 
 .safe-area-all {
-  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px)
-    env(safe-area-inset-left, 0px);
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
 }
 
 /* ── Phone Portrait (≤480px) ─────────────────────────────────── */
@@ -60,6 +61,7 @@
   .desktop-only {
     display: none !important;
   }
+
   .tablet-up {
     display: none !important;
   }
@@ -68,6 +70,7 @@
   .sidebar {
     display: none;
   }
+
   .mobile-nav {
     display: flex !important;
   }
@@ -137,6 +140,7 @@
   .sidebar {
     width: 48px !important;
   }
+
   .sidebar-label {
     display: none;
   }
@@ -150,6 +154,7 @@
   .panel-container {
     flex-wrap: wrap;
   }
+
   .panel {
     min-width: 45% !important;
     flex: 1 1 45%;
@@ -161,6 +166,7 @@
   .mobile-only {
     display: none !important;
   }
+
   .mobile-nav {
     display: none !important;
   }
@@ -206,6 +212,7 @@
 
 /* ── Reduced Motion ──────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -218,6 +225,7 @@
 
 /* ── Dark Mode Adjustments ───────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
+
   /* Already dark theme — just ensure system bar colors */
   :root {
     color-scheme: dark;
@@ -230,6 +238,7 @@
 
 /* ── Print Styles ────────────────────────────────────────────── */
 @media print {
+
   .sidebar,
   .mobile-nav,
   .bottom-sheet,
@@ -274,6 +283,7 @@
 .scroll-hide::-webkit-scrollbar {
   display: none;
 }
+
 .scroll-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -294,7 +304,8 @@
 /* ── Viewport Units Fix (iOS Safari) ─────────────────────────── */
 .full-height {
   height: 100vh;
-  height: 100dvh; /* Dynamic viewport height */
+  height: 100dvh;
+  /* Dynamic viewport height */
 }
 
 .min-full-height {
@@ -323,6 +334,7 @@
 .mobile-drawing-strip::-webkit-scrollbar {
   display: none;
 }
+
 .mobile-drawing-strip {
   scrollbar-width: none;
 }
@@ -342,6 +354,7 @@
     transform: translateY(100%);
     opacity: 0.8;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -353,6 +366,7 @@
     transform: translateY(0);
     opacity: 1;
   }
+
   to {
     transform: translateY(100%);
     opacity: 0.8;
@@ -361,10 +375,12 @@
 
 /* ── Floating Action Button Pulse ─────────────────────────────── */
 @keyframes fabPulse {
+
   0%,
   100% {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
+
   50% {
     box-shadow: 0 2px 16px rgba(59, 130, 246, 0.4);
   }
@@ -395,11 +411,9 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(
-      circle at var(--ripple-x, 50%) var(--ripple-y, 50%),
-      rgba(255, 255, 255, 0.12) 0%,
-      transparent 60%
-    );
+    background: radial-gradient(circle at var(--ripple-x, 50%) var(--ripple-y, 50%),
+        rgba(255, 255, 255, 0.12) 0%,
+        transparent 60%);
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
@@ -417,6 +431,7 @@
     transform: translateY(100%);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -454,7 +469,9 @@
 
 /* ── Pull-to-Refresh Indicator ────────────────────────────────── */
 @keyframes pullSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .tf-pull-indicator {
@@ -479,8 +496,17 @@
 
 /* ── Swipe Navigation Hint ────────────────────────────────────── */
 @keyframes swipeHint {
-  0%, 100% { transform: translateX(0); opacity: 0.6; }
-  50% { transform: translateX(-8px); opacity: 1; }
+
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translateX(-8px);
+    opacity: 1;
+  }
 }
 
 .tf-swipe-hint {
@@ -507,8 +533,9 @@
     gap: 6px !important;
   }
 
-  .tf-bento > * {
-    animation-duration: 0.2s !important; /* Faster on mobile */
+  .tf-bento>* {
+    animation-duration: 0.2s !important;
+    /* Faster on mobile */
   }
 
   .tf-section-accent {
@@ -518,7 +545,8 @@
 
   /* Compact modal on mobile → bottom sheet */
   .tf-modal-content {
-    animation-name: mobileSheetUp !important; /* Use sheet animation instead */
+    animation-name: mobileSheetUp !important;
+    /* Use sheet animation instead */
   }
 }
 
@@ -572,3 +600,62 @@
   }
 }
 
+/* ═══ Sprint 11 #83: Touch Target Size Enforcement ═════════════════ */
+@media (pointer: coarse) {
+
+  /* Chart toolbar buttons — 44px min tap target */
+  .tf-chart-toolbar-btn,
+  .tf-nav-btn,
+  .tf-bottom-nav-item {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 6px;
+  }
+
+  /* Timeframe pills — 44px min tap target */
+  .tf-chart-tf-pill {
+    min-height: 44px;
+    min-width: 40px;
+    padding: 10px 8px;
+    font-size: 12px;
+  }
+
+  /* Drawing tool buttons (MobileDrawingSheet) */
+  .tf-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Ensure toolbar button spacing prevents adjacent-tap errors */
+  .tf-chart-toolbar {
+    gap: 4px;
+  }
+}
+
+/* ═══ Sprint 11 #84: Toolbar Overflow Handling ═════════════════════ */
+@media (pointer: coarse) {
+  .tf-chart-toolbar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    max-width: 100vw;
+    scroll-snap-type: x proximity;
+  }
+
+  /* Each toolbar section snaps */
+  .tf-chart-toolbar > div,
+  .tf-chart-tf-group {
+    scroll-snap-align: start;
+  }
+
+  /* Hide scrollbar on toolbar (use swipe to scroll) */
+  .tf-chart-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tf-chart-toolbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

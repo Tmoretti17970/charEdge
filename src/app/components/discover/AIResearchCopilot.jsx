@@ -10,10 +10,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useRef, useEffect } from 'react';
-import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
+import { C, F } from '../../../constants.js';
+import { useJournalStore } from '../../../state/useJournalStore';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Quick Prompts ──────────────────────────────────────────────
 
@@ -81,7 +81,7 @@ function generateResponse(query, trades, watchlist) {
         followUp: ['How should I journal my trades?', 'What metrics should I track?'],
       };
     }
-    const avgSize = recentTrades.reduce((sum, t) => sum + Math.abs(t.pnl || 0), 0) / recentTrades.length;
+    const _avgSize = recentTrades.reduce((sum, t) => sum + Math.abs(t.pnl || 0), 0) / recentTrades.length;
     return {
       text: `🔍 **Pattern Analysis (Last ${Math.min(tradeCount, 20)} Trades):**\n\n${Number(winRate) < 50 ? '⚠️ **Win Rate Below 50%** — You may be entering trades without clear signals. Consider waiting for 2+ confluence factors before entry.\n\n' : '✅ **Win Rate Healthy** — Your system is producing winners.\n\n'}${losses > 0 ? '📊 **Loss Pattern:** Your recent losses may share commonalities — check if you\'re:\n• Entering too early (before confirmation)\n• Setting stops too tight\n• Overtrading during low-volatility periods\n• Revenge trading after a loss\n\n' : ''}**Actionable Steps:**\n1. Before each trade, ask: "Is this an A+ setup?"\n2. Wait for price action confirmation, not prediction\n3. Risk no more than 1% per trade until win rate stabilizes`,
       followUp: ['What days do I trade best?', 'Am I overtrading?'],

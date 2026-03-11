@@ -5,9 +5,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useMemo } from 'react';
+import { captureChartState } from '../../../../charting_library/tools/ChartJournalPipeline.js';
 import { C, F, M, EMOJIS } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore.js';
-import { useJournalStore } from '../../../../state/useJournalStore.js';
+import { useChartStore } from '../../../../state/useChartStore';
+import { useJournalStore } from '../../../../state/useJournalStore';
 import { uid } from '../../../../utils.js';
 import toast from '../../ui/Toast.jsx';
 import css from './QuickJournalPanel.module.css';
@@ -74,6 +75,13 @@ export default function QuickJournalPanel({ onClose }) {
       ruleBreak: false,
       screenshots: [],
       _source: 'chart-quick-journal',
+      // P2 2.3: Auto-capture chart context for journal entry
+      chartContext: (() => {
+        try {
+          const chartState = useChartStore.getState();
+          return captureChartState(chartState);
+        } catch { return null; }
+      })(),
     };
 
     addTrade(trade);

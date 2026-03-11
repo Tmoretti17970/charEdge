@@ -1,52 +1,22 @@
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Chart HUD System (Sprint 14)
 // Managed overlay for indicator legends, trade P&L, status info.
-// Auto-fades after inactivity, reappears on mouse move.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useChartStore } from '../../../../state/useChartStore.js';
+import { useEffect, useRef } from 'react';
 import { C } from '../../../../constants.js';
-import { updateFaviconBadge, resetFavicon } from '../../../../utils/faviconBadge';
+import { useChartStore } from '../../../../state/useChartStore';
 import h from './ChartHUD.module.css';
+import { updateFaviconBadge, resetFavicon } from '@/app/misc/faviconBadge';
 
-const FADE_DELAY = 3000; // ms before auto-fade
-
-export default function ChartHUD({ symbol, timeframe, lastPrice, data }) {
+export default function ChartHUD({ _symbol, _timeframe, lastPrice, data }) {
   const indicators = useChartStore((s) => s.indicators);
   const drawings = useChartStore((s) => s.drawings);
   const replayMode = useChartStore((s) => s.replayMode);
   const isLive = useChartStore((s) => s.source !== 'simulated');
 
-  const [hidden, setHidden] = useState(false);
-  const fadeTimer = useRef(null);
+  // Item 37: HUD is always visible — no auto-fade
   const hudRef = useRef(null);
-
-  const resetFadeTimer = useCallback(() => {
-    setHidden(false);
-    clearTimeout(fadeTimer.current);
-    fadeTimer.current = setTimeout(() => setHidden(true), FADE_DELAY);
-  }, []);
-
-  // Start fade timer on mount
-  useEffect(() => {
-    resetFadeTimer();
-    return () => clearTimeout(fadeTimer.current);
-  }, [resetFadeTimer]);
-
-  // Listen for mouse movement in the chart area
-  useEffect(() => {
-    const parent = hudRef.current?.parentElement;
-    if (!parent) return;
-
-    const handler = () => resetFadeTimer();
-    parent.addEventListener('mousemove', handler, { passive: true });
-    parent.addEventListener('mousedown', handler, { passive: true });
-    return () => {
-      parent.removeEventListener('mousemove', handler);
-      parent.removeEventListener('mousedown', handler);
-    };
-  }, [resetFadeTimer]);
 
   const priceChange = data?.length >= 2
     ? data[data.length - 1].close - data[data.length - 2].close
@@ -68,14 +38,10 @@ export default function ChartHUD({ symbol, timeframe, lastPrice, data }) {
     <div
       ref={hudRef}
       className="tf-chart-hud"
-      data-hidden={hidden || undefined}
     >
       {/* Top-left: Symbol + Price badge */}
       <div className={h.topLeft}>
-        {/* Live dot */}
-        {isLive && (
-          <span className={`tf-pulse-dot ${h.liveDot}`} style={{ background: C.g }} />
-        )}
+        {/* Live dot removed — status shown via header ● LIVE badge */}
 
         {/* Price change pill */}
         {lastPrice != null && (

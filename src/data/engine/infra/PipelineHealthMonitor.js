@@ -11,14 +11,14 @@
 //   pipelineHealth.onHealthChange((health) => { ... });
 // ═══════════════════════════════════════════════════════════════════
 
+import { tickChannel } from '../../../charting_library/core/TickChannel';
+import { depthEngine } from '../orderflow/DepthEngine';
 import { orderFlowBridge } from '../orderflow/OrderFlowBridge.js';
-import { depthEngine } from '../orderflow/DepthEngine.ts';
-import { tickPersistence } from '../streaming/TickPersistence.js';
 import { streamingMetrics } from '../streaming/StreamingMetrics.js';
-import { performanceMonitor } from './PerformanceMonitor.js';
+import { tickPersistence } from '../streaming/TickPersistence.js';
 import { pipelineLogger } from './DataPipelineLogger.js';
-import { tickChannel } from '../../../charting_library/core/TickChannel.ts';
-import { logger } from '../../../utils/logger';
+import { performanceMonitor } from './PerformanceMonitor.js';
+import { logger } from '@/observability/logger';
 
 // ─── Constants ─────────────────────────────────────────────────
 
@@ -221,6 +221,7 @@ class _PipelineHealthMonitor {
           try { cb(health); } catch (e) { logger.data.warn('Operation failed', e); }
         }
       }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       // Monitor itself must never crash
     }

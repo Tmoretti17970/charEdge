@@ -6,13 +6,14 @@
 // dot indicators, swipe on mobile, and auto-rotate every 10s.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../../state/useUserStore.js';
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
+import { useJournalStore } from '../../../state/useJournalStore';
+import { useUserStore } from '../../../state/useUserStore';
 import { radii } from '../../../theme/tokens.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { useBreakpoints } from '../../../utils/useMediaQuery.js';
-import { generateInsights } from './useAIInsights.js';
+import AIOrb from '../design/AIOrb.jsx';
+import { generateInsights } from './hooks/useAIInsights.js';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 const COLOR_MAP = {
   green: { bg: (c) => `${c.g}0A`, border: (c) => `${c.g}25`, accent: (c) => c.g, iconBg: (c) => `${c.g}15` },
@@ -109,7 +110,7 @@ export default function AIInsightCard() {
             background: colors.iconBg(C),
             border: `1px solid ${colors.accent(C)}30`,
           }}>
-            <span style={{ fontSize: 10 }}>✨</span>
+            <AIOrb size={12} />
             <span style={{
               fontSize: 9,
               fontWeight: 800,

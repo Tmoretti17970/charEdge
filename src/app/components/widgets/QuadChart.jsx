@@ -4,9 +4,8 @@
 // Supports 1×1, 2×1, 1×2, 2×2 layouts with crosshair sync.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useRef, memo, Suspense, useCallback } from 'react';
-import { C, F, M, TFS } from '../../../constants.js';
-import { fetchOHLC } from '../../../data/FetchService.ts';
+import { useState, useEffect, useRef, memo, useCallback } from 'react';
+import { C, M, TFS } from '../../../constants.js';
 import ChartEngineWidget from '../../components/chart/core/ChartEngineWidget.jsx';
 
 const DEFAULT_QUADS = [
@@ -62,7 +61,7 @@ const QuadChart = memo(function QuadChart({ initialQuads = DEFAULT_QUADS, layout
 
 // ─── Full-Engine Chart Pane ─────────────────────────────────────
 
-const MultiChartPane = memo(function MultiChartPane({ paneId, symbol, tf, onSymbolChange, onTfChange }) {
+const MultiChartPane = memo(function MultiChartPane({ _paneId, symbol, tf, onSymbolChange, onTfChange }) {
   const [editing, setEditing] = useState(false);
   const [symInput, setSymInput] = useState(symbol);
   const [lastPrice, setLastPrice] = useState(null);

@@ -5,7 +5,6 @@
 // Variants: text, rect, circle, chart.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
 
 const BASE_STYLE = {
   background: 'linear-gradient(90deg, var(--c-bg-secondary, hsl(225, 13%, 12%)) 25%, var(--c-bg-tertiary, hsl(225, 13%, 15%)) 50%, var(--c-bg-secondary, hsl(225, 13%, 12%)) 75%)',

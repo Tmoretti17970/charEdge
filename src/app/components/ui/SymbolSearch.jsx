@@ -16,6 +16,7 @@ const MAX_RECENT = 10;
 function getRecentSymbols() {
   try {
     return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return [];
   }
@@ -76,6 +77,7 @@ export default function SymbolSearch({ currentSymbol, onSearch, onSelect, theme 
         const hits = await onSearch(query);
         setResults(hits || []);
         setSelectedIdx(0);
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) {
         setResults([]);
       }
@@ -130,8 +132,9 @@ export default function SymbolSearch({ currentSymbol, onSearch, onSelect, theme 
           setIsOpen(false);
           break;
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+       
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [results, selectedIdx],
   );
 
@@ -198,6 +201,8 @@ export default function SymbolSearch({ currentSymbol, onSearch, onSelect, theme 
           <div style={{ padding: 8, borderBottom: `1px solid ${colors.border}` }}>
             <input
               ref={inputRef}
+              id="ce-symbol-search"
+              name="symbol-search"
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}

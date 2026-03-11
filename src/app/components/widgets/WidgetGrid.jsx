@@ -94,6 +94,7 @@ export default function WidgetGrid({ widgets, cols = 2, gap = 16, editable = fal
     try {
       const ids = orderedWidgets.map((w) => w.id);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { /* storage may be blocked */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order]);
@@ -174,6 +175,7 @@ export function loadLayout(widgetIds) {
     const ordered = saved.filter((id) => widgetIds.includes(id));
     const remaining = widgetIds.filter((id) => !ordered.includes(id));
     return [...ordered, ...remaining];
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return widgetIds;
   }
@@ -186,6 +188,7 @@ export function loadLayout(widgetIds) {
 export function saveLayout(orderedIds) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(orderedIds));
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) { /* storage may be blocked */ }
 }
 

@@ -5,6 +5,8 @@
 // Focus: core rendering, navigation, and interaction — NOT WebGPU
 // features (which are Chromium-only for now).
 //
+// P3 C3: All waitForTimeout calls replaced with deterministic waits.
+//
 // Run all browsers:
 //   npx playwright test e2e/cross-browser.spec.ts
 //
@@ -24,6 +26,16 @@ async function boot(page: any) {
     );
 }
 
+/** Navigate via keyboard shortcut and wait for route to render */
+async function navigateToRoute(page: any, key: string) {
+    await page.keyboard.press(key);
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForFunction(
+        () => !document.querySelector('[class*="loadingRoot"], [class*="skeleton"]'),
+        { timeout: 10_000 }
+    );
+}
+
 test.describe('Cross-Browser Smoke', () => {
 
     test('app boots and renders root', async ({ page }) => {
@@ -36,7 +48,6 @@ test.describe('Cross-Browser Smoke', () => {
 
     test('sidebar navigation renders', async ({ page }) => {
         await boot(page);
-        // Sidebar should be visible with nav items
         const sidebar = page.locator(
             'nav, [class*="sidebar"], [class*="Sidebar"], [class*="nav-rail"]'
         ).first();
@@ -47,23 +58,19 @@ test.describe('Cross-Browser Smoke', () => {
         await boot(page);
 
         // Press '2' for Charts
-        await page.keyboard.press('2');
-        await page.waitForTimeout(1000);
+        await navigateToRoute(page, '2');
 
-        // Check that some chart-related content appeared
         const main = page.locator('#tf-main-content, main, [class*="chart"]').first();
         await expect(main).toBeVisible({ timeout: 10_000 });
 
         // Press '1' for Home
-        await page.keyboard.press('1');
-        await page.waitForTimeout(1000);
+        await navigateToRoute(page, '1');
         await expect(main).toBeVisible({ timeout: 5_000 });
     });
 
     test('chart canvas renders (2D fallback)', async ({ page }) => {
         await boot(page);
-        await page.keyboard.press('2');
-        await page.waitForTimeout(2000);
+        await navigateToRoute(page, '2');
 
         // Canvas should exist — may be WebGPU on Chrome or 2D on Firefox/Safari
         const canvas = page.locator('canvas').first();
@@ -80,7 +87,6 @@ test.describe('Cross-Browser Smoke', () => {
 
         // Try opening trade form via Ctrl+N
         await page.keyboard.press('Control+n');
-        await page.waitForTimeout(800);
 
         const modal = page.locator(
             '[role="dialog"], [class*="modal"], [class*="Modal"]'
@@ -89,9 +95,8 @@ test.describe('Cross-Browser Smoke', () => {
         if (await modal.isVisible({ timeout: 3_000 }).catch(() => false)) {
             await expect(modal).toBeVisible();
 
-            // Close via Escape
+            // Close via Escape — wait for modal to disappear
             await page.keyboard.press('Escape');
-            await page.waitForTimeout(500);
             await expect(modal).not.toBeVisible({ timeout: 3_000 });
         }
     });
@@ -99,12 +104,10 @@ test.describe('Cross-Browser Smoke', () => {
     test('theme/design tokens render consistently', async ({ page }) => {
         await boot(page);
 
-        // Check that CSS custom properties are applied
         const bgColor = await page.evaluate(() => {
             const root = document.documentElement;
             return getComputedStyle(root).backgroundColor;
         });
-        // Background should not be transparent/empty (design system is active)
         expect(bgColor).toBeTruthy();
     });
 
@@ -113,9 +116,9 @@ test.describe('Cross-Browser Smoke', () => {
         page.on('pageerror', (err: Error) => errors.push(err.message));
 
         await boot(page);
-        await page.waitForTimeout(2000);
+        // Wait for all network activity to settle
+        await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => { });
 
-        // Filter out known non-critical errors
         const critical = errors.filter(msg =>
             !msg.includes('WebSocket') &&
             !msg.includes('net::ERR_') &&
@@ -139,7 +142,6 @@ test.describe('Cross-Browser Smoke', () => {
         const root = page.locator('#root');
         await expect(root).toBeVisible();
 
-        // At 768px, sidebar should either collapse or become a bottom bar
         const mainContent = page.locator('#tf-main-content, main').first();
         if (await mainContent.isVisible({ timeout: 5_000 }).catch(() => false)) {
             const box = await mainContent.boundingBox();

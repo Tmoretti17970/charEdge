@@ -3,7 +3,7 @@
 // Spotlight-style frosted glass search overlay (Ctrl+K)
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { C, F, GLASS, DEPTH } from '../../../../constants.js';
 
 const RECENT_KEY = 'tf_recent_symbols';
@@ -13,6 +13,7 @@ const TRENDING = ['BTC', 'ETH', 'SOL', 'AAPL', 'NVDA', 'TSLA', 'SPY', 'ES'];
 
 function getRecent() {
   try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]').slice(0, MAX_RECENT); }
+  // eslint-disable-next-line unused-imports/no-unused-vars
   catch (_) { return []; }
 }
 
@@ -69,6 +70,7 @@ export default function SymbolSearchModal({ isOpen, onClose, onSelect, onSearch,
       try {
         const r = await onSearch(query);
         setResults(Array.isArray(r) ? r.slice(0, 12) : []);
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { setResults([]); }
       setLoading(false);
     }, 200);
@@ -166,7 +168,7 @@ export default function SymbolSearchModal({ isOpen, onClose, onSelect, onSearch,
               No results. Press Enter to use "{query}"
             </div>
           )}
-          {displayItems.map((item, i) => {
+          {displayItems.map((item, _i) => {
             if (item.header) {
               return (
                 <div key={`h-${item.header}`} style={{

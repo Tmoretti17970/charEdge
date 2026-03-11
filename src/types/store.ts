@@ -4,7 +4,7 @@
 // Phase 2 Task 2.1.3: Type ALL Zustand store actions and selectors.
 // ═══════════════════════════════════════════════════════════════════
 
-import type { Trade, Playbook, Note, TradePlan, Timeframe, UserSettings, AnalyticsResult } from './data.js';
+import type { Trade, Timeframe, UserSettings, AnalyticsResult } from './data.js';
 
 // ─── Journal Store ───────────────────────────────────────────────
 

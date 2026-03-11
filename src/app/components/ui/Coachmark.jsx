@@ -16,10 +16,10 @@
 //   delay      – optional appearance delay in ms (default: 800)
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../../state/useUserStore.js';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { C, F, M } from '../../../constants.js';
+import { C, F } from '../../../constants.js';
+import { useUserStore } from '../../../state/useUserStore';
 
 export default function Coachmark({
   tipId,

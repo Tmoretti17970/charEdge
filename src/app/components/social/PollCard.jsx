@@ -1,6 +1,6 @@
-import { useSocialStore } from '../../../state/useSocialStore.js';
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
+import { useSocialStore } from '../../../state/useSocialStore.js';
 
 export default function PollCard({ pollId, compact = false, inFeed = false }) {
   const { polls, userVotes, vote } = useSocialStore();

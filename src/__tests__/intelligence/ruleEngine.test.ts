@@ -9,7 +9,7 @@ import {
     DEFAULT_RULES,
     type TradeLike,
     type Rule,
-} from '../../intelligence/RuleEngine';
+} from '@/trading/RuleEngine';
 
 const makeTrade = (overrides: Partial<TradeLike> = {}): TradeLike => ({
     id: `t-${Math.random().toString(36).slice(2, 6)}`,

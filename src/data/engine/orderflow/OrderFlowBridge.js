@@ -22,15 +22,15 @@
 //   orderFlowBridge.onStateChange((symbol, state) => { ... });
 // ═══════════════════════════════════════════════════════════════════
 
-import { orderFlowEngine } from './OrderFlowEngine.ts';
+import { isCrypto } from '../../../constants.js';
 import { krakenAdapter } from '../../adapters/KrakenAdapter.js';
-import { tickPersistence } from '../streaming/TickPersistence.js';
 import { derivedEngine } from '../../DerivedDataEngine.js';
-import { streamingMetrics } from '../streaming/StreamingMetrics.js';
 import { streamingIndicatorBridge } from '../indicators/StreamingIndicatorBridge.js';
 import { pipelineLogger } from '../infra/DataPipelineLogger.js';
-import { isCrypto } from '../../../constants.js';
-import { logger } from '../../../utils/logger';
+import { streamingMetrics } from '../streaming/StreamingMetrics.js';
+import { tickPersistence } from '../streaming/TickPersistence.js';
+import { orderFlowEngine } from './OrderFlowEngine';
+import { logger } from '@/observability/logger';
 
 // ─── Constants ─────────────────────────────────────────────────
 
@@ -49,6 +49,7 @@ const SILENCE_THRESHOLD_MS = 30000;    // No data for 30s → reconnect
 const MAX_TICKS_PER_SECOND = 2000;      // Rate limit guard (BTCUSDT peaks at ~1000/sec)
 const MAX_FUTURE_MS = 60000;           // Reject timestamps >60s in future
 const MAX_PAST_MS = 300000;            // Reject timestamps >5min in past
+const MAX_PRICE_DEVIATION = 0.5;       // P2 1.4: Reject ticks where |Δprice| > 50% from last known
 
 // Connection states
 const STATE = {
@@ -195,6 +196,7 @@ class _OrderFlowBridge {
     this._connections = new Map();      // symbol → SymbolConnection
     this._tickCounts = new Map();       // symbol → count
     this._stateCallbacks = new Set();   // (symbol, state) => void
+    this._lastPrices = new Map();       // P2 1.4: symbol → last valid price (price-sanity bounds)
     this._batchBuffer = [];             // Tick micro-batch for background engines
     this._batchScheduled = false;
     // MessageChannel for faster batch flush (~4ms vs rAF's ~16ms)
@@ -259,6 +261,7 @@ class _OrderFlowBridge {
     }
 
     this._connections.delete(upper);
+    this._lastPrices.delete(upper);     // P2 1.4: Clear price-sanity state
     this._setConnectionState(upper, STATE.DISCONNECTED);
     pipelineLogger.info('OrderFlowBridge', `Disconnected: ${upper}`);
   }
@@ -372,6 +375,15 @@ class _OrderFlowBridge {
       if (!conn.rateLimiter.allow()) {
         return;
       }
+
+      // ── P2 1.4: Price-sanity bounds ──
+      const lastPrice = this._lastPrices.get(symbol);
+      if (lastPrice && Math.abs(tick.price - lastPrice) / lastPrice > MAX_PRICE_DEVIATION) {
+        conn.validationRejects++;
+        logger.data.warn(`[OrderFlowBridge] Rejected anomalous price ${tick.price} for ${symbol} (last: ${lastPrice})`);
+        return;
+      }
+      this._lastPrices.set(symbol, tick.price);
 
       // ── Update heartbeat ──
       conn.lastTickTime = Date.now();

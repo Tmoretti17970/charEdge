@@ -4,8 +4,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useMemo } from 'react';
-import ChartWrapper from '../chart/core/ChartWrapper.jsx';
 import { C, M } from '../../../constants.js';
+import ChartWrapper from '../chart/core/ChartWrapper.jsx';
 
 /**
  * @param {Object} data - Map of { name: { pnl, count, wins } }

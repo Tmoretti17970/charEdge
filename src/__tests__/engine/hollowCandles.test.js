@@ -70,13 +70,16 @@ describe('Hollow Candles — CandleRenderer Integration', () => {
 
 describe('Hollow Candles — DataStage Integration', () => {
     it('DataStage imports toHeikinAshi', async () => {
-        const source = await import('../../charting_library/core/stages/DataStage.ts?raw')
-            .then(m => m.default).catch(() => '');
-        // If raw import works, check the source
-        if (source) {
-            expect(source).toContain('toHeikinAshi');
-            expect(source).toContain("'hollow'");
-            expect(source).toContain("'heikinashi'");
-        }
+        const fs = await import('fs');
+        const { fileURLToPath } = await import('url');
+        const path = await import('path');
+        const __dirname = path.dirname(fileURLToPath(import.meta.url));
+        const stagesDir = path.resolve(__dirname, '..', '..', 'charting_library/core/stages');
+        const main = fs.readFileSync(path.resolve(stagesDir, 'DataStage.ts'), 'utf-8');
+        const helpers = fs.readFileSync(path.resolve(stagesDir, 'data/renderHelpers.ts'), 'utf-8');
+        const source = main + '\n' + helpers;
+        expect(source).toContain('toHeikinAshi');
+        expect(source).toContain("'hollow'");
+        expect(source).toContain("'heikinashi'");
     });
 });

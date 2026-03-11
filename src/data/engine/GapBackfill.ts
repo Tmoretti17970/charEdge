@@ -7,7 +7,9 @@
 // the existing dataset without duplicates.
 // ═══════════════════════════════════════════════════════════════════
 
-import { logger } from '../../utils/logger.js';
+import { logger } from '@/observability/logger.js';
+import { detectGaps as _detectGapsCanonical } from './infra/GapDetector.js';
+import { sortedMergeBars } from './infra/sortedMerge.js';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -39,24 +41,36 @@ const DEFAULT_CONFIG: Partial<GapBackfillConfig> = {
 /**
  * Detect gaps in a sorted bar array.
  * Returns array of { from, to } timestamps representing missing regions.
+ *
+ * Delegates to canonical GapDetector.ts — this wrapper adapts the return shape
+ * for backward compatibility with existing callers.
  */
 export function detectGaps(bars: Bar[], intervalMs: number, tolerance = 1.5): Array<{ from: number; to: number }> {
   if (bars.length < 2) return [];
 
-  const gaps: Array<{ from: number; to: number }> = [];
-  const threshold = intervalMs * tolerance;
+  // Convert tolerance from multiplier to missing-bar count for the canonical API.
+  // Canonical tolerance=1 means "allow 1 missing bar" ≈ multiplier 2.0.
+  // Our multiplier-based tolerance: threshold = intervalMs * tolerance.
+  // A gap of `threshold` means ~(tolerance - 1) missing bars at that interval,
+  // but the canonical API uses `missing > tolerance` so we pass floor(tolerance - 1).
+  const toleranceBars = Math.max(0, Math.floor(tolerance - 0.5));
 
-  for (let i = 1; i < bars.length; i++) {
-    const dt = bars[i].time - bars[i - 1].time;
-    if (dt > threshold) {
-      gaps.push({
-        from: bars[i - 1].time + intervalMs,
-        to: bars[i].time - intervalMs,
-      });
-    }
-  }
+  // Synthesize a "tf" string from intervalMs for the canonical API
+  const tfMap: Record<number, string> = {
+    60000: '1m', 180000: '3m', 300000: '5m', 900000: '15m', 1800000: '30m',
+    3600000: '1h', 7200000: '2h', 14400000: '4h', 21600000: '6h',
+    28800000: '8h', 43200000: '12h', 86400000: '1D',
+    259200000: '3D', 604800000: '1W', 2592000000: '1M',
+  };
+  const tf = tfMap[intervalMs] || '1h';
 
-  return gaps;
+  const canonicalGaps = _detectGapsCanonical(bars, tf, toleranceBars);
+
+  // Adapt from Gap shape to {from, to} shape
+  return canonicalGaps.map(g => ({
+    from: g.afterTime + intervalMs,
+    to: g.beforeTime - intervalMs,
+  }));
 }
 
 /**
@@ -64,21 +78,8 @@ export function detectGaps(bars: Bar[], intervalMs: number, tolerance = 1.5): Ar
  * Both arrays must be sorted ascending by time.
  */
 export function mergeBars(existing: Bar[], backfill: Bar[]): Bar[] {
-  if (!backfill.length) return existing;
-  if (!existing.length) return backfill;
-
-  // Build a Set of existing timestamps for O(1) dedup
-  const existingTimes = new Set(existing.map(b => b.time));
-
-  // Filter backfill to only new bars
-  const newBars = backfill.filter(b => !existingTimes.has(b.time));
-  if (!newBars.length) return existing;
-
-  // Merge and sort
-  const merged = [...existing, ...newBars];
-  merged.sort((a, b) => a.time - b.time);
-
-  return merged;
+  // O(n) two-pointer merge — both arrays are pre-sorted ascending
+  return sortedMergeBars(existing, backfill, b => b.time, 'b');
 }
 
 /**

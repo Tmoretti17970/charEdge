@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { C, F } from '../../constants.js';
-import { alpha } from '../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Constants ──────────────────────────────────────────────────
 const FILTER_CHIPS = [

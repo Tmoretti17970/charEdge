@@ -5,11 +5,11 @@
 
 import React, { useState } from 'react';
 import { C, M } from '../../../../constants.js';
-import { Card, StatCard, AutoGrid } from '../../../components/ui/UIKit.jsx';
 import { fmtD } from '../../../../utils.js';
-import EquityCurveChart from '../../../components/widgets/EquityCurveChart.jsx';
-import DailyPnlChart from '../../../components/widgets/DailyPnlChart.jsx';
+import { Card, StatCard, AutoGrid } from '../../../components/ui/UIKit.jsx';
 import BreakdownBarChart from '../../../components/widgets/BreakdownBarChart.jsx';
+import DailyPnlChart from '../../../components/widgets/DailyPnlChart.jsx';
+import EquityCurveChart from '../../../components/widgets/EquityCurveChart.jsx';
 import WinRateDonut from '../../../components/widgets/WinRateDonut.jsx';
 import { SectionLabel, MiniStat } from './AnalyticsPrimitives.jsx';
 

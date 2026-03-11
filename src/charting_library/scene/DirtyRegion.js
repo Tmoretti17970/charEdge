@@ -1,12 +1,13 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — DirtyRegion
+// charEdge — DirtyRegion (Sprint 18 #114)
 //
-// Tracks dirty rectangular regions per canvas layer.
-// Used to minimize canvas clearing: instead of clearing the entire
-// layer, only clear and repaint the dirty rectangle(s).
+// Tracks disjoint dirty rectangular regions per canvas layer.
+// Instead of merging everything into one bounding box, maintains
+// up to MAX_RECTS separate rects per layer. Only when the limit
+// is exceeded are the two closest rects merged.
 //
-// Initially used for the crosshair (UI layer): on mouse move, only
-// the old crosshair strip and new strip are marked dirty.
+// This enables per-pane partial repaints: only intersecting panes
+// need to be redrawn, rather than the full canvas.
 // ═══════════════════════════════════════════════════════════════════
 
 /**
@@ -17,47 +18,124 @@
  * @property {number} h
  */
 
+const MAX_RECTS = 8;
+
 /**
- * Dirty region tracker. Merges overlapping dirty rects per layer.
+ * Check if two rects overlap (including touching edges).
+ */
+function rectsOverlap(a, b) {
+  return !(a.x + a.w < b.x || b.x + b.w < a.x || a.y + a.h < b.y || b.y + b.h < a.y);
+}
+
+/**
+ * Merge two rects into their bounding box.
+ */
+function mergeRects(a, b) {
+  const x = Math.min(a.x, b.x);
+  const y = Math.min(a.y, b.y);
+  return {
+    x,
+    y,
+    w: Math.max(a.x + a.w, b.x + b.w) - x,
+    h: Math.max(a.y + a.h, b.y + b.h) - y,
+  };
+}
+
+/**
+ * Compute the area increase from merging two rects.
+ * Used to find the "cheapest" merge when over MAX_RECTS.
+ */
+function mergeArea(a, b) {
+  const merged = mergeRects(a, b);
+  return merged.w * merged.h - a.w * a.h - b.w * b.h;
+}
+
+/**
+ * Dirty region tracker with disjoint rect support.
+ * Maintains up to MAX_RECTS (8) separate dirty rects per layer.
+ * Only merges when overlapping or when the list exceeds the limit.
  */
 export class DirtyRegion {
   constructor() {
-    /** @type {Map<string, Rect>} layerId → merged bounding box */
+    /** @type {Map<string, Rect[]>} layerId → array of disjoint rects */
     this._regions = new Map();
   }
 
   /**
    * Register a dirty rectangle on a layer.
-   * If the layer already has a dirty region, merges into the bounding box.
+   * If overlapping with an existing rect, merges them.
+   * If at capacity, merges the two closest rects.
    * @param {string} layerId - Canvas layer identifier
    * @param {Rect} rect      - Dirty area in CSS pixels
    */
   addRect(layerId, rect) {
     if (!rect || rect.w <= 0 || rect.h <= 0) return;
 
-    const existing = this._regions.get(layerId);
-    if (!existing) {
-      this._regions.set(layerId, { x: rect.x, y: rect.y, w: rect.w, h: rect.h });
-    } else {
-      // Merge: compute bounding box of both rects
-      const x1 = Math.min(existing.x, rect.x);
-      const y1 = Math.min(existing.y, rect.y);
-      const x2 = Math.max(existing.x + existing.w, rect.x + rect.w);
-      const y2 = Math.max(existing.y + existing.h, rect.y + rect.h);
-      existing.x = x1;
-      existing.y = y1;
-      existing.w = x2 - x1;
-      existing.h = y2 - y1;
+    let rects = this._regions.get(layerId);
+    if (!rects) {
+      rects = [];
+      this._regions.set(layerId, rects);
+    }
+
+    // Check for overlaps with existing rects — merge if found
+    for (let i = 0; i < rects.length; i++) {
+      if (rectsOverlap(rects[i], rect)) {
+        rects[i] = mergeRects(rects[i], rect);
+        return;
+      }
+    }
+
+    // No overlap — add as a new disjoint rect
+    rects.push({ x: rect.x, y: rect.y, w: rect.w, h: rect.h });
+
+    // If over capacity, merge the two closest rects
+    if (rects.length > MAX_RECTS) {
+      this._compactRects(rects);
     }
   }
 
   /**
-   * Get the merged dirty region for a layer.
+   * Merge the two rects with the smallest merge area cost.
+   * @param {Rect[]} rects
+   */
+  _compactRects(rects) {
+    let bestI = 0, bestJ = 1, bestCost = Infinity;
+    for (let i = 0; i < rects.length; i++) {
+      for (let j = i + 1; j < rects.length; j++) {
+        const cost = mergeArea(rects[i], rects[j]);
+        if (cost < bestCost) {
+          bestCost = cost;
+          bestI = i;
+          bestJ = j;
+        }
+      }
+    }
+    rects[bestI] = mergeRects(rects[bestI], rects[bestJ]);
+    rects.splice(bestJ, 1);
+  }
+
+  /**
+   * Get all dirty regions for a layer (array of disjoint rects).
+   * @param {string} layerId
+   * @returns {Rect[]}
+   */
+  getRegions(layerId) {
+    return this._regions.get(layerId) || [];
+  }
+
+  /**
+   * Get the single merged dirty region for a layer (backwards compat).
    * @param {string} layerId
    * @returns {Rect|null}
    */
   getRegion(layerId) {
-    return this._regions.get(layerId) || null;
+    const rects = this._regions.get(layerId);
+    if (!rects || rects.length === 0) return null;
+    let merged = rects[0];
+    for (let i = 1; i < rects.length; i++) {
+      merged = mergeRects(merged, rects[i]);
+    }
+    return merged;
   }
 
   /**
@@ -66,7 +144,8 @@ export class DirtyRegion {
    * @returns {boolean}
    */
   hasDirty(layerId) {
-    return this._regions.has(layerId);
+    const rects = this._regions.get(layerId);
+    return !!rects && rects.length > 0;
   }
 
   /**
@@ -74,7 +153,19 @@ export class DirtyRegion {
    * @returns {string[]}
    */
   getDirtyLayers() {
-    return [...this._regions.keys()];
+    return [...this._regions.keys()].filter(k => this.hasDirty(k));
+  }
+
+  /**
+   * Check if a rect intersects any dirty region on a layer.
+   * @param {string} layerId
+   * @param {Rect} rect
+   * @returns {boolean}
+   */
+  intersects(layerId, rect) {
+    const rects = this._regions.get(layerId);
+    if (!rects) return false;
+    return rects.some(r => rectsOverlap(r, rect));
   }
 
   /**

@@ -5,7 +5,7 @@
 
 import { initAuthProvider, getAuthProvider } from '../../services/AuthService.js';
 import { initApiKeys } from '../../data/providers/ApiKeyStore.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@/observability/logger.js';
 
 export const createAuthSlice = (set, get) => ({
   // ─── Auth State ─────────────────────────────────────────────
@@ -86,6 +86,7 @@ export const createAuthSlice = (set, get) => ({
     const provider = getAuthProvider();
     try {
       await provider.signOut();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
       /* ignore sign out errors */
     }

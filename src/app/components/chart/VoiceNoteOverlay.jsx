@@ -5,8 +5,8 @@
 // Transcription preview after release. Edit before pinning.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { voiceToChart } from '../../../intelligence/VoiceToChart.ts';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { voiceToChart } from '@/ai/VoiceToChart';
 
 const FONT = 'var(--forge-font, Inter, sans-serif)';
 const MONO = 'var(--forge-mono, "JetBrains Mono", monospace)';

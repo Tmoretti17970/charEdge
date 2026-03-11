@@ -66,7 +66,7 @@ export function generateWeeklyReport(trades, analyticsResult, settings = {}) {
 
 // ─── Section Graders ─────────────────────────────────────────────
 
-function gradePerformance(weekTrades, prevWeekTrades, settings) {
+function gradePerformance(weekTrades, prevWeekTrades, _settings) {
   const pnl = sum(weekTrades, 'pnl');
   const wr = winRate(weekTrades);
   const count = weekTrades.length;
@@ -226,7 +226,7 @@ function gradeTiming(weekTrades) {
 
   // Check day-of-week concentration
   const byDow = {};
-  const dowNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const _dowNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   for (const t of weekTrades) {
     if (!t.date) continue;
     const d = new Date(t.date).getDay();

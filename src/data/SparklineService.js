@@ -8,35 +8,38 @@
 // Task 1B.4: Sparkline dedup via QuoteService cache
 // ═══════════════════════════════════════════════════════════════════
 
-import { isCrypto } from '../constants.js';
-import { getQuote, getSparkline as _getSparkline } from './QuoteService.js';
-import { logger } from '../utils/logger';
+import { getQuote, getSparkline as _getSparkline, batchGetQuotes } from './QuoteService.js';
+import { logger } from '@/observability/logger';
 
 /**
  * Fetch 24hr ticker price change statistics for one or multiple symbols.
- * Now reads from QuoteService unified cache instead of making separate
- * Binance/Yahoo requests per symbol.
+ * Uses batchGetQuotes() to collapse crypto into a single API call.
  */
 export async function fetch24hTicker(symbols) {
   if (!symbols || symbols.length === 0) return [];
   const symArray = Array.isArray(symbols) ? symbols : [symbols];
 
-  const results = [];
-
-  // Fetch all symbols through QuoteService (which caches + deduplicates)
-  const promises = symArray.map(async (sym) => {
-    try {
-      const quote = await getQuote(sym);
-      if (quote && quote._raw) {
-        results.push(quote._raw);
-      }
-    } catch (e) {
-      logger.data.warn(`[SparklineService] Ticker fetch failed for ${sym}`, e.message);
+  try {
+    const quoteMap = await batchGetQuotes(symArray);
+    const results = [];
+    for (const quote of quoteMap.values()) {
+      if (quote?._raw) results.push(quote._raw);
     }
-  });
-
-  await Promise.all(promises);
-  return results;
+    return results;
+  } catch (e) {
+    logger.data.warn('[SparklineService] Batch ticker fetch failed, falling back to individual', e.message);
+    // Fallback to individual fetches
+    const results = [];
+    const promises = symArray.map(async (sym) => {
+      try {
+        const quote = await getQuote(sym);
+        if (quote?._raw) results.push(quote._raw);
+      // eslint-disable-next-line unused-imports/no-unused-vars
+      } catch (_) { /* skip */ }
+    });
+    await Promise.all(promises);
+    return results;
+  }
 }
 
 /**

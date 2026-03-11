@@ -139,8 +139,13 @@ app.get('/health/deep', (req, res) => {
   }
 
   // ── Table Row Counts ──────────────────────────────────────
+  // Allowlist: only these table names may appear in the interpolated SQL.
+  // better-sqlite3 does not support parameterized identifiers, so this
+  // guard prevents SQL injection if the array is ever populated from input.
+  const ALLOWED_TABLES = new Set(['trades', 'playbooks', 'notes', 'plans', 'settings', 'audit_log']);
   const tables = ['trades', 'playbooks', 'notes', 'plans', 'settings', 'audit_log'];
   for (const table of tables) {
+    if (!ALLOWED_TABLES.has(table)) continue;
     try {
       const row = /** @type {{ count: number } | undefined} */ (
         db.prepare(`SELECT COUNT(*) as count FROM ${table}`).get()
@@ -237,6 +242,8 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('unhandledRejection', (err) => {
   process.stderr.write(`\x1b[31mUnhandled Promise Rejection:\x1b[0m ${err}\n`);
+  // Exit so the process manager restarts cleanly — continuing in unknown state risks serving corrupt responses
+  shutdown('unhandledRejection');
 });
 process.on('uncaughtException', (err) => {
   process.stderr.write(`\x1b[31mUncaught Exception:\x1b[0m ${err}\n`);

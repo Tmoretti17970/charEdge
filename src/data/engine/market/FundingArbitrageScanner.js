@@ -17,8 +17,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { bybitFuturesAdapter } from '../../adapters/BybitFuturesAdapter.js';
-
-import { logger } from '../../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 // ─── Constants ─────────────────────────────────────────────────
 
 const SCAN_INTERVAL_MS = 5 * 60 * 1000;       // Scan every 5 minutes
@@ -136,7 +135,7 @@ class _FundingArbitrageScanner {
    * Set the funding spread threshold (basis points).
    * @param {number} bps
    */
-  setThreshold(bps) {
+  setThreshold(_bps) {
     // Only used for filtering; scanning still collects all data
   }
 

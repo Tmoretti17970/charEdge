@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useUIStore } from '../../state/useUIStore.js';
+import { useUIStore } from '../../state/useUIStore';
 
 describe('UI Store', () => {
     beforeEach(() => {

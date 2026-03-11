@@ -8,11 +8,10 @@
 
 import { useMemo, useState } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { useUIStore } from '../../../state/useUIStore.js';
+import { useJournalStore } from '../../../state/useJournalStore';
+import { fmtD } from '../../../utils.js';
 import { Card } from '../../components/ui/UIKit.jsx';
 import { launchTradeReplay } from '../../features/journal/journal_ui/TradeReplay.js';
-import { fmtD } from '../../../utils.js';
 
 export default function TradeReplayPanel() {
   const trades = useJournalStore((s) => s.trades);

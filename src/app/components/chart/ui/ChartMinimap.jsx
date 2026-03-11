@@ -4,9 +4,10 @@
 // gradient fog-of-war for quick data navigation.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import { C } from '../../../../constants.js';
-import { alpha } from '../../../../utils/colorUtils.js';
+import { useChartBars } from '../../../hooks/useChartBars.js';
+import { alpha } from '@/shared/colorUtils';
 
 const MINIMAP_HEIGHT = 36;
 
@@ -45,7 +46,8 @@ function computeTimeLabels(data, canvasWidth) {
   return labels;
 }
 
-export default function ChartMinimap({ data, visibleBars = 80, scrollOffset = 0, onViewportChange }) {
+export default function ChartMinimap({ visibleBars = 80, scrollOffset = 0, onViewportChange }) {
+  const data = useChartBars();
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [dragging, setDragging] = useState(false);

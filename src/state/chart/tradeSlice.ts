@@ -8,7 +8,7 @@
 
 // ─── Pure Calculation Helpers (exported for consumer use) ────────
 
-export function calcRiskReward(entry, stopLoss, takeProfit, side = 'long') {
+export function calcRiskReward(entry, stopLoss, takeProfit, _side = 'long') {
   if (!entry || !stopLoss || !takeProfit) return null;
   const risk = Math.abs(entry - stopLoss);
   const reward = Math.abs(takeProfit - entry);
@@ -70,7 +70,38 @@ export const createTradeSlice = (set, get) => ({
   setTradeMode: (on) => set({ tradeMode: on, showTradePanel: on }),
   setTradeSide: (side) => set({ tradeSide: side }),
 
-  // ─── Levels ───────────────────────────────────────────────────
+  enterTradeMode: (side: 'long' | 'short' = 'long') =>
+    set({ tradeMode: true, tradeSide: side, showTradePanel: true, tradeStep: 'entry' }),
+  exitTradeMode: () =>
+    set({
+      tradeMode: false,
+      showTradePanel: false,
+      tradeStep: 'idle',
+      pendingEntry: null,
+      pendingStopLoss: null,
+      pendingTakeProfit: null,
+      riskReward: null,
+      positionSize: null,
+      tradeNote: '',
+      tradePlaybook: null,
+      tradeSetup: '',
+    }),
+  // ─── Levels (convenience wrappers called by useChartTradeHandler) ──
+  // These store {price, barIdx} objects and auto-advance the tradeStep.
+  setEntry: (price, barIdx) => {
+    set({ pendingEntry: { price, barIdx }, tradeStep: 'sl' });
+    get()._recalcTrade();
+  },
+  setSL: (price, barIdx) => {
+    set({ pendingStopLoss: { price, barIdx }, tradeStep: 'tp' });
+    get()._recalcTrade();
+  },
+  setTP: (price, barIdx) => {
+    set({ pendingTakeProfit: { price, barIdx }, tradeStep: 'ready' });
+    get()._recalcTrade();
+  },
+
+  // ─── Levels (raw setters — backward compat) ───────────────────
   setPendingEntry: (price) => {
     set({ pendingEntry: price });
     get()._recalcTrade();
@@ -108,21 +139,16 @@ export const createTradeSlice = (set, get) => ({
   // ─── Internal Recalculation ───────────────────────────────────
   _recalcTrade: () => {
     const s = get();
-    const rr = calcRiskReward(
-      s.pendingEntry,
-      s.pendingStopLoss,
-      s.pendingTakeProfit,
-      s.tradeSide,
-    );
+    // pendingEntry/SL/TP may be {price, barIdx} objects or raw numbers
+    const ep = typeof s.pendingEntry === 'object' ? s.pendingEntry?.price : s.pendingEntry;
+    const slp = typeof s.pendingStopLoss === 'object' ? s.pendingStopLoss?.price : s.pendingStopLoss;
+    const tpp = typeof s.pendingTakeProfit === 'object' ? s.pendingTakeProfit?.price : s.pendingTakeProfit;
+
+    const rr = calcRiskReward(ep, slp, tpp, s.tradeSide);
 
     // Try to get account size from settings (on the same store via useUserStore or from useSettingsStore)
     const accountSize = s.accountSize || 25000;
-    const pos = calcPositionSize(
-      accountSize,
-      s.riskPercent,
-      s.pendingEntry,
-      s.pendingStopLoss,
-    );
+    const pos = calcPositionSize(accountSize, s.riskPercent, ep, slp);
 
     set({ riskReward: rr, positionSize: pos });
   },

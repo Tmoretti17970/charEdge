@@ -3,8 +3,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect } from 'vitest';
-import { detectLeaks, applyLeakTags, LEAK_TAGS } from '../../services/LeakDetector.js';
-import { computeTruePnL, computeBatchTruePnL } from '../../services/TruePnL.js';
+import { detectLeaks, applyLeakTags, LEAK_TAGS } from '@/psychology/LeakDetectorService.js';
+import { computeTruePnL, computeBatchTruePnL } from '@/trading/TruePnL.js';
 import { createSnapshot, indicatorKey } from '../../types/TradeSnapshot.js';
 
 // ═══════════════════════════════════════════════════════════════════

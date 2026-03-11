@@ -13,6 +13,7 @@ function loadFromStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : {};
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_) {
     return {};
   }
@@ -21,6 +22,7 @@ function loadFromStorage() {
 function saveToStorage(annotations) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(annotations));
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_) {
     /* quota exceeded — silent fail */
   }

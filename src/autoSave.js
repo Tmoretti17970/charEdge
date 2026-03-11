@@ -10,16 +10,16 @@
 //   unsubs.forEach(fn => fn());
 // ═══════════════════════════════════════════════════════════════════
 
-import { useJournalStore } from './state/useJournalStore.js';
-import { useUserStore } from './state/useUserStore.js';
-import { useScriptStore } from './state/useScriptStore.js';
-import { useWorkspaceStore } from './state/useWorkspaceStore.js';
-import { useWatchlistStore } from './state/useWatchlistStore.js';
-import { useGamificationStore } from './state/useGamificationStore.js';
-import { useAnalyticsStore } from './state/useAnalyticsStore.js';
-import { StorageService } from './data/StorageService.ts';
 import { storageAdapter } from './data/StorageAdapter.js';
-import { logger } from './utils/logger';
+import { StorageService } from './data/StorageService';
+import { useAnalyticsStore } from './state/useAnalyticsStore';
+import { useGamificationStore } from './state/useGamificationStore';
+import { useJournalStore } from './state/useJournalStore';
+import { useScriptStore } from './state/useScriptStore.js';
+import { useUserStore } from './state/useUserStore';
+import { useWatchlistStore } from './state/useWatchlistStore.js';
+import { useWorkspaceStore } from './state/useWorkspaceStore';
+import { logger } from '@/observability/logger';
 
 const AUTOSAVE_DELAY = 1500; // ms — debounce window for auto-save
 
@@ -176,6 +176,19 @@ export function setupAutoSave() {
       }
     }),
   );
+
+  // Timer cleanup: clear all pending debounce timers on teardown.
+  // Without this, pending setTimeout callbacks fire after unmount on stale state.
+  unsubs.unshift(() => {
+    clearTimeout(tradeTimer);
+    clearTimeout(settingsTimer);
+    clearTimeout(onboardingTimer);
+    clearTimeout(scriptsTimer);
+    clearTimeout(workspacesTimer);
+    clearTimeout(watchlistTimer);
+    clearTimeout(gamificationTimer);
+    clearTimeout(telemetryTimer);
+  });
 
   return unsubs;
 }

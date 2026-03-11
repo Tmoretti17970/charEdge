@@ -8,8 +8,8 @@
 // Props: value, onChange, min, max, step, snap, label, format
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useRef, useCallback, useEffect, memo } from 'react';
-import { C, M } from '../../../constants.js';
+import { useState, useRef, useCallback, useEffect, memo } from 'react';
+import { C } from '../../../constants.js';
 
 const DEFAULT_SNAPS = [0.01, 0.05, 0.1, 0.25, 0.5, 1, 5, 10, 25, 50, 100];
 

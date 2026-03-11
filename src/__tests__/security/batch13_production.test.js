@@ -161,7 +161,7 @@ describe('3.5.5 — Safe area inset handling', () => {
 
 describe('3.5.6 — Wire haptics', () => {
     it('haptics module exports trigger/isSupported/setEnabled/isEnabled', async () => {
-        const mod = await import('../../utils/haptics.ts');
+        const mod = await import('../../app/misc/haptics.ts');
         expect(typeof mod.haptics.trigger).toBe('function');
         expect(typeof mod.haptics.isSupported).toBe('function');
         expect(typeof mod.haptics.setEnabled).toBe('function');
@@ -170,7 +170,7 @@ describe('3.5.6 — Wire haptics', () => {
 
     it('has 6 haptic patterns', async () => {
         const fs = await import('fs');
-        const source = await fs.promises.readFile('src/utils/haptics.ts', 'utf8');
+        const source = await fs.promises.readFile('src/app/misc/haptics.ts', 'utf8');
         expect(source).toContain("'light'");
         expect(source).toContain("'medium'");
         expect(source).toContain("'heavy'");
@@ -208,13 +208,13 @@ describe('4.6.3 — :focus-visible on interactive elements', () => {
 
 describe('4.6.4 — Focus trap for modals/dialogs', () => {
     it('useFocusTrap hook exists and exports', async () => {
-        const mod = await import('../../utils/useFocusTrap.ts');
+        const mod = await import('../../a11y/useFocusTrap.ts');
         expect(typeof mod.useFocusTrap).toBe('function');
     });
 
     it('traps Tab at boundaries (wraps first ↔ last)', async () => {
         const fs = await import('fs');
-        const source = await fs.promises.readFile('src/utils/useFocusTrap.ts', 'utf8');
+        const source = await fs.promises.readFile('src/a11y/useFocusTrap.ts', 'utf8');
         expect(source).toContain("e.key === 'Tab'");
         expect(source).toContain('e.shiftKey');
         expect(source).toContain('last.focus()');
@@ -223,7 +223,7 @@ describe('4.6.4 — Focus trap for modals/dialogs', () => {
 
     it('supports Escape to close and returnFocusOnClose', async () => {
         const fs = await import('fs');
-        const source = await fs.promises.readFile('src/utils/useFocusTrap.ts', 'utf8');
+        const source = await fs.promises.readFile('src/a11y/useFocusTrap.ts', 'utf8');
         expect(source).toContain("e.key === 'Escape'");
         expect(source).toContain('returnFocusOnClose');
         expect(source).toContain('previousFocusRef.current.focus()');

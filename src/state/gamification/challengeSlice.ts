@@ -36,6 +36,7 @@ export const WEEKLY_CHALLENGE_POOL = [
 export function getDateKey(dateStr) {
   try {
     return new Date(dateStr).toISOString().slice(0, 10);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_) {
     return null;
   }
@@ -93,6 +94,7 @@ export function evaluateChallengeProgress(challenge, trades) {
     }
     case 'early_trade':
       return todayTrades.some((t) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         try { return new Date(t.date).getHours() < 10; } catch (_) { return false; }
       }) ? 1 : 0;
     case 'symbol_count':
@@ -106,6 +108,7 @@ function evaluateWeeklyProgress(challenge, trades) {
   if (!challenge || !challenge.id) return 0;
   const weekStart = getWeekStartDate();
   const weekTrades = (trades || []).filter((t) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     try { return new Date(t.date) >= weekStart; } catch (_) { return false; }
   });
 

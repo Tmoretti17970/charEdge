@@ -5,9 +5,9 @@
 // based on asset class (crypto → Binance, equities → Pyth/Polygon).
 // ═══════════════════════════════════════════════════════════════════
 
-import { pythAdapter } from '../adapters/PythAdapter.js';
-import { krakenAdapter } from '../adapters/KrakenAdapter.js';
 import { bybitAdapter } from '../adapters/BybitAdapter.js';
+import { krakenAdapter } from '../adapters/KrakenAdapter.js';
+import { pythAdapter } from '../adapters/PythAdapter.js';
 import { createPolygonWSAdapter } from './PolygonProvider.js';
 
 // ─── WSRouter Class ─────────────────────────────────────────────
@@ -77,7 +77,7 @@ export function createPythWSAdapter() {
       return pythAdapter.supports(symbol);
     },
 
-    subscribe(symbol, tf, { onCandle, onTick, onStatus } = {}) {
+    subscribe(symbol, tf, { _onCandle, onTick, onStatus } = {}) {
       _status = 'connecting';
       if (onStatus) onStatus(_status);
 
@@ -124,7 +124,7 @@ export function createKrakenWSAdapter() {
       return krakenAdapter.supports(symbol);
     },
 
-    subscribe(symbol, tf, { onCandle, onTick, onStatus } = {}) {
+    subscribe(symbol, tf, { _onCandle, onTick, onStatus } = {}) {
       _status = 'connecting';
       if (onStatus) onStatus(_status);
 
@@ -171,7 +171,7 @@ export function createBybitWSAdapter() {
       return bybitAdapter.supports(symbol);
     },
 
-    subscribe(symbol, tf, { onCandle, onTick, onStatus } = {}) {
+    subscribe(symbol, tf, { _onCandle, onTick, onStatus } = {}) {
       _status = 'connecting';
       if (onStatus) onStatus(_status);
 

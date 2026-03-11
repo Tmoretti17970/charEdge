@@ -58,7 +58,7 @@ describe('Benchmark Guard: OrderFlowEngine.ingestTick', () => {
 
     beforeEach(async () => {
         // Import fresh engine — use the JS version (production runtime)
-        const mod = await import('../../data/engine/orderflow/OrderFlowEngine.js');
+        const mod = await import('../../data/engine/orderflow/OrderFlowEngine');
         // Create a fresh engine instance to avoid cross-test pollution
         engine = new mod._OrderFlowEngine();
     });

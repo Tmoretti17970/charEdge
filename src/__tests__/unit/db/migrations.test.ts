@@ -4,7 +4,6 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import Database from 'better-sqlite3';
-import type { Database as DatabaseType } from 'better-sqlite3';
 import { initSchema } from '../../../api/db/sqlite-schema.ts';
 import {
     runMigrations,

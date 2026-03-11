@@ -58,7 +58,7 @@ describe('4.2.2 — FeatureExtractor (Co-Pilot pipeline)', () => {
 
 describe('4.2.1 — LLMService (intelligence/)', () => {
     it('imports and has expected methods', async () => {
-        const mod = await import('../../intelligence/LLMService.ts');
+        const mod = await import('../../ai/LLMService.ts');
         const llm = mod.llmService;
         expect(llm).toBeDefined();
         expect(typeof llm.configure).toBe('function');
@@ -68,7 +68,7 @@ describe('4.2.1 — LLMService (intelligence/)', () => {
     });
 
     it('defaults to not initialized', async () => {
-        const mod = await import('../../intelligence/LLMService.ts');
+        const mod = await import('../../ai/LLMService.ts');
         // The singleton may have been configured elsewhere, but the method should exist
         expect(typeof mod.llmService.isAvailable).toBeDefined();
     });

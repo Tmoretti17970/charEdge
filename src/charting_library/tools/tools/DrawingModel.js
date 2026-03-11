@@ -15,10 +15,14 @@ let idCounter = 0;
 
 /**
  * Generate a unique drawing ID.
+ * BUG-13: Uses crypto.randomUUID for collision-free IDs, with a robust fallback.
  * @returns {string}
  */
 export function generateId() {
-  return `draw_${Date.now()}_${++idCounter}`;
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return `drw_${crypto.randomUUID().slice(0, 12)}`;
+  }
+  return `drw_${Date.now().toString(36)}_${(++idCounter).toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
 }
 
 /**
@@ -433,6 +437,7 @@ export function serializeDrawings(drawings) {
       locked: d.locked,
       visible: d.visible,
       meta: d.meta,
+      _groupId: d._groupId || null, // BUG-07: persist group membership
     })),
   );
 }
@@ -450,6 +455,7 @@ export function deserializeDrawings(json) {
       ...d,
       state: 'idle',
     }));
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return [];
   }

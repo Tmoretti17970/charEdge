@@ -9,10 +9,10 @@
 //   <DerivativesDashboard symbol="BTCUSDT" />
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { logger } from '../../../utils/logger.ts';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { binanceFuturesAdapter } from '../../../data/adapters/BinanceFuturesAdapter.js';
+import { logger } from '@/observability/logger';
 
 // ─── Formatters ────────────────────────────────────────────────
 
@@ -154,7 +154,7 @@ export default function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
   liqRef.current = liquidations;
 
   // Fetch snapshot + history on mount / symbol change
-  const fetchData = useCallback(async () => {
+  const fetchDerivativesData = useCallback(async () => {
     setLoading(true);
     try {
       const [snap, oiHist, fundHist, lsr] = await Promise.all([
@@ -174,10 +174,10 @@ export default function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
   }, [symbol]);
 
   useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 30000); // Refresh every 30s
+    fetchDerivativesData();
+    const interval = setInterval(fetchDerivativesData, 30000); // Refresh every 30s
     return () => clearInterval(interval);
-  }, [fetchData]);
+  }, [fetchDerivativesData]);
 
   // Subscribe to liquidation stream
   useEffect(() => {
@@ -210,11 +210,13 @@ export default function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
             📊 Derivatives — {symbol.replace('USDT', '')}
           </div>
           <div style={{ fontSize: 10, color: C.t3, marginTop: 2 }}>
-            Free Binance Futures data · No API key required
+            {snapshot?.source === 'coingecko'
+              ? '⚡ Data via CoinGecko (Binance API restricted in your region)'
+              : 'Free Binance Futures data · No API key required'}
           </div>
         </div>
         <button
-          onClick={fetchData}
+          onClick={fetchDerivativesData}
           style={{
             fontSize: 10, padding: '5px 10px', borderRadius: 6,
             border: `1px solid ${C.bd}`, background: C.sf, color: C.t2,

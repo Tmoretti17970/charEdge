@@ -9,8 +9,8 @@
 // Uses the unified charEdge-cache database (shared with DataCache).
 // ═══════════════════════════════════════════════════════════════════
 
-import { openCacheDB } from '../../data/DataCache.ts';
-import { logger } from '../../utils/logger';
+import { openCacheDB } from '../../data/DataCache';
+import { logger } from '@/observability/logger';
 
 const STORE_NAME = 'drawings';
 
@@ -61,6 +61,7 @@ export async function saveDrawings(symbol, timeframe, drawings) {
         visible: d.visible !== false,
         meta: d.meta ? { ...d.meta } : {},
         syncAcrossTimeframes: d.syncAcrossTimeframes || false,
+        _groupId: d._groupId || null, // BUG-07: persist group membership
       };
 
       if (d.syncAcrossTimeframes) {
@@ -97,6 +98,7 @@ export async function saveDrawings(symbol, timeframe, drawings) {
         visible: d.visible !== false, meta: d.meta || {},
       }));
       localStorage.setItem(`tf-drawings-${key}`, JSON.stringify(data));
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { /* storage may be blocked */ }
   }
 }
@@ -110,6 +112,7 @@ export async function saveDrawings(symbol, timeframe, drawings) {
  * @returns {Promise<Object[]>} Array of Drawing objects
  */
 export async function loadDrawings(symbol, timeframe) {
+  _loadingInProgress = true; // BUG-06: gate saves during load
   try {
     const db = await openCacheDB();
     const key = buildKey(symbol, timeframe);
@@ -157,8 +160,11 @@ export async function loadDrawings(symbol, timeframe) {
       if (raw) {
         return JSON.parse(raw).map(d => ({ ...d, state: 'idle' }));
       }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { /* storage may be blocked */ }
     return [];
+  } finally {
+    _loadingInProgress = false; // BUG-06: release load gate
   }
 }
 
@@ -198,6 +204,7 @@ export async function listDrawingKeys() {
       req.onsuccess = () => resolve(req.result || []);
       req.onerror = () => resolve([]);
     });
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return [];
   }
@@ -209,8 +216,10 @@ export async function listDrawingKeys() {
  */
 let _saveTimer = null;
 let _pendingSave = null;
+let _loadingInProgress = false; // BUG-06: load/save race guard
 
 export function debouncedSave(symbol, timeframe, drawings) {
+  if (_loadingInProgress) return; // BUG-06: skip saves while loading
   _pendingSave = { symbol, timeframe, drawings };
   if (_saveTimer) clearTimeout(_saveTimer);
   _saveTimer = setTimeout(() => {

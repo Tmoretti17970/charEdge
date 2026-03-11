@@ -1,4 +1,4 @@
-import { logger } from '../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v12 — Whale Alert Adapter
 //
@@ -154,6 +154,7 @@ class _WhaleAlertAdapter {
 
       CACHE.set('gas-prices', { data: result, expiry: Date.now() + 30000 });
       return result;
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return null;
     }

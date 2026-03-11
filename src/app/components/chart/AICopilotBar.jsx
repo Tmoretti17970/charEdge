@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { C, F } from '../../../constants.js';
+import AIOrb from '../design/AIOrb.jsx';
+import useHotkeys from '@/hooks/useHotkeys';
 
 export default function AICopilotBar({ onCommand, onClose }) {
   const [input, setInput] = useState('');
@@ -12,17 +14,11 @@ export default function AICopilotBar({ onCommand, onClose }) {
     inputRef.current?.focus();
   }, []);
 
-  // Handle keyboard events (Escape to close, Enter to submit)
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  // Escape to close (via useHotkeys — respects scope priority)
+  useHotkeys(
+    [{ key: 'Escape', handler: onClose, description: 'Close AI Copilot bar' }],
+    { scope: 'panel' },
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -71,7 +67,7 @@ export default function AICopilotBar({ onCommand, onClose }) {
       }}
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', gap: 12 }}>
-        <span style={{ fontSize: 18, color: C.b }}>✨</span>
+        <AIOrb size={22} glow />
         {feedback ? (
           <div style={{ flex: 1, color: feedback.type === 'error' ? C.r : C.g, fontFamily: F, fontSize: 16 }}>
             {feedback.text}

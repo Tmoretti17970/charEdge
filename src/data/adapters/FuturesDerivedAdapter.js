@@ -1,4 +1,4 @@
-import { logger } from '../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v11 — Futures Derived Adapter
 //
@@ -131,6 +131,7 @@ class _FuturesDerivedAdapter {
           if (data.type === 'derived_analytics' && data.symbol) {
             this._handleAnalytics(data);
           }
+        // eslint-disable-next-line unused-imports/no-unused-vars
         } catch (_) {
           /* ignore malformed messages */
         }
@@ -144,6 +145,7 @@ class _FuturesDerivedAdapter {
       this._ws.onerror = () => {
         this._setConnected(false);
       };
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       this._setConnected(false);
       this._attemptReconnect();

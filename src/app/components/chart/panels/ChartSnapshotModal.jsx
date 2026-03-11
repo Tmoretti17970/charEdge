@@ -3,7 +3,7 @@
 // One-click chart capture → post to Social Hub
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 const styles = {
   overlay: {
@@ -109,12 +109,14 @@ export default function ChartSnapshotModal({ open, onClose, canvas, symbol, time
       ctx.fillText(watermarkText, w - Math.round(12 * scale), h - Math.round(8 * scale));
 
       return offscreen.toDataURL('image/png');
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { return null; }
   };
 
   useEffect(() => {
     if (open && canvas) {
       const url = captureHiDPI(canvas);
+      // eslint-disable-next-line unused-imports/no-unused-vars
       setPreviewUrl(url || (() => { try { return canvas.toDataURL('image/png'); } catch (_) { return null; } })());
       setTitle(`${symbol || 'Chart'} ${timeframe || ''} Analysis`);
       setDescription('');
@@ -122,6 +124,7 @@ export default function ChartSnapshotModal({ open, onClose, canvas, symbol, time
       // Sprint 22: Generate embed snippet
       setEmbedSnippet(`<iframe src="${window.location.origin}/embed/${(symbol || 'BTC').toLowerCase()}?tf=${timeframe || '1D'}" width="800" height="450" frameborder="0" style="border-radius:8px;"></iframe>`);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, canvas, symbol, timeframe]);
 
   if (!open) return null;
@@ -158,6 +161,7 @@ export default function ChartSnapshotModal({ open, onClose, canvas, symbol, time
       await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
       setCopyStatus('Copied!');
       setTimeout(() => setCopyStatus(''), 2000);
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       setCopyStatus('Failed');
       setTimeout(() => setCopyStatus(''), 2000);
@@ -170,6 +174,7 @@ export default function ChartSnapshotModal({ open, onClose, canvas, symbol, time
       navigator.clipboard.writeText(embedSnippet);
       setCopyStatus('Embed copied!');
       setTimeout(() => setCopyStatus(''), 2000);
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { /* storage may be blocked */ }
   };
 

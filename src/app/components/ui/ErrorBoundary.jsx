@@ -7,7 +7,7 @@
 import React from 'react';
 import { C, F, M } from '../../../constants.js';
 import { Btn } from './UIKit.jsx';
-import { reportError, getErrorLog } from '../../../utils/globalErrorHandler.js';
+import { reportError, getErrorLog } from '@/shared/globalErrorHandler';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {

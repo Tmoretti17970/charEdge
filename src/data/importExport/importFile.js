@@ -2,10 +2,10 @@
 // charEdge — Import File Function
 // ═══════════════════════════════════════════════════════════════════
 
-import { parseCSV } from './parseCSV.js';
-import { detectBroker, BROKER_PARSERS, BROKER_LABELS } from './brokerDetection.js';
-import { normalizeBatch } from '../../charting_library/model/TradeSchema.js';
 import { tradeHash } from '../../charting_library/datafeed/csv.js';
+import { normalizeBatch } from '../../charting_library/model/TradeSchema.js';
+import { detectBroker, BROKER_PARSERS, BROKER_LABELS } from './brokerDetection.js';
+import { parseCSV } from './parseCSV.js';
 
 /**
  * Normalize an array of imported trades through the schema validator.
@@ -114,6 +114,7 @@ function _dedup(trades, existingHashes) {
         existingHashes.add(hash); // prevent intra-file dupes too
         unique.push(trade);
       }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       // If hash fails (missing fields), keep the trade
       unique.push(trade);

@@ -7,11 +7,11 @@
 // No external CSS dependencies.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { space, radii, transition, text as textTokens, preset } from '../../../theme/tokens.js';
-import { useCountUp } from '../../../utils/useCountUp.js';
+import { Tooltip } from './AppleHIG.jsx';
+import { useCountUp } from '@/hooks/useCountUp';
 
 // Re-export tokens for convenience
 export { space, radii, transition, preset } from '../../../theme/tokens.js';
@@ -93,10 +93,10 @@ export function Label({ text, size = 'sm', style = {} }) {
 export function DataValue({ value, color = C.t1, size = 'md', style = {} }) {
   // Map sizes to token-based presets
   const sizeMap = {
-    sm:   { fontSize: textTokens.dataSm.fontSize,   fontWeight: textTokens.dataSm.fontWeight },
-    md:   { fontSize: 17,                           fontWeight: 800 },
-    lg:   { fontSize: textTokens.dataLg.fontSize,   fontWeight: textTokens.dataLg.fontWeight },
-    hero: { fontSize: textTokens.dataHero.fontSize,  fontWeight: textTokens.dataHero.fontWeight },
+    sm: { fontSize: textTokens.dataSm.fontSize, fontWeight: textTokens.dataSm.fontWeight },
+    md: { fontSize: 17, fontWeight: 800 },
+    lg: { fontSize: textTokens.dataLg.fontSize, fontWeight: textTokens.dataLg.fontWeight },
+    hero: { fontSize: textTokens.dataHero.fontSize, fontWeight: textTokens.dataHero.fontWeight },
   };
   const s = sizeMap[size] || sizeMap.md;
   return (
@@ -297,10 +297,12 @@ export function SectionHeader({ title, right, style = {} }) {
   );
 }
 
-// ─── Modal Overlay (Sprint 5: Framer Motion entrance/exit) ──────
+// ─── Modal Overlay (CSS transition entrance/exit) ──────────────────
 export function ModalOverlay({ isOpen, onClose, children, width = 480, 'aria-label': ariaLabel }) {
   const contentRef = useRef(null);
-  const prefersReducedMotion = useReducedMotion();
+  const [mounted, setMounted] = useState(false);
+  const [animating, setAnimating] = useState(false);
+  const skipMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
 
   // Escape key closes the modal
   useEffect(() => {
@@ -319,71 +321,74 @@ export function ModalOverlay({ isOpen, onClose, children, width = 480, 'aria-lab
     }
   }, [isOpen]);
 
-  const skipMotion = prefersReducedMotion;
+  // CSS transition mount/unmount
+  useEffect(() => {
+    if (isOpen) {
+      setMounted(true);
+      requestAnimationFrame(() => requestAnimationFrame(() => setAnimating(true)));
+    } else {
+      setAnimating(false);
+    }
+  }, [isOpen]);
+
+  const handleTransitionEnd = useCallback(() => {
+    if (!isOpen) setMounted(false);
+  }, [isOpen]);
+
+  if (!mounted) return null;
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 2000,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          {/* Backdrop with fade */}
-          <motion.div
-            initial={skipMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={skipMotion ? undefined : { opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            onClick={onClose}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'rgba(0,0,0,.6)',
-              backdropFilter: 'blur(4px)',
-              WebkitBackdropFilter: 'blur(4px)',
-            }}
-          />
-          {/* Content with scale + fade */}
-          <motion.div
-            ref={contentRef}
-            initial={skipMotion ? false : { opacity: 0, scale: 0.95, y: 8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={skipMotion ? undefined : { opacity: 0, scale: 0.95, y: 8 }}
-            transition={{
-              type: 'spring',
-              stiffness: 500,
-              damping: 35,
-              mass: 0.8,
-            }}
-            role="dialog"
-            aria-modal="true"
-            aria-label={ariaLabel || 'Dialog'}
-            tabIndex={-1}
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              position: 'relative',
-              background: C.sf,
-              border: `1px solid ${C.bd}`,
-              borderRadius: 16,
-              padding: 24,
-              width,
-              maxWidth: '95vw',
-              maxHeight: '85vh',
-              overflowY: 'auto',
-              outline: 'none',
-            }}
-          >
-            {children}
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 2000,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {/* Backdrop with fade */}
+      <div
+        onClick={onClose}
+        onTransitionEnd={handleTransitionEnd}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'rgba(0,0,0,.6)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+          opacity: animating ? 1 : 0,
+          transition: skipMotion ? 'none' : 'opacity 200ms ease',
+        }}
+      />
+      {/* Content with scale + fade */}
+      <div
+        ref={contentRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={ariaLabel || 'Dialog'}
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: 'relative',
+          background: C.sf,
+          border: `1px solid ${C.bd}`,
+          borderRadius: 16,
+          padding: 24,
+          width,
+          maxWidth: '95vw',
+          maxHeight: '85vh',
+          overflowY: 'auto',
+          outline: 'none',
+          opacity: animating ? 1 : 0,
+          transform: animating ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(8px)',
+          transition: skipMotion ? 'none' : 'opacity 250ms cubic-bezier(0.32, 0.72, 0, 1), transform 250ms cubic-bezier(0.32, 0.72, 0, 1)',
+        }}
+      >
+        {children}
+      </div>
+    </div>
   );
 }
 

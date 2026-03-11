@@ -1,4 +1,4 @@
-import { logger } from '../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v16 — Data Pipeline Logger

@@ -6,15 +6,13 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState } from 'react';
-import s from './DashboardPanel.module.css';
 import { C, F, M } from '../../../constants.js';
-import { text } from '../../../theme/tokens.js';
+import { useLayoutStore } from '../../../state/useLayoutStore';
 import { fmtD, timeAgo, METRIC_TIPS } from '../../../utils.js';
-import { useLayoutStore } from '../../../state/useLayoutStore.js';
 import { Card, StatCard, AutoGrid } from '../ui/UIKit.jsx';
 import WidgetBoundary from '../ui/WidgetBoundary.jsx';
-import WidgetGrid from '../widgets/WidgetGrid.jsx';
-import WidgetCustomizer from '../widgets/WidgetCustomizer.jsx';
+import DailyChallengeCard from '../widgets/DailyChallengeCard.jsx';
+import DailyPnlChart from '../widgets/DailyPnlChart.jsx';
 import {
     StreakWidget,
     RollingMetricsWidget,
@@ -27,17 +25,18 @@ import {
     DashboardPollWidget,
 } from '../widgets/DashboardWidgets.jsx';
 import EquityCurveChart from '../widgets/EquityCurveChart.jsx';
-import DailyPnlChart from '../widgets/DailyPnlChart.jsx';
 import TradeHeatmap from '../widgets/TradeHeatmap.jsx';
-import WinRateDonut from '../widgets/WinRateDonut.jsx';
-import DailyChallengeCard from '../widgets/DailyChallengeCard.jsx';
-import XPActivityFeed from '../widgets/XPActivityFeed.jsx';
 import WeeklyChallengeCard from '../widgets/WeeklyChallengeCard.jsx';
-import WeeklyReport from './WeeklyReport.jsx';
+import WidgetCustomizer from '../widgets/WidgetCustomizer.jsx';
+import WidgetGrid from '../widgets/WidgetGrid.jsx';
+import WinRateDonut from '../widgets/WinRateDonut.jsx';
+import XPActivityFeed from '../widgets/XPActivityFeed.jsx';
+import s from './DashboardPanel.module.css';
+import { DashHeader, OldSectionLabel, MetricRow } from './DashboardPrimitives.jsx';
+import ExpectancyCard from './ExpectancyCard.jsx';
 import SimilarTrades from './SimilarTrades.jsx';
 import TradeReplayPanel from './TradeReplayPanel.jsx';
-import ExpectancyCard from './ExpectancyCard.jsx';
-import { DashHeader, OldSectionLabel, MetricRow } from './DashboardPrimitives.jsx';
+import WeeklyReport from './WeeklyReport.jsx';
 
 export default function DashboardCustomLayout({
     trades,

@@ -12,9 +12,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useJournalStore } from '../state/useJournalStore.js';
-import { useRuleEngine } from '../state/useRuleEngine.js';
 import toast from '../app/components/ui/Toast.jsx';
+import { useJournalStore } from '../state/useJournalStore';
+import { useRuleEngine } from '../state/useRuleEngine.js';
 
 const COOLDOWN_KEY = 'charEdge-cooldown-end';
 const DEFAULT_COOLDOWN_MINUTES = 15;

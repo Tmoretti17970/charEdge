@@ -7,16 +7,18 @@
 //   • Streak flame icon + counter (if active)
 // ═══════════════════════════════════════════════════════════════════
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { C, F, M } from '../../../constants.js';
-import { useGamificationStore, getRankForXP, getXPToNextLevel } from '../../../state/useGamificationStore.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { useGamificationStore, getRankForXP, getXPToNextLevel } from '../../../state/useGamificationStore';
+import { alpha } from '@/shared/colorUtils';
 
 export default function SidebarXPBadge() {
   const xp = useGamificationStore((s) => s.xp);
   const enabled = useGamificationStore((s) => s.enabled);
   const streaks = useGamificationStore((s) => s.streaks);
   const [hovered, setHovered] = useState(false);
+  const badgeRef = useRef(null);
 
   if (!enabled) return null;
 
@@ -31,8 +33,21 @@ export default function SidebarXPBadge() {
   const circumference = 2 * Math.PI * radius;
   const dashOffset = circumference * (1 - progress);
 
+  // Calculate tooltip position from badge bounding rect
+  let tooltipStyle = {};
+  if (hovered && badgeRef.current) {
+    const rect = badgeRef.current.getBoundingClientRect();
+    tooltipStyle = {
+      position: 'fixed',
+      left: rect.right + 10,
+      top: rect.top + rect.height / 2,
+      transform: 'translateY(-50%)',
+    };
+  }
+
   return (
     <div
+      ref={badgeRef}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
@@ -122,15 +137,12 @@ export default function SidebarXPBadge() {
         </div>
       )}
 
-      {/* Hover tooltip */}
-      {hovered && (
+      {/* Hover tooltip — portaled to body so it escapes sidebar overflow */}
+      {hovered && createPortal(
         <div
           className="tf-tooltip"
           style={{
-            position: 'absolute',
-            left: 54,
-            top: '50%',
-            transform: 'translateY(-50%)',
+            ...tooltipStyle,
             background: alpha(C.sf2, 0.95),
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',
@@ -139,8 +151,9 @@ export default function SidebarXPBadge() {
             padding: '10px 14px',
             minWidth: 160,
             pointerEvents: 'none',
-            zIndex: 200,
+            zIndex: 10000,
             boxShadow: `0 4px 16px ${alpha(C.bg, 0.4)}`,
+            animation: 'tf-fade-in 0.12s ease-out',
           }}
         >
           <div style={{ fontSize: 12, fontWeight: 700, fontFamily: F, color: C.t1, marginBottom: 4 }}>
@@ -181,10 +194,12 @@ export default function SidebarXPBadge() {
               <span>💰 {streaks.profitable.current}d</span>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
 }
 
 export { SidebarXPBadge };
+

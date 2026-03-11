@@ -3,15 +3,15 @@
 // Renders active price alerts as annotated dashed lines on the chart.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo } from 'react';
-import { C, F } from '../../../../constants.js';
+import { useMemo } from 'react';
+import { F } from '../../../../constants.js';
+import { useAlertStore } from '../../../../state/useAlertStore';
+import { useChartBars } from '../../../hooks/useChartBars.js';
 import Icon from '../../design/Icon.jsx';
-import { useAlertStore } from '../../../../state/useAlertStore.js';
-import { useChartStore } from '../../../../state/useChartStore.js';
 
-export default function AlertLinesOverlay({ symbol, chartHeight = 400 }) {
+export default function AlertLinesOverlay({ symbol, _chartHeight = 400 }) {
   const allAlerts = useAlertStore((s) => s.alerts);
-  const data = useChartStore((s) => s.data);
+  const data = useChartBars();
 
   // Get alerts for the current symbol — the store may use different shapes
   const alerts = useMemo(() => {

@@ -9,14 +9,14 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useRef, useEffect, useCallback, useLayoutEffect, Suspense } from 'react';
-import { C, F, M, TFS } from '../../../constants.js';
-import { useChartStore } from '../../../state/useChartStore.js';
-import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
-import { useBreakpoints } from '../../../utils/useMediaQuery.js';
-import DataSourceBadge from './ui/DataSourceBadge.jsx';
+import { C, F, TFS } from '../../../constants.js';
+import { useChartStore } from '../../../state/useChartStore';
+
+import ChartTypeSelector from './toolbar/ChartTypeSelector.jsx';
+
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 // Extracted sub-components
-import ChartTypeSelector from './toolbar/ChartTypeSelector.jsx';
 
 // Lazy-load CommandCenterMenu to prevent chunk evaluation order issues
 const CommandCenterMenu = React.lazy(() => import('./toolbar/CommandCenterMenu.jsx'));
@@ -143,13 +143,13 @@ function TimeframeCapsule({ tf, setTf, showCustomTf, toggleCustomTf }) {
 
 export default function UnifiedChartToolbar({
   symbol, setSymbolInput, onSearchSelect,
-  isWatched, toggleWatchlist,
+
   showIndicators, setShowIndicators,
   showObjectTree, setShowObjectTree,
-  showTrades, setShowTrades, matchingTradesCount,
+  showTrades, setShowTrades, _matchingTradesCount,
   fetchSymbolSearch,
   onOpenPanel, // new prop to handle opening secondary panels in SlidePanel
-  onOpenCopilot, // Phase 2 AI
+  _onOpenCopilot, // Phase 2 AI
   onSnapshot, // Snapshot callback
   // Data source props for badge
   isLive, wsSupported, wsStatus, dataSource, dataLoading,
@@ -163,8 +163,7 @@ export default function UnifiedChartToolbar({
   const { isMobile } = useBreakpoints();
   const [searchModalOpen, setSearchModalOpen] = useState(false);
 
-  // Watchlist items for inline chips
-  const watchlistItems = useWatchlistStore((s) => s.items);
+
 
   // Chart Store State
   const tf = useChartStore((s) => s.tf);
@@ -174,39 +173,29 @@ export default function UnifiedChartToolbar({
   const showCustomTf = useChartStore((s) => s.showCustomTf);
   const toggleCustomTf = useChartStore((s) => s.toggleCustomTf);
 
-  // ─── Toolbar Compact Mode (Apple: no ghosting) ──────────────
-  // After 5s of inactivity, shrink toolbar to 32px (icons only).
-  // Symbol stays visible. Hover/focus restores full 44px.
   const toolbarRef = useRef(null);
-  const ghostTimerRef = useRef(null);
-  const [isCompact, setIsCompact] = useState(false);
-
-  const resetGhostTimer = useCallback(() => {
-    setIsCompact(false);
-    if (ghostTimerRef.current) clearTimeout(ghostTimerRef.current);
-    ghostTimerRef.current = setTimeout(() => setIsCompact(true), 5000);
-  }, []);
-
-  useEffect(() => {
-    resetGhostTimer();
-    return () => { if (ghostTimerRef.current) clearTimeout(ghostTimerRef.current); };
-  }, [resetGhostTimer]);
 
   return (
     <div
       ref={toolbarRef}
-      className={`tf-chart-toolbar${isCompact ? ' tf-toolbar-compact' : ''}`}
+      className="tf-chart-toolbar"
       data-container="toolbar"
       role="toolbar"
       aria-label="Chart toolbar"
-      onMouseMove={resetGhostTimer}
-      onMouseDown={resetGhostTimer}
-      onKeyDown={resetGhostTimer}
+
       style={{
         gap: isMobile ? 2 : 4,
         ...(isMobile ? { padding: '0 6px', height: 'auto', overflow: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' } : {}),
       }}
     >
+      {/* P2 2.6: Compact mode indicator */}
+      {isMobile && (
+        <div style={{
+          width: 6, height: 6, borderRadius: '50%',
+          background: C.y, opacity: 0.6,
+          flexShrink: 0, marginRight: 2,
+        }} title="Compact mode — some controls hidden" />
+      )}
       {/* 1. SYMBOL + SEARCH MODAL TRIGGER + DATA SOURCE */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
         <button
@@ -222,58 +211,11 @@ export default function UnifiedChartToolbar({
           {symbol}
           <span style={{ fontSize: 8, color: C.t3 }}>▼</span>
         </button>
-        <ToolbarBtn active={isWatched} onClick={toggleWatchlist} title="Watchlist">★</ToolbarBtn>
-        <DataSourceBadge
-          isLive={isLive} wsSupported={wsSupported} wsStatus={wsStatus}
-          dataSource={dataSource} dataLoading={dataLoading}
-        />
+
+
       </div>
 
-      {/* WATCHLIST CHIPS — inline symbol toggles */}
-      {!isMobile && watchlistItems.length > 0 && (
-        <>
-          <Divider />
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 3,
-            overflow: 'hidden',
-            flexShrink: 1,
-            minWidth: 0,
-          }}>
-            {watchlistItems.slice(0, 5).map((item) => {
-              const sym = item.symbol;
-              const isActive = sym === symbol;
-              return (
-                <button
-                  key={sym}
-                  className="tf-chart-toolbar-btn"
-                  data-active={isActive || undefined}
-                  onClick={() => { onSearchSelect(sym); setSymbolInput(sym); }}
-                  title={sym}
-                  style={{
-                    fontSize: 10.5,
-                    fontWeight: isActive ? 700 : 500,
-                    padding: '2px 7px',
-                    flexShrink: 0,
-                    borderRadius: 10,
-                  }}
-                >
-                  {sym}
-                </button>
-              );
-            })}
-            {watchlistItems.length > 5 && (
-              <span style={{
-                fontSize: 9, color: C.t3, fontWeight: 600, padding: '2px 4px',
-                fontFamily: F,
-              }}>
-                +{watchlistItems.length - 5}
-              </span>
-            )}
-          </div>
-        </>
-      )}
+
 
       <Divider />
 

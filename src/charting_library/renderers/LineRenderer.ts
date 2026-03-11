@@ -182,7 +182,7 @@ export function drawAALine(
     data[vi++] = ax; data[vi++] = ay; data[vi++] = bx; data[vi++] = by; data[vi++] = 1; data[vi++] = 1;
   }
 
-  const totalVerts = segCount * 4;
+  const _totalVerts = segCount * 4;
 
   gl.useProgram(prog);
   gl.viewport(0, 0, cW, cH);

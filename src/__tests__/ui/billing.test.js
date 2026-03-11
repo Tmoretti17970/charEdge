@@ -6,9 +6,9 @@
 // subscription store, and env configuration.
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
+import { describe, it, expect } from 'vitest';
 
 const ROOT = resolve(__dirname, '../../..');
 const SRC = resolve(__dirname, '..', '..');

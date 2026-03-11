@@ -32,9 +32,9 @@ describe('ReplayPaperTrade', () => {
     }
 
     it('places a trade at current replay price', async () => {
-        const { ReplayPaperTrade } = await import('../../intelligence/ReplayPaperTrade');
+        const { ReplayPaperTrade } = await import('../../trading/ReplayPaperTrade');
         const mockEngine = createMockEngine();
-        const rpt = new ReplayPaperTrade(mockEngine as any);
+        const rpt = new ReplayPaperTrade(mockEngine as unknown);
 
         const trade = rpt.placeTrade('long', 1);
         expect(trade).not.toBeNull();
@@ -44,9 +44,9 @@ describe('ReplayPaperTrade', () => {
     });
 
     it('closes a trade and calculates P&L', async () => {
-        const { ReplayPaperTrade } = await import('../../intelligence/ReplayPaperTrade');
+        const { ReplayPaperTrade } = await import('../../trading/ReplayPaperTrade');
         const mockEngine = createMockEngine();
-        const rpt = new ReplayPaperTrade(mockEngine as any);
+        const rpt = new ReplayPaperTrade(mockEngine as unknown);
 
         const trade = rpt.placeTrade('long', 2);
         expect(trade).not.toBeNull();
@@ -61,9 +61,9 @@ describe('ReplayPaperTrade', () => {
     });
 
     it('tracks session stats correctly', async () => {
-        const { ReplayPaperTrade } = await import('../../intelligence/ReplayPaperTrade');
+        const { ReplayPaperTrade } = await import('../../trading/ReplayPaperTrade');
         const mockEngine = createMockEngine();
-        const rpt = new ReplayPaperTrade(mockEngine as any);
+        const rpt = new ReplayPaperTrade(mockEngine as unknown);
 
         // Win trade
         rpt.placeTrade('long', 1);
@@ -83,9 +83,9 @@ describe('ReplayPaperTrade', () => {
     });
 
     it('updates unrealized P&L on bar advance', async () => {
-        const { ReplayPaperTrade } = await import('../../intelligence/ReplayPaperTrade');
+        const { ReplayPaperTrade } = await import('../../trading/ReplayPaperTrade');
         const mockEngine = createMockEngine();
-        const rpt = new ReplayPaperTrade(mockEngine as any);
+        const rpt = new ReplayPaperTrade(mockEngine as unknown);
         rpt.connect();
 
         rpt.placeTrade('long', 1);
@@ -107,7 +107,7 @@ describe('ReplayPaperTrade', () => {
 
 describe('ExpectancyCalculator', () => {
     it('computes overall expectancy', async () => {
-        const { computeExpectancy } = await import('../../intelligence/ExpectancyCalculator');
+        const { computeExpectancy } = await import('../../trading/ExpectancyCalculator');
         const trades = [
             { pnl: 100, setup: 'Breakout' },
             { pnl: -50, setup: 'Breakout' },
@@ -123,7 +123,7 @@ describe('ExpectancyCalculator', () => {
     });
 
     it('groups by setup', async () => {
-        const { computeExpectancy } = await import('../../intelligence/ExpectancyCalculator');
+        const { computeExpectancy } = await import('../../trading/ExpectancyCalculator');
         const trades = [
             { pnl: 100, setup: 'Breakout' },
             { pnl: -50, setup: 'Pullback' },
@@ -141,7 +141,7 @@ describe('ExpectancyCalculator', () => {
     });
 
     it('generates recommendation for negative setups', async () => {
-        const { computeExpectancy } = await import('../../intelligence/ExpectancyCalculator');
+        const { computeExpectancy } = await import('../../trading/ExpectancyCalculator');
         const trades = [
             { pnl: 200, setup: 'Good Setup' },
             { pnl: 150, setup: 'Good Setup' },
@@ -155,7 +155,7 @@ describe('ExpectancyCalculator', () => {
     });
 
     it('handles R-multiple expectancy', async () => {
-        const { computeExpectancy } = await import('../../intelligence/ExpectancyCalculator');
+        const { computeExpectancy } = await import('../../trading/ExpectancyCalculator');
         const trades = [
             { pnl: 300, setup: 'Trend', rMultiple: 3.0 },
             { pnl: -100, setup: 'Trend', rMultiple: -1.0 },
@@ -171,7 +171,7 @@ describe('ExpectancyCalculator', () => {
 
 describe('PostTradeReflection', () => {
     it('creates a reflection from answers', async () => {
-        const { createReflection, REFLECTION_PROMPTS } = await import('../../intelligence/PostTradeReflection');
+        const { createReflection, REFLECTION_PROMPTS } = await import('../../journal/PostTradeReflection');
 
         const answers = [
             { promptId: 'plan-followed', answer: 8, timestamp: new Date().toISOString() },
@@ -187,7 +187,7 @@ describe('PostTradeReflection', () => {
     });
 
     it('analyzes emotion patterns', async () => {
-        const { analyzeReflections } = await import('../../intelligence/PostTradeReflection');
+        const { analyzeReflections } = await import('../../journal/PostTradeReflection');
 
         const reflections = [
             {
@@ -216,7 +216,7 @@ describe('PostTradeReflection', () => {
     });
 
     it('persistence round-trip', async () => {
-        const { saveReflections, loadReflections } = await import('../../intelligence/PostTradeReflection');
+        const { saveReflections, loadReflections } = await import('../../journal/PostTradeReflection');
 
         const reflections = [
             {

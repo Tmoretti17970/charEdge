@@ -7,9 +7,9 @@
 
 import { useMemo, useState } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { Card } from '../../components/ui/UIKit.jsx';
+import { useJournalStore } from '../../../state/useJournalStore';
 import { fmtD } from '../../../utils.js';
+import { Card } from '../../components/ui/UIKit.jsx';
 
 // ─── Helpers ────────────────────────────────────────────────────
 

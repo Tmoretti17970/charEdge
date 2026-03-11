@@ -1,4 +1,3 @@
-import { logger } from '../utils/logger';
 
 // @ts-check
 // ═══════════════════════════════════════════════════════════════════
@@ -97,7 +96,6 @@ export function barRange(bars, startTime, endTime) {
 
     let endIdx = barBisect(bars, endTime);
     if (endIdx < 0) endIdx = ~endIdx - 1;
-    else endIdx = endIdx; // exact match, include it
 
     // Clamp
     startIdx = Math.max(0, startIdx);

@@ -14,10 +14,10 @@
 //   3. After frame, call clearDirty() to reset flags
 // ═══════════════════════════════════════════════════════════════════
 
+import { DirtyRegion } from './DirtyRegion.js';
 import { RenderNode } from './RenderNode.js';
 import { SpatialIndex } from './SpatialIndex.js';
-import { DirtyRegion } from './DirtyRegion.js';
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
 
 export class SceneGraph {
   /**

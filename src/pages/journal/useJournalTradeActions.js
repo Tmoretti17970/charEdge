@@ -4,14 +4,14 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useCallback } from 'react';
-import { useJournalStore } from '../../state/useJournalStore.js';
-import { useUIStore } from '../../state/useUIStore.js';
-import { useChartStore } from '../../state/useChartStore.js';
-import { undoStack, executeUndo } from '../../utils/UndoStack.js';
-import { navigateToTrade } from '../../utils/navigateToTrade.js';
-import { exportCSV } from '../../charting_library/datafeed/csv.js';
-import { launchTradeReplay } from '../../app/features/journal/journal_ui/TradeReplay.js';
 import toast from '../../app/components/ui/Toast.jsx';
+import { launchTradeReplay } from '../../app/features/journal/journal_ui/TradeReplay.js';
+import { exportCSV } from '../../charting_library/datafeed/csv.js';
+import { useChartStore } from '../../state/useChartStore';
+import { useJournalStore } from '../../state/useJournalStore';
+import { useUIStore } from '../../state/useUIStore';
+import { undoStack, executeUndo } from '@/shared/UndoStack';
+import { navigateToTrade } from '@/trading/navigateToTrade';
 
 export function useJournalTradeActions(trades) {
   const deleteTrade = useJournalStore((s) => s.deleteTrade);

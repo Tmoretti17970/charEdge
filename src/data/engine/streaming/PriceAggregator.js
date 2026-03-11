@@ -1,4 +1,4 @@
-import { logger } from '../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v11 — Price Aggregator Engine
@@ -59,8 +59,8 @@ function mean(arr) {
 
 function stddev(arr, avg = null) {
   if (arr.length < 2) return 0;
-  const m = avg !== null ? avg : mean(arr);
-  const variance = arr.reduce((sum, v) => sum + (v - m) ** 2, 0) / (arr.length - 1);
+  const meanValue = avg !== null ? avg : mean(arr);
+  const variance = arr.reduce((sum, v) => sum + (v - meanValue) ** 2, 0) / (arr.length - 1);
   return Math.sqrt(variance);
 }
 
@@ -141,7 +141,7 @@ class SymbolState {
     const staleSources = [];
 
     // Step 1: Partition into fresh vs stale
-    for (const [id, buf] of this.sources) {
+    for (const [_id, buf] of this.sources) {
       if (buf.isFresh) {
         freshSources.push(buf);
       } else {
@@ -180,7 +180,7 @@ class SymbolState {
       return null;
     }
 
-    const result = {
+    const aggregation = {
       symbol: this.symbol,
       price,
       confidence,
@@ -199,14 +199,14 @@ class SymbolState {
         : (this.lastAggregated?.latency || 0),
     };
 
-    this.lastAggregated = result;
+    this.lastAggregated = aggregation;
 
     // Notify subscribers
     for (const cb of this.subscribers) {
-      try { cb(result); } catch (e) { logger.data.warn('Operation failed', e); }
+      try { cb(aggregation); } catch (e) { logger.data.warn('Operation failed', e); }
     }
 
-    return result;
+    return aggregation;
   }
 
   /**
@@ -312,6 +312,10 @@ export class PriceAggregator {
 
     return () => {
       state.subscribers.delete(callback);
+      // Prune orphaned SymbolState when no subscribers remain
+      if (state.subscribers.size === 0) {
+        this._symbols.delete(upper);
+      }
     };
   }
 

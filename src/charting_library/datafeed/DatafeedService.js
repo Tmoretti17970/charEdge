@@ -2,18 +2,26 @@
 // charEdge — Datafeed Service Singleton
 // Manages historical data fetching and WebSocket multiplexing.
 // Guarantees only one connection is made per Symbol+Timeframe.
+//
+// Race-condition hardened: uses a generation counter + AbortController
+// to prevent stale fetch results and zombie WebSocket connections
+// when the user switches symbols rapidly.
 // ═══════════════════════════════════════════════════════════════════
 
-import { getAggregator, removeAggregator } from '../../data/OrderFlowAggregator.js';
-import { useChartStore } from '../../state/useChartStore.js';
-import { WS_STATUS } from '../../data/WebSocketService.ts';
 import { isCrypto } from '../../constants.js';
+import { getAggregator, removeAggregator } from '../../data/OrderFlowAggregator.js';
+import { WS_STATUS } from '../../data/WebSocketService';
+import { useChartStore } from '../../state/useChartStore';
 import { tickChannel } from '../core/TickChannel.js';
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
+
+// Maximum bars to keep in memory per symbol/timeframe.
+// Oldest bars are evicted via splice when this limit is exceeded.
+const MAX_BARS = 2000;
 
 class DatafeedService {
   constructor() {
-    this.cache = new Map(); // key: 'symbol_tf', value: { bars: [], status: 'idle'|'loading'|'ready', subscribers: Set() }
+    this.cache = new Map(); // key: 'symbol_tf', value: { bars: [], status: 'idle'|'loading'|'ready', subscribers: Set(), generation: number }
     this.sockets = new Map(); // key: 'symbol_tf', value: WebSocket
     this._reconnectTimers = new Map(); // key → setTimeout id for pending reconnects
   }
@@ -33,12 +41,17 @@ class DatafeedService {
         bars: [],
         status: 'idle',
         subscribers: new Set(),
+        generation: 0,
+        _abortController: null,
       });
     }
 
     const entry = this.cache.get(key);
     const subscriber = { onHistorical, onTick, onError };
     entry.subscribers.add(subscriber);
+
+    // Bump generation — invalidates any in-flight fetch for this key
+    entry.generation = (entry.generation || 0) + 1;
 
     // If we already have bars, emit immediately
     if (entry.status === 'ready' && entry.bars.length > 0) {
@@ -66,6 +79,15 @@ class DatafeedService {
     const entry = this.cache.get(key);
     if (!entry) return;
 
+    // Capture the generation at the start of this fetch.
+    // If it changes before the fetch completes, the result is stale.
+    const gen = entry.generation;
+
+    // Create an AbortController so in-flight fetches can be cancelled on unsubscribe
+    if (entry._abortController) entry._abortController.abort();
+    entry._abortController = new AbortController();
+    const { signal } = entry._abortController;
+
     entry.status = 'loading';
 
     // Route non-crypto symbols through FetchService (Yahoo fallback chain)
@@ -88,9 +110,13 @@ class DatafeedService {
           }));
 
           const currentEntry = this.cache.get(key);
-          if (!currentEntry) return;
+          // Guard: discard if entry was deleted or generation changed (stale fetch)
+          if (!currentEntry || currentEntry.generation !== gen) return;
           currentEntry.bars = bars;
           currentEntry.status = 'ready';
+          currentEntry._abortController = null;
+          // Notify Zustand so useChartBars subscribers re-evaluate
+          useChartStore.getState().setDataMeta(bars.length, 'datafeed:equity', bars[0]?.time ?? null);
           // Push to TickChannel so ChartEngine gets bars directly (matches crypto path)
           tickChannel.pushHistorical(key, bars);
           currentEntry.subscribers.forEach(sub => {
@@ -113,7 +139,7 @@ class DatafeedService {
     try {
       const base = typeof window === 'undefined' ? `http://localhost:${globalThis.__TF_PORT || 3000}` : '';
       const url = `${base}/api/binance/v3/klines?symbol=${symbol}&interval=${tf}&limit=500`;
-      const res = await fetch(url);
+      const res = await fetch(url, { signal });
 
       if (!res.ok) throw new Error('Failed to fetch historical data');
 
@@ -128,12 +154,15 @@ class DatafeedService {
         volume: +k[5],
       }));
 
-      // In case subscribers unsubscribed during fetch
+      // Guard: discard if entry was deleted, generation changed, or subscribers left
       const currentEntry = this.cache.get(key);
-      if (!currentEntry) return;
+      if (!currentEntry || currentEntry.generation !== gen) return;
 
       currentEntry.bars = bars;
       currentEntry.status = 'ready';
+      currentEntry._abortController = null;
+      // Notify Zustand so useChartBars subscribers re-evaluate
+      useChartStore.getState().setDataMeta(bars.length, 'datafeed:crypto', bars[0]?.time ?? null);
 
       currentEntry.subscribers.forEach(sub => {
         if (sub.onHistorical) sub.onHistorical(bars);
@@ -142,13 +171,19 @@ class DatafeedService {
       // Push to TickChannel for direct engine delivery
       tickChannel.pushHistorical(key, bars);
 
-      // Start live multiplexed WebSocket updates
-      this._startWebSocket(symbol, tf, key);
+      // Only start WebSocket if subscribers still exist (prevents zombie connections)
+      if (currentEntry.subscribers.size > 0) {
+        this._startWebSocket(symbol, tf, key);
+      }
 
     } catch (err) {
+      // Ignore AbortError — expected when user switches symbols during fetch
+      if (err?.name === 'AbortError') return;
+
       const currentEntry = this.cache.get(key);
-      if (currentEntry) {
+      if (currentEntry && currentEntry.generation === gen) {
         currentEntry.status = 'error';
+        currentEntry._abortController = null;
         currentEntry.subscribers.forEach(sub => {
           if (sub.onError) sub.onError(err);
         });
@@ -246,6 +281,12 @@ class DatafeedService {
           } else {
             // Append new candle in-place — O(1) push instead of O(N) spread
             prev.push(bar);
+            // Bump barCount so useChartBars subscribers re-evaluate on new candle
+            useChartStore.getState().setDataMeta(prev.length, 'datafeed:live', prev[0]?.time ?? null);
+            // Evict oldest bars to cap memory usage
+            if (prev.length > MAX_BARS) {
+              prev.splice(0, prev.length - MAX_BARS);
+            }
           }
 
           const updatedBars = prev;
@@ -277,6 +318,56 @@ class DatafeedService {
 
   }
 
+  // ─── REST Depth Polling Fallback ──────────────────────────────
+  // When the WebSocket depth stream is unavailable (geo-blocking, etc.),
+  // poll the REST API to populate the aggregator's domHistory so the
+  // heatmap has data to render.
+
+  /**
+   * Start polling depth snapshots via REST for a given symbol.
+   * Only runs when the aggregator has no domHistory (WS not delivering).
+   * @param {string} symbol - e.g., 'BTCUSDT'
+   * @param {string} key - cache key e.g., 'BTCUSDT_1h'
+   */
+  startDepthPolling(symbol, key) {
+    // Don't double-start
+    if (this._depthPollers?.has(key)) return;
+    if (!this._depthPollers) this._depthPollers = new Map();
+
+    const aggregator = getAggregator(key, 0.5);
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/binance/v3/depth?symbol=${symbol}&limit=1000`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.bids && data.asks) {
+          aggregator.processDOMSnapshot(data);
+        }
+      } catch (_) {
+        // Silently fail — REST may also be blocked
+      }
+    };
+
+    // Poll immediately, then every 2 seconds
+    poll();
+    const timer = setInterval(poll, 2000);
+    this._depthPollers.set(key, timer);
+  }
+
+  /**
+   * Stop depth polling for a given key.
+   * @param {string} key
+   */
+  stopDepthPolling(key) {
+    if (!this._depthPollers) return;
+    const timer = this._depthPollers.get(key);
+    if (timer) {
+      clearInterval(timer);
+      this._depthPollers.delete(key);
+    }
+  }
+
   /**
    * Prepend older bars from scroll-back prefetch directly to the engine.
    * Bypasses React subscribers — engine picks up via TickChannel.
@@ -305,7 +396,14 @@ class DatafeedService {
     // Zero active subscribers, drop connection and cache
     // (Clearing cache prevents gaps when re-subscribing later)
 
-    // Cancel any pending reconnect timer first
+    // Cancel any in-flight fetch first
+    const entry = this.cache.get(key);
+    if (entry?._abortController) {
+      entry._abortController.abort();
+      entry._abortController = null;
+    }
+
+    // Cancel any pending reconnect timer
     const timer = this._reconnectTimers.get(key);
     if (timer) {
       clearTimeout(timer);

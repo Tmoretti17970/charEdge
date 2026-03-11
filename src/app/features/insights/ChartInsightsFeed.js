@@ -16,7 +16,7 @@ export function generateInsightsFeed(sources = {}) {
     breakouts = [],  // Trendline breakouts
     srLevels = [],   // Auto S/R levels
     achievements = [],// Gamification unlocks
-    sessions = [],   // Session completions
+    _sessions = [],   // Session completions
   } = sources;
 
   const feed = [];

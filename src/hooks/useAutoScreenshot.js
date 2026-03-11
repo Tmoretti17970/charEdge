@@ -4,7 +4,8 @@
 // a trade is executed or closed. Stores to IndexedDB for journal.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useRef, useCallback } from 'react';
+import { logger } from '@/observability/logger';
 
 /**
  * @typedef {Object} ScreenshotEntry
@@ -105,7 +106,7 @@ export default function useAutoScreenshot({ getCanvas, symbol, timeframe, enable
           });
         }
       } catch (err) {
-        console.warn('[AutoScreenshot] Failed to capture:', err);
+        logger.ui.warn('[AutoScreenshot] Failed to capture:', err);
       } finally {
         pendingRef.current = false;
       }

@@ -15,9 +15,9 @@
 //   depthFlowCorrelator.onEvent((event) => { ... });
 // ═══════════════════════════════════════════════════════════════════
 
-import { depthEngine } from './DepthEngine.ts';
-import { orderFlowEngine } from './OrderFlowEngine.ts';
 import { pipelineLogger } from '../infra/DataPipelineLogger.js';
+import { depthEngine } from './DepthEngine';
+import { orderFlowEngine } from './OrderFlowEngine';
 
 // ─── Constants ─────────────────────────────────────────────────
 
@@ -25,8 +25,8 @@ const ABSORPTION_VOLUME_THRESHOLD = 0.6;  // 60% of wall filled but price holds
 const ICEBERG_REFILL_COUNT = 3;           // 3+ refills at same level = iceberg
 const ICEBERG_WINDOW_MS = 30_000;         // 30-second window for iceberg detection
 const SWEEP_LEVELS_MIN = 3;              // 3+ levels removed in one update = sweep
-const SWEEP_TIME_WINDOW_MS = 2000;       // Within 2 seconds
-const DIVERGENCE_LOOKBACK_MS = 30_000;   // 30-second lookback for divergence
+const _SWEEP_TIME_WINDOW_MS = 2000;       // Within 2 seconds
+const _DIVERGENCE_LOOKBACK_MS = 30_000;   // 30-second lookback for divergence
 const MAX_EVENTS = 200;                  // Keep last 200 events
 const POLL_INTERVAL_MS = 1000;           // Check correlations every 1s
 

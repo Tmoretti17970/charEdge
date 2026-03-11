@@ -6,9 +6,9 @@
 // Integrates with: useChartStore, navigateToTrade, ReplayBar
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUIStore } from '../../../../state/useUIStore.js';
-import { useChartStore } from '../../../../state/useChartStore.js';
 import { C } from '../../../../constants.js';
+import { useChartStore } from '../../../../state/useChartStore';
+import { useUIStore } from '../../../../state/useUIStore';
 
 /**
  * Navigate to chart and set up replay at trade's entry point.

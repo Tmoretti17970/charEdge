@@ -10,11 +10,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useCallback } from 'react';
-import { C, M } from '../../constants.js';
-import { space, radii, text, transition, preset, zIndex as zi } from '../../theme/tokens.js';
-import { useScriptStore } from '../../state/useScriptStore.js';
-import { SCRIPT_CATEGORIES } from './scriptLibrary.js';
 import { Btn } from '../../app/components/ui/UIKit.jsx';
+import { C, M } from '../../constants.js';
+import { useScriptStore } from '../../state/useScriptStore.js';
+import { space, radii, text, transition, preset, zIndex as zi } from '../../theme/tokens.js';
+import { SCRIPT_CATEGORIES } from './scriptLibrary.js';
 
 /**
  * @param {Object} props

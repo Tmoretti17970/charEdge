@@ -20,8 +20,8 @@
 //   const breadth = derivedEngine.computeMarketBreadth(watchlist);
 // ═══════════════════════════════════════════════════════════════════
 
-const CACHE = new Map();
-const CACHE_TTL = 60000; // 1 min for derived computations
+const _CACHE = new Map();
+const _CACHE_TTL = 60000; // 1 min for derived computations
 
 // ─── Statistical Helpers ───────────────────────────────────────
 

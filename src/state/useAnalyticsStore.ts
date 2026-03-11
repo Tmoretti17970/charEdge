@@ -10,7 +10,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { create } from 'zustand';
-import { safePersist } from '../utils/safePersist.js';
+import { safePersist } from '@/shared/safePersist';
 
 import { createAnalyticsSlice } from './analytics/analyticsSlice.js';
 import { createTelemetrySlice, TELEMETRY_DEFAULTS } from './analytics/telemetrySlice.js';
@@ -47,6 +47,7 @@ const useAnalyticsStore = create(
               localStorage.removeItem('tf-telemetry');
               return { ...TELEMETRY_DEFAULTS, ...oldState };
             }
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           } catch (_) { /* ignore */ }
         }
         return persisted;

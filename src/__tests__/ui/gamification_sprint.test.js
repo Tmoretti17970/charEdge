@@ -4,9 +4,9 @@
  * Sprint 3: GPU-translated panning (u_panOffset uniform)
  * Sprint 1/8: History loading indicator
  */
-import { describe, it, expect, vi } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import { describe, it, expect } from 'vitest';
 
 const ROOT = resolve(__dirname, '..', '..');
 

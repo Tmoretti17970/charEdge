@@ -51,7 +51,7 @@ export function parseKraken(rows) {
  */
 function _normalizeKrakenPair(pair) {
   // Strip leading X and Z separators used by Kraken
-  let s = pair
+  const s = pair
     .replace(/^X([A-Z]{3,4})Z([A-Z]{3,4})$/, '$1$2')
     .replace(/^XX/, 'X') // XXBT → XBT
     .replace(/^XBT/, 'BTC'); // XBT → BTC (Kraken's name for Bitcoin)

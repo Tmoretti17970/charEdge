@@ -5,18 +5,18 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
-  validateCandle,
-  validateCandleArray,
-  detectGaps,
-  deduplicateCandles,
-} from '../../data/engine/infra/DataValidator.js';
-import {
   withCircuitBreaker,
   getCircuitState,
   resetCircuit,
   resetAllCircuits,
   STATE,
 } from '../../data/engine/infra/CircuitBreaker.ts';
+import {
+  validateCandle,
+  validateCandleArray,
+  detectGaps,
+  deduplicateCandles,
+} from '../../data/engine/infra/DataValidator';
 
 // ─────────────────────────────────────────────────────────────────
 // DataValidator

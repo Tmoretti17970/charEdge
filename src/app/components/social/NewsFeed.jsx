@@ -24,6 +24,7 @@ export default function NewsFeed({ category = 'all' }) {
 
   useEffect(() => {
     loadNews();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category]);
 
   if (loading) {

@@ -9,7 +9,7 @@
 // Falls back to local computation when engine isn't connected.
 // ═══════════════════════════════════════════════════════════════════
 
-import { orderFlowEngine } from './engine/orderflow/OrderFlowEngine.ts';
+import { orderFlowEngine } from './engine/orderflow/OrderFlowEngine';
 
 /**
  * Footprint Profile Structure:
@@ -32,11 +32,28 @@ export class OrderFlowAggregator {
   }
 
   /**
+   * Reset all accumulated data. Call on symbol change to prevent
+   * stale order-flow data from the previous symbol leaking through.
+   */
+  reset() {
+    this.currentBarTime = null;
+    this.footprint = {};
+    this.domHistory = [];
+    this.currentDOM = { bids: new Map(), asks: new Map() };
+    this._engineActive = false;
+  }
+
+  /**
    * Bind this aggregator to a specific symbol for engine bridging.
    * @param {string} symbol
    */
   bindSymbol(symbol) {
-    this._symbol = (symbol || '').toUpperCase();
+    const newSymbol = (symbol || '').toUpperCase();
+    // Reset accumulated data when switching symbols
+    if (this._symbol && this._symbol !== newSymbol) {
+      this.reset();
+    }
+    this._symbol = newSymbol;
     this._checkEngine();
   }
 

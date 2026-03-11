@@ -28,8 +28,8 @@ export function StreakTimeline({ trades, maxShow = 50, onTradeClick }) {
   const recent = trades.slice(0, maxShow).reverse(); // oldest→newest left→right
   if (!recent.length) return null;
 
-  const totalPnl = recent.reduce((s, t) => s + (t.pnl ?? 0), 0);
-  const wins = recent.filter((t) => (t.pnl ?? 0) > 0).length;
+  const _totalPnl = recent.reduce((s, t) => s + (t.pnl ?? 0), 0);
+  const _wins = recent.filter((t) => (t.pnl ?? 0) > 0).length;
 
   return (
     <div

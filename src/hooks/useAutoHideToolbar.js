@@ -16,7 +16,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
  * @param {boolean} [opts.enabled=true] - whether auto-hide is active
  * @returns {{ visible, onMouseMove, containerStyle }}
  */
-export function useAutoHideToolbar({ delay = 2000, revealZone = 24, enabled = true } = {}) {
+export function useAutoHideToolbar({ delay = 2000, revealZone = 24, enabled = false } = {}) {
   const [visible, setVisible] = useState(true);
   const timerRef = useRef(null);
   const interactingRef = useRef(false);

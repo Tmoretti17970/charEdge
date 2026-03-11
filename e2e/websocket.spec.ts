@@ -10,7 +10,12 @@ test.describe('WebSocket', () => {
         const wsPromise = page.waitForEvent('websocket', { timeout: 15_000 }).catch(() => null);
 
         await page.goto('/chart');
-        await page.waitForTimeout(3000);
+        // Wait for chart to fully render (WS connects during chart init)
+        await page.waitForSelector('#root', { state: 'visible', timeout: 15_000 });
+        await page.waitForFunction(
+            () => !document.querySelector('[class*="loadingRoot"]'),
+            { timeout: 15_000 }
+        );
 
         // Check for connection status indicator (green dot)
         const statusIndicator = page.locator('[class*="connection"], [class*="status"], [class*="ws-status"]').first();

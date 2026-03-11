@@ -14,11 +14,11 @@
   <meta property="og:description"
     content="Free trading journal & analytics platform. Track every trade, find your edge, and grow as a trader." />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="/icons/og-image.png" />
+  <meta property="og:image" content="https://charedge.app/icons/og-image.png" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="charEdge — Find Your Edge" />
   <meta name="twitter:description" content="Free trading journal & analytics. No account required." />
-  <meta name="twitter:image" content="/icons/og-image.png" />
+  <meta name="twitter:image" content="https://charedge.app/icons/og-image.png" />
 
   <!-- PWA -->
   <link rel="manifest" href="/manifest.json" />
@@ -28,6 +28,11 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="charEdge" />
   <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+
+  <!-- Preconnect: reduce latency for critical API origins -->
+  <link rel="preconnect" href="https://api.binance.com" crossorigin />
+  <link rel="preconnect" href="https://data-api.binance.vision" crossorigin />
+  <link rel="preconnect" href="https://api.coingecko.com" crossorigin />
   <!--ssr-head-->
 
   <!-- Fonts: self-hosted via @fontsource (no external CDN tracking) -->
@@ -75,47 +80,7 @@
       </div>
     </div>
   </noscript>
-  <script>
-    // ─── Polyfill: requestIdleCallback (not available on some Safari/iOS versions) ───
-    if (typeof window.requestIdleCallback !== 'function') {
-      window.requestIdleCallback = function(cb) {
-        var start = Date.now();
-        return setTimeout(function() {
-          cb({ didTimeout: false, timeRemaining: function() { return Math.max(0, 50 - (Date.now() - start)); } });
-        }, 1);
-      };
-      window.cancelIdleCallback = function(id) { clearTimeout(id); };
-    }
-  </script>
-  <script>
-    // ─── Boot diagnostic — catches ALL failure modes including silent module load errors ───
-    window.__CE_ERRORS = [];
-    window.addEventListener('error', function (e) {
-      window.__CE_ERRORS.push('ERROR: ' + (e.message || 'Unknown') + ' @ ' + (e.filename || '?') + ':' + (e.lineno || '?'));
-    });
-    window.addEventListener('unhandledrejection', function (e) {
-      var msg = e.reason ? (e.reason.message || String(e.reason)) : 'Unknown rejection';
-      window.__CE_ERRORS.push('REJECT: ' + msg);
-    });
-    // After 5s, if React hasn't mounted, show diagnostics
-    setTimeout(function () {
-      var root = document.getElementById('root');
-      // Check if React actually rendered (it adds real DOM elements, not just comments)
-      var hasReactContent = root && root.querySelector && root.querySelector('[data-reactroot], div, section, main, form, button');
-      if (!hasReactContent) {
-        var errors = window.__CE_ERRORS;
-        var info = 'Browser: ' + navigator.userAgent + '\nErrors (' + errors.length + '):\n' + errors.join('\n');
-        root.innerHTML = '<div style="padding:2rem;color:#ececef;font-family:sans-serif;text-align:center;max-width:500px;margin:auto;margin-top:10vh">' +
-          '<h2 style="color:#f59e0b;margin-bottom:1rem;font-size:20px">charEdge failed to load</h2>' +
-          '<p style="font-size:13px;color:#aaa;margin-bottom:1.5rem">This browser may not be supported. Try Chrome or Firefox.</p>' +
-          '<pre style="font-size:10px;color:#ef4444;background:#1a1a2e;padding:12px;border-radius:8px;text-align:left;overflow:auto;max-height:300px;white-space:pre-wrap;word-break:break-all">' +
-          info.replace(/</g, '&lt;') +
-          '</pre>' +
-          '<button onclick="location.reload()" style="margin-top:1rem;padding:10px 24px;border:none;border-radius:8px;background:#f59e0b;color:#fff;font-weight:700;cursor:pointer;font-size:14px">Reload</button>' +
-          '</div>';
-      }
-    }, 5000);
-  </script>
+  <script src="/boot.js"></script>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 

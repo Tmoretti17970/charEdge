@@ -8,14 +8,53 @@
 // Expanded: [● Connected 6.2t/s ▁▂▃ 18ms] + the above
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { C, F, M, getAssetClass } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore.js';
-import { formatPrice } from '../../../../charting_library/core/CoordinateSystem.js';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { tfToMs, formatCountdown } from '../../../../charting_library/core/barCountdown.js';
-import { getMarketStatus } from '../../../../utils/marketHours.js';
-import { pipelineHealth } from '../../../../data/engine/infra/PipelineHealthMonitor.js';
+import { formatPrice } from '../../../../charting_library/core/CoordinateSystem.js';
+import { C, M, getAssetClass } from '../../../../constants.js';
 import { pipelineLogger } from '../../../../data/engine/infra/DataPipelineLogger.js';
+import { pipelineHealth } from '../../../../data/engine/infra/PipelineHealthMonitor.js';
+import { useChartStore } from '../../../../state/useChartStore';
+import { useChartCoreStore } from '../../../../state/useChartStore';
+import { useChartBars } from '../../../hooks/useChartBars.js';
+
+// ─── Timezone Constants ─────────────────────────────────────────
+const TIMEZONE_OPTIONS = [
+    { iana: 'UTC',                   label: 'UTC',         abbr: 'UTC' },
+    { iana: 'America/New_York',      label: 'New York',    abbr: 'ET'  },
+    { iana: 'America/Chicago',       label: 'Chicago',     abbr: 'CT'  },
+    { iana: 'America/Denver',        label: 'Denver',      abbr: 'MT'  },
+    { iana: 'America/Los_Angeles',   label: 'Los Angeles', abbr: 'PT'  },
+    { iana: 'Europe/London',         label: 'London',      abbr: 'GMT' },
+    { iana: 'Europe/Berlin',         label: 'Berlin',      abbr: 'CET' },
+    { iana: 'Asia/Tokyo',            label: 'Tokyo',       abbr: 'JST' },
+    { iana: 'Asia/Shanghai',         label: 'Shanghai',    abbr: 'CST' },
+    { iana: 'Asia/Kolkata',          label: 'Mumbai',      abbr: 'IST' },
+    { iana: 'Australia/Sydney',      label: 'Sydney',      abbr: 'AEST'},
+    { iana: 'LOCAL',                 label: 'Local',       abbr: 'Local'},
+];
+
+function getTimezoneAbbr(tz) {
+    const opt = TIMEZONE_OPTIONS.find(o => o.iana === tz);
+    return opt ? opt.abbr : tz.split('/').pop().replace(/_/g, ' ');
+}
+
+function formatLiveClock(tz) {
+    try {
+        const ianaZone = tz === 'LOCAL' ? Intl.DateTimeFormat().resolvedOptions().timeZone : tz;
+        return new Date().toLocaleTimeString('en-US', {
+            timeZone: ianaZone,
+            hour: 'numeric',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true,
+        });
+    } catch {
+        return '--:--:--';
+    }
+}
+import { logger } from '@/observability/logger';
+import { getMarketStatus } from '@/shared/marketHours';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -145,7 +184,7 @@ function SpeedMeter({ rate, maxRate = 100 }) {
 
 export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
     // ── Chart data state ──
-    const data = useChartStore((s) => s.data);
+    const data = useChartBars();
     const tf = useChartStore((s) => s.tf);
     const symbol = useChartStore((s) => s.symbol);
     const scaleMode = useChartStore((s) => s.scaleMode);
@@ -157,6 +196,13 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
     const [dataAge, setDataAge] = useState(null);
     const scaleRef = useRef(null);
 
+    // ── Timezone state ──
+    const activeTimezone = useChartCoreStore((s) => s.activeTimezone) || 'UTC';
+    const setActiveTimezone = useChartCoreStore((s) => s.setActiveTimezone);
+    const [tzOpen, setTzOpen] = useState(false);
+    const [liveClock, setLiveClock] = useState(() => formatLiveClock('UTC'));
+    const tzRef = useRef(null);
+
     // ── Pipeline state ──
     const [health, setHealth] = useState(null);
     const [expanded, setExpanded] = useState(false);
@@ -166,6 +212,11 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
     const sparklineRef = useRef([]);
     const lastTickTimeRef = useRef(Date.now());
     const latencyRef = useRef(0);
+
+    // ── #58: Price badge pulse ──
+    const [pulsing, setPulsing] = useState(false);
+    const closeBadgeRef = useRef(null);
+    const prevCloseRef = useRef(null);
 
     // ── Display bar ──
     const displayBar = useMemo(() => {
@@ -209,10 +260,31 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
     useEffect(() => {
         const handler = (e) => {
             if (scaleRef.current && !scaleRef.current.contains(e.target)) setScaleOpen(false);
+            if (tzRef.current && !tzRef.current.contains(e.target)) setTzOpen(false);
         };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, []);
+
+    // ── #58: Pulse close badge on price change ──
+    useEffect(() => {
+        if (!displayBar) return;
+        const cur = displayBar.close;
+        if (prevCloseRef.current !== null && cur !== prevCloseRef.current) {
+            setPulsing(true);
+            const t = setTimeout(() => setPulsing(false), 200);
+            return () => clearTimeout(t);
+        }
+        prevCloseRef.current = cur;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [displayBar?.close]);
+
+    // ── Live clock tick ──
+    useEffect(() => {
+        setLiveClock(formatLiveClock(activeTimezone));
+        const id = setInterval(() => setLiveClock(formatLiveClock(activeTimezone)), 1000);
+        return () => clearInterval(id);
+    }, [activeTimezone]);
 
     // ── Market status + staleness ──
     useEffect(() => {
@@ -255,12 +327,11 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
                 'Errors': h.errors.total,
                 'Warnings': h.errors.warnings,
             };
-            console.log('%c── Pipeline Diagnostic ──', 'color: #5c9cf5; font-weight: bold; font-size: 13px');
-            console.table(table);
-            console.log('Connection states:', h.connections.states);
-            console.log('Sparkline history (last 20):', spark);
-            console.log('Issues:', h.issues.length ? h.issues : '(none)');
-            console.log('Full health object:', h);
+            logger.data.debug('── Pipeline Diagnostic ──', table);
+            logger.data.debug('Connection states:', h.connections.states);
+            logger.data.debug('Sparkline history (last 20):', spark);
+            logger.data.debug('Issues:', h.issues.length ? h.issues : '(none)');
+            logger.data.debug('Full health object:', h);
             return h;
         };
 
@@ -457,7 +528,10 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
                 <span className="tf-status-value" style={{ color: C.r }}>{formatPrice(displayBar.low)}</span>
             </span>
             <span className="tf-status-dot" />
-            <span className="tf-status-group tf-status-close">
+            <span
+                className={`tf-status-group tf-status-close${pulsing ? ' tf-price-pulse' : ''}`}
+                ref={closeBadgeRef}
+            >
                 <span className="tf-status-label">C</span>
                 <span className="tf-status-value" style={{ color: dirColor, fontWeight: 700, fontSize: 12 }}>
                     {formatPrice(displayBar.close)}
@@ -592,6 +666,73 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
                     <span className="tf-status-value">{countdown}</span>
                 </span>
             )}
+
+            {/* ─── Timezone + Live Clock ─── */}
+            <div ref={tzRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{
+                    fontSize: 10,
+                    fontVariantNumeric: 'tabular-nums',
+                    color: 'var(--tf-t2)',
+                    fontFamily: M,
+                    letterSpacing: '0.3px',
+                    opacity: 0.8,
+                }}>
+                    {liveClock}
+                </span>
+                <button
+                    className="tf-chart-toolbar-btn"
+                    data-active={tzOpen || undefined}
+                    onClick={() => setTzOpen(!tzOpen)}
+                    style={{
+                        fontFamily: M,
+                        fontSize: 10,
+                        fontWeight: 600,
+                        padding: '2px 8px',
+                        gap: 3,
+                    }}
+                    title="Timezone"
+                >
+                    🌐 {getTimezoneAbbr(activeTimezone)}
+                    <span style={{ fontSize: 7, marginLeft: 1 }}>▼</span>
+                </button>
+
+                {tzOpen && (
+                    <div
+                        className="tf-chart-dropdown"
+                        style={{
+                            position: 'absolute',
+                            bottom: '100%',
+                            right: 0,
+                            marginBottom: 6,
+                            minWidth: 160,
+                            maxHeight: 280,
+                            overflowY: 'auto',
+                            transformOrigin: 'bottom right',
+                        }}
+                    >
+                        {TIMEZONE_OPTIONS.map((opt) => {
+                            const isActive = activeTimezone === opt.iana;
+                            return (
+                                <button
+                                    key={opt.iana}
+                                    className="tf-chart-dropdown-item"
+                                    data-active={isActive || undefined}
+                                    onClick={() => {
+                                        setActiveTimezone(opt.iana);
+                                        setTzOpen(false);
+                                        // Also notify the chart engine via custom event
+                                        window.dispatchEvent(new CustomEvent('charEdge:set-timezone', { detail: { timezone: opt.iana } }));
+                                    }}
+                                >
+                                    <span style={{ width: 18, textAlign: 'center', fontWeight: 700, flexShrink: 0, fontSize: 10, opacity: 0.7 }}>{opt.abbr}</span>
+                                    {opt.label}
+                                    {isActive && <span style={{ marginLeft: 'auto', fontSize: 12 }}>✓</span>}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
 
             {/* ─── Scale Mode Picker ─── */}
             <div ref={scaleRef} style={{ position: 'relative' }}>

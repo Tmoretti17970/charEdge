@@ -7,8 +7,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
 import { useNotificationStore } from '../../../state/useNotificationStore.js';
+import { alpha } from '@/shared/colorUtils';
 
 function timeAgo(ts) {
   const diff = Date.now() - ts;

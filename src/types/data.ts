@@ -1,3 +1,4 @@
+/* global process */
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Data Type Definitions
 //
@@ -64,7 +65,7 @@ export function validateBar(bar: unknown, source?: string): bar is Bar {
 }
 
 /** Validate a tick has required fields. No-op in prod. */
-export function validateTick(tick: unknown, source?: string): tick is Tick {
+export function validateTick(tick: unknown, _source?: string): tick is Tick {
     if (!IS_DEV) return true;
     if (!tick || typeof tick !== 'object') return false;
     const t = tick as Record<string, unknown>;

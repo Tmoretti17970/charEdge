@@ -18,8 +18,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { tickPersistence } from '../streaming/TickPersistence.js';
-import { logger } from '../../../utils/logger.ts';
 import { cacheManager } from './CacheManager.js';
+import { logger } from '@/observability/logger';
 
 // ─── Data Exporter ─────────────────────────────────────────────
 
@@ -33,7 +33,7 @@ class _DataExporter {
    * @param {number} [fromTime=0]
    * @param {number} [toTime]
    */
-  async downloadTicks(symbol, format = 'csv', fromTime = 0, toTime = Date.now()) {
+  async downloadTicks(symbol, format = 'csv', _fromTime = 0, _toTime = Date.now()) {
     await tickPersistence.downloadExport(symbol, format);
   }
 
@@ -45,8 +45,8 @@ class _DataExporter {
    * @param {'csv'|'json'} [format='csv']
    */
   async downloadCandles(symbol, interval, format = 'csv') {
-    const result = await cacheManager.read(symbol, interval, Infinity);
-    const candles = result?.data;
+    const cachedEntry = await cacheManager.read(symbol, interval, Infinity);
+    const candles = cachedEntry?.data;
     if (!candles?.length) return;
 
     let content, filename, mimeType;
@@ -120,7 +120,7 @@ class _DataExporter {
    * @param {string} symbol
    * @returns {Promise<boolean>}
    */
-  async purgeSymbol(symbol) {
+  async purgeSymbol(_symbol) {
     // This would require extending DataCache with delete methods
     // For now, indicated as a future capability
     logger.data.warn('[DataExporter] purgeSymbol not yet implemented');

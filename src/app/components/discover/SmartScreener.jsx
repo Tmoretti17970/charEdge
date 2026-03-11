@@ -13,8 +13,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
 import { SCAN_PRESETS, fetchScreenerResults } from '../../../services/screenerService.js';
+import { formatDisplayPrice as formatPrice } from '../../../shared/formatting';
+// eslint-disable-next-line import/order
 import LabsBadge from '../ui/LabsBadge.jsx';
 
 // ─── Asset Class Tabs ───────────────────────────────────────────
@@ -499,11 +500,7 @@ function MABadge({ label, above }) {
 // Utilities
 // ═══════════════════════════════════════════════════════════════════
 
-function formatPrice(price) {
-  if (price == null) return '—';
-  if (price >= 1000) return price.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-  if (price >= 1) return price.toFixed(2);
-  return price.toFixed(4);
-}
+// Sprint 9 #73: formatPrice consolidated into shared/formatting.ts
+import { alpha } from '@/shared/colorUtils';
 
 export { SmartScreener };

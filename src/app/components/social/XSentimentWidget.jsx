@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { fetchXSentiment } from '../../../services/socialService.js';
-import { alpha } from '../../../utils/colorUtils.js';
 import LabsBadge from '../ui/LabsBadge.jsx';
+import { alpha } from '@/shared/colorUtils';
 
 export default function XSentimentWidget({ category = 'all' }) {
   const [data, setData] = useState(null);

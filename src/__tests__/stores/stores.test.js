@@ -3,11 +3,11 @@
 // Tests for: useJournalStore, useChartStore, useUserStore, useUIStore
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../state/useUserStore.ts';
 import { describe, it, expect } from 'vitest';
-import { useJournalStore } from '../../state/useJournalStore.ts';
 import { useChartStore } from '../../state/useChartStore.ts';
+import { useJournalStore } from '../../state/useJournalStore.ts';
 import { useUIStore } from '../../state/useUIStore.ts';
+import { useUserStore } from '../../state/useUserStore.ts';
 
 const mkTrade = (id = 'test_1', pnl = 100) => ({
   id,
@@ -151,7 +151,8 @@ describe('useChartStore', () => {
     useChartStore.setState({ indicators: [] });
     useChartStore.getState().addIndicator({ type: 'rsi', params: { period: 14 } });
     expect(useChartStore.getState().indicators.length).toBe(1);
-    useChartStore.getState().removeIndicator(0);
+    const indId = useChartStore.getState().indicators[0].id;
+    useChartStore.getState().removeIndicator(indId);
     expect(useChartStore.getState().indicators.length).toBe(0);
   });
 

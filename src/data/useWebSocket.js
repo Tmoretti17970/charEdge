@@ -13,8 +13,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { wsService, WS_STATUS, WebSocketService } from './WebSocketService.ts';
-import { useChartStore } from '../state/useChartStore.js';
+import { useChartStore } from '../state/useChartStore';
+import { wsService, WS_STATUS, WebSocketService } from './WebSocketService';
 
 /**
  * @param {string} symbol - charEdge symbol (e.g., 'BTC')
@@ -33,34 +33,20 @@ export default function useWebSocket(symbol, tf) {
     const currentData = store.data;
     if (!currentData?.length) return;
 
+    // Reusable bar shape — avoids allocating a new object on every tick
+    const barFields = { time: candle.time, open: candle.open, high: candle.high, low: candle.low, close: candle.close, volume: candle.volume };
+
     if (candle.isClosed) {
       // ─── Candle closed: finalize and append ─────────────────
       const lastBar = currentData[currentData.length - 1];
-      const lastTime = lastBar?.time;
 
-      // Update the last bar to final values if it matches
-      if (lastTime === candle.time) {
-        const updated = [...currentData];
-        updated[updated.length - 1] = {
-          time: candle.time,
-          open: candle.open,
-          high: candle.high,
-          low: candle.low,
-          close: candle.close,
-          volume: candle.volume,
-        };
-        store.setData(updated, 'binance:live');
+      if (lastBar?.time === candle.time) {
+        // Update last bar in-place, then create new array reference for Zustand
+        Object.assign(lastBar, barFields);
+        store.setData([...currentData], 'binance:live');
       } else {
-        // Candle for a new time slot we haven't seen — append it
-        const newBar = {
-          time: candle.time,
-          open: candle.open,
-          high: candle.high,
-          low: candle.low,
-          close: candle.close,
-          volume: candle.volume,
-        };
-        store.setData([...currentData, newBar], 'binance:live');
+        // Candle for a new time slot — append
+        store.setData(currentData.concat(barFields), 'binance:live');
       }
       liveBarRef.current = null; // reset — next update starts a new bar
     } else {
@@ -68,29 +54,13 @@ export default function useWebSocket(symbol, tf) {
       const lastBar = currentData[currentData.length - 1];
 
       if (lastBar?.time === candle.time) {
-        // Same bar — update in-place: create a shallow copy only swapping the last element
-        const updated = currentData.slice();
-        updated[updated.length - 1] = {
-          time: candle.time,
-          open: candle.open,
-          high: candle.high,
-          low: candle.low,
-          close: candle.close,
-          volume: candle.volume,
-        };
-        store.setData(updated, 'binance:live');
+        // Same bar — mutate fields in-place, new array ref for Zustand
+        Object.assign(lastBar, barFields);
+        store.setData([...currentData], 'binance:live');
       } else if (liveBarRef.current !== candle.time) {
-        // New bar opened — append it
+        // New bar opened — append
         liveBarRef.current = candle.time;
-        const newBar = {
-          time: candle.time,
-          open: candle.open,
-          high: candle.high,
-          low: candle.low,
-          close: candle.close,
-          volume: candle.volume,
-        };
-        store.setData([...currentData, newBar], 'binance:live');
+        store.setData(currentData.concat(barFields), 'binance:live');
       }
     }
   }, []);

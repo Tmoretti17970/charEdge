@@ -12,7 +12,6 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { ChartError, ERROR_CODES } from './ChartError.js';
-import { logger } from '../../utils/logger';
 
 /** Validation result returned by all validators. */
 export interface ValidationResult {
@@ -159,8 +158,11 @@ const KNOWN_PROPS: Set<string> = new Set([
   'showHeatmap', 'heatmapIntensity', 'showSessions',
   // Order flow overlays
   'showDeltaOverlay', 'showVPOverlay', 'showOIOverlay', 'showLargeTradesOverlay',
+  'showVolumeSpikes', 'showPatternOverlays', 'showExtendedHours', 'showArbitrageSpread',
   // Layout
   'paneHeights', 'panelHeights',
+  // Mobile / responsive
+  'priceAxisWidth', 'timeAxisHeight', 'compactMode', 'autoHideToolbar',
 ]);
 
 /**

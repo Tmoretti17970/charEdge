@@ -8,9 +8,9 @@
 //   4. Template merge with user templates
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import { describe, it, expect } from 'vitest';
 import { BUILT_IN_TEMPLATES, getBuiltInTemplates, getAllTemplates } from '../../charting_library/studies/indicators/indicatorTemplates';
 
 const ROOT = resolve(__dirname, '..', '..');

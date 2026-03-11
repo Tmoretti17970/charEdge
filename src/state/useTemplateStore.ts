@@ -29,7 +29,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { safeClone } from '../utils/safeJSON.js';
+import { safeClone } from '@/shared/safeJSON';
 
 const BUILT_IN_TEMPLATES = [
   {
@@ -97,16 +97,16 @@ const useTemplateStore = create(
        * If a user template with the same name exists, it gets overwritten.
        * Accepts expanded options: { indicators, chartType, drawings, timeframe, themeOverrides }
        */
-      saveTemplate: (name: any, indicatorsOrOpts?: any, chartType: any = 'candle') => {
+      saveTemplate: (name: unknown, indicatorsOrOpts?: unknown, chartType: unknown = 'candle') => {
         const trimmed = (name || '').trim();
         if (!trimmed) return null;
 
         // Support both old signature (name, indicators, chartType)
         // and new expanded object (name, { indicators, chartType, drawings, ... })
-        let indicators: any;
-        let drawings: any;
-        let timeframe: any;
-        let themeOverrides: any;
+        let indicators: unknown;
+        let drawings: unknown;
+        let timeframe: unknown;
+        let themeOverrides: unknown;
         let resolvedChartType = chartType;
 
         if (indicatorsOrOpts && !Array.isArray(indicatorsOrOpts) && typeof indicatorsOrOpts === 'object' && 'indicators' in indicatorsOrOpts) {
@@ -122,7 +122,7 @@ const useTemplateStore = create(
         }
 
         const id = 'tpl_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
-        const template: any = {
+        const template: unknown = {
           id,
           name: trimmed,
           builtIn: false,
@@ -137,9 +137,9 @@ const useTemplateStore = create(
         if (timeframe) template.timeframe = timeframe;
         if (themeOverrides) template.themeOverrides = safeClone(themeOverrides, {});
 
-        set((s: any) => {
+        set((s: unknown) => {
           // Remove existing user template with same name (overwrite)
-          const filtered = s.templates.filter((t: any) => t.builtIn || t.name.toLowerCase() !== trimmed.toLowerCase());
+          const filtered = s.templates.filter((t: unknown) => t.builtIn || t.name.toLowerCase() !== trimmed.toLowerCase());
           return { templates: [...filtered, template] };
         });
 

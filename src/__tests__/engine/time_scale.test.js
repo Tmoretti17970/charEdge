@@ -30,30 +30,28 @@ describe('Sprint 9 — formatTimeLabel smart resolution', () => {
     expect(source).toContain('export function formatTimeLabel');
   });
 
-  it('has useUTC parameter (default true)', () => {
-    expect(source).toContain('useUTC = true');
+  it('has timezone parameter (default UTC)', () => {
+    expect(source).toContain("timezone = 'UTC'");
   });
 
   it('detects day boundary for intraday', () => {
-    expect(source).toContain("getDate(d) !== getDate(prev)");
+    expect(source).toContain('dDay !== prevParts.day');
   });
 
   it('detects month boundary for daily', () => {
-    expect(source).toContain("getMon(d) !== getMon(prev)");
+    expect(source).toContain('dMon !== prevParts.month');
   });
 
   it('detects year boundary', () => {
-    expect(source).toContain("getYear(d) !== getYear(prev)");
+    expect(source).toContain('dYear !== prevParts.year');
   });
 
-  it('uses UTC accessors when useUTC is true', () => {
-    expect(source).toContain('getUTCFullYear');
-    expect(source).toContain('getUTCMonth');
+  it('uses TemporalEngine for timezone-aware date parts', () => {
+    expect(source).toContain('temporalEngine.getParts');
   });
 
-  it('uses local accessors when useUTC is false', () => {
-    expect(source).toContain('getFullYear');
-    expect(source).toContain('getMonth');
+  it('supports boolean backward compatibility', () => {
+    expect(source).toContain("typeof timezone === 'boolean'");
   });
 
   it('formats intraday as HH:MM', () => {
@@ -132,8 +130,8 @@ describe('Sprint 9 — FrameState useUTC', () => {
     expect(source).toContain('fs.useUTC');
   });
 
-  it('defaults useUTC to true', () => {
-    expect(source).toContain('useUTC !== false');
+  it('derives useUTC from activeTimezone', () => {
+    expect(source).toContain("activeTimezone === 'UTC'");
   });
 });
 

@@ -20,7 +20,7 @@ import { useCallback } from 'react';
  */
 export default function useChartMouseHandlers({
   chartRef, data, isMobile, multiMode, tradeMode,
-  setHoverInfo, setRadialMenu, setFocusMode, handleContextMenu,
+  setHoverInfo, setRadialMenu, _setFocusMode, handleContextMenu,
 }) {
   const onMouseMove = useCallback((e) => {
     if (isMobile || multiMode || !data?.length) return;
@@ -48,7 +48,7 @@ export default function useChartMouseHandlers({
     setHoverInfo({ barIdx: -1, mouseY: 0 });
   }, [setHoverInfo]);
 
-  const onDoubleClick = useCallback((e) => {
+  const onDoubleClick = useCallback((_e) => {
     // Focus mode is now activated via the 'F' key or a toolbar button, not double-click.
     // Double-click on the chart is used for drawing interactions.
   }, []);

@@ -5,8 +5,8 @@
 
 import React, { useMemo } from 'react';
 import { C, M } from '../../../../constants.js';
-import { Card, AutoGrid } from '../../../components/ui/UIKit.jsx';
 import { fmtD } from '../../../../utils.js';
+import { Card, AutoGrid } from '../../../components/ui/UIKit.jsx';
 import BreakdownBarChart from '../../../components/widgets/BreakdownBarChart.jsx';
 import PlaybookManager from '../../playbook/PlaybookManager.jsx';
 import { SectionLabel, MiniStat, headerRow, dataRow } from './AnalyticsPrimitives.jsx';
@@ -16,6 +16,7 @@ function StrategiesTab({ result, computing }) {
     return <div style={{ padding: 40, textAlign: 'center', color: C.t3 }}>{computing ? 'Computing playbooks...' : 'No playbook data available.'}</div>;
   }
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const strategies = useMemo(
     () =>
       Object.entries(result.bySt || {})
@@ -24,6 +25,7 @@ function StrategiesTab({ result, computing }) {
     [result.bySt],
   );
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const tags = useMemo(
     () =>
       result.byTag

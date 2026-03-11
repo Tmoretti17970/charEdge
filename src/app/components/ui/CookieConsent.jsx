@@ -6,9 +6,9 @@
 // Styled with glassmorphism + design tokens.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useConsentStore } from '../../../state/useConsentStore.js';
 import { C, F } from '../../../constants.js';
 import { GLASS, DEPTH } from '../../../constants.js';
+import { useConsentStore } from '../../../state/useConsentStore';
 import cssStyles from './CookieConsent.module.css';
 
 export default function CookieConsent() {

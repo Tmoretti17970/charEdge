@@ -34,7 +34,7 @@ export function renderGannFan(ctx, pts, drawing, style, lw, pr, size) {
   ctx.setLineDash([]);
 }
 
-export function renderGannSquare(ctx, pts, drawing, style, lw, pr, size) {
+export function renderGannSquare(ctx, pts, drawing, style, lw, pr, _size) {
   if (pts.length < 2) return;
   const x1 = pts[0].x, y1 = pts[0].y, x2 = pts[1].x, y2 = pts[1].y;
   const w = x2 - x1, h = y2 - y1;
@@ -55,7 +55,7 @@ export function renderGannSquare(ctx, pts, drawing, style, lw, pr, size) {
   }
 }
 
-export function renderXABCD(ctx, pts, drawing, style, lw, pr, size) {
+export function renderXABCD(ctx, pts, drawing, style, lw, pr, _size) {
   if (pts.length < 2) return;
   const labels = ['X', 'A', 'B', 'C', 'D'];
   ctx.strokeStyle = style.color; ctx.lineWidth = lw;

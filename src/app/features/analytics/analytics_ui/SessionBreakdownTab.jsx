@@ -6,9 +6,9 @@
 
 import React, { useMemo } from 'react';
 import { C, M } from '../../../../constants.js';
-import { Card, StatCard, AutoGrid } from '../../../components/ui/UIKit.jsx';
+import { Card, AutoGrid } from '../../../components/ui/UIKit.jsx';
 import { SectionLabel } from './AnalyticsPrimitives.jsx';
-import { groupTradesBy } from '../../../../utils/groupTradesBy.js';
+import { groupTradesBy } from '@/trading/groupTradesBy';
 
 /**
  * Map a UTC hour to a trading session name.

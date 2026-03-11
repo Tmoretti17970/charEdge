@@ -2,7 +2,7 @@
 // charEdge — Sprint 7 Security Hardening Tests
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 // ─── 6.2.6: KeyVault ────────────────────────────────────────────
 

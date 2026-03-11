@@ -6,14 +6,14 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect, beforeEach } from 'vitest';
+import { useBriefingStore } from '../../state/useBriefingStore.ts';
 import { useDataStore } from '../../state/useDataStore.ts';
 import { useLayoutStore } from '../../state/useLayoutStore.ts';
-import { useBriefingStore } from '../../state/useBriefingStore.ts';
 import {
   formatNumber,
   formatCurrency,
   formatDate,
-} from '../../utils/useA11yHelpers.ts';
+} from '@/a11y/useA11yHelpers.ts';
 
 // ═══ Discover Store ═════════════════════════════════════════════
 describe('useDataStore', () => {

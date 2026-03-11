@@ -4,8 +4,9 @@
 // Renders stacked area chart of order book depth.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { C, F } from '../../../constants.js';
+import { useChartStore } from '../../../state/useChartStore';
 
 const BID_COLOR = '#26A69A';
 const ASK_COLOR = '#EF5350';
@@ -31,9 +32,13 @@ function generateDepthData(currentPrice, levels = 40) {
   return { bids, asks };
 }
 
-export default function DepthChart({ currentPrice = 0, symbol = '', height = 180, onClose }) {
+export default function DepthChart({ symbol = '', height = 180, onClose }) {
   const canvasRef = useRef(null);
   const dataRef = useRef(null);
+
+  // Read current price from the store's aggregated price (TickerPlant)
+  // Note: s.data no longer exists in the store (Sprint 3: metadata only)
+  const currentPrice = useChartStore((s) => s.aggregatedPrice) || 0;
 
   // Regenerate depth data periodically
   useEffect(() => {

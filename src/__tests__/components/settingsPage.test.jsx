@@ -5,8 +5,8 @@
 // Tests: exports, sections, theme toggle, search filter.
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
+import { describe, it, expect } from 'vitest';
 
 const src = fs.readFileSync('src/pages/SettingsPage.jsx', 'utf8');
 

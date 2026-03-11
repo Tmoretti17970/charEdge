@@ -18,7 +18,7 @@
 
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { isCrypto } from '../../../constants.js';
-import { logger } from '../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ─── Configuration ─────────────────────────────────────────────
 
@@ -231,7 +231,7 @@ class WatchlistPrefetcher {
             if (isCrypto(baseSym)) {
                 // Binance REST API
                 const base = typeof window === 'undefined'
-                    ? `http://localhost:${(globalThis as any).__TF_PORT || 3000}`
+                    ? `http://localhost:${(globalThis as unknown).__TF_PORT || 3000}`
                     : '';
                 const url = `${base}/api/binance/v3/klines?symbol=${symbol}&interval=${tf}&limit=500`;
                 const res = await fetch(url, { signal: ac.signal });
@@ -239,7 +239,7 @@ class WatchlistPrefetcher {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
 
-                bars = data.map((k: any[]) => ({
+                bars = data.map((k: unknown[]) => ({
                     time: k[0],
                     open: +k[1],
                     high: +k[2],
@@ -256,11 +256,11 @@ class WatchlistPrefetcher {
                     '12h': '6m', '1d': '6m', '3d': '1y', '1w': '1y', '1M': '1y',
                 };
                 const fetchTfId = TF_MAP[tf] || '3m';
-                const result = await (fetchOHLC as any)(baseSym, fetchTfId);
+                const result = await (fetchOHLC as unknown)(baseSym, fetchTfId);
 
                 if (!result?.data?.length) return;
 
-                bars = result.data.map((c: any) => ({
+                bars = result.data.map((c: unknown) => ({
                     time: typeof c.time === 'string' ? new Date(c.time).getTime() : c.time,
                     open: c.open, high: c.high, low: c.low, close: c.close,
                     volume: c.volume || 0,
@@ -272,7 +272,8 @@ class WatchlistPrefetcher {
             // Store in DataCache for instant access on chart switch
             try {
                 const { dataCache } = await import('../../../data/DataCache.ts');
-                await (dataCache as any).putCandles(symbol, tf, bars);
+                await (dataCache as unknown).putCandles(symbol, tf, bars);
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             } catch (_) {
                 // DataCache not available — data still in DatafeedService cache
             }
@@ -284,7 +285,7 @@ class WatchlistPrefetcher {
                 barCount: bars.length,
             });
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             if (err?.name !== 'AbortError') {
                 logger.data.warn(`[WatchlistPrefetcher] Failed to prefetch ${key}:`, err?.message);
             }

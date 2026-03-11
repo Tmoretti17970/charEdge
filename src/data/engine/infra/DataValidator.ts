@@ -253,6 +253,9 @@ export function validateCandleArray(bars: unknown[]): Record<string, unknown>[] 
 
 /**
  * Detect gaps in a candle array.
+ *
+ * Delegates to canonical GapDetector — this wrapper adapts the return shape
+ * for backward compatibility with mixed string/epoch timestamps.
  */
 export function detectGaps(bars: Record<string, unknown>[], expectedIntervalMs: number): GapInfo[] {
     if (!Array.isArray(bars) || bars.length < 2 || !expectedIntervalMs) return [];

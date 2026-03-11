@@ -1,12 +1,15 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { radii } from '../../../theme/tokens.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { Card, Btn, inputStyle } from '../ui/UIKit.jsx';
-import { exportCSV, exportJSON, downloadFile, importFile } from '../../../data/ImportExport.js';
-import { generateReport, downloadReport } from '../../features/analytics/ReportGenerator.js';
-import { computeFast } from '../../features/analytics/analyticsFast.js';
-import { SectionHeader, SettingRow, AlertBanner } from './SettingsHelpers.jsx';
+import {
+  connectCloud,
+  disconnectCloud,
+  getCloudStatus,
+  cloudBackup,
+  cloudRestore,
+  listCloudBackups,
+  restoreCloudConnection,
+  getProviderDisplayName,
+} from '../../../data/CloudBackup.js';
 import {
   isFileSystemAccessSupported,
   pickBackupFolder,
@@ -20,17 +23,13 @@ import {
   getBackupStatus,
   disconnectBackup,
 } from '../../../data/FileSystemBackup.js';
-import {
-  connectCloud,
-  disconnectCloud,
-  isCloudConnected,
-  getCloudStatus,
-  cloudBackup,
-  cloudRestore,
-  listCloudBackups,
-  restoreCloudConnection,
-  getProviderDisplayName,
-} from '../../../data/CloudBackup.js';
+import { exportCSV, exportJSON, downloadFile, importFile } from '../../../data/ImportExport.js';
+import { useJournalStore } from '../../../state/useJournalStore';
+import { radii } from '../../../theme/tokens.js';
+import { computeFast } from '../../features/analytics/analyticsFast.js';
+import { generateReport, downloadReport } from '../../features/analytics/ReportGenerator.js';
+import { Card, Btn, inputStyle } from '../ui/UIKit.jsx';
+import { SectionHeader, SettingRow, AlertBanner } from './SettingsHelpers.jsx';
 
 export default function DataSection() {
   const trades = useJournalStore((s) => s.trades);

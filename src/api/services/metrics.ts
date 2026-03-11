@@ -1,4 +1,3 @@
-import type { Request, Response, NextFunction, Router } from 'express';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Prometheus Metrics
 //

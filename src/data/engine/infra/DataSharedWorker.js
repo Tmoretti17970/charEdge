@@ -1,4 +1,4 @@
-import { logger } from '../../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v14 — Data SharedWorker
 //
@@ -55,6 +55,7 @@ try {
   }).catch(() => {
     logger.worker.warn('[DataSharedWorker] BinaryCodec unavailable — using JSON fallback');
   });
+// eslint-disable-next-line unused-imports/no-unused-vars
 } catch (_) {
   // BinaryCodec not available, JSON fallback
 }
@@ -180,6 +181,7 @@ self.onconnect = function(event) {
                 if (!stats.compressionEnabled) {
                   stats.bytesRelayed += JSON.stringify(encodedMsg).length;
                 }
+              // eslint-disable-next-line unused-imports/no-unused-vars
               } catch (_) {
                 // Port might be closed
                 subscribers.delete(subPort);
@@ -247,6 +249,7 @@ self.onconnect = function(event) {
                 source: msg.source,
               });
               stats.messagesRelayed++;
+            // eslint-disable-next-line unused-imports/no-unused-vars
             } catch (_) {
               // Port closed
               clients.delete(waiterPort);
@@ -294,6 +297,7 @@ function cleanup(port) {
     if (entry.fetcher === port) {
       // The fetcher disconnected — notify waiters of failure
       for (const waiter of entry.waiters) {
+        // eslint-disable-next-line unused-imports/no-unused-vars
         try { waiter.postMessage({ type: 'fetch-result', key, data: null, source: 'error' }); } catch (_) { /* storage may be blocked */ }
       }
       inflightFetches.delete(key);

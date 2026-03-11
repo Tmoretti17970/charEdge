@@ -6,7 +6,7 @@
 
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 const MOCK_FLOWS = [
   { id: 1, time: '14:32', symbol: 'NVDA', strike: 900, expiry: '03/07', type: 'Call', premium: 2850000, size: 1200, side: 'Buy', sweep: true },

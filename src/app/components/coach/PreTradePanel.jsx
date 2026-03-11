@@ -6,10 +6,10 @@
 // historical matches, warnings, and recommendations.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
 import { useAICoachStore } from '../../../state/useAICoachStore.js';
+import { useJournalStore } from '../../../state/useJournalStore';
 
 const CONFIDENCE_COLORS = {
   high: '#00E676', medium: '#FFCA28', low: '#EF5350',

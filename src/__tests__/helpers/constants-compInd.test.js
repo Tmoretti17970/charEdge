@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect } from 'vitest';
+import { compInd } from '../../charting_library/studies/compInd.js';
 import {
   C,
   F,
@@ -17,7 +18,6 @@ import {
   DEFAULT_SETTINGS,
   OV_COLORS,
 } from '../../constants.js';
-import { compInd } from '../../charting_library/studies/compInd.js';
 
 // ═══ Constants ══════════════════════════════════════════════════
 describe('Constants', () => {

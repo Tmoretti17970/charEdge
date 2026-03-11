@@ -12,9 +12,9 @@
 //   <DepthPanel symbol="BTCUSDT" />
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { depthEngine } from '../../../data/engine/orderflow/DepthEngine.ts';
+import { depthEngine } from '../../../data/engine/orderflow/DepthEngine';
 
 function fmtNum(n) {
   if (n == null) return '—';
@@ -180,7 +180,7 @@ export default function DepthPanel({ symbol = 'BTCUSDT', levels = 15 }) {
 
         {/* Asks (top, reversed so lowest ask is at the bottom) */}
         <div style={{ borderBottom: `2px solid ${C.r}30` }}>
-          {askLevels.map((level, i) => (
+          {askLevels.map((level, _i) => (
             <DepthRow
               key={'a-' + level.price}
               level={level}

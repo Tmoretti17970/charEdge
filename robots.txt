@@ -1,8 +1,7 @@
-# TradeForge — robots.txt
+# charEdge — robots.txt
 User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /admin/
 
-# Sitemap (uncomment when deployed)
-# Sitemap: https://tradeforge.app/sitemap.xml
+Sitemap: https://charedge.app/sitemap.xml

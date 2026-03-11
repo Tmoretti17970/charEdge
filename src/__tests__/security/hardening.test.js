@@ -16,7 +16,7 @@ import { describe, it, expect } from 'vitest';
 
 describe('SecureStore — encryption utility', () => {
   it('exports encryptAndStore, loadAndDecrypt, clear, isEncryptionAvailable', async () => {
-    const mod = await import('../../utils/SecureStore.ts');
+    const mod = await import('../../security/SecureStore.ts');
     expect(typeof mod.default.encryptAndStore).toBe('function');
     expect(typeof mod.default.loadAndDecrypt).toBe('function');
     expect(typeof mod.default.clear).toBe('function');
@@ -25,7 +25,7 @@ describe('SecureStore — encryption utility', () => {
 
   it('has PBKDF2 key derivation with 100k iterations', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/utils/SecureStore.ts', 'utf8');
+    const source = await fs.promises.readFile('src/security/SecureStore.ts', 'utf8');
     expect(source).toContain('PBKDF2_ITERATIONS = 100_000');
     expect(source).toContain("name: 'PBKDF2'");
     expect(source).toContain("name: 'AES-GCM'");
@@ -33,14 +33,14 @@ describe('SecureStore — encryption utility', () => {
 
   it('handles legacy plain-text migration (no _f field)', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/utils/SecureStore.ts', 'utf8');
+    const source = await fs.promises.readFile('src/security/SecureStore.ts', 'utf8');
     // loadAndDecrypt should handle objects without _f field (legacy data)
     expect(source).toContain('!envelope._f');
   });
 
   it('falls back to base64 when crypto.subtle unavailable', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile('src/utils/SecureStore.ts', 'utf8');
+    const source = await fs.promises.readFile('src/security/SecureStore.ts', 'utf8');
     expect(source).toContain("_f: 'b64'");
     expect(source).toContain('_b64Encode');
     expect(source).toContain('_b64Decode');
@@ -55,7 +55,7 @@ describe('StorageAdapter — uses SecureStore for auth data', () => {
   it.skip('imports SecureStore', async () => {
     const fs = await import('fs');
     const source = await fs.promises.readFile('src/data/StorageAdapter.js', 'utf8');
-    expect(source).toContain("import SecureStore from '../../utils/SecureStore.ts'");
+    expect(source).toContain("import SecureStore from '@/security/SecureStore.ts'");
   });
 
   it('_saveAuth uses SecureStore.encryptAndStore (not localStorage.setItem)', async () => {
@@ -95,7 +95,7 @@ describe('ApiKeyStore — encrypted API key storage', () => {
   it('imports SecureStore', async () => {
     const fs = await import('fs');
     const source = await fs.promises.readFile('src/data/providers/ApiKeyStore.js', 'utf8');
-    expect(source).toContain("import SecureStore from '../../utils/SecureStore.ts'");
+    expect(source).toContain("import SecureStore from '@/security/SecureStore.ts'");
   });
 
   it('uses SecureStore.encryptAndStore for persistence', async () => {
@@ -231,6 +231,22 @@ describe('Vercel — security headers in vercel.json', () => {
     expect(source).toContain('X-Content-Type-Options');
     expect(source).toContain('Referrer-Policy');
     expect(source).toContain('Permissions-Policy');
+  });
+
+  it('vercel.json CSP does not contain unsafe-eval or unsafe-inline', async () => {
+    const fs = await import('fs');
+    const config = JSON.parse(await fs.promises.readFile('vercel.json', 'utf8'));
+    const headers = config.headers?.flatMap(h => h.headers) || [];
+    const cspHeader = headers.find(h => h.key === 'Content-Security-Policy');
+    expect(cspHeader).toBeDefined();
+    const csp = cspHeader.value;
+    // Extract script-src directive
+    const scriptSrc = csp.match(/script-src\s+([^;]+)/)?.[1] || '';
+    expect(scriptSrc).not.toContain("'unsafe-eval'");
+    expect(scriptSrc).not.toContain("'unsafe-inline'");
+    expect(scriptSrc).toContain("'self'");
+    // frame-ancestors must deny all framing
+    expect(csp).toContain("frame-ancestors 'none'");
   });
 });
 

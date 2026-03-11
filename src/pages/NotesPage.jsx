@@ -11,18 +11,18 @@
 // Mobile-responsive with larger touch targets + font sizes.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useMemo } from 'react';
-import { C, F, M } from '../constants.js';
-import { useJournalStore } from '../state/useJournalStore.js';
-import { Card, Btn, inputStyle } from '../app/components/ui/UIKit.jsx';
+import { useState, useMemo } from 'react';
 import { NotesEmptyState } from '../app/components/ui/EmptyState.jsx';
-import { uid } from '../utils.js';
-import { useBreakpoints } from '../utils/useMediaQuery.js';
 import toast from '../app/components/ui/Toast.jsx';
-
-// Extracted sub-components
+import { Card, Btn, inputStyle } from '../app/components/ui/UIKit.jsx';
+import { C, F, M } from '../constants.js';
+import { useJournalStore } from '../state/useJournalStore';
+import { uid } from '../utils.js';
 import NoteCard from './notes/NoteCard.jsx';
 import NoteFormModal from './notes/NoteFormModal.jsx';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
+
+// Extracted sub-components
 
 export default function NotesPage() {
   const notes = useJournalStore((s) => s.notes);

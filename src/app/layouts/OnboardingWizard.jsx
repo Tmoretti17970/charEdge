@@ -13,9 +13,9 @@
 // Can be re-triggered from Settings.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../state/useUserStore.js';
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { C, F, M } from '../../constants.js';
+import { useUserStore } from '../../state/useUserStore';
 import { space, radii, text, transition, preset } from '../../theme/tokens.js';
 import { Btn } from '../components/ui/UIKit.jsx';
 

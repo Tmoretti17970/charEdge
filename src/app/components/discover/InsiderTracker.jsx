@@ -6,8 +6,8 @@
 
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
+import { alpha } from '@/shared/colorUtils';
 
 const MOCK_INSIDER = [
   { id: 1, date: '2026-02-24', symbol: 'NVDA', name: 'Jensen Huang', role: 'CEO', action: 'Sell', shares: 120000, price: 890.20, value: 106824000, pctHoldings: 0.3, cluster: false },

@@ -59,6 +59,11 @@ export function securityHeaders({ isProduction }) {
         // Expanded Permissions-Policy (Batch 16: 4.5.4)
         res.setHeader('Permissions-Policy', PERMISSIONS_POLICY);
 
+        // Sprint 10 #79: Vary: Origin for correct CORS caching
+        // Without this, CDN/proxy caches may serve a response with the wrong
+        // Access-Control-Allow-Origin header to a different origin.
+        res.setHeader('Vary', 'Origin');
+
         // HSTS — enforce HTTPS (production only)
         if (isProduction) {
             res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
@@ -71,24 +76,33 @@ export function securityHeaders({ isProduction }) {
             endpoints: [{ url: '/api/csp-report' }],
         }));
 
-        // CSP — permissive enough for all data adapters + Google Fonts
+        // CSP directives — shared between enforcement and report-only
+        const cspDirectives = [
+            "default-src 'self'",
+            "script-src 'self'",
+            "style-src 'self'",
+            "font-src 'self'",
+            "img-src 'self' data: blob: https:",
+            "connect-src 'self' https://api.binance.com https://data-api.binance.vision wss://stream.binance.com:9443 wss://stream.binance.us:9443 wss://data-stream.binance.vision https://api.coingecko.com https://query1.finance.yahoo.com https://hermes.pyth.network wss://ws.kraken.com https://api.kraken.com https://data.sec.gov https://efts.sec.gov https://api.stlouisfed.org https://api.frankfurter.dev https://api.alternative.me https://apewisdom.io https://finnhub.io wss://ws.finnhub.io https://financialmodelingprep.com https://api.whale-alert.io https://api.etherscan.io https://api.polygon.io wss://socket.polygon.io https://data.alpaca.markets https://paper-api.alpaca.markets https://api.alpaca.markets",
+            "worker-src 'self' blob:",
+            // Sprint 10 #81: Block Flash/Java plugin content
+            "object-src 'none'",
+            "manifest-src 'self'",
+            "base-uri 'self'",
+            "form-action 'self'",
+            "frame-ancestors 'none'",
+            "upgrade-insecure-requests",
+            "report-uri /api/csp-report",
+            "report-to csp-endpoint",
+        ].join('; ');
+
         if (isProduction) {
-            res.setHeader('Content-Security-Policy', [
-                "default-src 'self'",
-                "script-src 'self'",
-                "style-src 'self'",
-                "font-src 'self'",
-                "img-src 'self' data: blob: https:",
-                "connect-src 'self' https://api.binance.com https://data-api.binance.vision wss://stream.binance.com:9443 wss://stream.binance.us:9443 wss://data-stream.binance.vision https://api.coingecko.com https://query1.finance.yahoo.com https://hermes.pyth.network wss://ws.kraken.com https://api.kraken.com https://data.sec.gov https://efts.sec.gov https://api.stlouisfed.org https://api.frankfurter.dev https://api.alternative.me https://apewisdom.io https://finnhub.io wss://ws.finnhub.io https://financialmodelingprep.com https://api.whale-alert.io https://api.etherscan.io https://api.polygon.io wss://socket.polygon.io https://data.alpaca.markets https://paper-api.alpaca.markets https://api.alpaca.markets",
-                "worker-src 'self' blob:",
-                "manifest-src 'self'",
-                "base-uri 'self'",
-                "form-action 'self'",
-                "frame-ancestors 'none'",
-                "upgrade-insecure-requests",
-                "report-uri /api/csp-report",
-                "report-to csp-endpoint",
-            ].join('; '));
+            // Enforce CSP in production
+            res.setHeader('Content-Security-Policy', cspDirectives);
+        } else {
+            // Sprint 10 #75: Report-Only in dev — catches violations without
+            // breaking the app, giving developers a heads-up before production.
+            res.setHeader('Content-Security-Policy-Report-Only', cspDirectives);
         }
 
         next();
@@ -102,6 +116,12 @@ export function securityHeaders({ isProduction }) {
  * @param {import('express').Response} res
  */
 export function cspReportHandler(req, res) {
+    // Sprint 10 #80: Reject oversized CSP reports (DoS prevention)
+    const contentLength = parseInt(req.headers['content-length'] || '0', 10);
+    if (contentLength > 4096) {
+        return res.status(413).end();
+    }
+
     const report = req.body?.['csp-report'] || req.body;
     if (report) {
         const entry = {

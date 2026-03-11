@@ -1,5 +1,5 @@
-import { useSocialStore } from '../../../state/useSocialStore.js';
 import { useState, useEffect } from 'react';
+import { useSocialStore } from '../../../state/useSocialStore.js';
 import PollCard from './PollCard.jsx';
 
 export default function ContextualPoll({ symbol }) {

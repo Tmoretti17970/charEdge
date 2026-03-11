@@ -6,9 +6,9 @@
 //   2. ChartSettingsPanel.jsx — crosshair mode/style/color/opacity
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import { describe, it, expect } from 'vitest';
 
 const ROOT = resolve(__dirname, '..', '..');
 const read = (rel) => readFileSync(resolve(ROOT, rel), 'utf-8');

@@ -7,7 +7,6 @@
 //   - createMockAnalytics() — generate analytics result fixture
 // ═══════════════════════════════════════════════════════════════════
 
-import { vi } from 'vitest';
 
 // ─── Store Reset ────────────────────────────────────────────────
 // Zustand stores cache their initial state on first `create()`.

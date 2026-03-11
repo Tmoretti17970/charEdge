@@ -6,7 +6,7 @@
 // Prevents volume double-counting during REST→WS transitions.
 // ═══════════════════════════════════════════════════════════════════
 
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ─── Types ──────────────────────────────────────────────────────
 

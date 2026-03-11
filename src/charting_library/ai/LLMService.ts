@@ -70,7 +70,7 @@ export class OpenAIProvider implements LLMProvider {
         };
 
         if (opts?.format === 'json') {
-            (body as any).response_format = { type: 'json_object' };
+            (body as unknown).response_format = { type: 'json_object' };
         }
 
         const res = await fetch(this._endpoint, {
@@ -112,6 +112,7 @@ export class LocalProvider implements LLMProvider {
 
 // ─── LLM Service ────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 class _LLMService {
     private _providers: Map<string, LLMProvider> = new Map();
     private _defaultProvider: string = 'local';

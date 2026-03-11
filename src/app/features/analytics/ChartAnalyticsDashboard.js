@@ -10,6 +10,7 @@ let _analyticsData = null;
 try {
   const raw = localStorage.getItem(ANALYTICS_KEY);
   if (raw) _analyticsData = JSON.parse(raw);
+// eslint-disable-next-line unused-imports/no-unused-vars
 } catch (_) { /* storage may be blocked */ }
 
 const DEFAULT_ANALYTICS = {
@@ -39,13 +40,14 @@ export function getAnalytics() {
 
 function persist(data) {
   _analyticsData = data;
+  // eslint-disable-next-line unused-imports/no-unused-vars
   try { localStorage.setItem(ANALYTICS_KEY, JSON.stringify(data)); } catch (_) { /* storage may be blocked */ }
 }
 
 /**
  * Track a feature usage event.
  */
-export function trackFeature(featureName, detail = {}) {
+export function trackFeature(featureName, _detail = {}) {
   const data = getAnalytics();
   data.featureUsage[featureName] = (data.featureUsage[featureName] || 0) + 1;
   persist(data);

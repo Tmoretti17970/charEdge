@@ -20,20 +20,20 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef } from 'react';
-import { useJournalStore } from './state/useJournalStore.js';
-import { useUserStore } from './state/useUserStore.js';
-import { useScriptStore } from './state/useScriptStore.js';
-import { useWorkspaceStore } from './state/useWorkspaceStore.js';
-import { useWatchlistStore } from './state/useWatchlistStore.js';
-import { useGamificationStore } from './state/useGamificationStore.js';
-import { StorageService } from './data/StorageService.ts';
-import { migrateAllTrades } from './charting_library/model/Money.js';
-import { useAnalyticsStore } from './state/useAnalyticsStore.js';
-import { initTelemetry } from './utils/telemetry.js';
 import { setupAutoSave } from './autoSave.js';
-import { logger } from './utils/logger.js';
+import { migrateAllTrades } from './charting_library/model/Money.js';
 import { encryptedStore } from './data/EncryptedStore.js';
 import { initApiKeys } from './data/providers/ApiKeyStore.js';
+import { StorageService } from './data/StorageService';
+import { initTelemetry } from './observability/telemetry';
+import { useAnalyticsStore } from './state/useAnalyticsStore';
+import { useGamificationStore } from './state/useGamificationStore';
+import { useJournalStore } from './state/useJournalStore';
+import { useScriptStore } from './state/useScriptStore.js';
+import { useUserStore } from './state/useUserStore';
+import { useWatchlistStore } from './state/useWatchlistStore.js';
+import { useWorkspaceStore } from './state/useWorkspaceStore';
+import { logger } from '@/observability/logger.js';
 
 // ─── Phase 1: Load from storage ─────────────────────────────────
 
@@ -179,7 +179,7 @@ export async function postBoot(trades) {
     initTelemetry(useAnalyticsStore);
 
     // Product analytics (PostHog — consent-gated, lazy, env-gated)
-    import('./utils/posthog.js')
+    import('./observability/posthog')
       .then(({ trackEvent }) => trackEvent('app_booted', { tradeCount: trades?.length || 0 }))
       .catch(() => { }); // non-fatal
   } else {

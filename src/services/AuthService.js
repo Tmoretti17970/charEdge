@@ -1,4 +1,4 @@
-import { logger } from '../utils/logger';
+import { logger } from '@/observability/logger';
 
 // @ts-check
 // ═══════════════════════════════════════════════════════════════════
@@ -49,6 +49,7 @@ const SupabaseProvider = {
 
       this._client = supabase;
       return true;
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return false;
     }

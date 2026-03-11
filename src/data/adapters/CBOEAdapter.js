@@ -1,4 +1,4 @@
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v14 — CBOE Data Adapter
@@ -95,6 +95,7 @@ class _CBOEAdapter {
       }
 
       return this._generateFallbackPCRatio(days);
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return this._generateFallbackPCRatio(days);
     }
@@ -145,6 +146,7 @@ class _CBOEAdapter {
       }
 
       return this._generateFallbackVIXCurve();
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return this._generateFallbackVIXCurve();
     }

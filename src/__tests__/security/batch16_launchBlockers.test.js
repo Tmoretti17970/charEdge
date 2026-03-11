@@ -14,9 +14,9 @@
 //   16.10 Skill-adaptive onboarding (coachmarkRegistry + onboardingSlice)
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { readFileSync, existsSync } from 'fs';
 import { resolve, join } from 'path';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 // Project root — two levels up from src/__tests__/security/
 const ROOT = resolve(__dirname, '..', '..', '..');
@@ -49,7 +49,7 @@ describe('16.1 — EncryptedStore Activation', () => {
 
 describe('16.2 — SRI Helper', () => {
     it('exports generateSRI, validateSRI, fetchAndHash, auditMissingSRI', async () => {
-        const mod = await import('../../utils/sriHelper.js');
+        const mod = await import('../../security/sriHelper.js');
         expect(typeof mod.generateSRI).toBe('function');
         expect(typeof mod.validateSRI).toBe('function');
         expect(typeof mod.fetchAndHash).toBe('function');
@@ -57,7 +57,7 @@ describe('16.2 — SRI Helper', () => {
     });
 
     it('auditMissingSRI detects external scripts missing integrity', async () => {
-        const { auditMissingSRI } = await import('../../utils/sriHelper.js');
+        const { auditMissingSRI } = await import('../../security/sriHelper.js');
         const html = `
       <script src="https://cdn.example.com/lib.js"></script>
       <script src="https://cdn.example.com/safe.js" integrity="sha384-abc"></script>
@@ -70,7 +70,7 @@ describe('16.2 — SRI Helper', () => {
     });
 
     it('auditMissingSRI returns empty array when no external scripts exist', async () => {
-        const { auditMissingSRI } = await import('../../utils/sriHelper.js');
+        const { auditMissingSRI } = await import('../../security/sriHelper.js');
         const indexHtml = readFileSync(join(ROOT, 'index.html'), 'utf8');
         const missing = auditMissingSRI(indexHtml);
         expect(missing).toEqual([]);
@@ -150,7 +150,7 @@ describe('16.6 — WCAG AA Contrast Enforcement', () => {
     let contrastModule;
 
     beforeEach(async () => {
-        contrastModule = await import('../../utils/contrastEnforcer');
+        contrastModule = await import('../../a11y/contrastEnforcer');
     });
 
     it('exports required functions', () => {
@@ -267,7 +267,7 @@ describe('16.8 — Unified BackupService', () => {
 
 describe('16.9 — PWA Push Notifications', () => {
     it('PushManager.js exports pushManager singleton', async () => {
-        const mod = await import('../../utils/PushManager.js');
+        const mod = await import('../../app/misc/PushManager.js');
         expect(mod.pushManager).toBeDefined();
         expect(typeof mod.pushManager.requestPermission).toBe('function');
         expect(typeof mod.pushManager.subscribe).toBe('function');
@@ -278,7 +278,7 @@ describe('16.9 — PWA Push Notifications', () => {
     });
 
     it('getSubscriptionStatus returns expected shape', async () => {
-        const { pushManager } = await import('../../utils/PushManager.js');
+        const { pushManager } = await import('../../app/misc/PushManager.js');
         const status = pushManager.getSubscriptionStatus();
         expect(status).toHaveProperty('supported');
         expect(status).toHaveProperty('permission');

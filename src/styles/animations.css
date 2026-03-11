@@ -93,6 +93,31 @@
     }
   }
 
+  /* ─── framer-motion replacement keyframes ─────────────────────── */
+  @keyframes tf-toast-in {
+    from {
+      opacity: 0;
+      transform: translateX(48px) scale(0.95);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+
+  @keyframes tf-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   /* ─── Loading Animations ─────────────────────────────────────── */
   @keyframes shimmer {
     0% {

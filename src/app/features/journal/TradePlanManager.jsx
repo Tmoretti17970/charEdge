@@ -5,10 +5,10 @@
 
 import React, { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { Card, Btn, ModalOverlay, inputStyle } from '../../components/ui/UIKit.jsx';
+import { useJournalStore } from '../../../state/useJournalStore';
 import { uid } from '../../../utils.js';
 import toast from '../../components/ui/Toast.jsx';
+import { Card, Btn, ModalOverlay, inputStyle } from '../../components/ui/UIKit.jsx';
 
 const DEFAULT_CHECKLIST = [
   'Market regime confirmed (trend/range)',

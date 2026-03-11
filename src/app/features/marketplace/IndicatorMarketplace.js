@@ -6,10 +6,14 @@
 
 const MARKET_KEY = 'charEdge-indicator-market';
 
+// P2 1.1: Validate scripts before persisting to marketplace
+import { validateScript } from '../../../charting_library/scripting/ScriptEngine.js';
+
 let _marketplace = [];
 try {
   const raw = localStorage.getItem(MARKET_KEY);
   if (raw) _marketplace = JSON.parse(raw);
+// eslint-disable-next-line unused-imports/no-unused-vars
 } catch (_) { /* storage may be blocked */ }
 
 const CATEGORIES = ['trend', 'momentum', 'volatility', 'volume', 'oscillator', 'custom'];
@@ -21,13 +25,21 @@ export function publishIndicator({
   name, description, category, author = 'You',
   code, params = {}, version = '1.0.0',
 }) {
+  // P2 1.1: Validate script code before persisting
+  if (code) {
+    const validation = validateScript(code);
+    if (!validation.valid) {
+      return { error: true, message: validation.error || 'Invalid script' };
+    }
+  }
+
   const indicator = {
     id: `ci_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
     name,
     description,
     category: CATEGORIES.includes(category) ? category : 'custom',
     author,
-    code, // Pine-like script or JS function string
+    code,
     params,
     version,
     createdAt: Date.now(),
@@ -40,6 +52,7 @@ export function publishIndicator({
   };
 
   _marketplace = [indicator, ..._marketplace];
+  // eslint-disable-next-line unused-imports/no-unused-vars
   try { localStorage.setItem(MARKET_KEY, JSON.stringify(_marketplace)); } catch (_) { /* storage may be blocked */ }
   return indicator;
 }
@@ -72,6 +85,7 @@ export function installIndicator(indicatorId) {
   const indicator = _marketplace.find(i => i.id === indicatorId);
   if (indicator) {
     indicator.downloads++;
+    // eslint-disable-next-line unused-imports/no-unused-vars
     try { localStorage.setItem(MARKET_KEY, JSON.stringify(_marketplace)); } catch (_) { /* storage may be blocked */ }
     return { ...indicator, installed: true, installedAt: Date.now() };
   }
@@ -89,6 +103,7 @@ export function rateIndicator(indicatorId, rating, review = '') {
     if (review) {
       indicator.reviews.push({ text: review, rating, date: Date.now() });
     }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     try { localStorage.setItem(MARKET_KEY, JSON.stringify(_marketplace)); } catch (_) { /* storage may be blocked */ }
   }
   return indicator;

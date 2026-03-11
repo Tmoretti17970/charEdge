@@ -9,7 +9,7 @@
 // out of the client JS bundle.
 // ═══════════════════════════════════════════════════════════════════
 
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
 
 const PROXY_BASE = '/api/proxy/alphavantage';
 
@@ -56,14 +56,18 @@ export async function fetchAlphaVantage(sym, tfId) {
     const series = json[seriesKey];
     const entries = Object.entries(series).reverse(); // oldest first
 
-    return entries.map(([dateStr, bar]) => ({
-      time: new Date(dateStr.includes(':') ? dateStr : dateStr + 'T00:00:00').toISOString(),
-      open: parseFloat(bar['1. open']),
-      high: parseFloat(bar['2. high']),
-      low: parseFloat(bar['3. low']),
-      close: parseFloat(bar['4. close']),
-      volume: parseInt(bar['5. volume'] || bar['6. volume'] || '0', 10),
-    }));
+    return entries.map(([dateStr, bar]) => {
+      const parsedTime = new Date(dateStr.includes(':') ? dateStr : dateStr + 'T00:00:00');
+      return {
+        time: parsedTime.toISOString(),
+        _openMs: parsedTime.getTime(),
+        open: parseFloat(bar['1. open']),
+        high: parseFloat(bar['2. high']),
+        low: parseFloat(bar['3. low']),
+        close: parseFloat(bar['4. close']),
+        volume: parseInt(bar['5. volume'] || bar['6. volume'] || '0', 10),
+      };
+    });
   } catch (err) {
     logger.data.warn(`[AlphaVantageProvider] Error for ${sym}:`, err.message);
     return null;

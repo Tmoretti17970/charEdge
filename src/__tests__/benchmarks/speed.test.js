@@ -10,6 +10,7 @@
 //   4.6  Trackpad gesture detection
 // ═══════════════════════════════════════════════════════════════════
 
+// eslint-disable-next-line import/order
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // ─── 4.2 TradeAggregator ───────────────────────────────────────
@@ -33,7 +34,7 @@ describe('4.2 — TradeAggregator', () => {
 
     agg.ingest({ price: 100, qty: 1.0, time: base + 1000, isBuyerMaker: false });
     agg.ingest({ price: 105, qty: 0.5, time: base + 2000, isBuyerMaker: false });
-    agg.ingest({ price: 98,  qty: 0.3, time: base + 3000, isBuyerMaker: true });
+    agg.ingest({ price: 98, qty: 0.3, time: base + 3000, isBuyerMaker: true });
     agg.ingest({ price: 102, qty: 0.2, time: base + 4000, isBuyerMaker: false });
 
     const bar = agg.getCurrentBar();
@@ -193,8 +194,8 @@ describe('4.3/4.4 — WebSocket Heartbeat & Health Metrics', () => {
   it('subscribeTrades returns unique subscription IDs', () => {
     const ws = new WSClass();
     // Note: this won't actually connect since no real WebSocket
-    const id1 = ws.subscribeTrades('BTC', { onTrade: () => {} });
-    const id2 = ws.subscribeTrades('ETH', { onTrade: () => {} });
+    const id1 = ws.subscribeTrades('BTC', { onTrade: () => { } });
+    const id2 = ws.subscribeTrades('ETH', { onTrade: () => { } });
 
     expect(typeof id1).toBe('number');
     expect(typeof id2).toBe('number');
@@ -216,9 +217,9 @@ describe('4.3/4.4 — WebSocket Heartbeat & Health Metrics', () => {
   it('heartbeat fields are initialized', () => {
     const ws = new WSClass();
     expect(ws._heartbeatTimer).toBeNull();
-    expect(ws._pongTimeout).toBeNull();
-    expect(ws._awaitingPong).toBe(false);
-    expect(ws._pingSentAt).toBe(0);
+    // Data-staleness heartbeat doesn't use pong/ping state —
+    // it monitors _lastMessageTime instead of sending JSON pings
+    expect(ws._lastMessageTime).toBe(0);
   });
 
   it('_startHeartbeat and _stopHeartbeat exist', () => {
@@ -240,7 +241,7 @@ describe('4.1 — Trade Stream', () => {
     const ws = new mod.WebSocketService();
 
     // Subscribe to trades — the internal _tradeSubs should have a btcusdt@trade key
-    const subId = ws.subscribeTrades('BTC', { onTrade: () => {} });
+    const subId = ws.subscribeTrades('BTC', { onTrade: () => { } });
 
     // Check that the stream list includes the trade stream
     const streams = ws._getActiveStreams();

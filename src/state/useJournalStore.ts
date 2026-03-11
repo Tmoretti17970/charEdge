@@ -8,7 +8,7 @@
 
 import { create } from 'zustand';
 
-import { createTradeSlice } from './journal/tradeSlice.js';
+import { createTradeSlice } from './journal/tradeSlice';
 import { createSessionSlice } from './journal/sessionSlice.js';
 import { createAutoArchiveSlice } from './journal/autoArchiveSlice.js';
 

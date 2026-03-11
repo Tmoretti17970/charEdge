@@ -5,10 +5,10 @@
 // Uses scroll-snap for crisp auto-centering. Arrow key navigation.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 import { C, M } from '../../../../constants.js';
+import { useChartStore } from '../../../../state/useChartStore';
 import { radii } from '../../../../theme/tokens.js';
-import { useChartStore } from '../../../../state/useChartStore.js';
 
 const TIMEFRAMES = [
     { value: '1m', display: '1m' },

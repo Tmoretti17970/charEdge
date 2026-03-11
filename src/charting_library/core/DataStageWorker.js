@@ -39,7 +39,7 @@ function toRenkoBricks(bars, brickSize) {
 
     const bricks = [];
     let basePrice = bars[0].close;
-    let lastDir = 0;
+    let _lastDir = 0;
 
     for (const bar of bars) {
         const diff = bar.close - basePrice;
@@ -61,7 +61,8 @@ function toRenkoBricks(bars, brickSize) {
                 });
             }
             basePrice += dir * numBricks * brickSize;
-            lastDir = dir;
+             
+            _lastDir = dir;
         }
     }
 
@@ -90,9 +91,9 @@ function toRangeBars(bars, rangeSize) {
 
         if (testHigh - testLow >= rangeSize) {
             // Try to break into parts
-            let price = current.open;
+            const _price = current.open;
             const dir = bar.close >= current.open ? 1 : -1;
-            let completed = false;
+            const _completed = false;
 
             // Complete current bar
             if (dir > 0) {

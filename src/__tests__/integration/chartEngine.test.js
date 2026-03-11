@@ -9,13 +9,13 @@
 // 5. Memory pressure monitoring
 // ═══════════════════════════════════════════════════════════════════
 import { describe, it, expect, vi } from 'vitest';
-import { aggregateBars, canAggregate, getDeriveableTimeframes } from '../../data/engine/TimeAggregator.ts';
-import { detectGaps, mergeBars, backfillGaps } from '../../data/engine/GapBackfill.ts';
-import { MemoryPressureMonitor } from '../../data/engine/MemoryPressureMonitor.ts';
-import { validateBar, validateTick } from '../../types/data.ts';
 import { Calc } from '../../charting_library/model/Calc.js';
 import { compInd } from '../../charting_library/studies/compInd.js';
+import { detectGaps, mergeBars } from '../../data/engine/GapBackfill.ts';
+import { MemoryPressureMonitor } from '../../data/engine/MemoryPressureMonitor.ts';
+import { aggregateBars, canAggregate, getDeriveableTimeframes } from '../../data/engine/TimeAggregator.ts';
 import { useTemplateStore } from '../../state/useTemplateStore.ts';
+import { validateBar, validateTick } from '../../types/data.ts';
 
 // ─── Helpers ─────────────────────────────────────────────────────
 

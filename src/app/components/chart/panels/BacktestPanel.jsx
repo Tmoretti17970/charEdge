@@ -3,9 +3,9 @@
 // Configuration sidebar for setting up and running strategy backtests.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useCallback } from 'react';
-import { useBacktestStore } from '../../../../state/useBacktestStore.js';
+import { useState, useCallback } from 'react';
 import { PRESET_STRATEGIES } from '../../../../charting_library/core/BacktestEngine.js';
+import { useBacktestStore } from '../../../../state/useBacktestStore.js';
 
 const STRATEGY_LIST = Object.entries(PRESET_STRATEGIES).map(([id, s]) => ({
   id, name: s.name, description: s.description,

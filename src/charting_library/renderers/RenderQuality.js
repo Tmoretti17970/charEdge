@@ -1,4 +1,4 @@
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — RenderQuality
@@ -65,7 +65,8 @@ export function detectGPUTier() {
     // Release canvas
     canvas.width = 0;
     canvas.height = 0;
-  } catch (e) {
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  } catch (_e) {
     // Swallow
   }
 
@@ -183,7 +184,8 @@ export function createP3Context(canvas) {
         logger.engine.info('[RenderQuality] Using Display P3 wide color gamut');
         return ctx;
       }
-    } catch (e) {
+    // eslint-disable-next-line unused-imports/no-unused-vars
+    } catch (_e) {
       // Fallback
     }
   }

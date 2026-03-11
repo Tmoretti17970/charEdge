@@ -17,7 +17,7 @@
 
 import { CRYPTO_IDS, isCrypto } from '../constants.js';
 import { get24hStats } from './QuoteService.js';
-import { logger } from '../utils/logger';
+import { logger } from '@/observability/logger';
 
 const CACHE_TTL = 3600_000; // 1 hour
 const cache = new Map(); // key → { data, ts }
@@ -153,7 +153,7 @@ export function fmtCompact(n, decimals = 1) {
  */
 export function fmtSupply(supply, maxSupply) {
   if (!supply) return '—';
-  const s = fmtCompact(supply, 1);
-  if (maxSupply) return `${s} / ${fmtCompact(maxSupply, 1)}`;
-  return s;
+  const supplyFormatted = fmtCompact(supply, 1);
+  if (maxSupply) return `${supplyFormatted} / ${fmtCompact(maxSupply, 1)}`;
+  return supplyFormatted;
 }

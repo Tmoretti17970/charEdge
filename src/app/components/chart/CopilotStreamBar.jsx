@@ -5,11 +5,12 @@
 // Shows: condition chip + momentum + volume + streaming narrative.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useCallback } from 'react';
-import useCopilotPipeline from '../../../hooks/useCopilotPipeline.ts';
+import { useState, useCallback } from 'react';
+import useCopilotPipeline from '../../../hooks/useCopilotPipeline';
+import AIOrb from '../design/AIOrb.jsx';
 
 const FONT = 'var(--forge-font, Inter, sans-serif)';
-const MONO = 'var(--forge-mono, "JetBrains Mono", monospace)';
+const _MONO = 'var(--forge-mono, "JetBrains Mono", monospace)';
 
 const BAR_STYLE = {
     display: 'flex',
@@ -82,7 +83,7 @@ export default function CopilotStreamBar() {
     if (!features) {
         return (
             <div style={BAR_STYLE}>
-                <span style={{ opacity: 0.4 }}>🤖 Co-Pilot waiting for data…</span>
+                <span style={{ opacity: 0.4, display: 'inline-flex', alignItems: 'center', gap: 6 }}><AIOrb size={14} /> Co-Pilot waiting for data…</span>
             </div>
         );
     }
@@ -150,7 +151,7 @@ export default function CopilotStreamBar() {
                             transition: 'opacity 0.2s',
                         }}
                     >
-                        {loading ? '⏳ Analyzing…' : '🤖 Ask Co-Pilot'}
+                        {loading ? '⏳ Analyzing…' : <><AIOrb size={12} style={{ marginRight: 4 }} /> Ask Co-Pilot</>}
                     </button>
                 ) : (
                     <button

@@ -2,16 +2,16 @@
 // charEdge — Feature Flags Tests
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import { describe, it, expect } from 'vitest';
 
 const SRC = resolve(__dirname, '..', '..');
 
 // ─── Source code verification ──────────────────────────────────
 
 describe('Feature Flags — Module Structure', () => {
-  const src = readFileSync(resolve(SRC, 'utils/featureFlags.ts'), 'utf8');
+  const src = readFileSync(resolve(SRC, 'shared/featureFlags.ts'), 'utf8');
 
   it('exports FEATURES constant with all required flags', () => {
     const flags = ['SCRIPTING', 'BACKTESTING', 'PAPER_TRADING', 'AI_COACH', 'SOCIAL', 'WEBGPU'];
@@ -59,7 +59,7 @@ describe('Feature Flags — ChartOverlays Gating', () => {
   const src = readFileSync(resolve(SRC, 'pages/charts/ChartOverlays.jsx'), 'utf8');
 
   it('imports feature flags', () => {
-    expect(src).toContain("import { isEnabled, FEATURES } from '../../utils/featureFlags.js'");
+    expect(src).toContain("import { isEnabled, FEATURES } from '@/shared/featureFlags'");
   });
 
   it('gates paper trading behind PAPER_TRADING flag', () => {

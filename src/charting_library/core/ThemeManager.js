@@ -1,4 +1,5 @@
-import { logger } from '../../utils/logger';
+import { invalidateCSSColors } from './ThemeColors';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Theme System
@@ -380,10 +381,46 @@ export function createThemeManager(initialTheme = 'dark') {
   try {
     const raw = localStorage.getItem('tf_theme_overrides');
     if (raw) userOverrides = JSON.parse(raw);
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) { /* storage may be blocked */ }
 
+  // Item 32: High-contrast canvas mode — auto-detect OS preference
+  let _highContrast = false;
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    const mq = window.matchMedia('(prefers-contrast: more)');
+    _highContrast = mq.matches;
+    try {
+      mq.addEventListener('change', (e) => {
+        _highContrast = e.matches;
+        for (const listener of listeners) listener(getTheme());
+      });
+    // eslint-disable-next-line unused-imports/no-unused-vars
+    } catch (_) { /* addEventListener may not exist in older browsers */ }
+  }
+
+  /**
+   * Item 32: High-contrast overrides — stronger gridlines, thicker crosshair,
+   * higher volume opacity, bolder axis text. Applied automatically when
+   * user's OS requests `prefers-contrast: more`.
+   */
+  function _getHighContrastOverrides(baseTheme) {
+    if (!_highContrast) return {};
+    const isD = baseTheme.name === 'dark' ||
+      baseTheme.background?.startsWith('#0') ||
+      baseTheme.background === '#000000' ||
+      baseTheme.background === '#131722';
+    return {
+      gridColor: isD ? 'rgba(54, 58, 69, 0.55)' : 'rgba(0, 0, 0, 0.14)',
+      crosshairColor: isD ? 'rgba(149, 152, 161, 0.8)' : 'rgba(0, 0, 0, 0.5)',
+      axisBorder: isD ? 'rgba(54, 58, 69, 0.9)' : 'rgba(0, 0, 0, 0.18)',
+      volumeUp: isD ? 'rgba(38, 166, 154, 0.5)' : 'rgba(38, 166, 154, 0.4)',
+      volumeDown: isD ? 'rgba(239, 83, 80, 0.5)' : 'rgba(239, 83, 80, 0.4)',
+      textSecondary: isD ? '#9EA1AB' : '#5E6370',
+    };
+  }
+
   function getTheme() {
-    return { ...currentTheme, ...userOverrides };
+    return { ...currentTheme, ..._getHighContrastOverrides(currentTheme), ...userOverrides };
   }
 
   return {
@@ -417,9 +454,14 @@ export function createThemeManager(initialTheme = 'dark') {
 
       currentTheme = newTheme;
 
+      // Sprint 7 #60: Invalidate CSS color cache so resolveTheme() re-reads
+      // brand-colors.css custom properties for the new theme context.
+      invalidateCSSColors();
+
       // Persist
       try {
         localStorage.setItem('tf_theme', themeName);
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { /* storage may be blocked */ }
 
       // Notify listeners
@@ -442,6 +484,7 @@ export function createThemeManager(initialTheme = 'dark') {
       userOverrides[key] = value;
       try {
         localStorage.setItem('tf_theme_overrides', JSON.stringify(userOverrides));
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { /* storage may be blocked */ }
       for (const listener of listeners) {
         listener(getTheme());
@@ -455,6 +498,7 @@ export function createThemeManager(initialTheme = 'dark') {
       userOverrides = {};
       try {
         localStorage.removeItem('tf_theme_overrides');
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { /* storage may be blocked */ }
       for (const listener of listeners) {
         listener(getTheme());
@@ -538,6 +582,7 @@ export function createThemeManager(initialTheme = 'dark') {
           userOverrides = { ...parsed.overrides };
           try {
             localStorage.setItem('tf_theme_overrides', JSON.stringify(userOverrides));
+          // eslint-disable-next-line unused-imports/no-unused-vars
           } catch (_) { /* storage may be blocked */ }
         }
         for (const listener of listeners) {
@@ -557,6 +602,7 @@ export function createThemeManager(initialTheme = 'dark') {
         if (saved && THEMES[saved]) {
           this.setTheme(saved);
         }
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { /* storage may be blocked */ }
     },
   };

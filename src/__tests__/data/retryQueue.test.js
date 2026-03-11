@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect } from 'vitest';
-import { RetryQueue, computeDelay } from '../../utils/RetryQueue.js';
+import { RetryQueue, computeDelay } from '@/shared/RetryQueue';
 
 // ═══ exec ═══════════════════════════════════════════════════════
 describe('RetryQueue.exec', () => {

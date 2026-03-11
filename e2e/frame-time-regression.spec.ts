@@ -49,8 +49,9 @@ test.describe('Frame Time Regression', () => {
         );
         // Navigate to chart view
         await page.keyboard.press('2');
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(2000);
+        await page.waitForLoadState('domcontentloaded');
+        // Wait for chart canvas to render before measuring frame times
+        await page.waitForSelector('canvas', { state: 'visible', timeout: 10_000 }).catch(() => { });
     });
 
     test('idle chart frame time < 33ms (30fps minimum)', async ({ page }) => {

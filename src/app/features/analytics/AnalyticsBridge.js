@@ -15,8 +15,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { computeFast } from './analyticsFast.js';
-
-import { logger } from '../../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 let _idCounter = 0;
 
 class AnalyticsBridge {
@@ -60,6 +59,7 @@ class AnalyticsBridge {
 
       this._worker.terminate();
       this._worker = null;
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       // Worker creation failed (CSP, module support, etc.)
     }

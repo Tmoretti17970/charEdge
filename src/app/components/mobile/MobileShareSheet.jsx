@@ -10,7 +10,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
 import toast from '../ui/Toast.jsx';
-import { createAnnotatedSnapshot } from '../../../utils/chartExport.js';
+import { createAnnotatedSnapshot } from '@/charting_library/utils/chartExport';
 
 /**
  * @param {boolean} isOpen
@@ -38,6 +38,7 @@ export default function MobileShareSheet({ isOpen, onClose, canvas, chartInfo = 
       canvas.toBlob((blob) => {
         if (blob) setImageBlob(blob);
       }, 'image/png');
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       toast.error('Failed to capture chart');
       onClose();
@@ -73,6 +74,7 @@ export default function MobileShareSheet({ isOpen, onClose, canvas, chartInfo = 
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': imageBlob })]);
       toast.success('Copied to clipboard');
       onClose();
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       toast.error('Clipboard not available');
     }

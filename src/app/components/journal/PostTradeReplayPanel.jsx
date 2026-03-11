@@ -6,8 +6,7 @@
 // "Current vs Past Self" comparison.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useMemo, useCallback } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { useState, useMemo, useCallback } from 'react';
 
 const FONT = 'var(--forge-font, Inter, sans-serif)';
 const MONO = 'var(--forge-mono, "JetBrains Mono", monospace)';

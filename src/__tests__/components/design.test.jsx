@@ -6,21 +6,21 @@
 // correct ARIA attributes. Uses @testing-library/react.
 // ═══════════════════════════════════════════════════════════════════
 
+import { render, screen, fireEvent } from '@testing-library/react';
+// eslint-disable-next-line import/order
 import { describe, it, expect, vi } from 'vitest';
-import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 // ─── Component Imports ──────────────────────────────────────────
 import Avatar from '../../app/components/design/Avatar.jsx';
-import Tooltip from '../../app/components/design/Tooltip.jsx';
-import Dialog from '../../app/components/design/Dialog.jsx';
-import { useToast, ToastContainer } from '../../app/components/design/Toast.jsx';
+import Badge from '../../app/components/design/Badge.jsx';
 import Button from '../../app/components/design/Button.jsx';
 import Card from '../../app/components/design/Card.jsx';
+import Dialog from '../../app/components/design/Dialog.jsx';
 import Input from '../../app/components/design/Input.jsx';
-import Badge from '../../app/components/design/Badge.jsx';
 import Skeleton from '../../app/components/design/Skeleton.jsx';
+import { ToastContainer } from '../../app/components/design/Toast.jsx';
+import Tooltip from '../../app/components/design/Tooltip.jsx';
 
 // ═══════════════════════════════════════════════════════════════════
 // Avatar

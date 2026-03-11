@@ -5,7 +5,6 @@
 // buttons and navigation elements.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
 
 // ─── Size Presets (aligned to 4px grid) ──────────────────────────
 const SIZES = {

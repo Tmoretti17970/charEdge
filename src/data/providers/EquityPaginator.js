@@ -9,7 +9,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { validateCandleArray } from '../engine/infra/DataValidator';
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // Timeframe → lookback window for one page (in days)
 const PAGE_LOOKBACK = {

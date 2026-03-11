@@ -11,9 +11,9 @@
 //   <InstitutionalPanel symbol="AAPL" />
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { C, F } from '../../../constants.js';
-import { logger } from '../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ─── Styles ────────────────────────────────────────────────────
 
@@ -154,7 +154,7 @@ export default function InstitutionalPanel({ symbol = 'AAPL' }) {
   const [shortInterest, setShortInterest] = useState([]);
   const [shortSaleVol, setShortSaleVol] = useState([]);
   const [darkPool, setDarkPool] = useState([]);
-  const [holdings, setHoldings] = useState([]);
+  const [_holdings, _setHoldings] = useState([]);
   const [filings, setFilings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -173,7 +173,7 @@ export default function InstitutionalPanel({ symbol = 'AAPL' }) {
     setLoading(true);
     setError(null);
 
-    const loadData = async () => {
+    const loadInstitutionalData = async () => {
       try {
         // Dynamic imports to code-split
         const [finraMod, edgarMod] = await Promise.all([
@@ -182,7 +182,7 @@ export default function InstitutionalPanel({ symbol = 'AAPL' }) {
         ]);
 
         const finra = finraMod.finraAdapter;
-        const edgar = edgarMod.edgarAdapter;
+        const _edgar = edgarMod.edgarAdapter;
 
         // Fetch all in parallel
         const [si, ssv, dp] = await Promise.allSettled([
@@ -205,7 +205,7 @@ export default function InstitutionalPanel({ symbol = 'AAPL' }) {
       }
     };
 
-    loadData();
+    loadInstitutionalData();
     return () => { cancelled = true; };
   }, [symbol, isEquity]);
 
@@ -237,8 +237,8 @@ export default function InstitutionalPanel({ symbol = 'AAPL' }) {
 
   // Computed metrics
   const latestSI = shortInterest[0];
-  const latestSSV = shortSaleVol[0];
-  const latestDP = darkPool[0];
+  const _latestSSV = shortSaleVol[0];
+  const _latestDP = darkPool[0];
   const avgShortRatio = useMemo(() => {
     if (!shortSaleVol.length) return 0;
     return shortSaleVol.reduce((sum, d) => sum + d.shortRatio, 0) / shortSaleVol.length;
@@ -467,6 +467,7 @@ function Holdings13F({ symbol }) {
       const { edgarAdapter } = await import('../../../data/adapters/EdgarAdapter.js');
       const results = await edgarAdapter.searchInstitutions(searchQuery, 10);
       setInstitutions(results);
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { setInstitutions([]); }
     setLoadingSearch(false);
   }, [searchQuery]);
@@ -482,6 +483,7 @@ function Holdings13F({ symbol }) {
         const { edgarAdapter } = await import('../../../data/adapters/EdgarAdapter.js');
         const h = await edgarAdapter.fetch13FHoldings(selectedFund.cik, 30);
         if (!cancelled) setHoldings(h);
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { if (!cancelled) setHoldings([]); }
       if (!cancelled) setLoadingHoldings(false);
     })();

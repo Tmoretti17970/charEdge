@@ -61,6 +61,7 @@ function ensureMigrationsTable(db: Database): void {
     // Add checksum column if upgrading from older schema
     try {
         db.exec(`ALTER TABLE _migrations ADD COLUMN checksum TEXT;`);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
         // Column already exists — safe to ignore
     }

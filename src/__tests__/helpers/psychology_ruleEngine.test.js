@@ -7,7 +7,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useRuleEngine, DEFAULT_RULES, evaluateCondition } from '../../state/useRuleEngine.ts';
-import { navigateToTrade, tradeNav } from '../../utils/navigateToTrade.js';
+import { navigateToTrade, tradeNav } from '@/trading/navigateToTrade';
 
 // Reset store to defaults before each test
 const resetStore = () => useRuleEngine.setState({ rules: [...DEFAULT_RULES] });

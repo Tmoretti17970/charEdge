@@ -58,14 +58,18 @@ export class BinanceAdapter extends BaseAdapter {
     if (!resp.ok) throw new Error(`Binance fetch failed: ${resp.status}`);
 
     const data = await resp.json();
-    return data.map((k) => ({
-      time: k[0],
-      open: parseFloat(k[1]),
-      high: parseFloat(k[2]),
-      low: parseFloat(k[3]),
-      close: parseFloat(k[4]),
-      volume: parseFloat(k[5]),
-    }));
+    return data.map((k) => {
+      const timeMs = parseInt(k[0], 10);
+      return {
+        time: timeMs,
+        _openMs: timeMs,
+        open: parseFloat(k[1]),
+        high: parseFloat(k[2]),
+        low: parseFloat(k[3]),
+        close: parseFloat(k[4]),
+        volume: parseFloat(k[5]),
+      };
+    });
   }
 
   async fetchQuote(symbol) {
@@ -97,6 +101,7 @@ export class BinanceAdapter extends BaseAdapter {
           time: data.T,
           symbol: data.s,
         });
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) {
         /* ignore parse errors */
       }
@@ -131,6 +136,7 @@ export class BinanceAdapter extends BaseAdapter {
           type: 'CRYPTO',
           exchange: 'Binance',
         }));
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return [];
     }

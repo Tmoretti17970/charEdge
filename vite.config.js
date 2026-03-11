@@ -1,5 +1,9 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ─── CDN Strategy: Modulepreload Hints Plugin (Task 3.2.12) ─────
 // Injects <link rel="modulepreload"> for critical lazy-loaded chunks
@@ -124,12 +128,30 @@ function apiProxyPlugin() {
 export default defineConfig({
   plugins: [react(), modulepreloadPlugin(), apiProxyPlugin()],
   resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+      'react': path.resolve(__dirname, 'node_modules/react'),
+      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
+    },
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
     extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
+  },
+  optimizeDeps: {
+    include: [
+      'react', 'react-dom', 'react-dom/client',
+      'react/jsx-runtime', 'react/jsx-dev-runtime',
+      'zustand', 'zustand/react', 'zustand/traditional', 'zustand/middleware',
+    ],
   },
   server: {
     port: 5173,
     open: true,
     proxy: {
+      '/api/binance-futures': {
+        target: 'https://fapi.binance.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/binance-futures/, '')
+      },
       '/api/binance': {
         target: 'https://data-api.binance.vision',
         changeOrigin: true,

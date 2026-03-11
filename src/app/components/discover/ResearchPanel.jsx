@@ -8,9 +8,9 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { useJournalStore } from '../../../state/useJournalStore';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Simulated mini-prices (in production, use live feed) ────────
 const MOCK_PRICES = {
@@ -62,6 +62,7 @@ export default function ResearchPanel({ onCompose }) {
   const [collapsed, setCollapsed] = useState(false);
   const [notes, setNotes] = useState(() => {
     try { return localStorage.getItem('tf-research-notes') || ''; }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     catch (_) { return ''; }
   });
   const [copilotInput, setCopilotInput] = useState('');
@@ -75,6 +76,7 @@ export default function ResearchPanel({ onCompose }) {
   // Persist notes
   const saveNotes = useCallback((val) => {
     setNotes(val);
+    // eslint-disable-next-line unused-imports/no-unused-vars
     try { localStorage.setItem('tf-research-notes', val); } catch (_) { /* storage may be blocked */ }
   }, []);
 

@@ -7,10 +7,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState } from 'react';
-import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
-import { useUIStore } from '../../../state/useUIStore.js';
-import { useChartStore } from '../../../state/useChartStore.js';
+import { C, M } from '../../../constants.js';
+import { useChartStore } from '../../../state/useChartStore';
+import { useUIStore } from '../../../state/useUIStore';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Simulated prices (in production, use live feed) ─────────────
 const SYMBOL_PRICES = {

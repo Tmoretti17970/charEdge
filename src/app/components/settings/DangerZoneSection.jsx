@@ -1,6 +1,6 @@
-import { useUserStore } from '../../../state/useUserStore.js';
 import { C } from '../../../constants.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
+import { useJournalStore } from '../../../state/useJournalStore';
+import { useUserStore } from '../../../state/useUserStore';
 import { Card, Btn } from '../ui/UIKit.jsx';
 import { SectionHeader } from './SettingsHelpers.jsx';
 

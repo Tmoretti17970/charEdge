@@ -5,123 +5,13 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { LAYERS } from './LayerManager.js';
-
-const FRICTION = 0.96;          // Inertia decay per frame (higher = longer momentum)
-const MIN_VELOCITY = 0.3;       // Stop threshold (bars/frame)
-const ZOOM_LERP = 0.25;         // Zoom easing speed (0–1) — snappier feel
-const ZOOM_SNAP = 0.5;          // Stop easing when within this many bars
-const PREFETCH_THRESHOLD = 50;  // Dispatch prefetch when within this many bars of left edge
-const OVERSCROLL_MAX = 40;      // Max overscroll in bars beyond edge
-const OVERSCROLL_SPRING = 0.85; // Spring-back factor per frame
-const RIGHT_MARGIN_FRAC = 0.5;  // Allow scrolling past last bar by this fraction of visibleBars (TradingView-style)
-
-// Task 1.4.12: Y-axis spring physics constants
-const PRICE_FRICTION = 0.92;       // Faster decay than horizontal (tighter feel)
-const MIN_PRICE_VELOCITY = 0.0001; // Stop threshold for price velocity
-const PRICE_SPRING_BACK = 0.15;    // Spring-back stiffness when overscrolled
-
-// Task 1.4.13: Zoom momentum constants
-const ZOOM_MOMENTUM_WINDOW = 120;  // ms — consecutive wheel events within this window accumulate
-const ZOOM_MOMENTUM_DECAY = 0.92;  // Exponential decay per frame for zoom velocity
-
-// ─── Engine interface (avoids circular ChartEngine dependency) ────
-
-interface LegendHitRegion {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  type: string;
-  idx: number;
-}
-
-interface RenderSnapshot {
-  bSp: number;
-  start: number;
-  cW: number;
-  txH: number;
-  pr: number;
-  mainH: number;
-  paneH: number;
-  paneCount: number;
-  yMin: number;
-  yMax: number;
-  [key: string]: unknown;
-}
-
-interface ButtonRect {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-interface EngineState {
-  scrollOffset: number;
-  visibleBars: number;
-  mouseX: number | null;
-  mouseY: number | null;
-  hoverIdx: number | null;
-  dragging: string | false;
-  dragStartX: number;
-  dragStartY: number;
-  dragStartOffset: number;
-  dragStartVisibleBars: number;
-  dragStartPriceScale: number;
-  dragStartPriceScroll: number;
-  autoScale: boolean;
-  priceScale: number;
-  priceScroll: number;
-  scaleMode: string;
-  mainDirty: boolean;
-  topDirty: boolean;
-  timeAxisZoom: boolean;
-  lastRender: RenderSnapshot | null;
-  collapsedPanes: Set<number>;
-  hiddenIndicators: Set<number>;
-  _splitterHoverIdx: number;
-  _highlightedIndicator: number;
-  _legendHitRegions: LegendHitRegion[] | null;
-  _scrollToNowBtn: ButtonRect | null;
-  _autoFitBtn: ButtonRect | null;
-  [key: string]: unknown;
-}
-
-interface DrawingEngine {
-  onMouseMove(x: number, y: number): boolean;
-  onMouseDown(x: number, y: number): boolean;
-  onMouseUp(x: number, y: number): boolean;
-  cursorHint?: string;
-}
-
-interface LayerManager {
-  markDirty(layer: string | number): void;
-  markAllDirty(): void;
-}
-
-interface EngineCallbacks {
-  onPaneResize?: (idx: number, fraction: number) => void;
-  onPaneToggle?: (idx: number) => void;
-  onCrosshairMove?: (data: { price: number; time: number; bar: unknown; x: number; y: number }) => void;
-  onBarClick?: (price: number, time: number, bar: unknown) => void;
-}
-
-interface EngineRef {
-  state: EngineState;
-  topCanvas: HTMLCanvasElement;
-  bars: { length: number;[idx: number]: { time: number; open: number; high: number; low: number; close: number; volume: number } };
-  props: Record<string, unknown>;
-  layers: LayerManager | null;
-  indicators: unknown[];
-  drawingEngine: DrawingEngine | null;
-  callbacks: EngineCallbacks;
-  symbol: string;
-  timeframe: string;
-  _scheduleDraw(): void;
-  markDirty(): void;
-}
-
-type TouchMode = 'pan' | 'pinch' | 'workspace-swipe' | null;
+import {
+  _FRICTION, MIN_VELOCITY, ZOOM_LERP, ZOOM_SNAP, PREFETCH_THRESHOLD,
+  OVERSCROLL_MAX, OVERSCROLL_SPRING, RIGHT_MARGIN_FRAC,
+  PRICE_FRICTION, MIN_PRICE_VELOCITY, PRICE_SPRING_BACK,
+  ZOOM_MOMENTUM_WINDOW, ZOOM_MOMENTUM_DECAY,
+} from './inputConstants.js';
+import type { EngineRef, TouchMode } from './InputManagerTypes.js';
 
 export class InputManager {
   engine: EngineRef;
@@ -190,6 +80,8 @@ export class InputManager {
   private _pinchAnchorFrac: number = 0.5;
   // Task 2.3.33: Angular rejection for touch pinch
   private _pinchStartAngle: number = 0;
+  // Sprint 11 B4: Deferred single-finger pan confirmation
+  private _touchConfirmedPan: boolean = false;
 
   // Bound event handlers
   private _onAuxClick: (e: MouseEvent) => void;
@@ -530,16 +422,10 @@ export class InputManager {
     return true;
   }
 
-  // Sprint 11: Find splitter index near a given Y position (CSS pixels).
-  // Returns pane index (0 = first splitter) or -1 if not near any.
-  private _hitTestSplitter(y: number): number {
-    const R = this.engine.state.lastRender;
-    if (!R || R.paneCount <= 0) return -1;
-    const TOLERANCE = 8; // px — generous for easy grabbing
-    for (let i = 0; i < R.paneCount; i++) {
-      const sy = R.mainH + R.paneH * i;
-      if (Math.abs(y - sy) <= TOLERANCE) return i;
-    }
+  // Sprint 11 → Item 26: Canvas-level splitter hit-testing DEPRECATED.
+  // PaneManager DOM splitters now handle all splitter interactions.
+  // Kept for API compatibility but always returns -1 (no hit).
+  private _hitTestSplitter(_y: number): number {
     return -1;
   }
 
@@ -590,15 +476,15 @@ export class InputManager {
     }
 
     if (S.dragging === 'time' && !consumed) {
-      if (S.timeAxisZoom) {
-        const dx = S.dragStartX - e.clientX;
-        const maxBars = Math.max(80, eng.bars.length + 20);
-        S.visibleBars = Math.max(10, Math.min(maxBars, S.dragStartVisibleBars * Math.exp(dx * 0.005)));
-      } else {
-        const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
-        const rightMarginDrag = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
-        S.scrollOffset = Math.max(-rightMarginDrag, Math.min(maxScroll, S.dragStartOffset + (e.clientX - S.dragStartX) / R.bSp));
-      }
+      // TradingView-style: time axis drag always zooms horizontally
+      const dx = S.dragStartX - e.clientX;
+      const maxBars = Math.max(80, eng.bars.length + 20);
+      S.visibleBars = Math.max(10, Math.min(maxBars, S.dragStartVisibleBars * Math.exp(dx * 0.005)));
+      // Anchor zoom to keep the right edge stable
+      const barDelta = S.visibleBars - S.dragStartVisibleBars;
+      const rightMarginDrag = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
+      const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
+      S.scrollOffset = Math.max(-rightMarginDrag, Math.min(maxScroll, S.dragStartOffset - barDelta));
       S.mainDirty = true;
       if (eng.layers) {
         eng.layers.markDirty(LAYERS.DATA);
@@ -691,14 +577,25 @@ export class InputManager {
           S._splitterHoverIdx = -1;
           if (eng.layers) eng.layers.markDirty(LAYERS.UI);
         }
-        // Sprint 12: Legend hover — pointer cursor
-        const legendHit = this._hitTestLegend(pos.x, pos.y);
-        if (legendHit) {
-          this.tc.style.cursor = 'pointer';
+        // TradingView-style cursor hints for axis zones
+        const r = this._getRect();
+        const R2 = S.lastRender;
+        const isOverTimeAxis = R2 && (e.clientY - r.top >= this.tc.clientHeight - (R2.txH * R2.pr) / R2.pr);
+        const isOverPriceAxis = R2 && (e.clientX - r.left >= R2.cW - ((R2.axW as number) || 72));
+        if (isOverTimeAxis) {
+          this.tc.style.cursor = 'ew-resize';
+        } else if (isOverPriceAxis) {
+          this.tc.style.cursor = 'ns-resize';
         } else {
-          // Sprint 13.2: Dynamic cursor based on drawing hover state
-          const hint = eng.drawingEngine?.cursorHint;
-          this.tc.style.cursor = hint || 'crosshair';
+          // Sprint 12: Legend hover — pointer cursor
+          const legendHit = this._hitTestLegend(pos.x, pos.y);
+          if (legendHit) {
+            this.tc.style.cursor = 'pointer';
+          } else {
+            // Sprint 13.2: Dynamic cursor based on drawing hover state
+            const hint = eng.drawingEngine?.cursorHint;
+            this.tc.style.cursor = hint || 'crosshair';
+          }
         }
       }
     }
@@ -744,7 +641,7 @@ export class InputManager {
 
     const r = this._getRect();
     const isTimeAxis = e.clientY - r.top >= this.tc.clientHeight - (R.txH * R.pr) / R.pr;
-    const isPriceAxis = e.clientX - r.left >= R.cW;
+    const isPriceAxis = e.clientX - r.left >= R.cW - ((R.axW as number) || 72); // Full price axis width is interactive
 
     // Sprint 12: Legend click detection — before splitters and other handlers
     const legendHit = this._hitTestLegend(pos.x, pos.y);
@@ -805,12 +702,13 @@ export class InputManager {
     this._velocityX = 0;
 
     if (isTimeAxis) {
+      // TradingView-style: time axis drag always zooms horizontally
       S.dragging = 'time';
       S.dragStartX = e.clientX;
       S.dragStartVisibleBars = S.visibleBars;
       S.dragStartOffset = S.scrollOffset;
-      S.timeAxisZoom = e.ctrlKey || e.metaKey;
-      this.tc.style.cursor = S.timeAxisZoom ? 'ew-resize' : 'grab';
+      S.timeAxisZoom = true;
+      this.tc.style.cursor = 'ew-resize';
     } else if (isPriceAxis) {
       // Check auto-fit button first
       const afBtn = S._autoFitBtn;
@@ -927,6 +825,7 @@ export class InputManager {
     this.tc.style.cursor = hint || 'crosshair';
     // Task 2.3.30: Release pointer capture after drag
     if ('releasePointerCapture' in this.tc && (e as PointerEvent).pointerId != null) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       try { this.tc.releasePointerCapture((e as PointerEvent).pointerId); } catch (_) { /* not captured */ }
     }
 
@@ -947,12 +846,22 @@ export class InputManager {
       this._startPriceInertia();
     }
 
-    if (moved < 3 && eng.callbacks.onBarClick && eng.state.hoverIdx != null) {
+    if (moved < 3 && eng.callbacks.onBarClick) {
       const R = eng.state.lastRender;
       if (R) {
-        const price = R.yMin + ((R.mainH - pos.y) / R.mainH) * (R.yMax - R.yMin);
-        const bar = eng.bars[eng.state.hoverIdx];
-        if (bar) eng.callbacks.onBarClick(price, bar.time, bar);
+        // Resolve bar index: prefer hoverIdx (set by onMouseMove), but compute from click pos if null
+        let barIdx = eng.state.hoverIdx;
+        if (barIdx == null) {
+          const S = eng.state;
+          const bw = (R as any).barW ?? ((R as any).chartW / (S.visibleBars || 100));
+          barIdx = Math.round((pos.x - (R as any).chartW) / bw + (eng.bars.length - 1 - (S.scrollOffset || 0)));
+          if (barIdx < 0 || barIdx >= eng.bars.length) barIdx = null;
+        }
+        if (barIdx != null) {
+          const price = R.yMin + ((R.mainH - pos.y) / R.mainH) * (R.yMax - R.yMin);
+          const bar = eng.bars[barIdx];
+          if (bar) eng.callbacks.onBarClick(price, bar.time, bar);
+        }
       }
     }
     eng._scheduleDraw();
@@ -983,13 +892,27 @@ export class InputManager {
     // Task 1.4.15: Double-click on Y-axis → auto-fit (gesture shortcut)
     const R = S.lastRender;
     if (R) {
-      const isPriceAxis = pos.x >= R.cW;
+      const isPriceAxis = pos.x >= R.cW - ((R.axW as number) || 72);
       if (isPriceAxis) {
         S.autoScale = true;
         S.priceScale = 1;
         S.priceScroll = 0;
         S.mainDirty = true;
         S.topDirty = true;
+        eng._scheduleDraw();
+        return;
+      }
+
+      // TradingView-style: Double-click on time axis → reset horizontal zoom
+      const r = this._getRect();
+      const isTimeAxis = e.clientY - r.top >= this.tc.clientHeight - (R.txH * R.pr) / R.pr;
+      if (isTimeAxis) {
+        // Reset to default zoom + scroll to most recent bars
+        S.visibleBars = 80;
+        S.scrollOffset = 0;
+        S.mainDirty = true;
+        S.topDirty = true;
+        if (eng.layers) eng.layers.markAllDirty();
         eng._scheduleDraw();
         return;
       }
@@ -1203,8 +1126,10 @@ export class InputManager {
   }
 
   onTouchStart(e: TouchEvent): void {
-    e.preventDefault();
+    // B4: Only preventDefault for multi-touch gestures.
+    // Single-finger touch defers until pan intent is confirmed (>5px movement).
     this._stopInertia();
+    this._touchConfirmedPan = false;
 
     const touches = e.touches;
     const eng = this.engine;
@@ -1213,7 +1138,7 @@ export class InputManager {
     if (!R) return;
 
     if (touches.length === 1) {
-      // Single finger: pan
+      // Single finger: tentative pan — don't preventDefault yet
       this._touchMode = 'pan';
       this._touchStartX = touches[0].clientX;
       this._touchStartY = touches[0].clientY;
@@ -1222,7 +1147,8 @@ export class InputManager {
       this._lastMoveX = touches[0].clientX;
       this._velocityX = 0;
     } else if (touches.length === 2) {
-      // Two fingers: pinch zoom
+      // Two fingers: pinch zoom — always preventDefault
+      e.preventDefault();
       // Task 2.3.33: Compute angle between two touch points — reject near-vertical
       // angles (2-finger scroll) to prevent accidental zoom.
       const dx = Math.abs(touches[0].clientX - touches[1].clientX);
@@ -1248,6 +1174,7 @@ export class InputManager {
         this._pinchAnchorFrac = R.cW > 0 ? center.x / R.cW : 0.5;
       }
     } else if (touches.length === 3) {
+      e.preventDefault();
       // Task 1.1.8: Three fingers → workspace switch gesture
       this._touchMode = 'workspace-swipe';
       this._touchStartX = touches[1].clientX; // Use middle finger as reference
@@ -1255,7 +1182,6 @@ export class InputManager {
   }
 
   onTouchMove(e: TouchEvent): void {
-    e.preventDefault();
     const touches = e.touches;
     const eng = this.engine;
     const S = eng.state;
@@ -1264,6 +1190,22 @@ export class InputManager {
 
     if (this._touchMode === 'pan' && touches.length === 1) {
       const dx = touches[0].clientX - this._touchStartX;
+      const dy = touches[0].clientY - this._touchStartY;
+
+      // B4: Deferred pan confirmation — only preventDefault after >5px horizontal movement
+      if (!this._touchConfirmedPan) {
+        if (Math.abs(dx) > 5) {
+          this._touchConfirmedPan = true;
+        } else if (Math.abs(dy) > 5) {
+          // Vertical movement dominant — let browser handle native scroll
+          this._touchMode = null;
+          return;
+        } else {
+          return; // Not enough movement yet — wait
+        }
+      }
+
+      e.preventDefault();
       const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
       const rightMarginTouch = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
       S.scrollOffset = Math.max(-rightMarginTouch, Math.min(maxScroll, S.dragStartOffset + dx / R.bSp));
@@ -1285,6 +1227,7 @@ export class InputManager {
       S.mouseX = touches[0].clientX - r.left;
       S.mouseY = touches[0].clientY - r.top;
     } else if (this._touchMode === 'pinch' && touches.length >= 2) {
+      e.preventDefault();
       const dist = this._getTouchDistance(touches);
       if (this._pinchStartDist > 0) {
         // Sprint 10: Detect vertical vs horizontal pinch component
@@ -1339,8 +1282,8 @@ export class InputManager {
   }
 
   onTouchEnd(e: TouchEvent): void {
-    e.preventDefault();
-    if (this._touchMode === 'pan' && Math.abs(this._velocityX) > MIN_VELOCITY) {
+    // B4: No preventDefault on touchEnd — no browser default needs blocking.
+    if (this._touchMode === 'pan' && this._touchConfirmedPan && Math.abs(this._velocityX) > MIN_VELOCITY) {
       this._startInertia();
     }
     // Task 1.1.8: 3-finger swipe → workspace switch
@@ -1368,6 +1311,7 @@ export class InputManager {
       this._pinchSpringActive = true;
       eng._scheduleDraw();
     }
+    this._touchConfirmedPan = false;
     this._touchMode = null;
   }
 }

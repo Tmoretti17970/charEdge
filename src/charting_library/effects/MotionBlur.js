@@ -144,6 +144,7 @@ export class MotionBlur {
 
     try {
       this._prevFrame = new OffscreenCanvas(w, h);
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       if (typeof document !== 'undefined') {
         this._prevFrame = document.createElement('canvas');

@@ -5,7 +5,7 @@
 // Accessible via the ✦ star in the sidebar footer.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { C, F, M } from '../constants.js';
 
 const SUPPORT_LINKS = [

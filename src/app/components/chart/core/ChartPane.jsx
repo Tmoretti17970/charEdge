@@ -18,17 +18,17 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { logger } from '../../../../utils/logger.ts';
 import { C, M, TFS, CHART_TYPES } from '../../../../constants.js';
-import ChartCanvas from './ChartCanvas.jsx';
-import SymbolSearch from '../../ui/SymbolSearch.jsx';
+import { fetchOHLC, warmCache } from '../../../../data/FetchService';
+import { checkSymbolAlerts } from '../../../../state/useAlertStore';
+import { useChartLinkStore, LINK_GROUP_COLORS, LINK_GROUPS } from '../../../../state/useChartLinkStore';
+import { useJournalStore } from '../../../../state/useJournalStore';
 import TemplateSelector from '../../../layouts/TemplateSelector.jsx';
-import { fetchOHLC, warmCache } from '../../../../data/FetchService.ts';
-import { useJournalStore } from '../../../../state/useJournalStore.js';
-import { checkSymbolAlerts } from '../../../../state/useAlertStore.js';
-import { safeClone } from '../../../../utils/safeJSON.js';
-import crosshairBus from '../../../../utils/CrosshairBus.js';
-import { useChartLinkStore, LINK_GROUP_COLORS, LINK_GROUPS } from '../../../../state/useChartLinkStore.ts';
+import SymbolSearch from '../../ui/SymbolSearch.jsx';
+import ChartCanvas from './ChartCanvas.jsx';
+import crosshairBus from '@/charting_library/utils/CrosshairBus';
+import { logger } from '@/observability/logger';
+import { safeClone } from '@/shared/safeJSON';
 
 const DEFAULT_INDICATORS = [];
 
@@ -123,11 +123,13 @@ export default function ChartPane({
             try {
               const tabNode = model.getNodeById(node.getId());
               if (tabNode && tabNode._setName) tabNode._setName(`${symbol} · ${tf.toUpperCase()}`);
+            // eslint-disable-next-line unused-imports/no-unused-vars
             } catch (_) {
               /* silently fail */
             }
           });
       }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       /* flexlayout may throw if node is being removed during layout change */
     }

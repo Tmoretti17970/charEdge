@@ -9,6 +9,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect } from 'vitest';
+import { AlpacaAdapter } from '../../data/adapters/AlpacaAdapter.js';
+// eslint-disable-next-line import/order
 import { BaseAdapter } from '../../data/adapters/BaseAdapter.js';
 
 // Import all adapters
@@ -19,14 +21,13 @@ import { BybitFuturesAdapter } from '../../data/adapters/BybitFuturesAdapter.js'
 import { CoinbaseAdapter } from '../../data/adapters/CoinbaseAdapter.js';
 import { CoinGeckoAdapter } from '../../data/adapters/CoinGeckoAdapter.js';
 import { CryptoCompareAdapter } from '../../data/adapters/CryptoCompareAdapter.js';
+import { FinnhubAdapter } from '../../data/adapters/FinnhubAdapter.js';
+import { FMPAdapter } from '../../data/adapters/FMPAdapter.js';
 import { KrakenAdapter } from '../../data/adapters/KrakenAdapter.js';
 import { OKXAdapter } from '../../data/adapters/OKXAdapter.js';
+import { PolygonAdapter } from '../../data/adapters/PolygonAdapter.js';
 import { PythAdapter } from '../../data/adapters/PythAdapter.js';
 import { YahooAdapter } from '../../data/adapters/YahooAdapter.js';
-import { AlpacaAdapter } from '../../data/adapters/AlpacaAdapter.js';
-import { PolygonAdapter } from '../../data/adapters/PolygonAdapter.js';
-import { FMPAdapter } from '../../data/adapters/FMPAdapter.js';
-import { FinnhubAdapter } from '../../data/adapters/FinnhubAdapter.js';
 
 const VALID_LATENCY_TIERS = ['realtime', 'fast', 'delayed'];
 

@@ -32,6 +32,7 @@ interface PendingTick {
 
 // ─── TickChannel Class ───────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 class _TickChannel {
     /** Engines subscribed per symbol_tf key. */
     private _subscribers: Map<string, Set<TickReceiver>> = new Map();

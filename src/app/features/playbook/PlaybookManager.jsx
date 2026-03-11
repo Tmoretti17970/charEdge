@@ -6,11 +6,11 @@
 
 import React, { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { useAnalyticsStore } from '../../../state/useAnalyticsStore.js';
-import { Btn, ModalOverlay, inputStyle } from '../../components/ui/UIKit.jsx';
+import { useAnalyticsStore } from '../../../state/useAnalyticsStore';
+import { useJournalStore } from '../../../state/useJournalStore';
 import { fmtD, uid } from '../../../utils.js';
 import toast from '../../components/ui/Toast.jsx';
+import { Btn, ModalOverlay, inputStyle } from '../../components/ui/UIKit.jsx';
 
 export default function PlaybookManager() {
   const playbooks = useJournalStore((s) => s.playbooks);

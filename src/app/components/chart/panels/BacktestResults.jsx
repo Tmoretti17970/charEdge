@@ -3,7 +3,7 @@
 // Comprehensive performance visualization for backtest results.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useBacktestStore } from '../../../../state/useBacktestStore.js';
 
 // ─── Tab Definitions ─────────────────────────────────────────────

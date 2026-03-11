@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C, M } from '../../../constants.js';
 // Wave 0: useSocialStore quarantined — social features removed from v1.0 scope
 // Profile data will be managed via user store in Wave 6 (Supabase auth)
 import { Card, Btn, inputStyle } from '../ui/UIKit.jsx';

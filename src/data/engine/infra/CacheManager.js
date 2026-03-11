@@ -23,8 +23,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { CACHE_MAX_ENTRIES, buildCacheKey } from '../../../constants.js';
-import { opfsBarStore } from './OPFSBarStore.js';
 import { pipelineLogger } from './DataPipelineLogger.js';
+import { opfsBarStore } from './OPFSBarStore.js';
 
 // ─── CacheManager Class ────────────────────────────────────────
 
@@ -298,6 +298,7 @@ class _CacheManager {
       const dc = await this._loadDataCache();
       if (dc) return dc.getStorageUsage();
       return { usedMB: 0, quotaMB: 0, pct: 0 };
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return { usedMB: 0, quotaMB: 0, pct: 0 };
     }
@@ -558,6 +559,7 @@ class _CacheManager {
     try {
       const stats = await opfsBarStore.getStats();
       return Math.round(stats.totalSizeKB / 1024 * 10) / 10;
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return 0;
     }

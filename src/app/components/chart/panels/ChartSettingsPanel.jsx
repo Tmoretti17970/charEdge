@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { C, F, M } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore.js';
+import { useState } from 'react';
 import { CHART_TYPES, getChartTypeDefaults } from '../../../../charting_library/renderers/renderers/ChartTypes.js';
+import { C, F } from '../../../../constants.js';
+import { useChartStore } from '../../../../state/useChartStore';
 import { ColorSwatch, Toggle, RangeSlider, RadioGroup } from '../../settings/SettingsControls.jsx';
 
 // SVG Tab Icons
@@ -32,7 +32,7 @@ const THEME_PILLS = [
   { id: 'monochrome', label: 'Mono', colors: ['#B0BEC5', '#546E7A'] },
 ];
 
-export default function ChartSettingsPanel({ onClose }) {
+export default function ChartSettingsPanel({ _onClose }) {
   const [tab, setTab] = useState('appearance');
   const appearance = useChartStore((s) => s.chartAppearance);
   const setAppearance = useChartStore((s) => s.setChartAppearance);

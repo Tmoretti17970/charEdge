@@ -2,9 +2,9 @@
 // Unit Tests — Real-Time Pipeline Services
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { ConnectionQuality } from '../../../data/connectionQuality.ts';
-import { detectStreamingMode, getStreamingConfig, setStreamingMode, clearStreamingOverride } from '../../../data/adaptiveStreaming.ts';
+import { detectStreamingMode, getStreamingConfig } from '../../../data/adaptiveStreaming.ts';
 
 // ─── Connection Quality ─────────────────────────────────────────
 

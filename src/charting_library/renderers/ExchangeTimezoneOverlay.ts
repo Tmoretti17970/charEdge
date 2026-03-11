@@ -20,9 +20,9 @@ export interface TradingSession {
 
 /** Default major trading sessions (UTC hours). */
 export const SESSIONS: TradingSession[] = [
-  { name: 'Tokyo',  openHour: 0,  closeHour: 9,  color: 'rgba(255,183,77,0.06)',  labelColor: 'rgba(255,183,77,0.5)' },
-  { name: 'London', openHour: 8,  closeHour: 16, color: 'rgba(100,181,246,0.06)', labelColor: 'rgba(100,181,246,0.5)' },
-  { name: 'New York', openHour: 13, closeHour: 21, color: 'rgba(129,199,132,0.06)', labelColor: 'rgba(129,199,132,0.5)' },
+  { name: 'Tokyo',  openHour: 0,  closeHour: 9,  color: 'rgba(255,183,77,0.12)',  labelColor: 'rgba(255,183,77,0.6)' },
+  { name: 'London', openHour: 8,  closeHour: 16, color: 'rgba(100,181,246,0.12)', labelColor: 'rgba(100,181,246,0.6)' },
+  { name: 'New York', openHour: 13, closeHour: 21, color: 'rgba(129,199,132,0.12)', labelColor: 'rgba(129,199,132,0.6)' },
 ];
 
 // ─── Rendering ──────────────────────────────────────────────────
@@ -76,8 +76,8 @@ export function drawSessionBands(opts: DrawSessionsOpts): void {
       const bar = visBars[i];
       if (!bar || !bar.time) continue;
 
-      const d = new Date(bar.time);
-      const utcH = d.getUTCHours();
+      // Extract UTC hour directly from unix-ms timestamp (no Date allocation)
+      const utcH = Math.floor((bar.time % 86400000) / 3600000);
       const inSession = session.openHour <= session.closeHour
         ? utcH >= session.openHour && utcH < session.closeHour
         : utcH >= session.openHour || utcH < session.closeHour; // wrap-around
@@ -111,8 +111,7 @@ export function drawSessionBands(opts: DrawSessionsOpts): void {
     for (let i = 0; i < visBars.length; i++) {
       const bar = visBars[i];
       if (!bar || !bar.time) continue;
-      const d = new Date(bar.time);
-      const utcH = d.getUTCHours();
+      const utcH = Math.floor((bar.time % 86400000) / 3600000);
       const inSession = session.openHour <= session.closeHour
         ? utcH >= session.openHour && utcH < session.closeHour
         : utcH >= session.openHour || utcH < session.closeHour;
@@ -133,9 +132,10 @@ export function drawSessionBands(opts: DrawSessionsOpts): void {
   ctx.restore();
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _isInSession(time: number | undefined, session: TradingSession): boolean {
   if (!time) return false;
-  const utcH = new Date(time).getUTCHours();
+  const utcH = Math.floor((time % 86400000) / 3600000);
   return session.openHour <= session.closeHour
     ? utcH >= session.openHour && utcH < session.closeHour
     : utcH >= session.openHour || utcH < session.closeHour;

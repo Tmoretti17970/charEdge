@@ -9,8 +9,9 @@
 // don't allow mixing canvas contexts (2D/WebGL/WebGPU) on one canvas.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { C, M, F, GLASS, DEPTH } from '../constants.js';
+import { logger } from '@/observability/logger';
 
 // ─── Synthetic Data Generator ────────────────────────────────────
 
@@ -319,7 +320,7 @@ async function initWebGPU(canvas) {
       },
     };
   } catch (err) {
-    console.warn('[Speedtest] WebGPU init failed:', err);
+    logger.webgl.warn('[Speedtest] WebGPU init failed:', err);
     return null;
   }
 }
@@ -386,7 +387,7 @@ export default function SpeedtestPage() {
   const [renderer, setRenderer] = useState('canvas2d'); // safe default
   const [running, setRunning] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [scrollOffset, setScrollOffset] = useState(0);
+  const [_scrollOffset, setScrollOffset] = useState(0);
   const [visibleBars, setVisibleBars] = useState(200);
   const [gpuInfo, setGpuInfo] = useState(null);
   const [webgpuAvailable, setWebgpuAvailable] = useState(false);
@@ -397,7 +398,7 @@ export default function SpeedtestPage() {
 
   // Detect GPU capabilities
   useEffect(() => {
-    let info = { renderer: 'Unknown', vendor: 'Unknown', webgpu: false };
+    const info = { renderer: 'Unknown', vendor: 'Unknown', webgpu: false };
     const c = document.createElement('canvas');
     const gl = c.getContext('webgl2') || c.getContext('webgl');
     if (gl) {
@@ -475,6 +476,7 @@ export default function SpeedtestPage() {
       setScrollOffset(0);
       setGenerating(false);
     }, 50);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [barCount]);
 
   // Scroll
@@ -514,7 +516,7 @@ export default function SpeedtestPage() {
     const width = canvas.width / dpr;
     const height = canvas.height / dpr;
 
-    let ctx2d = renderer === 'canvas2d' ? canvas.getContext('2d') : null;
+    const ctx2d = renderer === 'canvas2d' ? canvas.getContext('2d') : null;
 
     const loop = () => {
       offset = (offset + 3) % Math.max(1, bc - visibleBars);

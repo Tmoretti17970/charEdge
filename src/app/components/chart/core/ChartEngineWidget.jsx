@@ -5,39 +5,28 @@
 // existing Zustand stores. Drop-in replacement for the old ChartCanvas.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../../../state/useUserStore.js';
-import { logger } from '../../../../utils/logger.ts';
+// eslint-disable-next-line import/order
+import { useUserStore } from '../../../../state/useUserStore';
+// eslint-disable-next-line import/order
+import { logger } from '@/observability/logger';
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { useChartStore } from '../../../../state/useChartStore.js';
 import { useShallow } from 'zustand/react/shallow';
-import { useJournalStore } from '../../../../state/useJournalStore.js';
-import { useAlertStore } from '../../../../state/useAlertStore.js';
-import { useUIStore } from '../../../../state/useUIStore.js';
-import { tradeNav, findBarByTimestamp } from '../../../../utils/navigateToTrade.js';
-import TradeMarkerOverlay from '../overlays/TradeMarkerOverlay.jsx';
-
-import { datafeedService } from '../../../../charting_library/datafeed/DatafeedService.js';
-import { tickChannel } from '../../../../charting_library/core/TickChannel.js';
-import { createIndicatorInstance, INDICATORS } from '../../../../charting_library/studies/indicators/registry.js';
-import { indicatorBridge } from '../../../../data/engine/indicators/IndicatorWorkerBridge.js';
+import { getChartAriaProps, ChartAnnouncer } from '../../../../charting_library/core/ChartAccessibility';
 import { ChartEngine } from '../../../../charting_library/core/ChartEngine.js';
-import crosshairBus from '../../../../utils/CrosshairBus.js';
-import scrollSyncBus from '../../../../utils/ScrollSyncBus.js';
-import { useOrderFlowConnection } from '../../../hooks/useOrderFlowConnection.js';
-import DrawingContextMenu from '../tools/DrawingContextMenu.jsx';
-import DrawingEditPopup from '../tools/DrawingEditPopup.jsx';
-import DataStalenessIndicator from '../ui/DataStalenessIndicator.jsx';
-import ChartLoadingNarrative from '../overlays/ChartLoadingNarrative.jsx';
-import DataFallbackBanner from '../ui/DataFallbackBanner.jsx';
-import IndicatorSettingsDialog from '../panels/IndicatorSettingsDialog.jsx';
-import ChartAnalysisPanel from '../panels/ChartAnalysisPanel.jsx';
-import ReplayToolbar from '../ReplayToolbar.jsx';
-import { ReplayPaperTrade } from '../../../../intelligence/ReplayPaperTrade.js';
-import { startAutoSave, stopAutoSave } from '../../../../charting_library/core/SessionRecovery.js';
-import ZoomLoupe from '../overlays/ZoomLoupe.jsx';
+import { getResponsiveChartConfig } from '../../../../charting_library/core/MobileChartExperience.js';
+import { tickChannel } from '../../../../charting_library/core/TickChannel.js';
+import { datafeedService } from '../../../../charting_library/datafeed/DatafeedService.js';
+// eslint-disable-next-line import/order
+import { createIndicatorInstance, INDICATORS } from '../../../../charting_library/studies/indicators/registry.js';
+ 
+// eslint-disable-next-line import/order
+import { useLongPressCrosshair } from '../../../../hooks/useLongPressCrosshair';
+const GestureGuide = React.lazy(() => import('../../ui/GestureGuide.jsx'));
+const MobileDrawingSheet = React.lazy(() => import('../../mobile/MobileDrawingSheet.jsx'));
 
 // ─── Constants ─────────────────────────────────────────────────────────
-import { resolveAdapterTimeframe } from '../../../../constants/TimeframeMap.ts';
+// eslint-disable-next-line import/order
+import { resolveAdapterTimeframe } from '../../../../constants/TimeframeMap';
 
 // Symbol shorthand map — exported so other modules can reuse
 export const SYMBOL_MAP = {
@@ -47,6 +36,31 @@ export const SYMBOL_MAP = {
 };
 
 import { isCrypto } from '../../../../constants.js';
+import { indicatorBridge } from '../../../../data/engine/indicators/IndicatorWorkerBridge.js';
+import { useOrderFlowConnection } from '../../../../data/engine/orderflow/useOrderFlowConnection.js';
+import { useAlertStore } from '../../../../state/useAlertStore';
+import { useChartStore, useChartCoreStore, useChartFeaturesStore, useChartToolsStore } from '../../../../state/useChartStore';
+import { useJournalStore } from '../../../../state/useJournalStore';
+import { useUIStore } from '../../../../state/useUIStore';
+import ChartKeyboardNav from '../ChartKeyboardNav.jsx';
+import ChartLoadingNarrative from '../overlays/ChartLoadingNarrative.jsx';
+import TradeMarkerOverlay from '../overlays/TradeMarkerOverlay.jsx';
+import TradeLevelOverlay from '../overlays/TradeLevelOverlay.jsx';
+import ZoomLoupe from '../overlays/ZoomLoupe.jsx';
+import ChartAnalysisPanel from '../panels/ChartAnalysisPanel.jsx';
+import IndicatorSettingsDialog from '../panels/IndicatorSettingsDialog.jsx';
+import ReplayToolbar from '../ReplayToolbar.jsx';
+import DrawingContextMenu from '../tools/DrawingContextMenu.jsx';
+import DrawingEditPopup from '../tools/DrawingEditPopup.jsx';
+import ChartDataTable from '../ui/ChartDataTable.jsx';
+import DataFallbackBanner from '../ui/DataFallbackBanner.jsx';
+import DataStalenessIndicator from '../ui/DataStalenessIndicator.jsx';
+import { useCrosshairSync } from './hooks/useCrosshairSync';
+import { useScrollSync } from './hooks/useScrollSync';
+import { useTradeNavigation } from './hooks/useTradeNavigation';
+import crosshairBus from '@/charting_library/utils/CrosshairBus';
+import { ReplayPaperTrade } from '@/trading/ReplayPaperTrade.js';
+import { startAutoSave } from '@/charting_library/core/SessionRecovery';
 
 export function resolveSymbol(sym) {
   if (!sym) return 'BTCUSDT';
@@ -66,31 +80,58 @@ export default function ChartEngineWidget({
   overrideSymbol, overrideTf, overrideIndicators, _showToolbar = false,
   showVolume = true, compact = false, srLevels, patternMarkers, divergences, children,
 }) {
-  // Task 2.3.29: Consolidated Zustand selector — single subscription via useShallow
+  // Sprint 6: Split into 3 targeted selectors — changes in one domain don't trigger re-eval in others
+
+  // Core (changes rarely — symbol switch, TF switch)
+  // FIX: Read core state from useChartStore (combined bridge) — NOT useChartCoreStore.
+  // useChartCoreStore is a separate Zustand create() with its own state tree.
+  // The toolbar, useChartDataLoader, and all other consumers write to useChartStore.
+  // Reading from useChartCoreStore created a split-brain: setTf() on useChartStore
+  // never propagated to useChartCoreStore, so the engine never saw TF changes.
   const {
-    symbol: storeSymbol, tf: storeTf, chartType, indicators: storeIndicators,
-    activeTool: storeActiveTool, drawingColor: storeDrawingColor,
-    chartColors: storeChartColors, setData: setStoreData, magnetMode,
-    stickyMode: storeStickyMode, showHeatmap, heatmapIntensity, showSessions,
-    paneHeights, historyLoading, showDeltaOverlay, showVPOverlay,
-    showOIOverlay, showLargeTradesOverlay, linkGroup, setSymbol,
-    intelligence,
-    replayMode, replayIdx, replayPlaying,
-    toggleReplay, setReplayIdx, setReplayPlaying,
+    symbol: storeSymbol, tf: storeTf, chartType,
+    setData: setStoreData, _setSymbol,
+    historyLoading, activeTimezone, setActiveTimezone,
   } = useChartStore(useShallow((s) => ({
     symbol: s.symbol, tf: s.tf, chartType: s.chartType,
-    indicators: s.indicators, activeTool: s.activeTool,
-    drawingColor: s.drawingColor, chartColors: s.chartColors,
-    setData: s.setData, magnetMode: s.magnetMode,
-    stickyMode: s.stickyMode, showHeatmap: s.showHeatmap,
-    heatmapIntensity: s.heatmapIntensity, showSessions: s.showSessions,
-    paneHeights: s.paneHeights, historyLoading: s.historyLoading,
+    setData: s.setData, setSymbol: s.setSymbol,
+    historyLoading: s.historyLoading,
+    activeTimezone: s.activeTimezone,
+    setActiveTimezone: s.setActiveTimezone,
+  })));
+
+  // linkGroup is ad-hoc state on the combined store (set externally)
+  const linkGroup = useChartStore((s) => s.linkGroup);
+
+  // Features (changes on user toggle — not on tick)
+  const {
+    showHeatmap, heatmapIntensity, showSessions, paneHeights,
+    showDeltaOverlay, showVPOverlay, showOIOverlay, showLargeTradesOverlay,
+    showVolumeSpikes, showPatternOverlays, showExtendedHours, showArbitrageSpread,
+    intelligence, replayMode, replayIdx, replayPlaying,
+    toggleReplay, setReplayIdx, setReplayPlaying,
+    chartColors: storeChartColors,
+  } = useChartFeaturesStore(useShallow((s) => ({
+    showHeatmap: s.showHeatmap, heatmapIntensity: s.heatmapIntensity,
+    showSessions: s.showSessions, paneHeights: s.paneHeights,
     showDeltaOverlay: s.showDeltaOverlay, showVPOverlay: s.showVPOverlay,
     showOIOverlay: s.showOIOverlay, showLargeTradesOverlay: s.showLargeTradesOverlay,
-    linkGroup: s.linkGroup, setSymbol: s.setSymbol,
+    showVolumeSpikes: s.showVolumeSpikes, showPatternOverlays: s.showPatternOverlays,
+    showExtendedHours: s.showExtendedHours, showArbitrageSpread: s.showArbitrageSpread,
     intelligence: s.intelligence,
     replayMode: s.replayMode, replayIdx: s.replayIdx, replayPlaying: s.replayPlaying,
     toggleReplay: s.toggleReplay, setReplayIdx: s.setReplayIdx, setReplayPlaying: s.setReplayPlaying,
+    chartColors: s.chartColors,
+  })));
+
+  // Tools (changes on draw/indicator edit — isolated from tick path)
+  const {
+    indicators: storeIndicators, activeTool: storeActiveTool,
+    drawingColor: storeDrawingColor, magnetMode, stickyMode: storeStickyMode,
+  } = useChartToolsStore(useShallow((s) => ({
+    indicators: s.indicators, activeTool: s.activeTool,
+    drawingColor: s.drawingColor, magnetMode: s.magnetMode,
+    stickyMode: s.stickyMode,
   })));
 
   const theme = useUserStore((s) => s.theme);
@@ -145,16 +186,49 @@ export default function ChartEngineWidget({
   const [ctxMenu, setCtxMenu] = useState(null); // { x, y, drawing }
   const [editPopup, setEditPopup] = useState(null); // { drawing data from event }
   const [editingIndicatorIdx, setEditingIndicatorIdx] = useState(null); // Sprint 13: indicator settings dialog
-  const [highlightedTrade, setHighlightedTrade] = useState(null);
   const paneIdRef = useRef(`widget-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`);
 
   // P2: Staggered entrance — fires once on first data load
   const hasEnteredRef = useRef(false);
-  const [showEntrance, setShowEntrance] = useState(false);
+  const [_showEntrance, setShowEntrance] = useState(false);
+
+  // Sprint 3 (A11y): Announcer for screen readers
+  const announcerRef = useRef(null);
+  // Sprint 3 (A11y): Data table toggle (initially hidden, sr-only)
+  const [showDataTable, _setShowDataTable] = useState(false);
+
+  // Sprint 11 B5/B6: Detect coarse pointer (touch device) for mobile features
+  const [isCoarse, setIsCoarse] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(pointer: coarse)');
+    setIsCoarse(mq.matches);
+    const onChange = (e) => setIsCoarse(e.matches);
+    mq.addEventListener?.('change', onChange);
+    return () => mq.removeEventListener?.('change', onChange);
+  }, []);
+
+  // Sprint 11 B5: Long-press crosshair hook
+  const { _isCrosshairActive, position: _crosshairPos, containerRef: _crosshairRef } = useLongPressCrosshair({ enabled: isCoarse });
 
   // P2: TF cross-dissolve
   const prevTfRef = useRef(tf);
   const [dissolving, setDissolving] = useState(false);
+
+  // Sprint 11 B3: Track container width for responsive chart config
+  const [containerWidth, setContainerWidth] = useState(1024);
+  useEffect(() => {
+    const el = containerRef.current?.parentElement;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect?.width;
+      if (w && w > 0) setContainerWidth(w);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Sprint 11 B3: Compute responsive config from container width
+  const responsiveConfig = useMemo(() => getResponsiveChartConfig(containerWidth), [containerWidth]);
 
   // Paper trade bridge for replay mode
   const paperTradeRef = useRef(null);
@@ -173,106 +247,43 @@ export default function ChartEngineWidget({
 
   const closeContextMenu = useCallback(() => setCtxMenu(null), []);
   const closeEditPopup = useCallback(() => setEditPopup(null), []);
-  const dismissTradeOverlay = useCallback(() => setHighlightedTrade(null), []);
+
+  // Sprint 6: Extracted sub-effects into custom hooks
+  const { highlightedTrade, dismissTradeOverlay } = useTradeNavigation(engineRef, barsRef);
+  useCrosshairSync(engineRef, paneIdRef.current);
+  useScrollSync(engineRef, paneIdRef.current, barCount);
+
   const handleViewJournal = useCallback(() => {
-    setHighlightedTrade(null);
+    dismissTradeOverlay();
     setPage('journal');
-  }, [setPage]);
+  }, [setPage, dismissTradeOverlay]);
 
-  // ─── Trade Navigation: Journal → Chart ────────────────────────
-  // Subscribe to tradeNav events so clicking "View on Chart" in the
-  // journal scrolls the chart to the trade's timestamp.
-  useEffect(() => {
-    const unsub = tradeNav.on('navigate', (payload) => {
-      const bars = barsRef.current;
-      if (!bars?.length || !payload?.timestamp) return;
-
-      const barIdx = findBarByTimestamp(bars, payload.timestamp);
-      if (barIdx < 0) return;
-
-      // Scroll the chart engine to center the bar
-      const engine = engineRef.current;
-      if (engine) {
-        const visibleBars = engine.state.visibleBars || 80;
-        const halfVisible = Math.floor(visibleBars / 2);
-        const idealOffset = bars.length - barIdx - halfVisible;
-        engine.state.scrollOffset = Math.max(0, Math.min(idealOffset, bars.length - visibleBars));
-        engine.markDirty();
-      }
-
-      // Show the trade details overlay
-      setHighlightedTrade({
-        tradeId: payload.tradeId,
-        symbol: payload.symbol,
-        side: payload.side,
-        entry: payload.entry,
-        exit: payload.exit,
-        pnl: payload.pnl,
-        date: new Date(payload.timestamp).toISOString(),
-      });
-    });
-    return unsub;
-  }, []);
-
-  // CrosshairBus: subscribe for synced crosshair from other panes
-  useEffect(() => {
-    const paneId = paneIdRef.current;
-    const unsub = crosshairBus.subscribe(paneId, (payload) => {
-      if (engineRef.current) {
-        engineRef.current.setSyncedCrosshair(payload ? { time: payload.timestamp, price: payload.price } : null);
-      }
-    });
-    return unsub;
-  }, []);
-
-  // ScrollSyncBus: subscribe for scroll sync from other panes
-  const scrollSyncMutedRef = useRef(false);
-  useEffect(() => {
-    const paneId = paneIdRef.current;
-    const unsub = scrollSyncBus.subscribe(paneId, (payload) => {
-      const engine = engineRef.current;
-      if (!engine || !payload) return;
-      const bars = engine.bars;
-      if (!bars?.length) return;
-      // Apply fractional scroll position from the source pane
-      const maxScroll = Math.max(0, bars.length - engine.state.visibleBars);
-      const newOffset = Math.round(payload.fraction * maxScroll);
-      if (Math.abs(engine.state.scrollOffset - newOffset) > 0.5) {
-        scrollSyncMutedRef.current = true; // Mute emission to prevent feedback loop
-        engine.state.scrollOffset = newOffset;
-        engine.markDirty();
-        requestAnimationFrame(() => { scrollSyncMutedRef.current = false; });
-      }
-    });
-    return unsub;
-  }, []);
-
-  // ScrollSyncBus: emit scroll position changes when scrollOffset changes.
-  // Task 2.3.26: Replaced perpetual rAF loop with an efficient emission
-  // triggered from the engine's render cycle via a markDirty hook.
-  // FIX: Added [barCount] deps — previously had NO deps causing infinite re-render loop (Error #185).
-  const lastEmittedOffset = useRef(-1);
-  useEffect(() => {
-    // On each tick (barCount changes), check if offset changed and emit
-    const engine = engineRef.current;
-    if (!engine || scrollSyncMutedRef.current) return;
-    const bars = engine.bars;
-    const offset = engine.state.scrollOffset;
-    if (bars?.length && Math.abs(offset - lastEmittedOffset.current) > 0.5) {
-      lastEmittedOffset.current = offset;
-      const maxScroll = Math.max(1, bars.length - engine.state.visibleBars);
-      scrollSyncBus.emit(paneIdRef.current, {
-        fraction: offset / maxScroll,
-        visibleBars: engine.state.visibleBars,
-      });
-    }
-  }, [barCount]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Initialize Engine once
   useEffect(() => {
     if (!containerRef.current) return;
     const callbacks = {
-      onBarClick: (price, time, bar) => onBarClick?.(price, time, bar),
+      onBarClick: (price, time, bar) => {
+        // Trade mode: check store directly (avoids stale closure on tradeMode)
+        const ts = useChartStore.getState();
+        if (ts.tradeMode && ts.tradeStep) {
+          switch (ts.tradeStep) {
+            case 'entry':
+              ts.setEntry(price, bar?.index ?? 0);
+              break;
+            case 'sl':
+              ts.setSL(price, bar?.index ?? 0);
+              break;
+            case 'tp':
+              ts.setTP(price, bar?.index ?? 0);
+              break;
+            default:
+              break;
+          }
+          return; // Consume click — don't pass to drawing handler
+        }
+        onBarClick?.(price, time, bar);
+      },
       onCrosshairMove: (e) => {
         // Emit to CrosshairBus for synced crosshair
         if (e?.bar?.time) {
@@ -310,6 +321,8 @@ export default function ChartEngineWidget({
       patternMarkers, divergences, storeChartColors, magnetMode,
       showHeatmap, heatmapIntensity, showSessions, paneHeights,
       showDeltaOverlay, showVPOverlay, showOIOverlay, showLargeTradesOverlay,
+      showVolumeSpikes, showPatternOverlays, showExtendedHours, showArbitrageSpread,
+      activeTimezone,
       aggregatorKey: `${binanceSymbol}_${binanceTf}`
     };
 
@@ -449,6 +462,26 @@ export default function ChartEngineWidget({
     };
     window.addEventListener('charEdge:open-indicator-settings', onOpenIndicatorSettings);
 
+    // Timezone selector event — wires DOM overlay to store
+    const onSetTimezone = (e) => {
+      const tz = e.detail?.timezone;
+      if (tz) setActiveTimezone(tz);
+    };
+    window.addEventListener('charEdge:set-timezone', onSetTimezone);
+
+    // Auto-fit button event — reset autoScale from DOM overlay
+    const onAutoFit = () => {
+      const eng = engineRef.current;
+      if (!eng) return;
+      eng.state.autoScale = true;
+      eng.state.priceScale = 1;
+      eng.state.priceScroll = 0;
+      eng.state.mainDirty = true;
+      eng.state.topDirty = true;
+      eng._scheduleDraw();
+    };
+    window.addEventListener('charEdge:autoFit', onAutoFit);
+
     // Task 2.3.23: Start session recovery auto-save (every 30s)
     const stopRecovery = startAutoSave(
       () => engineRef.current,
@@ -459,6 +492,11 @@ export default function ChartEngineWidget({
     );
 
     if (onEngineReady) onEngineReady(engineRef.current);
+
+    // Sprint 3: Mount ChartAnnouncer for screen reader price updates
+    const announcer = new ChartAnnouncer();
+    announcer.mount();
+    announcerRef.current = announcer;
 
     return () => {
       // Task 2.3.23: Stop auto-save before destroy
@@ -475,9 +513,18 @@ export default function ChartEngineWidget({
       window.removeEventListener('charEdge:edit-drawing', handleEditDrawing);
       window.removeEventListener('charEdge:toggle-indicator', onToggleIndicator);
       window.removeEventListener('charEdge:open-indicator-settings', onOpenIndicatorSettings);
+      window.removeEventListener('charEdge:set-timezone', onSetTimezone);
+      window.removeEventListener('charEdge:autoFit', onAutoFit);
       if (containerRef.current) {
         containerRef.current.removeEventListener('contextmenu', handleContextMenu);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         containerRef.current.removeEventListener('dblclick', handleDblClick);
+      }
+
+      // Sprint 3: Unmount announcer
+      if (announcerRef.current) {
+        announcerRef.current.unmount();
+        announcerRef.current = null;
       }
 
       engineRef.current?.destroy();
@@ -486,17 +533,39 @@ export default function ChartEngineWidget({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update properties
+  // Sprint 6: Debounced setProps — coalesces rapid changes within a single rAF frame
   useEffect(() => {
     if (!engineRef.current) return;
-    engineRef.current.setProps({
-      theme, symbol, tf, chartType, showVolume, compact, trades, srLevels,
-      patternMarkers, divergences, storeChartColors, magnetMode,
-      showHeatmap, heatmapIntensity, showSessions, paneHeights,
-      showDeltaOverlay, showVPOverlay, showOIOverlay, showLargeTradesOverlay,
-      aggregatorKey: `${binanceSymbol}_${binanceTf}`
+    const id = requestAnimationFrame(() => {
+      engineRef.current?.setProps({
+        theme, symbol, tf, chartType, showVolume, compact, trades, srLevels,
+        patternMarkers, divergences, storeChartColors, magnetMode,
+        showHeatmap, heatmapIntensity, showSessions, paneHeights,
+        showDeltaOverlay, showVPOverlay, showOIOverlay, showLargeTradesOverlay,
+        showVolumeSpikes, showPatternOverlays, showExtendedHours, showArbitrageSpread,
+        activeTimezone,
+        aggregatorKey: `${binanceSymbol}_${binanceTf}`,
+        // Sprint 11 B3: Responsive chart config
+        barSpacing: responsiveConfig.barSpacing,
+        priceAxisWidth: responsiveConfig.priceAxisWidth,
+        timeAxisHeight: responsiveConfig.timeAxisHeight,
+        compactMode: responsiveConfig.compactMode,
+        autoHideToolbar: responsiveConfig.autoHideToolbar,
+      });
     });
-  }, [theme, symbol, tf, chartType, showVolume, compact, trades, srLevels, patternMarkers, divergences, storeChartColors, magnetMode, showHeatmap, heatmapIntensity, showSessions, paneHeights, showDeltaOverlay, showVPOverlay, showOIOverlay, showLargeTradesOverlay, binanceSymbol, binanceTf]);
+    return () => cancelAnimationFrame(id);
+  }, [theme, symbol, tf, chartType, showVolume, compact, trades, srLevels, patternMarkers, divergences, storeChartColors, magnetMode, showHeatmap, heatmapIntensity, showSessions, paneHeights, showDeltaOverlay, showVPOverlay, showOIOverlay, showLargeTradesOverlay, showVolumeSpikes, showPatternOverlays, showExtendedHours, showArbitrageSpread, binanceSymbol, binanceTf, responsiveConfig, activeTimezone]);
+
+  // REST depth polling fallback for heatmap (when WS depth stream is unavailable)
+  useEffect(() => {
+    const key = `${binanceSymbol}_${binanceTf}`;
+    if (showHeatmap) {
+      datafeedService.startDepthPolling(binanceSymbol, key);
+    } else {
+      datafeedService.stopDepthPolling(key);
+    }
+    return () => datafeedService.stopDepthPolling(key);
+  }, [showHeatmap, binanceSymbol, binanceTf]);
 
   // Sprint 1: Sync historyLoading state to engine for shimmer bar rendering
   useEffect(() => {
@@ -561,9 +630,14 @@ export default function ChartEngineWidget({
           hasEnteredRef.current = true;
           setShowEntrance(true);
         }
+        // Sprint 3 (A11y): Announce new data to screen readers
+        if (announcerRef.current && bars.length > 0) {
+          const last = bars[bars.length - 1];
+          announcerRef.current.announce(`${symbol} loaded. ${bars.length} bars. Latest close: ${last.close?.toFixed(2)}`);
+        }
         // TickChannel delivers to engine directly; this is for React state only
       },
-      onTick: (bars, latestBar) => {
+      onTick: (bars, _latestBar) => {
         barsRef.current = bars;
         // Task 2.3.27: Only update React state when bar count changes
         setBarCount(prev => prev === bars.length ? prev : bars.length);
@@ -586,6 +660,7 @@ export default function ChartEngineWidget({
       unsubscribe();
       if (unsubTick) unsubTick();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [binanceSymbol, binanceTf, setStoreData]);
 
   // P2: TF cross-dissolve — trigger on timeframe change
@@ -604,15 +679,17 @@ export default function ChartEngineWidget({
   // Compute indicators (offloaded to ComputeWorkerPool via IndicatorWorkerBridge)
   useEffect(() => {
     const bars = barsRef.current;
-    if (!bars.length || !indicators?.length) {
+    // Only compute visible indicators — respect the `visible` flag from store
+    const visibleIndicators = (indicators || []).filter(ind => ind.visible !== false);
+    if (!bars.length || !visibleIndicators.length) {
       indicatorInstancesRef.current = [];
       engineRef.current?.setIndicators([]);
       return;
     }
 
     // Check if configuration changed (indicators added/removed/params changed)
-    const configChanged = indicatorInstancesRef.current.length !== indicators.length ||
-      indicators.some((ind, i) => {
+    const configChanged = indicatorInstancesRef.current.length !== visibleIndicators.length ||
+      visibleIndicators.some((ind, i) => {
         const inst = indicatorInstancesRef.current[i];
         if (!inst || inst.indicatorId !== (ind.indicatorId || ind.type)) return true;
         // Task 2.3.28: Stable comparison — avoid JSON.stringify reference instability
@@ -626,7 +703,7 @@ export default function ChartEngineWidget({
 
     if (configChanged) {
       // Full recompute — route through ComputeWorkerPool for off-thread processing
-      const instances = indicators.map((ind) => {
+      const instances = visibleIndicators.map((ind) => {
         const id = ind.indicatorId || ind.type;
         if (!INDICATORS[id]) return null;
         const instance = createIndicatorInstance(id, ind.params || {});
@@ -710,6 +787,16 @@ export default function ChartEngineWidget({
     setLoupeActive(false);
   }, []);
 
+  // Sprint 3 (A11y): Compute ARIA props for the chart container
+  const lastBar = barsRef.current?.[barsRef.current.length - 1];
+  const prevBar = barsRef.current?.[barsRef.current.length - 2];
+  const priceChange = (lastBar && prevBar && prevBar.close)
+    ? ((lastBar.close - prevBar.close) / prevBar.close * 100)
+    : 0;
+  const ariaProps = lastBar
+    ? getChartAriaProps(symbol, tf, lastBar.close, priceChange)
+    : { role: 'img', 'aria-label': `${symbol} chart loading`, tabIndex: 0 };
+
   return (
     <div
       data-container="chart"
@@ -719,6 +806,7 @@ export default function ChartEngineWidget({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
+      {...ariaProps}
     >
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
 
@@ -791,16 +879,9 @@ export default function ChartEngineWidget({
         </div>
       )}
 
-      {/* Data Staleness Indicator — top-right badge */}
-      {status === 'ready' && (
-        <div style={{ position: 'absolute', top: 6, right: 6, zIndex: 15 }}>
-          <DataStalenessIndicator
-            symbol={binanceSymbol}
-            tfId={tf}
-            isLive={status === 'ready' && barCount > 0}
-          />
-        </div>
-      )}
+
+
+
 
       {highlightedTrade && (
         <TradeMarkerOverlay
@@ -809,6 +890,9 @@ export default function ChartEngineWidget({
           onViewJournal={handleViewJournal}
         />
       )}
+
+      {/* Trade level dotted lines (entry, SL, TP) */}
+      <TradeLevelOverlay engineRef={engineRef} />
 
       {ctxMenu && (
         <DrawingContextMenu
@@ -859,6 +943,46 @@ export default function ChartEngineWidget({
           : undefined
         }
       />
+
+      {/* Sprint 3 (A11y): Keyboard navigation for chart */}
+      <ChartKeyboardNav
+        chartRef={containerRef}
+        bars={barsRef.current}
+        drawings={engineRef.current?.drawingEngine?.drawings || []}
+        onCrosshairMove={(barIdx) => {
+          if (engineRef.current) {
+            engineRef.current.state.hoverIdx = barIdx;
+            engineRef.current.markDirty();
+          }
+        }}
+        onSelectDrawing={(id) => {
+          engineRef.current?.drawingEngine?.selectDrawing(id);
+        }}
+        onDeselect={() => {
+          engineRef.current?.drawingEngine?.deselectAll();
+        }}
+      />
+
+      {/* Sprint 3 (A11y): Screen-reader-accessible data table (hidden by default) */}
+      <ChartDataTable
+        bars={barsRef.current}
+        visible={showDataTable}
+        symbol={symbol}
+      />
+
+      {/* Sprint 11 #89: Mobile Drawing Sheet — bottom sheet on touch devices */}
+      {isCoarse && (
+        <React.Suspense fallback={null}>
+          <MobileDrawingSheet />
+        </React.Suspense>
+      )}
+
+      {/* Sprint 11 #88: Gesture Guide — shown once on touch devices */}
+      {isCoarse && (
+        <React.Suspense fallback={null}>
+          <GestureGuide />
+        </React.Suspense>
+      )}
 
     </div>
   );

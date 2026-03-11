@@ -5,9 +5,9 @@
  *   B2.3: Elastic touch pinch spring-back
  *   B2.4: Y-axis scale cross-fade transition
  */
-import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import { describe, it, expect } from 'vitest';
 
 const SRC_DIR = resolve(__dirname, '../../charting_library/core');
 

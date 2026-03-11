@@ -280,7 +280,7 @@ const BROKER_PROFILES = {
     sideMap: { buy: 'long', sell: 'short' },
     // Kraken pair normalization: XXBTZUSD → BTCUSD
     normalizeSymbol: (sym) => {
-      let s = sym.replace(/^X([A-Z]{3,4})Z([A-Z]{3,4})$/, '$1$2').replace(/^XX/, 'X').replace(/^XBT/, 'BTC');
+      const s = sym.replace(/^X([A-Z]{3,4})Z([A-Z]{3,4})$/, '$1$2').replace(/^XX/, 'X').replace(/^XBT/, 'BTC');
       return s;
     },
   },

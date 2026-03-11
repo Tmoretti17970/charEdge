@@ -3,9 +3,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect } from 'vitest';
-import { detectTilt } from '../../../services/tiltDetector.ts';
-import { generateSessionRecaps, generateLatestRecap } from '../../../services/sessionRecap.ts';
-import { kellySize, fixedFractionalSize, atrSize } from '../../../services/positionSizing.ts';
+import { detectTilt } from '@/psychology/tiltDetector.ts';
+import { generateSessionRecaps, generateLatestRecap } from '@/journal/sessionRecap.ts';
+import { kellySize, fixedFractionalSize, atrSize } from '@/trading/positionSizing.ts';
 
 // ─── Tilt Detection ─────────────────────────────────────────────
 

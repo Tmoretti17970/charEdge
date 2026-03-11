@@ -6,18 +6,15 @@
 // Uses existing tf-depth-overlay glass tokens for consistent styling.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { C, F } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore.js';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useBacktestStore } from '../../../../state/useBacktestStore.js';
-import { useStrategyBuilderStore } from '../../../../state/useStrategyBuilderStore.js';
-
+import { useChartStore, useChartFeaturesStore } from '../../../../state/useChartStore';
+import { useStrategyBuilderStore } from '../../../../state/useStrategyBuilderStore';
 import ChartTradeToolbar from '../chart_ui/ChartTradeToolbar.jsx';
 
 // ─── Tab Definitions ──────────────────────────────────────────────
 const TABS = [
     { id: 'trading', label: 'Trading', icon: '◎' },
-    { id: 'strategy', label: 'Strategy', icon: '✦' },
     { id: 'tools', label: 'Tools', icon: '⬡' },
     { id: 'overlays', label: 'Overlays', icon: '◇' },
     { id: 'panels', label: 'Panels', icon: '▤' },
@@ -108,31 +105,45 @@ export default function CommandCenterMenu({
     const [activeTab, setActiveTab] = useState('trading');
     const menuRef = useRef(null);
 
-    // Chart Store State
-    const showHeatmap = useChartStore((s) => s.showHeatmap);
-    const toggleHeatmap = useChartStore((s) => s.toggleHeatmap);
-    const showSessions = useChartStore((s) => s.showSessions);
-    const toggleSessions = useChartStore((s) => s.toggleSessions);
-    const showMTF = useChartStore((s) => s.showMTF);
-    const toggleMTF = useChartStore((s) => s.toggleMTF);
-    const showDOM = useChartStore((s) => s.showDOM);
-    const toggleDOM = useChartStore((s) => s.toggleDOM);
-    const showMinimap = useChartStore((s) => s.showMinimap);
-    const toggleMinimap = useChartStore((s) => s.toggleMinimap);
-    const showDataWindow = useChartStore((s) => s.showDataWindow);
-    const toggleDataWindow = useChartStore((s) => s.toggleDataWindow);
-    const showStatusBar = useChartStore((s) => s.showStatusBar);
-    const toggleStatusBar = useChartStore((s) => s.toggleStatusBar);
-    const showDepthChart = useChartStore((s) => s.showDepthChart);
-    const toggleDepthChart = useChartStore((s) => s.toggleDepthChart);
-    const showExtendedHours = useChartStore((s) => s.showExtendedHours);
-    const toggleExtendedHours = useChartStore((s) => s.toggleExtendedHours);
-    const showComparisonOverlay = useChartStore((s) => s.showComparisonOverlay);
-    const toggleComparisonOverlay = useChartStore((s) => s.toggleComparisonOverlay);
-    const showPatternOverlays = useChartStore((s) => s.showPatternOverlays);
-    const togglePatternOverlays = useChartStore((s) => s.togglePatternOverlays);
-    const toggleReplay = useChartStore((s) => s.toggleReplay);
-    const replayMode = useChartStore((s) => s.replayMode);
+    // Features Store — must use useChartFeaturesStore (not useChartStore)
+    // to match ChartEngineWidget which reads from the focused store
+    const showHeatmap = useChartFeaturesStore((s) => s.showHeatmap);
+    const toggleHeatmap = useChartFeaturesStore((s) => s.toggleHeatmap);
+    const showSessions = useChartFeaturesStore((s) => s.showSessions);
+    const toggleSessions = useChartFeaturesStore((s) => s.toggleSessions);
+
+    const showDOM = useChartFeaturesStore((s) => s.showDOM);
+    const toggleDOM = useChartFeaturesStore((s) => s.toggleDOM);
+    const showMinimap = useChartFeaturesStore((s) => s.showMinimap);
+    const toggleMinimap = useChartFeaturesStore((s) => s.toggleMinimap);
+    const showDataWindow = useChartFeaturesStore((s) => s.showDataWindow);
+    const toggleDataWindow = useChartFeaturesStore((s) => s.toggleDataWindow);
+    const showStatusBar = useChartFeaturesStore((s) => s.showStatusBar);
+    const toggleStatusBar = useChartFeaturesStore((s) => s.toggleStatusBar);
+    const showDepthChart = useChartFeaturesStore((s) => s.showDepthChart);
+    const toggleDepthChart = useChartFeaturesStore((s) => s.toggleDepthChart);
+    const showExtendedHours = useChartFeaturesStore((s) => s.showExtendedHours);
+    const toggleExtendedHours = useChartFeaturesStore((s) => s.toggleExtendedHours);
+    const showComparisonOverlay = useChartFeaturesStore((s) => s.showComparisonOverlay);
+    const toggleComparisonOverlay = useChartFeaturesStore((s) => s.toggleComparisonOverlay);
+    const showPatternOverlays = useChartFeaturesStore((s) => s.showPatternOverlays);
+    const togglePatternOverlays = useChartFeaturesStore((s) => s.togglePatternOverlays);
+    const toggleReplay = useChartFeaturesStore((s) => s.toggleReplay);
+    const replayMode = useChartFeaturesStore((s) => s.replayMode);
+
+    // Order-flow overlay reactive selectors
+    const showVolumeSpikes = useChartFeaturesStore((s) => s.showVolumeSpikes);
+    const toggleVolumeSpikes = useChartFeaturesStore((s) => s.toggleVolumeSpikes);
+    const showDeltaOverlay = useChartFeaturesStore((s) => s.showDeltaOverlay);
+    const toggleDeltaOverlay = useChartFeaturesStore((s) => s.toggleDeltaOverlay);
+    const showVPOverlay = useChartFeaturesStore((s) => s.showVPOverlay);
+    const toggleVPOverlay = useChartFeaturesStore((s) => s.toggleVPOverlay);
+    const showLargeTradesOverlay = useChartFeaturesStore((s) => s.showLargeTradesOverlay);
+    const toggleLargeTradesOverlay = useChartFeaturesStore((s) => s.toggleLargeTradesOverlay);
+    const showOIOverlay = useChartFeaturesStore((s) => s.showOIOverlay);
+    const toggleOIOverlay = useChartFeaturesStore((s) => s.toggleOIOverlay);
+    const showArbitrageSpread = useChartFeaturesStore((s) => s.showArbitrageSpread);
+    const toggleArbitrageSpread = useChartFeaturesStore((s) => s.toggleArbitrageSpread);
 
     const backtestPanelOpen = useBacktestStore((s) => s.panelOpen);
     const strategyBuilderOpen = useStrategyBuilderStore((s) => s.panelOpen);
@@ -170,11 +181,9 @@ export default function CommandCenterMenu({
             )}
             <ActionItem label="Position Sizer" onClick={() => { onOpenPanel('positionSizer'); close(); }} />
             <ActionItem label="Quick Journal" onClick={() => { onOpenPanel('quickJournal'); close(); }} />
-        </>
-    );
-
-    const renderStrategy = () => (
-        <>
+            {!isMobile && (
+                <ToggleItem label="Show Trades" active={showTrades} onClick={() => setShowTrades(!showTrades)} />
+            )}
             <ToggleItem
                 label="Strategy Tester"
                 active={backtestPanelOpen}
@@ -187,6 +196,8 @@ export default function CommandCenterMenu({
             />
         </>
     );
+
+
 
     const renderTools = () => (
         <>
@@ -202,28 +213,26 @@ export default function CommandCenterMenu({
 
     const renderOverlays = () => (
         <>
-            <ToggleItem label="Compare Symbols" active={showComparisonOverlay} onClick={toggleComparisonOverlay} />
+            <ToggleItem label="Compare Symbols" active={showComparisonOverlay} onClick={() => { toggleComparisonOverlay(); close(); }} />
             <ToggleItem label="Liquidity Heatmap" active={showHeatmap} onClick={toggleHeatmap} />
             <ToggleItem label="Sessions" active={showSessions} onClick={toggleSessions} />
             <ToggleItem label="Extended Hours" active={showExtendedHours} onClick={toggleExtendedHours} />
             <ToggleItem label="Pattern Detection" active={showPatternOverlays} onClick={togglePatternOverlays} />
-            {!isMobile && (
-                <ToggleItem label="Show Trades" active={showTrades} onClick={() => setShowTrades(!showTrades)} />
-            )}
+
             <ActionItem label="Volume Delta" onClick={() => { useChartStore.getState().addIndicator({ indicatorId: 'volumeDelta', params: {} }); close(); }} />
             <ActionItem label="Anchored VWAP" onClick={() => { useChartStore.getState().addIndicator({ indicatorId: 'vwap', params: { anchorTime: Date.now() } }); close(); }} />
-            <ToggleItem label="Volume Spikes" active={useChartStore.getState().showVolumeSpikes} onClick={() => useChartStore.getState().toggleVolumeSpikes()} />
-            <ToggleItem label="Delta Histogram" active={useChartStore.getState().showDeltaOverlay} onClick={() => useChartStore.getState().toggleDeltaOverlay()} />
-            <ToggleItem label="Volume Profile" active={useChartStore.getState().showVPOverlay} onClick={() => useChartStore.getState().toggleVPOverlay()} />
-            <ToggleItem label="Whale Trades" active={useChartStore.getState().showLargeTradesOverlay} onClick={() => useChartStore.getState().toggleLargeTradesOverlay()} />
-            <ToggleItem label="OI Overlay" active={useChartStore.getState().showOIOverlay} onClick={() => useChartStore.getState().toggleOIOverlay()} />
-            <ToggleItem label="Arb Spread" active={useChartStore.getState().showArbitrageSpread} onClick={() => useChartStore.getState().toggleArbitrageSpread()} />
+            <ToggleItem label="Volume Spikes" active={showVolumeSpikes} onClick={toggleVolumeSpikes} />
+            <ToggleItem label="Delta Histogram" active={showDeltaOverlay} onClick={toggleDeltaOverlay} />
+            <ToggleItem label="Volume Profile" active={showVPOverlay} onClick={toggleVPOverlay} />
+            <ToggleItem label="Whale Trades" active={showLargeTradesOverlay} onClick={toggleLargeTradesOverlay} />
+            <ToggleItem label="OI Overlay" active={showOIOverlay} onClick={toggleOIOverlay} />
+            <ToggleItem label="Arb Spread" active={showArbitrageSpread} onClick={toggleArbitrageSpread} />
         </>
     );
 
     const renderPanels = () => (
         <>
-            <ToggleItem label="Multi-Timeframe" active={showMTF} onClick={toggleMTF} />
+
             <ToggleItem label="DOM Ladder" active={showDOM} onClick={toggleDOM} />
             <ToggleItem label="Depth Chart" active={showDepthChart} onClick={toggleDepthChart} />
             <ToggleItem label="Minimap" active={showMinimap} onClick={toggleMinimap} />
@@ -240,7 +249,6 @@ export default function CommandCenterMenu({
 
     const TAB_RENDERERS = {
         trading: renderTrading,
-        strategy: renderStrategy,
         tools: renderTools,
         overlays: renderOverlays,
         panels: renderPanels,

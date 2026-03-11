@@ -21,6 +21,7 @@ export function renderFibRetracement(ctx, pts, pricePoints, style, lw, pr, size,
   for (let i = 0; i < FIB_LEVELS.length; i++) {
     const level = FIB_LEVELS[i];
     const price = startPrice + priceRange * (1 - level);
+    if (!isFinite(price)) continue; // BUG-01: guard against NaN/Infinity
     const anchorForY = anchorToPixel({ price, time: pricePoints[0].time });
     if (!anchorForY) continue;
     const y = Math.round(anchorForY.y * pr);
@@ -40,6 +41,7 @@ export function renderFibRetracement(ctx, pts, pricePoints, style, lw, pr, size,
     if (i < FIB_LEVELS.length - 1 && style.opacity) {
       const nextLevel = FIB_LEVELS[i + 1];
       const nextPrice = startPrice + priceRange * (1 - nextLevel);
+      if (!isFinite(nextPrice)) continue; // BUG-01: guard against NaN/Infinity
       const nextAnchor = anchorToPixel({ price: nextPrice, time: pricePoints[0].time });
       if (nextAnchor) {
         const nextY = Math.round(nextAnchor.y * pr);
@@ -88,6 +90,7 @@ export function renderFibExtension(ctx, pts, pricePoints, style, lw, pr, size, d
   for (let i = 0; i < FIB_LEVELS.length; i++) {
     const level = FIB_LEVELS[i];
     const price = originPrice + trendRange * level;
+    if (!isFinite(price)) continue; // BUG-01: guard against NaN/Infinity
     const anchorForY = anchorToPixel({ price, time: pricePoints[2].time });
     if (!anchorForY) continue;
     const y = Math.round(anchorForY.y * pr);
@@ -161,7 +164,7 @@ export function renderFibTimeZone(ctx, pts, drawing, style, lw, pr, size) {
   ctx.setLineDash([]);
 }
 
-export function renderFibArc(ctx, pts, pricePoints, style, lw, pr, size) {
+export function renderFibArc(ctx, pts, pricePoints, style, lw, pr, _size) {
   if (pts.length < 2) return;
 
   const cx = pts[0].x, cy = pts[0].y;
@@ -253,12 +256,12 @@ export function renderFibFan(ctx, pts, pricePoints, style, lw, pr, size) {
   }
 }
 
-export function renderFibChannel(ctx, pts, pricePoints, style, lw, pr, size) {
+export function renderFibChannel(ctx, pts, pricePoints, style, lw, pr, _size) {
   if (pts.length < 3) return;
 
   const levels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
-  const dx = pts[1].x - pts[0].x;
-  const dy = pts[1].y - pts[0].y;
+  const _dx = pts[1].x - pts[0].x;
+  const _dy = pts[1].y - pts[0].y;
 
   const offsetX = pts[2].x - pts[0].x;
   const offsetY = pts[2].y - pts[0].y;

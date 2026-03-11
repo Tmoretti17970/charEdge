@@ -5,10 +5,10 @@
 //         1.3.1 DataSharedWorker in boot, 1.3.2 BinaryCodec WS
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, beforeAll } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { describe, it, expect, beforeAll } from 'vitest';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

@@ -17,7 +17,7 @@
 //   const prefs = await persistenceService.load('preferences');
 // ═══════════════════════════════════════════════════════════════════
 
-import { logger } from '../../utils/logger.js';
+import { logger } from '@/observability/logger.js';
 
 const LOCAL_PREFIX = 'charEdge-persist-';
 const DEBOUNCE_MS = 2000; // Debounce cloud writes to avoid spamming
@@ -133,6 +133,7 @@ class PersistenceService {
                 try {
                     await this._writeCloud(entity, localData);
                     synced++;
+                // eslint-disable-next-line unused-imports/no-unused-vars
                 } catch (_) { /* best effort */ }
             }
         }

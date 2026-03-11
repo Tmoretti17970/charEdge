@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { C, F } from '../../../constants.js';
 import { fetchTopPosts } from '../../../services/socialService.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 function TrustBadge({ score }) {
   if (!score) return null;

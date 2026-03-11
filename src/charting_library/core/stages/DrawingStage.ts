@@ -64,6 +64,7 @@ export function executeDrawingStage(fs, ctx, engine) {
  * Synchronize drawing model → scene graph nodes.
  * Adds new nodes, removes deleted ones, updates bounds.
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _syncDrawingNodes(sceneGraph, drawingEngine, chartWidth, mainHeight) {
   const drawings = drawingEngine.drawings;
   if (!drawings) return;
@@ -102,6 +103,7 @@ function _syncDrawingNodes(sceneGraph, drawingEngine, chartWidth, mainHeight) {
 /**
  * Compute the CSS-pixel bounding box for a drawing.
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _computeDrawingBounds(drawingEngine, drawing, chartWidth, mainHeight) {
   if (!drawing.points || drawing.points.length === 0) return null;
 
@@ -136,7 +138,8 @@ function _computeDrawingBounds(drawingEngine, drawing, chartWidth, mainHeight) {
  * Sprint 17: Draw a translucent ghost preview of the drawing being created.
  * Shows rubber-band lines, growing boxes, or fib level previews.
  */
-function _drawGhostPreview(ctx, drawingEngine, drawing, pr, cBW, mainBH) {
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function _drawGhostPreview(ctx, drawingEngine, drawing, pr, cBW, _mainBH) {
   const pts = drawing.points.map((p) => drawingEngine.anchorToPixel(p)).filter(Boolean);
   if (pts.length === 0) return;
 

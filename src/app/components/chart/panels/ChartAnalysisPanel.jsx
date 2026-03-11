@@ -3,7 +3,7 @@
 // Displays the AI chart analysis results in a premium overlay panel.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { analyzeChart } from '../../../../charting_library/ai/AIChartAnalysis.js';
 
 export default function ChartAnalysisPanel({ bars, symbol, timeframe, onClose }) {

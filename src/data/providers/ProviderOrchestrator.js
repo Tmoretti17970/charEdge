@@ -14,13 +14,13 @@
 //   • Tiingo:        50 req/hr
 // ═══════════════════════════════════════════════════════════════════
 
-import { logger } from '../../../utils/logger';
 import {
     setRateBudget,
     getRemainingBudget,
     checkRateBudget,
-} from '../../engine/infra/CircuitBreaker.ts';
+} from '../engine/infra/CircuitBreaker';
 import { apiKeyRoundRobin, ApiKeyRoundRobin } from './ApiKeyRoundRobin.js';
+import { logger } from '@/observability/logger.js';
 
 // ─── Provider Budget Definitions ────────────────────────────────
 
@@ -140,6 +140,75 @@ export async function fetchWithBudget(providers, sym, tfId) {
     }
 
     return { data: null, source: null };
+}
+
+/**
+ * Item #13: Speculative dual-provider fetch.
+ * Races the top-2 providers via Promise.any() for latency-critical paths
+ * (initial chart load, symbol switch). First provider with valid data wins.
+ *
+ * Uses more budget than sequential fetch — only call for user-visible
+ * critical paths, NOT for background prefetching.
+ *
+ * @param {Array<ProviderEntry>} providers - Ordered provider list
+ * @param {string} sym - Symbol to fetch
+ * @param {string} tfId - Timeframe ID
+ * @returns {Promise<{data: Array|null, source: string|null}>}
+ */
+export async function fetchWithSpeculation(providers, sym, tfId) {
+    initProviderBudgets();
+
+    // Sort by remaining budget, take top 2 with headroom
+    const ranked = [...providers]
+        .map((p) => ({
+            ...p,
+            remaining: getRemainingBudget(p.id),
+        }))
+        .filter((p) => p.remaining > 0)
+        .sort((a, b) => b.remaining - a.remaining);
+
+    // Need at least 2 providers for speculation; fallback to sequential
+    if (ranked.length < 2) {
+        return fetchWithBudget(providers, sym, tfId);
+    }
+
+    const top2 = ranked.slice(0, 2);
+
+    // Race the top two providers — first valid response wins
+    const racePromises = top2.map(async (provider) => {
+        if (!checkRateBudget(provider.id)) {
+            throw new Error(`${provider.name} budget exhausted`);
+        }
+
+        let data;
+        if (apiKeyRoundRobin.hasProvider(provider.id) && provider.fetchWithKey) {
+            const result = await apiKeyRoundRobin.race(
+                provider.id,
+                (key) => provider.fetchWithKey(key, sym, tfId),
+            );
+            data = result?.data;
+        } else {
+            data = await provider.fetch(sym, tfId);
+        }
+
+        if (!data || data.length <= 1) {
+            throw new Error(`${provider.name} returned no data`);
+        }
+
+        logger.data.info(
+            `[ProviderOrchestrator] Speculative winner: ${provider.name} (${data.length} bars for ${sym}@${tfId})`
+        );
+        return { data, source: provider.id };
+    });
+
+    try {
+        return await Promise.any(racePromises);
+    // eslint-disable-next-line unused-imports/no-unused-vars
+    } catch (_) {
+        // All speculative fetches failed — fall back to full sequential
+        logger.data.warn(`[ProviderOrchestrator] Speculation failed for ${sym}@${tfId}, falling back to sequential`);
+        return fetchWithBudget(providers, sym, tfId);
+    }
 }
 
 /**

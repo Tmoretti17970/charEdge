@@ -6,7 +6,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import type { CanonicalBar } from '../types/canonical.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@/observability/logger.js';
+import { sortedMergeBars } from './sortedMerge.js';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -137,30 +138,25 @@ export async function backfillGaps(
     // Collect all backfilled bars
     const backfilled: CanonicalBar[] = [];
 
-    for (const gap of gaps) {
-        try {
-            const fetched = await fetcher(symbol, tf, gap.afterTime, gap.beforeTime);
-            if (fetched.length > 0) {
-                backfilled.push(...fetched);
-                result.gapsFilled++;
-                result.barsInserted += fetched.length;
-            }
-        } catch (err) {
-            logger.data.warn(`Gap backfill failed for ${symbol} ${gap.afterTime}-${gap.beforeTime}`, err);
+    // Fetch all gaps in parallel — they are independent time ranges
+    const fetchResults = await Promise.allSettled(
+        gaps.map(gap => fetcher(symbol, tf, gap.afterTime, gap.beforeTime))
+    );
+
+    for (let i = 0; i < fetchResults.length; i++) {
+        const r = fetchResults[i]!;
+        if (r.status === 'fulfilled' && r.value.length > 0) {
+            backfilled.push(...r.value);
+            result.gapsFilled++;
+            result.barsInserted += r.value.length;
+        } else if (r.status === 'rejected') {
+            logger.data.warn(`Gap backfill failed for ${symbol} ${gaps[i]!.afterTime}-${gaps[i]!.beforeTime}`, r.reason);
         }
     }
 
-    // Merge and deduplicate by time
-    const merged = [...bars, ...backfilled];
-    const seen = new Set<number>();
-    const deduped = merged.filter(b => {
-        if (seen.has(b.time)) return false;
-        seen.add(b.time);
-        return true;
-    });
-
-    // Sort ascending
-    deduped.sort((a, b) => a.time - b.time);
+    // O(n) two-pointer merge — both input and backfilled are sorted ascending
+    backfilled.sort((a, b) => a.time - b.time);
+    const deduped = sortedMergeBars(bars, backfilled, b => b.time, 'b');
 
     return { bars: deduped, result };
 }

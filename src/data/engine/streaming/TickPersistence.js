@@ -26,8 +26,8 @@
 //   const csv = await tickPersistence.exportCSV('BTCUSDT');
 // ═══════════════════════════════════════════════════════════════════
 
-import { pipelineLogger } from '../infra/DataPipelineLogger.js';
 import { openUnifiedDB } from '../../UnifiedDB.js';
+import { pipelineLogger } from '../infra/DataPipelineLogger.js';
 
 // ─── Constants ─────────────────────────────────────────────────
 
@@ -40,7 +40,7 @@ const MAX_RING_SIZE = 2000;           // Hot cache ring buffer per symbol
 const RETENTION_DAYS = 7;             // Keep 7 days of tick data
 const RETENTION_MS = RETENTION_DAYS * 86400000;
 const EVICTION_CHECK_INTERVAL = 30 * 60 * 1000; // Check every 30 min
-const BATCH_SIZE = 200;               // IDB batch write size
+const _BATCH_SIZE = 200;               // IDB batch write size
 
 // ─── Helpers ───────────────────────────────────────────────────
 
@@ -77,7 +77,7 @@ class TypedRingBuffer {
 
   push(price, volume, time, side) {
     const idx = (this.head % this.capacity) * FIELDS_PER_TICK;
-    this._data[idx]     = price;
+    this._data[idx] = price;
     this._data[idx + 1] = volume;
     this._data[idx + 2] = time;
     this._data[idx + 3] = side;
@@ -94,10 +94,10 @@ class TypedRingBuffer {
       const idx = ((start + i) % this.capacity) * FIELDS_PER_TICK;
       items.push({
         symbol,
-        price:  this._data[idx],
+        price: this._data[idx],
         volume: this._data[idx + 1],
-        time:   this._data[idx + 2],
-        side:   this._data[idx + 3],    // 1 = buy, 0 = sell
+        time: this._data[idx + 2],
+        side: this._data[idx + 3],    // 1 = buy, 0 = sell
       });
     }
     this.count = 0;
@@ -113,10 +113,10 @@ class TypedRingBuffer {
     for (let i = 0; i < count; i++) {
       const idx = ((start + i) % this.capacity) * FIELDS_PER_TICK;
       items.push({
-        price:  this._data[idx],
+        price: this._data[idx],
         volume: this._data[idx + 1],
-        time:   this._data[idx + 2],
-        side:   this._data[idx + 3] === 1 ? 'buy' : 'sell',
+        time: this._data[idx + 2],
+        side: this._data[idx + 3] === 1 ? 'buy' : 'sell',
       });
     }
     return items;
@@ -224,6 +224,7 @@ class _TickPersistence {
         };
         req.onerror = () => resolve([]);
       });
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return [];
     }
@@ -243,23 +244,61 @@ class _TickPersistence {
   }
 
   /**
-   * Export tick data as CSV string.
+   * Export tick data as CSV Blob via streaming cursor (P2 7.3).
+   * Unlike the old exportCSV, this NEVER loads all ticks at once —
+   * it iterates the IDB cursor and collects rows in 1000-row chunks.
    *
    * @param {string} symbol
    * @param {number} [fromTime=0] - Start time (0 = all)
    * @param {number} [toTime=Infinity] - End time
-   * @returns {Promise<string>} CSV content
+   * @returns {Promise<Blob>} CSV blob
    */
   async exportCSV(symbol, fromTime = 0, toTime = Date.now()) {
-    const ticks = await this.getTickRange(symbol, fromTime, toTime, Infinity);
-    if (!ticks.length) return '';
+    if (!this._enabled) return new Blob([''], { type: 'text/csv' });
+    const upper = (symbol || '').toUpperCase();
 
     const header = 'timestamp,price,volume,side,source\n';
-    const rows = ticks.map(t =>
-      `${t.time},${t.price},${t.volume},${t.side},${t.source}`
-    ).join('\n');
+    const chunks = [header];
+    const CHUNK_SIZE = 1000;
+    let buffer = [];
 
-    return header + rows;
+    try {
+      const db = await openTickDB();
+      await new Promise((resolve) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const index = store.index('symbol_time');
+        const range = IDBKeyRange.bound([upper, fromTime], [upper, toTime]);
+
+        const req = index.openCursor(range);
+        req.onsuccess = (event) => {
+          const cursor = event.target.result;
+          if (cursor) {
+            const cursorValue = cursor.value;
+            buffer.push(
+              `${cursorValue.time},${cursorValue.price},${cursorValue.volume},${cursorValue.side === 1 ? 'buy' : 'sell'},${cursorValue.source || ''}`
+            );
+            if (buffer.length >= CHUNK_SIZE) {
+              chunks.push(buffer.join('\n') + '\n');
+              buffer = [];
+            }
+            cursor.continue();
+          } else {
+            // End of cursor — flush remaining buffer
+            if (buffer.length > 0) {
+              chunks.push(buffer.join('\n') + '\n');
+            }
+            resolve();
+          }
+        };
+        req.onerror = () => resolve();
+      });
+    // eslint-disable-next-line unused-imports/no-unused-vars
+    } catch (_) {
+      // IDB error — return header-only blob
+    }
+
+    return new Blob(chunks, { type: 'text/csv' });
   }
 
   /**
@@ -290,21 +329,19 @@ class _TickPersistence {
    */
   async downloadExport(symbol, format = 'csv') {
     const upper = (symbol || '').toUpperCase();
-    let content, filename, mimeType;
+    let blob, filename;
 
     if (format === 'json') {
-      content = await this.exportJSON(upper);
+      const content = await this.exportJSON(upper);
+      blob = new Blob([content], { type: 'application/json' });
       filename = `charEdge_${upper}_ticks_${Date.now()}.json`;
-      mimeType = 'application/json';
     } else {
-      content = await this.exportCSV(upper);
+      blob = await this.exportCSV(upper);
       filename = `charEdge_${upper}_ticks_${Date.now()}.csv`;
-      mimeType = 'text/csv';
     }
 
-    if (!content) return;
+    if (!blob || blob.size === 0) return;
 
-    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -345,6 +382,7 @@ class _TickPersistence {
         };
         req.onerror = () => resolve({});
       });
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return {};
     }
@@ -525,7 +563,7 @@ class _TickPersistence {
 
     try {
       // Drain all ring buffers
-      for (const [symbol, ring] of this._buffers) {
+      for (const [_symbol, ring] of this._buffers) {
         if (ring.size === 0) continue;
         const ticks = ring.drain();
         if (ticks.length === 0) continue;
@@ -538,6 +576,7 @@ class _TickPersistence {
         }
         this._totalFlushed += ticks.length;
       }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       // Best effort — page is unloading
     }

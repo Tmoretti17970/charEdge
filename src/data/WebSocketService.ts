@@ -6,103 +6,32 @@
 // Stream changes use runtime SUBSCRIBE/UNSUBSCRIBE messages to avoid
 // full teardown/reconnect (eliminates data gaps during symbol changes).
 //
-// v16 additions:
-//   - 30s heartbeat ping with 5s pong timeout (silent disconnect detection)
-//   - Connection health metrics (latency, reconnect count, data staleness)
-//   - Binance @trade stream for sub-second tick data
-//
-// API:
-//   wsService.subscribe(symbol, tf, callbacks) → subscriptionId
-//   wsService.unsubscribe(subscriptionId?)     → void (no args = unsubscribe all)
-//   WebSocketService.isSupported(symbol)       → boolean
-//
-// Architecture:
-//   subscribe('BTC','1h')  ──┐
-//   subscribe('ETH','1h')  ──┤──→ single WS: /stream?streams=btcusdt@kline_1h/ethusdt@kline_1h
-//   subscribe('SOL','5m')  ──┘
-//                              ↓ onmessage
-//                         dispatch by msg.stream to per-sub callbacks
+// Sprint 9 #69: Constants, helpers, and lazy imports extracted to ws/.
+//   - ws/constants.ts    — WS_STATUS, TF_MAP, symbol helpers, security
+//   - ws/lazyImports.ts  — Lazy BinaryCodec + StreamingBridge
 // ═══════════════════════════════════════════════════════════════════
 
-import { isCrypto } from '../constants.js';
 import { TickRingBuffer } from './engine/streaming/TickRingBuffer.ts';
-import { logger } from '../utils/logger';
+import { logger } from '@/observability/logger';
 
-// Cache StreamingIndicatorBridge import to avoid dynamic import() on every tick
-let _streamingBridge = null;
-let _streamingBridgeLoading = false;
+// Sprint 9 #69: Import from extracted ws/ modules
+import {
+  WS_STATUS, streamKey, tradeStreamKey,
+  HEARTBEAT_INTERVAL_MS, PONG_TIMEOUT_MS, ALLOWED_WS_HOSTS,
+  isStreamingSupported
+} from './ws/constants.ts';
+import { getBinaryCodec, getStreamingBridge } from './ws/lazyImports.ts';
 
-// Lazy-load BinaryCodec for binary WS message decoding (Task 1.3.2)
-let _binaryCodec = null;
-let _binaryCodecLoading = false;
-function _getBinaryCodec() {
-  if (_binaryCodec) return _binaryCodec;
-  if (_binaryCodecLoading) return null;
-  _binaryCodecLoading = true;
-  import('./engine/infra/BinaryCodec.js')
-    .then(mod => { _binaryCodec = mod.BinaryCodec || mod.default; })
-    .catch(() => { _binaryCodecLoading = false; });
-  return null;
-}
-function _getStreamingBridge() {
-  if (_streamingBridge) return _streamingBridge;
-  if (_streamingBridgeLoading) return null;
-  _streamingBridgeLoading = true;
-  import('./engine/indicators/StreamingIndicatorBridge.js')
-    .then(mod => { _streamingBridge = mod.streamingIndicatorBridge; })
-    .catch(() => { _streamingBridgeLoading = false; });
-  return null;
-}
+// Re-export WS_STATUS for backward compatibility
+export { WS_STATUS };
 
-export const WS_STATUS = {
-  DISCONNECTED: 'disconnected',
-  CONNECTING: 'connecting',
-  CONNECTED: 'connected',
-  RECONNECTING: 'reconnecting',
-};
-
-// BINANCE_SYMBOLS removed — use isCrypto() from constants.js
-
-const TF_MAP = {
-  '1m': '1m', '3m': '3m', '5m': '5m', '15m': '15m', '30m': '30m',
-  '1h': '1h', '2h': '2h', '4h': '4h', '6h': '6h', '8h': '8h',
-  '12h': '12h', '1D': '1d', '1d': '1d', '3D': '3d',
-  '1W': '1w', '1w': '1w', '1M': '1M',
-};
-
-function toSymbol(s) {
-  const u = (s || '').toUpperCase();
-  if (u.endsWith('USDT')) return u;
-  return u + 'USDT';
-}
-
-/**
- * Build the Binance stream key for a symbol+timeframe pair.
- * @param {string} symbol
- * @param {string} tf
- * @returns {string} e.g. "btcusdt@kline_1h"
- */
-function streamKey(symbol, tf) {
-  const sym = toSymbol(symbol).toLowerCase();
-  const interval = TF_MAP[tf] || '1h';
-  return `${sym}@kline_${interval}`;
-}
-
-/**
- * Build the Binance trade stream key for a symbol.
- * @param {string} symbol
- * @returns {string} e.g. "btcusdt@trade"
- */
-function tradeStreamKey(symbol) {
-  return `${toSymbol(symbol).toLowerCase()}@trade`;
-}
-
-// ─── Heartbeat Config ──────────────────────────────────────────
-const HEARTBEAT_INTERVAL_MS = 30_000;  // Send ping every 30s
-const PONG_TIMEOUT_MS = 5_000;         // Close if no pong within 5s
+// Alias lazy imports to match original local variable names
+const _getBinaryCodec = getBinaryCodec;
+const _getStreamingBridge = getStreamingBridge;
 
 let _nextSubId = 1;
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 class _WebSocketService {
   constructor() {
     /** @type {WebSocket|null} */
@@ -137,9 +66,6 @@ class _WebSocketService {
 
     // ── Heartbeat state ──
     this._heartbeatTimer = null;
-    this._pongTimeout = null;
-    this._pingSentAt = 0;       // timestamp when last ping was sent
-    this._awaitingPong = false;
 
     // ── Connection health metrics ──
     this._latencyMs = 0;
@@ -158,23 +84,45 @@ class _WebSocketService {
     /** @type {Map<string, TickRingBuffer>} */
     this._tickBuffers = new Map();
 
-    // ── 5A.1.5: rAF message batching ──
-    // Queue parsed messages and dispatch once per animation frame
-    // instead of on every WS callback (~200/s → ~60/s).
-    /** @type {Array<{stream: string, data: Object}>} */
-    this._pendingMessages = [];
+    // ── P1 Task B1: Latest-wins message map ──
+    // Only the most recent message per stream survives rAF throttling.
+    // Replaces unbounded array to prevent backpressure buildup.
+    /** @type {Map<string, Object>} */
+    this._pendingMessages = new Map();
     this._rafId = null;
 
+    // ── P1 Task P2: Subscriber stream indexes ──
+    // O(1) dispatch lookup instead of iterating all subs per message.
+    /** @type {Map<string, Set<number>>} */
+    this._klineSubsByStream = new Map();
+    /** @type {Map<string, Set<number>>} */
+    this._tradeSubsByStream = new Map();
+
     // ── Task 2.3.16: Pre-allocated scratch objects (zero-alloc hot path) ──
-    // These are reused on every tick dispatch to avoid GC pressure.
-    // Safe because subscriber callbacks consume values synchronously.
     this._scratchBar = { time: 0, open: 0, high: 0, low: 0, close: 0, volume: 0, isClosed: false };
     this._scratchTrade = { price: 0, qty: 0, time: 0, isBuyerMaker: false };
     this._scratchBridgeTick = { price: 0, volume: 0, time: 0, side: '' };
+
+    // ── P2 1.4: Last known prices for sanity checking ──
+    /** @type {Map<string, number>} */
+    this._lastKnownPrice = new Map();
+
+    // ── P1 Task R5: Drop stale queue on tab return ──
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          this._pendingMessages.clear();
+          if (this._rafId) {
+            cancelAnimationFrame(this._rafId);
+            this._rafId = null;
+          }
+        }
+      });
+    }
   }
 
   static isSupported(symbol) {
-    return isCrypto(symbol);
+    return isStreamingSupported(symbol);
   }
 
   /**
@@ -196,6 +144,10 @@ class _WebSocketService {
 
     this._subs.set(subId, { streamKey: key, symbol, tf, callbacks });
 
+    // P1 Task P2: Update stream index
+    if (!this._klineSubsByStream.has(key)) this._klineSubsByStream.set(key, new Set());
+    this._klineSubsByStream.get(key).add(subId);
+
     // Reconnect with updated stream list (debounced for batching)
     this._scheduleStreamUpdate();
 
@@ -215,6 +167,11 @@ class _WebSocketService {
     const subId = _nextSubId++;
 
     this._tradeSubs.set(subId, { streamKey: key, symbol, callbacks });
+
+    // P1 Task P2: Update stream index
+    if (!this._tradeSubsByStream.has(key)) this._tradeSubsByStream.set(key, new Set());
+    this._tradeSubsByStream.get(key).add(subId);
+
     this._scheduleStreamUpdate();
 
     return subId;
@@ -242,6 +199,10 @@ class _WebSocketService {
       _klineOnly: true, // Flag: skip trade subscriptions
     });
 
+    // P1 Task P2: Update stream index
+    if (!this._klineSubsByStream.has(key)) this._klineSubsByStream.set(key, new Set());
+    this._klineSubsByStream.get(key).add(subId);
+
     this._scheduleStreamUpdate();
     return subId;
   }
@@ -254,21 +215,32 @@ class _WebSocketService {
    */
   unsubscribe(subId) {
     if (subId !== undefined) {
+      // P1 Task P2: Remove from stream indexes before deleting
+      const klineSub = this._subs.get(subId);
+      if (klineSub) {
+        const idx = this._klineSubsByStream.get(klineSub.streamKey);
+        if (idx) { idx.delete(subId); if (idx.size === 0) this._klineSubsByStream.delete(klineSub.streamKey); }
+      }
+      const tradeSub = this._tradeSubs.get(subId);
+      if (tradeSub) {
+        const idx = this._tradeSubsByStream.get(tradeSub.streamKey);
+        if (idx) { idx.delete(subId); if (idx.size === 0) this._tradeSubsByStream.delete(tradeSub.streamKey); }
+      }
       this._subs.delete(subId);
       this._tradeSubs.delete(subId);
     } else {
       // Legacy: unsubscribe everything
       this._subs.clear();
       this._tradeSubs.clear();
+      this._klineSubsByStream.clear();
+      this._tradeSubsByStream.clear();
     }
 
     const totalSubs = this._subs.size + this._tradeSubs.size;
     if (totalSubs === 0) {
-      // No more subscriptions — close the connection
       this._intentionalClose = true;
       this._closeWs();
     } else {
-      // Still have subs — reconnect with reduced stream list
       this._scheduleStreamUpdate();
     }
   }
@@ -400,6 +372,24 @@ class _WebSocketService {
     try {
       // Use combined streams endpoint for multiplexing
       const url = `wss://data-stream.binance.vision/stream?streams=${streams.join('/')}`;
+
+      // P2 1.4: Hostname pinning — reject connections to unknown hosts
+      try {
+        const hostname = new URL(url).hostname;
+        if (!ALLOWED_WS_HOSTS.has(hostname)) {
+          logger.data.warn(`[WebSocketService] Blocked connection to disallowed host: ${hostname}`);
+          this._status = WS_STATUS.DISCONNECTED;
+          this._notifyStatus();
+          return;
+        }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (__urlErr) {
+        logger.data.warn('[WebSocketService] Invalid WebSocket URL');
+        this._status = WS_STATUS.DISCONNECTED;
+        this._notifyStatus();
+        return;
+      }
+
       this._ws = new WebSocket(url);
 
       this._ws.onopen = () => {
@@ -443,16 +433,8 @@ class _WebSocketService {
             wrapper = JSON.parse(evt.data);
           }
 
-          // ── Pong response (heartbeat reply) — handle immediately ──
-          if (wrapper.pong !== undefined || wrapper.id !== undefined) {
-            if (this._awaitingPong) {
-              this._latencyMs = Date.now() - this._pingSentAt;
-              this._awaitingPong = false;
-              if (this._pongTimeout) {
-                clearTimeout(this._pongTimeout);
-                this._pongTimeout = null;
-              }
-            }
+          // ── Subscription response (SUBSCRIBE/UNSUBSCRIBE ack) ──
+          if (wrapper.id !== undefined && wrapper.result !== undefined) {
             return;
           }
 
@@ -477,11 +459,12 @@ class _WebSocketService {
             buf.push(+msg.p, +msg.q, msg.T, msg.m ? 1 : 0);
           }
 
-          // ── 5A.1.5: Queue for rAF-batched dispatch ──
-          this._pendingMessages.push({ stream: msgStream, data: msg });
+          // ── P1 Task B1: Latest-wins — overwrite previous msg for same stream ──
+          this._pendingMessages.set(msgStream, msg);
           if (!this._rafId) {
             this._rafId = requestAnimationFrame(() => this._flushMessages());
           }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_) {
           /* ignore parse errors */
         }
@@ -501,6 +484,7 @@ class _WebSocketService {
         this._notifyStatus();
         // onclose will fire after onerror, reconnect handled there
       };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
       this._status = WS_STATUS.DISCONNECTED;
       this._notifyStatus();
@@ -520,19 +504,14 @@ class _WebSocketService {
    */
   _flushMessages() {
     this._rafId = null;
-    // Task 2.3.16: Swap-and-truncate instead of allocating new array
     const batch = this._pendingMessages;
-    const len = batch.length;
-    if (len === 0) return;
+    if (batch.size === 0) return;
 
-    // Process all queued messages
-    for (let i = 0; i < len; i++) {
-      const { stream: msgStream, data: msg } = batch[i];
+    // P1 Task B1: Iterate latest-wins map
+    for (const [msgStream, msg] of batch) {
       this._dispatchMessage(msgStream, msg);
     }
-
-    // Truncate in-place — avoids creating a new [] per frame
-    batch.length = 0;
+    batch.clear();
   }
 
   /**
@@ -554,10 +533,23 @@ class _WebSocketService {
       bar.volume = +k.v;
       bar.isClosed = k.x;
 
-      for (const sub of this._subs.values()) {
-        if (sub.streamKey === msgStream) {
-          if (sub.callbacks.onBar) sub.callbacks.onBar(bar);
-          if (sub.callbacks.onCandle) sub.callbacks.onCandle(bar);
+      // P2 1.4: Price sanity check — reject zero, negative, or extreme spikes
+      const sym = msg.s || msgStream.split('@')[0].toUpperCase();
+      if (!this._isReasonablePrice(bar.close, sym)) {
+        logger.data.warn(`[WebSocketService] Rejected unreasonable price ${bar.close} for ${sym}`);
+        return;
+      }
+      this._lastKnownPrice.set(sym, bar.close);
+
+      // P1 Task P2: O(1) lookup via stream index
+      const klineSubIds = this._klineSubsByStream.get(msgStream);
+      if (klineSubIds) {
+        for (const subId of klineSubIds) {
+          const sub = this._subs.get(subId);
+          if (sub) {
+            if (sub.callbacks.onBar) sub.callbacks.onBar(bar);
+            if (sub.callbacks.onCandle) sub.callbacks.onCandle(bar);
+          }
         }
       }
 
@@ -585,9 +577,12 @@ class _WebSocketService {
       trade.time = msg.T;
       trade.isBuyerMaker = msg.m;
 
-      for (const sub of this._tradeSubs.values()) {
-        if (sub.streamKey === msgStream) {
-          if (sub.callbacks.onTrade) sub.callbacks.onTrade(trade);
+      // P1 Task P2: O(1) lookup via stream index
+      const tradeSubIds = this._tradeSubsByStream.get(msgStream);
+      if (tradeSubIds) {
+        for (const subId of tradeSubIds) {
+          const sub = this._tradeSubs.get(subId);
+          if (sub && sub.callbacks.onTrade) sub.callbacks.onTrade(trade);
         }
       }
 
@@ -606,6 +601,22 @@ class _WebSocketService {
         }
       } catch (e) { logger.data.warn('Operation failed', e); }
     }
+  }
+
+  // ── P2 1.4: Price sanity check ──────────────────────────────────
+
+  /**
+   * Check if a price is reasonable by comparing against last known price.
+   * Rejects zero, negative, or >100× jump from last known price.
+   * First tick for a symbol is always accepted.
+   * @private
+   */
+  _isReasonablePrice(price, symbol) {
+    if (price <= 0) return false;
+    const lastPrice = this._lastKnownPrice.get(symbol);
+    if (!lastPrice) return true; // First tick — accept
+    const ratio = price / lastPrice;
+    return ratio > 0.01 && ratio < 100; // Reject >100× spike or >99% crash
   }
 
   // ── 5A.1.2: Tick Buffer Access ────────────────────────────────
@@ -655,44 +666,39 @@ class _WebSocketService {
   }
 
   // ─── Heartbeat ────────────────────────────────────────────────
+  //
+  // Previous implementation sent { op: 'ping' } which Binance silently
+  // ignores (it uses native WebSocket ping/pong frames at the protocol
+  // level, not JSON application-level pings). This meant the heartbeat
+  // was a no-op — we had NO disconnect detection.
+  //
+  // New approach: Data-staleness monitoring. If we receive no data
+  // messages within HEARTBEAT_INTERVAL_MS, the connection is likely
+  // dead. After an additional PONG_TIMEOUT_MS grace period, reconnect.
+  // This works for ANY WebSocket provider, not just Binance.
 
-  /** @private — Start 30s heartbeat ping interval */
+  /** @private — Start data-staleness heartbeat monitor */
   _startHeartbeat() {
     this._stopHeartbeat();
+    this._lastMessageTime = Date.now(); // Reset on fresh connection
     this._heartbeatTimer = setInterval(() => {
       // Double-check the WS ref is still alive and fully open
       if (!this._ws || this._ws.readyState !== WebSocket.OPEN) return;
-      this._pingSentAt = Date.now();
-      this._awaitingPong = true;
 
-      let sendOk = false;
-      try {
-        // readyState can transition between check and send — catch the race
-        if (this._ws && this._ws.readyState === WebSocket.OPEN) {
-          this._ws.send(JSON.stringify({ op: 'ping' }));
-          sendOk = true;
-        }
-      } catch (_) {
-        // WS closed between readyState check and send — skip pong timeout
-        this._awaitingPong = false;
-      }
+      const now = Date.now();
+      const staleness = now - this._lastMessageTime;
 
-      // Only schedule pong timeout if the ping was actually sent
-      if (sendOk) {
-        // Clear any stacked pong timeout before creating a new one
-        if (this._pongTimeout) {
-          clearTimeout(this._pongTimeout);
-          this._pongTimeout = null;
-        }
-        // If no pong within timeout, treat as silent disconnect
-        this._pongTimeout = setTimeout(() => {
-          if (this._awaitingPong) {
-            logger.data.warn('[WebSocketService] Pong timeout — reconnecting');
-            this._awaitingPong = false;
-            this._closeWs();
-            this._scheduleReconnect();
-          }
-        }, PONG_TIMEOUT_MS);
+      // Data has arrived recently — connection is healthy
+      if (staleness < HEARTBEAT_INTERVAL_MS) return;
+
+      // No data for 30s — connection may be dead.
+      // Wait an additional PONG_TIMEOUT_MS grace period.
+      if (staleness > HEARTBEAT_INTERVAL_MS + PONG_TIMEOUT_MS) {
+        logger.data.warn(
+          `[WebSocketService] Data stale for ${Math.round(staleness / 1000)}s — reconnecting`
+        );
+        this._closeWs();
+        this._scheduleReconnect();
       }
     }, HEARTBEAT_INTERVAL_MS);
   }
@@ -703,11 +709,6 @@ class _WebSocketService {
       clearInterval(this._heartbeatTimer);
       this._heartbeatTimer = null;
     }
-    if (this._pongTimeout) {
-      clearTimeout(this._pongTimeout);
-      this._pongTimeout = null;
-    }
-    this._awaitingPong = false;
   }
 
   // ─── Connection Health ────────────────────────────────────────
@@ -748,7 +749,7 @@ class _WebSocketService {
       this._rafId = null;
     }
     // Flush any remaining queued messages synchronously before closing
-    if (this._pendingMessages.length > 0) {
+    if (this._pendingMessages.size > 0) {
       this._flushMessages();
     }
     if (this._ws) {

@@ -7,8 +7,8 @@
 
 import { useState, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useGamificationStore } from '../../../state/useGamificationStore.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { useGamificationStore } from '../../../state/useGamificationStore';
+import { alpha } from '@/shared/colorUtils';
 
 export default function DailyChallengeCard() {
   const challenge = useGamificationStore((s) => s.dailyChallenge);

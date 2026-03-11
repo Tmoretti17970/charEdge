@@ -21,7 +21,11 @@ test.describe('Drawing Tool', () => {
         if (await drawBtn.isVisible({ timeout: 10_000 })) {
             await drawBtn.click();
             // After clicking, cursor should change or tool should be active
-            await page.waitForTimeout(500);
+            // Wait for drawing mode to activate (tool panel or cursor change)
+            await page.waitForFunction(
+                () => document.querySelector('[class*="active"], [class*="drawing-active"], [data-drawing-mode]'),
+                { timeout: 3_000 }
+            ).catch(() => { });
         }
     });
 });

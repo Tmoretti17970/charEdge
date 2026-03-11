@@ -6,11 +6,11 @@
 // session phase to always show the most relevant options.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useUIStore } from '../../../state/useUIStore.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { useBreakpoints } from '../../../utils/useMediaQuery.js';
+import { useJournalStore } from '../../../state/useJournalStore';
+import { useUIStore } from '../../../state/useUIStore';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 // ─── Session Phase (shared logic) ────────────────────────────────
 
@@ -28,9 +28,9 @@ function getSessionPhase() {
 function useActions(phase) {
   const openModal = useUIStore((s) => s.openModal);
   const openQuickTrade = useUIStore((s) => s.openQuickTrade);
-  const setPage = useUIStore((s) => s.setPage);
+  const _setPage = useUIStore((s) => s.setPage);
   const toggleCmdPalette = useUIStore((s) => s.toggleCmdPalette);
-  const trades = useJournalStore((s) => s.trades);
+  const _trades = useJournalStore((s) => s.trades);
 
   // File input ref for CSV import
   const triggerImport = () => {

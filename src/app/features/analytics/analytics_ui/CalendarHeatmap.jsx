@@ -8,7 +8,7 @@
 // Data comes from computeFast's equity curve (eq array).
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../../constants.js';
 
 const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
@@ -249,7 +249,7 @@ export default function CalendarHeatmap({ eq, trades }) {
     return max || 100;
   }, [weeks]);
 
-  const gridWidth = weeks.length * (CELL_SIZE + CELL_GAP) + 30; // 30 for day labels
+  const _gridWidth = weeks.length * (CELL_SIZE + CELL_GAP) + 30; // 30 for day labels
 
   const handleCellHover = (cell, e) => {
     if (cell.isFuture) return;

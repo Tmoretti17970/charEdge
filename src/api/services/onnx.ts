@@ -1,4 +1,3 @@
-import type { Request, Response, NextFunction, Router } from 'express';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — ONNX Runtime Web Service
 //
@@ -93,9 +92,8 @@ export class ONNXService {
 
         const start = performance.now();
         const results = await session.run(feeds);
-        const duration = performance.now() - start;
+        const _duration = performance.now() - start;
 
-        console.debug(`[ONNX] "${name}" inference: ${duration.toFixed(1)}ms`);
         return results;
     }
 

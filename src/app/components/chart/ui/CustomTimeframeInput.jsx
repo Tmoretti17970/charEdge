@@ -4,11 +4,11 @@
 // similar to TradingView's custom timeframe feature.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { C, F } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore.js';
+import { useChartStore } from '../../../../state/useChartStore';
 
-const VALID_SUFFIXES = ['m', 'h', 'D', 'd', 'W', 'w', 'M'];
+const _VALID_SUFFIXES = ['m', 'h', 'D', 'd', 'W', 'w', 'M'];
 
 function parseTf(input) {
   const trimmed = input.trim();

@@ -37,6 +37,7 @@ export function getFrequentSymbols(limit = 10) {
       .map(([symbol, count]) => ({ symbol, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, limit);
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return [];
   }
@@ -53,6 +54,7 @@ export function recordSymbolView(symbol) {
     const freq = raw ? JSON.parse(raw) : {};
     freq[symbol] = (freq[symbol] || 0) + 1;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(freq));
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     // localStorage not available
   }
@@ -88,6 +90,7 @@ async function _fillGaps(symbol, interval, fetchFn) {
       await opfsBarStore.putCandles(symbol, interval, merged);
       filled = olderBars.length;
     }
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     errors++;
   }
@@ -133,6 +136,7 @@ export async function startAccumulator(opts = {}) {
       // Pass fetchOpts so endTime is respected for gap-filling
       const result = await fetchOHLC(sym, interval, fetchOpts);
       return result?.data || null;
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return null;
     }

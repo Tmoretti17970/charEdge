@@ -5,8 +5,8 @@
 // keyboard nav, scrollable body, footer (Cancel/Ok + extras).
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { C, F, M, GLASS, DEPTH } from '../../../constants.js';
+import React, { useEffect, useRef, useCallback } from 'react';
+import { C, F, GLASS, DEPTH } from '../../../constants.js';
 
 /**
  * @param {Object} props
@@ -71,7 +71,7 @@ export default function SettingsTabShell({
 
     // ─── Active tab underline position ────────────────────────────
     const activeIdx = tabs.findIndex((t) => t.id === activeTab);
-    const tabWidth = tabs.length > 0 ? 100 / tabs.length : 100;
+    const _tabWidth = tabs.length > 0 ? 100 / tabs.length : 100;
 
     return (
         <div

@@ -8,7 +8,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { C, F } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 export default function WidgetWrapper({
   id,

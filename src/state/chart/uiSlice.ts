@@ -1,5 +1,5 @@
 // Default chart colors (TradingView dark theme)
-const DEFAULT_CHART_COLORS = {
+const _DEFAULT_CHART_COLORS = {
   candleUp: '#26A69A',
   candleDown: '#EF5350',
   wickUp: '#26A69A',
@@ -17,14 +17,16 @@ let _savedColors = null;
 try {
   const raw = localStorage.getItem('charEdge-chart-colors');
   if (raw) _savedColors = JSON.parse(raw);
-} catch (_) { }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+} catch (_) { /* ignored */ }
 
 // Sprint 15: Load persisted chart type config
 let _savedChartTypeConfig = null;
 try {
   const raw = localStorage.getItem('charEdge-chart-type-config');
   if (raw) _savedChartTypeConfig = JSON.parse(raw);
-} catch (_) { }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+} catch (_) { /* ignored */ }
 
 export const createUISlice = (set) => ({
   layoutMode: '1x1',
@@ -52,10 +54,10 @@ export const createUISlice = (set) => ({
   // ── Trade Mode ──────────────────────────────────────────────────
   tradeMode: false,
   tradeStep: 'idle' as 'idle' | 'entry' | 'sl' | 'tp' | 'ready',
-  startTradeMode: (side?: 'long' | 'short') =>
-    set({ tradeMode: true, tradeStep: 'entry' }),
+  startTradeMode: (side: 'long' | 'short' = 'long') =>
+    set({ tradeMode: true, tradeSide: side, showTradePanel: true, tradeStep: 'entry' }),
   exitTradeMode: () =>
-    set({ tradeMode: false, tradeStep: 'idle' }),
+    set({ tradeMode: false, tradeStep: 'idle', showTradePanel: false }),
   setTradeStep: (step: 'idle' | 'entry' | 'sl' | 'tp' | 'ready') =>
     set({ tradeStep: step }),
 
@@ -79,13 +81,15 @@ export const createUISlice = (set) => ({
       const merged = s.chartColors ? { ...s.chartColors, ...colors } : { ...colors };
       try {
         localStorage.setItem('charEdge-chart-colors', JSON.stringify(merged));
-      } catch (_) { }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (_) { /* ignored */ }
       return { chartColors: merged };
     }),
   resetChartColors: () => {
     try {
       localStorage.removeItem('charEdge-chart-colors');
-    } catch (_) { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_) { /* ignored */ }
     set({ chartColors: null });
   },
 
@@ -97,7 +101,8 @@ export const createUISlice = (set) => ({
       const next = { ...prev, [typeId]: typeConf };
       try {
         localStorage.setItem('charEdge-chart-type-config', JSON.stringify(next));
-      } catch (_) { }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (_) { /* ignored */ }
       return { chartTypeConfig: next };
     }),
   resetChartTypeConfig: (typeId) =>
@@ -106,7 +111,8 @@ export const createUISlice = (set) => ({
       delete prev[typeId];
       try {
         localStorage.setItem('charEdge-chart-type-config', JSON.stringify(prev));
-      } catch (_) { }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (_) { /* ignored */ }
       return { chartTypeConfig: prev };
     }),
 });

@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 export default function StreakRewardsBanner() {
   // Simulate a streak (in production, this would come from useGamificationStore)

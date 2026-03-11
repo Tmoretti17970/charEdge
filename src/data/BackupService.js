@@ -17,7 +17,7 @@
 //   await backupService.backup('download');
 // ═══════════════════════════════════════════════════════════════════
 
-import { logger } from '../utils/logger.js';
+import { logger } from '@/observability/logger.js';
 
 // ─── Shared Backup Keys ─────────────────────────────────────────
 // Single source of truth: all localStorage keys worth backing up.
@@ -236,6 +236,7 @@ class BackupService {
         if (!s) return;
         try {
             await s.disconnect();
+        // eslint-disable-next-line unused-imports/no-unused-vars
         } catch (_) { /* swallow */ }
     }
 

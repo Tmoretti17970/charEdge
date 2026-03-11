@@ -3,23 +3,23 @@
 // End-to-end pipelines verifying modules work together.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../state/useUserStore.ts';
 import { describe, it, expect } from 'vitest';
-import { parseCSVRaw, exportCSV, importCSV } from '../../charting_library/datafeed/csv.js';
-import { StorageService } from '../../data/StorageService.ts';
-import { computeFast } from '../../app/features/analytics/analyticsFast.js';
-import { useJournalStore } from '../../state/useJournalStore.ts';
-import { useAnalyticsStore } from '../../state/useAnalyticsStore.ts';
-import { useUIStore } from '../../state/useUIStore.ts';
-import { genDemoData, genRandomTrades } from '../../data/demoData.js';
-import { groupTradesBy, groupTradesByTime } from '../../utils/groupTradesBy.js';
-import { compInd } from '../../charting_library/studies/compInd.js';
-import { Calc } from '../../charting_library/model/Calc.js';
 import { AnalyticsBridge } from '../../app/features/analytics/AnalyticsBridge.js';
-import { RetryQueue } from '../../utils/RetryQueue.js';
+import { computeFast } from '../../app/features/analytics/analyticsFast.js';
 import { LayoutCache } from '../../charting_library/core/LayoutCache.js';
+import { parseCSVRaw, exportCSVString, importCSV } from '../../charting_library/datafeed/csv.js';
+import { Calc } from '../../charting_library/model/Calc.js';
+import { compInd } from '../../charting_library/studies/compInd.js';
 import { genVolumeProfile } from '../../charting_library/studies/orderFlow.js';
+import { genDemoData, genRandomTrades } from '../../data/demoData.js';
+import { StorageService } from '../../data/StorageService.ts';
+import { useAnalyticsStore } from '../../state/useAnalyticsStore.ts';
+import { useJournalStore } from '../../state/useJournalStore.ts';
+import { useUIStore } from '../../state/useUIStore.ts';
+import { useUserStore } from '../../state/useUserStore.ts';
 import { uid, fmtD, fmt } from '../../utils.js';
+import { RetryQueue } from '@/shared/RetryQueue';
+import { groupTradesBy, groupTradesByTime } from '@/trading/groupTradesBy';
 
 // ═══ Pipeline: CSV Import → Store → Analytics ═══════════════════
 describe('CSV → Store → Analytics pipeline', () => {
@@ -86,11 +86,16 @@ describe('CSV → Store → Analytics pipeline', () => {
     expect(result.errors).toBe(0);
   });
 
-  it('CSV round-trip: export → re-import → consistent analytics', () => {
+  it('exportCSV of empty trades produces header only', async () => {
+    const csv = await exportCSVString([]);
+    expect(csv).toBe('Date,Symbol,Side,Qty,Entry,P&L,Fees,R,Emotion,Tags\n');
+  });
+
+  it('CSV round-trip: export → re-import → consistent analytics', async () => {
     const { trades } = genDemoData();
 
     // Export to CSV
-    const csv = exportCSV(trades);
+    const csv = await exportCSVString(trades);
     expect(csv.length).toBeGreaterThan(100);
 
     // Re-import

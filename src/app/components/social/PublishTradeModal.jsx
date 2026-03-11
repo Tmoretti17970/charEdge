@@ -4,8 +4,8 @@
 
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
 import { useSocialStore } from '../../../state/useSocialStore.js';
+import { alpha } from '@/shared/colorUtils';
 
 const TAGS = ['breakout', 'reversal', 'scalp', 'swing', 'momentum', 'mean-reversion', 'news-play', 'dip-buy'];
 

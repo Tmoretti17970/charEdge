@@ -142,6 +142,7 @@ export function createFancyCanvas(container, options = {}) {
     try {
       resizeObserver.observe(container, { box: ['device-pixel-content-box'] });
       useDevicePixelContentBox = true;
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       // Fallback for browsers without devicePixelContentBox
       resizeObserver.observe(container, { box: 'content-box' });

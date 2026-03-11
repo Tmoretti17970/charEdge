@@ -29,6 +29,29 @@ export class BaseAdapter {
   }
 
   /**
+   * Normalize bar timestamps to millisecond epoch.
+   * Adapters return inconsistent formats: seconds, ms, or ISO strings.
+   * Call this on any bar array to ensure consistent ms-epoch times.
+   * @param {Array} bars
+   * @returns {Array} bars with normalized timestamps (mutates in place)
+   */
+  static normalizeTimestamps(bars) {
+    if (!Array.isArray(bars) || bars.length === 0) return bars;
+    for (let i = 0; i < bars.length; i++) {
+      const t = bars[i].time;
+      if (typeof t === 'string') {
+        // ISO string → ms epoch
+        bars[i].time = new Date(t).getTime();
+      } else if (typeof t === 'number' && t > 0 && t < 1e12) {
+        // Unix seconds → ms (any timestamp before year 2001 in ms is before 1970 in seconds)
+        bars[i].time = t * 1000;
+      }
+      // else: already ms epoch — leave as is
+    }
+    return bars;
+  }
+
+  /**
    * Fetch current quote/snapshot for a symbol.
    * @param {string} symbol
    * @returns {Promise<{price:number,change:number,changePct:number,volume:number,high:number,low:number,open:number}>}

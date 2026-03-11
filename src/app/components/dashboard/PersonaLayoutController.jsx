@@ -11,12 +11,11 @@
 // Uses the existing useUserStore for tier detection.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../../state/useUserStore.js';
-import React, { useMemo } from 'react';
-import { C, M, F } from '../../../constants.js';
-import { radii } from '../../../theme/tokens.js';
+import { C, M } from '../../../constants.js';
 import { TIERS, TIER_CONFIG } from '../../../state/user/personaSlice.js';
-import { useBreakpoints } from '../../../utils/useMediaQuery.js';
+import { useUserStore } from '../../../state/useUserStore';
+import { radii } from '../../../theme/tokens.js';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 // ─── Layout visibility per tier ──────────────────────────────────
 

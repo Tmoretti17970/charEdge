@@ -5,6 +5,9 @@
 // Runs CPU-bound math (SMA, EMA, RSI, MACD, Bollinger Bands, etc.)
 // off the main thread using typed arrays for maximum throughput.
 //
+// Sprint 16–17: WASM-first with JS fallback.
+// If charedge-wasm is available, indicators run ~5–10× faster.
+//
 // Message Types (Main → Worker):
 //   'compute'   — Compute indicators on provided bar data
 //   'dispose'   — Clean up
@@ -12,6 +15,28 @@
 // Message Types (Worker → Main):
 //   'result'    — Computed indicator values
 // ═══════════════════════════════════════════════════════════════════
+
+// ─── WASM Integration ───────────────────────────────────────────
+
+let wasmModule = null;
+
+async function initWasm() {
+  try {
+    const wasm = await import('./wasmBridge.js');
+    await wasm.wasmReady;
+    if (wasm.isWasmAvailable()) {
+      wasmModule = wasm;
+    }
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  } catch (_err) {
+    // no-op
+  }
+}
+
+// Initialize WASM on worker startup
+initWasm();
+
+// ─── Message Handler ────────────────────────────────────────────
 
 self.onmessage = function(e) {
   const { type, payload } = e.data;
@@ -45,7 +70,7 @@ function handleCompute(payload) {
   self.postMessage({ type: 'result', payload: results });
 }
 
-// ─── Indicator Computations ─────────────────────────────────────
+// ─── Indicator Computations (WASM-first, JS fallback) ───────────
 
 function computeIndicator(ind, close, high, low, length) {
   switch (ind.type) {
@@ -63,6 +88,13 @@ function computeIndicator(ind, close, high, low, length) {
 // ─── SMA ──────────────────────────────────────────────────────
 
 function computeSMA(close, length, period) {
+  // WASM fast path
+  if (wasmModule) {
+    const result = wasmModule.wasmSMA(close, period);
+    if (result) return { values: result };
+  }
+
+  // JS fallback
   const values = new Float64Array(length);
   if (length < period) return { values };
 
@@ -75,7 +107,6 @@ function computeSMA(close, length, period) {
     values[i] = sum / period;
   }
 
-  // Fill initial NaN values
   for (let i = 0; i < period - 1; i++) values[i] = NaN;
 
   return { values };
@@ -84,12 +115,18 @@ function computeSMA(close, length, period) {
 // ─── EMA ──────────────────────────────────────────────────────
 
 function computeEMA(close, length, period) {
+  // WASM fast path
+  if (wasmModule) {
+    const result = wasmModule.wasmEMA(close, period);
+    if (result) return { values: result };
+  }
+
+  // JS fallback
   const values = new Float64Array(length);
   if (length < period) return { values };
 
   const k = 2 / (period + 1);
 
-  // Seed with SMA
   let sum = 0;
   for (let i = 0; i < period; i++) sum += close[i];
   values[period - 1] = sum / period;
@@ -106,6 +143,13 @@ function computeEMA(close, length, period) {
 // ─── RSI ──────────────────────────────────────────────────────
 
 function computeRSI(close, length, period) {
+  // WASM fast path
+  if (wasmModule) {
+    const result = wasmModule.wasmRSI(close, period);
+    if (result) return { values: result };
+  }
+
+  // JS fallback
   const values = new Float64Array(length);
   if (length < period + 1) return { values };
 
@@ -138,6 +182,13 @@ function computeRSI(close, length, period) {
 // ─── MACD ─────────────────────────────────────────────────────
 
 function computeMACD(close, length, fastPeriod, slowPeriod, signalPeriod) {
+  // WASM fast path
+  if (wasmModule) {
+    const result = wasmModule.wasmMACD(close, fastPeriod, slowPeriod, signalPeriod);
+    if (result) return result;
+  }
+
+  // JS fallback
   const fast = computeEMA(close, length, fastPeriod).values;
   const slow = computeEMA(close, length, slowPeriod).values;
   const macdLine = new Float64Array(length);
@@ -178,6 +229,13 @@ function computeMACD(close, length, fastPeriod, slowPeriod, signalPeriod) {
 // ─── Bollinger Bands ──────────────────────────────────────────
 
 function computeBollinger(close, length, period, stdDevMultiplier) {
+  // WASM fast path
+  if (wasmModule) {
+    const result = wasmModule.wasmBollinger(close, period, stdDevMultiplier);
+    if (result) return result;
+  }
+
+  // JS fallback
   const middle = computeSMA(close, length, period).values;
   const upper = new Float64Array(length);
   const lower = new Float64Array(length);
@@ -204,6 +262,13 @@ function computeBollinger(close, length, period, stdDevMultiplier) {
 // ─── ATR ──────────────────────────────────────────────────────
 
 function computeATR(high, low, close, length, period) {
+  // WASM fast path
+  if (wasmModule) {
+    const result = wasmModule.wasmATR(high, low, close, period);
+    if (result) return { values: result };
+  }
+
+  // JS fallback
   const tr = new Float64Array(length);
   const values = new Float64Array(length);
 
@@ -216,7 +281,6 @@ function computeATR(high, low, close, length, period) {
     );
   }
 
-  // Initial ATR = SMA of first 'period' TR values
   let sum = 0;
   for (let i = 0; i < Math.min(period, length); i++) sum += tr[i];
   if (period <= length) {

@@ -3,9 +3,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { safeParse, safeStringify, safeClone } from '../../utils/safeJSON.js';
-import { reportError, getErrorLog, clearErrorLog, safeAsync, safeSync } from '../../utils/globalErrorHandler.ts';
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
+import { reportError, getErrorLog, clearErrorLog, safeAsync, safeSync } from '@/shared/globalErrorHandler.ts';
+import { safeParse, safeStringify, safeClone } from '@/shared/safeJSON';
 
 // ─── SafeJSON ───────────────────────────────────────────────────
 
@@ -44,7 +44,7 @@ describe('safeJSON', () => {
     });
 
     it('logs context in warnings', () => {
-      const spy = vi.spyOn(console, 'warn').mockImplementation(() => { });
+      const spy = vi.spyOn(logger.ui, 'warn').mockImplementation(() => { });
       safeParse('{bad}', null, { context: 'test-ctx' });
       expect(spy).toHaveBeenCalledWith(expect.stringContaining('test-ctx'), expect.any(String));
       spy.mockRestore();

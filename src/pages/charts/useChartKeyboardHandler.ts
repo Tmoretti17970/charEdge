@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect } from 'react';
-import { useChartStore } from '../../state/useChartStore.js';
+import { useChartStore } from '../../state/useChartStore';
 
 /**
  * Hook that registers all chart keyboard shortcuts.
@@ -155,5 +155,5 @@ export default function useChartKeyboardHandler({
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 }

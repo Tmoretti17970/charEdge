@@ -227,7 +227,7 @@ describe('Error hierarchy — classifyError', () => {
     let classifyError, DataError, NetworkError, StorageError, RenderError, AppError;
 
     beforeEach(async () => {
-        const mod = await import('../../utils/errors.ts');
+        const mod = await import('../../shared/errors.ts');
         classifyError = mod.classifyError;
         DataError = mod.DataError;
         NetworkError = mod.NetworkError;

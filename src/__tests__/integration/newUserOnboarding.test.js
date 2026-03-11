@@ -5,8 +5,8 @@
 // Verifies store state transitions and component triggers.
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, beforeEach } from 'vitest';
 import fs from 'node:fs';
+import { describe, it, expect } from 'vitest';
 
 // ─── Source-level integration checks ────────────────────────────
 

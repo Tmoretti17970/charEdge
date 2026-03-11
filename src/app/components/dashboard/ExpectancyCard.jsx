@@ -7,7 +7,7 @@
 // - "Walking liquidation" warning when negative
 // ═══════════════════════════════════════════════════════════════════
 
-import useAnalyticsStore from '../../../state/useAnalyticsStore.js';
+import useAnalyticsStore from '../../../state/useAnalyticsStore';
 
 const CARD_STYLE = {
   background: 'rgba(20, 20, 30, 0.6)',

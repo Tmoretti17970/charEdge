@@ -5,11 +5,11 @@
 // and analytics consent management.
 // ═══════════════════════════════════════════════════════════════════
 
-import { C, F, M } from '../../../constants.js';
-import { useConsentStore } from '../../../state/useConsentStore.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { useUserStore } from '../../../state/useUserStore.js';
-import { useGamificationStore } from '../../../state/useGamificationStore.js';
+import { C, M } from '../../../constants.js';
+import { useConsentStore } from '../../../state/useConsentStore';
+import { useGamificationStore } from '../../../state/useGamificationStore';
+import { useJournalStore } from '../../../state/useJournalStore';
+import { useUserStore } from '../../../state/useUserStore';
 import { Card, Btn } from '../ui/UIKit.jsx';
 import { SectionHeader } from './SettingsHelpers.jsx';
 
@@ -66,6 +66,7 @@ export default function DataPrivacySection() {
       for (const db of dbs) {
         if (db.name) indexedDB.deleteDatabase(db.name);
       }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { /* indexedDB.databases() not supported in all browsers */ }
 
     // Clear OPFS (Origin Private File System)
@@ -76,18 +77,21 @@ export default function DataPrivacySection() {
           await root.removeEntry(name, { recursive: true });
         }
       }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { /* OPFS not supported or empty */ }
 
     // Unregister all service workers
     try {
       const registrations = await navigator.serviceWorker?.getRegistrations() || [];
       for (const reg of registrations) await reg.unregister();
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { /* SW not supported */ }
 
     // Clear all browser caches (Cache Storage API)
     try {
       const cacheNames = await caches?.keys() || [];
       for (const name of cacheNames) await caches.delete(name);
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { /* caches API not available */ }
 
     // Clear all localStorage (including SecureStore salt)

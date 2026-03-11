@@ -8,7 +8,7 @@
 //   <ChartDataTable bars={bars} visible={showTable} />
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo, memo } from 'react';
+import { useMemo, memo } from 'react';
 
 /**
  * Format timestamp to readable date string.

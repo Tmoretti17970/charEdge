@@ -1,21 +1,14 @@
-// ═══════════════════════════════════════════════════════════════════
-// charEdge — Action Sidebar (iPadOS-style Docking Panel)
-//
-// Slide-out glass pane for AI Copilot and Strategy Builder.
-// Uses tf-depth-floating glass tokens for chart bleed-through.
-// Spring-eased open/close, Escape to dismiss, click-outside close.
-// ═══════════════════════════════════════════════════════════════════
-
-import React, { useState, useRef, useEffect, useCallback, Suspense } from 'react';
-import { C, F } from '../../../constants.js';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
+import AIOrb from '../design/AIOrb.jsx';
+import useHotkeys from '@/hooks/useHotkeys';
 
 // Lazy-load sidebar content
 const AICopilotBar = React.lazy(() => import('./AICopilotBar.jsx'));
-const CopilotStreamBar = React.lazy(() => import('./CopilotStreamBar.jsx'));
+const _CopilotStreamBar = React.lazy(() => import('./CopilotStreamBar.jsx'));
 
 // ─── Tab Definitions ──────────────────────────────────────────────
 const SIDEBAR_TABS = [
-    { id: 'copilot', label: 'AI Copilot', icon: '✦' },
+    { id: 'copilot', label: 'AI Copilot', icon: null },
     { id: 'strategy', label: 'Strategy', icon: '⬡' },
 ];
 
@@ -56,15 +49,11 @@ export default function ActionSidebar({ isOpen, onClose, activePanel }) {
         };
     }, [isOpen, onClose]);
 
-    // Escape to close
-    useEffect(() => {
-        if (!isOpen) return;
-        const handler = (e) => {
-            if (e.key === 'Escape') { e.preventDefault(); onClose(); }
-        };
-        window.addEventListener('keydown', handler);
-        return () => window.removeEventListener('keydown', handler);
-    }, [isOpen, onClose]);
+    // Escape to close (via useHotkeys — respects scope priority)
+    useHotkeys(
+        [{ key: 'Escape', handler: onClose, description: 'Close action sidebar' }],
+        { scope: 'panel', enabled: isOpen },
+    );
 
     if (!mounted && !isOpen) return null;
 
@@ -88,7 +77,7 @@ export default function ActionSidebar({ isOpen, onClose, activePanel }) {
                             data-active={activeTab === tab.id || undefined}
                             onClick={() => setActiveTab(tab.id)}
                         >
-                            <span style={{ fontSize: 11, opacity: 0.7 }}>{tab.icon}</span>
+                            <span style={{ fontSize: 11, opacity: 0.7 }}>{tab.id === 'copilot' ? <AIOrb size={14} /> : tab.icon}</span>
                             <span>{tab.label}</span>
                         </button>
                     ))}

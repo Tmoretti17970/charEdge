@@ -4,9 +4,9 @@
 // Sprint 17: Inline education system — teach while showing data.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 const TIPS = [
   { id: 1, category: 'technical', title: 'Understanding Moving Average Crossovers', tip: 'When a short-term MA (like the 9 EMA) crosses above a long-term MA (like the 21 EMA), it signals potential bullish momentum. This is called a "Golden Cross." The reverse is a "Death Cross."', example: 'NVDA showed a 9/21 EMA Golden Cross on the 4H chart yesterday — it rallied 4.2% in the following 12 hours.', difficulty: 'beginner' },

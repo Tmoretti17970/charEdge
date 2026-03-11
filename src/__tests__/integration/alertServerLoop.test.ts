@@ -5,7 +5,7 @@
 //        cross-type alerts, push notification dispatch.
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { AlertEvaluationLoop } from '../../../server/services/AlertEvaluationLoop.ts';
 
 // ─── Mock Factories ─────────────────────────────────────────────

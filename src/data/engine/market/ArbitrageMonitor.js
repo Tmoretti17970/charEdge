@@ -1,4 +1,4 @@
-import { logger } from '../../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v14 — Arbitrage Monitor
 //

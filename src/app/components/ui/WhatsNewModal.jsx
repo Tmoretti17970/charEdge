@@ -5,7 +5,7 @@
 // changes. Auto-triggers on version bump, dismissable.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, memo } from 'react';
+import { useState, useEffect, memo } from 'react';
 
 const STORAGE_KEY = 'charedge_last_seen_version';
 

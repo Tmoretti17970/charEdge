@@ -6,21 +6,21 @@
 // Individual tool renderers live in tools/renderers/*.js sub-modules.
 // ═══════════════════════════════════════════════════════════════════
 
-import { FIB_LEVELS, FIB_COLORS } from './DrawingModel.js';
 
 // ── Sub-renderers ────────────────────────────────────────────────
-import { renderHorizontalLine, renderHorizontalRay, renderVerticalLine, renderCrossline } from '../renderers/HLineDraw.js';
-import { renderTrendline, renderRay, renderExtendedLine, renderArrow, renderPolyline } from '../renderers/TrendlineDraw.js';
-import { renderFibRetracement, renderFibExtension, renderFibTimeZone, renderFibArc, renderFibFan, renderFibChannel, renderElliottWaves } from '../renderers/FibDraw.js';
-import { renderRectangle, renderTriangle, renderEllipse, renderText, renderCallout, renderEmoji, renderNote, renderSignpost } from '../renderers/ShapeDraw.js';
 import { renderChannel, renderPitchfork, renderParallelChannel, renderRegressionChannel } from '../renderers/ChannelDraw.js';
-import { renderMeasure, renderLongPosition, renderShortPosition, renderAlertZone, renderInfoLine, renderFlatZone, renderPriceRange, renderDateRange } from '../renderers/TradeDraw.js';
+import { renderFibRetracement, renderFibExtension, renderFibTimeZone, renderFibArc, renderFibFan, renderFibChannel, renderElliottWaves } from '../renderers/FibDraw.js';
+import { renderHorizontalLine, renderHorizontalRay, renderVerticalLine, renderCrossline } from '../renderers/HLineDraw.js';
 import { renderGannFan, renderGannSquare, renderXABCD, renderHeadShoulders } from '../renderers/PatternDraw.js';
+import { renderRectangle, renderTriangle, renderEllipse, renderText, renderCallout, renderEmoji, renderNote, renderSignpost } from '../renderers/ShapeDraw.js';
+import { renderMeasure, renderLongPosition, renderShortPosition, renderAlertZone, renderInfoLine, renderFlatZone, renderPriceRange, renderDateRange } from '../renderers/TradeDraw.js';
+import { renderTrendline, renderRay, renderExtendedLine, renderArrow, renderPolyline } from '../renderers/TrendlineDraw.js';
 
 const ANCHOR_RADIUS = 4;
 const ANCHOR_FILL = '#FFFFFF';
 const ANCHOR_STROKE = '#2962FF';
 const _SELECTED_COLOR = '#2962FF';
+const MAX_DRAWINGS = 500; // BUG-02: drawing count cap
 
 /**
  * Create a DrawingRenderer.
@@ -59,10 +59,19 @@ export function createDrawingRenderer(drawingEngine) {
     const pr = size.pixelRatio;
     const hoveredId = drawingEngine.hoveredDrawingId;
 
+    // BUG-02: Warn if drawings exceed cap
+    if (drawings.length > MAX_DRAWINGS) {
+      console.warn(`[DrawingRenderer] ${drawings.length} drawings exceed cap of ${MAX_DRAWINGS}`);
+    }
+
     for (const d of drawings) {
       if (!d.visible) continue;
       if (d.state === 'creating') continue;
       if (d.state === 'selected') continue;
+
+      // BUG-02: Off-screen culling — skip drawings entirely outside viewport
+      const pts = d.points?.map(p => drawingEngine.anchorToPixel(p)).filter(Boolean);
+      if (pts && pts.length > 0 && _isOffScreen(pts, size)) continue;
 
       const isHovered = d.id === hoveredId;
       if (isHovered) {
@@ -162,7 +171,7 @@ export function createDrawingRenderer(drawingEngine) {
               const ly = by - Math.round(fontSize / 2);
 
               const pillW = tw + padding * 2;
-              const pillH = fontSize + padding * 2;
+              const _pillH = fontSize + padding * 2;
               const pillR = Math.round(4 * pr);
 
               ctx.fillStyle = 'rgba(24,26,32,0.92)';
@@ -347,7 +356,7 @@ export function createDrawingRenderer(drawingEngine) {
   /**
    * Render smart guide alignment lines.
    */
-  function renderSmartGuides(ctx, pr, size) {
+  function renderSmartGuides(ctx, pr, _size) {
     if (!drawingEngine.getSmartGuides) return;
     const mouseState = drawingEngine.state;
     if (mouseState !== 'creating' && mouseState !== 'dragging') return;
@@ -437,4 +446,17 @@ export function createDrawingRenderer(drawingEngine) {
     drawMain,
     drawTop,
   };
+}
+
+/**
+ * BUG-02: Check if all points are outside the viewport (with margin).
+ * @param {Array<{x:number,y:number}>} pts  Pixel-space points
+ * @param {{width:number,height:number}} size  Canvas size
+ * @returns {boolean} true if entirely off-screen
+ */
+function _isOffScreen(pts, size) {
+  const MARGIN = 200;
+  const w = size.width + MARGIN;
+  const h = size.height + MARGIN;
+  return pts.every(p => p.x < -MARGIN || p.x > w || p.y < -MARGIN || p.y > h);
 }

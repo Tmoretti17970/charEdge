@@ -5,8 +5,7 @@
 // 16px offset. Auto-repositions to avoid screen edges.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { C, M } from '../../../../../../constants.js';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 /**
  * @typedef {Object} CrosshairData

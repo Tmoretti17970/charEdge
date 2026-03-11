@@ -39,6 +39,7 @@ export const DEFAULT_SALIENCY_RULES: SaliencyRule[] = [
  * @param rules - Saliency rules (defaults provided)
  */
 export function useSaliency(
+  // eslint-disable-next-line no-undef
   containerRef: React.RefObject<HTMLElement | null>,
   indicatorValues: Record<string, number>,
   rules: SaliencyRule[] = DEFAULT_SALIENCY_RULES,

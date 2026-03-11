@@ -7,7 +7,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 // @ts-expect-error — .ts imports resolved by Vite
-import { logger } from '../../utils/logger.ts';
+import { logger } from '@/observability/logger.ts';
 
 // ─── Types ──────────────────────────────────────────────────────
 

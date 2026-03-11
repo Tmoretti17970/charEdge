@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import DrawingSettingsDialog from '../panels/DrawingSettingsDialog.jsx';
 
 const PRESET_COLORS = [

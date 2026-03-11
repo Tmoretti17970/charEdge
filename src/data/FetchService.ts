@@ -11,6 +11,7 @@ import { TFS, isCrypto, buildCacheKey } from '../constants.js';
 import { opfsBarStore } from './engine/infra/OPFSBarStore.js';
 import { withCircuitBreaker } from './engine/infra/CircuitBreaker';
 import { validateCandleArray } from './engine/infra/DataValidator';
+import { BaseAdapter } from './adapters/BaseAdapter.js';
 import { volatilityTTL } from './engine/infra/VolatilityTTL.js';
 import { cacheManager } from './engine/infra/CacheManager.js';
 import { staleWhileRevalidate } from './engine/swr.js';
@@ -46,7 +47,7 @@ let _lastWarning = null; // Set by fetchers when they fail
 
 // ─── Symbol Search (extracted to SymbolSearch.js) ──────────────
 import { fetchSymbolSearch } from './SymbolSearch.js';
-import { logger } from '../utils/logger';
+import { logger } from '@/observability/logger';
 
 
 // ─── Main Fetch Function ────────────────────────────────────────
@@ -79,7 +80,8 @@ async function fetchOHLC(sym, tfId) {
   }
 }
 
-async function _doFetch(sym, tfId, tf, key) {
+// eslint-disable-next-line @typescript-eslint/naming-convention
+async function _doFetch(sym, tfId, _tf, _key) {
   let data = null,
     source = 'no_data';
   _lastWarning = null;
@@ -93,6 +95,7 @@ async function _doFetch(sym, tfId, tf, key) {
       if (lastTime) {
         deltaStartTime = (typeof lastTime === 'string' ? new Date(lastTime).getTime() : lastTime) + 1;
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) { /* OPFS unavailable — full fetch */ }
     data = await withCircuitBreaker('binance', () => fetchBinance(sym, tfId, deltaStartTime));
     // If delta fetch returned data, merge with CacheManager's last read (avoids double OPFS read)
@@ -201,6 +204,7 @@ async function _doFetch(sym, tfId, tf, key) {
         cacheManager.write(sym, tfId, offlineBars, 'cached');
         return { data: offlineBars, source: 'cached' };
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) { /* OPFS unavailable */ }
 
     source = 'no_data';
@@ -220,6 +224,9 @@ async function _doFetch(sym, tfId, tf, key) {
   // ── Validate & cache (unified write to all tiers) ─────────────
   if (data) {
     data = validateCandleArray(data);
+    // Item 14: Normalize timestamps at adapter boundary
+    // Ensures all bars use ms-epoch regardless of adapter output format
+    BaseAdapter.normalizeTimestamps(data);
     if (data.length === 0) data = null;
   }
   if (data) {
@@ -236,6 +243,7 @@ async function _doFetch(sym, tfId, tf, key) {
 // Background refresh with guard to prevent tight loops.
 // Ensures at most one bg refresh per key every 10 seconds.
 const _bgRefreshTimestamps = new Map();
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _bgRefresh(sym, tfId, tf, key) {
   const now = Date.now();
   const lastRefresh = _bgRefreshTimestamps.get(key) || 0;
@@ -313,6 +321,7 @@ export {
   warmCache,
   fetch24hTicker,
   fetchSparkline,
+  // eslint-disable-next-line no-undef
+  batchGetQuotes,
 };
 export default fetchOHLC;
-

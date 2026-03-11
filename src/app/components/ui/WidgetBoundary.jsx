@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { C, F, M } from '../../../constants.js';
-import { reportError } from '../../../utils/globalErrorHandler.js';
+import { reportError } from '@/shared/globalErrorHandler';
 
 class WidgetBoundary extends React.Component {
   constructor(props) {

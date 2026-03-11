@@ -7,8 +7,8 @@
 // States: Live (green pulse) | Syncing (amber spin) | Stale (grey) | Error (red)
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useEffect, useState, useRef } from 'react';
-import { C, GLASS } from '../../../constants.js';
+import { useEffect, useState, useRef } from 'react';
+import { C } from '../../../constants.js';
 
 const STATES = {
     live: { label: 'Live', color: C.g, icon: '●', pulse: true },

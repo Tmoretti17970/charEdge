@@ -6,18 +6,18 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState } from 'react';
-import s from './DashboardPanel.module.css';
-import { C, F, M, GLASS, DEPTH } from '../../../constants.js';
+import { C, GLASS, DEPTH } from '../../../constants.js';
+import { useUserStore } from '../../../state/useUserStore';
 import { text, layout, space, preset, radii } from '../../../theme/tokens.js';
 import { METRIC_TIPS } from '../../../utils.js';
-import { useUserStore } from '../../../state/useUserStore.js';
 import { StatCard, Card } from '../ui/UIKit.jsx';
+import s from './DashboardPanel.module.css';
 
 // ─── DashHeader ────────────────────────────────────────────────
 
 export function DashHeader({
     trades,
-    computing,
+    _computing,
     layoutMode,
     onLayoutToggle,
     editMode,
@@ -150,7 +150,7 @@ export function MetricRow({ label, value, color = C.t1, tip }) {
 
 // ─── BentoMetricCard ───────────────────────────────────────────
 
-export function BentoMetricCard({ label, value, color, data = [], inverse = false, tip }) {
+export function BentoMetricCard({ label, value, color, data = [], _inverse = false, tip }) {
     const [showTip, setShowTip] = useState(false);
     const width = 100;
     const height = 30;

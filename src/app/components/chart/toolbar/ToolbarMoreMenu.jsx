@@ -5,12 +5,12 @@
 // Tools, Overlays, Panels, Layout, Settings.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { C } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore.js';
 import { useBacktestStore } from '../../../../state/useBacktestStore.js';
-import { useStrategyBuilderStore } from '../../../../state/useStrategyBuilderStore.js';
-
+import { useChartStore, useChartFeaturesStore } from '../../../../state/useChartStore';
+import { useStrategyBuilderStore } from '../../../../state/useStrategyBuilderStore';
+import AIOrb from '../../design/AIOrb.jsx';
 import ChartTradeToolbar from '../chart_ui/ChartTradeToolbar.jsx';
 
 function MenuItem({ children, onClick }) {
@@ -34,31 +34,30 @@ export default function ToolbarMoreMenu({
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const moreMenuRef = useRef(null);
 
-  // Chart Store State
-  const toggleReplay = useChartStore((s) => s.toggleReplay);
-  const replayMode = useChartStore((s) => s.replayMode);
-  const showHeatmap = useChartStore((s) => s.showHeatmap);
-  const toggleHeatmap = useChartStore((s) => s.toggleHeatmap);
-  const showSessions = useChartStore((s) => s.showSessions);
-  const toggleSessions = useChartStore((s) => s.toggleSessions);
-  const showMTF = useChartStore((s) => s.showMTF);
-  const toggleMTF = useChartStore((s) => s.toggleMTF);
-  const showDOM = useChartStore((s) => s.showDOM);
-  const toggleDOM = useChartStore((s) => s.toggleDOM);
-  const showMinimap = useChartStore((s) => s.showMinimap);
-  const toggleMinimap = useChartStore((s) => s.toggleMinimap);
-  const showDataWindow = useChartStore((s) => s.showDataWindow);
-  const toggleDataWindow = useChartStore((s) => s.toggleDataWindow);
-  const showStatusBar = useChartStore((s) => s.showStatusBar);
-  const toggleStatusBar = useChartStore((s) => s.toggleStatusBar);
-  const showDepthChart = useChartStore((s) => s.showDepthChart);
-  const toggleDepthChart = useChartStore((s) => s.toggleDepthChart);
-  const showExtendedHours = useChartStore((s) => s.showExtendedHours);
-  const toggleExtendedHours = useChartStore((s) => s.toggleExtendedHours);
-  const showComparisonOverlay = useChartStore((s) => s.showComparisonOverlay);
-  const toggleComparisonOverlay = useChartStore((s) => s.toggleComparisonOverlay);
-  const showPatternOverlays = useChartStore((s) => s.showPatternOverlays);
-  const togglePatternOverlays = useChartStore((s) => s.togglePatternOverlays);
+  // Features Store — match useChartFeaturesStore with ChartEngineWidget
+  const toggleReplay = useChartFeaturesStore((s) => s.toggleReplay);
+  const replayMode = useChartFeaturesStore((s) => s.replayMode);
+  const showHeatmap = useChartFeaturesStore((s) => s.showHeatmap);
+  const toggleHeatmap = useChartFeaturesStore((s) => s.toggleHeatmap);
+  const showSessions = useChartFeaturesStore((s) => s.showSessions);
+  const toggleSessions = useChartFeaturesStore((s) => s.toggleSessions);
+
+  const showDOM = useChartFeaturesStore((s) => s.showDOM);
+  const toggleDOM = useChartFeaturesStore((s) => s.toggleDOM);
+  const showMinimap = useChartFeaturesStore((s) => s.showMinimap);
+  const toggleMinimap = useChartFeaturesStore((s) => s.toggleMinimap);
+  const showDataWindow = useChartFeaturesStore((s) => s.showDataWindow);
+  const toggleDataWindow = useChartFeaturesStore((s) => s.toggleDataWindow);
+  const showStatusBar = useChartFeaturesStore((s) => s.showStatusBar);
+  const toggleStatusBar = useChartFeaturesStore((s) => s.toggleStatusBar);
+  const showDepthChart = useChartFeaturesStore((s) => s.showDepthChart);
+  const toggleDepthChart = useChartFeaturesStore((s) => s.toggleDepthChart);
+  const showExtendedHours = useChartFeaturesStore((s) => s.showExtendedHours);
+  const toggleExtendedHours = useChartFeaturesStore((s) => s.toggleExtendedHours);
+  const showComparisonOverlay = useChartFeaturesStore((s) => s.showComparisonOverlay);
+  const toggleComparisonOverlay = useChartFeaturesStore((s) => s.toggleComparisonOverlay);
+  const showPatternOverlays = useChartFeaturesStore((s) => s.showPatternOverlays);
+  const togglePatternOverlays = useChartFeaturesStore((s) => s.togglePatternOverlays);
 
   const backtestPanelOpen = useBacktestStore((s) => s.panelOpen);
   const strategyBuilderOpen = useStrategyBuilderStore((s) => s.panelOpen);
@@ -108,10 +107,10 @@ export default function ToolbarMoreMenu({
             📐 Strategy Builder {strategyBuilderOpen && '✓'}
           </MenuItem>
           <MenuItem onClick={() => { onToggleAnalysis && onToggleAnalysis(); setMoreMenuOpen(false); }}>
-            🔍 AI Chart Analysis
+            <AIOrb size={14} style={{ marginRight: 4 }} /> AI Chart Analysis
           </MenuItem>
           <MenuItem onClick={() => { onOpenCopilot && onOpenCopilot(); setMoreMenuOpen(false); }}>
-            ✨ AI Copilot
+            <AIOrb size={14} style={{ marginRight: 4 }} /> AI Copilot
           </MenuItem>
 
           <div className="tf-chart-dropdown-sep" />
@@ -122,7 +121,7 @@ export default function ToolbarMoreMenu({
           <MenuItem onClick={() => { setShowObjectTree(!showObjectTree); setMoreMenuOpen(false); }}>🌳 Object Tree</MenuItem>
           <MenuItem onClick={() => { toggleReplay(); setMoreMenuOpen(false); }}>{replayMode ? '⏹ Exit Replay' : '⏪ Bar Replay'}</MenuItem>
           <MenuItem onClick={() => { onOpenPanel('scripts'); setMoreMenuOpen(false); }}>⌨️ Script Editor</MenuItem>
-          <MenuItem onClick={() => { onOpenPanel('insights'); setMoreMenuOpen(false); }}>🧠 AI Insights</MenuItem>
+          <MenuItem onClick={() => { onOpenPanel('insights'); setMoreMenuOpen(false); }}><AIOrb size={14} style={{ marginRight: 4 }} /> AI Insights</MenuItem>
           <MenuItem onClick={() => { onOpenPanel('annotations'); setMoreMenuOpen(false); }}>📝 Annotations</MenuItem>
           <MenuItem onClick={() => { onSnapshot && onSnapshot(); setMoreMenuOpen(false); }}>📸 Share Snapshot</MenuItem>
 
@@ -161,31 +160,29 @@ export default function ToolbarMoreMenu({
           }}>
             📌 Anchored VWAP
           </MenuItem>
-          <MenuItem onClick={() => { useChartStore.getState().toggleVolumeSpikes(); setMoreMenuOpen(false); }}>
-            {useChartStore.getState().showVolumeSpikes ? '📡 Hide Volume Spikes' : '📡 Volume Spikes'}
+          <MenuItem onClick={() => { useChartFeaturesStore.getState().toggleVolumeSpikes(); setMoreMenuOpen(false); }}>
+            {useChartFeaturesStore.getState().showVolumeSpikes ? '📡 Hide Volume Spikes' : '📡 Volume Spikes'}
           </MenuItem>
-          <MenuItem onClick={() => { useChartStore.getState().toggleDeltaOverlay(); setMoreMenuOpen(false); }}>
-            {useChartStore.getState().showDeltaOverlay ? '📊 Hide Delta Histogram' : '📊 Delta Histogram'}
+          <MenuItem onClick={() => { useChartFeaturesStore.getState().toggleDeltaOverlay(); setMoreMenuOpen(false); }}>
+            {useChartFeaturesStore.getState().showDeltaOverlay ? '📊 Hide Delta Histogram' : '📊 Delta Histogram'}
           </MenuItem>
-          <MenuItem onClick={() => { useChartStore.getState().toggleVPOverlay(); setMoreMenuOpen(false); }}>
-            {useChartStore.getState().showVPOverlay ? '📈 Hide Volume Profile' : '📈 Volume Profile'}
+          <MenuItem onClick={() => { useChartFeaturesStore.getState().toggleVPOverlay(); setMoreMenuOpen(false); }}>
+            {useChartFeaturesStore.getState().showVPOverlay ? '📈 Hide Volume Profile' : '📈 Volume Profile'}
           </MenuItem>
-          <MenuItem onClick={() => { useChartStore.getState().toggleLargeTradesOverlay(); setMoreMenuOpen(false); }}>
-            {useChartStore.getState().showLargeTradesOverlay ? '🐋 Hide Whale Trades' : '🐋 Whale Trades'}
+          <MenuItem onClick={() => { useChartFeaturesStore.getState().toggleLargeTradesOverlay(); setMoreMenuOpen(false); }}>
+            {useChartFeaturesStore.getState().showLargeTradesOverlay ? '🐋 Hide Whale Trades' : '🐋 Whale Trades'}
           </MenuItem>
-          <MenuItem onClick={() => { useChartStore.getState().toggleOIOverlay(); setMoreMenuOpen(false); }}>
-            {useChartStore.getState().showOIOverlay ? '📉 Hide OI Overlay' : '📉 OI Overlay'}
+          <MenuItem onClick={() => { useChartFeaturesStore.getState().toggleOIOverlay(); setMoreMenuOpen(false); }}>
+            {useChartFeaturesStore.getState().showOIOverlay ? '📉 Hide OI Overlay' : '📉 OI Overlay'}
           </MenuItem>
-          <MenuItem onClick={() => { useChartStore.getState().toggleArbitrageSpread(); setMoreMenuOpen(false); }}>
-            {useChartStore.getState().showArbitrageSpread ? '⚖️ Hide Arb Spread' : '⚖️ Arb Spread'}
+          <MenuItem onClick={() => { useChartFeaturesStore.getState().toggleArbitrageSpread(); setMoreMenuOpen(false); }}>
+            {useChartFeaturesStore.getState().showArbitrageSpread ? '⚖️ Hide Arb Spread' : '⚖️ Arb Spread'}
           </MenuItem>
 
           <div className="tf-chart-dropdown-sep" />
           <div className="tf-chart-dropdown-label">PANELS</div>
 
-          <MenuItem onClick={() => { toggleMTF(); setMoreMenuOpen(false); }}>
-            {showMTF ? '📊 Hide MTF Panel' : '📊 Multi-Timeframe'}
-          </MenuItem>
+
           <MenuItem onClick={() => { toggleDOM(); setMoreMenuOpen(false); }}>
             {showDOM ? '📋 Hide DOM Ladder' : '📋 DOM Ladder'}
           </MenuItem>

@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { logger } from '../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 const STORAGE_KEY = 'charEdge-gesture-guide-seen';
 
@@ -72,6 +72,7 @@ export default function GestureGuide({ forceShow = false, onDismiss }) {
     setVisible(false);
     try {
       localStorage.setItem(STORAGE_KEY, '1');
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { /* storage may be blocked */ }
     onDismiss?.();
   }, [onDismiss]);
@@ -187,6 +188,7 @@ export default function GestureGuide({ forceShow = false, onDismiss }) {
 export function resetGestureGuide() {
   try {
     localStorage.removeItem(STORAGE_KEY);
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) { /* storage may be blocked */ }
 }
 

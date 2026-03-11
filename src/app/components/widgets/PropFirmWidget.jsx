@@ -9,11 +9,11 @@
 
 import { useMemo, useState } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { Card } from '../ui/UIKit.jsx';
-import { fmtD } from '../../../utils.js';
+import { useJournalStore } from '../../../state/useJournalStore';
 import { usePropFirmStore, computeEvaluation, PRESETS } from '../../../state/usePropFirmStore.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
+import { fmtD } from '../../../utils.js';
 import { mcPropFirmPredict } from '../../features/analytics/analyticsFast.js';
+import { Card } from '../ui/UIKit.jsx';
 
 // ─── Progress Bar Component ───────────────────────────────────────
 

@@ -4,8 +4,8 @@
 // Theme-reactive defaults, responsive, retina-aware
 // ═══════════════════════════════════════════════════════════════════
 
-import { useRef, useEffect, useState } from 'react';
 import Chart from 'chart.js/auto';
+import { useRef, useEffect, useState } from 'react';
 import { C } from '../../../../constants.js';
 
 // ─── Lazy plugin registration (once only) ───────────────────────

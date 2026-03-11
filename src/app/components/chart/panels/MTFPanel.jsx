@@ -3,10 +3,8 @@
 // Renders 2-3 ChartEngineWidgets side-by-side at different timeframes
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useMemo } from 'react';
+import { useState } from 'react';
 import ChartEngineWidget from '../core/ChartEngineWidget.jsx';
-import { useChartStore } from '../../../../state/useChartStore.js';
-import { TFS } from '../../../../constants.js';
 
 const styles = {
   container: {

@@ -4,7 +4,8 @@
 // lock switches, layer ordering, labels, and sync controls.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import Icon from '../../design/Icon.jsx';
 
 const TOOL_ICONS = {
   trendline: '╱', hline: '─', vline: '│', ray: '↗', arrow: '→',
@@ -127,7 +128,7 @@ function DrawingRow({ drawing, drawingEngine, isSelected, onSelect }) {
 
       {/* Sync badge */}
       {drawing.syncAcrossTimeframes && (
-        <span title="Synced across timeframes" style={{ fontSize: 10, color: '#F59E0B' }}>🔗</span>
+        <Icon name="link" size={10} color="#F59E0B" />
       )}
 
       {/* Actions */}
@@ -136,7 +137,7 @@ function DrawingRow({ drawing, drawingEngine, isSelected, onSelect }) {
         title={drawing.visible ? 'Hide' : 'Show'}
         active={drawing.visible !== false}
       >
-        {drawing.visible !== false ? '👁' : '👁‍🗨'}
+        <Icon name={drawing.visible !== false ? 'eye' : 'eye-off'} size={13} />
       </IconBtn>
 
       <IconBtn
@@ -144,7 +145,7 @@ function DrawingRow({ drawing, drawingEngine, isSelected, onSelect }) {
         title={drawing.locked ? 'Unlock' : 'Lock'}
         active={drawing.locked}
       >
-        {drawing.locked ? '🔒' : '🔓'}
+        <Icon name={drawing.locked ? 'lock' : 'unlock'} size={13} />
       </IconBtn>
 
       <IconBtn

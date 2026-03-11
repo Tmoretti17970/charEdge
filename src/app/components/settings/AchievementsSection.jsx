@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { C, F, M } from '../../../constants.js';
-import { Card, Btn } from '../ui/UIKit.jsx';
+import { C, M } from '../../../constants.js';
+import { useGamificationStore, getRankForXP, getXPToNextLevel, ACHIEVEMENTS, COSMETIC_REWARDS } from '../../../state/useGamificationStore';
 import AchievementShelf from '../ui/AchievementShelf.jsx';
 import QuestPanel from '../ui/QuestPanel.jsx';
-import { useGamificationStore, getRankForXP, getXPToNextLevel, RANKS, ACHIEVEMENTS, COSMETIC_REWARDS } from '../../../state/useGamificationStore.js';
+import { Card, Btn } from '../ui/UIKit.jsx';
 import { SectionHeader } from './SettingsHelpers.jsx';
 
 export default function AchievementsSection() {

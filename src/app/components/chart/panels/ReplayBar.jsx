@@ -5,10 +5,11 @@
 
 import { useEffect, useRef, useMemo, useCallback, useState } from 'react';
 import { C, M } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore.js';
-import { useJournalStore } from '../../../../state/useJournalStore.js';
-import { Btn } from '../../ui/UIKit.jsx';
+import { useChartStore } from '../../../../state/useChartStore';
+import { useJournalStore } from '../../../../state/useJournalStore';
 import { fmtD } from '../../../../utils.js';
+import { useChartBars } from '../../../hooks/useChartBars.js';
+import { Btn } from '../../ui/UIKit.jsx';
 
 const SPEEDS = [
   { label: '0.5×', ms: 1000 },
@@ -22,7 +23,7 @@ export default function ReplayBar() {
   const replayMode = useChartStore((s) => s.replayMode);
   const replayIdx = useChartStore((s) => s.replayIdx);
   const replayPlaying = useChartStore((s) => s.replayPlaying);
-  const data = useChartStore((s) => s.data);
+  const data = useChartBars();
   const backtestTrades = useChartStore((s) => s.backtestTrades);
   const activeGhost = useChartStore((s) => s.activeGhost);
 
@@ -43,7 +44,7 @@ export default function ReplayBar() {
     if (replayPlaying && replayIdx < totalBars - 1) {
       intervalRef.current = setInterval(() => {
         const current = useChartStore.getState().replayIdx;
-        const max = (useChartStore.getState().data?.length || 1) - 1;
+        const max = (useChartStore.getState().barCount || 1) - 1;
         if (current >= max) {
           useChartStore.getState().setReplayPlaying(false);
         } else {

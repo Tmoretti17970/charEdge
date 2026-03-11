@@ -3,7 +3,7 @@
 // (measure, long/short position, alert zone, info line, price/date range, flat zone)
 // ═══════════════════════════════════════════════════════════════════
 
-export function renderMeasure(ctx, pts, drawing, style, lw, pr, size) {
+export function renderMeasure(ctx, pts, drawing, style, lw, pr, _size) {
   if (pts.length < 2) return;
   const x1 = Math.min(pts[0].x, pts[1].x), x2 = Math.max(pts[0].x, pts[1].x);
   const y1 = Math.min(pts[0].y, pts[1].y), y2 = Math.max(pts[0].y, pts[1].y);
@@ -48,7 +48,7 @@ export function renderMeasure(ctx, pts, drawing, style, lw, pr, size) {
   }
 }
 
-export function renderLongPosition(ctx, pts, drawing, style, lw, pr, size) {
+export function renderLongPosition(ctx, pts, drawing, style, lw, pr, _size) {
   if (pts.length < 2) return;
   const entryY = pts[0].y, targetY = pts[1].y, stopY = entryY + (entryY - targetY);
   const x = pts[0].x;
@@ -68,7 +68,7 @@ export function renderLongPosition(ctx, pts, drawing, style, lw, pr, size) {
   }
 }
 
-export function renderShortPosition(ctx, pts, drawing, style, lw, pr, size) {
+export function renderShortPosition(ctx, pts, drawing, style, lw, pr, _size) {
   if (pts.length < 2) return;
   const entryY = pts[0].y, targetY = pts[1].y, stopY = entryY - (targetY - entryY);
   const x = pts[0].x;
@@ -110,7 +110,7 @@ export function renderAlertZone(ctx, pts, drawing, style, lw, pr, size) {
   }
 }
 
-export function renderInfoLine(ctx, pts, drawing, style, lw, pr, size) {
+export function renderInfoLine(ctx, pts, drawing, style, lw, pr, _size) {
   if (pts.length < 2) return;
   const [p0, p1] = pts;
   ctx.strokeStyle = style.color; ctx.lineWidth = lw;
@@ -164,7 +164,7 @@ export function renderFlatZone(ctx, pts, drawing, style, lw, pr, size, direction
   }
 }
 
-export function renderPriceRange(ctx, pts, drawing, style, lw, pr, size) {
+export function renderPriceRange(ctx, pts, drawing, style, lw, pr, _size) {
   if (pts.length < 2) return;
   const y1 = Math.min(pts[0].y, pts[1].y), y2 = Math.max(pts[0].y, pts[1].y);
   const left = Math.min(pts[0].x, pts[1].x), right = Math.max(pts[0].x, pts[1].x);

@@ -9,12 +9,14 @@ function loadFromStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_) { return []; }
 }
 
 function saveToStorage(templates) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_) { /* quota exceeded — silently fail */ }
 }
 
@@ -46,7 +48,7 @@ export const createTemplateSlice = (set, get) => ({
 
     // Support both legacy { config: {...} } and flat { chartType, timeframe, ... }
     const config = template.config || template;
-    set((s) => ({
+    set((_s) => ({
       activeTemplateId: templateId,
       // Apply template settings to chart state
       ...(config.chartType ? { chartType: config.chartType } : {}),

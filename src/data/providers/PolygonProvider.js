@@ -10,8 +10,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { isCrypto } from '../../constants.js';
-import { getApiKey, hasApiKey } from './ApiKeyStore.js';
-import { logger } from '../../utils/logger';
+import { hasApiKey } from './ApiKeyStore.js';
+import { logger } from '@/observability/logger';
 
 // ─── Polygon.io REST Adapter ────────────────────────────────────
 
@@ -109,16 +109,20 @@ export async function fetchPolygon(sym, tfId) {
         seen.add(bar.t);
         return true;
       })
-      .map((bar) => ({
-        time: new Date(bar.t).toISOString(),
-        open: bar.o,
-        high: bar.h,
-        low: bar.l,
-        close: bar.c,
-        volume: bar.v || 0,
-        vwap: bar.vw || null,
-        trades: bar.n || 0,
-      }));
+      .map((bar) => {
+        const timeMs = bar.t;
+        return {
+          time: new Date(timeMs).toISOString(),
+          _openMs: timeMs,
+          open: bar.o,
+          high: bar.h,
+          low: bar.l,
+          close: bar.c,
+          volume: bar.v || 0,
+          vwap: bar.vw || null,
+          trades: bar.n || 0,
+        };
+      });
   } catch (err) {
     logger.data.warn(`[PolygonProvider] Polygon.io error for ${sym}:`, err.message);
     return null;

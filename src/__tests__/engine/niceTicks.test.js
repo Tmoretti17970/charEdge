@@ -8,10 +8,10 @@
 //   4. Edge cases
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, beforeEach } from 'vitest';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

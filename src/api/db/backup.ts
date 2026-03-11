@@ -17,6 +17,7 @@ import { getDb, getDbPath } from './sqlite.ts';
 
 // ─── Constants ──────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, '..', '..', '..');
 const BACKUP_DIR = join(PROJECT_ROOT, 'data', 'backups');

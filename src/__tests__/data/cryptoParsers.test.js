@@ -2,20 +2,21 @@
 // charEdge — H2.1 Crypto Broker Parsers & Import Dedup Tests
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, vi } from 'vitest';
+// eslint-disable-next-line import/order
+import { describe, it, expect } from 'vitest';
 
 // Parsers
+import { tradeHash } from '../../charting_library/datafeed/csv.js';
+import { detectBroker, BROKER_PARSERS, BROKER_LABELS } from '../../data/importExport/brokerDetection.js';
 import { parseBinance } from '../../data/importExport/parsers/binance.js';
-import { parseCoinbase } from '../../data/importExport/parsers/coinbase.js';
-import { parseKraken } from '../../data/importExport/parsers/kraken.js';
 import { parseBybit } from '../../data/importExport/parsers/bybit.js';
+import { parseCoinbase } from '../../data/importExport/parsers/coinbase.js';
 import { parseFidelity } from '../../data/importExport/parsers/fidelity.js';
+import { parseKraken } from '../../data/importExport/parsers/kraken.js';
 
 // Detection
-import { detectBroker, BROKER_PARSERS, BROKER_LABELS } from '../../data/importExport/brokerDetection.js';
 
 // Dedup
-import { tradeHash } from '../../charting_library/datafeed/csv.js';
 
 // ─── Binance Parser ──────────────────────────────────────────────
 

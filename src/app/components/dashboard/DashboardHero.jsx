@@ -8,13 +8,11 @@
 //  - Responsive layout
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo } from 'react';
-import { useReducedMotion } from 'framer-motion';
-import { C, F, M, GLASS } from '../../../constants.js';
-import { gradient, text, space, radii } from '../../../theme/tokens.js';
+import { C, GLASS } from '../../../constants.js';
+import { gradient, text, radii } from '../../../theme/tokens.js';
 import { fmtD } from '../../../utils.js';
 import { Card } from '../ui/UIKit.jsx';
-import { useCountUp } from '../../../utils/useCountUp.js';
+import { useCountUp } from '@/hooks/useCountUp';
 
 // ─── Mini Sparkline (inline SVG) ────────────────────────────────
 function MiniSparkline({ data, color, width = 120, height = 32 }) {
@@ -100,7 +98,7 @@ export default function DashboardHero({
   recentDailyPnl = [],
   isMobile = false,
 }) {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   const shouldAnimate = !prefersReducedMotion;
 
   // Animated hero stat values (count from 0 → target)

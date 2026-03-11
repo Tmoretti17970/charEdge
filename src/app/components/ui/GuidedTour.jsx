@@ -3,9 +3,9 @@
 // 5-step spotlight tour highlighting key features on first visit.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../../state/useUserStore.js';
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { C, F } from '../../../constants.js';
+import { useUserStore } from '../../../state/useUserStore';
 
 const TOUR_STEPS = [
   // ─── App Navigation (sidebar) ──────────────────────────────────
@@ -53,10 +53,10 @@ const TOUR_STEPS = [
     position: 'bottom',
   },
   {
-    title: 'Command Palette',
-    desc: 'Press Ctrl+K (⌘K) anytime for AI Copilot, quick actions, and smart search.',
-    selector: null, // center screen
-    position: 'center',
+    title: 'Logbook & Add Trade',
+    desc: 'Click 📓 Logbook to search and browse your trades, or + Add Trade to log a new one.',
+    selector: '#tf-logbook-btn',
+    position: 'bottom',
   },
 ];
 

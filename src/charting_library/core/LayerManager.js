@@ -41,15 +41,33 @@ const LAYER_ORDER = [
   LAYERS.UI,
 ];
 
+/** Indicator panes only need 3 layers (no DATA or DRAWINGS) */
+const INDICATOR_LAYER_ORDER = [
+  LAYERS.GRID,
+  LAYERS.INDICATORS,
+  LAYERS.UI,
+];
+
 export class LayerManager {
   /**
    * @param {HTMLElement} container — parent DOM element
+   * @param {{ layerSet?: 'main' | 'indicator', onResize?: () => void }} [options] — layer configuration
+   *   'main' (default): 5 layers (GRID, DATA, INDICATORS, DRAWINGS, UI)
+   *   'indicator': 3 layers (GRID, INDICATORS, UI) — saves ~40% GPU memory per pane
+   *   onResize: callback invoked after container resize to wake the render loop
    */
-  constructor(container) {
+  constructor(container, options = {}) {
     this.container = container;
     this._layers = new Map();
     this._dirty = new Map();
     this._disposed = false;
+    /** @type {(() => void) | null} Callback invoked after resize to wake the render loop */
+    this._onResizeCallback = options.onResize || null;
+
+    /** @type {'main' | 'indicator'} */
+    this._layerSet = options.layerSet || 'main';
+    /** Which layers this instance manages */
+    this._layerOrder = this._layerSet === 'indicator' ? INDICATOR_LAYER_ORDER : LAYER_ORDER;
 
     // Store dimensions
     this.mediaWidth = 0;
@@ -58,9 +76,9 @@ export class LayerManager {
     this.bitmapHeight = 0;
     this.pixelRatio = (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1;
 
-    // Create all layers
-    for (let i = 0; i < LAYER_ORDER.length; i++) {
-      const name = LAYER_ORDER[i];
+    // Create layers for this set
+    for (let i = 0; i < this._layerOrder.length; i++) {
+      const name = this._layerOrder[i];
       const canvas = document.createElement('canvas');
       canvas.style.cssText = `position:absolute;top:0;left:0;width:100%;height:100%;z-index:${i}`;
       // E3.2: Promote DRAWINGS canvas to its own GPU compositing layer
@@ -84,6 +102,23 @@ export class LayerManager {
     // ResizeObserver for HiDPI handling
     this._ro = new ResizeObserver(this._onResize.bind(this));
     this._ro.observe(container);
+
+    // Trigger initial sizing synchronously so canvases aren't 0×0 on first render
+    const initW = container.clientWidth || container.offsetWidth || 1;
+    const initH = container.clientHeight || container.offsetHeight || 1;
+    if (initW > 0 && initH > 0) {
+      const pr = this.pixelRatio;
+      this.mediaWidth = initW;
+      this.mediaHeight = initH;
+      this.bitmapWidth = Math.round(initW * pr);
+      this.bitmapHeight = Math.round(initH * pr);
+      for (const [_name, layer] of this._layers) {
+        layer.canvas.width = this.bitmapWidth;
+        layer.canvas.height = this.bitmapHeight;
+        layer.canvas.style.width = initW + 'px';
+        layer.canvas.style.height = initH + 'px';
+      }
+    }
   }
 
   // ─── Resize ────────────────────────────────────────────────────
@@ -112,6 +147,7 @@ export class LayerManager {
       // Skip if unchanged
       if (this.bitmapWidth === bw && this.bitmapHeight === bh) return;
 
+      // Update dimension properties immediately (FrameState reads these)
       this.mediaWidth = mw;
       this.mediaHeight = mh;
       this.bitmapWidth = bw;
@@ -128,6 +164,8 @@ export class LayerManager {
 
       // All layers dirty after resize
       this.markAllDirty();
+      // Notify engine to schedule a render frame (demand-driven loop wake-up)
+      if (this._onResizeCallback) this._onResizeCallback();
     }
   }
 
@@ -145,7 +183,7 @@ export class LayerManager {
    * Mark all layers as dirty (resize, theme change, etc.)
    */
   markAllDirty() {
-    for (const name of LAYER_ORDER) {
+    for (const name of this._layerOrder) {
       this._dirty.set(name, true);
     }
   }
@@ -224,14 +262,18 @@ export class LayerManager {
    * @returns {HTMLCanvasElement}
    */
   getSnapshotCanvas() {
+    const bw = this.bitmapWidth || 1;
+    const bh = this.bitmapHeight || 1;
     const merged = document.createElement('canvas');
-    merged.width = this.bitmapWidth;
-    merged.height = this.bitmapHeight;
+    merged.width = bw;
+    merged.height = bh;
     const ctx = merged.getContext('2d');
 
-    for (const name of LAYER_ORDER) {
+    for (const name of this._layerOrder) {
       const canvas = this.getCanvas(name);
-      if (canvas) ctx.drawImage(canvas, 0, 0);
+      if (canvas && canvas.width > 0 && canvas.height > 0) {
+        ctx.drawImage(canvas, 0, 0);
+      }
     }
 
     return merged;

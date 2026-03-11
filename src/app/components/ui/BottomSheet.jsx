@@ -7,8 +7,8 @@
 // Respects prefers-reduced-motion.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { C, GLASS, DEPTH } from '../../../constants.js';
 
 // Snap points as % of viewport height

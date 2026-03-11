@@ -6,10 +6,10 @@
 // template-based fallback. Caches narratives per trade ID.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 const FONT = 'var(--forge-font, Inter, sans-serif)';
-const MONO = 'var(--forge-mono, "JetBrains Mono", monospace)';
+const _MONO = 'var(--forge-mono, "JetBrains Mono", monospace)';
 
 const CACHE_KEY = 'charEdge-trade-narratives';
 
@@ -28,7 +28,7 @@ function generateTemplateNarrative(trade) {
     const setup = trade.setupType || trade.playbook || 'unclassified';
     const tags = trade.tags || [];
     const notes = trade.notes || '';
-    const duration = trade.holdTime || trade.duration || 'unknown';
+    const _duration = trade.holdTime || trade.duration || 'unknown';
 
     const outcome = pnl >= 0 ? 'winning' : 'losing';
     const sideEmoji = side === 'long' ? '📈' : '📉';

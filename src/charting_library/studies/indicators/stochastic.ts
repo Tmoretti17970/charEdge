@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import type { Bar } from './helpers.ts';
-import { sma } from './movingAverages.ts';
+import { nanSafeSma } from './movingAverages.ts';
 
 /**
  * Stochastic %K and %D.
@@ -26,8 +26,8 @@ export function stochastic(
     k[i] = range === 0 ? 50 : ((bars[i].close - low) / range) * 100;
   }
 
-  const d = sma(
-    k.map((v) => (isNaN(v) ? 0 : v)),
+  const d = nanSafeSma(
+    k,
     dPeriod,
   );
   const firstK = k.findIndex((v) => !isNaN(v));

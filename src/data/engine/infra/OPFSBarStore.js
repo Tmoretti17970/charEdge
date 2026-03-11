@@ -1,4 +1,4 @@
-import { logger } from '../../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — OPFS Bar Store
 //
@@ -61,6 +61,7 @@ async function _getDir() {
   try {
     const root = await navigator.storage.getDirectory();
     return await root.getDirectoryHandle(DIR_NAME, { create: true });
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return null;
   }
@@ -71,7 +72,7 @@ async function _getDir() {
  * e.g. "BTCUSDT" + "1h" → "BTCUSDT_1h"
  */
 function _baseName(symbol, interval) {
-  return `${symbol}_${interval}`.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+  return `${symbol}_${interval}`.replace(/[^a-zA-Z0-9_\-.]/g, '_');
 }
 
 /** Binary filename */
@@ -240,11 +241,13 @@ class OPFSBarStore {
           if (bars === null) {
             // CRC32 mismatch — corrupt file, auto-delete and re-fetch
             logger.data.warn(`[OPFSBarStore] Corrupt file ${binName}, deleting`);
+            // eslint-disable-next-line unused-imports/no-unused-vars
             try { await dir.removeEntry(binName); } catch (_) { /* storage may be blocked */ }
             return [];
           }
           return bars;
         }
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) {
         // .bin not found — try legacy .json
       }
@@ -294,6 +297,7 @@ class OPFSBarStore {
       // Delete legacy JSON
       const jsonName = _jsonFileName(symbol, interval);
       await dir.removeEntry(jsonName);
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       // Migration failed — that's OK, will try again next read
     }
@@ -407,6 +411,7 @@ class OPFSBarStore {
         const view = new Float64Array(buffer);
         // First field is time_ms
         return new Date(view[0]).toISOString();
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) {
         // .bin not found — fall back to full decode of legacy JSON
       }
@@ -415,6 +420,7 @@ class OPFSBarStore {
       const bars = await this.getCandles(symbol, interval);
       if (!bars.length) return null;
       return bars[bars.length - 1].time;
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return null;
     }
@@ -432,9 +438,12 @@ class OPFSBarStore {
       const dir = await _getDir();
       if (!dir) return;
       // Remove binary
+      // eslint-disable-next-line unused-imports/no-unused-vars
       try { await dir.removeEntry(_binFileName(symbol, interval)); } catch (_) { /* ok */ }
       // Remove legacy JSON
+      // eslint-disable-next-line unused-imports/no-unused-vars
       try { await dir.removeEntry(_jsonFileName(symbol, interval)); } catch (_) { /* ok */ }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       // Directory might not exist — that's fine
     }
@@ -449,6 +458,7 @@ class OPFSBarStore {
       const root = await navigator.storage.getDirectory();
       await root.removeEntry(DIR_NAME, { recursive: true });
       logger.data.info('[OPFSBarStore] Cleared all bar cache');
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       // Directory might not exist
     }
@@ -484,6 +494,7 @@ class OPFSBarStore {
         totalSizeKB: Math.round(totalSize / 1024 * 10) / 10,
         symbols,
       };
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return { fileCount: 0, totalSizeKB: 0, symbols: [] };
     }

@@ -9,10 +9,10 @@
 //   1.2.3 Zero-copy worker transfer (Transferable ArrayBuffers)
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, beforeEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -93,10 +93,16 @@ describe('Phase 1.1.1 — Render-on-demand (kill continuous rAF)', () => {
     expect(section).toContain('this._scheduleDraw()');
   });
 
-  it('countdown interval calls _scheduleDraw()', () => {
-    // The setInterval callback should include _scheduleDraw()
+  it('countdown uses DOM overlay instead of canvas repaint (Sprint 18 #115)', () => {
+    // Sprint 18 #115: Countdown is now a DOM overlay (CountdownOverlay).
+    // The setInterval only increments _countdownTick for memory pressure counting.
+    // It should NOT call _scheduleDraw() or markDirty() anymore.
     const intervalSection = engineSource.match(/_countdownInterval\s*=\s*setInterval[\s\S]*?\},\s*1000\)/)?.[0] || '';
-    expect(intervalSection).toContain('this._scheduleDraw()');
+    expect(intervalSection).not.toContain('this._scheduleDraw()');
+    expect(intervalSection).not.toContain('markDirty');
+    // Verify CountdownOverlay is imported and instantiated
+    expect(engineSource).toContain("import { CountdownOverlay }");
+    expect(engineSource).toContain("new CountdownOverlay(container)");
   });
 
   it('renderLoop conditionally reschedules at end', () => {

@@ -315,7 +315,7 @@ const taskHandlers = {
   },
 
   volumeProfile(task) {
-    const { candles, tickSize: requestedTickSize, valueAreaPct = 0.70 } = task;
+    const { candles, tickSize: requestedTickSize, _valueAreaPct = 0.70 } = task;
     if (!candles?.length) return null;
 
     const tickSize = requestedTickSize || autoTickSize(candles[0].close);

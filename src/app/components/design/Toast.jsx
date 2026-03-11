@@ -17,7 +17,7 @@
 //   toast('Connection lost', 'error', { duration: 8000 });
 // ═══════════════════════════════════════════════════════════════════
 
-import { useState, useEffect, useCallback, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import s from '../../../styles/Toast.module.css';
 

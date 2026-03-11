@@ -7,7 +7,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { create } from 'zustand';
-import { safeClone } from '../utils/safeJSON.js';
+import { safeClone } from '@/shared/safeJSON';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -243,9 +243,9 @@ export function restoreState(state: WorkspaceState, stores: StoreRefs): void {
         if (state.chart.chartType) chartActions.setChartType?.(state.chart.chartType);
 
         if (state.chart.indicators) {
-            const existing = (chart.indicators as IndicatorConfig[]) || [];
-            for (let i = existing.length - 1; i >= 0; i--) {
-                chartActions.removeIndicator?.(i);
+            const existing = (chart.indicators as Array<IndicatorConfig & { id?: string }>) || [];
+            for (const ind of existing) {
+                if (ind.id) chartActions.removeIndicator?.(ind.id);
             }
             for (const ind of state.chart.indicators) {
                 chartActions.addIndicator?.(ind);
@@ -350,6 +350,7 @@ const useWorkspaceStore = create<WorkspaceStoreState>((set, get) => ({
 
             set({ workspaces: [...existing, ...newOnes].slice(0, MAX_WORKSPACES) });
             return newOnes.length;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_) {
             return 0;
         }

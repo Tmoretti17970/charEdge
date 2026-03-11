@@ -10,10 +10,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { BaseAdapter } from './BaseAdapter.js';
-
-import { logger } from '../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 const BYBIT_REST = 'https://api.bybit.com';
-const BYBIT_WS  = 'wss://stream.bybit.com/v5/public/spot';
+const BYBIT_WS = 'wss://stream.bybit.com/v5/public/spot';
 
 const INTERVAL_MAP = {
   '1m': '1', '3m': '3', '5m': '5', '15m': '15', '30m': '30',
@@ -76,14 +75,18 @@ export class BybitAdapter extends BaseAdapter {
 
     // Bybit returns newest-first, reverse for chronological order
     return data.result.list
-      .map(k => ({
-        time: parseInt(k[0]),
-        open: parseFloat(k[1]),
-        high: parseFloat(k[2]),
-        low: parseFloat(k[3]),
-        close: parseFloat(k[4]),
-        volume: parseFloat(k[5]),
-      }))
+      .map(k => {
+        const timeMs = parseInt(k[0]);
+        return {
+          time: timeMs,
+          _openMs: timeMs,
+          open: parseFloat(k[1]),
+          high: parseFloat(k[2]),
+          low: parseFloat(k[3]),
+          close: parseFloat(k[4]),
+          volume: parseFloat(k[5]),
+        };
+      })
       .reverse();
   }
 
@@ -146,12 +149,13 @@ export class BybitAdapter extends BaseAdapter {
           type: 'CRYPTO',
           exchange: 'Bybit',
         }));
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return [];
     }
   }
 
-  getLastPrice(symbol) {
+  getLastPrice(_symbol) {
     // No local cache maintained for last prices
     return null;
   }

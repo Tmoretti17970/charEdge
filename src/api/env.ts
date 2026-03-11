@@ -14,7 +14,7 @@ const envSchema = z.object({
     PORT: z.coerce.number().int().min(1).max(65535).default(3000),
 
     // ── Security ────────────────────────────────────────────
-    JWT_SECRET: z.string().min(16, 'JWT_SECRET must be at least 16 characters').default('dev-secret-change-in-production!'),
+    JWT_SECRET: z.string().min(16, 'JWT_SECRET must be at least 16 characters'),
     CORS_ORIGINS: z.string().optional().default(''),
 
     // ── Database ────────────────────────────────────────────
@@ -70,11 +70,6 @@ export function validateEnv(): Env {
         process.exit(1);
     }
 
-    // Warn if using default JWT secret in production
-    if (result.data.NODE_ENV === 'production' && result.data.JWT_SECRET === 'dev-secret-change-in-production!') {
-        console.error('\n⚠️  WARNING: Using default JWT_SECRET in production! Set a secure value.\n');
-        process.exit(1);
-    }
 
     // Warn about missing data provider keys
     const apiKeyChecks: Array<[string, keyof Env]> = [

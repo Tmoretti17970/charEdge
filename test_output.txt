@@ -1,0 +1,948 @@
+
+> charedge@11.0.0 test
+> vitest run
+
+
+ RUN  v3.2.4 /Users/tylermoretti/Documents/GitHub/charEdge
+
+ ❯ src/__tests__/engine/gpu_panning.test.js (24 tests | 1 failed) 17ms
+   ✓ Sprint 3 — WebGLRenderer GPU panning > has u_panOffset uniform in candle vertex shader 6ms
+   ✓ Sprint 3 — WebGLRenderer GPU panning > has u_panOffset uniform in volume vertex shader 0ms
+   ✓ Sprint 3 — WebGLRenderer GPU panning > applies u_panOffset to x position in candle shader 0ms
+   ✓ Sprint 3 — WebGLRenderer GPU panning > has redrawWithPanOffset method 0ms
+   ✓ Sprint 3 — WebGLRenderer GPU panning > sets u_panOffset to 0.0 on full draw 0ms
+   ✓ Sprint 3 — WebGLRenderer GPU panning > saves candle instance state for pan-only redraws 0ms
+   ✓ Sprint 3 — WebGLRenderer GPU panning > saves volume instance state for pan-only redraws 0ms
+   ✓ Sprint 3 — WebGLRenderer GPU panning > reuses existing buffer data (NO re-upload) during pan 0ms
+   ✓ Sprint 3 — WebGLRenderer GPU panning > updates yMin/yMax overrides on pan redraw 1ms
+   ✓ Sprint 3 — WebGLRenderer GPU panning > tracks last pan offset 1ms
+   ✓ Sprint 3 — DataStage GPU pan fast-path > has GPU PAN FAST PATH section 0ms
+   ✓ Sprint 3 — DataStage GPU pan fast-path > gates on VIEWPORT-only change mask 0ms
+   ✓ Sprint 3 — DataStage GPU pan fast-path > requires candlestick chart type for GPU pan 0ms
+   ✓ Sprint 3 — DataStage GPU pan fast-path > requires same zoom level (visibleBars match) 0ms
+   ✓ Sprint 3 — DataStage GPU pan fast-path > requires same canvas dimensions 0ms
+   ✓ Sprint 3 — DataStage GPU pan fast-path > requires no new bars added (barCount match) 0ms
+   ✓ Sprint 3 — DataStage GPU pan fast-path > detects bar entry/exit via startIdx/endIdx comparison 0ms
+   ✓ Sprint 3 — DataStage GPU pan fast-path > calls redrawWithPanOffset via command buffer 0ms
+   ✓ Sprint 3 — DataStage GPU pan fast-path > computes panOffsetPx from scrollDelta × barSpacing × pixelRatio 0ms
+   × Sprint 3 — DataStage GPU pan fast-path > redraws Canvas 2D overlays after GPU pan 5ms
+     → expected 'import { LAYERS } from \'../LayerMana…' to contain 'Skip full redraw'
+   ✓ Sprint 3 — FrameState panOffset > includes panOffset field declaration 0ms
+   ✓ Sprint 3 — FrameState panOffset > computes panOffset from fractional scrollOffset 0ms
+   ✓ Sprint 3 — FrameState panOffset > has CHANGED.VIEWPORT bitmask flag 0ms
+   ✓ Sprint 3 — FrameState panOffset > detects scrollOffset changes in diff() 0ms
+ ❯ src/__tests__/ui/billing.test.js (31 tests | 2 failed | 4 skipped) 11ms
+   ✓ Billing Routes — 3-Tier Plan Structure > exports PLAN_FEATURES with three tiers 1ms
+   ✓ Billing Routes — 3-Tier Plan Structure > free plan has correct limitations 0ms
+   ✓ Billing Routes — 3-Tier Plan Structure > trader plan includes AI Coach 0ms
+   ✓ Billing Routes — 3-Tier Plan Structure > pro plan includes everything 0ms
+   ✓ Billing Routes — 3-Tier Plan Structure > has checkout, portal, webhook, and status endpoints 0ms
+   ✓ Billing Routes — 3-Tier Plan Structure > supports plan selection in checkout 0ms
+   ✓ Billing Routes — 3-Tier Plan Structure > exports registerBillingRoutes and PLAN_FEATURES 0ms
+   ✓ Billing Routes — Server Registration > imports registerBillingRoutes 0ms
+   ✓ Billing Routes — Server Registration > calls registerBillingRoutes(app) 0ms
+   ✓ Billing Routes — Server Registration > sets up JSON body parser for billing endpoints 0ms
+   ✓ Billing — Environment Variables > .env.example has Stripe config vars 0ms
+   ↓ Pricing Page — UI > PricingPage.jsx exists (Phase 7 — not yet implemented)
+   ✓ Pricing Page — UI > renders 3 plan cards 0ms
+   ✓ Pricing Page — UI > shows correct pricing 0ms
+   ✓ Pricing Page — UI > imports useSubscriptionStore 0ms
+   ✓ Pricing Page — UI > has FAQ section 0ms
+   ↓ Pricing — Router Integration > has pricing route in PAGES map (removed — pricing page sunset)
+   ↓ Pricing — Router Integration > lazy-loads PricingPage (removed — pricing page sunset)
+   ↓ Pricing — Router Integration > has pricing label (removed — pricing page sunset)
+   × Pricing — Sidebar Upgrade Link > has upgrade link to pricing page 6ms
+     → expected '// ══════════════════════════════════…' to contain 'setPage(\'pricing\')'
+   × Pricing — Sidebar Upgrade Link > shows upgrade text with icon 1ms
+     → expected '// ══════════════════════════════════…' to contain 'Upgrade'
+   ✓ Subscription Store > useSubscriptionStore.ts exists 0ms
+   ✓ Subscription Store > exports useSubscriptionStore 0ms
+   ✓ Subscription Store > exports canUse helper 0ms
+   ✓ Subscription Store > defaults to free plan 0ms
+   ✓ Subscription Store > has fetchStatus action 0ms
+   ✓ Subscription Store > has checkout action 0ms
+   ✓ Subscription Store > has openPortal action 0ms
+   ✓ Landing Page — Pricing Section > has pricing preview section 0ms
+   ✓ Landing Page — Pricing Section > shows three tier previews 0ms
+   ✓ Landing Page — Pricing Section > links to full pricing page 0ms
+ ❯ src/__tests__/engine/tick_updates.test.js (22 tests | 2 failed) 14ms
+   ✓ Sprint 7 — ChartEngine tick detection > detects tick update via same bar count 5ms
+   ✓ Sprint 7 — ChartEngine tick detection > tracks animation target OHLC for interpolation 0ms
+   ✓ Sprint 7 — ChartEngine tick detection > tracks animation current OHLC for smooth transitions 0ms
+   ✓ Sprint 7 — ChartEngine tick detection > snaps animation on new bar (not tick) 0ms
+   ✓ Sprint 7 — FrameState tick bitmask > has CHANGED.TICK bitmask flag 0ms
+   ✓ Sprint 7 — FrameState tick bitmask > stores isTickUpdate from engine 0ms
+   ✓ Sprint 7 — FrameState tick bitmask > sets TICK mask when lastBarClose changes 0ms
+   ✓ Sprint 7 — DataStage tick fast-paths > detects tick-only changes (TICK mask without DATA/VIEWPORT) 0ms
+   × Sprint 7 — DataStage tick fast-paths > has Canvas 2D tick fast-path (non-WebGL) 5ms
+     → expected 'import { LAYERS } from \'../LayerMana…' to contain 'isTickOnly && !webgl?.available'
+   × Sprint 7 — DataStage tick fast-paths > has WebGL tick fast-path 1ms
+     → expected 'import { LAYERS } from \'../LayerMana…' to contain 'isTickOnly && webgl?.available'
+   ✓ Sprint 7 — DataStage tick fast-paths > calls updateLastCandle on WebGL tick 0ms
+   ✓ Sprint 7 — DataStage tick fast-paths > clears only last 2 bars region in Canvas 2D tick path 0ms
+   ✓ Sprint 7 — DataStage tick fast-paths > re-renders price line after tick update 0ms
+   ✓ Sprint 7 — WebGLRenderer updateLastCandle > has updateLastCandle method 0ms
+   ✓ Sprint 7 — WebGLRenderer updateLastCandle > uses bufferSubData for single-instance write 0ms
+   ✓ Sprint 7 — WebGLRenderer updateLastCandle > writes 7 floats per instance (x, open, high, low, close, isBull, isWick) 0ms
+   ✓ Sprint 7 — WebGLRenderer updateLastCandle > updates both body and wick instances 0ms
+   ✓ Sprint 7 — WebGLRenderer updateLastCandle > guards against no previous instance data 0ms
+   ✓ Sprint 7 — WebGLRenderer updateLastCandle > computes isBull from close >= open 0ms
+   ✓ Sprint 7 — DataStage price line pulse > creates radial gradient for glow effect 0ms
+   ✓ Sprint 7 — DataStage price line pulse > uses blue glow color (rgba 41, 98, 255) 0ms
+   ✓ Sprint 7 — DataStage price line pulse > applies gradient to price line dot area 0ms
+ ❯ src/__tests__/engine/pane_resize.test.js (36 tests | 7 failed) 13ms
+   ✓ Sprint 11 · InputManager — Splitter Drag > has _hitTestSplitter method 0ms
+   ✓ Sprint 11 · InputManager — Splitter Drag > delegates splitter interaction to PaneManager DOM splitters (Item 26) 0ms
+   ✓ Sprint 11 · InputManager — Splitter Drag > sets dragging to splitter on mousedown near splitter 0ms
+   ✓ Sprint 11 · InputManager — Splitter Drag > tracks _dragPaneIdx and _dragStartFraction 0ms
+   ✓ Sprint 11 · InputManager — Splitter Drag > calls onPaneResize callback during splitter drag 0ms
+   ✓ Sprint 11 · InputManager — Splitter Drag > clamps fraction to [0.08, 0.5] 0ms
+   ✓ Sprint 11 · InputManager — Splitter Drag > sets row-resize cursor on splitter hover 0ms
+   ✓ Sprint 11 · InputManager — Splitter Drag > updates _splitterHoverIdx on hover 0ms
+   ✓ Sprint 11 · InputManager — Splitter Drag > double-click on splitter triggers collapse toggle 0ms
+   ✓ Sprint 11 · ChartEngine — Pane State > initializes collapsedPanes as a Set 0ms
+   ✓ Sprint 11 · ChartEngine — Pane State > initializes _splitterHoverIdx 0ms
+   ✓ Sprint 11 · FrameState — Per-Pane Transforms > stores collapsedPanes on frame state 0ms
+   ✓ Sprint 11 · FrameState — Per-Pane Transforms > computes paneTransforms array 0ms
+   ✓ Sprint 11 · FrameState — Per-Pane Transforms > skips collapsed panes from total fraction 0ms
+   × Sprint 11 · FrameState — Per-Pane Transforms > computes independent yMin/yMax per pane 5ms
+     → expected '// ══════════════════════════════════…' to contain 'pMin'
+   ✓ Sprint 11 · FrameState — Per-Pane Transforms > counts active (non-collapsed) panes 0ms
+   × Sprint 11 · IndicatorStage — Pane Headers > draws pane header bar (HEADER_H) 3ms
+     → expected '// ══════════════════════════════════…' to contain 'HEADER_H'
+   × Sprint 11 · IndicatorStage — Pane Headers > shows indicator name in header 1ms
+     → expected '// ══════════════════════════════════…' to contain 'ind.label'
+   × Sprint 11 · IndicatorStage — Pane Headers > shows indicator value at crosshair 1ms
+     → expected '// ══════════════════════════════════…' to contain 'fs.hoverIdx'
+   × Sprint 11 · IndicatorStage — Pane Headers > renders collapse/expand toggle character 1ms
+     → expected '// ══════════════════════════════════…' to contain 'toggleChar'
+   × Sprint 11 · IndicatorStage — Pane Headers > skips pane content when collapsed 0ms
+     → expected '// ══════════════════════════════════…' to contain 'isCollapsed'
+   × Sprint 11 · IndicatorStage — Pane Headers > passes per-pane price transform to renderer 1ms
+     → expected '// ══════════════════════════════════…' to contain 'paneXform'
+   ✓ Sprint 11 · UIStage — Interactive Splitters > highlights splitter on hover 0ms
+   ✓ Sprint 11 · UIStage — Interactive Splitters > reads _splitterHoverIdx from R 0ms
+   ✓ Sprint 11 · UIStage — Interactive Splitters > reads collapsedPanes from R 0ms
+   ✓ Sprint 11 · UIStage — Interactive Splitters > draws expand chevron for collapsed panes 0ms
+   ✓ Sprint 11 · UIStage — Interactive Splitters > changes grip dot color on hover 0ms
+   ✓ Sprint 11 · DataStage — lastRender Extension > includes _splitterHoverIdx in lastRender 0ms
+   ✓ Sprint 11 · DataStage — lastRender Extension > includes collapsedPanes in lastRender 0ms
+   ✓ Sprint 11 · ChartEngineWidget — Callback Wiring > reads paneHeights from chart store 0ms
+   ✓ Sprint 11 · ChartEngineWidget — Callback Wiring > passes paneHeights to engine props 0ms
+   ✓ Sprint 11 · ChartEngineWidget — Callback Wiring > wires onPaneResize callback to setPaneHeight 0ms
+   ✓ Sprint 11 · ChartEngineWidget — Callback Wiring > wires onPaneToggle callback 0ms
+   ✓ Sprint 11 · featuresSlice — Pane Height State > has paneHeights state 0ms
+   ✓ Sprint 11 · featuresSlice — Pane Height State > has setPaneHeight action with min/max clamping 0ms
+   ✓ Sprint 11 · featuresSlice — Pane Height State > has resetPaneHeights action 0ms
+ ❯ src/__tests__/engine/price_scale.test.js (26 tests | 2 failed) 45ms
+   ✓ Sprint 10 — InputManager Y-axis interaction > drags Y-axis to scale price range 27ms
+   ✓ Sprint 10 — InputManager Y-axis interaction > drags Y-axis to scroll price range 1ms
+   ✓ Sprint 10 — InputManager Y-axis interaction > double-click Y-axis resets auto-scale 0ms
+   ✓ Sprint 10 — InputManager Y-axis interaction > right-click toggles log scale 0ms
+   ✓ Sprint 10 — InputManager Y-axis interaction > right-click toggles percent scale 0ms
+   ✓ Sprint 10 — InputManager Y-axis interaction > sets ns-resize cursor for Y-axis drag 0ms
+   ✓ Sprint 10 — Mobile pinch price scale > detects vertical vs horizontal pinch direction 0ms
+   ✓ Sprint 10 — Mobile pinch price scale > applies price scale on vertical pinch 0ms
+   ✓ Sprint 10 — Mobile pinch price scale > saves pinch start price scale 0ms
+   ✓ Sprint 10 — Mobile pinch price scale > disables auto-scale on vertical pinch 1ms
+   ✓ Sprint 10 — CoordinateSystem scale modes > has createPriceTransform function 1ms
+   ✓ Sprint 10 — CoordinateSystem scale modes > supports linear mode 0ms
+   ✓ Sprint 10 — CoordinateSystem scale modes > supports log mode 0ms
+   × Sprint 10 — CoordinateSystem scale modes > supports percent mode 7ms
+     → expected '// ══════════════════════════════════…' to contain 'scaleMode === \'percent\''
+   × Sprint 10 — CoordinateSystem scale modes > supports indexed-to-100 mode 5ms
+     → expected '// ══════════════════════════════════…' to contain 'scaleMode === \'indexed\''
+   ✓ Sprint 10 — CoordinateSystem scale modes > has priceToY and yToPrice transforms 0ms
+   ✓ Sprint 10 — CoordinateSystem scale modes > has formatTicks for each mode 0ms
+   ✓ Sprint 10 — AxesStage auto-fit and toggles > renders auto-fit button when not auto-scaling 1ms
+   ✓ Sprint 10 — AxesStage auto-fit and toggles > renders log toggle button 0ms
+   ✓ Sprint 10 — AxesStage auto-fit and toggles > renders percent toggle button 0ms
+   ✓ Sprint 10 — AxesStage auto-fit and toggles > renders current price badge 0ms
+   ✓ Sprint 10 — FrameState price scale fields > stores scaleMode on frame state 0ms
+   ✓ Sprint 10 — FrameState price scale fields > stores autoScale on frame state 0ms
+   ✓ Sprint 10 — FrameState price scale fields > stores priceScale on frame state 0ms
+   ✓ Sprint 10 — FrameState price scale fields > stores priceScroll on frame state 0ms
+   ✓ Sprint 10 — FrameState price scale fields > applies manual price scale when autoScale is false 0ms
+ ❯ src/__tests__/engine/theme_system.test.js (10 tests | 1 failed) 7ms
+   ✓ Sprint 21 · ThemeManager — Color & Theme System > exports Bloomberg theme preset 1ms
+   ✓ Sprint 21 · ThemeManager — Color & Theme System > exports TradingView Pro theme preset 0ms
+   ✓ Sprint 21 · ThemeManager — Color & Theme System > has setOverride for per-key color overrides 0ms
+   ✓ Sprint 21 · ThemeManager — Color & Theme System > persists overrides in localStorage 0ms
+   ✓ Sprint 21 · ThemeManager — Color & Theme System > has clearOverrides method 0ms
+   ✓ Sprint 21 · ThemeManager — Color & Theme System > has getGradientBackground for gradient background option 0ms
+   ✓ Sprint 21 · ThemeManager — Color & Theme System > has exportThemeJSON for theme export 0ms
+   ✓ Sprint 21 · ThemeManager — Color & Theme System > has importThemeJSON for theme import 0ms
+   ✓ Sprint 21 · ThemeManager — Color & Theme System > has availableThemes getter 0ms
+   × Sprint 21 · ThemeManager — Color & Theme System > merges overrides into theme getter 6ms
+     → expected 'import { logger } from \'../../utils/…' to contain '{ ...currentTheme, ...userOverrides }'
+ ❯ src/__tests__/engine/offscreen.test.js (21 tests | 2 failed) 11ms
+   × LayerManager — 5-Layer Canvas System > constructor takes a container element 8ms
+     → expected '// ══════════════════════════════════…' to contain 'constructor(container)'
+   ✓ LayerManager — 5-Layer Canvas System > creates 5 named layers in correct order 0ms
+   ✓ LayerManager — 5-Layer Canvas System > uses ResizeObserver for HiDPI handling 0ms
+   ✓ LayerManager — 5-Layer Canvas System > only has standard canvas (no OffscreenCanvas) 0ms
+   ✓ LayerManager — 5-Layer Canvas System > exposes getCanvas() and getCtx() methods 0ms
+   ✓ LayerManager — 5-Layer Canvas System > exposes getEventTarget() for UI layer 0ms
+   ✓ LayerManager — 5-Layer Canvas System > supports dirty tracking per layer 0ms
+   ✓ LayerManager — 5-Layer Canvas System > has getSnapshotCanvas() for screenshots 0ms
+   ✓ LayerManager — 5-Layer Canvas System > has dispose() for cleanup 0ms
+   ✓ WorkerBridge — Indicator Worker Only > has computeIndicators() method 0ms
+   ✓ WorkerBridge — Indicator Worker Only > uses zero-copy Transferable ArrayBuffers 0ms
+   ✓ WorkerBridge — Indicator Worker Only > does NOT have any render worker methods (OffscreenCanvas removed) 0ms
+   ✓ WorkerBridge — Indicator Worker Only > has dispose() cleanup 0ms
+   ✓ RenderPipeline — skipStages Support > execute() accepts skipStages parameter 0ms
+   ✓ RenderPipeline — skipStages Support > skips stages in the skipStages set 0ms
+   ✓ RenderPipeline — skipStages Support > runs all stages when skipStages is null/undefined 0ms
+   × ChartEngine — Main-Thread Rendering > creates LayerManager without offscreen options 1ms
+     → expected '/// <reference types="vite/client" />…' to contain 'new LayerManager(container)'
+   ✓ ChartEngine — Main-Thread Rendering > has WorkerBridge for indicator computation only 0ms
+   ✓ ChartEngine — Main-Thread Rendering > does NOT have dead offscreen code 0ms
+   ✓ ChartEngine — Main-Thread Rendering > demand-driven rendering: only schedules rAF when dirty 0ms
+   ✓ ChartEngine — Main-Thread Rendering > pipeline.execute() is called with correct arguments 0ms
+ ❯ src/__tests__/stores/cloudBackup.test.js (16 tests | 1 failed) 474ms
+   ✓ CloudBackup > module exports expected functions 122ms
+   ✓ CloudBackup > getCloudStatus returns disconnected state initially 0ms
+   ✓ CloudBackup > isCloudConnected returns false when not connected 0ms
+   ✓ CloudBackup > cloudBackup fails gracefully when no provider connected 0ms
+   ✓ CloudBackup > cloudBackup rejects short passphrase 0ms
+   ✓ CloudBackup > cloudRestore fails gracefully when no provider connected 0ms
+   ✓ CloudBackup > cloudRestore rejects empty passphrase 0ms
+   ✓ CloudBackup > listCloudBackups fails gracefully when not connected 0ms
+   ✓ CloudBackup > disconnectCloud clears connection state 0ms
+   ✓ CloudBackup > connectCloud rejects unknown provider 0ms
+   ✓ CloudBackup > getProviderDisplayName returns human-readable names 0ms
+   × CloudBackup > restoreCloudConnection returns false when nothing saved 6ms
+     → expected Promise{…} to be false // Object.is equality
+   ✓ CloudBackup > restoreCloudConnection restores valid saved token 0ms
+   ✓ CloudBackup > restoreCloudConnection rejects expired token 0ms
+   ✓ CloudBackup Encryption Integration > encrypts and decrypts a cloud backup bundle 178ms
+   ✓ CloudBackup Encryption Integration > wrong passphrase fails to decrypt cloud backup 165ms
+stdout | src/__tests__/benchmarks/orderFlowBenchmark.test.js > Benchmark Guard: OrderFlowEngine.ingestTick > 10,000 ticks ingest: throughput >= 100,000 ticks/sec (p95)
+  ingestTick throughput:  p95=119,397 t/s  mean=327,054 t/s
+  Timings (ms): p95=83.75  mean=30.58  min=15.08  max=83.75
+
+stdout | src/__tests__/integration/integration.test.js > CSV → Store → Analytics pipeline > parses CSV, loads into store, computes analytics
+[📊 Track] first_action { action: [32m'trades_imported'[39m, elapsed_ms: [33m0[39m }
+[📊 Track] workflow_complete { workflow: [32m'csv_imported'[39m }
+
+ ✓ src/__tests__/intelligence/batch19.test.ts (41 tests) 581ms
+   ✓ 19.1 — CopilotStreamBar > exports without errors  454ms
+ ❯ src/__tests__/integration/integration.test.js (17 tests | 1 failed) 51ms
+   ✓ CSV → Store → Analytics pipeline > parses CSV, loads into store, computes analytics 19ms
+   ✓ CSV → Store → Analytics pipeline > importCSV returns structured result 1ms
+   × CSV → Store → Analytics pipeline > CSV round-trip: export → re-import → consistent analytics 2ms
+     → actual value must be number or bigint, received "undefined"
+   ✓ Store → Storage → Hydrate pipeline > persists trades and hydrates them back 1ms
+   ✓ Store → Storage → Hydrate pipeline > settings persist and hydrate 0ms
+   ✓ Store → Storage → Hydrate pipeline > trade plans round-trip through storage 0ms
+   ✓ Analytics → groupTradesBy agreement > groupTradesBy playbook matches computeFast bySt 3ms
+   ✓ Analytics → groupTradesBy agreement > groupTradesByTime dayOfWeek matches computeFast byDay 2ms
+   ✓ Indicator computation chain > compInd output feeds volume profile 3ms
+   ✓ Indicator computation chain > Calc functions compose correctly 4ms
+   ✓ AnalyticsBridge → AnalyticsStore integration > bridge compute → store setResult 5ms
+   ✓ RetryQueue → StorageService integration > storage operations through RetryQueue 1ms
+   ✓ RetryQueue → StorageService integration > deferred queue drains successfully 0ms
+   ✓ LayoutCache + indicator config change > cache invalidates on config change, preserves on pan 0ms
+   ✓ UI Store navigation flow > simulates full user navigation 0ms
+   ✓ Formatter integration > fmtD formats analytics totalPnl 8ms
+   ✓ Formatter integration > fmt formats numbers 0ms
+ ❯ src/__tests__/charting/phase1_settings_audit.test.js (91 tests | 1 failed) 181ms
+   ✓ Phase 1 · 1.7 — Band/Fill Config Audit > has 82 total indicators in registry 1ms
+   ✓ Phase 1 · 1.7 — Band/Fill Config Audit > every pane indicator with bands has valid { value, color } entries 2ms
+   ✓ Phase 1 · 1.7 — Band/Fill Config Audit > band values fall within paneConfig.min/max when defined 1ms
+   ✓ Phase 1 · 1.7 — Band/Fill Config Audit > overlay fills reference existing output keys 0ms
+   ✓ Phase 1 · 1.7 — Band/Fill Config Audit > every indicator has a valid compute() function 1ms
+   × Phase 1 · 1.7 — Band/Fill Config Audit > every indicator has outputs with key, label, color, type 31ms
+     → expected [ 'line', 'histogram', 'vrvp', 'dots' ] to include 'hidden'
+   ✓ Phase 1 · 1.8 — Editable Bands Structure > pane indicators with fills have valid { above, color } or { below, color } 1ms
+   ✓ Phase 1 · 1.9 — Overrides API Structural > indicatorSlice has applyOverride and applyOverrides 30ms
+   ✓ Phase 1 · 1.10 — Templates Structural > indicatorSlice has template save/load/list actions 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > sma computes on 500 bars 2ms
+   ✓ Phase 1 · All 55 indicators compute without error > ema computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > wma computes on 500 bars 2ms
+   ✓ Phase 1 · All 55 indicators compute without error > dema computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > bb computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > vwap computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > vrvp computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > ichimoku computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > rsi computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > macd computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > stochastic computes on 500 bars 3ms
+   ✓ Phase 1 · All 55 indicators compute without error > atr computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > cci computes on 500 bars 2ms
+   ✓ Phase 1 · All 55 indicators compute without error > mfi computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > williamsR computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > obv computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > roc computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > volumeDelta computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > tema computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > hma computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > vwma computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > keltner computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > donchian computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > linreg computes on 500 bars 2ms
+   ✓ Phase 1 · All 55 indicators compute without error > supertrend computes on 500 bars 8ms
+   ✓ Phase 1 · All 55 indicators compute without error > psar computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > adx computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > aroon computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > cmf computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > trix computes on 500 bars 2ms
+   ✓ Phase 1 · All 55 indicators compute without error > chaikin computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > ppo computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > dpo computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > massIndex computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > kst computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > coppock computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > squeeze computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > adLine computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > momentum computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > tsi computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > vortex computes on 500 bars 2ms
+   ✓ Phase 1 · All 55 indicators compute without error > ultimateOsc computes on 500 bars 2ms
+   ✓ Phase 1 · All 55 indicators compute without error > klinger computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > stdDev computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > historicalVol computes on 500 bars 2ms
+   ✓ Phase 1 · All 55 indicators compute without error > awesomeOsc computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > acceleratorOsc computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > chandeMO computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > sessionVwap computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > anchoredVwap computes on 500 bars 13ms
+   ✓ Phase 1 · All 55 indicators compute without error > vwRsi computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > fearGreed computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > liquidationLevels computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > chaikinVol computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > stochRsi computes on 500 bars 6ms
+   ✓ Phase 1 · All 55 indicators compute without error > pivotPoints computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > elderRay computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > adxr computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > autoFib computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > kama computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > vidya computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > frama computes on 500 bars 6ms
+   ✓ Phase 1 · All 55 indicators compute without error > adaptiveRsi computes on 500 bars 4ms
+   ✓ Phase 1 · All 55 indicators compute without error > zigzag computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > dynamicATR computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > regimeSwitcher computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > sigmaBands computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > rvolFilter computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > mcginleyDynamic computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > connorsRsi computes on 500 bars 2ms
+   ✓ Phase 1 · All 55 indicators compute without error > schaffTrendCycle computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > ehlersFisher computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > rvi computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > heikinAshi computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > marketProfile computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > mama computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > hurstExponent computes on 500 bars 4ms
+   ✓ Phase 1 · All 55 indicators compute without error > renkoBrickCount computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > fvgDetector computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > wickRejection computes on 500 bars 0ms
+   ✓ Phase 1 · All 55 indicators compute without error > confluenceScore computes on 500 bars 1ms
+   ✓ Phase 1 · All 55 indicators compute without error > signalQuality computes on 500 bars 1ms
+stdout | src/__tests__/benchmarks/orderFlowBenchmark.test.js > Benchmark Guard: OrderFlowEngine.ingestTick > sustained ingestion: 50,000 ticks without degradation
+  First 25k: 230.22ms  Second 25k: 136.08ms  Ratio: 0.59x
+
+ ✓ src/__tests__/benchmarks/orderFlowBenchmark.test.js (2 tests) 842ms
+   ✓ Benchmark Guard: OrderFlowEngine.ingestTick > 10,000 ticks ingest: throughput >= 100,000 ticks/sec (p95)  454ms
+   ✓ Benchmark Guard: OrderFlowEngine.ingestTick > sustained ingestion: 50,000 ticks without degradation  387ms
+stdout | src/__tests__/benchmarks/stress.test.js > Stress: 10,000 trades > store handles 10K trades
+[📊 Track] first_action { action: [32m'trades_imported'[39m, elapsed_ms: [33m0[39m }
+[📊 Track] workflow_complete { workflow: [32m'csv_imported'[39m }
+
+stdout | src/__tests__/data/infra_pipeline.test.js > DataPipeline — start/watchSymbol/unwatchSymbol/stop lifecycle > watchSymbol returns unsubscribe fn; unwatchSymbol cleans up
+[Data] [TickerPlant] SharedWorker not available, running in direct mode
+
+ ✓ src/__tests__/benchmarks/phase5.test.js (41 tests) 657ms
+stdout | src/__tests__/data/infra_pipeline.test.js > DataPipeline — start/watchSymbol/unwatchSymbol/stop lifecycle > stop() clears all subscriptions and sources
+[Data] [TickerPlant] Stopped
+[Data] Stopped
+
+ ✓ src/__tests__/data/infra_pipeline.test.js (49 tests | 4 skipped) 319ms
+ ✓ src/__tests__/security/batch12_security.test.js (21 tests) 913ms
+   ✓ 4.5.8 — Input sanitization with DOMPurify > secureInput combines pollution check + sanitization  838ms
+ ✓ src/__tests__/stores/fileSystemBackup.test.js (20 tests | 1 skipped) 1205ms
+   ✓ DataEncryption > empty object round-trips  370ms
+ ❯ src/__tests__/benchmarks/stress.test.js (31 tests | 2 failed) 519ms
+   ✓ Stress: 10,000 trades > computeFast handles 10K trades 119ms
+   ✓ Stress: 10,000 trades > original compute handles 10K trades 60ms
+   ✓ Stress: 10,000 trades > groupTradesBy handles 10K trades 2ms
+   ✓ Stress: 10,000 trades > groupTradesByTime handles 10K trades 10ms
+   ✓ Stress: 10,000 trades > store handles 10K trades 1ms
+   ✓ Stress: 10,000 trades > storage handles 10K trades bulk put 2ms
+   ✓ Stress: 50,000 trades > computeFast handles 50K without crash 281ms
+   × Stress: 50,000 trades > CSV export at 50K 28ms
+     → actual value must be number or bigint, received "undefined"
+   ✓ Stress: indicators at scale > 8 indicators on 600 bars 2ms
+   ✓ Stress: indicators at scale > volume profile on 600 bars 2ms
+   ✓ Stress: LayoutCache 1000 rapid keys > handles rapid key changes 1ms
+   ✓ Edge: empty state > computeFast returns null for empty 0ms
+   ✓ Edge: empty state > groupTradesBy returns [] for empty 0ms
+   ✓ Edge: empty state > groupTradesByTime returns [] for empty 0ms
+   × Edge: empty state > exportCSV of empty trades produces header only 0ms
+     → csv.trim is not a function
+   ✓ Edge: empty state > parseCSVRaw of empty string returns no rows 0ms
+   ✓ Edge: single trade > computeFast handles single trade 0ms
+   ✓ Edge: single trade > warnings fire for small sample 0ms
+   ✓ Edge: all winners > winRate = 100%, pf = Infinity 0ms
+   ✓ Edge: all losers > winRate = 0%, pf = 0 0ms
+   ✓ Edge: zero P&L trades > handles all-zero P&L 0ms
+   ✓ Edge: negative equity > equity curve handles going negative 0ms
+   ✓ Edge: same symbol for all > groupTradesBy returns single group 0ms
+   ✓ Edge: future-dated trades > analytics handles future dates 0ms
+   ✓ Edge: future-dated trades > groupTradesByTime handles future dates 0ms
+   ✓ Edge: CSV parsing > handles BOM in CSV 0ms
+   ✓ Edge: CSV parsing > handles tab-separated values 0ms
+   ✓ Edge: CSV parsing > handles missing columns 0ms
+   ✓ Edge: formatter > fmtD handles zero 0ms
+   ✓ Edge: formatter > fmtD handles large numbers 0ms
+   ✓ Edge: formatter > fmt handles small numbers 0ms
+stdout | src/__tests__/data/infra_fetch.test.js > FetchService — clearCache clears bgRefreshTimestamps > clearCache empties both _cache and _bgRefreshTimestamps
+[Data] [OPFSBarStore] OPFS not available, persistent bar storage disabled
+
+ ✓ src/__tests__/unit/api/sanitize.test.ts (8 tests) 393ms
+   ✓ Sanitize Functions > strips HTML tags from strings  388ms
+stdout | src/__tests__/data/infra_cache.test.js > CacheManager — unified 3-tier cache > write + read returns data from memory tier
+[Data] [OPFSBarStore] OPFS not available, persistent bar storage disabled
+
+ ✓ src/__tests__/benchmarks/benchmarkRunner.test.js (19 tests) 482ms
+ ✓ src/__tests__/integration/chartEngine.test.js (16 tests) 438ms
+stdout | src/__tests__/data/infra_cache.test.js > MemoryBudget — threshold comparison uses consistent units > correctly detects warning level at 75% usage
+[Data] [MemoryBudget] Budget set to 100 MB
+[Data] [MemoryBudget] Triggering degradation (level 1)
+
+stdout | src/__tests__/data/infra_cache.test.js > MemoryBudget — threshold comparison uses consistent units > correctly detects critical level at 90%+ usage
+[Data] [MemoryBudget] Budget set to 100 MB
+[Data] [MemoryBudget] Triggering degradation (level 2)
+
+stdout | src/__tests__/data/infra_cache.test.js > MemoryBudget — threshold comparison uses consistent units > correctly detects healthy level at <75%
+[Data] [MemoryBudget] Budget set to 100 MB
+
+stdout | src/__tests__/data/infra_cache.test.js > MemoryBudget — threshold check and degradation triggers > normal level when under 75% budget
+[Data] [MemoryBudget] Budget set to 100 MB
+
+stdout | src/__tests__/data/infra_cache.test.js > MemoryBudget — threshold check and degradation triggers > warning level when between 75-90% budget
+[Data] [MemoryBudget] Budget set to 100 MB
+[Data] [MemoryBudget] Triggering degradation (level 1)
+
+stdout | src/__tests__/data/infra_cache.test.js > MemoryBudget — threshold check and degradation triggers > critical level when above 90% budget
+[Data] [MemoryBudget] Budget set to 100 MB
+[Data] [MemoryBudget] Triggering degradation (level 2)
+
+stdout | src/__tests__/data/infra_cache.test.js > MemoryBudget — threshold check and degradation triggers > onPressure callbacks fire on level change
+[Data] [MemoryBudget] Budget set to 100 MB
+[Data] [MemoryBudget] Triggering degradation (level 1)
+
+stdout | src/__tests__/data/infra_cache.test.js > MemoryBudget — threshold check and degradation triggers > onPressure returns working unsubscribe
+[Data] [MemoryBudget] Budget set to 100 MB
+[Data] [MemoryBudget] Triggering degradation (level 2)
+
+stdout | src/__tests__/data/infra_cache.test.js > MemoryBudget — threshold check and degradation triggers > getStatus breakdown shows per-engine memory
+[Data] [MemoryBudget] Budget set to 100 MB
+
+stdout | src/__tests__/data/infra_cache.test.js > OPFSBarStore — _withLock serializes concurrent operations > serializes operations under the same key
+[Data] [CandleVirtualizer] Window size adjusted to 5000
+[Data] [MemoryBudget] CandleVirtualizer window adjusted to 5000 bars (level 0)
+[Data] [CandleVirtualizer] Window size adjusted to 5000
+[Data] [MemoryBudget] CandleVirtualizer window adjusted to 5000 bars (level 0)
+[Data] [CandleVirtualizer] Window size adjusted to 3000
+[Data] [MemoryBudget] CandleVirtualizer window adjusted to 3000 bars (level 1)
+[Data] [CandleVirtualizer] Window size adjusted to 2000
+[Data] [MemoryBudget] CandleVirtualizer window adjusted to 2000 bars (level 2)
+[Data] [CandleVirtualizer] Window size adjusted to 3000
+[Data] [MemoryBudget] CandleVirtualizer window adjusted to 3000 bars (level 1)
+[Data] [CandleVirtualizer] Window size adjusted to 2000
+[Data] [MemoryBudget] CandleVirtualizer window adjusted to 2000 bars (level 2)
+
+stdout | src/__tests__/data/infra_cache.test.js > OPFSBarStore — _withLock serializes concurrent operations > serializes operations under the same key
+[Data] [MemoryBudget] Triggered DataCache eviction
+[Data] [MemoryBudget] Triggered DataCache eviction
+
+ ✓ src/__tests__/ui/simpleMode.test.js (15 tests) 445ms
+   ✓ Simple Mode — Sidebar > NAV_ITEMS does not include coach (Wave 0 quarantine)  429ms
+ ✓ src/__tests__/ui/mobile.test.js (18 tests) 491ms
+ ✓ src/__tests__/intelligence/batch9.test.ts (18 tests) 183ms
+stdout | src/__tests__/benchmarks/candle100k.test.js > 100K Candle Benchmark > generates 100K bars in < 500ms
+📊 100K bar generation: 23.7ms
+
+ ✓ src/__tests__/integration/analytics.test.js (53 tests) 275ms
+ ✓ src/__tests__/data/infra_cache.test.js (48 tests) 335ms
+stdout | src/__tests__/benchmarks/candle100k.test.js > 100K Candle Benchmark > generates 500K bars in < 2s
+📊 500K bar generation: 56.7ms
+
+stdout | src/__tests__/benchmarks/candle100k.test.js > 100K Candle Benchmark > renders 200-bar viewport from 10K dataset at < 1ms avg
+⚡ 10K dataset render: avg=0.02ms p95=0.04ms fps=54665
+
+stdout | src/__tests__/benchmarks/candle100k.test.js > 100K Candle Benchmark > renders 200-bar viewport from 100K dataset at < 2ms avg
+⚡ 100K dataset render: avg=0.01ms p95=0.01ms fps=143562
+
+stdout | src/__tests__/benchmarks/indicatorStress.test.js > Indicator Stress Test (2.5.2) > computes 5 indicators on 100K bars in < 500ms total
+🔬 5 indicators on 100K bars: 26.3ms
+
+ ✓ src/__tests__/data/infra_fetch.test.js (92 tests | 1 skipped) 539ms
+   ✓ FetchService — clearCache clears bgRefreshTimestamps > clearCache empties both _cache and _bgRefreshTimestamps  307ms
+stdout | src/__tests__/benchmarks/candle100k.test.js > 100K Candle Benchmark > renders 500-bar viewport from 100K dataset at < 5ms avg
+⚡ 100K/500-visible render: avg=0.04ms p95=0.13ms fps=25441
+
+stdout | src/__tests__/benchmarks/indicatorStress.test.js > Indicator Stress Test (2.5.2) > computes 5 indicators on 50K bars in < 250ms total
+🔬 5 indicators on 50K bars: 4.8ms
+
+stdout | src/__tests__/benchmarks/indicatorStress.test.js > Indicator Stress Test (2.5.2) > recomputes incrementally (single bar update) in < 0.1ms
+⚡ Incremental SMA update: avg=0.0036ms p95=0.0004ms
+
+ ✓ src/__tests__/integration/imports.test.js (6 tests) 347ms
+stdout | src/__tests__/benchmarks/indicatorStress.test.js > Memory Leak — Symbol Switching (2.5.3) > 10 rapid symbol switches produce predictable memory
+🧠 Memory: first=51.2MB last=30.2MB ratio=0.59x
+
+stdout | src/__tests__/benchmarks/candle100k.test.js > 100K Candle Benchmark > renders 200-bar viewport from 500K dataset at < 2ms avg
+⚡ 500K dataset render: avg=0.01ms p95=0.01ms fps=197079
+
+stdout | src/__tests__/benchmarks/indicatorStress.test.js > Memory Leak — Symbol Switching (2.5.3) > 100 rapid switches complete in < 2s
+🔄 100 rapid switches (5K bars each): 65ms
+
+stdout | src/__tests__/benchmarks/candle100k.test.js > 100K Candle Benchmark > produces benchmark report
+┌─────────┬─────────┬──────────┬──────────┬──────────┬──────────┬──────────┐
+│ (index) │ Dataset │ Avg (ms) │ P50 (ms) │ P95 (ms) │ P99 (ms) │ FPS      │
+├─────────┼─────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0       │ [32m'10K'[39m   │ [32m'0.00'[39m   │ [32m'0.00'[39m   │ [32m'0.00'[39m   │ [32m'0.02'[39m   │ [32m'298914'[39m │
+│ 1       │ [32m'50K'[39m   │ [32m'0.00'[39m   │ [32m'0.00'[39m   │ [32m'0.00'[39m   │ [32m'0.01'[39m   │ [32m'365013'[39m │
+│ 2       │ [32m'100K'[39m  │ [32m'0.01'[39m   │ [32m'0.01'[39m   │ [32m'0.01'[39m   │ [32m'0.04'[39m   │ [32m'156780'[39m │
+└─────────┴─────────┴──────────┴──────────┴──────────┴──────────┴──────────┘
+
+ ✓ src/__tests__/benchmarks/indicatorStress.test.js (5 tests) 193ms
+ ✓ src/__tests__/benchmarks/candle100k.test.js (7 tests) 231ms
+stdout | src/__tests__/engine/wave5Engine.test.js > TimeSeriesStore > can be imported
+[Data] [OPFSBarStore] OPFS not available, persistent bar storage disabled
+
+ ✓ src/__tests__/integration/api.test.js (47 tests) 48ms
+ ✓ src/__tests__/ai/sprint6_aiCoach.test.js (28 tests) 98ms
+ ✓ src/__tests__/engine/wave5Engine.test.js (29 tests) 187ms
+stdout | src/__tests__/integration/e2eDataFlow.test.js > E2E: Cache key consistency > CacheManager write/read uses the same key format
+[Data] [OPFSBarStore] OPFS not available, persistent bar storage disabled
+
+ ✓ src/__tests__/integration/chartInteraction.test.js (11 tests) 167ms
+ ✓ src/__tests__/integration/tier5_testing.test.js (51 tests | 2 skipped) 233ms
+stdout | src/__tests__/integration/e2eDataFlow.test.js > E2E: DataPipelineLogger > logs entries with correct structure
+[Data] [FetchService] Fetched 100 bars for BTC:1D from binance
+
+stdout | src/__tests__/integration/e2eDataFlow.test.js > E2E: DataPipelineLogger > getBySource filters correctly
+[Data] [FetchService] msg1
+[Data] [CacheManager] msg2
+[Data] [FetchService] msg3
+
+stdout | src/__tests__/integration/e2eDataFlow.test.js > E2E: DataPipelineLogger > getStats tracks error counts
+[Data] [FetchService] Success
+
+stdout | src/__tests__/integration/e2eDataFlow.test.js > E2E: DataPipelineLogger > subscribe receives new entries
+[Data] [Test] hello
+[Data] [Test] after-unsub
+
+stdout | src/__tests__/data/persistentCache.test.js
+[Data] [TickerPlant] SharedWorker not available, running in direct mode
+
+ ✓ src/__tests__/integration/e2eDataFlow.test.js (37 tests) 165ms
+ ✓ src/__tests__/security/batch16_launchBlockers.test.js (37 tests) 196ms
+ ✓ src/__tests__/integration/deepAnalyticsV2.test.js (30 tests) 234ms
+stdout | src/__tests__/benchmarks/benchmarkGuards.test.js > Benchmark Guard: CacheManager
+[Data] [OPFSBarStore] OPFS not available, persistent bar storage disabled
+
+ ✓ src/__tests__/data/persistentCache.test.js (20 tests) 118ms
+ ✓ src/__tests__/benchmarks/benchmarkGuards.test.js (6 tests) 102ms
+ ✓ src/__tests__/helpers/psychology_ruleEngine.test.js (28 tests) 132ms
+ ✓ src/__tests__/integration/criticalFixes.test.js (18 tests) 138ms
+ ✓ src/__tests__/stores/idbConsolidation.test.js (34 tests) 46ms
+ ✓ src/__tests__/ui/ux_polish.test.js (25 tests | 1 skipped) 99ms
+ ✓ src/__tests__/security/security.test.js (15 tests) 82ms
+stdout | src/__tests__/helpers/pythOracle.test.js > DataPipeline - Confidence Integration > exports getConfidence method
+[Data] [TickerPlant] SharedWorker not available, running in direct mode
+
+ ✓ src/__tests__/security/sprint7_hardening.test.js (13 tests) 41ms
+ ✓ src/__tests__/helpers/pythOracle.test.js (33 tests) 117ms
+stdout | src/__tests__/stores/selectors.test.js > Zustand — useJournalStore > addTrade and deleteTrade work
+[📊 Track] first_action { action: [32m'trade_logged'[39m, elapsed_ms: [33m0[39m }
+[📊 Track] workflow_complete { workflow: [32m'trade_logged'[39m }
+
+ ✓ src/__tests__/stores/selectors.test.js (9 tests) 47ms
+stdout | src/__tests__/benchmarks/h1_benchmarks.test.js > Benchmark: CacheManager performance > cache write: 1000 bars completes under 10ms
+[Data] [OPFSBarStore] OPFS not available, persistent bar storage disabled
+
+ ✓ src/__tests__/data/phase2_infra.test.js (23 tests) 60ms
+ ✓ src/__tests__/ui/changelog.test.js (10 tests) 51ms
+ ✓ src/__tests__/ui/landingPage.test.js (10 tests) 78ms
+ ✓ src/__tests__/benchmarks/h1_benchmarks.test.js (13 tests) 127ms
+ ✓ src/__tests__/ui/feedbackWidget.test.js (8 tests) 72ms
+ ✓ src/__tests__/data/watchlistPrefetcher.test.js (8 tests) 30ms
+ ✓ src/__tests__/data/sprint5_dataExpansion.test.js (21 tests) 57ms
+ ✓ src/__tests__/integration/trading.test.js (54 tests | 1 skipped) 55ms
+stdout | src/__tests__/data/timeAggregator.test.js > TimeAggregator > aggregateBars > is fast: 100K bars → 1h in < 50ms
+⚡ 100K→1h aggregation: 10.3ms → 1667 bars
+
+ ✓ src/__tests__/data/timeAggregator.test.js (26 tests) 62ms
+ ✓ src/__tests__/helpers/memo.test.js (13 tests) 59ms
+ ✓ src/__tests__/security/batch13_production.test.js (27 tests) 115ms
+ ✓ src/__tests__/charting/phase1_sprint1_qa.test.js (24 tests) 72ms
+stdout | src/__tests__/engine/chartBenchmarks.test.js > OPFSBarStore — content-addressed caching > exports _barsEqual helper
+[Data] [OPFSBarStore] OPFS not available, persistent bar storage disabled
+
+ ✓ src/__tests__/engine/chartBenchmarks.test.js (11 tests) 56ms
+ ✓ src/__tests__/engine/pagination.test.js (30 tests) 24ms
+ ✓ src/__tests__/data/freeHistoricalData.test.js (32 tests) 38ms
+ ✓ src/__tests__/engine/chartEnhancements.test.js (268 tests) 143ms
+ ✓ src/__tests__/benchmarks/speed.test.js (26 tests) 96ms
+ ✓ src/__tests__/helpers/errorHandling.test.js (22 tests) 34ms
+ ✓ src/__tests__/helpers/shallow.test.js (12 tests) 3ms
+ ✓ src/__tests__/engine/render_pipeline.test.js (42 tests | 1 skipped) 32ms
+ ✓ src/__tests__/intelligence/copilotPipeline.test.ts (6 tests) 69ms
+ ✓ src/__tests__/engine/time_scale.test.js (24 tests) 34ms
+ ✓ src/__tests__/data/retryQueue.test.js (16 tests) 29ms
+ ✓ src/__tests__/helpers/utils.test.js (55 tests) 19ms
+ ✓ src/__tests__/engine/niceTicks.test.js (21 tests) 33ms
+ ✓ src/__tests__/engine/hollowCandles.test.js (10 tests) 67ms
+ ✓ src/__tests__/intelligence/behavioralReport.test.ts (7 tests) 8ms
+stdout | src/__tests__/data/apiKeyRoundRobin.test.js > ApiKeyRoundRobin > addProvider / getNextKey > should register provider with keys
+[Data] [ApiKeyRoundRobin] Registered polygon with 3 key(s)
+
+stdout | src/__tests__/data/apiKeyRoundRobin.test.js > ApiKeyRoundRobin > addProvider / getNextKey > should rotate keys in order
+[Data] [ApiKeyRoundRobin] Registered polygon with 3 key(s)
+
+stdout | src/__tests__/data/apiKeyRoundRobin.test.js > ApiKeyRoundRobin > cooldown > should skip cooled-down keys
+[Data] [ApiKeyRoundRobin] Registered test with 3 key(s)
+[Data] [ApiKeyRoundRobin] Key 0 for test cooled down for 5000ms (failures: 1)
+
+stdout | src/__tests__/data/apiKeyRoundRobin.test.js > ApiKeyRoundRobin > cooldown > should auto-expire cooldowns
+[Data] [ApiKeyRoundRobin] Registered test with 2 key(s)
+[Data] [ApiKeyRoundRobin] Key 0 for test cooled down for 1000ms (failures: 1)
+
+stdout | src/__tests__/data/apiKeyRoundRobin.test.js > ApiKeyRoundRobin > cooldown > should use exponential backoff without retry-after
+[Data] [ApiKeyRoundRobin] Registered test with 1 key(s)
+[Data] [ApiKeyRoundRobin] Key 0 for test cooled down for 1000ms (failures: 1)
+[Data] [ApiKeyRoundRobin] Key 0 for test cooled down for 1000ms (failures: 1)
+
+stdout | src/__tests__/data/apiKeyRoundRobin.test.js > ApiKeyRoundRobin > cooldown > should return null when all keys are in cooldown
+[Data] [ApiKeyRoundRobin] Registered test with 2 key(s)
+[Data] [ApiKeyRoundRobin] Key 0 for test cooled down for 5000ms (failures: 1)
+[Data] [ApiKeyRoundRobin] Key 1 for test cooled down for 5000ms (failures: 1)
+
+stdout | src/__tests__/data/apiKeyRoundRobin.test.js > ApiKeyRoundRobin > markSuccess > should reset consecutive failures on success
+[Data] [ApiKeyRoundRobin] Registered test with 1 key(s)
+[Data] [ApiKeyRoundRobin] Key 0 for test cooled down for 100ms (failures: 1)
+
+stdout | src/__tests__/data/apiKeyRoundRobin.test.js > ApiKeyRoundRobin > race > should return result from first successful key
+[Data] [ApiKeyRoundRobin] Registered test with 1 key(s)
+
+stdout | src/__tests__/data/apiKeyRoundRobin.test.js > ApiKeyRoundRobin > race > should handle fetch failures gracefully
+[Data] [ApiKeyRoundRobin] Registered test with 1 key(s)
+
+stdout | src/__tests__/data/apiKeyRoundRobin.test.js > ApiKeyRoundRobin > race > should handle fetch failures gracefully
+[Data] [ApiKeyRoundRobin] Key 0 for test cooled down for 1000ms (failures: 1)
+
+stdout | src/__tests__/data/apiKeyRoundRobin.test.js > ApiKeyRoundRobin > race > should return available key count
+[Data] [ApiKeyRoundRobin] Registered test with 3 key(s)
+[Data] [ApiKeyRoundRobin] Key 0 for test cooled down for 5000ms (failures: 1)
+
+stdout | src/__tests__/data/apiKeyRoundRobin.test.js > ApiKeyRoundRobin > getStatus > should return comprehensive status
+[Data] [ApiKeyRoundRobin] Registered test with 2 key(s)
+
+ ✓ src/__tests__/data/apiKeyRoundRobin.test.js (16 tests) 7ms
+ ✓ src/__tests__/ui/aiCoach.test.js (21 tests) 21ms
+ ✓ src/__tests__/security/hardening.test.js (35 tests | 1 skipped) 136ms
+ ✓ src/__tests__/unit/db/materialized.test.ts (5 tests) 27ms
+ ✓ src/__tests__/stores/analytics.test.js (25 tests) 16ms
+ ✓ src/__tests__/intelligence/snapshotCapture.test.ts (7 tests) 42ms
+ ✓ src/__tests__/engine/chartInteractions.test.js (31 tests) 23ms
+ ✓ src/__tests__/intelligence/ruleEngine.test.ts (7 tests) 21ms
+ ✓ src/__tests__/engine/text_rendering.test.js (6 tests) 15ms
+ ✓ src/__tests__/ui/discover.test.js (33 tests) 51ms
+ ✓ src/__tests__/engine/zoom_cursor.test.js (22 tests) 11ms
+ ✓ src/__tests__/unit/db/CrudRepository.test.ts (14 tests) 15ms
+stdout | src/__tests__/unit/db/migrations.test.ts > Migration Framework > applies pending migrations in order
+[Migration] Applied: 1 — baseline (checksum: 1bf22bfdd22a9adc)
+[Migration] Applied: 2 — add_trade_columns (checksum: 624332138d5ebf9d)
+[Migration] Applied: 3 — add_check_constraints (checksum: eeeb4f31a1fff040)
+
+stdout | src/__tests__/unit/db/migrations.test.ts > Migration Framework > is idempotent — re-running applies nothing
+[Migration] Applied: 1 — baseline (checksum: 1bf22bfdd22a9adc)
+[Migration] Applied: 2 — add_trade_columns (checksum: 624332138d5ebf9d)
+[Migration] Applied: 3 — add_check_constraints (checksum: eeeb4f31a1fff040)
+
+stdout | src/__tests__/unit/db/migrations.test.ts > Migration Framework > tracks applied migrations
+[Migration] Applied: 1 — baseline (checksum: 1bf22bfdd22a9adc)
+[Migration] Applied: 2 — add_trade_columns (checksum: 624332138d5ebf9d)
+[Migration] Applied: 3 — add_check_constraints (checksum: eeeb4f31a1fff040)
+
+ ✓ src/__tests__/stores/useJournalStore.test.js (20 tests) 6ms
+stdout | src/__tests__/unit/db/migrations.test.ts > Migration Framework > rolls back the last migration
+[Migration] Applied: 1 — baseline (checksum: 1bf22bfdd22a9adc)
+[Migration] Applied: 2 — add_trade_columns (checksum: 624332138d5ebf9d)
+[Migration] Applied: 3 — add_check_constraints (checksum: eeeb4f31a1fff040)
+[Migration] Rolled back: 3 — add_check_constraints
+
+stdout | src/__tests__/unit/db/migrations.test.ts > Migration Framework > migration 002 adds new columns to trades table
+[Migration] Applied: 1 — baseline (checksum: 1bf22bfdd22a9adc)
+[Migration] Applied: 2 — add_trade_columns (checksum: 624332138d5ebf9d)
+[Migration] Applied: 3 — add_check_constraints (checksum: eeeb4f31a1fff040)
+
+stdout | src/__tests__/unit/db/migrations.test.ts > Migration Framework > migration 003 creates validation triggers
+[Migration] Applied: 1 — baseline (checksum: 1bf22bfdd22a9adc)
+[Migration] Applied: 2 — add_trade_columns (checksum: 624332138d5ebf9d)
+[Migration] Applied: 3 — add_check_constraints (checksum: eeeb4f31a1fff040)
+
+stdout | src/__tests__/unit/db/migrations.test.ts > Migration Framework > validation trigger rejects invalid trade data
+[Migration] Applied: 1 — baseline (checksum: 1bf22bfdd22a9adc)
+[Migration] Applied: 2 — add_trade_columns (checksum: 624332138d5ebf9d)
+[Migration] Applied: 3 — add_check_constraints (checksum: eeeb4f31a1fff040)
+
+ ✓ src/__tests__/unit/db/migrations.test.ts (10 tests) 69ms
+ ✓ src/__tests__/charting/anomalyDetector.test.ts (24 tests) 7ms
+ ✓ src/__tests__/benchmarks/stressTest.test.js (12 tests) 62ms
+ ✓ src/__tests__/helpers/constants-compInd.test.js (23 tests) 30ms
+ ✓ src/__tests__/unit/db/TradeRepository.test.ts (17 tests) 52ms
+stdout | src/__tests__/helpers/logger.test.js > Structured Logger > calling logger methods does not throw
+[Boot] test message
+[UI] debug message { extra: [33mtrue[39m }
+
+ ✓ src/__tests__/unit/db/SettingsRepository.test.ts (13 tests) 13ms
+ ✓ src/__tests__/helpers/demoData.test.js (24 tests) 13ms
+ ✓ src/__tests__/helpers/logger.test.js (8 tests) 50ms
+ ✓ src/__tests__/intelligence/leakDetector.test.ts (7 tests) 29ms
+ ✓ src/__tests__/integration/archCleanup.test.js (10 tests) 3ms
+ ✓ src/__tests__/data/csv.test.js (51 tests) 31ms
+ ✓ src/__tests__/data/caching.test.js (31 tests) 11ms
+ ✓ src/__tests__/intelligence/disciplineCurve.test.ts (5 tests) 2ms
+ ✓ src/__tests__/components/journalLogbook.test.jsx (6 tests) 2ms
+ ✓ src/__tests__/ui/gamification.test.js (70 tests) 17ms
+ ✓ src/__tests__/helpers/groupTradesBy.test.js (31 tests) 10ms
+ ✓ src/__tests__/ui/phase4_polish.test.js (40 tests) 12ms
+ ✓ src/__tests__/intelligence/quantMetrics.test.ts (20 tests) 7ms
+ ✓ src/__tests__/engine/SceneGraph.test.js (47 tests) 15ms
+ ✓ src/__tests__/stores/usePaperTradeStore.test.js (28 tests) 28ms
+ ✓ src/__tests__/engine/inertia.test.js (25 tests) 15ms
+ ✓ src/__tests__/engine/multi_select.test.js (8 tests) 4ms
+ ✓ src/__tests__/engine/pan_during_load.test.js (23 tests) 9ms
+ ✓ src/__tests__/helpers/robustness.test.js (24 tests) 5ms
+ ✓ src/__tests__/data/progressive_load.test.js (25 tests) 13ms
+ ✓ src/__tests__/data/syntheticCandles.test.ts (13 tests) 11ms
+ ✓ src/__tests__/ui/a11yAudit.test.js (21 tests) 9ms
+ ✓ src/__tests__/data/adapterCompliance.test.js (98 tests) 12ms
+stdout | src/__tests__/data/gapBackfill.test.ts > GapBackfill > backfillGaps() > calls fetchBars and merges result for valid gap
+[Engine] [GapBackfill] Filling 10min gap for AAPL 1m
+
+stdout | src/__tests__/data/gapBackfill.test.ts > GapBackfill > backfillGaps() > calls fetchBars and merges result for valid gap
+[Engine] [GapBackfill] Merged 2 backfilled bars → 4 total
+
+stdout | src/__tests__/data/gapBackfill.test.ts > GapBackfill > backfillGaps() > handles fetchBars returning empty array
+[Engine] [GapBackfill] Filling 9min gap for AAPL 1m
+
+stdout | src/__tests__/data/gapBackfill.test.ts > GapBackfill > backfillGaps() > handles fetchBars throwing an error gracefully
+[Engine] [GapBackfill] Filling 9min gap for AAPL 1m
+
+ ✓ src/__tests__/data/gapBackfill.test.ts (18 tests) 11ms
+ ✓ src/__tests__/ui/psychology.test.js (28 tests) 11ms
+ ✓ src/__tests__/helpers/Money.test.js (67 tests) 13ms
+ ✓ src/__tests__/unit/utils/uxAccessibility.test.ts (13 tests) 7ms
+ ✓ src/__tests__/unit/api/auth.integration.test.ts (8 tests) 11ms
+ ✓ src/__tests__/utils/tradeSanitizer.test.js (13 tests) 6ms
+stdout | src/__tests__/data/dataPipeline.test.js
+[Data] [TickerPlant] SharedWorker not available, running in direct mode
+
+stdout | src/__tests__/ui/phase6_polish.test.js
+[Data] [TickerPlant] SharedWorker not available, running in direct mode
+
+ ✓ src/__tests__/data/dataPipeline.test.js (8 tests) 2ms
+ ✓ src/__tests__/ui/phase6_polish.test.js (41 tests) 10ms
+ ✓ src/__tests__/data/securityMaster.test.js (22 tests) 24ms
+stdout | src/__tests__/unit/db/retention.test.ts > Data Retention > deletes audit logs older than threshold
+[Retention] Deleted 1 audit_log entries older than 90 days
+
+ ✓ src/__tests__/unit/db/retention.test.ts (3 tests) 5ms
+ ✓ src/__tests__/core/replayEngine.test.ts (15 tests) 14ms
+ ✓ src/__tests__/data/api_proxy.test.js (57 tests) 9ms
+ ✓ src/__tests__/engine/phase2_wave8.test.js (27 tests) 13ms
+stdout | src/__tests__/data/timeSeriesStore.test.js > TimeSeriesStore > initializes successfully
+[Data] [TimeSeriesStore] Initialized — IndexedDB backend, 0 series loaded
+
+stdout | src/__tests__/data/timeSeriesStore.test.js > TimeSeriesStore > returns empty array for unknown series
+[Data] [TimeSeriesStore] Initialized — IndexedDB backend, 0 series loaded
+
+stdout | src/__tests__/data/timeSeriesStore.test.js > TimeSeriesStore > writes and reads bars correctly
+[Data] [TimeSeriesStore] Initialized — IndexedDB backend, 0 series loaded
+
+stdout | src/__tests__/data/timeSeriesStore.test.js > TimeSeriesStore > supports range queries
+[Data] [TimeSeriesStore] Initialized — IndexedDB backend, 0 series loaded
+
+stdout | src/__tests__/data/timeSeriesStore.test.js > TimeSeriesStore > handles block boundaries correctly
+[Data] [TimeSeriesStore] Initialized — IndexedDB backend, 0 series loaded
+
+stdout | src/__tests__/data/timeSeriesStore.test.js > TimeSeriesStore > merges new bars with existing data
+[Data] [TimeSeriesStore] Initialized — IndexedDB backend, 0 series loaded
+
+stdout | src/__tests__/data/timeSeriesStore.test.js > TimeSeriesStore > clears all data
+[Data] [TimeSeriesStore] Initialized — IndexedDB backend, 0 series loaded
+
+stdout | src/__tests__/data/timeSeriesStore.test.js > TimeSeriesStore > clears all data
+[Data] [TimeSeriesStore] Cleared all data
+
+stdout | src/__tests__/data/timeSeriesStore.test.js > TimeSeriesStore > removes a specific series
+[Data] [TimeSeriesStore] Initialized — IndexedDB backend, 0 series loaded
+
+stdout | src/__tests__/data/timeSeriesStore.test.js > TimeSeriesStore > provides storage stats
+[Data] [TimeSeriesStore] Initialized — IndexedDB backend, 0 series loaded
+
+stdout | src/__tests__/data/timeSeriesStore.test.js > TimeSeriesStore > sorts bars by timestamp on write
+[Data] [TimeSeriesStore] Initialized — IndexedDB backend, 0 series loaded
+
+stdout | src/__tests__/data/timeSeriesStore.test.js > TimeSeriesStore > readAll returns all bars
+[Data] [TimeSeriesStore] Initialized — IndexedDB backend, 0 series loaded
+
+ ✓ src/__tests__/intelligence/gamification.test.ts (12 tests) 9ms
+ ✓ src/__tests__/data/timeSeriesStore.test.js (23 tests) 15ms
+ ✓ src/__tests__/engine/batch18_remaining.test.js (23 tests) 5ms
+ ✓ src/__tests__/engine/formingCandleInterpolator.test.js (21 tests) 7ms
+ ✓ src/__tests__/helpers/validation.test.js (23 tests) 5ms
+ ✓ src/__tests__/components/spotlightLogbook.test.jsx (34 tests) 3ms
+ ✓ src/__tests__/engine/compute.test.js (21 tests | 1 skipped) 6ms
+ ✓ src/__tests__/components/settingsPage.test.jsx (5 tests) 2ms
+ ✓ src/__tests__/intelligence/xpEngine.test.ts (10 tests) 2ms
+ ✓ src/__tests__/engine/numericTimestamps.test.js (8 tests) 2ms
+ ✓ src/__tests__/engine/drawing_preview.test.js (15 tests) 2ms
+ ✓ src/__tests__/helpers/reconcile.test.js (41 tests) 11ms
+ ✓ src/__tests__/engine/tickChannel.test.js (15 tests) 8ms
+ ✓ src/__tests__/data/cryptoParsers.test.js (31 tests) 7ms
+ ✓ src/__tests__/unit/services/productGrowth.test.ts (11 tests) 4ms
+ ✓ src/__tests__/ui/VirtualList.test.js (23 tests) 12ms
+stdout | src/__tests__/data/engineHardening.test.js > GapBackfill > backfillGaps > fills gap via REST fetch
+[Engine] [GapBackfill] Filling 5min gap for BTCUSDT 1m
+
+stdout | src/__tests__/data/engineHardening.test.js > GapBackfill > backfillGaps > fills gap via REST fetch
+[Engine] [GapBackfill] Merged 2 backfilled bars → 4 total
+
+ ✓ src/__tests__/data/engineHardening.test.js (21 tests) 5ms
+ ✓ src/__tests__/integration/alertServerLoop.test.ts (13 tests) 10ms
+ ✓ src/__tests__/ui/orderFlow.test.js (15 tests) 25ms
+ ✓ src/__tests__/engine/tradeHeatmapEngine.test.js (21 tests) 9ms
+stdout | src/__tests__/stores/stores.test.js > useJournalStore > addTrade prepends to array
+[📊 Track] first_action { action: [32m'trade_logged'[39m, elapsed_ms: [33m0[39m }
+[📊 Track] workflow_complete { workflow: [32m'trade_logged'[39m }
+[📊 Track] workflow_complete { workflow: [32m'trade_logged'[39m }
+
+stdout | src/__tests__/stores/stores.test.js > useJournalStore > addTrades prepends batch
+[📊 Track] workflow_complete { workflow: [32m'csv_imported'[39m }
+
+stdout | src/__tests__/stores/stores.test.js > useJournalStore > subscribe fires on state change
+[📊 Track] workflow_complete { workflow: [32m'trade_logged'[39m }
+
+ ✓ src/__tests__/stores/stores.test.js (26 tests) 29ms
+ ✓ src/__tests__/integration/newUserOnboarding.test.js (5 tests) 8ms
+ ✓ src/__tests__/unit/api/security.test.ts (11 tests) 6ms
+ ✓ src/__tests__/unit/data/realTimePipeline.test.ts (7 tests) 5ms
+ ✓ src/__tests__/stores/useChartStore.test.js (13 tests) 3ms
+ ✓ src/__tests__/charting/bufferPool.test.js (12 tests) 8ms
+ ✓ src/__tests__/core/sessionRecovery.test.js (5 tests) 9ms
+ ✓ src/__tests__/engine/wsIncremental.test.js (10 tests) 9ms
+ ✓ src/__tests__/intelligence/ghostBox.test.ts (11 tests) 5ms
+stdout | src/__tests__/data/heartbeatMonitor.test.js > HeartbeatMonitor > should track stream data timestamps via touch()
+[Data] [HeartbeatMonitor] Stopped
+
+stdout | src/__tests__/data/heartbeatMonitor.test.js > HeartbeatMonitor > should detect staleness after threshold
+[Data] [HeartbeatMonitor] Stopped
+
+stdout | src/__tests__/data/heartbeatMonitor.test.js > HeartbeatMonitor > should emit stale events
+[Data] [HeartbeatMonitor] Stopped
+
+stdout | src/__tests__/data/heartbeatMonitor.test.js > HeartbeatMonitor > should emit recovered event when data resumes
+[Data] [HeartbeatMonitor] Stream recovered: btcusdt@kline_1h
+
+stdout | src/__tests__/data/heartbeatMonitor.test.js > HeartbeatMonitor > should emit recovered event when data resumes
+[Data] [HeartbeatMonitor] Stopped
+
+stdout | src/__tests__/data/heartbeatMonitor.test.js > HeartbeatMonitor > should track multiple streams independently
+[Data] [HeartbeatMonitor] Stopped
+
+ ✓ src/__tests__/benchmarks/frameBudget.test.js (20 tests) 4ms
+stdout | src/__tests__/data/heartbeatMonitor.test.js > HeartbeatMonitor > should call reconnect function on staleness
+[Data] [HeartbeatMonitor] Stopped
+
+stdout | src/__tests__/data/heartbeatMonitor.test.js > HeartbeatMonitor > should clean up on stop()
+[Data] [HeartbeatMonitor] Started — staleness threshold: 90000ms
+[Data] [HeartbeatMonitor] Stopped
+
+stdout | src/__tests__/data/heartbeatMonitor.test.js > HeartbeatMonitor > should clean up on stop()
+[Data] [HeartbeatMonitor] Stopped
+
+stdout | src/__tests__/data/heartbeatMonitor.test.js > HeartbeatMonitor > should untrack specific streams
+[Data] [HeartbeatMonitor] Stopped
+
+stdout | src/__tests__/data/heartbeatMonitor.test.js > HeartbeatMonitor > should not flag as stale if data is fresh
+[Data] [HeartbeatMonitor] Stopped
+
+stdout | src/__tests__/data/heartbeatMonitor.test.js > HeartbeatMonitor > should respect minimum staleness threshold
+[Data] [HeartbeatMonitor] Stopped
+
+stdout | src/__tests__/data/heartbeatMonitor.test.js > HeartbeatMonitor > should return unsubscribe from on()
+[Data] [HeartbeatMonitor] Stopped
+
+ ✓ src/__tests__/helpers/Calc.test.js (49 tests) 9ms
+stdout | src/__tests__/data/heartbeatMonitor.test.js > HeartbeatMonitor > should not re-flag already stale streams
+[Data] [HeartbeatMonitor] Stopped
+
+ ✓ src/__tests__/data/heartbeatMonitor.test.js (12 tests) 17ms
+ ✓ src/__tests__/ui/indicator_settings.test.js (25 tests | 1 skipped) 8ms
+ ✓ src/__tests__/helpers/simplification.test.js (16 tests) 33ms
+ ✓ src/__tests__/unit/sprintA.test.ts (28 tests) 5ms
+ ✓ src/__tests__/engine/springCandle.test.js (12 tests) 9ms
+ ✓ src/__tests__/engine/heikinAshi.test.js (6 tests) 5ms
+ ✓ src/__tests__/engine/chart_type_config.test.js (24 tests) 4ms
+ ✓ src/__tests__/intelligence/triggerCorrelation.test.ts (7 tests) 3ms
+ ✓ src/__tests__/ui/drawing_settings.test.js (22 tests) 7ms
+ ✓ src/__tests__/helpers/feature_flags.test.js (12 tests) 6ms
+ ✓ src/__tests__/ui/legend_bar.test.js (27 tests) 4ms
+ ✓ src/__tests__/ui/chartJournalLink.test.js (23 tests) 2ms
+ ✓ src/__tests__/stores/storage.test.js (15 tests) 3ms
+ ✓ src/__tests__/unit/charting/chartEngine.test.ts (15 tests) 11ms
+ ✓ src/__tests__/unit/services/tradingAnalytics.test.ts (15 tests) 21ms
+ ✓ src/__tests__/ui/importDedupUI.test.js (9 tests) 8ms
+ ✓ src/__tests__/ui/gamification_sprint.test.js (21 tests) 9ms
+ ✓ src/__tests__/stores/useUIStore.test.js (4 tests) 3ms
+ ✓ src/__tests__/engine/axis_labels.test.js (16 tests) 4ms
+stdout | src/__tests__/data/candleVirtualizer.test.js > CandleVirtualizer > setData > should evict oldest bars when exceeding window size
+[Data] [CandleVirtualizer] BTC:1h: Loaded 20 bars, kept 10 in memory, evicted 10 to IndexedDB
+
+stdout | src/__tests__/data/candleVirtualizer.test.js > CandleVirtualizer > setData > should keep most recent bars in memory
+[Data] [CandleVirtualizer] BTC:1h: Loaded 15 bars, kept 10 in memory, evicted 5 to IndexedDB
+
+stdout | src/__tests__/data/candleVirtualizer.test.js > CandleVirtualizer > appendBar > should trigger eviction when exceeding windowSize + evictionBatch
+[Data] [CandleVirtualizer] BTC:1h: Evicted 5 bars (total evicted: 5)
+
+stdout | src/__tests__/data/candleVirtualizer.test.js > CandleVirtualizer > hasMoreLeft > should be true when bars are evicted
+[Data] [CandleVirtualizer] BTC:1h: Loaded 20 bars, kept 10 in memory, evicted 10 to IndexedDB
+
+stdout | src/__tests__/data/candleVirtualizer.test.js > CandleVirtualizer > setWindowSize > should update window size
+[Data] [CandleVirtualizer] Window size adjusted to 3000
+
+stdout | src/__tests__/data/candleVirtualizer.test.js > CandleVirtualizer > setWindowSize > should enforce minimum of 500
+[Data] [CandleVirtualizer] Window size adjusted to 500
+
+ ✓ src/__tests__/data/candleVirtualizer.test.js (15 tests) 3ms
+ ✓ src/__tests__/integration/tradeCRUD.test.js (6 tests) 3ms
+ ✓ src/__tests__/ui/settings_controls.test.js (48 tests) 4ms
+ ✓ src/__tests__/engine/overrides_api.test.js (16 tests) 6ms
+ ✓ src/__tests__/integration/themeToggle.test.js (3 tests) 4ms
+ ✓ src/__tests__/components/tradeFormModal.test.jsx (11 tests) 4ms
+ ✓ src/__tests__/charting/barBisect.test.js (25 tests) 4ms
+ ✓ src/__tests__/engine/crosshair_modes.test.js (14 tests) 4ms
+ ✓ src/__tests__/data/multiExchange.test.js (34 tests) 3ms
+ ✓ src/__tests__/components/chartOverlays.test.jsx (18 tests) 7ms
+ ✓ src/__tests__/intelligence/biasDetector.test.ts (8 tests) 16ms
+ ✓ src/__tests__/data/tickRingBuffer.test.js (17 tests) 8ms
+ ✓ src/__tests__/intelligence/fatigueAnalyzer.test.ts (6 tests) 6ms
+ ✓ src/__tests__/unit/db/sqlite.test.ts (5 tests) 2ms
+ ✓ src/__tests__/engine/animations.test.js (6 tests) 4ms
+ ✓ src/__tests__/engine/screenshot_share.test.js (7 tests) 10ms
+ ✓ src/__tests__/components/dashboardPanel.test.jsx (26 tests) 2ms
+ ✓ src/__tests__/ui/rbac.test.jsx (13 tests) 42ms
+ ✓ src/__tests__/components/design.test.jsx (19 tests) 206ms
+
+ Test Files  11 failed | 186 passed (197)
+      Tests  22 failed | 4491 passed | 18 skipped (4531)
+   Start at  20:36:57
+   Duration  9.72s (transform 5.92s, setup 0ms, collect 13.85s, tests 15.80s, environment 1.67s, prepare 13.12s)
+

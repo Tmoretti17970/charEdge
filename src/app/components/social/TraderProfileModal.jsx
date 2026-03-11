@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useSocialStore } from '../../../state/useSocialStore.js';
 import CopyTradeModal from './CopyTradeModal.jsx';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 function StatBox({ label, value, isGreen, isRed }) {
   const color = isGreen ? C.g : isRed ? C.r : C.t1;
@@ -46,6 +46,7 @@ export default function TraderProfileModal() {
     if (activeProfileId) {
       fetchProfile(activeProfileId);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeProfileId]);
 
   if (!activeProfileId) return null;

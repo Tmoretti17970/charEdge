@@ -28,8 +28,7 @@ test.describe('Symbol Search', () => {
             const searchInput = page.locator('input[placeholder*="earch"], input[placeholder*="ymbol"]').first();
             if (await searchInput.isVisible({ timeout: 5_000 })) {
                 await searchInput.fill('BTC');
-                await page.waitForTimeout(1000);
-                // Should show search results
+                // Should show search results (next line waits for visibility)
                 const results = page.locator('[class*="result"], [class*="Result"], [role="option"], [role="listbox"]').first();
                 await expect(results).toBeVisible({ timeout: 5_000 });
             }

@@ -6,7 +6,7 @@
 
 import { useMemo } from 'react';
 import { C, M } from '../../../constants.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
+import { useJournalStore } from '../../../state/useJournalStore';
 
 /** Get start-of-day timestamp for comparison */
 function todayStart() {

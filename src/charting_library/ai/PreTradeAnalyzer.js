@@ -42,6 +42,7 @@ Confidence: ${confidence}`;
     });
 
     return response.text;
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return generateRecommendation(setup, stats, confidence, []);
   }

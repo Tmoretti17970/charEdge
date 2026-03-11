@@ -7,7 +7,7 @@
 // S6.7: EmptyState system (pre-existing)
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 // ═══ S6.1: useSwipeSections ═══════════════════════════════════════
 
@@ -15,7 +15,7 @@ describe('useSwipeSections', () => {
   let useSwipeSections;
 
   beforeEach(async () => {
-    const mod = await import('../../app/hooks/useSwipeSections.js');
+    const mod = await import('../../hooks/useSwipeSections.js');
     useSwipeSections = mod.default;
   });
 
@@ -24,7 +24,7 @@ describe('useSwipeSections', () => {
   });
 
   it('named export matches default', async () => {
-    const mod = await import('../../app/hooks/useSwipeSections.js');
+    const mod = await import('../../hooks/useSwipeSections.js');
     expect(mod.useSwipeSections).toBe(mod.default);
   });
 });

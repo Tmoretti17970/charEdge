@@ -6,7 +6,7 @@
 // This file re-exports useChartStore for backward compatibility.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useChartStore } from './useChartStore.js';
+import { useChartStore } from './useChartStore';
 
 // useChartStore now contains all annotation state + actions
 const useAnnotationStore = useChartStore;

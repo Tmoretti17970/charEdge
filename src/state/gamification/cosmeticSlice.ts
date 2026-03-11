@@ -5,7 +5,7 @@
 // Extracted from useGamificationStore for composition.
 // ═══════════════════════════════════════════════════════════════════
 
-import { ACHIEVEMENTS } from './achievementSlice.js';
+import { ACHIEVEMENTS } from './achievementSlice';
 
 // ─── Cosmetic Rewards ───────────────────────────────────────────
 
@@ -47,6 +47,7 @@ export const createCosmeticSlice = (set, get) => ({
           });
           return; // One at a time
         }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (_) { /* skip broken checks */ }
     }
   },

@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { DirtyRegion } from '../../charting_library/scene/DirtyRegion.js';
 import { RenderNode, DrawingNode, CrosshairNode, IndicatorNode, pointInRect, rectsOverlap } from '../../charting_library/scene/RenderNode.js';
 import { SceneGraph } from '../../charting_library/scene/SceneGraph.js';
 import { SpatialIndex } from '../../charting_library/scene/SpatialIndex.js';
-import { DirtyRegion } from '../../charting_library/scene/DirtyRegion.js';
 
 // ═══════════════════════════════════════════════════════════════════
 // RenderNode Tests

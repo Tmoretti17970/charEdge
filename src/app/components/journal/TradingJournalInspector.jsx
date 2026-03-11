@@ -19,17 +19,17 @@
 //   4.12.17 — Financial typography (CSS)
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { C } from '../../../constants/theme.js';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { EMOJIS } from '../../../constants/chart.js';
+import { C } from '../../../constants/theme.js';
+import { useJournalStore } from '../../../state/useJournalStore';
 import css from './TradingJournalInspector.module.css';
 import {
     REFLECTION_PROMPTS,
     createReflection,
     saveReflections,
     loadReflections,
-} from '../../../intelligence/PostTradeReflection.js';
+} from '@/journal/PostTradeReflection.js';
 
 // ─── Preset Data ────────────────────────────────────────────────
 

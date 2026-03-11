@@ -4,13 +4,13 @@
 // shallow equality prevents unnecessary re-renders.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../state/useUserStore.ts';
-import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import { useUIStore } from '../../state/useUIStore.ts';
+import { describe, it, expect } from 'vitest';
 import { useJournalStore } from '../../state/useJournalStore.ts';
-import { shallow } from '../../utils/shallow.js';
+import { useUIStore } from '../../state/useUIStore.ts';
+import { useUserStore } from '../../state/useUserStore.ts';
+import { shallow } from '@/shared/shallow';
 
 const SRC = path.resolve('src');
 

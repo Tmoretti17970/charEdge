@@ -1,4 +1,4 @@
-import { logger } from '../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Symbol Search
@@ -18,10 +18,10 @@ import { logger } from '../utils/logger';
  * @returns {Set<string>}
  */
 function trigrams(str) {
-  const t = new Set();
-  const s = str.toUpperCase();
-  for (let i = 0; i <= s.length - 3; i++) t.add(s.slice(i, i + 3));
-  return t;
+  const trigramSet = new Set();
+  const upperStr = str.toUpperCase();
+  for (let i = 0; i <= upperStr.length - 3; i++) trigramSet.add(upperStr.slice(i, i + 3));
+  return trigramSet;
 }
 
 /**
@@ -39,30 +39,30 @@ function trigrams(str) {
  * @returns {number} 0..1 score
  */
 function fuzzyScore(query, candidate) {
-  const q = query.toUpperCase();
-  const c = candidate.toUpperCase();
+  const upperQuery = query.toUpperCase();
+  const upperCandidate = candidate.toUpperCase();
 
-  if (q === c) return 1.0;
-  if (c.startsWith(q)) return 0.8;
-  if (c.includes(q)) return 0.5;
+  if (upperQuery === upperCandidate) return 1.0;
+  if (upperCandidate.startsWith(upperQuery)) return 0.8;
+  if (upperCandidate.includes(upperQuery)) return 0.5;
 
   // Trigram overlap (Jaccard coefficient) — handles typos
-  if (q.length >= 3 && c.length >= 3) {
-    const qTri = trigrams(q);
-    const cTri = trigrams(c);
+  if (upperQuery.length >= 3 && upperCandidate.length >= 3) {
+    const queryTrigrams = trigrams(upperQuery);
+    const candidateTrigrams = trigrams(upperCandidate);
     let intersection = 0;
-    for (const t of qTri) { if (cTri.has(t)) intersection++; }
-    const union = qTri.size + cTri.size - intersection;
+    for (const tri of queryTrigrams) { if (candidateTrigrams.has(tri)) intersection++; }
+    const union = queryTrigrams.size + candidateTrigrams.size - intersection;
     if (union === 0) return 0;
     const jaccard = intersection / union;
     return jaccard * 0.4;
   }
 
   // Short queries: character overlap
-  if (q.length < 3) {
+  if (upperQuery.length < 3) {
     let matches = 0;
-    for (const ch of q) { if (c.includes(ch)) matches++; }
-    return (matches / q.length) * 0.3;
+    for (const ch of upperQuery) { if (upperCandidate.includes(ch)) matches++; }
+    return (matches / upperQuery.length) * 0.3;
   }
 
   return 0;
@@ -80,7 +80,7 @@ let _exchangeInfoCache = null;
  */
 export async function fetchSymbolSearch(query) {
   if (!query || query.trim() === '') return [];
-  const q = query.toUpperCase().trim();
+  const upperQuery = query.toUpperCase().trim();
 
   // ─── 1. Search the local SymbolRegistry first (instant, no network) ───
   // This includes Pyth-powered equities, FX, commodities, and all crypto
@@ -88,7 +88,7 @@ export async function fetchSymbolSearch(query) {
   try {
     // Dynamic import to avoid circular dependency
     const { SymbolRegistry } = await import('./SymbolRegistry.js');
-    registryResults = SymbolRegistry.search(q, 10).map((info) => ({
+    registryResults = SymbolRegistry.search(upperQuery, 10).map((info) => ({
       name: info.symbol,
       pair: info.symbol,
       description: info.displayName || info.symbol,
@@ -96,6 +96,7 @@ export async function fetchSymbolSearch(query) {
       assetClass: info.assetClass || 'stock',
       provider: info.provider || 'yahoo',
     }));
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     /* SymbolRegistry not available */
   }
@@ -144,7 +145,7 @@ export async function fetchSymbolSearch(query) {
     if (_exchangeInfoCache) {
       // ─── P4-9: Fuzzy/Trigram Search ──────────────────────────────
       const scored = _exchangeInfoCache
-        .map((s) => ({ ...s, score: fuzzyScore(q, s.name) }))
+        .map((s) => ({ ...s, score: fuzzyScore(upperQuery, s.name) }))
         .filter((s) => s.score > 0)
         .sort((a, b) => b.score - a.score)
         .slice(0, 10);

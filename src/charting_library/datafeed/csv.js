@@ -3,35 +3,66 @@
 // Extracted from v9.3 monolith with improved validation.
 // ═══════════════════════════════════════════════════════════════════
 
-import { uid } from '../../utils.js';
-import { roundField } from '../model/Money.js';
 import {
   detectBroker as _detectBroker,
   mapColumnsForBroker as _mapColumnsForBroker,
 } from '../../app/features/trading/BrokerProfiles.js';
+import { uid } from '../../utils.js';
+import { roundField } from '../model/Money.js';
 
 /**
- * Export trades to CSV string
+ * P2 7.3: Stream CSV export via ReadableStream.
+ * Returns a ReadableStream that yields CSV content in chunks.
  * @param {Array} trades
- * @returns {string} CSV content
+ * @returns {ReadableStream<string>}
  */
 function exportCSV(trades) {
-  const h = 'Date,Symbol,Side,Qty,Entry,P&L,Fees,R,Emotion,Tags\n';
-  const rows = trades.map((t) =>
-    [
-      t.date,
-      t.symbol,
-      t.side,
-      t.quantity,
-      t.entryPrice || '',
-      t.pnl,
-      t.fees || 0,
-      t.rMultiple ?? '',
-      t.emotion || '',
-      (t.tags || []).join(';'),
-    ].join(','),
-  );
-  return h + rows.join('\n');
+  const header = 'Date,Symbol,Side,Qty,Entry,P&L,Fees,R,Emotion,Tags\n';
+  const CHUNK_SIZE = 200; // Rows per chunk
+
+  return new ReadableStream({
+    start(controller) {
+      controller.enqueue(header);
+
+      for (let i = 0; i < trades.length; i += CHUNK_SIZE) {
+        const slice = trades.slice(i, i + CHUNK_SIZE);
+        const chunk = slice.map((t) =>
+          [
+            t.date,
+            t.symbol,
+            t.side,
+            t.quantity,
+            t.entryPrice || '',
+            t.pnl,
+            t.fees || 0,
+            t.rMultiple ?? '',
+            t.emotion || '',
+            (t.tags || []).join(';'),
+          ].join(','),
+        ).join('\n');
+        controller.enqueue((i > 0 ? '\n' : '') + chunk);
+      }
+
+      controller.close();
+    },
+  });
+}
+
+/**
+ * Backward-compatible helper — collects stream into a single string.
+ * @param {Array} trades
+ * @returns {Promise<string>}
+ */
+async function exportCSVString(trades) {
+  const stream = exportCSV(trades);
+  const reader = stream.getReader();
+  let result = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    result += value;
+  }
+  return result;
 }
 
 /**
@@ -342,6 +373,7 @@ function importCSV(text, existingTrades = []) {
         }
       }
     }
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     // BrokerProfiles detection failed — use generic mapping
   }
@@ -410,4 +442,4 @@ function importCSV(text, existingTrades = []) {
   return { trades, valid, warnings, errors, duplicates, issues, headers, broker: brokerDetection };
 }
 
-export { exportCSV, parseCSVRaw, autoMap, parseNumeric, parseDate, normTrade, tradeHash, importCSV };
+export { exportCSV, exportCSVString, parseCSVRaw, autoMap, parseNumeric, parseDate, normTrade, tradeHash, importCSV };

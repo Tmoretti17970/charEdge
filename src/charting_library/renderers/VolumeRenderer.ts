@@ -71,7 +71,18 @@ export function drawVolume(
   for (const b of bars) if ((b.volume || 0) > maxVol) maxVol = b.volume;
   if (maxVol === 0) return;
 
-  // Build instance data
+  // ─── #57: Compute rolling 20-bar average for intensity gradient ──
+  const WINDOW = 20;
+  const volAvg = new Float32Array(bars.length);
+  let rollingSum = 0;
+  for (let i = 0; i < bars.length; i++) {
+    rollingSum += (bars[i].volume || 0);
+    if (i >= WINDOW) rollingSum -= (bars[i - WINDOW].volume || 0);
+    const count = Math.min(i + 1, WINDOW);
+    volAvg[i] = count > 0 ? rollingSum / count : 1;
+  }
+
+  // Build instance data — 4 floats per bar: x, volume, isBull, intensity
   let instanceCount = 0;
   const data = r._volumeData;
 
@@ -84,10 +95,15 @@ export function drawVolume(
       x = (i + 0.5) * barSpacing * pr;
     }
 
-    const vi = instanceCount * 3;
+    // #57: Intensity = ratio of bar volume to local average, clamped to [0.25, 0.9]
+    const ratio = volAvg[i] > 0 ? (b.volume || 0) / volAvg[i] : 1;
+    const intensity = Math.min(0.9, Math.max(0.25, ratio * 0.5));
+
+    const vi = instanceCount * 4;
     data[vi] = x;
     data[vi + 1] = b.volume || 0;
     data[vi + 2] = b.close >= b.open ? 1.0 : 0.0;
+    data[vi + 3] = intensity;
     instanceCount++;
   }
 
@@ -117,11 +133,12 @@ export function drawVolume(
   gl.vertexAttribDivisor(aPos, 0);
 
   // Instance data
+  // #24: Upload volume instance data via bufferSubData (buffer pre-allocated at max capacity)
   gl.bindBuffer(gl.ARRAY_BUFFER, r._buffers.volumeInstances);
-  gl.bufferData(gl.ARRAY_BUFFER, data.subarray(0, instanceCount * 3), gl.DYNAMIC_DRAW);
+  gl.bufferSubData(gl.ARRAY_BUFFER, 0, data, 0, instanceCount * 4);
 
-  const stride = 3 * 4;
-  const attrs = ['a_x', 'a_volume', 'a_isBull'];
+  const stride = 4 * 4;
+  const attrs = ['a_x', 'a_volume', 'a_isBull', 'a_intensity'];
   for (let i = 0; i < attrs.length; i++) {
     const loc = gl.getAttribLocation(prog, attrs[i]);
     if (loc >= 0) {
@@ -181,8 +198,9 @@ export function updateLastVolume(
     x,
     bar.volume || 0,
     bar.close >= bar.open ? 1.0 : 0.0,
+    0.5, // #57: default intensity for live tick updates
   ]);
-  gl.bufferSubData(gl.ARRAY_BUFFER, lastIdx * 3 * 4, volData);
+  gl.bufferSubData(gl.ARRAY_BUFFER, lastIdx * 4 * 4, volData);
 
   // Update saved state
   r._lastVolumeParams = { ...params, mainH: r._lastVolumeParams?.mainH || r.canvas.height / pr, volTop: r._lastVolumeParams?.volTop || 0, volH: r._lastVolumeParams?.volH || 0 };

@@ -3,7 +3,7 @@
 // Handles redirect from OAuth providers (Google, GitHub).
 // Supabase JS auto-exchanges the URL hash for a session.
 // ═══════════════════════════════════════════════════════════════════
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthStore } from '../state/useAuthStore.js';
 
 export default function AuthCallback() {

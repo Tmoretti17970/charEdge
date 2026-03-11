@@ -6,7 +6,7 @@
 
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 const MOCK_PATTERNS = [
   { id: 1, symbol: 'NVDA', pattern: 'Bull Flag', type: 'continuation', timeframe: '4H', confidence: 92, direction: 'bullish', target: 945, entry: 892, stop: 865, detected: '2h ago' },
@@ -41,7 +41,7 @@ function getConfColors() { return { bull: C.g, bear: C.r, neutral: C.y }; }
 const CONF_ICONS = { bull: '▲', bear: '▼', neutral: '—' };
 function getStrengthColors() { return { strong: C.g, high: C.cyan, medium: C.y }; }
 
-const TABS = ['patterns', 'signals', 'confluence'];
+const _TABS = ['patterns', 'signals', 'confluence'];
 const CONFIDENCE_FILTERS = ['all', 'high', 'medium'];
 
 export default function TechnicalScanner() {

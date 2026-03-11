@@ -4,12 +4,12 @@
 // extracted from ChartsPage for maintainability.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { Suspense } from 'react';
-import { C } from '../../constants.js';
-import { useChartStore } from '../../state/useChartStore.js';
-import { usePanelStore } from '../../state/usePanelStore.js';
-import { useAlertStore } from '../../state/useAlertStore.js';
+import React, { Suspense, useEffect } from 'react';
 import SlidePanel from '../../app/components/panels/SlidePanel.jsx';
+import { C } from '../../constants.js';
+import { useAlertStore } from '../../state/useAlertStore';
+import { useChartStore } from '../../state/useChartStore';
+import { useLayoutStore } from '../../state/useLayoutStore';
 const IndicatorPanel = React.lazy(() => import('../../app/components/panels/IndicatorPanel.jsx'));
 
 // Lazy-loaded panels & modals
@@ -28,11 +28,10 @@ const ChartSnapshotModal = React.lazy(() => import('../../app/components/chart/p
 const ChartSettingsPanel = React.lazy(() => import('../../app/components/chart/panels/ChartSettingsPanel.jsx'));
 const HotkeyCustomizationPanel = React.lazy(() => import('../../app/components/chart/panels/HotkeyCustomizationPanel.jsx'));
 const ChartAnnotationsPanel = React.lazy(() => import('../../app/components/chart/panels/ChartAnnotationsPanel.jsx'));
-const ChartMinimap = React.lazy(() => import('../../app/components/chart/ui/ChartMinimap.jsx'));
-const UnifiedStatusBar = React.lazy(() => import('../../app/components/chart/ui/UnifiedStatusBar.jsx'));
-const MTFPanel = React.lazy(() => import('../../app/components/chart/panels/MTFPanel.jsx'));
+
+
 const DOMLadder = React.lazy(() => import('../../app/components/chart/DOMLadder.jsx'));
-const DepthChart = React.lazy(() => import('../../app/components/chart/DepthChart.jsx'));
+// DepthChart rendering moved to ChartsPage for proper flex layout
 const KeyboardShortcutsOverlay = React.lazy(() => import('../../app/components/chart/overlays/KeyboardShortcutsOverlay.jsx'));
 const MobileChartSheet = React.lazy(() => import('../../app/components/mobile/MobileChartSheet.jsx'));
 const MobileShareSheet = React.lazy(() => import('../../app/components/mobile/MobileShareSheet.jsx'));
@@ -44,6 +43,8 @@ const DerivativesDashboard = React.lazy(() => import('../../app/components/data/
 const DepthPanel = React.lazy(() => import('../../app/components/data/DepthPanel.jsx'));
 const InstitutionalPanel = React.lazy(() => import('../../app/components/data/InstitutionalPanel.jsx'));
 const CommunitySignals = React.lazy(() => import('../../app/components/data/CommunitySignals.jsx'));
+const PositionSizer = React.lazy(() => import('../../app/components/chart/chart_ui/PositionSizer.jsx'));
+const QuickJournalPanel = React.lazy(() => import('../../app/components/chart/chart_ui/QuickJournalPanel.jsx'));
 
 /**
  * Manages all side panels, modals, bottom panels, and mobile sheets.
@@ -52,7 +53,7 @@ export default function ChartPanelManager({
   symbol,
   tf,
   chartType,
-  indicators,
+  _indicators,
   data,
   isMobile,
   workspaceMode,
@@ -61,12 +62,12 @@ export default function ChartPanelManager({
   setShowIndicators,
   showObjectTree,
   setShowObjectTree,
-  showScriptManager,
-  setShowScriptManager,
-  showShareModal,
-  setShowShareModal,
-  showSnapshotPublisher,
-  setShowSnapshotPublisher,
+  _showScriptManager,
+  _setShowScriptManager,
+  _showShareModal,
+  _setShowShareModal,
+  _showSnapshotPublisher,
+  _setShowSnapshotPublisher,
   snapshotModalOpen,
   setSnapshotModalOpen,
   showShortcuts,
@@ -76,35 +77,43 @@ export default function ChartPanelManager({
   setShowMobileSettings,
   showMobileShare,
   setShowMobileShare,
-  isLandscapeFullscreen,
+  _isLandscapeFullscreen,
   setIsLandscapeFullscreen,
   // Refs
   chartRef,
-  editorRef,
+  _editorRef,
   // Script
-  setEditorOutputs,
+  _setEditorOutputs,
   // Drawings
   drawings,
 }) {
-  const activePanel = usePanelStore((s) => s.activePanel);
-  const panelInfo = usePanelStore.getState().getPanelInfo(activePanel);
-  const panelWidth = usePanelStore.getState().getPanelWidth(activePanel);
-  const closePanel = usePanelStore((s) => s.closePanel);
+  const activePanel = useLayoutStore((s) => s.activePanel);
+  const panelInfo = useLayoutStore.getState().getPanelInfo(activePanel);
+  const panelWidth = useLayoutStore.getState().getPanelWidth(activePanel);
+  const closePanel = useLayoutStore((s) => s.closePanel);
 
-  const showMinimap = useChartStore((s) => s.showMinimap);
-  const showStatusBar = useChartStore((s) => s.showStatusBar);
-  const showMTF = useChartStore((s) => s.showMTF);
+
+
   const showDOM = useChartStore((s) => s.showDOM);
-  const showDepthChart = useChartStore((s) => s.showDepthChart);
+
+  // Item 40: Sync showIndicators toggle → SlidePanel via useLayoutStore
+  useEffect(() => {
+    if (showIndicators && activePanel !== 'indicators') {
+      useLayoutStore.getState().openPanel('indicators');
+    }
+  }, [showIndicators, activePanel]);
+
+  // When SlidePanel closes with indicators open, sync back the toggle
+  useEffect(() => {
+    if (!activePanel && showIndicators) {
+      setShowIndicators(false);
+    }
+  }, [activePanel, showIndicators, setShowIndicators]);
 
   return (
     <>
-      {/* ─── Indicator Panel — full catalog with editable params ─── */}
-      {showIndicators && (
-        <Suspense fallback={null}>
-          <IndicatorPanel isOpen={showIndicators} onClose={() => setShowIndicators(false)} />
-        </Suspense>
-      )}
+      {/* ─── Indicator Panel — routed through SlidePanel (#40) ─── */}
+      {/* Indicators now rendered inside the SlidePanel below via activePanel === 'indicators' */}
 
       {/* Object Tree Panel */}
       {showObjectTree && (
@@ -120,34 +129,6 @@ export default function ChartPanelManager({
         </Suspense>
       )}
 
-      {/* ─── Chart Minimap Navigator ─── */}
-      {!workspaceMode && showMinimap && (
-        <Suspense fallback={null}>
-          <ChartMinimap
-            data={data}
-            visibleBars={80}
-            scrollOffset={0}
-          />
-        </Suspense>
-      )}
-
-      {/* ─── Unified Status Bar (Apple merge: OHLCV + Pipeline) ─── */}
-      {!workspaceMode && showStatusBar && (
-        <Suspense fallback={null}>
-          <UnifiedStatusBar showPipeline={!isMobile} />
-        </Suspense>
-      )}
-
-      {/* ─── Multi-Timeframe Panel ─── */}
-      {!workspaceMode && showMTF && (
-        <Suspense fallback={null}>
-          <MTFPanel
-            symbol={symbol}
-            theme={null}
-            height={260}
-          />
-        </Suspense>
-      )}
 
       {/* ─── DOM Ladder Overlay ─── */}
       {!workspaceMode && showDOM && (
@@ -160,17 +141,7 @@ export default function ChartPanelManager({
         </Suspense>
       )}
 
-      {/* ─── Depth Chart ─── */}
-      {!workspaceMode && showDepthChart && (
-        <Suspense fallback={null}>
-          <DepthChart
-            currentPrice={data?.length ? data[data.length - 1].close : 0}
-            symbol={symbol}
-            height={160}
-            onClose={() => useChartStore.getState().toggleDepthChart()}
-          />
-        </Suspense>
-      )}
+      {/* ─── Depth Chart ─── now rendered in ChartsPage inside the chart flex-column */}
 
       {/* ─── Snapshot Modal ─── */}
       <Suspense fallback={null}>
@@ -196,10 +167,13 @@ export default function ChartPanelManager({
           title={panelInfo?.title || ''}
           width={panelWidth}
           minWidth={panelInfo?.minWidth || 280}
-          onWidthChange={(w) => activePanel && usePanelStore.getState().setPanelWidth(activePanel, w)}
+          onWidthChange={(w) => activePanel && useLayoutStore.getState().setPanelWidth(activePanel, w)}
         >
           <div style={{ padding: 16, height: '100%', display: 'flex', flexDirection: 'column' }}>
             <Suspense fallback={<div style={{ padding: 16, color: C.t3 }}>Loading component...</div>}>
+              {activePanel === 'indicators' && (
+                <IndicatorPanel isOpen={true} onClose={closePanel} />
+              )}
               {activePanel === 'watchlist' && <WatchlistPanel compact />}
               {activePanel === 'alerts' && <AlertPanel currentSymbol={symbol} />}
               {activePanel === 'insights' && (
@@ -250,6 +224,12 @@ export default function ChartPanelManager({
               )}
               {activePanel === 'community' && (
                 <CommunitySignals />
+              )}
+              {activePanel === 'positionSizer' && (
+                <PositionSizer />
+              )}
+              {activePanel === 'quickJournal' && (
+                <QuickJournalPanel onClose={closePanel} />
               )}
             </Suspense>
           </div>

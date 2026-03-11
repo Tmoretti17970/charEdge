@@ -2,6 +2,8 @@
 // charEdge — Bar Close Countdown Utilities
 // ═══════════════════════════════════════════════════════════════════
 
+import { temporalEngine } from './TemporalEngine.ts';
+
 /**
  * Convert a timeframe string to milliseconds.
  * @param {string} tf - e.g. '1m', '5m', '15m', '30m', '1h', '2h', '4h', '1D', '1W', '1M'
@@ -66,74 +68,73 @@ export function formatCountdown(ms) {
  * @param {number} timestamp - Unix milliseconds
  * @param {string} tf - timeframe string
  * @param {number} [prevTimestamp] - Previous label's timestamp for boundary detection
- * @param {boolean} [useUTC=true] - Sprint 9: Use UTC (true) or local time (false)
+ * @param {string|boolean} [timezone='UTC'] - IANA timezone string, or boolean for backward compat
  * @returns {string}
  */
 // 8.1.3: Reusable Date objects to avoid per-call GC allocation
-const _sharedDate = new Date(0);
-const _sharedPrevDate = new Date(0);
 const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-export function formatTimeLabel(timestamp, tf, prevTimestamp, useUTC = true) {
+export function formatTimeLabel(timestamp, tf, prevTimestamp, timezone = 'UTC') {
   if (!timestamp || !isFinite(timestamp)) return '';
-  // 8.1.3: Reuse shared Date object — avoid allocating new Date() per label
+
+  // Backward-compat: if boolean is passed, map to IANA zone
+  let tz = timezone;
+  if (typeof timezone === 'boolean') {
+    tz = timezone ? 'UTC' : Intl.DateTimeFormat().resolvedOptions().timeZone;
+  }
+
   const ts = typeof timestamp === 'number' ? timestamp : +new Date(timestamp);
-  _sharedDate.setTime(ts);
-  const d = _sharedDate;
   const tfMs = tfToMs(tf);
   const months = _months;
 
-  let prev = null;
+  // Get date parts via TemporalEngine (handles arbitrary IANA timezones)
+  const parts = temporalEngine.getParts(ts, tz);
+  const { year: dYear, month: dMon, day: dDay, hour: dHrs, minute: dMins } = parts;
+  // month is 1-based from getParts, _months is 0-based
+  const monthIdx = dMon - 1;
+
+  let prevParts = null;
   if (prevTimestamp) {
     const pts = typeof prevTimestamp === 'number' ? prevTimestamp : +new Date(prevTimestamp);
-    _sharedPrevDate.setTime(pts);
-    prev = _sharedPrevDate;
+    prevParts = temporalEngine.getParts(pts, tz);
   }
-
-  // Sprint 9: UTC/local time accessor helpers
-  const getYear = useUTC ? (dt) => dt.getUTCFullYear() : (dt) => dt.getFullYear();
-  const getMon = useUTC ? (dt) => dt.getUTCMonth() : (dt) => dt.getMonth();
-  const getDate = useUTC ? (dt) => dt.getUTCDate() : (dt) => dt.getDate();
-  const getHrs = useUTC ? (dt) => dt.getUTCHours() : (dt) => dt.getHours();
-  const getMins = useUTC ? (dt) => dt.getUTCMinutes() : (dt) => dt.getMinutes();
 
   // ─── Weekly / Monthly ─────────────────────────────────────────
   if (tfMs >= 86400000 * 7) {
     // Year boundary → show year
-    if (prev && getYear(d) !== getYear(prev)) {
-      return String(getYear(d));
+    if (prevParts && dYear !== prevParts.year) {
+      return String(dYear);
     }
     // Default: "Feb '26"
-    return `${months[getMon(d)]} '${String(getYear(d)).slice(2)}`;
+    return `${months[monthIdx]} '${String(dYear).slice(2)}`;
   }
 
   // ─── Daily ────────────────────────────────────────────────────
   if (tfMs >= 86400000) {
     // Year boundary → show year
-    if (prev && getYear(d) !== getYear(prev)) {
-      return String(getYear(d));
+    if (prevParts && dYear !== prevParts.year) {
+      return String(dYear);
     }
     // Month boundary → show month name
-    if (prev && getMon(d) !== getMon(prev)) {
-      return months[getMon(d)];
+    if (prevParts && dMon !== prevParts.month) {
+      return months[monthIdx];
     }
     // Default: "Feb 25"
-    return `${months[getMon(d)]} ${getDate(d)}`;
+    return `${months[monthIdx]} ${dDay}`;
   }
 
   // ─── Intraday (hours, minutes) ────────────────────────────────
-  const hh = String(getHrs(d)).padStart(2, '0');
-  const mm = String(getMins(d)).padStart(2, '0');
+  const hh = String(dHrs).padStart(2, '0');
+  const mm = String(dMins).padStart(2, '0');
 
   // Year boundary → show year
-  if (prev && getYear(d) !== getYear(prev)) {
-    return String(getYear(d));
+  if (prevParts && dYear !== prevParts.year) {
+    return String(dYear);
   }
   // Day boundary → show date (TradingView style: "25 Feb")
-  if (prev && getDate(d) !== getDate(prev)) {
-    return `${getDate(d)} ${months[getMon(d)]}`;
+  if (prevParts && dDay !== prevParts.day) {
+    return `${dDay} ${months[monthIdx]}`;
   }
   // Default: "14:00"
   return `${hh}:${mm}`;
 }
-

@@ -14,7 +14,7 @@
 //   - Excellent intraday coverage
 // ═══════════════════════════════════════════════════════════════════
 
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
 
 const PROXY_BASE = '/api/proxy/alpaca';
 

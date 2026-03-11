@@ -17,6 +17,8 @@ const PANEL_REGISTRY = {
   institutional: { title: 'Institutional Data',  defaultWidth: 380, minWidth: 300 },
   options:       { title: 'Options Intel',       defaultWidth: 400, minWidth: 320 },
   community:     { title: 'Community Signals',   defaultWidth: 360, minWidth: 300 },
+  positionSizer: { title: 'Position Sizer',      defaultWidth: 300, minWidth: 260 },
+  quickJournal:  { title: 'Quick Journal',        defaultWidth: 300, minWidth: 260 },
   indicators:    { title: 'Indicators',          defaultWidth: 360, minWidth: 300 },
   objectTree:    { title: 'Object Tree',         defaultWidth: 300, minWidth: 240 },
 };

@@ -1,4 +1,4 @@
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — ShaderLibrary
@@ -45,6 +45,12 @@ export class ShaderLibrary {
     this._parallelCompileExt = gl.getExtension('KHR_parallel_shader_compile');
     /** @type {number|null} COMPLETION_STATUS_KHR constant */
     this._completionStatusKHR = this._parallelCompileExt ? 0x91B1 : null;
+
+    // Item 22: O(1) program → cache lookup (replaces O(n) registry scan)
+    /** @type {WeakMap<WebGLProgram, Object>} */
+    this._uniformCacheByProgram = new WeakMap();
+    /** @type {WeakMap<WebGLProgram, Object>} */
+    this._attribCacheByProgram = new WeakMap();
   }
 
   // ─── Registration ─────────────────────────────────────────────
@@ -157,22 +163,42 @@ export class ShaderLibrary {
     return this._getUniform(program, name);
   }
 
+  /**
+   * Get a cached attribute location.
+   * Item 22: Eliminates per-frame gl.getAttribLocation() calls.
+   *
+   * @param {WebGLProgram} program
+   * @param {string} name
+   * @returns {number}
+   */
+  getAttrib(program, name) {
+    if (!program) return -1;
+    let cache = this._attribCacheByProgram.get(program);
+    if (!cache) {
+      cache = {};
+      this._attribCacheByProgram.set(program, cache);
+    }
+    if (!(name in cache)) {
+      cache[name] = this.gl.getAttribLocation(program, name);
+    }
+    return cache[name];
+  }
+
   // ─── Internal ─────────────────────────────────────────────────
 
   /** @private */
   _getUniform(program, name) {
-    const gl = this.gl;
-    // Find the entry for this program to use its cache
-    for (const entry of this._registry.values()) {
-      if (entry.program === program) {
-        if (!(name in entry.uniformCache)) {
-          entry.uniformCache[name] = gl.getUniformLocation(program, name);
-        }
-        return entry.uniformCache[name];
-      }
+    if (!program) return null;
+    // Item 22: O(1) lookup via WeakMap keyed by program object
+    let cache = this._uniformCacheByProgram.get(program);
+    if (!cache) {
+      cache = {};
+      this._uniformCacheByProgram.set(program, cache);
     }
-    // Fallback: uncached lookup
-    return gl.getUniformLocation(program, name);
+    if (!(name in cache)) {
+      cache[name] = this.gl.getUniformLocation(program, name);
+    }
+    return cache[name];
   }
 
   /** @private */

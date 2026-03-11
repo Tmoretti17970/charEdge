@@ -4,8 +4,7 @@
 // Charts in the same group auto-sync symbols.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
-import { useChartStore } from '../../../../state/useChartStore.js';
+import { useChartStore } from '../../../../state/useChartStore';
 
 const LINK_GROUPS = [null, 'A', 'B', 'C', 'D'];
 const LINK_COLORS = { A: '#EF5350', B: '#42A5F5', C: '#66BB6A', D: '#AB47BC' };

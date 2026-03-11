@@ -7,12 +7,12 @@
 
 import React, { useMemo, useState } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { Card, AutoGrid, StatCard } from '../../components/ui/UIKit.jsx';
+import { useJournalStore } from '../../../state/useJournalStore';
 import { fmtD } from '../../../utils.js';
+import { Card, AutoGrid, StatCard } from '../../components/ui/UIKit.jsx';
+import BreakdownBarChart from '../../components/widgets/BreakdownBarChart.jsx';
 import EquityCurveChart from '../../components/widgets/EquityCurveChart.jsx';
 import WinRateDonut from '../../components/widgets/WinRateDonut.jsx';
-import BreakdownBarChart from '../../components/widgets/BreakdownBarChart.jsx';
 import { SectionLabel } from '../analytics/analytics_ui/AnalyticsPrimitives.jsx';
 
 // ─── Compute Per-Playbook Analytics ─────────────────────────────

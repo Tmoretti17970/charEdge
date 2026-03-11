@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect } from 'vitest';
-import { generateReportCard, type TradeLike } from '../../intelligence/BehavioralReportCard';
+import { generateReportCard, type TradeLike } from '@/psychology/BehavioralReportCard';
 
 const makeTrade = (overrides: Partial<TradeLike> = {}): TradeLike => ({
     id: `t-${Math.random().toString(36).slice(2, 6)}`,

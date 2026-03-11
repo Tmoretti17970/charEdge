@@ -1,76 +1,40 @@
-// ═══════════════════════════════════════════════════════════════════
-// charEdge v10.6 — Position Sizer Panel
-// Sprint 10 C10.3: Floating overlay on chart showing account size,
-// risk %, calculated position size, and R:R metrics.
-// ═══════════════════════════════════════════════════════════════════
-
-import { useChartStore } from '../../../../state/useChartStore.js';
 import { useMemo } from 'react';
 import { C, F, M } from '../../../../constants.js';
-import { calcRiskReward, calcPositionSize } from '../../../../state/chart/tradeSlice.js';
+import { calcRiskReward, calcPositionSize } from '../../../../state/chart/tradeSlice';
+import { useChartStore } from '../../../../state/useChartStore';
+import { useLayoutStore } from '../../../../state/useLayoutStore';
 
 export default function PositionSizer() {
-  const showPositionSizer = useChartStore((s) => s.showPositionSizer);
-  const togglePositionSizer = useChartStore((s) => s.togglePositionSizer);
-  const accountSize = useChartStore((s) => s.accountSize);
-  const riskPercent = useChartStore((s) => s.riskPercent);
-  const riskAmount = useChartStore((s) => s.riskAmount);
-  const riskMode = useChartStore((s) => s.riskMode);
-  const setAccountSize = useChartStore((s) => s.setAccountSize);
-  const setRiskPercent = useChartStore((s) => s.setRiskPercent);
-  const setRiskAmount = useChartStore((s) => s.setRiskAmount);
-  const setRiskMode = useChartStore((s) => s.setRiskMode);
+  const closePanel = useLayoutStore((s) => s.closePanel);
+  const accountSize = useChartStore((s) => s.accountSize) ?? 25000;
+  const riskPercent = useChartStore((s) => s.riskPercent) ?? 1;
+  const riskAmount = useChartStore((s) => s.riskAmount) ?? (accountSize * (riskPercent / 100));
+  const riskMode = useChartStore((s) => s.riskMode) ?? 'percent';
+  const setAccountSize = useChartStore((s) => s.setAccountSize) ?? (() => {});
+  const setRiskPercent = useChartStore((s) => s.setRiskPercent) ?? (() => {});
+  const setRiskAmount = useChartStore((s) => s.setRiskAmount) ?? (() => {});
+  const setRiskMode = useChartStore((s) => s.setRiskMode) ?? (() => {});
   const pendingEntry = useChartStore((s) => s.pendingEntry);
-  const pendingSL = useChartStore((s) => s.pendingSL);
-  const pendingTP = useChartStore((s) => s.pendingTP);
+  const pendingSL = useChartStore((s) => s.pendingSL ?? s.pendingStopLoss);
+  const pendingTP = useChartStore((s) => s.pendingTP ?? s.pendingTakeProfit);
   const tradeSide = useChartStore((s) => s.tradeSide);
 
-  const entry = pendingEntry?.price;
-  const sl = pendingSL?.price;
-  const tp = pendingTP?.price;
+  const entry = pendingEntry?.price ?? pendingEntry;
+  const sl = pendingSL?.price ?? pendingSL;
+  const tp = pendingTP?.price ?? pendingTP;
 
   const rr = useMemo(() => calcRiskReward(entry, sl, tp, tradeSide), [entry, sl, tp, tradeSide]);
-  const pos = useMemo(() => calcPositionSize(riskAmount, entry, sl), [riskAmount, entry, sl]);
+  const pos = useMemo(() => calcPositionSize(accountSize, riskPercent, entry, sl), [accountSize, riskPercent, entry, sl]);
 
-  if (!showPositionSizer) return null;
+  // Derived values for display
+  const riskPerUnit = entry && sl ? Math.abs(entry - sl) : 0;
+  const notionalValue = pos && entry ? pos * entry : 0;
+  const actualRiskValue = pos && riskPerUnit ? pos * riskPerUnit : 0;
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 50,
-        right: 12,
-        zIndex: 80,
-        width: 220,
-        background: C.bg,
-        border: `1px solid ${C.bd}`,
-        borderRadius: 8,
-        boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          padding: '8px 12px',
-          borderBottom: `1px solid ${C.bd}`,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <span style={{ fontSize: 11, fontWeight: 700, color: C.t1, fontFamily: F }}>Position Sizer</span>
-        <button
-          className="tf-btn"
-          onClick={togglePositionSizer}
-          style={{ background: 'none', border: 'none', color: C.t3, fontSize: 14, cursor: 'pointer' }}
-        >
-          ✕
-        </button>
-      </div>
-
+    <div>
       {/* Account + Risk */}
-      <div style={{ padding: '8px 12px' }}>
+      <div style={{ padding: '0' }}>
         <Row label="Account">
           <NumberInput value={accountSize} onChange={setAccountSize} prefix="$" step={1000} />
         </Row>
@@ -115,7 +79,7 @@ export default function PositionSizer() {
 
         {/* Calculated risk amount */}
         <Row label="Risk Amount">
-          <span style={{ fontSize: 11, fontWeight: 700, color: C.r, fontFamily: M }}>${riskAmount.toFixed(0)}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: C.r, fontFamily: M }}>${(riskAmount ?? 0).toFixed(0)}</span>
         </Row>
 
         {/* Levels display */}
@@ -132,25 +96,25 @@ export default function PositionSizer() {
         </Row>
 
         {/* Computed results */}
-        {pos && (
+        {pos != null && (
           <>
             <div style={{ height: 1, background: C.bd, margin: '6px 0' }} />
             <Row label="Position Size">
-              <span style={{ fontSize: 12, fontWeight: 800, color: C.t1, fontFamily: M }}>{pos.shares} shares</span>
+              <span style={{ fontSize: 12, fontWeight: 800, color: C.t1, fontFamily: M }}>{pos} shares</span>
             </Row>
             <Row label="Notional">
-              <span style={{ fontSize: 10, color: C.t2, fontFamily: M }}>${pos.notional.toLocaleString()}</span>
+              <span style={{ fontSize: 10, color: C.t2, fontFamily: M }}>${notionalValue.toLocaleString()}</span>
             </Row>
             <Row label="Risk/Share">
-              <span style={{ fontSize: 10, color: C.r, fontFamily: M }}>${pos.riskPerShare}</span>
+              <span style={{ fontSize: 10, color: C.r, fontFamily: M }}>${riskPerUnit.toFixed(2)}</span>
             </Row>
             <Row label="Actual Risk">
-              <span style={{ fontSize: 10, color: C.r, fontFamily: M }}>${pos.actualRisk}</span>
+              <span style={{ fontSize: 10, color: C.r, fontFamily: M }}>${actualRiskValue.toFixed(0)}</span>
             </Row>
           </>
         )}
 
-        {rr && (
+        {rr != null && isFinite(rr) && (
           <>
             <div style={{ height: 1, background: C.bd, margin: '6px 0' }} />
             <Row label="R:R Ratio">
@@ -159,23 +123,12 @@ export default function PositionSizer() {
                   fontSize: 13,
                   fontWeight: 800,
                   fontFamily: M,
-                  color: rr.rr >= 2 ? C.g : rr.rr >= 1 ? C.y : C.r,
+                  color: rr >= 2 ? C.g : rr >= 1 ? C.y : C.r,
                 }}
               >
-                {rr.rr > 0 ? `${rr.rr}:1` : '—'}
+                {rr > 0 ? `${rr}:1` : '—'}
               </span>
             </Row>
-
-            {!rr.slValid && (
-              <div style={{ fontSize: 8, color: C.r, fontFamily: M, marginTop: 2 }}>
-                ⚠ SL is on wrong side of entry for {tradeSide}
-              </div>
-            )}
-            {!rr.tpValid && (
-              <div style={{ fontSize: 8, color: C.r, fontFamily: M, marginTop: 2 }}>
-                ⚠ TP is on wrong side of entry for {tradeSide}
-              </div>
-            )}
           </>
         )}
       </div>

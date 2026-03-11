@@ -9,8 +9,8 @@
 // development and performance tuning.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { logger } from '../../../utils/logger';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { logger } from '@/observability/logger';
 
 // ─── Styles ────────────────────────────────────────────────────
 
@@ -153,18 +153,21 @@ export default function PipelineDevTools() {
         const { pipelineLogger } = await import('../../data/engine/DataPipelineLogger.js');
         snap.logger = pipelineLogger.getStats();
         snap.recentErrors = pipelineLogger.getRecentErrors(5);
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { snap.logger = null; }
 
       // Pipeline Health Monitor
       try {
         const { pipelineHealthMonitor } = await import('../../data/engine/PipelineHealthMonitor.js');
         snap.health = pipelineHealthMonitor.getHealthSnapshot();
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { snap.health = null; }
 
       // Compute Worker Pool
       try {
         const { computePool } = await import('../../data/engine/ComputeWorkerPool.js');
         snap.workerPool = computePool.getStats();
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { snap.workerPool = null; }
 
       // Ticker Plant
@@ -172,18 +175,21 @@ export default function PipelineDevTools() {
         const { tickerPlant } = await import('../../data/engine/streaming/TickerPlant.js');
         snap.tickerPlant = tickerPlant.getHealth();
         snap.adapterHealth = tickerPlant.getAdapterHealth?.() || {};
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { snap.tickerPlant = null; snap.adapterHealth = {}; }
 
       // Tick Persistence
       try {
         const { tickPersistence } = await import('../../data/engine/streaming/TickPersistence.js');
         snap.persistence = tickPersistence.getStats();
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { snap.persistence = null; }
 
       // Memory Budget
       try {
         const { memoryBudget } = await import('../../data/engine/MemoryBudget.js');
         snap.memory = memoryBudget.getSnapshot();
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { snap.memory = null; }
 
       // Streaming Indicator Bridge
@@ -193,6 +199,7 @@ export default function PipelineDevTools() {
           workerActive: streamingIndicatorBridge.isWorkerActive?.() || false,
           activeSymbols: streamingIndicatorBridge.getActiveSymbols(),
         };
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { snap.indicators = null; }
 
       snap.timestamp = Date.now();

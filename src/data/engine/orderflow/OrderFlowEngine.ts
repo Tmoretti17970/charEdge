@@ -1,4 +1,4 @@
-import { logger } from '../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v13 — Order Flow Engine
@@ -36,7 +36,7 @@ import { logger } from '../../../utils/logger';
 
 const MAX_TICKS = 50_000;       // Per-symbol tick buffer cap
 const MAX_CANDLE_HISTORY = 500; // Delta/footprint candle history
-const VP_BUCKET_DIVISOR = 100;  // Price bucket granularity: price / divisor → bucket ID
+const _VP_BUCKET_DIVISOR = 100;  // Price bucket granularity: price / divisor → bucket ID
 const LARGE_TRADE_SIGMA = 2.5;  // Standard deviations for "large trade" detection
 const TICK_SPEED_WINDOW = 5000; // 5-second window for tick speed
 const CLUSTER_WINDOW = 2000;    // 2-second window for cluster detection
@@ -262,6 +262,7 @@ class SymbolFlowState {
 
 // ─── Order Flow Engine ─────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 class _OrderFlowEngine {
   constructor() {
     this._symbols = new Map();  // symbol → SymbolFlowState
@@ -438,11 +439,11 @@ class _OrderFlowEngine {
         const tPrice = state._clusterData[ro];
         const tVol = state._clusterData[ro + 1];
         const tBuy = state._clusterData[ro + 3] === 1;
-        const b = priceBucket(tPrice, state.vpTickSize);
-        let prev = bucketCounts.get(b);
+        const bucket = priceBucket(tPrice, state.vpTickSize);
+        let prev = bucketCounts.get(bucket);
         if (!prev) {
           prev = { count: 0, vol: 0, buyVol: 0, sellVol: 0 };
-          bucketCounts.set(b, prev);
+          bucketCounts.set(bucket, prev);
         }
         prev.count++;
         prev.vol += tVol;
@@ -450,10 +451,10 @@ class _OrderFlowEngine {
         else prev.sellVol += tVol;
       }
 
-      for (const [b, data] of bucketCounts) {
+      for (const [bucket, data] of bucketCounts) {
         if (data.count >= 5) {
           const cluster = {
-            price: b,
+            price: bucket,
             count: data.count,
             totalVol: data.vol,
             buyVol: data.buyVol,
@@ -464,7 +465,7 @@ class _OrderFlowEngine {
           };
 
           const lastCluster = state.clusters[state.clusters.length - 1];
-          if (!lastCluster || lastCluster.price !== b || time - lastCluster.time > CLUSTER_WINDOW) {
+          if (!lastCluster || lastCluster.price !== bucket || time - lastCluster.time > CLUSTER_WINDOW) {
             state.clusters.push(cluster);
             if (state.clusters.length > 100) state.clusters.shift();
 
@@ -889,6 +890,7 @@ class _OrderFlowEngine {
       tickPersistence = tp.tickPersistence;
       const pl = await import('../infra/DataPipelineLogger.js');
       pipelineLogger = pl.pipelineLogger;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
       return { replayed: 0, durationMs: 0 };
     }
@@ -1027,5 +1029,6 @@ class _OrderFlowEngine {
 
 // ─── Singleton + Exports ──────────────────────────────────────
 
+export { _OrderFlowEngine };
 export const orderFlowEngine = new _OrderFlowEngine();
 export default orderFlowEngine;

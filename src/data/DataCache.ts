@@ -29,9 +29,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { openUnifiedDB } from './UnifiedDB.js';
-import { logger } from '../utils/logger.js';
+import { logger } from '@/observability/logger.js';
 
-const DB_NAME = 'charEdge-unified'; // For reference — actual open is in UnifiedDB.js
+const _DB_NAME = 'charEdge-unified'; // For reference — actual open is in UnifiedDB.js
 
 // Store definitions with TTL configs
 const STORES = {
@@ -69,6 +69,7 @@ async function dbGet(storeName, key) {
       req.onsuccess = () => resolve(req.result || null);
       req.onerror = () => resolve(null);
     });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_) {
     return null;
   }
@@ -84,6 +85,7 @@ async function dbPut(storeName, key, data) {
       tx.oncomplete = () => resolve(true);
       tx.onerror = () => resolve(false);
     });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_) {
     return false;
   }
@@ -99,6 +101,7 @@ async function dbDelete(storeName, key) {
       tx.oncomplete = () => resolve(true);
       tx.onerror = () => resolve(false);
     });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_) {
     return false;
   }
@@ -114,6 +117,7 @@ async function dbClearStore(storeName) {
       tx.oncomplete = () => resolve(true);
       tx.onerror = () => resolve(false);
     });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_) {
     return false;
   }
@@ -121,6 +125,7 @@ async function dbClearStore(storeName) {
 
 // ─── DataCache Class ───────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 class _DataCache {
   constructor() {
     /** Per-key lock map for serializing concurrent read-then-write operations. */
@@ -495,6 +500,7 @@ class _DataCache {
         await dbPut(store, key, data);
       }
       return data;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
       return null;
     }
@@ -538,6 +544,7 @@ class _DataCache {
           };
         });
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
       // IndexedDB not available
     }
@@ -574,6 +581,7 @@ class _DataCache {
           tx.onerror = () => resolve();
         });
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
       // Silent
     }

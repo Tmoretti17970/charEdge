@@ -38,6 +38,7 @@ class GPUBufferRegistry {
                         handle.gl.deleteBuffer(handle.buffer);
                         this._cleanupCount++;
                     }
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 } catch (_) {
                     // GL context may already be lost — safe to ignore
                 }

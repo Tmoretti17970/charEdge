@@ -59,6 +59,19 @@ const BLOCKED = [
   'confirm',
   'prompt',
   'console',
+  // P1: Additional globals that could leak data or bootstrap exploits
+  'Blob',
+  'URL',
+  'TextEncoder',
+  'TextDecoder',
+  'FormData',
+  'Headers',
+  'Request',
+  'Response',
+  'AbortController',
+  'BroadcastChannel',
+  'MessageChannel',
+  'crypto',
 ];
 // Note: 'eval', 'arguments', 'Function', and 'import' are reserved in
 // strict mode and can't be used as new Function() parameter names.
@@ -89,7 +102,7 @@ function _getWorker() {
     };
     _worker.onerror = (err) => {
       // Reject all pending with error
-      for (const [id, entry] of _pending) {
+      for (const [_id, entry] of _pending) {
         clearTimeout(entry.timer);
         entry.resolve({ outputs: [], params: {}, error: `Worker error: ${err.message}`, execMs: 0 });
       }
@@ -335,9 +348,35 @@ export function executeScript(code, bars, userParams = {}) {
     // The function receives all API items as arguments, blocking globals
     const fn = new Function(...scopeKeys, `"use strict";\n${code}`);
 
-    // Execute with timeout check
-    const _timeoutAt = startMs + MAX_EXEC_MS;
-    fn(...scopeValues);
+    // ── Freeze prototypes to prevent sandbox escape ──
+    // Without this, user code can do ({}).constructor.constructor('return this')()
+    // to escape the sandbox and access the global scope.
+    const origObjProto = Object.getOwnPropertyDescriptors(Object.prototype);
+    const origFuncProto = Object.getOwnPropertyDescriptors(Function.prototype);
+    Object.freeze(Object.prototype);
+    Object.freeze(Function.prototype);
+
+    let execError = null;
+    try {
+      // Execute with timeout check
+      const _timeoutAt = startMs + MAX_EXEC_MS;
+      fn(...scopeValues);
+    } catch (err) {
+      execError = err;
+    } finally {
+      // ── Restore prototypes — MUST happen even if script throws ──
+      // Unfreeze by re-defining original descriptors
+      for (const [key, desc] of Object.entries(origObjProto)) {
+        // eslint-disable-next-line unused-imports/no-unused-vars
+        try { Object.defineProperty(Object.prototype, key, desc); } catch (_) { /* skip non-configurable */ }
+      }
+      for (const [key, desc] of Object.entries(origFuncProto)) {
+        // eslint-disable-next-line unused-imports/no-unused-vars
+        try { Object.defineProperty(Function.prototype, key, desc); } catch (_) { /* skip non-configurable */ }
+      }
+    }
+
+    if (execError) throw execError;
 
     const execMs = performance.now() - startMs;
 
@@ -363,40 +402,147 @@ export function executeScript(code, bars, userParams = {}) {
 
 /**
  * Validate script source without executing it.
- * Checks for syntax errors and blocked patterns.
+ * P3 E1: Uses acorn AST parsing for robust validation instead of regex.
+ * Walks every node to detect dangerous patterns that regex can't catch
+ * (e.g., string concat, Unicode escapes, bracket notation).
  *
  * @param {string} code
- * @returns {{ valid: boolean, error: string|null }}
+ * @returns {{ valid: boolean, error: string|null, violations: string[] }}
  */
 export function validateScript(code) {
-  if (!code?.trim()) return { valid: false, error: 'Script is empty' };
+  if (!code?.trim()) return { valid: false, error: 'Script is empty', violations: [] };
 
-  // Check for obviously dangerous patterns
-  const dangerous = [
-    /\beval\s*\(/,
-    /\bFunction\s*\(/,
-    /\bimport\s*\(/,
-    /\brequire\s*\(/,
-    /\bfetch\s*\(/,
-    /\bnew\s+Worker\b/,
-    /\b__proto__\b/,
-    /\bconstructor\s*\[/,
-    /\bconstructor\s*\.\s*constructor/, // prototype chain escape
-  ];
+  // ── Phase 1: Parse via acorn ─────────────────────────────
+  let ast;
+  try {
+    // Dynamic import already bundled — acorn is a dependency
+    // eslint-disable-next-line no-undef
+    const acorn = require('acorn');
+    ast = acorn.parse(code, {
+      ecmaVersion: 2022,
+      sourceType: 'script', // Not module — no import/export
+      allowReturnOutsideFunction: true, // Script runs inside Function body
+    });
+  } catch (err) {
+    return { valid: false, error: `Syntax error: ${err.message}`, violations: [] };
+  }
 
-  for (const pattern of dangerous) {
-    if (pattern.test(code)) {
-      return { valid: false, error: `Blocked pattern: ${pattern.source}` };
+  // ── Phase 2: Walk AST for violations ─────────────────────
+  const BLOCKED_IDENTIFIERS = new Set([
+    'eval', 'Function', 'import', 'require', 'fetch',
+    'XMLHttpRequest', 'WebSocket', 'Worker', 'importScripts',
+    'localStorage', 'sessionStorage', 'indexedDB',
+    'document', 'window', 'globalThis', 'self',
+    'navigator', 'location', 'history',
+    'setTimeout', 'setInterval', 'requestAnimationFrame',
+    'alert', 'confirm', 'prompt',
+    'Blob', 'URL', 'TextEncoder', 'TextDecoder',
+    'FormData', 'Headers', 'Request', 'Response',
+    'AbortController', 'BroadcastChannel', 'MessageChannel', 'crypto',
+  ]);
+
+  const BLOCKED_PROPERTIES = new Set([
+    '__proto__', 'constructor', 'prototype',
+  ]);
+
+  const violations = [];
+
+  function walk(node) {
+    if (!node || typeof node !== 'object') return;
+
+    // ── Check node types ────────────────────────────────────
+    switch (node.type) {
+      // Call expressions: eval(), Function(), import(), require(), fetch()
+      case 'CallExpression': {
+        const callee = node.callee;
+        if (callee.type === 'Identifier' && BLOCKED_IDENTIFIERS.has(callee.name)) {
+          violations.push(`Blocked call: ${callee.name}()`);
+        }
+        // new Function()
+        if (callee.type === 'MemberExpression') {
+          const prop = _propName(callee);
+          if (prop && BLOCKED_IDENTIFIERS.has(prop)) {
+            violations.push(`Blocked member call: .${prop}()`);
+          }
+        }
+        break;
+      }
+
+      // new expressions: new Worker(), new Function()
+      case 'NewExpression': {
+        const callee = node.callee;
+        if (callee.type === 'Identifier' && BLOCKED_IDENTIFIERS.has(callee.name)) {
+          violations.push(`Blocked constructor: new ${callee.name}()`);
+        }
+        break;
+      }
+
+      // Member expressions: obj.__proto__, obj.constructor.constructor
+      case 'MemberExpression': {
+        const prop = _propName(node);
+        if (prop && BLOCKED_PROPERTIES.has(prop)) {
+          violations.push(`Blocked property access: .${prop}`);
+        }
+        break;
+      }
+
+      // Import declarations/expressions (should not parse in 'script' mode, but guard)
+      case 'ImportDeclaration':
+      case 'ImportExpression':
+        violations.push('Blocked: import statement');
+        break;
+
+      // Export declarations
+      case 'ExportNamedDeclaration':
+      case 'ExportDefaultDeclaration':
+      case 'ExportAllDeclaration':
+        violations.push('Blocked: export statement');
+        break;
+
+      // Meta property: import.meta
+      case 'MetaProperty':
+        if (node.meta?.name === 'import') {
+          violations.push('Blocked: import.meta');
+        }
+        break;
+    }
+
+    // ── Recurse into child nodes ─────────────────────────────
+    for (const key of Object.keys(node)) {
+      if (key === 'type' || key === 'start' || key === 'end') continue;
+      const child = node[key];
+      if (Array.isArray(child)) {
+        for (const item of child) {
+          if (item && typeof item === 'object' && item.type) walk(item);
+        }
+      } else if (child && typeof child === 'object' && child.type) {
+        walk(child);
+      }
     }
   }
 
-  // Try to parse as a function body
-  try {
-    new Function(`"use strict";\n${code}`);
-    return { valid: true, error: null };
-  } catch (err) {
-    return { valid: false, error: `Syntax error: ${err.message}` };
+  /** Extract property name from MemberExpression (handles computed + literal) */
+  function _propName(memberExpr) {
+    if (!memberExpr.computed && memberExpr.property?.type === 'Identifier') {
+      return memberExpr.property.name;
+    }
+    if (memberExpr.computed && memberExpr.property?.type === 'Literal') {
+      return String(memberExpr.property.value);
+    }
+    return null;
   }
+
+  walk(ast);
+
+  if (violations.length > 0) {
+    return {
+      valid: false,
+      error: `Security violation: ${violations[0]}`,
+      violations,
+    };
+  }
+
+  return { valid: true, error: null, violations: [] };
 }
 
 /**

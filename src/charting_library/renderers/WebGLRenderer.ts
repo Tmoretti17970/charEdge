@@ -25,9 +25,10 @@ import { drawVolumeProfile as _drawVolumeProfile, drawHeatmap as _drawHeatmap } 
 import { drawFibFill as _drawFibFill } from './FibRenderer.ts';
 import { drawGrid as _drawGrid } from './GridRenderer.ts';
 import { drawSDFText as _drawSDFText, measureSDFText as _measureSDFText, drawIndicatorLines as _drawIndicatorLines } from './TextRenderer.ts';
+import { gpuRegistry } from '../gpu/GPUBufferRegistry';
 
 // ─── Shader Sources (extracted to shaders/ directory) ──────────
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
 import {
   CANDLE_VERT, CANDLE_FRAG,
   VOLUME_VERT, VOLUME_FRAG,
@@ -187,6 +188,9 @@ export class WebGLRenderer {
   _lastVolumeTheme!: VolumeTheme;
   _lastVolumeMaxVol!: number;
 
+  // Item 23: Color parse cache — avoids Float32Array alloc per frame
+  _colorCache: Map<string, Float32Array> = new Map();
+
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.gl = null;
@@ -343,6 +347,7 @@ export class WebGLRenderer {
       1, 0, 1, 1, 0, 1,  // triangle 2
     ]);
     this._buffers.quad = gl.createBuffer()!;
+    gpuRegistry.track(this, gl, this._buffers.quad, 'quad');
     gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.quad);
     gl.bufferData(gl.ARRAY_BUFFER, quadVerts, gl.STATIC_DRAW);
   }
@@ -351,34 +356,59 @@ export class WebGLRenderer {
     const gl = this.gl!;
     const n = this._maxInstances;
 
+    // #24: Pre-allocate GPU buffers at max capacity. Each buffer is allocated
+    // once with DYNAMIC_DRAW and updated via bufferSubData() per frame.
+    // This eliminates the per-frame gl.bufferData() re-allocation.
+
     // Candle instances: x, open, high, low, close, isBull, isWick
     this._candleData = new Float32Array(n * 7);
     this._buffers.candleInstances = gl.createBuffer()!;
+    gpuRegistry.track(this, gl, this._buffers.candleInstances, 'candle-instances');
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.candleInstances);
+    gl.bufferData(gl.ARRAY_BUFFER, n * 7 * 4, gl.DYNAMIC_DRAW);
 
-    // Volume instances: x, volume, isBull
-    this._volumeData = new Float32Array(n * 3);
+    // Volume instances: x, volume, isBull, intensity
+    this._volumeData = new Float32Array(n * 4);
     this._buffers.volumeInstances = gl.createBuffer()!;
+    gpuRegistry.track(this, gl, this._buffers.volumeInstances, 'volume-instances');
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.volumeInstances);
+    gl.bufferData(gl.ARRAY_BUFFER, n * 4 * 4, gl.DYNAMIC_DRAW);
 
     // Line vertices
     this._lineData = new Float32Array(n * 2);
     this._buffers.lineVertices = gl.createBuffer()!;
+    gpuRegistry.track(this, gl, this._buffers.lineVertices, 'line-vertices');
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.lineVertices);
+    gl.bufferData(gl.ARRAY_BUFFER, n * 2 * 4, gl.DYNAMIC_DRAW);
 
     // AA line vertices: per-vertex = posA(2) + posB(2) + side(1) + miter(1) = 6 floats
     // 4 vertices per segment, (n-1) segments max
     this._aaLineData = new Float32Array(n * 4 * 6);
     this._buffers.aaLineVertices = gl.createBuffer()!;
+    gpuRegistry.track(this, gl, this._buffers.aaLineVertices, 'aa-line-vertices');
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.aaLineVertices);
+    gl.bufferData(gl.ARRAY_BUFFER, n * 4 * 6 * 4, gl.DYNAMIC_DRAW);
 
     // Volume profile instances: y, width, height, intensity, isPoc = 5 floats
     this._vprofileData = new Float32Array(n * 5);
     this._buffers.vprofileInstances = gl.createBuffer()!;
+    gpuRegistry.track(this, gl, this._buffers.vprofileInstances, 'vprofile-instances');
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.vprofileInstances);
+    gl.bufferData(gl.ARRAY_BUFFER, n * 5 * 4, gl.DYNAMIC_DRAW);
 
     // Heatmap instances: x, y, cellW, cellH, intensity = 5 floats
     this._heatmapData = new Float32Array(n * 5);
     this._buffers.heatmapInstances = gl.createBuffer()!;
+    gpuRegistry.track(this, gl, this._buffers.heatmapInstances, 'heatmap-instances');
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.heatmapInstances);
+    gl.bufferData(gl.ARRAY_BUFFER, n * 5 * 4, gl.DYNAMIC_DRAW);
 
     // Fib fill instances: left, top, w, h, r, g, b, a = 8 floats
     this._fibFillData = new Float32Array(n * 8);
     this._buffers.fibFillInstances = gl.createBuffer()!;
+    gpuRegistry.track(this, gl, this._buffers.fibFillInstances, 'fib-fill-instances');
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.fibFillInstances);
+    gl.bufferData(gl.ARRAY_BUFFER, n * 8 * 4, gl.DYNAMIC_DRAW);
   }
 
   /**
@@ -394,13 +424,24 @@ export class WebGLRenderer {
     const capped = Math.min(count, GPU_WINDOW_SIZE);
     if (capped > this._maxInstances) {
       this._maxInstances = Math.min(Math.max(capped, this._maxInstances * 2), GPU_WINDOW_SIZE);
+      // #24: Re-allocate CPU-side typed arrays and GPU buffers at new capacity
       this._candleData = new Float32Array(this._maxInstances * 7);
-      this._volumeData = new Float32Array(this._maxInstances * 3);
+      this._volumeData = new Float32Array(this._maxInstances * 4);
       this._lineData = new Float32Array(this._maxInstances * 2);
       this._aaLineData = new Float32Array(this._maxInstances * 4 * 6);
       this._vprofileData = new Float32Array(this._maxInstances * 5);
       this._heatmapData = new Float32Array(this._maxInstances * 5);
       this._fibFillData = new Float32Array(this._maxInstances * 8);
+      // Re-allocate GPU buffers at new capacity
+      const gl = this.gl!;
+      if (this._buffers.candleInstances) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.candleInstances);
+        gl.bufferData(gl.ARRAY_BUFFER, this._maxInstances * 7 * 4, gl.DYNAMIC_DRAW);
+      }
+      if (this._buffers.volumeInstances) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.volumeInstances);
+        gl.bufferData(gl.ARRAY_BUFFER, this._maxInstances * 4 * 4, gl.DYNAMIC_DRAW);
+      }
     }
 
     if (count > GPU_WINDOW_SIZE) {
@@ -417,7 +458,7 @@ export class WebGLRenderer {
    * Single draw call for ALL visible candles.
    */
   drawCandles(bars: CandleBar[], params: CandleParams, theme: CandleTheme): void {
-    _drawCandles(this as any, bars, params, theme);
+    _drawCandles(this as unknown, bars, params, theme);
   }
 
   /**
@@ -425,14 +466,14 @@ export class WebGLRenderer {
    * Avoids full buffer re-upload on live ticks (~16ms → ~0.5ms).
    */
   updateLastCandle(bar: CandleBar, params: CandleParams, theme: CandleTheme): boolean {
-    return _updateLastCandle(this as any, bar, params, theme);
+    return _updateLastCandle(this as unknown, bar, params, theme);
   }
 
   // ─── Volume Rendering ──────────────────────────────────────
 
   /** Draw volume bars via WebGL. */
   drawVolume(bars: CandleBar[], params: RenderParams, theme: VolumeTheme): void {
-    _drawVolume(this as any, bars, params, theme);
+    _drawVolume(this as unknown, bars, params, theme);
   }
 
   /**
@@ -440,7 +481,7 @@ export class WebGLRenderer {
    * Task 2.3.13: Avoids full volume buffer re-upload on live ticks.
    */
   updateLastVolume(bar: CandleBar, params: RenderParams, theme: VolumeTheme): boolean {
-    return _updateLastVolume(this as any, bar, params, theme);
+    return _updateLastVolume(this as unknown, bar, params, theme);
   }
 
   // ─── Sprint 3: GPU-Translated Pan-Only Redraw ────────────────
@@ -464,28 +505,30 @@ export class WebGLRenderer {
     gl.viewport(0, 0, cW, cH);
 
     // ── Redraw candles with pan offset ──
-    const candleProg = this._shaderLib!.get('candle');
+    // Item 22: Use ShaderLibrary cached uniform/attrib lookups (eliminates per-frame GL driver calls)
+    const slib = this._shaderLib!;
+    const candleProg = slib.get('candle');
     if (candleProg && this._lastCandleInstanceCount > 0) {
       const p = this._lastCandleParams;
       const pr = p.pixelRatio;
       const mainH = p.mainH;
 
       gl.useProgram(candleProg);
-      gl.uniform2f(gl.getUniformLocation(candleProg, 'u_resolution'), cW, cH);
-      gl.uniform1f(gl.getUniformLocation(candleProg, 'u_bodyWidth'), Math.max(1, p.barSpacing * 0.35 * pr));
-      gl.uniform1f(gl.getUniformLocation(candleProg, 'u_wickWidth'), Math.max(0.5, pr * 0.5));
-      gl.uniform1f(gl.getUniformLocation(candleProg, 'u_yMin'), overrides.yMin ?? p.yMin);
-      gl.uniform1f(gl.getUniformLocation(candleProg, 'u_yMax'), overrides.yMax ?? p.yMax);
-      gl.uniform1f(gl.getUniformLocation(candleProg, 'u_mainH'), mainH * pr);
-      gl.uniform1f(gl.getUniformLocation(candleProg, 'u_panOffset'), panOffsetPx);
-      gl.uniform1f(gl.getUniformLocation(candleProg, 'u_hollow'), this._lastCandleParams?.hollow ? 1.0 : 0.0);
+      gl.uniform2f(slib.getUniform(candleProg, 'u_resolution'), cW, cH);
+      gl.uniform1f(slib.getUniform(candleProg, 'u_bodyWidth'), Math.max(1, p.barSpacing * 0.35 * pr));
+      gl.uniform1f(slib.getUniform(candleProg, 'u_wickWidth'), Math.max(1.5, pr));
+      gl.uniform1f(slib.getUniform(candleProg, 'u_yMin'), overrides.yMin ?? p.yMin);
+      gl.uniform1f(slib.getUniform(candleProg, 'u_yMax'), overrides.yMax ?? p.yMax);
+      gl.uniform1f(slib.getUniform(candleProg, 'u_mainH'), mainH * pr);
+      gl.uniform1f(slib.getUniform(candleProg, 'u_panOffset'), panOffsetPx);
+      gl.uniform1f(slib.getUniform(candleProg, 'u_hollow'), this._lastCandleParams?.hollow ? 1.0 : 0.0);
 
       const t = this._lastCandleTheme;
-      gl.uniform4fv(gl.getUniformLocation(candleProg, 'u_bullColor'), this._parseColor(t.bullCandle || '#26A69A'));
-      gl.uniform4fv(gl.getUniformLocation(candleProg, 'u_bearColor'), this._parseColor(t.bearCandle || '#EF5350'));
+      gl.uniform4fv(slib.getUniform(candleProg, 'u_bullColor'), this._parseColor(t.bullCandle || '#26A69A'));
+      gl.uniform4fv(slib.getUniform(candleProg, 'u_bearColor'), this._parseColor(t.bearCandle || '#EF5350'));
 
       // Bind quad
-      const aPos = gl.getAttribLocation(candleProg, 'a_position');
+      const aPos = slib.getAttrib(candleProg, 'a_position');
       gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.quad!);
       gl.enableVertexAttribArray(aPos);
       gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
@@ -496,7 +539,7 @@ export class WebGLRenderer {
       const stride = 7 * 4;
       const candleAttrs = ['a_x', 'a_open', 'a_high', 'a_low', 'a_close', 'a_isBull', 'a_isWick'];
       for (let i = 0; i < candleAttrs.length; i++) {
-        const loc = gl.getAttribLocation(candleProg, candleAttrs[i]);
+        const loc = slib.getAttrib(candleProg, candleAttrs[i]);
         if (loc >= 0) {
           gl.enableVertexAttribArray(loc);
           gl.vertexAttribPointer(loc, 1, gl.FLOAT, false, stride, i * 4);
@@ -507,44 +550,45 @@ export class WebGLRenderer {
       gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, this._lastCandleInstanceCount);
 
       for (const attr of candleAttrs) {
-        const loc = gl.getAttribLocation(candleProg, attr);
+        const loc = slib.getAttrib(candleProg, attr);
         if (loc >= 0) gl.vertexAttribDivisor(loc, 0);
       }
     }
 
     // ── Redraw volume with pan offset ──
-    const volProg = this._shaderLib!.get('volume');
+    const volProg = slib.get('volume');
     if (volProg && this._lastVolumeInstanceCount > 0) {
       const v = this._lastVolumeParams;
       const pr = v.pixelRatio;
 
       gl.useProgram(volProg);
-      gl.uniform2f(gl.getUniformLocation(volProg, 'u_resolution'), cW, cH);
-      gl.uniform1f(gl.getUniformLocation(volProg, 'u_bodyWidth'), Math.max(1, v.barSpacing! * 0.35 * pr));
-      gl.uniform1f(gl.getUniformLocation(volProg, 'u_maxVolume'), this._lastVolumeMaxVol);
-      gl.uniform1f(gl.getUniformLocation(volProg, 'u_volumeTop'), v.volTop);
-      gl.uniform1f(gl.getUniformLocation(volProg, 'u_volumeHeight'), v.volH);
-      gl.uniform1f(gl.getUniformLocation(volProg, 'u_panOffset'), panOffsetPx);
+      // Item 22: Use ShaderLibrary cached uniform lookups
+      gl.uniform2f(slib.getUniform(volProg, 'u_resolution'), cW, cH);
+      gl.uniform1f(slib.getUniform(volProg, 'u_bodyWidth'), Math.max(1, v.barSpacing! * 0.35 * pr));
+      gl.uniform1f(slib.getUniform(volProg, 'u_maxVolume'), this._lastVolumeMaxVol);
+      gl.uniform1f(slib.getUniform(volProg, 'u_volumeTop'), v.volTop);
+      gl.uniform1f(slib.getUniform(volProg, 'u_volumeHeight'), v.volH);
+      gl.uniform1f(slib.getUniform(volProg, 'u_panOffset'), panOffsetPx);
 
-      const t = this._lastVolumeTheme;
-      gl.uniform4fv(gl.getUniformLocation(volProg, 'u_bullColor'), this._parseColor(t.bullVolume || '#26A69A80'));
-      gl.uniform4fv(gl.getUniformLocation(volProg, 'u_bearColor'), this._parseColor(t.bearVolume || '#EF535080'));
+      const vt = this._lastVolumeTheme;
+      gl.uniform4fv(slib.getUniform(volProg, 'u_bullColor'), this._parseColor(vt.bullVolume || '#26A69A80'));
+      gl.uniform4fv(slib.getUniform(volProg, 'u_bearColor'), this._parseColor(vt.bearVolume || '#EF535080'));
 
-      const aPos = gl.getAttribLocation(volProg, 'a_position');
+      const vPos = slib.getAttrib(volProg, 'a_position');
       gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.quad!);
-      gl.enableVertexAttribArray(aPos);
-      gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
-      gl.vertexAttribDivisor(aPos, 0);
+      gl.enableVertexAttribArray(vPos);
+      gl.vertexAttribPointer(vPos, 2, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribDivisor(vPos, 0);
 
       // Bind existing volume buffer (NO re-upload)
       gl.bindBuffer(gl.ARRAY_BUFFER, this._buffers.volumeInstances!);
-      const stride = 3 * 4;
+      const vStride = 3 * 4;
       const volAttrs = ['a_x', 'a_volume', 'a_isBull'];
       for (let i = 0; i < volAttrs.length; i++) {
-        const loc = gl.getAttribLocation(volProg, volAttrs[i]);
+        const loc = slib.getAttrib(volProg, volAttrs[i]);
         if (loc >= 0) {
           gl.enableVertexAttribArray(loc);
-          gl.vertexAttribPointer(loc, 1, gl.FLOAT, false, stride, i * 4);
+          gl.vertexAttribPointer(loc, 1, gl.FLOAT, false, vStride, i * 4);
           gl.vertexAttribDivisor(loc, 1);
         }
       }
@@ -552,7 +596,7 @@ export class WebGLRenderer {
       gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, this._lastVolumeInstanceCount);
 
       for (const attr of volAttrs) {
-        const loc = gl.getAttribLocation(volProg, attr);
+        const loc = slib.getAttrib(volProg, attr);
         if (loc >= 0) gl.vertexAttribDivisor(loc, 0);
       }
     }
@@ -568,7 +612,7 @@ export class WebGLRenderer {
    * Use for line charts and indicator overlay lines.
    */
   drawLine(bars: CandleBar[], params: RenderParams, color: string, lineWidth: number = 2): void {
-    _drawLine(this as any, bars, params, color, lineWidth);
+    _drawLine(this as unknown, bars, params, color, lineWidth);
   }
 
   // ─── Area Chart Rendering ──────────────────────────────────
@@ -578,7 +622,7 @@ export class WebGLRenderer {
    * Renders a filled area below the line with gradient-like opacity.
    */
   drawArea(bars: CandleBar[], params: RenderParams, lineColor: string, fillColor: string): void {
-    _drawArea(this as any, bars, params, lineColor, fillColor);
+    _drawArea(this as unknown, bars, params, lineColor, fillColor);
   }
 
   // ─── Anti-Aliased Line Rendering ──────────────────────────
@@ -588,7 +632,7 @@ export class WebGLRenderer {
    * Produces sub-pixel smooth lines that look better than Canvas2D.
    */
   drawAALine(points: Point2D[], color: string, lineWidth: number = 2): void {
-    _drawAALine(this as any, points, color, lineWidth);
+    _drawAALine(this as unknown, points, color, lineWidth);
   }
 
   // ─── Volume Profile Rendering ──────────────────────────────
@@ -597,7 +641,7 @@ export class WebGLRenderer {
    * Draw a volume profile histogram via WebGL instanced horizontal bars.
    */
   drawVolumeProfile(rows: VolumeProfileRow[], params: RenderParams, theme: Record<string, unknown>): void {
-    _drawVolumeProfile(this as any, rows, params, theme);
+    _drawVolumeProfile(this as unknown, rows, params, theme);
   }
 
   // ─── Heatmap Rendering ─────────────────────────────────────
@@ -606,7 +650,7 @@ export class WebGLRenderer {
    * Draw a heatmap via WebGL instanced color-gradient quads.
    */
   drawHeatmap(cells: HeatmapCell[], params: RenderParams, theme: Record<string, unknown>): void {
-    _drawHeatmap(this as any, cells, params, theme);
+    _drawHeatmap(this as unknown, cells, params, theme);
   }
 
   // ─── Fibonacci Fill Rendering ──────────────────────────────
@@ -615,7 +659,7 @@ export class WebGLRenderer {
    * Draw Fibonacci zone fills via WebGL instanced quads.
    */
   drawFibFill(zones: FibZone[], params: { pixelRatio: number }): void {
-    _drawFibFill(this as any, zones, params);
+    _drawFibFill(this as unknown, zones, params);
   }
 
   // ─── SDF Text Rendering ─────────────────────────────────────
@@ -624,14 +668,14 @@ export class WebGLRenderer {
    * Draw text entries via GPU SDF text atlas.
    */
   drawSDFText(entries: SDFTextEntry[], params: { pixelRatio: number }): void {
-    _drawSDFText(this as any, entries, params, TextAtlas);
+    _drawSDFText(this as unknown, entries, params, TextAtlas);
   }
 
   /**
    * Measure text width using the SDF atlas (CSS pixels).
    */
   measureSDFText(text: string, fontSize: number): number {
-    return _measureSDFText(this as any, text, fontSize);
+    return _measureSDFText(this as unknown, text, fontSize);
   }
 
   // ─── GPU Indicator Lines ─────────────────────────────────────
@@ -640,7 +684,7 @@ export class WebGLRenderer {
    * Draw multiple indicator overlay line series via GPU anti-aliased lines.
    */
   drawIndicatorLines(seriesArray: IndicatorSeries[], params: RenderParams): void {
-    _drawIndicatorLines(this as any, seriesArray, params);
+    _drawIndicatorLines(this as unknown, seriesArray, params);
   }
 
   // ─── GPU Grid Lines ────────────────────────────────────────────
@@ -649,7 +693,7 @@ export class WebGLRenderer {
    * Draw all grid lines (horizontal + vertical) via GPU instanced quads.
    */
   drawGrid(gridData: Record<string, unknown>, params: RenderParams, theme: Record<string, unknown>): void {
-    _drawGrid(this as any, gridData, params, theme);
+    _drawGrid(this as unknown, gridData, params, theme);
   }
 
   // ─── Clear ──────────────────────────────────────────────────
@@ -674,8 +718,12 @@ export class WebGLRenderer {
 
   /**
    * Parse CSS color string to [r, g, b, a] normalized floats.
+   * Results are cached to avoid per-frame Float32Array allocations.
    */
   _parseColor(color: string): Float32Array {
+    const cached = this._colorCache.get(color);
+    if (cached) return cached;
+
     const result = new Float32Array([0, 0, 0, 1]);
     if (!color) return result;
 
@@ -686,6 +734,7 @@ export class WebGLRenderer {
       result[1] = parseInt(rgbaMatch[2]) / 255;
       result[2] = parseInt(rgbaMatch[3]) / 255;
       result[3] = rgbaMatch[4] !== undefined ? parseFloat(rgbaMatch[4]) : 1;
+      this._colorCache.set(color, result);
       return result;
     }
 
@@ -700,7 +749,13 @@ export class WebGLRenderer {
         result[3] = parseInt(hex.slice(6, 8), 16) / 255;
       }
     }
+    this._colorCache.set(color, result);
     return result;
+  }
+
+  /** Clear color parse cache (call on theme change). */
+  clearColorCache(): void {
+    this._colorCache.clear();
   }
 
   // ─── Cleanup ────────────────────────────────────────────────
@@ -722,6 +777,8 @@ export class WebGLRenderer {
     for (const name in this._buffers) {
       gl.deleteBuffer(this._buffers[name]!);
     }
+    // Sprint 10 #82: Untrack from FinalizationRegistry (prevents double-delete)
+    gpuRegistry.untrack(this);
     if (this._shaderLib) {
       this._shaderLib.dispose();
       this._shaderLib = null;

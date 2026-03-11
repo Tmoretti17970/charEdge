@@ -460,7 +460,7 @@ export function createApiRouter(services: ApiRouterServices = {}): Router {
     // ─── Bulk Sync ─────────────────────────────────────────
 
     router.post('/sync', (req: Request, res: Response) => {
-        const { trades: clientTrades, playbooks, notes, plans, settings, since } = (req.body || {}) as SyncBody;
+        const { trades: clientTrades, _playbooks, _notes, _plans, settings, since } = (req.body || {}) as SyncBody;
         const results: SyncResults = { pushed: 0, pulled: {} };
         const sinceMs = since ? new Date(since).getTime() : 0;
 
@@ -553,6 +553,7 @@ export function createApiRouter(services: ApiRouterServices = {}): Router {
 
         try {
             const url = `${base}/${alpacaPath}${(req as Request & { _parsedUrl?: { search?: string } })._parsedUrl?.search || ''}`;
+            // eslint-disable-next-line no-undef
             const fetchOpts: RequestInit = {
                 method: req.method,
                 headers: {

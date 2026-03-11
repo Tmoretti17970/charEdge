@@ -20,7 +20,7 @@ test.describe('Journal Workflow', () => {
     test('navigate to journal via keyboard shortcut', async ({ page }) => {
         // Press '1' to navigate to Journal (Home)
         await page.keyboard.press('1');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         // Journal/Home page content should be visible
         const main = page.locator('#tf-main-content');
@@ -35,7 +35,7 @@ test.describe('Journal Workflow', () => {
         } else {
             await page.keyboard.press('1');
         }
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         // Main content area should have content
         const mainContent = page.locator('#tf-main-content');
@@ -47,9 +47,8 @@ test.describe('Journal Workflow', () => {
     test('quick-add trade modal opens via Ctrl+N', async ({ page }) => {
         // Ctrl+N should open the quick-add trade form
         await page.keyboard.press('Control+n');
-        await page.waitForTimeout(500);
 
-        // Look for a modal/dialog/form that appeared
+        // Wait for modal/dialog to appear
         const modal = page.locator(
             '[role="dialog"], [class*="modal"], [class*="QuickAdd"], [class*="quickAdd"], [class*="slide-over"]'
         ).first();
@@ -64,7 +63,6 @@ test.describe('Journal Workflow', () => {
 
     test('quick-add trade modal opens via Ctrl+/', async ({ page }) => {
         await page.keyboard.press('Control+/');
-        await page.waitForTimeout(500);
 
         const modal = page.locator(
             '[role="dialog"], [class*="modal"], [class*="QuickAdd"], [class*="quickAdd"]'
@@ -77,7 +75,6 @@ test.describe('Journal Workflow', () => {
 
     test('command palette opens via Ctrl+K', async ({ page }) => {
         await page.keyboard.press('Control+k');
-        await page.waitForTimeout(500);
 
         const palette = page.locator(
             '[class*="CommandPalette"], [class*="commandPalette"], [role="combobox"], [class*="palette"]'
@@ -90,7 +87,14 @@ test.describe('Journal Workflow', () => {
             const searchInput = palette.locator('input').first();
             if (await searchInput.isVisible({ timeout: 1000 }).catch(() => false)) {
                 await searchInput.fill('journal');
-                await page.waitForTimeout(300);
+                // Wait for search results to update
+                await page.waitForFunction(
+                    () => {
+                        const results = document.querySelector('[class*="result"], [class*="option"], [class*="suggestion"]');
+                        return !!results;
+                    },
+                    { timeout: 3_000 }
+                ).catch(() => { });
             }
 
             // Escape to close
@@ -103,7 +107,7 @@ test.describe('Journal Workflow', () => {
         page.on('pageerror', (err) => errors.push(err.message));
 
         await page.keyboard.press('1');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         const critical = errors.filter(msg =>
             !msg.includes('WebSocket') &&

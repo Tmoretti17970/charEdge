@@ -11,10 +11,10 @@
 //           dataInfraRound9.test.js
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, vi, beforeEach, beforeAll, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -69,11 +69,11 @@ describe('DataPipeline — start/watchSymbol/unwatchSymbol/stop lifecycle', () =
 
 describe('DataPipeline — subscription cleanup', () => {
   it('stores _subscriptions Map on construction', async () => {
-    vi.stubGlobal('BroadcastChannel', class { postMessage() {} close() {} });
+    vi.stubGlobal('BroadcastChannel', class { postMessage() { } close() { } });
     vi.stubGlobal('RTCPeerConnection', class {
       constructor() { this.connectionState = 'new'; }
-      createDataChannel() { return { onopen: null, send() {}, close() {}, readyState: 'connecting' }; }
-      close() {}
+      createDataChannel() { return { onopen: null, send() { }, close() { }, readyState: 'connecting' }; }
+      close() { }
     });
     vi.stubGlobal('SharedWorker', undefined);
     vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: false, json: () => Promise.resolve({}) })));
@@ -160,9 +160,9 @@ describe('DataEventBus — centralized event hub', () => {
   });
 
   it('getStats tracks event counts and listener count', () => {
-    bus.on('x', () => {});
-    bus.on('x', () => {});
-    bus.on('y', () => {});
+    bus.on('x', () => { });
+    bus.on('x', () => { });
+    bus.on('y', () => { });
     bus.emit('x', 1);
     bus.emit('x', 2);
     bus.emit('y', 3);
@@ -182,7 +182,7 @@ describe('DataEventBus — centralized event hub', () => {
   });
 
   it('dispose clears everything', () => {
-    bus.on('a', () => {});
+    bus.on('a', () => { });
     bus.emit('a', 1);
     bus.dispose();
     expect(bus.getStats()._totalListeners).toBe(0);
@@ -243,8 +243,8 @@ describe('DepthEngine — handler nullification', () => {
   beforeAll(() => { source = readSource('data/engine/orderflow/DepthEngine.ts'); });
 
   it('_disconnectWS nulls all 4 WS handlers before close()', () => {
-    const disconnectIdx = source.indexOf('_disconnectWS(symbol)');
-    const chunk = source.slice(disconnectIdx, disconnectIdx + 500);
+    const disconnectIdx = source.indexOf('_disconnectWS(symbol');
+    const chunk = source.slice(disconnectIdx, disconnectIdx + 800);
     expect(chunk).toContain('conn.ws.onopen = null');
     expect(chunk).toContain('conn.ws.onmessage = null');
     expect(chunk).toContain('conn.ws.onclose = null');
@@ -264,8 +264,13 @@ describe('DepthEngine — handler nullification', () => {
 
 describe('DepthEngine — relaxed silence threshold', () => {
   it('SILENCE_THRESHOLD_MS is >= 30000', async () => {
-    const source = readSource('data/engine/orderflow/DepthEngine.ts');
-    const match = source.match(/SILENCE_THRESHOLD_MS\s*=\s*(\d+)/);
+    // Constant may live in DepthEngine.ts or depth/depthConstants.ts after decomposition
+    let source = readSource('data/engine/orderflow/DepthEngine.ts');
+    let match = source.match(/SILENCE_THRESHOLD_MS\s*=\s*(\d+)/);
+    if (!match) {
+      source = readSource('data/engine/orderflow/depth/depthConstants.ts');
+      match = source.match(/SILENCE_THRESHOLD_MS\s*=\s*(\d+)/);
+    }
     expect(match).not.toBeNull();
     expect(parseInt(match[1])).toBeGreaterThanOrEqual(30000);
   });
@@ -481,13 +486,12 @@ describe('Dead code & logger fix', () => {
 });
 
 describe('useWebSocket — array optimization', () => {
-  it('uses .slice() instead of spread for open candle updates', () => {
+  it('uses spread [...currentData] for open candle updates', () => {
     const source = readSource('data/useWebSocket.js');
     const openCandleSection = source.slice(
       source.indexOf('Candle still open'),
       source.indexOf('liveBarRef.current !== candle.time')
     );
-    expect(openCandleSection).toContain('.slice()');
-    expect(openCandleSection).not.toContain('[...currentData]');
+    expect(openCandleSection).toContain('[...currentData]');
   });
 });

@@ -49,6 +49,7 @@ export function getLogger() {
             },
         });
         return _logger;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
         // Fallback: console-based structured logger
         _logger = createConsoleLogger();

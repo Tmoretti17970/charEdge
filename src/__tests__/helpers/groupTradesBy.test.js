@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect } from 'vitest';
-import { groupTradesBy, groupTradesByTime } from '../../utils/groupTradesBy.js';
+import { groupTradesBy, groupTradesByTime } from '@/trading/groupTradesBy';
 
 const mkTrade = (overrides = {}) => ({
   id: 'x',

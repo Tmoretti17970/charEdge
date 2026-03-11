@@ -6,300 +6,43 @@
 //   2. B-tree index for O(log n) range queries over blocks
 //   3. In-memory LRU cache with automatic eviction
 //   4. Cross-key storage quota (200MB default, LRU eviction)
-//   5. IndexedDB fallback when OPFS is unavailable
+//   5. In-memory Map fallback for non-browser environments (tests/SSR)
 //
-// Block architecture:
-//   blocks/
-//     BTCUSDT_1m_000.bin  (1000 bars × 48 bytes = 48KB)
-//     BTCUSDT_1m_001.bin
-//     BTCUSDT_1m.idx      (B-tree index: blockIdx → [minT, maxT, barCount])
-//
-// Usage:
-//   import { timeSeriesStore } from './TimeSeriesStore.ts';
-//   await timeSeriesStore.init();
-//   await timeSeriesStore.write('BTCUSDT', '1m', bars);
-//   const result = await timeSeriesStore.read('BTCUSDT', '1m', startT, endT);
+// Sprint 9 #71: Internal classes extracted to storage/ directory:
+//   - storage/types.ts      — Bar, BlockMeta, SeriesIndex, StorageStats
+//   - storage/LRUCache.ts   — Generic LRU cache
+//   - storage/BinaryCodec.ts — CRC32 + encode/decode
+//   - storage/BTreeIndex.ts — Sorted-array block index
 // ═══════════════════════════════════════════════════════════════════
 
 // @ts-expect-error — .ts imports resolved by Vite
-import { logger } from '../../utils/logger.ts';
+import { logger } from '@/observability/logger.ts';
 
-// ─── Types ──────────────────────────────────────────────────────
+// Sprint 9 #71: Import from extracted storage modules
+import {
+    type Bar, type BlockMeta, type SeriesIndex, type StorageStats,
+    BLOCK_SIZE, MAX_CACHED_BLOCKS, STORAGE_QUOTA, DIR_NAME, INDEX_FILENAME
+} from './storage/types.ts';
+import { LRUCache } from './storage/LRUCache.ts';
+import { sortedMergeBars } from './infra/sortedMerge.js';
+import { encodeBlock, decodeBlock } from './storage/BinaryCodec.ts';
+import { BTreeIndex } from './storage/BTreeIndex.ts';
 
-export interface Bar {
-    t: number; // timestamp (ms)
-    o: number; // open
-    h: number; // high
-    l: number; // low
-    c: number; // close
-    v: number; // volume
-}
+// Sprint 18 #113: Time-partitioned keys
+import {
+    partitionKey as makePartitionKey,
+    partitionsForRange,
+    groupBarsByPartition,
+    _isLegacyKey,
+} from './storage/partitionKey.ts';
 
-interface BlockMeta {
-    blockIdx: number;
-    minT: number;
-    maxT: number;
-    barCount: number;
-    sizeBytes: number;
-    lastAccess: number; // for cross-key LRU eviction
-}
-
-interface SeriesIndex {
-    symbol: string;
-    interval: string;
-    blocks: BlockMeta[];
-    totalBars: number;
-    totalBytes: number;
-    updatedAt: number;
-}
-
-interface StorageStats {
-    totalBytes: number;
-    totalBlocks: number;
-    totalSeries: number;
-    quotaBytes: number;
-    usagePercent: number;
-    series: Array<{ key: string; bytes: number; bars: number; blocks: number }>;
-}
-
-// ─── Constants ──────────────────────────────────────────────────
-
-const BLOCK_SIZE = 1000;               // bars per block
-const MAX_CACHED_BLOCKS = 50;          // in-memory LRU limit
-const FIELDS_PER_BAR = 6;             // t, o, h, l, c, v
-const BYTES_PER_BAR = FIELDS_PER_BAR * 8; // 48 bytes (Float64)
-const CRC32_SIZE = 4;
-const DIR_NAME = 'charEdge-ts-blocks'; // separate dir from legacy OPFSBarStore
-const STORAGE_QUOTA = 200 * 1024 * 1024; // 200MB default
-
-// ─── CRC32 ──────────────────────────────────────────────────────
-
-const _crc32Table: Uint32Array = (() => {
-    const table = new Uint32Array(256);
-    for (let i = 0; i < 256; i++) {
-        let crc = i;
-        for (let j = 0; j < 8; j++) {
-            crc = (crc & 1) ? (0xEDB88320 ^ (crc >>> 1)) : (crc >>> 1);
-        }
-        table[i] = crc;
-    }
-    return table;
-})();
-
-function _crc32(buffer: ArrayBuffer): number {
-    const bytes = new Uint8Array(buffer);
-    let crc = 0xFFFFFFFF;
-    for (let i = 0; i < bytes.length; i++) {
-        const byteVal = bytes[i] ?? 0;
-        const idx = (crc ^ byteVal) & 0xFF;
-        crc = (_crc32Table[idx] ?? 0) ^ (crc >>> 8);
-    }
-    return (crc ^ 0xFFFFFFFF) >>> 0;
-}
-
-// ─── LRU Cache ──────────────────────────────────────────────────
-
-export class LRUCache<V> {
-    private _map = new Map<string, V>();
-    private _maxSize: number;
-
-    constructor(maxSize: number) {
-        this._maxSize = maxSize;
-    }
-
-    get(key: string): V | undefined {
-        if (!this._map.has(key)) return undefined;
-        const value = this._map.get(key)!;
-        this._map.delete(key);
-        this._map.set(key, value);
-        return value;
-    }
-
-    set(key: string, value: V): void {
-        if (this._map.has(key)) this._map.delete(key);
-        this._map.set(key, value);
-        while (this._map.size > this._maxSize) {
-            const firstKey = this._map.keys().next().value;
-            if (firstKey != null) this._map.delete(firstKey);
-        }
-    }
-
-    has(key: string): boolean {
-        return this._map.has(key);
-    }
-
-    delete(key: string): boolean {
-        return this._map.delete(key);
-    }
-
-    clear(): void {
-        this._map.clear();
-    }
-
-    get size(): number {
-        return this._map.size;
-    }
-
-    /** Get all keys for iteration */
-    keys(): IterableIterator<string> {
-        return this._map.keys();
-    }
-}
-
-// ─── Binary Encode/Decode ───────────────────────────────────────
-
-function encodeBlock(bars: Bar[]): ArrayBuffer {
-    const dataBuffer = new ArrayBuffer(bars.length * BYTES_PER_BAR);
-    const view = new Float64Array(dataBuffer);
-    for (let i = 0; i < bars.length; i++) {
-        const bar = bars[i];
-        if (!bar) continue;
-        const offset = i * FIELDS_PER_BAR;
-        view[offset] = bar.t;
-        view[offset + 1] = bar.o;
-        view[offset + 2] = bar.h;
-        view[offset + 3] = bar.l;
-        view[offset + 4] = bar.c;
-        view[offset + 5] = bar.v;
-    }
-    // Append CRC32
-    const crc = _crc32(dataBuffer);
-    const result = new Uint8Array(dataBuffer.byteLength + CRC32_SIZE);
-    result.set(new Uint8Array(dataBuffer));
-    new DataView(result.buffer, dataBuffer.byteLength, CRC32_SIZE).setUint32(0, crc, true);
-    return result.buffer;
-}
-
-function decodeBlock(buffer: ArrayBuffer): Bar[] | null {
-    if (buffer.byteLength <= CRC32_SIZE) return null;
-
-    const dataLen = buffer.byteLength - CRC32_SIZE;
-    if (dataLen % BYTES_PER_BAR !== 0) return null;
-
-    // Verify CRC32
-    const dataBuffer = buffer.slice(0, dataLen);
-    const storedCrc = new DataView(buffer, dataLen, CRC32_SIZE).getUint32(0, true);
-    const computedCrc = _crc32(dataBuffer);
-    if (storedCrc !== computedCrc) {
-        logger.data.warn('[TimeSeriesStore] CRC32 mismatch — corrupt block');
-        return null;
-    }
-
-    const view = new Float64Array(dataBuffer);
-    const count = view.length / FIELDS_PER_BAR;
-    const bars: Bar[] = new Array(count);
-    for (let i = 0; i < count; i++) {
-        const offset = i * FIELDS_PER_BAR;
-        bars[i] = {
-            t: view[offset] ?? 0,
-            o: view[offset + 1] ?? 0,
-            h: view[offset + 2] ?? 0,
-            l: view[offset + 3] ?? 0,
-            c: view[offset + 4] ?? 0,
-            v: view[offset + 5] ?? 0,
-        };
-    }
-    return bars;
-}
-
-// ─── B-Tree Index ───────────────────────────────────────────────
-// Lightweight sorted array index over block metadata.
-// Blocks are sorted by minT — binary search for range queries.
-
-class BTreeIndex {
-    private _blocks: BlockMeta[] = [];
-
-    /** Replace the entire index from serialized data */
-    load(blocks: BlockMeta[]): void {
-        this._blocks = blocks.sort((a, b) => a.minT - b.minT);
-    }
-
-    /** Insert or update a block's metadata */
-    upsert(meta: BlockMeta): void {
-        const idx = this._blocks.findIndex(b => b.blockIdx === meta.blockIdx);
-        if (idx >= 0) {
-            this._blocks[idx] = meta;
-        } else {
-            this._blocks.push(meta);
-        }
-        this._blocks.sort((a, b) => a.minT - b.minT);
-    }
-
-    /** Remove a block from the index */
-    remove(blockIdx: number): void {
-        this._blocks = this._blocks.filter(b => b.blockIdx !== blockIdx);
-    }
-
-    /**
-     * Find all block indices that overlap [startT, endT].
-     * Uses binary search for the start position, then scans forward.
-     */
-    findOverlapping(startT: number, endT: number): BlockMeta[] {
-        if (this._blocks.length === 0) return [];
-
-        // Binary search: find first block where maxT >= startT
-        let lo = 0;
-        let hi = this._blocks.length - 1;
-        while (lo < hi) {
-            const mid = (lo + hi) >>> 1;
-            const midBlock = this._blocks[mid];
-            if (midBlock && midBlock.maxT < startT) {
-                lo = mid + 1;
-            } else {
-                hi = mid;
-            }
-        }
-
-        // Scan forward to collect all overlapping blocks
-        const result: BlockMeta[] = [];
-        for (let i = lo; i < this._blocks.length; i++) {
-            const block = this._blocks[i];
-            if (!block) continue;
-            if (block.minT > endT) break;
-            if (block.maxT >= startT && block.minT <= endT) {
-                result.push(block);
-            }
-        }
-        return result;
-    }
-
-    /** Get all block metadata for serialization */
-    getAll(): BlockMeta[] {
-        return [...this._blocks];
-    }
-
-    /** Get total bars across all blocks */
-    get totalBars(): number {
-        return this._blocks.reduce((sum, b) => sum + b.barCount, 0);
-    }
-
-    /** Get total storage size */
-    get totalBytes(): number {
-        return this._blocks.reduce((sum, b) => sum + b.sizeBytes, 0);
-    }
-
-    /** Get the next available block index */
-    get nextBlockIdx(): number {
-        if (this._blocks.length === 0) return 0;
-        return Math.max(...this._blocks.map(b => b.blockIdx)) + 1;
-    }
-
-    /** Get block count */
-    get blockCount(): number {
-        return this._blocks.length;
-    }
-
-    /** Find the least-recently-accessed block for eviction */
-    getLRUBlock(): BlockMeta | null {
-        if (this._blocks.length === 0) return null;
-        return this._blocks.reduce((oldest, b) =>
-            b.lastAccess < oldest.lastAccess ? b : oldest
-        );
-    }
-}
+// Re-export types for backward compatibility
+export type { Bar, BlockMeta, SeriesIndex, StorageStats };
+export { LRUCache, encodeBlock, decodeBlock, BTreeIndex };
 
 // ─── OPFS Helpers ───────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 async function _getBlockDir(): Promise<FileSystemDirectoryHandle | null> {
     try {
         const root = await navigator.storage.getDirectory();
@@ -309,16 +52,19 @@ async function _getBlockDir(): Promise<FileSystemDirectoryHandle | null> {
     }
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _seriesDir(symbol: string, interval: string): string {
-    return `${symbol}_${interval}`.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+    return `${symbol}_${interval}`.replace(/[^a-zA-Z0-9_\-.]/g, '_');
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _blockFileName(blockIdx: number): string {
     return `blk_${String(blockIdx).padStart(5, '0')}.bin`;
 }
 
-const INDEX_FILENAME = '_index.json';
+// INDEX_FILENAME imported from storage/types.ts
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _isOPFSAvailable(): boolean {
     return (
         typeof navigator !== 'undefined' &&
@@ -327,71 +73,7 @@ function _isOPFSAvailable(): boolean {
     );
 }
 
-// ─── IndexedDB Fallback ─────────────────────────────────────────
-
-class IDBFallback {
-    private _dbName = 'charEdge-ts-blocks';
-    private _storeName = 'blocks';
-    private _db: IDBDatabase | null = null;
-
-    async open(): Promise<void> {
-        if (this._db) return;
-        return new Promise((resolve, reject) => {
-            const req = indexedDB.open(this._dbName, 1);
-            req.onupgradeneeded = () => {
-                const db = req.result;
-                if (!db.objectStoreNames.contains(this._storeName)) {
-                    db.createObjectStore(this._storeName);
-                }
-            };
-            req.onsuccess = () => { this._db = req.result; resolve(); };
-            req.onerror = () => reject(req.error);
-        });
-    }
-
-    async get(key: string): Promise<ArrayBuffer | null> {
-        if (!this._db) return null;
-        return new Promise((resolve) => {
-            const tx = this._db!.transaction(this._storeName, 'readonly');
-            const store = tx.objectStore(this._storeName);
-            const req = store.get(key);
-            req.onsuccess = () => resolve(req.result ?? null);
-            req.onerror = () => resolve(null);
-        });
-    }
-
-    async put(key: string, value: ArrayBuffer | string): Promise<void> {
-        if (!this._db) return;
-        return new Promise((resolve, reject) => {
-            const tx = this._db!.transaction(this._storeName, 'readwrite');
-            const store = tx.objectStore(this._storeName);
-            store.put(value, key);
-            tx.oncomplete = () => resolve();
-            tx.onerror = () => reject(tx.error);
-        });
-    }
-
-    async delete(key: string): Promise<void> {
-        if (!this._db) return;
-        return new Promise((resolve) => {
-            const tx = this._db!.transaction(this._storeName, 'readwrite');
-            const store = tx.objectStore(this._storeName);
-            store.delete(key);
-            tx.oncomplete = () => resolve();
-            tx.onerror = () => resolve();
-        });
-    }
-
-    async clear(): Promise<void> {
-        if (!this._db) return;
-        return new Promise((resolve) => {
-            const tx = this._db!.transaction(this._storeName, 'readwrite');
-            tx.objectStore(this._storeName).clear();
-            tx.oncomplete = () => resolve();
-            tx.onerror = () => resolve();
-        });
-    }
-}
+// Sprint 19 #126: IDBFallback removed — OPFS-only with in-memory fallback for tests/SSR
 
 // ─── TimeSeriesStore ────────────────────────────────────────────
 
@@ -401,7 +83,8 @@ export class TimeSeriesStore {
     private _locks = new Map<string, Promise<unknown>>();
     private _initialized = false;
     private _useOPFS: boolean;
-    private _idbFallback: IDBFallback | null = null;
+    /** Sprint 19 #126: In-memory fallback for non-OPFS environments (tests/SSR). */
+    private _memFallback = new Map<string, ArrayBuffer | string>();
     private _totalStorageBytes = 0;
     private _seriesAccess = new Map<string, number>(); // key → last access time
 
@@ -418,18 +101,11 @@ export class TimeSeriesStore {
 
         if (this._useOPFS) {
             await this._loadAllIndices();
-        } else {
-            this._idbFallback = new IDBFallback();
-            try {
-                await this._idbFallback.open();
-                await this._loadAllIndicesFromIDB();
-            } catch {
-                logger.data.warn('[TimeSeriesStore] IndexedDB fallback init failed');
-            }
         }
+        // Sprint 19 #126: Non-OPFS envs use in-memory Map (no IDB)
 
         this._initialized = true;
-        logger.data.info(`[TimeSeriesStore] Initialized — ${this._useOPFS ? 'OPFS' : 'IndexedDB'} backend, ${this._indices.size} series loaded`);
+        logger.data.info(`[TimeSeriesStore] Initialized — ${this._useOPFS ? 'OPFS' : 'in-memory'} backend, ${this._indices.size} series loaded`);
     }
 
     // ─── Locking ────────────────────────────────────────────────
@@ -447,8 +123,20 @@ export class TimeSeriesStore {
 
     // ─── Keys ───────────────────────────────────────────────────
 
+    /** Legacy flat key format (used for index iteration only). */
     private _seriesKey(symbol: string, interval: string): string {
         return `${symbol}:${interval}`;
+    }
+
+    /** Sprint 18 #113: Partitioned key for a specific timestamp. */
+    private _partitionedKey(symbol: string, interval: string, timestamp: number): string {
+        return makePartitionKey(symbol, interval, timestamp);
+    }
+
+    /** Get all partition keys for a symbol+interval that are currently loaded. */
+    private _getPartitionKeys(symbol: string, interval: string): string[] {
+        const prefix = `${symbol}:${interval}:`;
+        return [...this._indices.keys()].filter(k => k.startsWith(prefix));
     }
 
     private _cacheKey(symbol: string, interval: string, blockIdx: number): string {
@@ -458,63 +146,70 @@ export class TimeSeriesStore {
     // ─── Write ──────────────────────────────────────────────────
 
     /**
-     * Write bars to the store. Bars are split into blocks of BLOCK_SIZE
-     * and persisted independently to OPFS/IDB.
+     * Write bars to the store. Bars are grouped by quarterly partition,
+     * then each partition is written independently.
+     *
+     * Sprint 18 #113: Bars are partitioned by quarter.
      */
     async write(symbol: string, interval: string, bars: Bar[]): Promise<void> {
         if (!bars.length) return;
-        const seriesKey = this._seriesKey(symbol, interval);
+        const lockKey = this._seriesKey(symbol, interval);
 
-        return this._withLock(seriesKey, async () => {
-            // Sort by timestamp
-            const sorted = [...bars].sort((a, b) => a.t - b.t);
+        return this._withLock(lockKey, async () => {
+            // Sprint 18 #113: Group incoming bars by quarterly partition
+            const partitions = groupBarsByPartition(symbol, interval, bars);
 
-            // Get or create index
-            let index = this._indices.get(seriesKey);
-            if (!index) {
-                index = new BTreeIndex();
-                this._indices.set(seriesKey, index);
-            }
+            for (const [partKey, partBars] of partitions) {
+                // Sort by timestamp
+                const sorted = [...partBars].sort((a, b) => a.t - b.t);
 
-            // Read existing bars to merge
-            const existingBars = await this._readAllBars(symbol, interval, index);
-
-            // Merge: deduplicate by timestamp, prefer new data
-            const merged = this._mergeBars(existingBars, sorted);
-
-            // Split into blocks and write each
-            const blocks: BlockMeta[] = [];
-            for (let i = 0; i < merged.length; i += BLOCK_SIZE) {
-                const block = merged.slice(i, i + BLOCK_SIZE);
-                const blockIdx = Math.floor(i / BLOCK_SIZE);
-                const encoded = encodeBlock(block);
-                const sizeBytes = encoded.byteLength;
-
-                // Persist to OPFS or IDB
-                await this._writeBlock(symbol, interval, blockIdx, encoded);
-
-                // Cache in memory
-                this._cache.set(this._cacheKey(symbol, interval, blockIdx), block);
-
-                // Record metadata
-                const firstBar = block[0];
-                const lastBar = block[block.length - 1];
-                if (firstBar && lastBar) {
-                    blocks.push({
-                        blockIdx,
-                        minT: firstBar.t,
-                        maxT: lastBar.t,
-                        barCount: block.length,
-                        sizeBytes,
-                        lastAccess: Date.now(),
-                    });
+                // Get or create index for this partition
+                let index = this._indices.get(partKey);
+                if (!index) {
+                    index = new BTreeIndex();
+                    this._indices.set(partKey, index);
                 }
-            }
 
-            // Update index
-            index.load(blocks);
-            this._seriesAccess.set(seriesKey, Date.now());
-            await this._saveIndex(symbol, interval, index);
+                // Read existing bars to merge
+                const existingBars = await this._readAllBarsForKey(partKey, symbol, interval, index);
+
+                // Merge: deduplicate by timestamp, prefer new data
+                const merged = this._mergeBars(existingBars, sorted);
+
+                // Split into blocks and write each
+                const blocks: BlockMeta[] = [];
+                for (let i = 0; i < merged.length; i += BLOCK_SIZE) {
+                    const block = merged.slice(i, i + BLOCK_SIZE);
+                    const blockIdx = Math.floor(i / BLOCK_SIZE);
+                    const encoded = encodeBlock(block);
+                    const sizeBytes = encoded.byteLength;
+
+                    // Persist to OPFS or IDB
+                    await this._writeBlock(symbol, interval, blockIdx, encoded);
+
+                    // Cache in memory
+                    this._cache.set(this._cacheKey(symbol, interval, blockIdx), block);
+
+                    // Record metadata
+                    const firstBar = block[0];
+                    const lastBar = block[block.length - 1];
+                    if (firstBar && lastBar) {
+                        blocks.push({
+                            blockIdx,
+                            minT: firstBar.t,
+                            maxT: lastBar.t,
+                            barCount: block.length,
+                            sizeBytes,
+                            lastAccess: Date.now(),
+                        });
+                    }
+                }
+
+                // Update index for this partition
+                index.load(blocks);
+                this._seriesAccess.set(partKey, Date.now());
+                await this._saveIndex(symbol, interval, index);
+            }
 
             // Update total storage tracking
             this._recalcTotalStorage();
@@ -527,52 +222,62 @@ export class TimeSeriesStore {
     // ─── Read ───────────────────────────────────────────────────
 
     /**
-     * Read bars within a time range using B-tree index for O(log n) lookup.
+     * Read bars within a time range.
+     *
+     * Sprint 18 #113: Scans only the quarterly partitions that overlap
+     * the requested range, rather than loading all blocks.
      */
     async read(symbol: string, interval: string, startTime: number, endTime: number): Promise<Bar[]> {
-        const seriesKey = this._seriesKey(symbol, interval);
-        const index = this._indices.get(seriesKey);
+        // Sprint 18 #113: Determine which partitions to scan
+        const partKeys = partitionsForRange(symbol, interval, startTime, endTime);
 
-        if (!index || index.blockCount === 0) {
-            return [];
+        // Also check for legacy flat key and auto-migrate
+        const legacyKey = this._seriesKey(symbol, interval);
+        if (this._indices.has(legacyKey)) {
+            await this._migrateLegacyKey(symbol, interval);
         }
 
-        // B-tree range query: find overlapping blocks
-        const overlapping = index.findOverlapping(startTime, endTime);
-        if (overlapping.length === 0) return [];
-
-        // Track access time for quota management
-        this._seriesAccess.set(seriesKey, Date.now());
-
         const result: Bar[] = [];
-        for (const meta of overlapping) {
-            // Update lastAccess
-            meta.lastAccess = Date.now();
 
-            // Try memory cache first
-            const cacheKey = this._cacheKey(symbol, interval, meta.blockIdx);
-            let block = this._cache.get(cacheKey);
+        for (const partKey of partKeys) {
+            const index = this._indices.get(partKey);
+            if (!index || index.blockCount === 0) continue;
 
-            // Cache miss: load from OPFS/IDB
-            if (!block) {
-                const buffer = await this._readBlock(symbol, interval, meta.blockIdx);
-                if (buffer) {
-                    const decoded = decodeBlock(buffer);
-                    if (decoded) {
-                        block = decoded;
-                        this._cache.set(cacheKey, decoded);
+            // B-tree range query: find overlapping blocks
+            const overlapping = index.findOverlapping(startTime, endTime);
+            if (overlapping.length === 0) continue;
+
+            // Track access time for quota management
+            this._seriesAccess.set(partKey, Date.now());
+
+            for (const meta of overlapping) {
+                meta.lastAccess = Date.now();
+
+                // Try memory cache first
+                const cacheKey = this._cacheKey(symbol, interval, meta.blockIdx);
+                let block = this._cache.get(cacheKey);
+
+                // Cache miss: load from OPFS/IDB
+                if (!block) {
+                    const buffer = await this._readBlock(symbol, interval, meta.blockIdx);
+                    if (buffer) {
+                        const decoded = decodeBlock(buffer);
+                        if (decoded) {
+                            block = decoded;
+                            this._cache.set(cacheKey, decoded);
+                        }
                     }
                 }
-            }
 
-            if (!block) continue;
+                if (!block) continue;
 
-            // Filter to requested range
-            for (const bar of block) {
-                if (bar.t >= startTime && bar.t <= endTime) {
-                    result.push(bar);
+                // Filter to requested range
+                for (const bar of block) {
+                    if (bar.t >= startTime && bar.t <= endTime) {
+                        result.push(bar);
+                    }
+                    if (bar.t > endTime) break;
                 }
-                if (bar.t > endTime) break;
             }
         }
 
@@ -580,12 +285,87 @@ export class TimeSeriesStore {
     }
 
     /**
+     * Sprint 18 #113: Migrate a legacy flat key to partitioned keys.
+     * Reads all bars under the old key, groups them by quarter,
+     * writes to new partition keys, then removes the old key.
+     */
+    private async _migrateLegacyKey(symbol: string, interval: string): Promise<void> {
+        const legacyKey = this._seriesKey(symbol, interval);
+        const legacyIndex = this._indices.get(legacyKey);
+        if (!legacyIndex) return;
+
+        logger.data.info(`[TimeSeriesStore] Migrating legacy key: ${legacyKey}`);
+
+        // Read all bars under the old key
+        const allBars = await this._readAllBarsForKey(legacyKey, symbol, interval, legacyIndex);
+        if (allBars.length === 0) {
+            this._indices.delete(legacyKey);
+            this._seriesAccess.delete(legacyKey);
+            return;
+        }
+
+        // Remove legacy key first
+        this._indices.delete(legacyKey);
+        this._seriesAccess.delete(legacyKey);
+
+        // Re-write under partitioned keys (write() handles grouping)
+        // We bypass the lock since we're already inside one
+        const partitions = groupBarsByPartition(symbol, interval, allBars);
+        for (const [partKey, partBars] of partitions) {
+            const sorted = [...partBars].sort((a, b) => a.t - b.t);
+            const index = new BTreeIndex();
+            this._indices.set(partKey, index);
+
+            const blocks: BlockMeta[] = [];
+            for (let i = 0; i < sorted.length; i += BLOCK_SIZE) {
+                const block = sorted.slice(i, i + BLOCK_SIZE);
+                const blockIdx = Math.floor(i / BLOCK_SIZE);
+                const encoded = encodeBlock(block);
+                await this._writeBlock(symbol, interval, blockIdx, encoded);
+                this._cache.set(this._cacheKey(symbol, interval, blockIdx), block);
+
+                const firstBar = block[0];
+                const lastBar = block[block.length - 1];
+                if (firstBar && lastBar) {
+                    blocks.push({
+                        blockIdx, minT: firstBar.t, maxT: lastBar.t,
+                        barCount: block.length, sizeBytes: encoded.byteLength,
+                        lastAccess: Date.now(),
+                    });
+                }
+            }
+            index.load(blocks);
+            this._seriesAccess.set(partKey, Date.now());
+            await this._saveIndex(symbol, interval, index);
+        }
+
+        logger.data.info(`[TimeSeriesStore] Migrated ${legacyKey} → ${partitions.size} partitions (${allBars.length} bars)`);
+    }
+
+    /**
      * Read ALL bars for a symbol+interval (for migration/export).
      */
     async readAll(symbol: string, interval: string): Promise<Bar[]> {
-        const index = this._indices.get(this._seriesKey(symbol, interval));
-        if (!index || index.blockCount === 0) return [];
-        return this._readAllBars(symbol, interval, index);
+        // Sprint 18 #113: Collect from all partitions
+        const allBars: Bar[] = [];
+
+        // Check legacy key first
+        const legacyKey = this._seriesKey(symbol, interval);
+        if (this._indices.has(legacyKey)) {
+            await this._migrateLegacyKey(symbol, interval);
+        }
+
+        // Read from all partition keys
+        const partKeys = this._getPartitionKeys(symbol, interval);
+        for (const partKey of partKeys) {
+            const index = this._indices.get(partKey);
+            if (index && index.blockCount > 0) {
+                const bars = await this._readAllBarsForKey(partKey, symbol, interval, index);
+                allBars.push(...bars);
+            }
+        }
+
+        return allBars.sort((a, b) => a.t - b.t);
     }
 
     // ─── Metadata ─────────────────────────────────────────────
@@ -599,22 +379,25 @@ export class TimeSeriesStore {
         totalBytes: number;
         cachedBlocks: number;
     } {
-        const index = this._indices.get(this._seriesKey(symbol, interval));
-        if (!index) return { blockCount: 0, totalBars: 0, totalBytes: 0, cachedBlocks: 0 };
+        // Sprint 18 #113: Aggregate metadata across all partitions
+        const partKeys = this._getPartitionKeys(symbol, interval);
+        if (partKeys.length === 0) return { blockCount: 0, totalBars: 0, totalBytes: 0, cachedBlocks: 0 };
 
-        let cachedBlocks = 0;
-        for (const meta of index.getAll()) {
-            if (this._cache.has(this._cacheKey(symbol, interval, meta.blockIdx))) {
-                cachedBlocks++;
+        let totalBlocks = 0, totalBars = 0, totalBytes = 0, cachedBlocks = 0;
+        for (const partKey of partKeys) {
+            const index = this._indices.get(partKey);
+            if (!index) continue;
+            totalBlocks += index.blockCount;
+            totalBars += index.totalBars;
+            totalBytes += index.totalBytes;
+            for (const meta of index.getAll()) {
+                if (this._cache.has(this._cacheKey(symbol, interval, meta.blockIdx))) {
+                    cachedBlocks++;
+                }
             }
         }
 
-        return {
-            blockCount: index.blockCount,
-            totalBars: index.totalBars,
-            totalBytes: index.totalBytes,
-            cachedBlocks,
-        };
+        return { blockCount: totalBlocks, totalBars, totalBytes, cachedBlocks };
     }
 
     /**
@@ -655,30 +438,44 @@ export class TimeSeriesStore {
                 const root = await navigator.storage.getDirectory();
                 await root.removeEntry(DIR_NAME, { recursive: true });
             } catch { /* directory might not exist */ }
-        } else if (this._idbFallback) {
-            await this._idbFallback.clear();
+        } else {
+            this._memFallback.clear();
         }
 
         logger.data.info('[TimeSeriesStore] Cleared all data');
     }
 
-    /** Remove a specific series. */
+    /** Remove a specific series (both legacy and partitioned keys). */
     async removeSeries(symbol: string, interval: string): Promise<void> {
+        // Remove legacy flat key
         const seriesKey = this._seriesKey(symbol, interval);
-        const index = this._indices.get(seriesKey);
+        const legacyIndex = this._indices.get(seriesKey);
 
-        if (index) {
-            // Remove all block files
-            for (const meta of index.getAll()) {
+        if (legacyIndex) {
+            for (const meta of legacyIndex.getAll()) {
                 this._cache.delete(this._cacheKey(symbol, interval, meta.blockIdx));
                 await this._deleteBlock(symbol, interval, meta.blockIdx);
             }
-            // Remove index file
             await this._deleteIndex(symbol, interval);
+            this._indices.delete(seriesKey);
+            this._seriesAccess.delete(seriesKey);
         }
 
-        this._indices.delete(seriesKey);
-        this._seriesAccess.delete(seriesKey);
+        // Sprint 18 #113: Also remove all partitioned keys
+        const partKeys = this._getPartitionKeys(symbol, interval);
+        for (const partKey of partKeys) {
+            const partIndex = this._indices.get(partKey);
+            if (partIndex) {
+                for (const meta of partIndex.getAll()) {
+                    this._cache.delete(this._cacheKey(symbol, interval, meta.blockIdx));
+                    await this._deleteBlock(symbol, interval, meta.blockIdx);
+                }
+                await this._deleteIndex(symbol, interval);
+            }
+            this._indices.delete(partKey);
+            this._seriesAccess.delete(partKey);
+        }
+
         this._recalcTotalStorage();
     }
 
@@ -701,9 +498,10 @@ export class TimeSeriesStore {
             } catch (e) {
                 logger.data.warn(`[TimeSeriesStore] OPFS write failed for block ${blockIdx}:`, (e as Error)?.message);
             }
-        } else if (this._idbFallback) {
+        } else {
+            // Sprint 19 #126: In-memory fallback
             const key = `${_seriesDir(symbol, interval)}/${_blockFileName(blockIdx)}`;
-            await this._idbFallback.put(key, data);
+            this._memFallback.set(key, data);
         }
     }
 
@@ -718,11 +516,10 @@ export class TimeSeriesStore {
             } catch {
                 return null;
             }
-        } else if (this._idbFallback) {
+        } else {
             const key = `${_seriesDir(symbol, interval)}/${_blockFileName(blockIdx)}`;
-            return await this._idbFallback.get(key);
+            return (this._memFallback.get(key) as ArrayBuffer) ?? null;
         }
-        return null;
     }
 
     private async _deleteBlock(symbol: string, interval: string, blockIdx: number): Promise<void> {
@@ -732,9 +529,9 @@ export class TimeSeriesStore {
                 if (!dir) return;
                 await dir.removeEntry(_blockFileName(blockIdx));
             } catch { /* ok */ }
-        } else if (this._idbFallback) {
+        } else {
             const key = `${_seriesDir(symbol, interval)}/${_blockFileName(blockIdx)}`;
-            await this._idbFallback.delete(key);
+            this._memFallback.delete(key);
         }
     }
 
@@ -762,9 +559,9 @@ export class TimeSeriesStore {
             } catch (e) {
                 logger.data.warn('[TimeSeriesStore] Index save failed:', (e as Error)?.message);
             }
-        } else if (this._idbFallback) {
+        } else {
             const key = `${_seriesDir(symbol, interval)}/${INDEX_FILENAME}`;
-            await this._idbFallback.put(key, json);
+            this._memFallback.set(key, json);
         }
     }
 
@@ -781,13 +578,11 @@ export class TimeSeriesStore {
             } catch {
                 return null;
             }
-        } else if (this._idbFallback) {
+        } else {
             const key = `${_seriesDir(symbol, interval)}/${INDEX_FILENAME}`;
-            const result = await this._idbFallback.get(key);
-            if (result && typeof result === 'string') {
-                json = result;
-            } else if (result instanceof ArrayBuffer) {
-                json = new TextDecoder().decode(result);
+            const entry = this._memFallback.get(key);
+            if (typeof entry === 'string') {
+                json = entry;
             }
         }
 
@@ -810,9 +605,9 @@ export class TimeSeriesStore {
                 if (!dir) return;
                 await dir.removeEntry(INDEX_FILENAME);
             } catch { /* ok */ }
-        } else if (this._idbFallback) {
+        } else {
             const key = `${_seriesDir(symbol, interval)}/${INDEX_FILENAME}`;
-            await this._idbFallback.delete(key);
+            this._memFallback.delete(key);
         }
     }
 
@@ -858,32 +653,27 @@ export class TimeSeriesStore {
         }
     }
 
-    private async _loadAllIndicesFromIDB(): Promise<void> {
-        // IDB doesn't have directory listing, so we rely on stored index keys
-        // This is a simplified approach — indices are loaded on-demand for IDB
-    }
+    // Sprint 19 #126: _loadAllIndicesFromIDB() removed — no more IDB backend
 
     // ─── Private: Merge ──────────────────────────────────────
 
     private _mergeBars(existing: Bar[], incoming: Bar[]): Bar[] {
-        if (existing.length === 0) return incoming;
-        if (incoming.length === 0) return existing;
-
-        // Build a map by timestamp, prefer incoming data
-        const map = new Map<number, Bar>();
-        for (const bar of existing) map.set(bar.t, bar);
-        for (const bar of incoming) map.set(bar.t, bar);
-
-        // Sort by timestamp
-        return Array.from(map.values()).sort((a, b) => a.t - b.t);
+        // O(n) two-pointer merge — both arrays are pre-sorted ascending by .t
+        // Prefer incoming data on duplicate timestamps
+        return sortedMergeBars(existing, incoming, b => b.t, 'b');
     }
 
-    private async _readAllBars(symbol: string, interval: string, index: BTreeIndex): Promise<Bar[]> {
+    /** Read all bars for a given key (may be legacy or partitioned). */
+    private async _readAllBarsForKey(_key: string, symbol: string, interval: string, index: BTreeIndex): Promise<Bar[]> {
         const allBars: Bar[] = [];
-        for (const meta of index.getAll()) {
+        const allMeta = index.getAll();
+
+        for (const meta of allMeta) {
             const cacheKey = this._cacheKey(symbol, interval, meta.blockIdx);
             let block = this._cache.get(cacheKey);
+
             if (!block) {
+                // Sprint 19 #126: Unified read path (OPFS or in-memory)
                 const buffer = await this._readBlock(symbol, interval, meta.blockIdx);
                 if (buffer) {
                     const decoded = decodeBlock(buffer);
@@ -893,9 +683,19 @@ export class TimeSeriesStore {
                     }
                 }
             }
+
             if (block) allBars.push(...block);
         }
+
         return allBars.sort((a, b) => a.t - b.t);
+    }
+
+    /**
+     * Legacy compat: read all bars using the old non-partitioned approach.
+     * @deprecated Use _readAllBarsForKey instead.
+     */
+    private async _readAllBars(symbol: string, interval: string, index: BTreeIndex): Promise<Bar[]> {
+        return this._readAllBarsForKey(this._seriesKey(symbol, interval), symbol, interval, index);
     }
 
     // ─── Private: Quota Management (Task 2.3.10) ─────────────
@@ -925,8 +725,17 @@ export class TimeSeriesStore {
             const parts = seriesKey.split(':');
             const symbol = parts[0] ?? '';
             const interval = parts[1] ?? '';
-            logger.data.info(`[TimeSeriesStore] Quota eviction: removing ${seriesKey} (${this._indices.get(seriesKey)?.totalBytes ?? 0} bytes)`);
-            await this.removeSeries(symbol, interval);
+
+            // Sprint 18 #113: For partitioned keys, only remove that partition
+            if (parts.length === 3) {
+                logger.data.info(`[TimeSeriesStore] Quota eviction: removing partition ${seriesKey} (${this._indices.get(seriesKey)?.totalBytes ?? 0} bytes)`);
+                this._indices.delete(seriesKey);
+                this._seriesAccess.delete(seriesKey);
+                this._recalcTotalStorage();
+            } else {
+                logger.data.info(`[TimeSeriesStore] Quota eviction: removing ${seriesKey} (${this._indices.get(seriesKey)?.totalBytes ?? 0} bytes)`);
+                await this.removeSeries(symbol, interval);
+            }
         }
     }
 }
@@ -934,5 +743,5 @@ export class TimeSeriesStore {
 // ─── Singleton + Exports ──────────────────────────────────────
 
 export const timeSeriesStore = new TimeSeriesStore();
-export { BLOCK_SIZE, MAX_CACHED_BLOCKS, STORAGE_QUOTA, encodeBlock, decodeBlock };
+export { BLOCK_SIZE, MAX_CACHED_BLOCKS, STORAGE_QUOTA };
 export default timeSeriesStore;

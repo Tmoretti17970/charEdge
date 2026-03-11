@@ -5,6 +5,10 @@
 
 const PUBLIC_ROUTES = [
   { path: '/', page: 'landing', title: () => 'charEdge — Find Your Edge' },
+  { path: '/pricing', page: 'pricing', title: () => 'Pricing — charEdge' },
+  { path: '/terms', page: 'terms', title: () => 'Terms of Service — charEdge' },
+  { path: '/privacy', page: 'privacy', title: () => 'Privacy Policy — charEdge' },
+  { path: '/changelog', page: 'changelog', title: () => 'Changelog — charEdge' },
   { path: '/s/:symbol', page: 'symbol', title: (p) => `${p.symbol} — charEdge` },
   { path: '/snap/:id', page: 'snapshot', title: () => 'Trade Snapshot — charEdge' },
   { path: '/u/:username', page: 'profile', title: (p) => `${p.username} — charEdge` },

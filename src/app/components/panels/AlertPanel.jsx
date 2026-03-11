@@ -12,7 +12,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useAlertStore } from '../../../state/useAlertStore.js';
+import { useAlertStore } from '../../../state/useAlertStore';
 
 const CONDITIONS = [
   { id: 'above', label: '↑ Above', desc: 'Price goes above target' },
@@ -299,6 +299,16 @@ function AlertRow({ alert, onToggle, onRemove, triggered = false }) {
     cross_below: '↘',
   };
 
+  // P2 2.1: 3-tier severity based on proximity to current price
+  const severityColor = triggered ? C.g
+    : alert.severity === 'urgent' ? C.r
+      : alert.severity === 'warning' ? C.y
+        : C.b;
+  const _severityLabel = triggered ? null
+    : alert.severity === 'urgent' ? 'URGENT'
+      : alert.severity === 'warning' ? 'WARN'
+        : null;
+
   return (
     <div
       style={{
@@ -310,7 +320,7 @@ function AlertRow({ alert, onToggle, onRemove, triggered = false }) {
         borderRadius: 6,
         marginBottom: 3,
         opacity: triggered ? 0.7 : 1,
-        borderLeft: `3px solid ${triggered ? C.g : alert.condition.includes('above') || alert.condition.includes('cross_above') ? C.g : C.r}`,
+        borderLeft: `3px solid ${severityColor}`,
       }}
     >
       {/* Symbol + condition */}

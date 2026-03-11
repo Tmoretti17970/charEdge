@@ -9,13 +9,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-import { createAuthSlice } from './user/authSlice.js';
+import { createAuthSlice } from './user/authSlice';
 import { createPersonaSlice } from './user/personaSlice.js';
 import { createSettingsSlice } from './user/settingsSlice.js';
-import { createOnboardingSlice } from './user/onboardingSlice.js';
+import { createOnboardingSlice } from './user/onboardingSlice';
 import { createDisplayUnitSlice } from './user/displayUnitSlice.js';
 import { createDensitySlice } from './user/densitySlice.js';
-import { createThemeSlice } from './user/themeSlice.js';
+import { createThemeSlice } from './user/themeSlice';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -53,6 +53,7 @@ function migrateFromLegacyKeys(): LegacyMigration {
             const state = parsed?.state ?? parsed;
             if (state.mode) merged.mode = state.mode;
         }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) { /* ignore */ }
 
     // Old charEdge-theme store
@@ -66,6 +67,7 @@ function migrateFromLegacyKeys(): LegacyMigration {
             if (state.fontSize) merged.fontSize = state.fontSize;
             if (state.chartColorPreset) merged.chartColorPreset = state.chartColorPreset;
         }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) { /* ignore */ }
 
     return merged;

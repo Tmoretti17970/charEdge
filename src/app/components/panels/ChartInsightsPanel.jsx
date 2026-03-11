@@ -11,9 +11,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
 import { analyzeAll, checkDrawingProximity } from '../../../charting_library/studies/PriceActionEngine.js';
-import { useChartStore } from '../../../state/useChartStore.js';
+import { C, F, M } from '../../../constants.js';
+import { useChartStore } from '../../../state/useChartStore';
 
 /**
  * @param {Array} data - OHLCV data

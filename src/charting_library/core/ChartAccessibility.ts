@@ -177,6 +177,7 @@ export function formatChartTime(timestamp: number, tf: string = '1h'): string {
 
   try {
     return new Intl.DateTimeFormat(locale, options).format(date);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_) {
     return date.toLocaleString();
   }

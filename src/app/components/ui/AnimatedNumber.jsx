@@ -9,7 +9,7 @@
 //   <AnimatedNumber value={68.5} suffix="%" decimals={1} />
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useEffect, useRef, useState, useCallback, memo } from 'react';
+import { useEffect, useRef, useState, memo } from 'react';
 
 /**
  * Format number with commas, decimals, prefix/suffix.
@@ -17,7 +17,7 @@ import React, { useEffect, useRef, useState, useCallback, memo } from 'react';
 function formatValue(val, { decimals = 2, prefix = '', suffix = '', format } = {}) {
   if (val == null || isNaN(val)) return `${prefix}0${suffix}`;
 
-  let num = val;
+  const num = val;
   if (format === 'currency') {
     // Force 2 decimals for currency
     decimals = 2;

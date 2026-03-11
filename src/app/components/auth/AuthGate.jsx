@@ -3,7 +3,7 @@
 // Full-screen auth modal: email sign-in/up + OAuth (Google, GitHub).
 // Shows when there's no active session; renders children when authed.
 // ═══════════════════════════════════════════════════════════════════
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useAuthStore } from '../../../state/useAuthStore.js';
 import styles from './AuthGate.module.css';
 

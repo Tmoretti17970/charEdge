@@ -9,7 +9,6 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { LAYERS } from '../LayerManager.js';
-import { niceScale } from '../CoordinateSystem.js';
 
 // ─── Offscreen Bitmap Cache ──────────────────────────────────────
 let _gridCache = { canvas: null, ctx: null, key: '' };
@@ -18,6 +17,7 @@ let _gridCache = { canvas: null, ctx: null, key: '' };
  * Build invalidation key from rendering inputs.
  * Captures everything that would change the grid appearance.
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _gridCacheKey(fs, engine) {
   const niceStep = engine._lastNiceStep;
   const tickStr = niceStep?.ticks?.join(',') ?? '';
@@ -47,8 +47,10 @@ export function executeGridStage(fs, ctx, engine) {
   const cacheKey = _gridCacheKey(fs, engine) + `:${thm.bg}:${thm.gridLine}:${thm.fg}${transKey}`;
 
   if (_gridCache.key === cacheKey && _gridCache.canvas) {
-    // CACHE HIT — composite cached bitmap
-    gCtx.drawImage(_gridCache.canvas, 0, 0);
+    // CACHE HIT — composite cached bitmap (guard against 0-sized canvas)
+    if (_gridCache.canvas.width > 0 && _gridCache.canvas.height > 0) {
+      gCtx.drawImage(_gridCache.canvas, 0, 0);
+    }
     return;
   }
 
@@ -71,18 +73,18 @@ export function executeGridStage(fs, ctx, engine) {
   oCtx.fillStyle = thm.bg;
   oCtx.fillRect(0, 0, bw, bh);
 
-  // Watermark
+  // Watermark — Item 39: subtle, anchored top-left, ≤18px, low opacity
   oCtx.save();
-  oCtx.globalAlpha = 0.03;
-  const wmFs = Math.round(Math.min(cW, mainHeight) * 0.12 * pr);
-  oCtx.font = `bold ${wmFs}px Arial`;
+  oCtx.globalAlpha = 0.02;
+  const wmFs = Math.round(Math.min(18, Math.min(cW, mainHeight) * 0.05) * pr);
+  oCtx.font = `600 ${wmFs}px Inter, Arial, sans-serif`;
   oCtx.fillStyle = thm.fg || '#D1D4DC';
-  oCtx.textAlign = 'center';
-  oCtx.textBaseline = 'middle';
-  oCtx.fillText(fs.symbol || '', Math.round(cW * pr / 2), Math.round(mainHeight * pr * 0.45));
-  const wmFs2 = Math.round(wmFs * 0.35);
-  oCtx.font = `${wmFs2}px Arial`;
-  oCtx.fillText(fs.timeframe || '', Math.round(cW * pr / 2), Math.round(mainHeight * pr * 0.45 + wmFs * 0.7));
+  oCtx.textAlign = 'left';
+  oCtx.textBaseline = 'top';
+  oCtx.fillText(fs.symbol || '', Math.round(12 * pr), Math.round(12 * pr));
+  const wmFs2 = Math.round(wmFs * 0.7);
+  oCtx.font = `${wmFs2}px Inter, Arial, sans-serif`;
+  oCtx.fillText(fs.timeframe || '', Math.round(12 * pr), Math.round(12 * pr + wmFs * 1.3));
   oCtx.restore();
 
   // ─── Grid Lines ─────────────────────────────────────────────
@@ -91,7 +93,7 @@ export function executeGridStage(fs, ctx, engine) {
   if (!R || !niceStep || !R.p2y) {
     // Store partial cache (bg + watermark) and composite
     _gridCache.key = cacheKey;
-    gCtx.drawImage(_gridCache.canvas, 0, 0);
+    gCtx.drawImage(_gridCache.canvas!, 0, 0);
     return;
   }
 

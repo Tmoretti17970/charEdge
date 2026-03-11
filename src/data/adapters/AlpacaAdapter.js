@@ -12,7 +12,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { BaseAdapter } from './BaseAdapter.js';
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -315,6 +315,7 @@ export class AlpacaAdapter extends BaseAdapter {
             symbol,
           });
         }
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) {
         /* polling error — silent retry */
       }
@@ -342,6 +343,7 @@ export class AlpacaAdapter extends BaseAdapter {
           type: 'EQUITY',
           exchange: a.exchange,
         }));
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return [];
     }

@@ -6,7 +6,7 @@
 
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 const MOCK_NEWS = [
   { id: 1, time: '2m ago', headline: 'NVIDIA beats Q4 earnings expectations, guides higher for AI demand', source: 'Reuters', sentiment: 'bullish', confidence: 92, impact: 'high', symbols: ['NVDA'], keywords: ['earnings', 'AI', 'guidance'] },

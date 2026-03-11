@@ -6,7 +6,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { C, M } from '../../constants.js';
-import { useUIStore } from '../../state/useUIStore.js';
+import { useUIStore } from '../../state/useUIStore';
 
 // Compact inline SVG icons (18×18 for bottom bar)
 const icons = {

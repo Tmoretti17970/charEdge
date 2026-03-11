@@ -48,6 +48,7 @@ const GAP_THRESHOLD = 0.02;    // 2% gap → anomaly
 
 // ─── Anomaly Detector ───────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 class _AnomalyDetector {
 
     /**

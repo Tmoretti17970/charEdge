@@ -8,10 +8,10 @@
 
 import { useRef, useCallback, useState } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useGamificationStore, getRankForXP, getXPToNextLevel, ACHIEVEMENTS } from '../../../state/useGamificationStore.js';
+import { useGamificationStore, getRankForXP, getXPToNextLevel, ACHIEVEMENTS } from '../../../state/useGamificationStore';
+import { useJournalStore } from '../../../state/useJournalStore';
 import { useSocialStore } from '../../../state/useSocialStore.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Profile Frames ─────────────────────────────────────────────
 const CARD_FRAMES = [
@@ -70,6 +70,7 @@ export default function TraderCard() {
   const username = myProfile?.username || myProfile?.displayName || 'Trader';
   const avatar = myProfile?.avatar || '🔥';
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const handleCopy = useCallback(async () => {
     // Copy card info as formatted text (no external dependencies)
     const badges = topBadges.map(b => `${b.emoji} ${b.name}`).join(' · ');

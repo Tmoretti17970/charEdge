@@ -4,7 +4,7 @@
 // simulation in a compact, informative panel.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useMemo, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { walkForwardAnalysis, monteCarloSimulation } from '../../../../charting_library/core/WalkForwardMonteCarlo.js';
 import { useBacktestStore } from '../../../../state/useBacktestStore.js';
 

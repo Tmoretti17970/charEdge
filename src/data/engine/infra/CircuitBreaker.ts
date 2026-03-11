@@ -15,7 +15,7 @@
 //   • TypeScript types throughout
 // ═══════════════════════════════════════════════════════════════════
 
-import { logger } from '../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -216,6 +216,7 @@ export class CircuitBreaker {
 const _circuits = new Map<string, CircuitBreaker>();
 const _rateBudgets = new Map<string, RateBudget>();
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _getOrCreate(name: string): CircuitBreaker {
     let cb = _circuits.get(name);
     if (!cb) {

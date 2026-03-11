@@ -71,6 +71,7 @@ function sampleCanvas(
  * the document element for use in glassmorphism surfaces.
  */
 export function useDynamicMaterial(
+  // eslint-disable-next-line no-undef
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
 ): DynamicMaterialState {
   const [state, setState] = useState<DynamicMaterialState>({

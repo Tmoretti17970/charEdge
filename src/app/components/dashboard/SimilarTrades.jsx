@@ -9,8 +9,8 @@
 
 import { useMemo, useState } from 'react';
 import { C, F, M } from '../../../constants.js';
+import { useJournalStore } from '../../../state/useJournalStore';
 import { radii } from '../../../theme/tokens.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
 
 /**
  * Find trades similar to the target criteria.
@@ -64,7 +64,7 @@ function findSimilar(trades, criteria, maxResults = 5) {
  */
 function aggregateStats(matches) {
   if (!matches.length) return null;
-  let total = 0, wins = 0, count = matches.length;
+  let total = 0, wins = 0; const count = matches.length;
   for (const m of matches) {
     const pnl = m.trade.pnl || 0;
     total += pnl;

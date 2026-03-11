@@ -6,10 +6,10 @@
 // badges with rarity glow effects.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { C, M, F } from '../../../constants.js';
-import { useGamificationStore } from '../../../state/useGamificationStore.js';
-import { useBreakpoints } from '../../../utils/useMediaQuery.js';
+import { useGamificationStore } from '../../../state/useGamificationStore';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 // Rarity colors
 const RARITY = {
@@ -37,6 +37,8 @@ const ACHIEVEMENT_DEFS = [
 ];
 
 export default function AchievementShowcase() {
+   
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const achievementMap = useGamificationStore((s) => s.achievements) || {};
   const xp = useGamificationStore((s) => s.xp) || 0;
   const level = useGamificationStore((s) => s.level) || 1;

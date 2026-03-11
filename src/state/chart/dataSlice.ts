@@ -1,5 +1,15 @@
+// ═══════════════════════════════════════════════════════════════════
+// charEdge — Data Slice (Sprint 3: Lightweight Metadata Only)
+//
+// Historical bars are NOT stored in Zustand.  The ChartEngine receives
+// them directly via TickChannel, and DatafeedService owns the canonical
+// copy.  This slice only holds metadata that React components need
+// for rendering (bar count, timestamps, source label, etc.).
+// ═══════════════════════════════════════════════════════════════════
+
 export const createDataSlice = (set, get) => ({
-  data: null,
+  // ── Bar metadata (no array — engine / DatafeedService own the data) ──
+  barCount: 0,
   source: null,
   loading: false,
   wsStatus: 'disconnected',
@@ -16,42 +26,43 @@ export const createDataSlice = (set, get) => ({
   priceSpread: 0,            // Price spread across sources
   priceSources: [],          // Source IDs used for current price
 
-  setData: (data, source) => {
-    const oldestTime = data?.[0]?.time ?? null;
-    set({ data, source, loading: false, oldestTime, historyExhausted: false });
+  /**
+   * Sprint 3: Replace the old setData() which stored the entire bars array.
+   * Now only stores lightweight metadata. The actual bars live in
+   * DatafeedService.cache and are delivered to ChartEngine via TickChannel.
+   */
+  setDataMeta: (barCount, source, oldestTime = null) => {
+    set({ barCount, source, loading: false, oldestTime, historyExhausted: false });
   },
+
+  // Legacy compat: setData still works but only extracts metadata
+  setData: (data, source) => {
+    const barCount = data?.length ?? 0;
+    const oldestTime = data?.[0]?.time ?? null;
+    set({ barCount, source, loading: false, oldestTime, historyExhausted: false });
+  },
+
   setLoading: (loading) => set({ loading }),
   setWsStatus: (wsStatus) => set({ wsStatus }),
   setHistoryLoading: (historyLoading) => set({ historyLoading }),
 
   /**
-   * Prepend older bars to the front of the data array.
-   * Deduplicates by timestamp. Updates oldestTime cursor.
-   * Sets historyExhausted if no new bars were added.
+   * Prepend older bars.  Delegates to DatafeedService for actual bar storage.
+   * Only updates metadata (bar count, oldest time) in Zustand.
    */
-  prependData: (olderBars) => {
-    const { data } = get();
+  prependData: (olderBars, currentBarCount) => {
     if (!olderBars || olderBars.length === 0) {
       set({ historyLoading: false, historyExhausted: true });
       return;
     }
-    const existingTimes = new Set((data || []).map(b => b.time));
-    const unique = olderBars.filter(b => !existingTimes.has(b.time));
-    if (unique.length === 0) {
-      set({ historyLoading: false, historyExhausted: true });
-      return;
-    }
-    const merged = [...unique, ...(data || [])];
-    merged.sort((a, b) => {
-      const ta = typeof a.time === 'string' ? new Date(a.time).getTime() : a.time;
-      const tb = typeof b.time === 'string' ? new Date(b.time).getTime() : b.time;
-      return ta - tb;
-    });
+    // Actual bar merging is handled by DatafeedService.prependBars()
+    // We just track the metadata change
+    const newCount = (currentBarCount || get().barCount || 0) + olderBars.length;
     set({
-      data: merged,
-      oldestTime: merged[0]?.time ?? null,
+      barCount: newCount,
+      oldestTime: olderBars[0]?.time ?? get().oldestTime,
       historyLoading: false,
-      lastPrependCount: unique.length, // Sprint 8: viewport offset preservation
+      lastPrependCount: olderBars.length, // Sprint 8: viewport offset preservation
     });
   },
 

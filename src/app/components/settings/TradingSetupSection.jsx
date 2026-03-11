@@ -1,9 +1,9 @@
-import { useUserStore } from '../../../state/useUserStore.js';
-import { C, F, M } from '../../../constants.js';
+import { C, F } from '../../../constants.js';
+import { useUserStore } from '../../../state/useUserStore';
 import { radii } from '../../../theme/tokens.js';
-import { Card, Btn, inputStyle } from '../ui/UIKit.jsx';
 import RiskCalculator from '../../features/trading/RiskCalculator.jsx';
 import { listPresets } from '../../features/trading/RiskPresets.js';
+import { Card, inputStyle } from '../ui/UIKit.jsx';
 import { SectionHeader, SettingRow } from './SettingsHelpers.jsx';
 
 export default function TradingSetupSection() {

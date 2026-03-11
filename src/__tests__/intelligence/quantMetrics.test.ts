@@ -12,7 +12,7 @@ import {
     rollingMetrics,
     pnlToReturns,
     computeQuantSummary,
-} from '../../intelligence/QuantMetrics.ts';
+} from '@/trading/QuantMetrics.ts';
 
 // ─── mean / stdDev / downsideDev ────────────────────────────────
 

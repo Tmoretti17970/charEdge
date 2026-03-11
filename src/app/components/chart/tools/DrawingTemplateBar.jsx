@@ -3,8 +3,8 @@
 // Horizontal favorites strip showing saved drawing tool presets.
 // Each preset = tool type + color + line width + dash pattern.
 // ═══════════════════════════════════════════════════════════════════
-import React, { useState, useCallback } from 'react';
-import { useChartStore } from '../../../../state/useChartStore.js';
+import { useState, useCallback } from 'react';
+import { useChartToolsStore } from '../../../../state/useChartStore';
 
 const TEMPLATE_ICONS = {
   trendline: '╱', hline: '━', vline: '┃', fib: '🔢', rect: '▭',
@@ -18,6 +18,7 @@ let _savedTemplates = null;
 try {
   const raw = localStorage.getItem('charEdge-drawing-templates');
   if (raw) _savedTemplates = JSON.parse(raw);
+// eslint-disable-next-line unused-imports/no-unused-vars
 } catch (_) { /* storage may be blocked */ }
 
 const DEFAULT_TEMPLATES = [
@@ -33,13 +34,14 @@ const DEFAULT_TEMPLATES = [
 
 export default function DrawingTemplateBar() {
   const [templates, setTemplatesLocal] = useState(_savedTemplates || DEFAULT_TEMPLATES);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const activeTool = useChartStore((s) => s.activeTool);
-  const setActiveTool = useChartStore((s) => s.setActiveTool);
-  const setDrawingColor = useChartStore((s) => s.setDrawingColor);
+  const [_showAddModal, _setShowAddModal] = useState(false);
+  const activeTool = useChartToolsStore((s) => s.activeTool);
+  const setActiveTool = useChartToolsStore((s) => s.setActiveTool);
+  const setDrawingColor = useChartToolsStore((s) => s.setDrawingColor);
 
   const persistTemplates = useCallback((t) => {
     setTemplatesLocal(t);
+    // eslint-disable-next-line unused-imports/no-unused-vars
     try { localStorage.setItem('charEdge-drawing-templates', JSON.stringify(t)); } catch (_) { /* storage may be blocked */ }
   }, []);
 

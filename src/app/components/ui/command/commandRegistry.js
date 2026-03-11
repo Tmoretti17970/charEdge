@@ -3,12 +3,13 @@
 // Extracted from CommandPalette (Phase 0.1): all command definitions.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../../../state/useUserStore.js';
-import { useChartStore } from '../../../../state/useChartStore.js';
-import { useUIStore } from '../../../../state/useUIStore.js';
 import { useBacktestStore } from '../../../../state/useBacktestStore.js';
-import { useStrategyBuilderStore } from '../../../../state/useStrategyBuilderStore.js';
+import { useChartStore, useChartFeaturesStore } from '../../../../state/useChartStore';
+import { useLayoutStore } from '../../../../state/useLayoutStore';
 import { useFocusStore } from '../../../../state/useFocusStore.js';
+import { useStrategyBuilderStore } from '../../../../state/useStrategyBuilderStore';
+import { useUIStore } from '../../../../state/useUIStore';
+import { useUserStore } from '../../../../state/useUserStore';
 
 // ─── Popular Symbols (for typeahead) ────────────────────────────
 
@@ -35,6 +36,7 @@ export const POPULAR_SYMBOLS = [
 export function getCommands(actions) {
   const theme = useUserStore.getState().theme;
   const cs = useChartStore.getState();
+  const fs = useChartFeaturesStore.getState();
 
   return [
     // ─── NAVIGATION ──────────────────────────────────────────
@@ -85,34 +87,33 @@ export function getCommands(actions) {
     { id: 'draw-clear', label: 'Clear All Drawings', group: 'Drawing Tools', icon: '🗑️', action: () => { if (cs.drawings?.length > 0) { useChartStore.setState({ drawingHistory: [...(cs.drawingHistory || []).slice(-49), cs.drawings], drawingFuture: [] }); cs.setDrawings?.([]); } actions.close(); } },
 
     // ─── OVERLAYS ────────────────────────────────────────────
-    { id: 'ov-compare', label: cs.showComparisonOverlay ? 'Hide Symbol Comparison' : 'Compare Symbols', group: 'Overlays', icon: '⚖️', action: () => { cs.toggleComparisonOverlay(); actions.close(); } },
-    { id: 'ov-heatmap', label: cs.showHeatmap ? 'Hide Liquidity Heatmap' : 'Show Liquidity Heatmap', group: 'Overlays', icon: '🔥', action: () => { cs.toggleHeatmap(); actions.close(); } },
-    { id: 'ov-sessions', label: cs.showSessions ? 'Hide Sessions' : 'Show Sessions', group: 'Overlays', icon: '🕐', action: () => { cs.toggleSessions(); actions.close(); } },
-    { id: 'ov-extended', label: cs.showExtendedHours ? 'Hide Extended Hours' : 'Show Extended Hours', group: 'Overlays', icon: '🌙', action: () => { cs.toggleExtendedHours(); actions.close(); } },
-    { id: 'ov-patterns', label: cs.showPatternOverlays ? 'Hide Pattern Detection' : 'Show Pattern Detection', group: 'Overlays', icon: '🔍', action: () => { cs.togglePatternOverlays(); actions.close(); } },
+    { id: 'ov-compare', label: fs.showComparisonOverlay ? 'Hide Symbol Comparison' : 'Compare Symbols', group: 'Overlays', icon: '⚖️', action: () => { fs.toggleComparisonOverlay(); actions.close(); } },
+    { id: 'ov-heatmap', label: fs.showHeatmap ? 'Hide Liquidity Heatmap' : 'Show Liquidity Heatmap', group: 'Overlays', icon: '🔥', action: () => { fs.toggleHeatmap(); actions.close(); } },
+    { id: 'ov-sessions', label: fs.showSessions ? 'Hide Sessions' : 'Show Sessions', group: 'Overlays', icon: '🕐', action: () => { fs.toggleSessions(); actions.close(); } },
+    { id: 'ov-extended', label: fs.showExtendedHours ? 'Hide Extended Hours' : 'Show Extended Hours', group: 'Overlays', icon: '🌙', action: () => { fs.toggleExtendedHours(); actions.close(); } },
+    { id: 'ov-patterns', label: fs.showPatternOverlays ? 'Hide Pattern Detection' : 'Show Pattern Detection', group: 'Overlays', icon: '🔍', action: () => { fs.togglePatternOverlays(); actions.close(); } },
     { id: 'ov-trades', label: cs.showTrades !== false ? 'Hide Trades on Chart' : 'Show Trades on Chart', group: 'Overlays', icon: '👁️', action: () => { window.dispatchEvent(new CustomEvent('tf:toggle-chart-trades')); actions.close(); } },
     { id: 'ov-voldelta', label: 'Add Volume Delta', group: 'Overlays', icon: '📊', action: () => { cs.addIndicator?.({ indicatorId: 'volumeDelta', params: {} }); actions.close(); } },
     { id: 'ov-vwap', label: 'Add Anchored VWAP', group: 'Overlays', icon: '📌', action: () => { cs.addIndicator?.({ indicatorId: 'vwap', params: { anchorTime: Date.now() } }); actions.close(); } },
-    { id: 'ov-volspikes', label: 'Toggle Volume Spikes', group: 'Overlays', icon: '📡', action: () => { cs.toggleVolumeSpikes?.(); actions.close(); } },
-    { id: 'ov-delta', label: 'Toggle Delta Histogram', group: 'Overlays', icon: '📊', action: () => { cs.toggleDeltaOverlay?.(); actions.close(); } },
-    { id: 'ov-vp', label: 'Toggle Volume Profile', group: 'Overlays', icon: '📈', action: () => { cs.toggleVPOverlay?.(); actions.close(); } },
-    { id: 'ov-whale', label: 'Toggle Whale Trades', group: 'Overlays', icon: '🐋', action: () => { cs.toggleLargeTradesOverlay?.(); actions.close(); } },
-    { id: 'ov-oi', label: 'Toggle Open Interest Overlay', group: 'Overlays', icon: '📉', action: () => { cs.toggleOIOverlay?.(); actions.close(); } },
-    { id: 'ov-arb', label: 'Toggle Arb Spread', group: 'Overlays', icon: '⚖️', action: () => { cs.toggleArbitrageSpread?.(); actions.close(); } },
+    { id: 'ov-volspikes', label: 'Toggle Volume Spikes', group: 'Overlays', icon: '📡', action: () => { fs.toggleVolumeSpikes?.(); actions.close(); } },
+    { id: 'ov-delta', label: 'Toggle Delta Histogram', group: 'Overlays', icon: '📊', action: () => { fs.toggleDeltaOverlay?.(); actions.close(); } },
+    { id: 'ov-vp', label: 'Toggle Volume Profile', group: 'Overlays', icon: '📈', action: () => { fs.toggleVPOverlay?.(); actions.close(); } },
+    { id: 'ov-whale', label: 'Toggle Whale Trades', group: 'Overlays', icon: '🐋', action: () => { fs.toggleLargeTradesOverlay?.(); actions.close(); } },
+    { id: 'ov-oi', label: 'Toggle Open Interest Overlay', group: 'Overlays', icon: '📉', action: () => { fs.toggleOIOverlay?.(); actions.close(); } },
+    { id: 'ov-arb', label: 'Toggle Arb Spread', group: 'Overlays', icon: '⚖️', action: () => { fs.toggleArbitrageSpread?.(); actions.close(); } },
 
     // ─── PANELS ──────────────────────────────────────────────
     { id: 'panel-indicators', label: 'Open Indicators', group: 'Panels', shortcut: 'I', icon: 'ƒx', action: () => { window.dispatchEvent(new CustomEvent('tf:toggle-indicators')); actions.close(); } },
     { id: 'panel-watchlist', label: 'Open Watchlist', group: 'Panels', icon: '★', action: () => { window.dispatchEvent(new CustomEvent('tf:open-panel', { detail: 'watchlist' })); actions.close(); } },
     { id: 'panel-alerts', label: 'Open Alerts', group: 'Panels', icon: '🔔', action: () => { window.dispatchEvent(new CustomEvent('tf:open-panel', { detail: 'alerts' })); actions.close(); } },
     { id: 'panel-objtree', label: 'Toggle Object Tree', group: 'Panels', icon: '🌳', action: () => { window.dispatchEvent(new CustomEvent('tf:toggle-object-tree')); actions.close(); } },
-    { id: 'panel-replay', label: cs.replayMode ? 'Exit Bar Replay' : 'Start Bar Replay', group: 'Panels', icon: '⏪', action: () => { cs.toggleReplay(); actions.close(); } },
+    { id: 'panel-replay', label: fs.replayMode ? 'Exit Bar Replay' : 'Start Bar Replay', group: 'Panels', icon: '⏪', action: () => { fs.toggleReplay(); actions.close(); } },
     { id: 'panel-scripts', label: 'Open Script Editor', group: 'Panels', icon: '⌨️', action: () => { window.dispatchEvent(new CustomEvent('tf:open-panel', { detail: 'scripts' })); actions.close(); } },
     { id: 'panel-annotations', label: 'Open Annotations', group: 'Panels', icon: '📝', action: () => { window.dispatchEvent(new CustomEvent('tf:open-panel', { detail: 'annotations' })); actions.close(); } },
-    { id: 'panel-mtf', label: cs.showMTF ? 'Hide Multi-Timeframe' : 'Show Multi-Timeframe', group: 'Panels', icon: '📊', action: () => { cs.toggleMTF(); actions.close(); } },
-    { id: 'panel-dom', label: cs.showDOM ? 'Hide DOM Ladder' : 'Show DOM Ladder', group: 'Panels', icon: '📋', action: () => { cs.toggleDOM(); actions.close(); } },
-    { id: 'panel-depth', label: cs.showDepthChart ? 'Hide Depth Chart' : 'Show Depth Chart', group: 'Panels', icon: '📉', action: () => { cs.toggleDepthChart(); actions.close(); } },
-    { id: 'panel-minimap', label: cs.showMinimap ? 'Hide Minimap' : 'Show Minimap', group: 'Panels', icon: '🗺️', action: () => { cs.toggleMinimap(); actions.close(); } },
-    { id: 'panel-statusbar', label: cs.showStatusBar ? 'Hide Status Bar' : 'Show Status Bar', group: 'Panels', icon: '📊', action: () => { cs.toggleStatusBar(); actions.close(); } },
+    { id: 'panel-dom', label: fs.showDOM ? 'Hide DOM Ladder' : 'Show DOM Ladder', group: 'Panels', icon: '📋', action: () => { fs.toggleDOM(); actions.close(); } },
+    { id: 'panel-depth', label: fs.showDepthChart ? 'Hide Depth Chart' : 'Show Depth Chart', group: 'Panels', icon: '📉', action: () => { fs.toggleDepthChart(); actions.close(); } },
+    { id: 'panel-minimap', label: fs.showMinimap ? 'Hide Minimap' : 'Show Minimap', group: 'Panels', icon: '🗺️', action: () => { fs.toggleMinimap(); actions.close(); } },
+    { id: 'panel-statusbar', label: fs.showStatusBar ? 'Hide Status Bar' : 'Show Status Bar', group: 'Panels', icon: '📊', action: () => { fs.toggleStatusBar(); actions.close(); } },
     { id: 'panel-orderflow', label: 'Open Order Flow', group: 'Panels', icon: '⚡', action: () => { window.dispatchEvent(new CustomEvent('tf:open-panel', { detail: 'orderflow' })); actions.close(); } },
     { id: 'panel-derivatives', label: 'Open Derivatives', group: 'Panels', icon: '📊', action: () => { window.dispatchEvent(new CustomEvent('tf:open-panel', { detail: 'derivatives' })); actions.close(); } },
     { id: 'panel-orderbook', label: 'Open Order Book', group: 'Panels', icon: '📖', action: () => { window.dispatchEvent(new CustomEvent('tf:open-panel', { detail: 'depth' })); actions.close(); } },
@@ -128,7 +129,7 @@ export function getCommands(actions) {
     { id: 'strat-insights', label: 'AI Insights', group: 'Strategy & AI', icon: '🧠', action: () => { window.dispatchEvent(new CustomEvent('tf:open-panel', { detail: 'insights' })); actions.close(); } },
 
     // ─── TRADING ─────────────────────────────────────────────
-    { id: 'trade-positionsizer', label: 'Position Sizer', group: 'Trading', icon: '⚖️', action: () => { useChartStore.getState().togglePositionSizer(); actions.close(); } },
+    { id: 'trade-positionsizer', label: 'Position Sizer', group: 'Trading', icon: '⚖️', action: () => { useLayoutStore.getState().togglePanel('positionSizer'); actions.close(); } },
     { id: 'trade-quickjournal', label: 'Quick Journal Entry', group: 'Trading', icon: '📝', action: () => { useChartStore.getState().toggleQuickJournal(); actions.close(); } },
 
     // ─── LAYOUT ──────────────────────────────────────────────

@@ -6,13 +6,13 @@
 // Positioned at the very top of the Dashboard narrative layout.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../../state/useUserStore.js';
 import { useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { useGamificationStore } from '../../../state/useGamificationStore.js';
+import { useGamificationStore } from '../../../state/useGamificationStore';
+import { useJournalStore } from '../../../state/useJournalStore';
+import { useUserStore } from '../../../state/useUserStore';
 import { fmtD } from '../../../utils.js';
-import { logger } from '../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ─── Helpers ────────────────────────────────────────────────────
 
@@ -31,7 +31,7 @@ function startOfDay(d) {
   return dt;
 }
 
-function isSameDay(a, b) {
+function _isSameDay(a, b) {
   return startOfDay(a).getTime() === startOfDay(b).getTime();
 }
 

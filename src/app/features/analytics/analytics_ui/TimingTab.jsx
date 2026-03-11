@@ -5,9 +5,9 @@
 
 import React, { useMemo } from 'react';
 import { C, M } from '../../../../constants.js';
-import { Card } from '../../../components/ui/UIKit.jsx';
 import { fmtD } from '../../../../utils.js';
 import TimeBarChart from '../../../components/chart/TimeBarChart.jsx';
+import { Card } from '../../../components/ui/UIKit.jsx';
 import ProfitHeatmap from '../../../components/widgets/ProfitHeatmap.jsx';
 import { SectionLabel, formatDuration } from './AnalyticsPrimitives.jsx';
 
@@ -16,6 +16,7 @@ function TimingTab({ result, computing }) {
     return <div style={{ padding: 40, textAlign: 'center', color: C.t3 }}>{computing ? 'Computing timing...' : 'No timing data available.'}</div>;
   }
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const hourBuckets = useMemo(
     () => result.byH.map((h) => ({ name: h.hour || h.name, pnl: h.pnl, count: h.count, wins: h.wins || 0 })),
     [result.byH],

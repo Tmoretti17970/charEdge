@@ -19,9 +19,9 @@
 //   await sessionManager.restore();   // Restore on page load
 // ═══════════════════════════════════════════════════════════════════
 
-import { openCacheDB } from '../../DataCache.ts';
+import { openCacheDB } from '../../DataCache';
 import { pipelineLogger } from '../infra/DataPipelineLogger.js';
-import { logger } from '../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ─── Constants ─────────────────────────────────────────────────
 

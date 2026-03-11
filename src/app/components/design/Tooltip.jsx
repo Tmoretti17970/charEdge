@@ -17,7 +17,6 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import s from '../../../styles/Tooltip.module.css';
 
 const ARROW_MAP = {
@@ -131,23 +130,23 @@ export default function Tooltip({
       </span>
 
       {createPortal(
-        <AnimatePresence>
-          {visible && (
-            <motion.div
-              ref={tooltipRef}
-              className={`${s.tooltip} ${s.visible}`}
-              style={{ top: position.top, left: position.left }}
-              role="tooltip"
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.92 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 28 }}
-            >
-              {content}
-              <span className={`${s.arrow} ${s[ARROW_MAP[placement]]}`} />
-            </motion.div>
-          )}
-        </AnimatePresence>,
+        visible ? (
+          <div
+            ref={tooltipRef}
+            className={`${s.tooltip} ${s.visible}`}
+            style={{
+              top: position.top,
+              left: position.left,
+              opacity: 1,
+              scale: 1,
+              transition: 'opacity 150ms ease, scale 150ms ease',
+            }}
+            role="tooltip"
+          >
+            {content}
+            <span className={`${s.arrow} ${s[ARROW_MAP[placement]]}`} />
+          </div>
+        ) : null,
         document.body,
       )}
     </>

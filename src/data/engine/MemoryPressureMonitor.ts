@@ -1,3 +1,4 @@
+/* global process */
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Memory Pressure Monitor (Task 2.3.5)
 //
@@ -11,7 +12,7 @@
 // - 95% → force emergency cleanup
 // ═══════════════════════════════════════════════════════════════════
 
-import { logger } from '../../utils/logger.js';
+import { logger } from '@/observability/logger.js';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -76,10 +77,21 @@ export class MemoryPressureMonitor {
     }
   }
 
-  /** Subscribe to pressure level changes */
+  /** Subscribe to pressure level changes.
+   *  Auto-starts polling on first subscriber, auto-stops on last unsubscribe. */
   onPressure(cb: PressureCallback): () => void {
     this._listeners.add(cb);
-    return () => this._listeners.delete(cb);
+    // Auto-start polling when the first consumer subscribes
+    if (this._listeners.size === 1 && !this._timer) {
+      this.start();
+    }
+    return () => {
+      this._listeners.delete(cb);
+      // Auto-stop polling when the last consumer unsubscribes
+      if (this._listeners.size === 0) {
+        this.stop();
+      }
+    };
   }
 
   /** Get current snapshot */
@@ -104,7 +116,7 @@ export class MemoryPressureMonitor {
   get isNativeMemoryAvailable(): boolean {
     return typeof performance !== 'undefined'
       && 'memory' in performance
-      && typeof (performance as any).memory?.usedJSHeapSize === 'number';
+      && typeof (performance as unknown).memory?.usedJSHeapSize === 'number';
   }
 
   // ─── Internal ────────────────────────────────────────
@@ -114,7 +126,7 @@ export class MemoryPressureMonitor {
     let budgetMB = this._config.budgetMB;
 
     if (this.isNativeMemoryAvailable) {
-      const mem = (performance as any).memory;
+      const mem = (performance as unknown).memory;
       usedMB = mem.usedJSHeapSize / (1024 * 1024);
       budgetMB = mem.jsHeapSizeLimit / (1024 * 1024);
     } else if (typeof process !== 'undefined' && process.memoryUsage) {
@@ -146,7 +158,7 @@ export class MemoryPressureMonitor {
     if (level !== this._lastLevel || level !== 'normal') {
       if (level !== this._lastLevel) {
         const logFn = level === 'normal' ? 'info' : 'warn';
-        (logger.engine as any)?.[logFn]?.(
+        (logger.engine as unknown)?.[logFn]?.(
           `[MemoryPressure] ${this._lastLevel} → ${level}: ${snapshot.usedMB}MB / ${snapshot.budgetMB}MB (${(snapshot.usagePercent * 100).toFixed(1)}%)`
         );
       }
@@ -154,7 +166,8 @@ export class MemoryPressureMonitor {
       for (const cb of this._listeners) {
         try {
           cb(level, snapshot);
-        } catch (err) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (_err) {
           // Don't let a bad listener crash the monitor
         }
       }

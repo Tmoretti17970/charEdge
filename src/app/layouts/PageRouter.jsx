@@ -1,9 +1,8 @@
 import React, { Suspense, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { useUIStore } from '../../state/useUIStore.js';
 import { C } from '../../constants.js';
+import { trackPageView } from '../../observability/telemetry';
+import { useUIStore } from '../../state/useUIStore';
 import ErrorBoundary from '../components/ui/ErrorBoundary.jsx';
-import { trackPageView } from '../../utils/telemetry.js';
 
 // All pages lazy-loaded for optimal initial bundle size
 const JournalPage = React.lazy(() => import('../../pages/JournalPage.jsx'));
@@ -104,7 +103,7 @@ function PageFallback() {
 export default function PageRouter() {
   const page = useUIStore((s) => s.page);
   const Page = PAGES[page] || JournalPage;
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   const hasMounted = useRef(false);
 
   // Track page views for telemetry
@@ -132,31 +131,7 @@ export default function PageRouter() {
     speedtest: 'Speed Test',
   };
 
-  // Sprint 1: Framer Motion page transition variants
   const motionEnabled = hasMounted.current && !prefersReducedMotion;
-
-  const pageVariants = {
-    initial: motionEnabled
-      ? { opacity: 0, y: 8 }
-      : { opacity: 1, y: 0 },
-    animate: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.25,
-        ease: [0.16, 1, 0.3, 1], // Apple ease-out
-      },
-    },
-    exit: motionEnabled
-      ? {
-        opacity: 0,
-        transition: {
-          duration: 0.15,
-          ease: 'easeIn',
-        },
-      }
-      : { opacity: 1 },
-  };
 
   return (
     <div
@@ -172,22 +147,22 @@ export default function PageRouter() {
       aria-live="polite"
       aria-label={PAGE_LABELS[page] || 'Page content'}
     >
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={page}
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}
-        >
-          <Suspense fallback={<PageFallback />}>
-            <ErrorBoundary resetKey={page}>
-              <Page />
-            </ErrorBoundary>
-          </Suspense>
-        </motion.div>
-      </AnimatePresence>
+      <div
+        key={page}
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0,
+          animation: motionEnabled ? 'fadeInUp 250ms cubic-bezier(0.16, 1, 0.3, 1) both' : 'none',
+        }}
+      >
+        <Suspense fallback={<PageFallback />}>
+          <ErrorBoundary resetKey={page}>
+            <Page />
+          </ErrorBoundary>
+        </Suspense>
+      </div>
     </div>
   );
 }

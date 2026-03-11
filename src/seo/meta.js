@@ -89,13 +89,27 @@ export function symbolPageMeta(symbol, price, change24h) {
     type: 'website',
     structuredData: {
       '@context': 'https://schema.org',
-      '@type': 'FinancialProduct',
-      name: `${symbol.toUpperCase()} Trading Analysis`,
-      description: `Technical analysis and trading insights for ${symbol.toUpperCase()}`,
+      '@type': 'Dataset',
+      name: `${symbol.toUpperCase()} Market Data`,
+      description: `Live price data, technical indicators, and trading analysis for ${symbol.toUpperCase()}`,
       url: `${SITE_URL}/symbol/${symbol.toLowerCase()}`,
+      license: 'https://creativecommons.org/licenses/by/4.0/',
+      temporalCoverage: new Date().toISOString().slice(0, 10),
+      variableMeasured: [
+        { '@type': 'PropertyValue', name: 'Price', unitCode: 'USD', value: price ?? undefined },
+        ...(change24h != null ? [{ '@type': 'PropertyValue', name: '24h Change', unitCode: 'P1', value: change24h }] : []),
+      ].filter(v => v.value !== undefined),
       provider: {
         '@type': 'Organization',
         name: SITE_NAME,
+        url: SITE_URL,
+      },
+      mainEntity: {
+        '@type': 'FinancialQuote',
+        name: symbol.toUpperCase(),
+        ...(price != null && { price: { '@type': 'MonetaryAmount', currency: 'USD', value: price } }),
+        ...(change24h != null && { priceChange: change24h }),
+        exchange: 'Binance',
       },
     },
   });

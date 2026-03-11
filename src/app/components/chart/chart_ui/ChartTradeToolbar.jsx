@@ -4,16 +4,17 @@
 // Long/Short entry — compact TradingView-style colored badge pills.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useChartStore } from '../../../../state/useChartStore.js';
-import { C, M } from '../../../../constants.js';
+import { C } from '../../../../constants.js';
+import { useChartStore } from '../../../../state/useChartStore';
 
 export default function ChartTradeToolbar() {
   const tradeMode = useChartStore((s) => s.tradeMode);
+  const tradeSide = useChartStore((s) => s.tradeSide);
   const enterTradeMode = useChartStore((s) => s.enterTradeMode);
   const exitTradeMode = useChartStore((s) => s.exitTradeMode);
 
-  const isLong = tradeMode === 'long';
-  const isShort = tradeMode === 'short';
+  const isLong = tradeMode && tradeSide === 'long';
+  const isShort = tradeMode && tradeSide === 'short';
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>

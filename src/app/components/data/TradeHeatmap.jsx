@@ -8,9 +8,9 @@
 // Currently local-only — P2P broadcasting planned for Horizon 3.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { C, M, F } from '../../../constants.js';
-import { getTradeHeatmapEngine, HEATMAP_EVENT } from '../../../data/engine/orderflow/TradeHeatmapEngine.js';
+import { getTradeHeatmapEngine } from '../../../data/engine/orderflow/TradeHeatmapEngine.js';
 
 // ─── Color Gradient ─────────────────────────────────────────────
 
@@ -35,11 +35,12 @@ function densityColor(normalized) {
 /**
  * @param {{ symbol: string, priceMin?: number, priceMax?: number, height?: number }} props
  */
-export default function TradeHeatmap({ symbol, priceMin, priceMax, height = 400 }) {
+export default function TradeHeatmap({ symbol, priceMin, priceMax, _height = 400 }) {
   const [profile, setProfile] = useState(null);
   const [showEntries, setShowEntries] = useState(true);
   const [showExits, setShowExits] = useState(true);
   const [enabled, setEnabled] = useState(() => {
+    // eslint-disable-next-line unused-imports/no-unused-vars
     try { return localStorage.getItem('tf-heatmap-enabled') === 'true'; } catch (_) { return false; }
   });
 
@@ -48,6 +49,7 @@ export default function TradeHeatmap({ symbol, priceMin, priceMax, height = 400 
   // Enable/disable engine opt-in
   useEffect(() => {
     engine.setOptIn(enabled);
+    // eslint-disable-next-line unused-imports/no-unused-vars
     try { localStorage.setItem('tf-heatmap-enabled', String(enabled)); } catch (_) { /* storage may be blocked */ }
   }, [enabled, engine]);
 

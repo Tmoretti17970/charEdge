@@ -5,15 +5,15 @@
 import { describe, it, expect } from 'vitest';
 import { computeFast } from '../../app/features/analytics/analyticsFast.js';
 const compute = computeFast;
+import { LayoutCache } from '../../charting_library/core/LayoutCache.js';
+import { parseCSVRaw, exportCSVString } from '../../charting_library/datafeed/csv.js';
+import { compInd } from '../../charting_library/studies/compInd.js';
+import { genVolumeProfile } from '../../charting_library/studies/orderFlow.js';
 import { genRandomTrades } from '../../data/demoData.js';
-import { groupTradesBy, groupTradesByTime } from '../../utils/groupTradesBy.js';
 import { StorageService } from '../../data/StorageService.ts';
 import { useJournalStore } from '../../state/useJournalStore.ts';
-import { parseCSVRaw, exportCSV } from '../../charting_library/datafeed/csv.js';
-import { compInd } from '../../charting_library/studies/compInd.js';
-import { LayoutCache } from '../../charting_library/core/LayoutCache.js';
-import { genVolumeProfile } from '../../charting_library/studies/orderFlow.js';
 import { fmt, fmtD } from '../../utils.js';
+import { groupTradesBy, groupTradesByTime } from '@/trading/groupTradesBy';
 
 // ═══ Scale: 10,000 Trades ═══════════════════════════════════════
 describe('Stress: 10,000 trades', () => {
@@ -77,11 +77,14 @@ describe('Stress: 50,000 trades', () => {
     expect(result.tradeCount).toBe(50000);
   });
 
-  it('CSV export at 50K', () => {
-    const csv = exportCSV(trades);
+  it('CSV export at 50K', async () => {
+    const t0 = performance.now();
+    const csv = await exportCSVString(trades);
+    const elapsed = performance.now() - t0;
     expect(csv.length).toBeGreaterThan(0);
     const firstLines = csv.split('\n').slice(0, 10);
     expect(firstLines.length).toBe(10);
+    expect(elapsed).toBeLessThan(1000);
   });
 });
 
@@ -163,8 +166,8 @@ describe('Edge: empty state', () => {
     expect(groupTradesByTime([], 'dayOfWeek')).toEqual([]);
   });
 
-  it('exportCSV of empty trades produces header only', () => {
-    const csv = exportCSV([]);
+  it('exportCSV of empty trades produces header only', async () => {
+    const csv = await exportCSVString([]);
     const lines = csv.trim().split('\n');
     expect(lines.length).toBe(1);
   });

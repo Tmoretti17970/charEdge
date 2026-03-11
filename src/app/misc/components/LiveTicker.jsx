@@ -10,7 +10,7 @@
 
 import React from 'react';
 import { C, M } from '../../../constants.js';
-import { WS_STATUS } from '../../../data/WebSocketService.ts';
+import { WS_STATUS } from '../../../data/WebSocketService';
 
 const STATUS_COLORS = {
   [WS_STATUS.CONNECTED]: C.g,

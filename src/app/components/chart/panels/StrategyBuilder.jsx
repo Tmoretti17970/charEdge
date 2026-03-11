@@ -4,14 +4,14 @@
 // strategies without writing any code.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { useBacktestStore } from '../../../../state/useBacktestStore.js';
 import {
   useStrategyBuilderStore,
   CONDITION_SOURCES,
   COMPARISONS,
   EXIT_TYPES,
-} from '../../../../state/useStrategyBuilderStore.js';
-import { useBacktestStore } from '../../../../state/useBacktestStore.js';
+} from '../../../../state/useStrategyBuilderStore';
 
 export default function StrategyBuilder({ bars, onClose }) {
   const store = useStrategyBuilderStore();
@@ -155,7 +155,7 @@ export default function StrategyBuilder({ bars, onClose }) {
 
 // ─── Condition Block ─────────────────────────────────────────────
 
-function ConditionBlock({ condition, index, side, onUpdate, onRemove, logicMode, isLast }) {
+function ConditionBlock({ condition, index, _side, onUpdate, onRemove, logicMode, isLast }) {
   const updateSide = (sideKey, updates) => {
     onUpdate({ [sideKey]: { ...condition[sideKey], ...updates } });
   };
@@ -207,7 +207,7 @@ function ConditionBlock({ condition, index, side, onUpdate, onRemove, logicMode,
 
 // ─── Source Picker ────────────────────────────────────────────────
 
-function SourcePicker({ value, onChange, label }) {
+function SourcePicker({ value, onChange, _label }) {
   const sourceDef = CONDITION_SOURCES.find(s => s.id === value.source);
   const hasParams = sourceDef?.params?.length > 0 || value.source === 'number';
 

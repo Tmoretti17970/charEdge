@@ -1,4 +1,4 @@
-import { logger } from '../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v12 — FRED API Adapter
 //
@@ -199,6 +199,7 @@ class _FredAdapter {
 
       const json = await resp.json();
       return json.seriess?.[0] || null;
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return null;
     }

@@ -6,9 +6,8 @@
 //   2. SWR logic consolidated into single utility
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect } from 'vitest';
 import fs from 'fs';
-import path from 'path';
+import { describe, it, expect } from 'vitest';
 
 // ─── Task 1: DataProvider.js Decomposed ─────────────────────────
 

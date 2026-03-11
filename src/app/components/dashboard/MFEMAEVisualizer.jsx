@@ -7,11 +7,11 @@
 // - Summary stats: avg efficiency, best/worst trades
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { useJournalStore } from '../../../state/useJournalStore.js';
+import { useMemo, useState, useRef, useEffect } from 'react';
+import { useJournalStore } from '../../../state/useJournalStore';
 
 const FONT = 'var(--forge-font, Inter, sans-serif)';
-const MONO = 'var(--forge-mono, "JetBrains Mono", monospace)';
+const _MONO = 'var(--forge-mono, "JetBrains Mono", monospace)';
 
 // ─── Component ──────────────────────────────────────────────────
 

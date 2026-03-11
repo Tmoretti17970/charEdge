@@ -19,8 +19,8 @@ export const DARK_COLORS = {
   t3: '#4e5266',
   b: '#e8642c',
   bH: '#d4551e',
-  g: '#2dd4a0',
-  r: '#f25c5c',
+  g: '#31D158',
+  r: '#FF453A',
   y: '#f0b64e',
   p: '#c084fc',
   cyan: '#22d3ee',
@@ -29,9 +29,9 @@ export const DARK_COLORS = {
   rose: '#e8a0b0',     // Charolette's Light — warm rose memorial accent
   lime: '#a3e635',
   info: '#5c9cf5',
-  bullish: '#2dd4a0',
-  bearish: '#f25c5c',
-  rS: '#f25c5c20',
+  bullish: '#31D158',
+  bearish: '#FF453A',
+  rS: '#FF453A20',
 };
 
 export const LIGHT_COLORS = {
@@ -46,8 +46,8 @@ export const LIGHT_COLORS = {
   t3: '#8890a4',
   b: '#d4551e',
   bH: '#bf4a18',
-  g: '#059669',
-  r: '#e11d48',
+  g: '#34C759',
+  r: '#FF3B30',
   y: '#d4930b',
   p: '#7c3aed',
   cyan: '#0891b2',
@@ -56,9 +56,9 @@ export const LIGHT_COLORS = {
   rose: '#c47a8a',     // Charolette's Light — warm rose (light theme variant)
   lime: '#65a30d',
   info: '#2563eb',
-  bullish: '#059669',
-  bearish: '#e11d48',
-  rS: '#e11d4820',
+  bullish: '#34C759',
+  bearish: '#FF3B30',
+  rS: '#FF3B3020',
 };
 
 // Task 4.9.3.2: Deep Sea OLED Dark Mode
@@ -238,6 +238,7 @@ export const DEPTH = { ...DEPTH_DARK };
         return parsed?.state?.theme || parsed?.theme || null;
       }
       return null;
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { return null; }
   })();
   const resolved = stored === 'light' ? 'light'

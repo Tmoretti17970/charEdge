@@ -7,8 +7,8 @@
 // 6.5: Bybit WSRouter registration
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, beforeEach } from 'vitest';
 import fs from 'node:fs';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 // ═══════════════════════════════════════════════════════════════════
 // 6.5 — Bybit WSRouter Registration

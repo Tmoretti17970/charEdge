@@ -4,7 +4,6 @@
 // IndicatorSettingsDialog, and DrawingEditPopup into one source.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
 import { C, F, M } from '../../../constants.js';
 
 // ─── Color Swatch ───────────────────────────────────────────────

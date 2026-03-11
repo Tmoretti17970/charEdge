@@ -76,6 +76,7 @@ export async function pingDb(): Promise<PingResult> {
     try {
         await _pool.query('SELECT 1');
         return { ok: true, latencyMs: Math.round(performance.now() - start) };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
         return { ok: false, latencyMs: Math.round(performance.now() - start) };
     }

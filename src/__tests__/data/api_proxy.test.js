@@ -8,9 +8,9 @@
 //   4. .env.example has correct env var names
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
+import { describe, it, expect } from 'vitest';
 
 const SRC = resolve('src');
 const ROOT = resolve('.');

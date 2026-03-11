@@ -4,7 +4,7 @@
 // Shows duplicate, delete, lock, visibility, and layer controls.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
 const MENU_ITEMS = [
   { id: 'duplicate', label: 'Duplicate', icon: '⊕', shortcut: 'Ctrl+D' },

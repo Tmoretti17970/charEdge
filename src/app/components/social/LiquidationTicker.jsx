@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 const MOCK_LIQUIDATIONS = [
   {

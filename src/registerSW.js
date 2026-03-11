@@ -1,4 +1,4 @@
-import { logger } from './utils/logger';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Service Worker Registration (Sprint 5.7)

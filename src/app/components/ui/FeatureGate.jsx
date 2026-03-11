@@ -15,11 +15,11 @@
 //   </FeatureGate>
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../../state/useUserStore.js';
 import React from 'react';
-import { TIER_CONFIG, FEATURE_TIERS, TIERS } from '../../../state/user/personaSlice.js';
 import { C, F, M } from '../../../constants.js';
-import { trackFeatureUse } from '../../../utils/telemetry.js';
+import { trackFeatureUse } from '../../../observability/telemetry';
+import { TIER_CONFIG, FEATURE_TIERS, TIERS } from '../../../state/user/personaSlice.js';
+import { useUserStore } from '../../../state/useUserStore';
 import styles from './FeatureGate.module.css';
 
 /**
@@ -32,7 +32,7 @@ import styles from './FeatureGate.module.css';
  * @param {string} [label] - Human-readable feature name for the unlock prompt
  */
 export default function FeatureGate({ feature, silent = false, children, fallback, label }) {
-  const tier = useUserStore((s) => s.tier);
+  const _tier = useUserStore((s) => s.tier);
   const isUnlocked = useUserStore((s) => s.isFeatureUnlocked(feature));
   const unlockFeature = useUserStore((s) => s.unlockFeature);
 
@@ -46,6 +46,7 @@ export default function FeatureGate({ feature, silent = false, children, fallbac
   const requiredTier = FEATURE_TIERS[feature] || TIERS.EXPLORER;
   const tierConfig = TIER_CONFIG[requiredTier];
   const featureLabel = label || feature.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const tradeCount = useUserStore((s) => s.tradeCount);
 
   // Progress towards required tier

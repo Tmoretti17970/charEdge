@@ -92,6 +92,7 @@ function computePeriodStats(trades, start, end) {
     try {
       const d = new Date(t.date);
       return d >= start && d <= end;
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return false;
     }
@@ -270,6 +271,7 @@ export function computeCalendarData(trades) {
       byDay[d].count++;
       byDay[d].pnl += t.pnl || 0;
       if ((t.pnl || 0) > 0) byDay[d].wins++;
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       /* skip invalid dates */
     }

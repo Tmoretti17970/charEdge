@@ -7,10 +7,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState } from 'react';
-import { logger } from '../../../utils/logger.ts';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
 import { useSocialStore } from '../../../state/useSocialStore.js';
+import { logger } from '@/observability/logger';
+import { alpha } from '@/shared/colorUtils';
 
 const POPULAR_SYMBOLS = ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK', 'DOT', 'MATIC'];
 const TIMEFRAMES = ['1m', '5m', '15m', '1H', '4H', '1D', '1W'];

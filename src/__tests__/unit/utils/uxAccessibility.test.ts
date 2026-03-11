@@ -3,9 +3,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect, vi } from 'vitest';
-import { AriaLivePrice } from '../../../utils/ariaLivePrice.ts';
-import { ChartKeyboardNav } from '../../../utils/chartKeyboardNav.ts';
-import { BatteryAware } from '../../../utils/batteryAware.ts';
+import { AriaLivePrice } from '@/a11y/ariaLivePrice.ts';
+import { ChartKeyboardNav } from '@/a11y/chartKeyboardNav.ts';
+import { BatteryAware } from '@/app/misc/batteryAware.ts';
 
 // ─── ARIA Live Price ────────────────────────────────────────────
 

@@ -15,9 +15,8 @@
 //   </Dialog>
 // ═══════════════════════════════════════════════════════════════════
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import s from '../../../styles/Dialog.module.css';
 
 /**
@@ -111,49 +110,66 @@ export default function Dialog({ open, onClose, title, size = 'md', children, fo
     };
   }, [open, handleKeyDown]);
 
+  // --- CSS transition exit logic ---
+  const [mounted, setMounted] = useState(false);
+  const [animating, setAnimating] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      requestAnimationFrame(() => requestAnimationFrame(() => setAnimating(true)));
+    } else {
+      setAnimating(false);
+    }
+  }, [open]);
+
+  const handleTransitionEnd = useCallback(() => {
+    if (!open) setMounted(false);
+  }, [open]);
+
+  if (!mounted) return null;
+
   return createPortal(
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          className={s.backdrop}
-          onClick={onClose}
-          role="presentation"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <motion.div
-            ref={dialogRef}
-            className={`${s.dialog} ${s[size]}`}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={title ? 'dialog-title' : undefined}
-            tabIndex={-1}
-            onClick={(e) => e.stopPropagation()}
-            initial={{ opacity: 0, y: 24, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.98 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-          >
-            {title && (
-              <div className={s.header}>
-                <h2 className={s.title} id="dialog-title">
-                  {title}
-                </h2>
-                <button className={s.closeBtn} onClick={onClose} aria-label="Close dialog">
-                  ✕
-                </button>
-              </div>
-            )}
+    <div
+      className={s.backdrop}
+      onClick={onClose}
+      role="presentation"
+      onTransitionEnd={handleTransitionEnd}
+      style={{
+        opacity: animating ? 1 : 0,
+        transition: 'opacity 200ms ease',
+      }}
+    >
+      <div
+        ref={dialogRef}
+        className={`${s.dialog} ${s[size]}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? 'dialog-title' : undefined}
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          opacity: animating ? 1 : 0,
+          transform: animating ? 'translateY(0) scale(1)' : 'translateY(24px) scale(0.97)',
+          transition: 'opacity 250ms cubic-bezier(0.32, 0.72, 0, 1), transform 250ms cubic-bezier(0.32, 0.72, 0, 1)',
+        }}
+      >
+        {title && (
+          <div className={s.header}>
+            <h2 className={s.title} id="dialog-title">
+              {title}
+            </h2>
+            <button className={s.closeBtn} onClick={onClose} aria-label="Close dialog">
+              ✕
+            </button>
+          </div>
+        )}
 
-            <div className={s.body}>{children}</div>
+        <div className={s.body}>{children}</div>
 
-            {footer && <div className={s.footer}>{footer}</div>}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>,
+        {footer && <div className={s.footer}>{footer}</div>}
+      </div>
+    </div>,
     document.body,
   );
 }

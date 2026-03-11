@@ -5,8 +5,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
+import { useChartStore } from '../../../../state/useChartStore';
 import ChartEngineWidget from './ChartEngineWidget.jsx';
-import { useChartStore } from '../../../../state/useChartStore.js';
 
 /**
  * ChartCanvas — Backward-compatible wrapper.

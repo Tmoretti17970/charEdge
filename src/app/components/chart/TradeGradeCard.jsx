@@ -4,7 +4,6 @@
 // Shows letter grade, sub-category breakdown, and action items.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
 
 export default function TradeGradeCard({ gradeData, onClose }) {
   if (!gradeData) return null;

@@ -14,7 +14,7 @@
 export function captureChartState(chartState) {
   const {
     symbol, tf, chartType, indicators, drawings,
-    data, activeTool, drawingColor, stickyMode,
+    data, _activeTool, _drawingColor, _stickyMode,
   } = chartState;
 
   const lastBar = data?.[data.length - 1];

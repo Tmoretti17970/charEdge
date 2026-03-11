@@ -11,7 +11,7 @@
 //   <SkeletonGrid cols={4} rows={2} cardHeight={120} />
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { memo } from 'react';
+import { memo } from 'react';
 
 /**
  * Rectangular skeleton block with shimmer.

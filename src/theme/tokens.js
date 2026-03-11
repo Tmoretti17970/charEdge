@@ -8,7 +8,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { C, F, M } from '../constants.js';
-export { alpha } from '../utils/colorUtils.js';
+export { alpha } from '@/shared/colorUtils';
 
 // ─── Spacing Scale (4px base) ─────────────────────────────────
 export const space = {

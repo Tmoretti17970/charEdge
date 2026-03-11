@@ -6,7 +6,6 @@
 // Audit Item 10: "No skeleton exists for arbitrage/bot monitoring panel"
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
 import { C } from '../../../constants.js';
 
 /**

@@ -8,9 +8,9 @@
 //   4. All layers fall back to standard canvas (no OffscreenCanvas)
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
+import { describe, it, expect } from 'vitest';
 
 const SRC = resolve(__dirname, '..', '..');
 const CHARTING = resolve(SRC, 'charting_library/core');

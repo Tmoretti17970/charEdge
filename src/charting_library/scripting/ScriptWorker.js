@@ -20,7 +20,7 @@
 //   6. Loop iteration limit enforced (50,000)
 // ═══════════════════════════════════════════════════════════════════
 
-/* eslint-disable no-restricted-globals */
+ 
 
 // ─── Execution Limits ─────────────────────────────────────────
 const MAX_EXEC_MS = 200;
@@ -47,6 +47,19 @@ const BLOCKED = [
   'close',       // Block script from closing the worker
   'addEventListener',
   'removeEventListener',
+  // P1: Additional globals that could leak data or bootstrap exploits
+  'Blob',
+  'URL',
+  'TextEncoder',
+  'TextDecoder',
+  'FormData',
+  'Headers',
+  'Request',
+  'Response',
+  'AbortController',
+  'BroadcastChannel',
+  'MessageChannel',
+  'crypto',
 ];
 
 // ─── Dangerous Pattern Check ──────────────────────────────────
@@ -59,6 +72,9 @@ const DANGEROUS_PATTERNS = [
   /\b__proto__\b/,
   /\bconstructor\s*\[/,
   /\bconstructor\s*\.\s*constructor/,
+  // P1: Block bracket-notation bypass for constructor chain
+  /\[\s*['"]constructor['"]\s*\]/,
+  /\[\s*['"]__proto__['"]\s*\]/,
 ];
 
 function validateCode(code) {
@@ -185,8 +201,8 @@ self.onmessage = function (e) {
 
     sum: arr => arr.reduce((a, b) => a + (b || 0), 0),
     avg: arr => { const v = arr.filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; },
-    crossover: (a, b) => a.map((v, i) => i === 0 || v == null || b[i] == null || a[i-1] == null || b[i-1] == null ? false : a[i-1] <= b[i-1] && v > b[i]),
-    crossunder: (a, b) => a.map((v, i) => i === 0 || v == null || b[i] == null || a[i-1] == null || b[i-1] == null ? false : a[i-1] >= b[i-1] && v < b[i]),
+    crossover: (a, b) => a.map((v, i) => i === 0 || v == null || b[i] == null || a[i - 1] == null || b[i - 1] == null ? false : a[i - 1] <= b[i - 1] && v > b[i]),
+    crossunder: (a, b) => a.map((v, i) => i === 0 || v == null || b[i] == null || a[i - 1] == null || b[i - 1] == null ? false : a[i - 1] >= b[i - 1] && v < b[i]),
 
     tick: () => { if (++loopCount > MAX_LOOP_ITER) throw new Error(`Loop limit exceeded (${MAX_LOOP_ITER})`); },
   };
@@ -197,7 +213,33 @@ self.onmessage = function (e) {
 
   try {
     const fn = new Function(...scopeKeys, `"use strict";\n${code}`);
-    fn(...scopeValues);
+
+    // ── Freeze prototypes to prevent sandbox escape ──
+    // Without this, user code can do ({}).constructor.constructor('return this')()
+    // to access the Worker global scope (postMessage, close, etc.).
+    const origObjProto = Object.getOwnPropertyDescriptors(Object.prototype);
+    const origFuncProto = Object.getOwnPropertyDescriptors(Function.prototype);
+    Object.freeze(Object.prototype);
+    Object.freeze(Function.prototype);
+
+    let execError = null;
+    try {
+      fn(...scopeValues);
+    } catch (err) {
+      execError = err;
+    } finally {
+      // ── Restore prototypes — MUST happen even if script throws ──
+      for (const [key, desc] of Object.entries(origObjProto)) {
+        // eslint-disable-next-line unused-imports/no-unused-vars
+        try { Object.defineProperty(Object.prototype, key, desc); } catch (_) { /* skip non-configurable */ }
+      }
+      for (const [key, desc] of Object.entries(origFuncProto)) {
+        // eslint-disable-next-line unused-imports/no-unused-vars
+        try { Object.defineProperty(Function.prototype, key, desc); } catch (_) { /* skip non-configurable */ }
+      }
+    }
+
+    if (execError) throw execError;
 
     const execMs = performance.now() - startMs;
     if (execMs > MAX_EXEC_MS) {

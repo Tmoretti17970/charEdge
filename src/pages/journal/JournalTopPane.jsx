@@ -5,17 +5,18 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { Suspense } from 'react';
-import { C } from '../../constants.js';
+import DashboardPanel from '../../app/components/dashboard/DashboardPanel.jsx';
+// eslint-disable-next-line import/order
 import { DashboardSkeleton } from '../../app/components/ui/SkeletonPulse.jsx';
 
 // Eager top-pane tabs
-import DashboardPanel from '../../app/components/dashboard/DashboardPanel.jsx';
-import StrategiesTab from '../../app/features/analytics/analytics_ui/StrategiesTab.jsx';
-import PsychologyTab from '../../app/features/analytics/analytics_ui/PsychologyTab.jsx';
-import TimingTab from '../../app/features/analytics/analytics_ui/TimingTab.jsx';
-import RiskTab from '../../app/features/analytics/analytics_ui/RiskTab.jsx';
 import CalendarHeatmap from '../../app/features/analytics/analytics_ui/CalendarHeatmap.jsx';
+import PsychologyTab from '../../app/features/analytics/analytics_ui/PsychologyTab.jsx';
+import RiskTab from '../../app/features/analytics/analytics_ui/RiskTab.jsx';
+import StrategiesTab from '../../app/features/analytics/analytics_ui/StrategiesTab.jsx';
+import TimingTab from '../../app/features/analytics/analytics_ui/TimingTab.jsx';
 import PlaybookDashboard from '../../app/features/playbook/PlaybookDashboard.jsx';
+import { C } from '../../constants.js';
 
 // Lazy top-pane tabs
 const NotesPage = React.lazy(() => import('../NotesPage.jsx'));

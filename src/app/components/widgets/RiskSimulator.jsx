@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { C, M } from '../../../constants.js';
-import { Card, Btn } from '../ui/UIKit.jsx';
 import { SectionLabel } from '../../features/analytics/analytics_ui/AnalyticsPrimitives.jsx';
+import { Card } from '../ui/UIKit.jsx';
 
 export default function RiskSimulator({ trades, defaultAccountSize = 10000 }) {
   const [multiplier, setMultiplier] = useState(1.0);
@@ -24,7 +24,7 @@ export default function RiskSimulator({ trades, defaultAccountSize = 10000 }) {
       let equity = defaultAccountSize;
       let eqPeak = defaultAccountSize;
       let ruined = false;
-      let currentPath = [defaultAccountSize];
+      const currentPath = [defaultAccountSize];
 
       for (let j = 0; j < seqLen; j++) {
         // Multiply historical P&L by the slider value

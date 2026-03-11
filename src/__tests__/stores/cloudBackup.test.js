@@ -2,7 +2,7 @@
 // charEdge — Tests for Cloud Backup
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 // ─── CloudBackup Module Tests ──────────────────────────────────
 
@@ -158,7 +158,7 @@ describe('CloudBackup Encryption Integration', () => {
   const hasCrypto = typeof globalThis.crypto?.subtle !== 'undefined';
 
   it.skipIf(!hasCrypto)('encrypts and decrypts a cloud backup bundle', async () => {
-    const { encryptData, decryptData } = await import('../../utils/DataEncryption.ts');
+    const { encryptData, decryptData } = await import('../../security/DataEncryption.ts');
 
     // Simulate the cloud backup bundle format
     const bundle = {
@@ -193,7 +193,7 @@ describe('CloudBackup Encryption Integration', () => {
   });
 
   it.skipIf(!hasCrypto)('wrong passphrase fails to decrypt cloud backup', async () => {
-    const { encryptData, decryptData } = await import('../../utils/DataEncryption.ts');
+    const { encryptData, decryptData } = await import('../../security/DataEncryption.ts');
 
     const bundle = {
       _meta: { format: 'charEdge-cloud-backup-v1' },

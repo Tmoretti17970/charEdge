@@ -5,11 +5,12 @@
 // animations, and live feature comparison. Uses project design tokens.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState } from 'react';
-import { C, F, M } from '../constants.js';
-import { useUIStore } from '../state/useUIStore.js';
-import { useSubscriptionStore } from '../state/useSubscriptionStore.js';
+import { useState } from 'react';
 import { GLASS, DEPTH } from '../constants/theme.js';
+import { C, F, M } from '../constants.js';
+import { useSubscriptionStore } from '../state/useSubscriptionStore.js';
+import { useUIStore } from '../state/useUIStore';
+import { logger } from '@/observability/logger';
 
 // ─── Plan Data ───────────────────────────────────────────────────
 
@@ -295,7 +296,7 @@ export default function PricingPage() {
     }
     // If Stripe isn't configured, show a message
     if (!stripeConfigured) {
-      console.info(`[Pricing] Stripe not configured. Selected plan: ${planId}`);
+      logger.ui.info(`[Pricing] Stripe not configured. Selected plan: ${planId}`);
       setPage('journal');
       return;
     }

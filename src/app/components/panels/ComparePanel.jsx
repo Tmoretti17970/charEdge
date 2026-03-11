@@ -9,9 +9,9 @@
 //   <ComparePanel trades={trades} />
 // ═══════════════════════════════════════════════════════════════════
 
-import { useGamificationStore } from '../../../state/useGamificationStore.js';
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
+import { useGamificationStore } from '../../../state/useGamificationStore';
 import {
   comparePeriods,
   computeEquityCurve,

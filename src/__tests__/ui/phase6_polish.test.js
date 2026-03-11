@@ -5,10 +5,12 @@
 // PeerProtocol binary messaging, and DataPipeline integration.
 // ═══════════════════════════════════════════════════════════════════
 
+// eslint-disable-next-line import/order
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // ── BandwidthMonitor ─────────────────────────────────────────────
 
+// eslint-disable-next-line import/order
 import { BandwidthMonitor } from '../../data/engine/infra/BandwidthMonitor.js';
 
 describe('BandwidthMonitor', () => {
@@ -146,6 +148,7 @@ describe('BandwidthMonitor', () => {
 
 // ── BatteryThrottle ──────────────────────────────────────────────
 
+// eslint-disable-next-line import/order
 import { BatteryThrottle } from '../../data/engine/infra/BatteryThrottle.js';
 
 describe('BatteryThrottle', () => {
@@ -425,7 +428,6 @@ describe('ConnectionPool', () => {
 
 // ── DataPipeline Phase 6 Integration ─────────────────────────────
 
-import { DATA_SOURCE } from '../../data/engine/DataPipeline.js';
 
 describe('DataPipeline - Phase 6 Integration', () => {
   it('dataPipeline exports getBandwidthReport method', async () => {

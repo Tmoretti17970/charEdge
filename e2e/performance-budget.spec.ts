@@ -64,8 +64,11 @@ test.describe('Performance Budget', () => {
     });
 
     test('LCP < 2500ms (Task 2.2.7)', async ({ page }) => {
-        // Wait for page to fully render
-        await page.waitForTimeout(3000);
+        // Wait for page to fully render using app ready signal
+        await page.waitForFunction(
+            () => !document.querySelector('[class*="loadingRoot"], [class*="skeleton"]'),
+            { timeout: 15_000 }
+        );
 
         const lcp = await page.evaluate(() => {
             return new Promise<number>((resolve) => {
@@ -102,7 +105,7 @@ test.describe('Performance Budget', () => {
 
     test('CLS < 0.1 (Task 2.2.7)', async ({ page }) => {
         // Navigate through the app to trigger potential layout shifts
-        await page.waitForTimeout(2000);
+        await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => { });
 
         const cls = await page.evaluate(() => {
             return new Promise<number>((resolve) => {
@@ -139,7 +142,7 @@ test.describe('Performance Budget', () => {
     });
 
     test('no more than 50 JS resources loaded', async ({ page }) => {
-        await page.waitForTimeout(2000);
+        await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => { });
 
         const resourceCount = await page.evaluate(() => {
             const entries = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
@@ -153,7 +156,7 @@ test.describe('Performance Budget', () => {
     });
 
     test('DOM node count < 3000', async ({ page }) => {
-        await page.waitForTimeout(2000);
+        await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => { });
 
         const nodeCount = await page.evaluate(() => {
             return document.querySelectorAll('*').length;

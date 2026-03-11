@@ -6,12 +6,11 @@
 // check in at end of session, and track adherence over time.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../../state/useUserStore.js';
-import React, { useState, useMemo, useCallback } from 'react';
-import { C, M, F } from '../../../constants.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { useBreakpoints } from '../../../utils/useMediaQuery.js';
-import { fmtD } from '../../../utils.js';
+import { useState, useMemo, useCallback } from 'react';
+import { C, M } from '../../../constants.js';
+import { useJournalStore } from '../../../state/useJournalStore';
+import { useUserStore } from '../../../state/useUserStore';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 function getTodayKey() {
   return new Date().toISOString().slice(0, 10);
@@ -27,6 +26,7 @@ export default function AccountabilityWidget() {
     try {
       const saved = localStorage.getItem('tf-accountability-' + getTodayKey());
       return saved ? JSON.parse(saved) : { followedRules: null, rating: null, note: '' };
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { return { followedRules: null, rating: null, note: '' }; }
   });
 
@@ -57,6 +57,7 @@ export default function AccountabilityWidget() {
     setCheckin(next);
     try {
       localStorage.setItem('tf-accountability-' + getTodayKey(), JSON.stringify(next));
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { /* storage may be blocked */ }
   }, [checkin]);
 

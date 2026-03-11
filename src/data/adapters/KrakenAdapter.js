@@ -17,8 +17,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { BaseAdapter } from './BaseAdapter.js';
-
-import { logger } from '../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 const KRAKEN_REST = 'https://api.kraken.com/0/public';
 const KRAKEN_WS = 'wss://ws.kraken.com';
 
@@ -256,6 +255,7 @@ export class KrakenAdapter extends BaseAdapter {
       this._ws.onerror = () => {
         this._wsConnected = false;
       };
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       this._ws = null;
     }
@@ -362,6 +362,7 @@ export class KrakenAdapter extends BaseAdapter {
           type: 'CRYPTO',
           exchange: 'Kraken',
         }));
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return [];
     }

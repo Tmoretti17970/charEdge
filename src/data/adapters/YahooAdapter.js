@@ -6,8 +6,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { BaseAdapter } from './BaseAdapter.js';
-
-import { logger } from '../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 const INTERVAL_MAP = {
   '1m': '1m',
   '2m': '2m',

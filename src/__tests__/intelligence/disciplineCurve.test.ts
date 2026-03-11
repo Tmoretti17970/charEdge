@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect } from 'vitest';
-import { computeDisciplineCurve, type TradeLike } from '../../intelligence/DisciplineCurve';
+import { computeDisciplineCurve, type TradeLike } from '@/psychology/DisciplineCurve';
 
 const makeTrade = (overrides: Partial<TradeLike> = {}): TradeLike => ({
     id: `t-${Math.random().toString(36).slice(2, 6)}`,

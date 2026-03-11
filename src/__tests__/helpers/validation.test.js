@@ -3,8 +3,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect } from 'vitest';
-import { validateBars, validateProps, validateIndicators } from '../../charting_library/core/validateBars.js';
 import { ChartError, ERROR_CODES } from '../../charting_library/core/ChartError.js';
+import { validateBars, validateProps, validateIndicators } from '../../charting_library/core/validateBars.js';
 
 // ═══════════════════════════════════════════════════════════════════
 // validateBars

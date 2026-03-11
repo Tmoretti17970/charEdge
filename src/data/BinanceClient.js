@@ -93,6 +93,7 @@ export async function fetchBinanceBatch(pair, interval, limit, endTime, startTim
       close: parseFloat(k[4]),
       volume: parseFloat(k[5]),
     }));
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return null;
   }

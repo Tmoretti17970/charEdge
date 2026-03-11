@@ -5,11 +5,10 @@
 // Live preview, reset, templates, keyboard nav.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useChartStore } from '../../../../state/useChartStore.js';
-import { C, F, M } from '../../../../constants.js';
+import { useState, useEffect, useCallback } from 'react';
 import { INDICATORS as INDICATOR_REGISTRY } from '../../../../charting_library/studies/indicators/registry.js';
-import SettingsTabShell from '../../settings/SettingsTabShell.jsx';
+import { C, F } from '../../../../constants.js';
+import { useChartToolsStore } from '../../../../state/useChartStore';
 import {
   ColorSwatch,
   Toggle,
@@ -19,6 +18,7 @@ import {
   LineStylePicker,
   SectionLabel,
 } from '../../settings/SettingsControls.jsx';
+import SettingsTabShell from '../../settings/SettingsTabShell.jsx';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -93,18 +93,19 @@ function listTemplates(indicatorId) {
 
 // ─── Main Dialog Component ───────────────────────────────────────
 
-export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
-  const indicators = useChartStore((s) => s.indicators);
-  const updateIndicator = useChartStore((s) => s.updateIndicator);
-  const updateIndicatorOutputStyle = useChartStore((s) => s.updateIndicatorOutputStyle);
-  const setIndicatorVisibility = useChartStore((s) => s.setIndicatorVisibility);
-  const setIndicatorPrecision = useChartStore((s) => s.setIndicatorPrecision);
-  const setIndicatorSource = useChartStore((s) => s.setIndicatorSource);
-  const setIndicatorShowOnScale = useChartStore((s) => s.setIndicatorShowOnScale);
-  const setIndicatorShowInStatusLine = useChartStore((s) => s.setIndicatorShowInStatusLine);
-  const updateIndicatorBands = useChartStore((s) => s.updateIndicatorBands);
+export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableId, onClose }) {
+  const indicators = useChartToolsStore((s) => s.indicators);
+  const updateIndicator = useChartToolsStore((s) => s.updateIndicator);
+  const updateIndicatorOutputStyle = useChartToolsStore((s) => s.updateIndicatorOutputStyle);
+  const setIndicatorVisibility = useChartToolsStore((s) => s.setIndicatorVisibility);
+  const setIndicatorPrecision = useChartToolsStore((s) => s.setIndicatorPrecision);
+  const setIndicatorSource = useChartToolsStore((s) => s.setIndicatorSource);
+  const setIndicatorShowOnScale = useChartToolsStore((s) => s.setIndicatorShowOnScale);
+  const setIndicatorShowInStatusLine = useChartToolsStore((s) => s.setIndicatorShowInStatusLine);
+  const updateIndicatorBands = useChartToolsStore((s) => s.updateIndicatorBands);
 
-  const indicator = indicators?.[indicatorIdx];
+  // Sprint 4: Look up by stable ID instead of array index
+  const indicator = indicators?.find(ind => ind.id === indicatorStableId);
   const indicatorId = indicator?.indicatorId;
   const registryDef = indicatorId ? INDICATOR_REGISTRY?.[indicatorId] : null;
 
@@ -125,15 +126,16 @@ export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
     setLocalParams(defaults);
     setLocalColor(indicator.color || registryDef.outputs?.[0]?.color || '#2962FF');
     setTemplates(listTemplates(indicatorId));
-  }, [indicatorIdx, indicatorId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [indicatorStableId, indicatorId]);
 
   // ─── Live preview ─────────────────────────────────────────────
   const applyParams = useCallback((newParams, newColor) => {
-    updateIndicator(indicatorIdx, {
+    updateIndicator(indicatorStableId, {
       params: { ...newParams },
       color: newColor,
     });
-  }, [indicatorIdx, updateIndicator]);
+  }, [indicatorStableId, updateIndicator]);
 
   const handleParamChange = useCallback((key, value) => {
     setLocalParams((prev) => {
@@ -313,7 +315,7 @@ export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
             label="Input Source"
             value={indicator.source || 'close'}
             options={SOURCE_OPTIONS}
-            onChange={(v) => setIndicatorSource(indicatorIdx, v)}
+            onChange={(v) => setIndicatorSource(indicatorStableId, v)}
           />
 
           {/* Strategy Item #13: Editable pane-config band levels (RSI 70/30, etc.) */}
@@ -345,11 +347,11 @@ export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
                       label=""
                       value={currentValue}
                       step={registryDef.paneConfig.max ? 1 : 0.1}
-                      onChange={(v) => updateIndicatorBands(indicatorIdx, bi, { value: v })}
+                      onChange={(v) => updateIndicatorBands(indicatorStableId, bi, { value: v })}
                     />
                     <ColorSwatch
                       color={currentColor}
-                      onChange={(c) => updateIndicatorBands(indicatorIdx, bi, { color: c })}
+                      onChange={(c) => updateIndicatorBands(indicatorStableId, bi, { color: c })}
                     />
                   </div>
                 );
@@ -424,7 +426,7 @@ export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
                         {out.label || out.key}
                       </span>
                       <button
-                        onClick={() => updateIndicatorOutputStyle(indicatorIdx, out.key, { visible: !style.visible })}
+                        onClick={() => updateIndicatorOutputStyle(indicatorStableId, out.key, { visible: !style.visible })}
                         title={style.visible ? 'Hide' : 'Show'}
                         style={{
                           width: 24,
@@ -447,18 +449,18 @@ export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                       <ColorSwatch
                         color={style.color}
-                        onChange={(c) => updateIndicatorOutputStyle(indicatorIdx, out.key, { color: c })}
+                        onChange={(c) => updateIndicatorOutputStyle(indicatorStableId, out.key, { color: c })}
                       />
                       <SelectDropdown
                         label="Width"
                         value={style.width}
                         options={WIDTH_OPTIONS}
-                        onChange={(w) => updateIndicatorOutputStyle(indicatorIdx, out.key, { width: parseInt(w) })}
+                        onChange={(w) => updateIndicatorOutputStyle(indicatorStableId, out.key, { width: parseInt(w) })}
                       />
                     </div>
                     <LineStylePicker
                       value={style.dash}
-                      onChange={(d) => updateIndicatorOutputStyle(indicatorIdx, out.key, { dash: d })}
+                      onChange={(d) => updateIndicatorOutputStyle(indicatorStableId, out.key, { dash: d })}
                     />
                   </div>
                 );
@@ -492,17 +494,17 @@ export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
             label="Precision"
             value={String(indicator.precision ?? 'auto')}
             options={PRECISION_OPTIONS}
-            onChange={(v) => setIndicatorPrecision(indicatorIdx, v === 'auto' ? 'auto' : parseInt(v))}
+            onChange={(v) => setIndicatorPrecision(indicatorStableId, v === 'auto' ? 'auto' : parseInt(v))}
           />
           <Toggle
             label="Show on Price Scale"
             checked={indicator.showOnScale !== false}
-            onChange={(v) => setIndicatorShowOnScale(indicatorIdx, v)}
+            onChange={(v) => setIndicatorShowOnScale(indicatorStableId, v)}
           />
           <Toggle
             label="Show in Status Line"
             checked={indicator.showInStatusLine !== false}
-            onChange={(v) => setIndicatorShowInStatusLine(indicatorIdx, v)}
+            onChange={(v) => setIndicatorShowInStatusLine(indicatorStableId, v)}
           />
         </div>
       )}
@@ -515,7 +517,7 @@ export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
           <Toggle
             label="Show on all timeframes"
             checked={visibility.showAll !== false}
-            onChange={(v) => setIndicatorVisibility(indicatorIdx, { showAll: v, timeframes: v ? [] : visibility.timeframes })}
+            onChange={(v) => setIndicatorVisibility(indicatorStableId, { showAll: v, timeframes: v ? [] : visibility.timeframes })}
           />
 
           {!visibility.showAll && (
@@ -537,7 +539,7 @@ export default function IndicatorSettingsDialog({ indicatorIdx, onClose }) {
                       const next = isActive
                         ? tfs.filter((t) => t !== tf.id)
                         : [...tfs, tf.id];
-                      setIndicatorVisibility(indicatorIdx, { showAll: false, timeframes: next });
+                      setIndicatorVisibility(indicatorStableId, { showAll: false, timeframes: next });
                     }}
                     style={{
                       padding: '8px 12px',

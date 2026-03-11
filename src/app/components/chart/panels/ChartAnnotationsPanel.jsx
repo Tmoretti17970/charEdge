@@ -3,16 +3,27 @@
 // Per-symbol note-taking panel for annotating chart events.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { C, F } from '../../../../constants.js';
 import { useAnnotationStore } from '../../../../state/useAnnotationStore.js';
-import { useChartStore } from '../../../../state/useChartStore.js';
+import { useChartStore } from '../../../../state/useChartStore';
+import { useChartBars } from '../../../hooks/useChartBars.js';
 
 const EMOJI_OPTIONS = ['📌', '⚠️', '🎯', '💡', '🚀', '🔴', '🟢', '📊', '🧠', '❓'];
 
-export default function ChartAnnotationsPanel({ onClose }) {
+// P2 1.3: Sanitize annotation text — strip HTML tags and limit length
+function sanitizeAnnotation(text) {
+  return text
+    .replace(/<[^>]*>/g, '')         // Strip HTML tags
+    .replace(/&/g, '&amp;')          // Encode ampersands
+    .replace(/</g, '&lt;')           // Encode angle brackets
+    .replace(/>/g, '&gt;')           // Encode angle brackets
+    .slice(0, 500);                  // Cap length at 500 chars
+}
+
+export default function ChartAnnotationsPanel({ _onClose }) {
   const symbol = useChartStore((s) => s.symbol);
-  const data = useChartStore((s) => s.data);
+  const data = useChartBars();
   const annotations = useAnnotationStore((s) => s.getForSymbol(symbol));
   const addAnnotation = useAnnotationStore((s) => s.addAnnotation);
   const removeAnnotation = useAnnotationStore((s) => s.removeAnnotation);
@@ -36,7 +47,7 @@ export default function ChartAnnotationsPanel({ onClose }) {
     addAnnotation(symbol, {
       timestamp: Date.now(),
       price: currentPrice,
-      text: text.trim(),
+      text: sanitizeAnnotation(text.trim()),
       emoji,
     });
     setText('');
@@ -51,7 +62,7 @@ export default function ChartAnnotationsPanel({ onClose }) {
 
   const handleSaveEdit = (id) => {
     if (editText.trim()) {
-      editAnnotation(symbol, id, { text: editText.trim() });
+      editAnnotation(symbol, id, { text: sanitizeAnnotation(editText.trim()) });
     }
     setEditingId(null);
     setEditText('');

@@ -3,8 +3,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect } from 'vitest';
-import { selectDailyChallenges, updateChallengeProgress } from '../../intelligence/DailyChallenges';
-import { processAnswer, initializeCards, getDueCards, type QuizCard } from '../../intelligence/QuizEngine';
+import { selectDailyChallenges, updateChallengeProgress } from '@/state/gamification/DailyChallenges';
+import { processAnswer, initializeCards, getDueCards } from '@/state/gamification/QuizEngine';
 
 describe('DailyChallenges', () => {
     it('selects 3 challenges by default', () => {

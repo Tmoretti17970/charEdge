@@ -3,11 +3,11 @@
 // Extracted from CommunityPage.jsx for single-responsibility.
 // ═══════════════════════════════════════════════════════════════════
 
-import { C, F } from '../../constants.js';
-import { alpha } from '../../utils/colorUtils.js';
 import CopyTradePanel from '../../app/components/social/CopyTradePanel.jsx';
-import LiveRoomPanel from '../../app/components/social/LiveRoomPanel.jsx';
 import IndicatorMarketplace from '../../app/components/social/IndicatorMarketplace.jsx';
+import LiveRoomPanel from '../../app/components/social/LiveRoomPanel.jsx';
+import { C, F } from '../../constants.js';
+import { alpha } from '@/shared/colorUtils';
 
 const MORE_FEATURES = [
   { id: 'copytrade', label: 'Copy Trade', icon: '📋', description: 'Mirror top traders\' positions' },

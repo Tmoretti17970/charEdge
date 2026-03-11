@@ -140,6 +140,7 @@ export class Bloom {
 
     try {
       this._blurCanvas = new OffscreenCanvas(w, h);
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       if (typeof document !== 'undefined') {
         this._blurCanvas = document.createElement('canvas');

@@ -1,4 +1,4 @@
-import { logger } from '../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v15 — Streaming Metrics Engine
@@ -124,10 +124,10 @@ class CircularBuffer {
 
   /** Slice a range [start, end) as plain array. */
   slice(start = 0, end = this._size) {
-    const s = Math.max(0, start);
-    const e = Math.min(this._size, end);
-    const arr = new Array(Math.max(0, e - s));
-    let idx = ((this._head - this._size + this._cap) % this._cap + s) % this._cap;
+    const startIdx = Math.max(0, start);
+    const endIdx = Math.min(this._size, end);
+    const arr = new Array(Math.max(0, endIdx - startIdx));
+    let idx = ((this._head - this._size + this._cap) % this._cap + startIdx) % this._cap;
     for (let i = 0; i < arr.length; i++) {
       arr[i] = this._buf[idx];
       idx = (idx + 1) % this._cap;

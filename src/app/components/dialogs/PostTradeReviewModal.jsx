@@ -18,11 +18,11 @@
 
 import { useState, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { ModalOverlay, Btn } from '../ui/UIKit.jsx';
+import { useJournalStore } from '../../../state/useJournalStore';
 import { fmtD } from '../../../utils.js';
 import { gradeTrade } from '../../features/analytics/analyticsFast.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
 import toast from '../ui/Toast.jsx';
+import { ModalOverlay, Btn } from '../ui/UIKit.jsx';
 
 const GRADES = ['A+', 'A', 'B', 'C', 'D', 'F'];
 const GRADE_COLORS = {

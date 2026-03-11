@@ -7,9 +7,9 @@
 
 import { memo, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useGamificationStore } from '../../../state/useGamificationStore.js';
+import { useGamificationStore } from '../../../state/useGamificationStore';
 import { Card } from '../ui/UIKit.jsx';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 export const WeeklyChallengeCard = memo(function WeeklyChallengeCard() {
   const challenge = useGamificationStore((s) => s.weeklyChallenge);
@@ -18,6 +18,7 @@ export const WeeklyChallengeCard = memo(function WeeklyChallengeCard() {
 
   useEffect(() => {
     if (enabled) generateWeeklyChallenge();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled]);
 
   if (!enabled || !challenge) return null;

@@ -20,7 +20,8 @@ import type { Bar, PriceRange } from '../../types/chart.js';
 
 const INITIAL_CAPACITY = 2048;
 const COLUMNS = ['time', 'open', 'high', 'low', 'close', 'volume'] as const;
-type ColumnName = typeof COLUMNS[number];
+// eslint-disable-next-line @typescript-eslint/naming-convention
+type _ColumnName = typeof COLUMNS[number];
 
 /** Fields that can be updated on the last bar (streaming tick). */
 export interface BarUpdateFields {
@@ -47,11 +48,11 @@ export class BarDataBuffer {
     this._length = 0;
 
     // Allocate columnar typed arrays
-    this.time   = new Float64Array(capacity);
-    this.open   = new Float64Array(capacity);
-    this.high   = new Float64Array(capacity);
-    this.low    = new Float64Array(capacity);
-    this.close  = new Float64Array(capacity);
+    this.time = new Float64Array(capacity);
+    this.open = new Float64Array(capacity);
+    this.high = new Float64Array(capacity);
+    this.low = new Float64Array(capacity);
+    this.close = new Float64Array(capacity);
     this.volume = new Float64Array(capacity);
   }
 
@@ -115,7 +116,7 @@ export class BarDataBuffer {
       t[i] = b.time || 0;
       o[i] = b.open || 0;
       h[i] = b.high || 0;
-      l[i] = b.low  || 0;
+      l[i] = b.low || 0;
       c[i] = b.close || 0;
       v[i] = b.volume || 0;
     }
@@ -129,11 +130,11 @@ export class BarDataBuffer {
     const result = new Array<Bar>(end - start);
     for (let i = start; i < end; i++) {
       result[i - start] = {
-        time:   this.time[i],
-        open:   this.open[i],
-        high:   this.high[i],
-        low:    this.low[i],
-        close:  this.close[i],
+        time: this.time[i],
+        open: this.open[i],
+        high: this.high[i],
+        low: this.low[i],
+        close: this.close[i],
         volume: this.volume[i],
       };
     }
@@ -146,11 +147,11 @@ export class BarDataBuffer {
   append(bar: Bar): void {
     this._ensureCapacity(this._length + 1);
     const i = this._length;
-    this.time[i]   = bar.time || 0;
-    this.open[i]   = bar.open || 0;
-    this.high[i]   = bar.high || 0;
-    this.low[i]    = bar.low  || 0;
-    this.close[i]  = bar.close || 0;
+    this.time[i] = bar.time || 0;
+    this.open[i] = bar.open || 0;
+    this.high[i] = bar.high || 0;
+    this.low[i] = bar.low || 0;
+    this.close[i] = bar.close || 0;
     this.volume[i] = bar.volume || 0;
     this._length++;
   }
@@ -180,7 +181,7 @@ export class BarDataBuffer {
       t[i] = b.time || 0;
       o[i] = b.open || 0;
       h[i] = b.high || 0;
-      l[i] = b.low  || 0;
+      l[i] = b.low || 0;
       c[i] = b.close || 0;
       v[i] = b.volume || 0;
     }
@@ -191,10 +192,10 @@ export class BarDataBuffer {
   updateLast(fields: BarUpdateFields): void {
     if (this._length === 0) return;
     const i = this._length - 1;
-    if (fields.open   !== undefined) this.open[i]   = fields.open;
-    if (fields.high   !== undefined) this.high[i]   = fields.high;
-    if (fields.low    !== undefined) this.low[i]    = fields.low;
-    if (fields.close  !== undefined) this.close[i]  = fields.close;
+    if (fields.open !== undefined) this.open[i] = fields.open;
+    if (fields.high !== undefined) this.high[i] = fields.high;
+    if (fields.low !== undefined) this.low[i] = fields.low;
+    if (fields.close !== undefined) this.close[i] = fields.close;
     if (fields.volume !== undefined) this.volume[i] = fields.volume;
   }
 
@@ -204,11 +205,11 @@ export class BarDataBuffer {
   at(idx: number): Bar | null {
     if (idx < 0 || idx >= this._length) return null;
     return {
-      time:   this.time[idx],
-      open:   this.open[idx],
-      high:   this.high[idx],
-      low:    this.low[idx],
-      close:  this.close[idx],
+      time: this.time[idx],
+      open: this.open[idx],
+      high: this.high[idx],
+      low: this.low[idx],
+      close: this.close[idx],
       volume: this.volume[idx],
     };
   }
@@ -258,6 +259,61 @@ export class BarDataBuffer {
     return mx;
   }
 
+  // ─── MTF Aggregation (Phase 4) ─────────────────────────────────
+
+  /**
+   * Aggregate bars to a higher timeframe.
+   * Groups bars by targetMinutes boundary, producing OHLCV candles.
+   *
+   * @param targetMinutes - Target timeframe in minutes (e.g., 5, 15, 60, 240, 1440)
+   * @returns New BarDataBuffer with aggregated bars
+   */
+  aggregateTo(targetMinutes: number): BarDataBuffer {
+    if (this._length === 0) return new BarDataBuffer(0);
+
+    const targetMs = targetMinutes * 60 * 1000;
+    const result = new BarDataBuffer(Math.ceil(this._length / Math.max(1, targetMinutes)));
+    const t = this.time, o = this.open, h = this.high;
+    const l = this.low, c = this.close, v = this.volume;
+
+    let groupStart = Math.floor(t[0]! / targetMs) * targetMs;
+    let groupOpen = o[0]!, groupHigh = h[0]!, groupLow = l[0]!;
+    let groupClose = c[0]!, groupVol = v[0]!;
+
+    for (let i = 1; i < this._length; i++) {
+      const barBoundary = Math.floor(t[i]! / targetMs) * targetMs;
+
+      if (barBoundary !== groupStart) {
+        // Flush previous group
+        result.append({
+          time: groupStart, open: groupOpen, high: groupHigh,
+          low: groupLow, close: groupClose, volume: groupVol,
+        });
+        // Start new group
+        groupStart = barBoundary;
+        groupOpen = o[i]!;
+        groupHigh = h[i]!;
+        groupLow = l[i]!;
+        groupClose = c[i]!;
+        groupVol = v[i]!;
+      } else {
+        // Extend current group
+        groupHigh = Math.max(groupHigh, h[i]!);
+        groupLow = Math.min(groupLow, l[i]!);
+        groupClose = c[i]!;
+        groupVol += v[i]!;
+      }
+    }
+
+    // Flush last group
+    result.append({
+      time: groupStart, open: groupOpen, high: groupHigh,
+      low: groupLow, close: groupClose, volume: groupVol,
+    });
+
+    return result;
+  }
+
   /** Reset buffer to empty (keeps allocated memory). */
   clear(): void {
     this._length = 0;
@@ -269,6 +325,44 @@ export class BarDataBuffer {
    */
   getTransferables(): ArrayBufferLike[] {
     return COLUMNS.map(col => this[col].buffer);
+  }
+
+  /**
+   * Reconstruct a BarDataBuffer from transferred ArrayBuffers (worker side).
+   * Pairs with getTransferables() for zero-copy worker data transfer.
+   */
+  static fromTransferables(
+    buffers: ArrayBufferLike[],
+    length: number,
+  ): BarDataBuffer {
+    const buf = new BarDataBuffer(0);
+    buf._length = length;
+    buf._capacity = buffers[0]!.byteLength / 8; // Float64 = 8 bytes
+
+    buf.time = new Float64Array(buffers[0]!);
+    buf.open = new Float64Array(buffers[1]!);
+    buf.high = new Float64Array(buffers[2]!);
+    buf.low = new Float64Array(buffers[3]!);
+    buf.close = new Float64Array(buffers[4]!);
+    buf.volume = new Float64Array(buffers[5]!);
+
+    return buf;
+  }
+
+  /**
+   * Create a deep copy of this buffer.
+   * Useful for sending to workers without transferring ownership.
+   */
+  clone(): BarDataBuffer {
+    const copy = new BarDataBuffer(this._capacity);
+    copy._length = this._length;
+    copy.time.set(this.time.subarray(0, this._length));
+    copy.open.set(this.open.subarray(0, this._length));
+    copy.high.set(this.high.subarray(0, this._length));
+    copy.low.set(this.low.subarray(0, this._length));
+    copy.close.set(this.close.subarray(0, this._length));
+    copy.volume.set(this.volume.subarray(0, this._length));
+    return copy;
   }
 }
 
@@ -297,11 +391,11 @@ export class BarDataBufferView {
     this._length = end - start;
 
     // Create typed array views (no copy, same underlying ArrayBuffer)
-    this.time   = parent.time.subarray(start, end);
-    this.open   = parent.open.subarray(start, end);
-    this.high   = parent.high.subarray(start, end);
-    this.low    = parent.low.subarray(start, end);
-    this.close  = parent.close.subarray(start, end);
+    this.time = parent.time.subarray(start, end);
+    this.open = parent.open.subarray(start, end);
+    this.high = parent.high.subarray(start, end);
+    this.low = parent.low.subarray(start, end);
+    this.close = parent.close.subarray(start, end);
     this.volume = parent.volume.subarray(start, end);
   }
 
@@ -314,11 +408,11 @@ export class BarDataBufferView {
     const result = new Array<Bar>(this._length);
     for (let i = 0; i < this._length; i++) {
       result[i] = {
-        time:   this.time[i],
-        open:   this.open[i],
-        high:   this.high[i],
-        low:    this.low[i],
-        close:  this.close[i],
+        time: this.time[i],
+        open: this.open[i],
+        high: this.high[i],
+        low: this.low[i],
+        close: this.close[i],
         volume: this.volume[i],
       };
     }
@@ -329,11 +423,11 @@ export class BarDataBufferView {
   at(idx: number): Bar | null {
     if (idx < 0 || idx >= this._length) return null;
     return {
-      time:   this.time[idx],
-      open:   this.open[idx],
-      high:   this.high[idx],
-      low:    this.low[idx],
-      close:  this.close[idx],
+      time: this.time[idx],
+      open: this.open[idx],
+      high: this.high[idx],
+      low: this.low[idx],
+      close: this.close[idx],
       volume: this.volume[idx],
     };
   }
@@ -347,7 +441,7 @@ export class BarDataBufferView {
   minMaxRange(start: number = 0, end: number = this._length): PriceRange {
     let lo = Infinity, hi = -Infinity;
     for (let i = start; i < end; i++) {
-      if (this.low[i] < lo)  lo = this.low[i];
+      if (this.low[i] < lo) lo = this.low[i];
       if (this.high[i] > hi) hi = this.high[i];
     }
     return { lo, hi };

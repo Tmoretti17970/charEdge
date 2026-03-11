@@ -5,8 +5,8 @@
 // symbol change → data fetch, indicator pipeline, drawing persistence.
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
+import { describe, it, expect, vi } from 'vitest';
 
 const read = (rel) => fs.readFileSync(`src/${rel}`, 'utf8');
 

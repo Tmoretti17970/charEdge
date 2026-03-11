@@ -7,8 +7,8 @@
 // 5.7: Auth flow tests (StorageAdapter sign-in/refresh/sync)
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'node:fs';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // ═══════════════════════════════════════════════════════════════════
 // 5.4 — SecureStore Round-Trip Tests
@@ -35,7 +35,7 @@ describe('5.4 — SecureStore Round-Trip', () => {
 
   it('base64 round-trip: encryptAndStore → loadAndDecrypt', async () => {
     // Dynamic import after localStorage mock is in place
-    const mod = await import('../../utils/SecureStore.ts');
+    const mod = await import('../../security/SecureStore.ts');
     const SS = mod.SecureStore;
 
     const testData = { apiKey: 'abc123', secret: 'xyz789', nested: { deep: true } };
@@ -65,7 +65,7 @@ describe('5.4 — SecureStore Round-Trip', () => {
   });
 
   it('legacy plain-text migration: returns object without _f field', async () => {
-    const mod = await import('../../utils/SecureStore.ts');
+    const mod = await import('../../security/SecureStore.ts');
     const SS = mod.SecureStore;
 
     // Simulate legacy data (pre-encryption era): plain JSON in localStorage
@@ -77,20 +77,20 @@ describe('5.4 — SecureStore Round-Trip', () => {
   });
 
   it('loadAndDecrypt returns null for missing key', async () => {
-    const mod = await import('../../utils/SecureStore.ts');
+    const mod = await import('../../security/SecureStore.ts');
     const result = await mod.SecureStore.loadAndDecrypt('nonexistent-key');
     expect(result).toBeNull();
   });
 
   it('loadAndDecrypt returns null for invalid JSON', async () => {
-    const mod = await import('../../utils/SecureStore.ts');
+    const mod = await import('../../security/SecureStore.ts');
     mockStorage.set('bad-json', '{not valid json!!!');
     const result = await mod.SecureStore.loadAndDecrypt('bad-json');
     expect(result).toBeNull();
   });
 
   it('clear removes the entry', async () => {
-    const mod = await import('../../utils/SecureStore.ts');
+    const mod = await import('../../security/SecureStore.ts');
     const SS = mod.SecureStore;
 
     await SS.encryptAndStore('to-clear', { data: 'sensitive' });
@@ -101,7 +101,7 @@ describe('5.4 — SecureStore Round-Trip', () => {
   });
 
   it('setPassphrase / hasPassphrase lifecycle', async () => {
-    const mod = await import('../../utils/SecureStore.ts');
+    const mod = await import('../../security/SecureStore.ts');
     const SS = mod.SecureStore;
 
     // Initially no passphrase
@@ -123,14 +123,14 @@ describe('5.4 — SecureStore Round-Trip', () => {
   });
 
   it('isEncryptionAvailable returns false in Node (no crypto.subtle)', async () => {
-    const mod = await import('../../utils/SecureStore.ts');
+    const mod = await import('../../security/SecureStore.ts');
     // Node.js doesn't have crypto.subtle in a normal test environment
     // Note: some newer Node versions may have it, so we just check it returns boolean
     expect(typeof mod.SecureStore.isEncryptionAvailable()).toBe('boolean');
   });
 
   it('multiple stores don\'t interfere with each other', async () => {
-    const mod = await import('../../utils/SecureStore.ts');
+    const mod = await import('../../security/SecureStore.ts');
     const SS = mod.SecureStore;
 
     const data1 = { portfolio: 'active', balance: 50000 };

@@ -7,8 +7,8 @@
 
 import React, { useMemo } from 'react';
 import { C, M } from '../../../../constants.js';
-import { Card } from '../../../components/ui/UIKit.jsx';
 import { fmtD } from '../../../../utils.js';
+import { Card } from '../../../components/ui/UIKit.jsx';
 import { SectionLabel } from './AnalyticsPrimitives.jsx';
 
 /**
@@ -79,8 +79,8 @@ function StreakAnalysis({ result, trades }) {
   const recoveries = useMemo(() => computeRecovery(streaks), [streaks]);
 
   // Find longest streaks
-  const winStreaks = streaks.filter((s) => s.type === 'win').sort((a, b) => b.length - a.length);
-  const lossStreaks = streaks.filter((s) => s.type === 'loss').sort((a, b) => b.length - a.length);
+  const _winStreaks = streaks.filter((s) => s.type === 'win').sort((a, b) => b.length - a.length);
+  const _lossStreaks = streaks.filter((s) => s.type === 'loss').sort((a, b) => b.length - a.length);
 
   // Current streak (from the end)
   const currentStreak = streaks.length > 0 ? streaks[streaks.length - 1] : null;

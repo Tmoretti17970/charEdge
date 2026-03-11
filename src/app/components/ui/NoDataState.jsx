@@ -4,7 +4,6 @@
 // Explains why and provides CTA to add an API key.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
 
 const containerStyle = {
   display: 'flex',

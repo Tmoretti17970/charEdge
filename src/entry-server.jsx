@@ -10,22 +10,29 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
+// eslint-disable-next-line import/order
 import { renderToString } from 'react-dom/server';
-import { matchRoute } from './seo/routes.js';
-import { renderMetaToString } from './seo/meta.js';
 
 // Page component map (statically imported for SSR bundle)
-import PublicSymbolPage from './pages/public/PublicSymbolPage.jsx';
-import PublicSnapshotPage from './pages/public/PublicSnapshotPage.jsx';
 import PublicLeaderboardPage from './pages/public/PublicLeaderboardPage.jsx';
 import PublicProfilePage from './pages/public/PublicProfilePage.jsx';
-import { logger } from './utils/logger';
+import PublicSnapshotPage from './pages/public/PublicSnapshotPage.jsx';
+import PublicSymbolPage from './pages/public/PublicSymbolPage.jsx';
+import { LandingPage, PricingPage, TermsPage, PrivacyPage, ChangelogPage } from './pages/public/StaticPages.jsx';
+import { renderMetaToString } from './seo/meta.js';
+import { matchRoute } from './seo/routes.js';
+import { logger } from '@/observability/logger';
 
 const PAGE_COMPONENTS = {
   PublicSymbolPage,
   PublicSnapshotPage,
   PublicLeaderboardPage,
   PublicProfilePage,
+  LandingPage,
+  PricingPage,
+  TermsPage,
+  PrivacyPage,
+  ChangelogPage,
 };
 
 /**

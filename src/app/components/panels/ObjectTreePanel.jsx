@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import { C, F } from '../../../constants.js';
-import { useChartStore } from '../../../state/useChartStore.js';
+import { useChartStore } from '../../../state/useChartStore';
 
 /**
  * ObjectTreePanel — Manage drawings on the chart.

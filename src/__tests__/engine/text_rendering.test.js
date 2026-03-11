@@ -1,7 +1,7 @@
 // Sprint 20 — Text Rendering Overhaul (Source Verification)
-import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import { describe, it, expect } from 'vitest';
 const ROOT = resolve(__dirname, '..', '..');
 const read = (rel) => readFileSync(resolve(ROOT, rel), 'utf-8');
 
@@ -14,6 +14,7 @@ describe('Sprint 20 · TextAtlas — Text Rendering Enhancements', () => {
   });
 
   it('uses configurable weight in canvas font string', () => {
+    // eslint-disable-next-line no-template-curly-in-string
     expect(src).toContain('${this._fontWeight}');
   });
 

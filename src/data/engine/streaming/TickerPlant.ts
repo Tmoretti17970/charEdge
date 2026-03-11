@@ -21,141 +21,23 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { priceAggregator, CONFIDENCE } from './PriceAggregator.js';
-import { logger } from '../../../utils/logger.js';
-import { BinaryCodec, MSG_TYPE } from '../infra/BinaryCodec.js';
-import { pythAdapter } from '../../adapters/PythAdapter.js';
-import { finnhubAdapter } from '../../adapters/FinnhubAdapter.js';
-import { forexAdapter } from '../../adapters/ForexAdapter.js';
-import { krakenAdapter } from '../../adapters/KrakenAdapter.js';
-import { bybitAdapter } from '../../adapters/BybitAdapter.js';
-import { okxAdapter } from '../../adapters/OKXAdapter.js';
-import { coinbaseAdapter } from '../../adapters/CoinbaseAdapter.js';
+import { logger } from '@/observability/logger.js';
+import { BinaryCodec } from '../infra/BinaryCodec.js';
 import { adaptivePoller } from '../infra/AdaptivePoller.js';
+import { registerBuiltInSources } from './builtInSources.js';
+import { AdapterHealthTracker } from './adapterHealth.js';
+import type {
+  PriceUpdate, PriceCallback, SourceAdapter, QuoteResult, WatchEntry,
+  BandwidthCounters, BandwidthMetrics, SourceHealthStatus, SourceStatus,
+  HealthStatus, BenchmarkResult, SharedWorkerMessage,
+} from './TickerPlantTypes.js';
 
-// ─── Type Definitions ───────────────────────────────────────────
-
-/** Incoming price data from a source adapter callback. */
-export interface PriceUpdate {
-  price: number;
-  timestamp: number;
-  confidence: number;
-  volume: number;
-}
-
-/** Callback type for price update subscriptions. */
-export type PriceCallback = (data: PriceUpdate) => void;
-
-/** Contract for external data source adapters. */
-export interface SourceAdapter {
-  id: string;
-  name: string;
-  assetClasses: string[];
-  available: boolean;
-  subscribe: ((symbol: string, callback: PriceCallback) => any) | null;
-  fetchQuote?: ((symbol: string) => Promise<QuoteResult | null>) | null;
-  supports?: (symbol: string) => boolean;
-}
-
-/** Result of a single-quote fetch. */
-export interface QuoteResult {
-  price: number;
-  confidence: number;
-  source?: string;
-}
-
-/** Tracked watch entry for a symbol. */
-interface WatchEntry {
-  unsubs: (() => void)[];
-  active: boolean;
-}
-
-/** Per-source health tracking data. */
-interface AdapterHealthData {
-  lastUpdate: number;
-  errors: number;
-  successes: number;
-  lastPrice: number;
-  consecutiveStale: number;
-  avgLatencyMs: number;
-}
-
-/** Bandwidth tracking counters. */
-interface BandwidthCounters {
-  jsonBytesIn: number;
-  binaryBytesOut: number;
-  messagesProcessed: number;
-  startTime: number;
-}
-
-/** Bandwidth metrics returned by getBandwidthMetrics(). */
-export interface BandwidthMetrics {
-  jsonBytesIn: number;
-  binaryBytesOut: number;
-  messagesProcessed: number;
-  uptimeSeconds: number;
-  avgMessageRate: string;
-  savings: string;
-}
-
-/** Per-source health status with computed score. */
-export interface SourceHealthStatus {
-  score: number;
-  level: 'healthy' | 'degraded' | 'unhealthy';
-  lastUpdate: number | null;
-  freshness: number | null;
-  errors: number;
-  successes: number;
-  errorRate: number;
-  consecutiveStale: number;
-  avgLatencyMs: number;
-}
-
-/** Full source status entry. */
-export interface SourceStatus {
-  name: string;
-  available: boolean;
-  assetClasses: string[];
-  hasStreaming: boolean;
-  hasRest: boolean;
-  health: SourceHealthStatus;
-}
-
-/** Overall health status of the ticker plant. */
-export interface HealthStatus {
-  running: boolean;
-  sources: Record<string, SourceStatus>;
-  watchedSymbols: string[];
-  aggregator: unknown;
-  bandwidth: BandwidthMetrics;
-}
-
-/** Bandwidth benchmark result per message type. */
-export interface BenchmarkResult {
-  candle: unknown;
-  tick: unknown;
-  quote: unknown;
-  candleBatch200: unknown;
-}
-
-/** SharedWorker message envelope. */
-interface SharedWorkerMessage {
-  type: string;
-  clientId?: number;
-  totalClients?: number;
-  symbol?: string;
-  sourceId?: string;
-  price?: number;
-  timestamp?: number;
-  data?: {
-    sourceId: string;
-    price: number;
-    timestamp: number;
-    confidence: number;
-  };
-}
+// Re-export types for backward compatibility
+export type { PriceUpdate, PriceCallback, SourceAdapter, QuoteResult, BandwidthMetrics, SourceHealthStatus, SourceStatus, HealthStatus, BenchmarkResult } from './TickerPlantTypes.js';
 
 // ─── Ticker Plant Class ─────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 class _TickerPlant {
   private _sources: Map<string, SourceAdapter>;
   private _watched: Map<string, WatchEntry>;
@@ -168,7 +50,7 @@ class _TickerPlant {
   private _prefetchCooldown: Map<string, number>;
   private _prefetchTTL: number;
   private _bandwidth: BandwidthCounters;
-  private _adapterHealth: Map<string, AdapterHealthData>;
+  private _healthTracker: AdapterHealthTracker;
 
   /** Correlation maps for predictive prefetch. */
   static _CORRELATIONS: Record<string, string[]> = {
@@ -218,9 +100,9 @@ class _TickerPlant {
       startTime: Date.now(),
     };
 
-    this._adapterHealth = new Map();
+    this._healthTracker = new AdapterHealthTracker();
 
-    this._registerBuiltInSources();
+    registerBuiltInSources(this._sources);
     this._initSharedWorker();
   }
 
@@ -257,7 +139,7 @@ class _TickerPlant {
     }
 
     for (const [, id] of this._pollIntervals) {
-      clearInterval(id as any);
+      clearInterval(id as unknown);
     }
     this._pollIntervals.clear();
 
@@ -331,6 +213,7 @@ class _TickerPlant {
           priceAggregator.ingest(upper, source.id, quote.price, Date.now(), quote.confidence || 0);
           return { ...quote, source: source.id };
         }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (_) {
         // Try next source
       }
@@ -356,7 +239,7 @@ class _TickerPlant {
    * @param quote - Aggregated quote to encode
    * @returns Binary-encoded quote
    */
-  encodePrice(quote: any): Uint8Array {
+  encodePrice(quote: unknown): Uint8Array {
     const binary = BinaryCodec.encodeQuote(quote);
     this._bandwidth.binaryBytesOut += binary.length;
     return binary;
@@ -367,7 +250,7 @@ class _TickerPlant {
    * @param buffer - Binary buffer to decode
    * @returns Decoded message with type and data
    */
-  decodePrice(buffer: Uint8Array | ArrayBuffer): any {
+  decodePrice(buffer: Uint8Array | ArrayBuffer): unknown {
     return BinaryCodec.decodeAuto(buffer);
   }
 
@@ -434,245 +317,7 @@ class _TickerPlant {
 
   // ─── Private Methods ────────────────────────────────────────
 
-  private _registerBuiltInSources(): void {
-    // ── Pyth Network (SSE streaming)
-    this._sources.set('pyth', {
-      id: 'pyth',
-      name: 'Pyth Network',
-      assetClasses: ['crypto', 'stock', 'forex', 'commodity'],
-      available: true,
-
-      subscribe: (symbol: string, callback: PriceCallback) => {
-        return pythAdapter.subscribe(symbol, (data: any) => {
-          callback({
-            price: data.price,
-            timestamp: data.time,
-            confidence: data.confidence || 0,
-            volume: data.volume || 0,
-          });
-        });
-      },
-
-      fetchQuote: async (symbol: string) => {
-        const quote = await pythAdapter.fetchQuote(symbol);
-        if (!quote) return null;
-        return {
-          price: quote.price,
-          confidence: quote.confidence || 0,
-        };
-      },
-
-      supports: (symbol: string) => pythAdapter.supports(symbol),
-    });
-
-    // ── Binance REST (client-side crypto)
-    this._sources.set('binance-rest', {
-      id: 'binance-rest',
-      name: 'Binance REST',
-      assetClasses: ['crypto'],
-      available: true,
-
-      subscribe: null,
-      fetchQuote: async (symbol: string) => {
-        try {
-          const upper = (symbol || '').toUpperCase();
-          const { isCrypto } = await import('../../../constants.js');
-          const base_sym = upper.replace(/(?:USDT|BUSD|USDC)$/, '');
-          if (!isCrypto(base_sym) && !upper.endsWith('USDT') && !upper.endsWith('BUSD')) return null;
-          const pair = upper.endsWith('USDT') ? upper : upper + 'USDT';
-          const base = typeof window === 'undefined' ? `http://localhost:${(globalThis as any).__TF_PORT || 3000}` : '';
-          const res = await fetch(`${base}/api/binance/v3/ticker/price?symbol=${pair}`);
-          if (!res.ok) return null;
-          const data = await res.json();
-          return { price: parseFloat(data.price), confidence: 0 };
-        } catch (_) {
-          return null;
-        }
-      },
-
-      supports: (symbol: string) => {
-        const upper = (symbol || '').toUpperCase();
-        if (upper.endsWith('USDT') || upper.endsWith('BUSD')) return true;
-        const CRYPTO_BASES = new Set([
-          'BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA', 'AVAX',
-          'DOT', 'MATIC', 'LINK', 'UNI', 'ATOM', 'FTM', 'NEAR', 'APT',
-          'ARB', 'OP', 'SUI', 'SEI', 'TIA', 'JUP', 'WIF', 'PEPE', 'LTC', 'FIL',
-        ]);
-        return CRYPTO_BASES.has(upper);
-      },
-    });
-
-    // ── Finnhub (real-time US stocks + forex)
-    this._sources.set('finnhub', {
-      id: 'finnhub',
-      name: 'Finnhub',
-      assetClasses: ['stock', 'etf', 'forex'],
-      available: finnhubAdapter.isConfigured,
-
-      subscribe: finnhubAdapter.isConfigured ? (symbol: string, callback: PriceCallback) => {
-        return finnhubAdapter.subscribe(symbol, (data: any) => {
-          callback({
-            price: data.price,
-            timestamp: data.timestamp || Date.now(),
-            confidence: 0,
-            volume: data.volume || 0,
-          });
-        });
-      } : null,
-
-      fetchQuote: finnhubAdapter.isConfigured ? async (symbol: string) => {
-        const quote = await finnhubAdapter.fetchQuote(symbol);
-        if (!quote) return null;
-        return { price: quote.price, confidence: 0 };
-      } : null,
-
-      supports: (symbol: string) => finnhubAdapter.supports(symbol),
-    });
-
-    // ── Forex (combined Pyth + Finnhub)
-    this._sources.set('forex', {
-      id: 'forex',
-      name: 'Forex Multi-Source',
-      assetClasses: ['forex'],
-      available: true,
-
-      subscribe: (symbol: string, callback: PriceCallback) => {
-        if (!forexAdapter.supports(symbol)) return null;
-        return forexAdapter.subscribe(symbol, (data: any) => {
-          callback({
-            price: data.price,
-            timestamp: data.timestamp || Date.now(),
-            confidence: data.confidence || 0,
-            volume: 0,
-          });
-        });
-      },
-
-      fetchQuote: async (symbol: string) => {
-        const quote = await forexAdapter.fetchQuote(symbol);
-        if (!quote) return null;
-        return { price: quote.price, confidence: quote.confidence || 0 };
-      },
-
-      supports: (symbol: string) => forexAdapter.supports(symbol),
-    });
-
-    // ── Kraken WebSocket (real-time crypto streaming)
-    this._sources.set('kraken', {
-      id: 'kraken',
-      name: 'Kraken WS',
-      assetClasses: ['crypto'],
-      available: true,
-
-      subscribe: (symbol: string, callback: PriceCallback) => {
-        if (!krakenAdapter.supports(symbol)) return null;
-        return krakenAdapter.subscribe(symbol, (data: any) => {
-          callback({
-            price: data.price,
-            timestamp: data.time || data.timestamp || Date.now(),
-            confidence: 0,
-            volume: data.volume || 0,
-          });
-        });
-      },
-
-      fetchQuote: async (symbol: string) => {
-        if (!krakenAdapter.supports(symbol)) return null;
-        const quote = await krakenAdapter.fetchQuote(symbol);
-        if (!quote) return null;
-        return { price: quote.price, confidence: 0 };
-      },
-
-      supports: (symbol: string) => krakenAdapter.supports(symbol),
-    });
-
-    // ── Bybit WebSocket (real-time crypto spot streaming)
-    this._sources.set('bybit', {
-      id: 'bybit',
-      name: 'Bybit WS',
-      assetClasses: ['crypto'],
-      available: true,
-
-      subscribe: (symbol: string, callback: PriceCallback) => {
-        if (!bybitAdapter.supports(symbol)) return null;
-        return bybitAdapter.subscribe(symbol, (data: any) => {
-          callback({
-            price: data.price,
-            timestamp: data.time || data.timestamp || Date.now(),
-            confidence: 0,
-            volume: data.volume || 0,
-          });
-        });
-      },
-
-      fetchQuote: async (symbol: string) => {
-        if (!bybitAdapter.supports(symbol)) return null;
-        const quote = await bybitAdapter.fetchQuote(symbol);
-        if (!quote) return null;
-        return { price: quote.price, confidence: 0 };
-      },
-
-      supports: (symbol: string) => bybitAdapter.supports(symbol),
-    });
-
-    // ── OKX WebSocket (real-time crypto spot streaming)
-    this._sources.set('okx', {
-      id: 'okx',
-      name: 'OKX WS',
-      assetClasses: ['crypto'],
-      available: true,
-
-      subscribe: (symbol: string, callback: PriceCallback) => {
-        if (!okxAdapter.supports(symbol)) return null;
-        return okxAdapter.subscribe(symbol, (data: any) => {
-          callback({
-            price: data.price,
-            timestamp: data.time || data.timestamp || Date.now(),
-            confidence: 0,
-            volume: data.volume || 0,
-          });
-        });
-      },
-
-      fetchQuote: async (symbol: string) => {
-        if (!okxAdapter.supports(symbol)) return null;
-        const quote = await okxAdapter.fetchQuote(symbol);
-        if (!quote) return null;
-        return { price: quote.price, confidence: 0 };
-      },
-
-      supports: (symbol: string) => okxAdapter.supports(symbol),
-    });
-
-    // ── Coinbase WebSocket (real-time crypto ticker)
-    this._sources.set('coinbase', {
-      id: 'coinbase',
-      name: 'Coinbase WS',
-      assetClasses: ['crypto'],
-      available: true,
-
-      subscribe: (symbol: string, callback: PriceCallback) => {
-        if (!coinbaseAdapter.supports(symbol)) return null;
-        return coinbaseAdapter.subscribe(symbol, (data: any) => {
-          callback({
-            price: data.price,
-            timestamp: data.time || data.timestamp || Date.now(),
-            confidence: 0,
-            volume: data.volume || 0,
-          });
-        });
-      },
-
-      fetchQuote: async (symbol: string) => {
-        if (!coinbaseAdapter.supports(symbol)) return null;
-        const quote = await coinbaseAdapter.fetchQuote(symbol);
-        if (!quote) return null;
-        return { price: quote.price, confidence: 0 };
-      },
-
-      supports: (symbol: string) => coinbaseAdapter.supports(symbol),
-    });
-  }
+  // Built-in sources are registered via registerBuiltInSources() in constructor
 
   /**
    * Connect a symbol to all available streaming sources.
@@ -697,8 +342,8 @@ class _TickerPlant {
     const otherSources = eligible.filter(s => !CRYPTO_EXCHANGES.has(s.id));
 
     exchangeSources.sort((a, b) => {
-      const healthA = this._adapterHealth.get(a.id);
-      const healthB = this._adapterHealth.get(b.id);
+      const healthA = this._healthTracker.get(a.id);
+      const healthB = this._healthTracker.get(b.id);
       const scoreA = healthA ? healthA.successes - healthA.errors * 5 : 0;
       const scoreB = healthB ? healthB.successes - healthB.errors * 5 : 0;
       return scoreB - scoreA;
@@ -713,7 +358,7 @@ class _TickerPlant {
           const unsub = source.subscribe(symbol, (data: PriceUpdate) => {
             this._bandwidth.jsonBytesIn += 100;
             this._bandwidth.messagesProcessed++;
-            this._recordAdapterSuccess(source.id, data.price);
+            this._healthTracker.recordSuccess(source.id, data.price);
 
             priceAggregator.ingest(
               symbol,
@@ -725,7 +370,7 @@ class _TickerPlant {
           });
           if (unsub) entry.unsubs.push(unsub);
         } catch (err) {
-          this._recordAdapterError(source.id);
+          this._healthTracker.recordError(source.id);
           logger.data.warn(`[TickerPlant] Failed to subscribe ${symbol} to ${source.id}:`, (err as Error).message);
         }
       }
@@ -739,12 +384,13 @@ class _TickerPlant {
               try {
                 const quote = await source.fetchQuote!(symbol);
                 if (quote && quote.price > 0) {
-                  this._recordAdapterSuccess(source.id, quote.price);
+                  this._healthTracker.recordSuccess(source.id, quote.price);
                   priceAggregator.ingest(symbol, source.id, quote.price, Date.now(), quote.confidence || 0);
                   this._broadcastToSharedWorker(symbol, source.id, quote.price);
                 }
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
               } catch (_) {
-                this._recordAdapterError(source.id);
+                this._healthTracker.recordError(source.id);
               }
             },
             'visible'
@@ -784,43 +430,7 @@ class _TickerPlant {
 
   /** Get status of all registered sources. */
   private _getSourceStatus(): Record<string, SourceStatus> {
-    const status: Record<string, SourceStatus> = {};
-    for (const [id, source] of this._sources) {
-      const health = this._adapterHealth.get(id);
-      const now = Date.now();
-      const freshness = health?.lastUpdate ? now - health.lastUpdate : null;
-      const totalCalls = (health?.successes || 0) + (health?.errors || 0);
-      const errorRate = totalCalls > 0 ? (health?.errors || 0) / totalCalls : 0;
-
-      let score = 100;
-      if (freshness !== null && freshness > 60000) score -= 20;
-      if (freshness !== null && freshness > 300000) score -= 30;
-      if (errorRate > 0.1) score -= 20;
-      if (errorRate > 0.5) score -= 30;
-      if ((health?.consecutiveStale || 0) > 5) score -= 20;
-      if ((health?.avgLatencyMs || 0) > 5000) score -= 10;
-      score = Math.max(0, score);
-
-      status[id] = {
-        name: source.name,
-        available: source.available,
-        assetClasses: source.assetClasses,
-        hasStreaming: !!source.subscribe,
-        hasRest: !!source.fetchQuote,
-        health: {
-          score,
-          level: score >= 70 ? 'healthy' : score >= 40 ? 'degraded' : 'unhealthy',
-          lastUpdate: health?.lastUpdate || null,
-          freshness,
-          errors: health?.errors || 0,
-          successes: health?.successes || 0,
-          errorRate: Math.round(errorRate * 1000) / 10,
-          consecutiveStale: health?.consecutiveStale || 0,
-          avgLatencyMs: health?.avgLatencyMs || 0,
-        },
-      };
-    }
-    return status;
+    return this._healthTracker.getSourceStatus(this._sources);
   }
 
   /**
@@ -828,40 +438,7 @@ class _TickerPlant {
    * @returns Health data keyed by source ID
    */
   getAdapterHealth(): Record<string, SourceHealthStatus> {
-    const status = this._getSourceStatus();
-    const result: Record<string, SourceHealthStatus> = {};
-    for (const [id, s] of Object.entries(status)) {
-      result[id] = s.health;
-    }
-    return result;
-  }
-
-  /** Record a successful data ingestion for adapter health tracking. */
-  private _recordAdapterSuccess(sourceId: string, price: number): void {
-    let h = this._adapterHealth.get(sourceId);
-    if (!h) {
-      h = { lastUpdate: 0, errors: 0, successes: 0, lastPrice: 0, consecutiveStale: 0, avgLatencyMs: 0 };
-      this._adapterHealth.set(sourceId, h);
-    }
-    h.successes++;
-    h.lastUpdate = Date.now();
-
-    if (price === h.lastPrice) {
-      h.consecutiveStale++;
-    } else {
-      h.consecutiveStale = 0;
-    }
-    h.lastPrice = price;
-  }
-
-  /** Record a failed data fetch for adapter health tracking. */
-  private _recordAdapterError(sourceId: string): void {
-    let h = this._adapterHealth.get(sourceId);
-    if (!h) {
-      h = { lastUpdate: 0, errors: 0, successes: 0, lastPrice: 0, consecutiveStale: 0, avgLatencyMs: 0 };
-      this._adapterHealth.set(sourceId, h);
-    }
-    h.errors++;
+    return this._healthTracker.getAdapterHealth(this._sources);
   }
 
   // ─── SharedWorker Bridge (Phase 8) ─────────────────────────
@@ -920,10 +497,12 @@ class _TickerPlant {
         const binaryMsg = BinaryCodec.encode(msg);
         this._bandwidth.binaryBytesOut += binaryMsg.byteLength || binaryMsg.length;
         this._sharedWorkerPort.postMessage(msg);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (_) {
         this._sharedWorkerPort.postMessage(msg);
         this._bandwidth.binaryBytesOut += jsonSize;
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) { /* SharedWorker may be closed */ }
   }
 
@@ -955,6 +534,95 @@ class _TickerPlant {
           this._prefetchCooldown.delete(key);
         }
       }
+    }
+  }
+
+  // ─── Fallback Cascade (Phase 7) ─────────────────────────────
+
+  /**
+   * Attempt to reconnect a symbol to alternative sources after a failure.
+   *
+   * Cascade order for equities:  Finnhub WS → Binance REST → Pyth SSE
+   * Cascade order for crypto:    Binance REST → Kraken WS → Bybit WS → OKX WS → Coinbase WS → Pyth SSE
+   * Cascade order for forex:     Forex multi → Finnhub → Pyth SSE
+   *
+   * Uses exponential backoff per symbol to avoid hammering sources.
+   */
+  private _reconnectAttempts: Map<string, number> = new Map();
+  private _reconnectTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
+
+  /**
+   * Handle a streaming source failure — try the next source in the cascade.
+   * @param symbol - Symbol that lost its connection
+   * @param failedSourceId - ID of the source that failed
+   */
+  private _handleSourceFailure(symbol: string, failedSourceId: string): void {
+    this._healthTracker.recordError(failedSourceId);
+
+    const attempts = this._reconnectAttempts.get(symbol) || 0;
+    const delay = Math.min(1000 * Math.pow(2, attempts), 30000); // 1s → 30s max
+
+    logger.data.warn(`[TickerPlant] Source ${failedSourceId} failed for ${symbol}, reconnecting in ${delay}ms (attempt ${attempts + 1})`);
+
+    this._reconnectAttempts.set(symbol, attempts + 1);
+
+    // Clear existing timer for this symbol
+    const existing = this._reconnectTimers.get(symbol);
+    if (existing) clearTimeout(existing);
+
+    const timer = setTimeout(() => {
+      this._reconnectTimers.delete(symbol);
+
+      if (!this._watched.has(symbol) || !this._running) return;
+
+      // Disconnect failed source and reconnect to alternatives
+      this._disconnectSymbol(symbol);
+      this._connectSymbol(symbol);
+    }, delay);
+
+    this._reconnectTimers.set(symbol, timer);
+  }
+
+  /**
+   * Detect stale data and trigger source failover.
+   * Called periodically — if a symbol hasn't received an update in > 60s,
+   * consider the source stale and try another.
+   */
+  private _checkStaleSymbols(): void {
+    const STALE_THRESHOLD_MS = 60000; // 1 minute
+    const now = Date.now();
+
+    for (const [symbol, entry] of this._watched) {
+      if (!entry.active) continue;
+
+      // Check if ANY source has recently provided data
+      let freshestUpdate = 0;
+      let stalestSource = '';
+
+      for (const [sourceId, health] of this._healthTracker.entries()) {
+        if (health.lastUpdate > freshestUpdate) {
+          freshestUpdate = health.lastUpdate;
+        }
+        if (health.consecutiveStale > 10) {
+          stalestSource = sourceId;
+        }
+      }
+
+      // If the freshest update is too old, trigger reconnect
+      if (freshestUpdate > 0 && (now - freshestUpdate) > STALE_THRESHOLD_MS) {
+        logger.data.info(`[TickerPlant] ${symbol} data stale (${Math.round((now - freshestUpdate) / 1000)}s), triggering failover`);
+        this._handleSourceFailure(symbol, stalestSource || 'unknown');
+      }
+    }
+  }
+
+  /**
+   * Reset reconnect attempts for a symbol on successful data receipt.
+   * Called when fresh data arrives from any source.
+   */
+  private _resetReconnect(symbol: string): void {
+    if (this._reconnectAttempts.has(symbol)) {
+      this._reconnectAttempts.delete(symbol);
     }
   }
 }

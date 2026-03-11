@@ -2,10 +2,10 @@
 // charEdge — Live Trading Rooms Panel
 // ═══════════════════════════════════════════════════════════════════
 
-import { useSocialStore } from '../../../state/useSocialStore.js';
 import { useState, useRef, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { useSocialStore } from '../../../state/useSocialStore.js';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Room Card ──────────────────────────────────────────────────
 function RoomCard({ room, onJoin }) {
@@ -291,7 +291,7 @@ export default function LiveRoomPanel() {
 
       {/* Room Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
-        {rooms.map((room, i) => (
+        {rooms.map((room, _i) => (
           <RoomCard key={room.id} room={room} onJoin={joinRoom} />
         ))}
       </div>

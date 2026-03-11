@@ -7,9 +7,9 @@
 
 import { useEffect } from 'react';
 import { C, M } from '../../../constants.js';
+import { useSocialStore } from '../../../state/useSocialStore.js';
 import { space, radii, text, transition, pnlColor } from '../../../theme/tokens.js';
 import { Card } from '../../components/ui/UIKit.jsx';
-import { useSocialStore } from '../../../state/useSocialStore.js';
 
 const METRICS = [
   { id: 'pnl', label: 'P&L', format: (v) => `$${v.toLocaleString()}` },

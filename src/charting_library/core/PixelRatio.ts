@@ -14,6 +14,7 @@ let _currentRatio = typeof window !== 'undefined' ? (window.devicePixelRatio || 
  * Set up matchMedia listener for DPR changes (window drag between displays).
  * Called lazily on first `onChange` subscription.
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _ensureListener(): void {
     if (_mql) return;
     if (typeof window === 'undefined' || !window.matchMedia) return;

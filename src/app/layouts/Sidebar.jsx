@@ -1,24 +1,23 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Sidebar Navigation (Simplified — Sprint 5)
+// charEdge — Sidebar Navigation (Simplified)
 //
-// Reduced from 8 interactive elements → 4:
-//   Home | Charts | Discover | ⚙️ Settings (slide-over trigger)
+// Two nav items: Home | Charts
+// Settings gear at the bottom.
 //
 // Icon-only default (60px), expand on hover (220px) with labels.
 // Includes always-visible P&L widget and active indicator bar.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import sb from './Sidebar.module.css';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../constants.js';
+import { useUIStore } from '../../state/useUIStore';
+import { useUserStore } from '../../state/useUserStore';
 import Icon from '../components/design/Icon.jsx';
-import { useUIStore } from '../../state/useUIStore.js';
-import { useUserStore } from '../../state/useUserStore.js';
-import SidebarXPBadge from '../components/ui/SidebarXPBadge.jsx';
-import SidebarPnL from '../components/ui/SidebarPnL.jsx';
 import SidebarPersonaBadge from '../components/ui/SidebarPersonaBadge.jsx';
-import { alpha } from '../../utils/colorUtils.js';
+import SidebarPnL from '../components/ui/SidebarPnL.jsx';
+import SidebarXPBadge from '../components/ui/SidebarXPBadge.jsx';
+import sb from './Sidebar.module.css';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Icon Components (inline SVG — no deps) ────────────────────
 // Sized to 20×20, stroke-based for consistent weight
@@ -43,7 +42,7 @@ function IconChart({ color }) {
   );
 }
 
-function IconDiscover({ color }) {
+function _IconDiscover({ color }) {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color}
       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -63,7 +62,7 @@ function IconSettings({ color }) {
   );
 }
 
-function IconCoach({ color }) {
+function _IconCoach({ color }) {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color}
       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -154,34 +153,35 @@ export default function Sidebar() {
   const sidebarWidth = expanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH;
 
   return (
-    <motion.nav
+    <nav
       ref={navRef}
       role="navigation"
       aria-label="Main navigation"
       className={`${sb.sidebar} ${expanded ? sb.expanded : sb.collapsed}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      animate={{ width: sidebarWidth, minWidth: sidebarWidth }}
-      transition={{ type: 'spring', stiffness: 300, damping: 28 }}
       style={{
+        width: sidebarWidth,
+        minWidth: sidebarWidth,
         background: 'var(--tf-depth-floating-bg)',
         backdropFilter: 'var(--tf-depth-floating-blur)',
         WebkitBackdropFilter: 'var(--tf-depth-floating-blur)',
         borderRight: 'var(--tf-glass-border)',
         boxShadow: 'var(--tf-depth-floating-specular), 1px 0 8px rgba(0,0,0,0.15)',
         fontFeatureSettings: '"tnum"',
+        transition: 'width 300ms cubic-bezier(0.32, 0.72, 0, 1), min-width 300ms cubic-bezier(0.32, 0.72, 0, 1)',
       }}
     >
       {/* ─── Sliding Active Indicator Bar (Sprint 1: spring physics) ─ */}
-      <motion.div
-        layout
-        transition={{
-          type: 'spring',
-          stiffness: 500,
-          damping: 30,
-        }}
+      <div
         className={sb.activeBar}
-        style={{ top: barTop, background: C.b, boxShadow: `0 0 8px ${C.b}60`, opacity: barVisible ? 1 : 0 }}
+        style={{
+          top: barTop,
+          background: C.b,
+          boxShadow: `0 0 8px ${C.b}60`,
+          opacity: barVisible ? 1 : 0,
+          transition: 'top 300ms cubic-bezier(0.32, 0.72, 0, 1), opacity 200ms ease',
+        }}
       />
 
       {/* ─── Logo ─────────────────────────────────────────── */}
@@ -208,42 +208,33 @@ export default function Sidebar() {
               whiteSpace: 'nowrap',
               opacity: expanded ? 1 : 0,
               transition: 'opacity 0.15s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
             }}
           >
             charEdge
+            {/* P2 3.1: Unified nav identity — persistent beta badge */}
+            <span style={{
+              fontSize: 8, fontWeight: 700, color: C.b,
+              background: alpha(C.b, 0.12), borderRadius: 4,
+              padding: '1px 4px', letterSpacing: '0.05em',
+            }}>β</span>
           </span>
         )}
       </div>
 
-      {/* ─── P&L Widget ───────────────────────────────────── */}
-      <div className={`${sb.pnlWrap} ${expanded ? sb.pnlExpanded : sb.pnlCollapsed}`}>
-        <SidebarPnL expanded={expanded} />
-      </div>
-
-      {/* ─── Divider ──────────────────────────────────────── */}
-      <div
-        className={`${sb.divider} ${expanded ? sb.dividerExpanded : sb.dividerCollapsed}`}
-        style={{ background: C.bd }}
-      />
-
-      {/* Sprint 6: Hide gamification on Charts page for immersion */}
-      {/* Simple Mode: Hide gamification widgets entirely */}
-      {!isChartPage && !simpleMode && (
-        <>
-          {/* ─── XP Badge ──────────────────────────────────────── */}
+      {/* ─── Gamification Identity (XP Level + Streak) ──── */}
+      {!simpleMode && (
+        <div style={{ flexShrink: 0, marginBottom: 6 }}>
           <div className={sb.xpBadge}>
             <SidebarXPBadge />
           </div>
-
-          {/* ─── Persona Badge ─────────────────────────────────── */}
-          <div className={sb.personaBadge}>
-            <SidebarPersonaBadge expanded={expanded} />
-          </div>
-        </>
+        </div>
       )}
 
-      {/* ─── Main Nav ─────────────────────────────────────── */}
-      <div className={`${sb.navGroup} ${expanded ? sb.navGroupExpanded : sb.navGroupCollapsed}`}>
+      {/* ─── Main Nav ────────────────────────────────────── */}
+      <div className={`${sb.navGroup} ${expanded ? sb.navGroupExpanded : sb.navGroupCollapsed}`} style={{ flex: 'none', marginBottom: 4 }}>
         {NAV_ITEMS.filter((item) => !simpleMode || item.id !== 'coach').map((item) => (
           <NavButton
             key={item.id}
@@ -255,42 +246,50 @@ export default function Sidebar() {
             onClick={() => setPage(item.id)}
           />
         ))}
+      </div>
 
-        {/* ─── Recent Symbols (Phase B Sprint 7) ────────────── */}
-        {expanded && recentSymbols.length > 0 && !isChartPage && (
-          <>
-            <div
-              style={{
-                width: '100%', height: 1, background: C.bd,
-                margin: '6px 0 4px', borderRadius: 1, flexShrink: 0,
+      {/* ─── Recent Symbols (Phase B Sprint 7) ────────────── */}
+      {expanded && recentSymbols.length > 0 && !isChartPage && (
+        <div className={`${sb.navGroupExpanded}`} style={{ flex: 'none', marginBottom: 4 }}>
+          <div
+            style={{
+              width: '100%', height: 1, background: C.bd,
+              margin: '6px 0 4px', borderRadius: 1, flexShrink: 0,
+            }}
+          />
+          <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, padding: '0 4px', marginBottom: 2, fontFamily: F }}>
+            Recent
+          </div>
+          {recentSymbols.map((sym) => (
+            <button
+              key={sym}
+              onClick={() => {
+                setPage('charts');
               }}
-            />
-            <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, padding: '0 4px', marginBottom: 2, fontFamily: F }}>
-              Recent
-            </div>
-            {recentSymbols.map((sym) => (
-              <button
-                key={sym}
-                onClick={() => {
-                  setPage('charts');
-                }}
-                onMouseEnter={() => setHoveredId(`sym-${sym}`)}
-                onMouseLeave={() => setHoveredId(null)}
-                style={{
-                  width: '100%', height: 28, borderRadius: 6, border: 'none',
-                  background: hoveredId === `sym-${sym}` ? alpha(C.b, 0.08) : 'transparent',
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '0 6px', cursor: 'pointer',
-                  transition: 'background 0.15s',
-                }}
-              >
-                <span style={{ fontSize: 11, fontWeight: 700, color: hoveredId === `sym-${sym}` ? C.b : C.t2, fontFamily: F }}>
-                  {sym}
-                </span>
-              </button>
-            ))}
-          </>
-        )}
+              onMouseEnter={() => setHoveredId(`sym-${sym}`)}
+              onMouseLeave={() => setHoveredId(null)}
+              style={{
+                width: '100%', height: 28, borderRadius: 6, border: 'none',
+                background: hoveredId === `sym-${sym}` ? alpha(C.b, 0.08) : 'transparent',
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '0 6px', cursor: 'pointer',
+                transition: 'background 0.15s',
+              }}
+            >
+              <span style={{ fontSize: 11, fontWeight: 700, color: hoveredId === `sym-${sym}` ? C.b : C.t2, fontFamily: F }}>
+                {sym}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ─── Spacer ──────────────────────────────────────── */}
+      <div style={{ flex: 1 }} />
+
+      {/* ─── P&L Widget ───────────────────────────────────── */}
+      <div className={`${sb.pnlWrap} ${expanded ? sb.pnlExpanded : sb.pnlCollapsed}`}>
+        <SidebarPnL expanded={expanded} />
       </div>
 
       {/* ─── Bottom: Settings Gear ─────────────────────────── */}
@@ -467,32 +466,6 @@ export default function Sidebar() {
           {expanded ? <><Icon name="journal" size={10} /> Terms</> : <Icon name="journal" size={10} />}
         </span>
 
-        {/* Wave 0: Pricing quarantined — re-enable when Stripe is integrated
-        <span
-          role="button"
-          tabIndex={0}
-          aria-label="Pricing — upgrade plans"
-          onClick={() => setPage('pricing')}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPage('pricing'); } }}
-          style={{
-            fontSize: expanded ? 10 : 10,
-            display: 'block',
-            cursor: 'pointer',
-            color: page === 'pricing' ? C.b : C.y,
-            opacity: page === 'pricing' ? 1 : 0.7,
-            transition: 'opacity 0.2s, color 0.2s',
-            marginBottom: 4,
-            fontFamily: F,
-            fontWeight: 600,
-          }}
-          title="Pricing & Plans"
-          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
-          onMouseLeave={(e) => { if (page !== 'pricing') e.currentTarget.style.opacity = '0.7'; }}
-        >
-          {expanded ? <><Icon name="eye" size={10} /> Upgrade</> : <Icon name="eye" size={10} />}
-        </span>
-        */}
-
         <span
           style={{
             fontSize: 8,
@@ -527,7 +500,10 @@ export default function Sidebar() {
           ✦
         </span>
       </div>
-    </motion.nav>
+
+
+
+    </nav>
   );
 }
 

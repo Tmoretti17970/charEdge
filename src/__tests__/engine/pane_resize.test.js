@@ -11,9 +11,9 @@
 //   7. featuresSlice: setPaneHeight, resetPaneHeights (pre-existing)
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import { describe, it, expect } from 'vitest';
 
 const ROOT = resolve(__dirname, '..', '..');
 const read = (rel) => readFileSync(resolve(ROOT, rel), 'utf-8');
@@ -26,9 +26,11 @@ describe('Sprint 11 · InputManager — Splitter Drag', () => {
     expect(src).toContain('_hitTestSplitter');
   });
 
-  it('detects splitter hit within tolerance', () => {
-    expect(src).toContain('TOLERANCE');
-    expect(src).toContain('const sy');
+  it('delegates splitter interaction to PaneManager DOM splitters (Item 26)', () => {
+    // Item 26: Canvas-level splitter hit-testing deprecated — always returns -1.
+    // PaneManager DOM splitters now fully handle all interactions.
+    expect(src).toContain('DEPRECATED');
+    expect(src).toContain('return -1');
   });
 
   it('sets dragging to splitter on mousedown near splitter', () => {

@@ -3,9 +3,9 @@
 // Extracted from NotesPage.jsx for single-responsibility.
 // ═══════════════════════════════════════════════════════════════════
 
+import { Card, Btn } from '../../app/components/ui/UIKit.jsx';
 import { C, M } from '../../constants.js';
 import { radii } from '../../theme/tokens.js';
-import { Card, Btn } from '../../app/components/ui/UIKit.jsx';
 
 export default function NoteCard({ note, isMobile, deleteConfirm, onEdit, onDeleteConfirm, onDeleteCancel, onDelete }) {
   const isConfirming = deleteConfirm === note.id;

@@ -5,7 +5,7 @@
 // glass, compact, flat), optional hover lift, and clickable state.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import styles from '../../../styles/Card.module.css';
 
 const VARIANT_MAP = {

@@ -2,7 +2,7 @@
 // charEdge — CandleVirtualizer Tests
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { CandleVirtualizer } from '../../data/engine/CandleVirtualizer.js';
 
 // Mock IndexedDB with auto-resolving transactions

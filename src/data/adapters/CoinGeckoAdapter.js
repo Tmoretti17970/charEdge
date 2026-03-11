@@ -6,9 +6,9 @@
 // Rate limit: 30 req/min on the free demo tier.
 // ═══════════════════════════════════════════════════════════════════
 
-import { BaseAdapter } from './BaseAdapter.js';
-import { logger } from '../../utils/logger.ts';
 import { CRYPTO_IDS } from '../../constants.js';
+import { BaseAdapter } from './BaseAdapter.js';
+import { logger } from '@/observability/logger';
 
 const API_BASE =
   typeof window === 'undefined'
@@ -109,6 +109,7 @@ export class CoinGeckoAdapter extends BaseAdapter {
         close,
         volume: 0,
       }));
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return null;
     }
@@ -143,6 +144,7 @@ export class CoinGeckoAdapter extends BaseAdapter {
         low: 0,
         open: 0,
       };
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return null;
     }
@@ -174,6 +176,7 @@ export class CoinGeckoAdapter extends BaseAdapter {
         type: 'CRYPTO',
         exchange: 'CoinGecko',
       }));
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return [];
     }

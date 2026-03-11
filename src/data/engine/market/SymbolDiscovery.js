@@ -45,6 +45,7 @@ class SymbolDiscovery {
                     if (adapter) {
                         this._adapters.set(name, adapter);
                     }
+                // eslint-disable-next-line unused-imports/no-unused-vars
                 } catch (_) {
                     // Adapter not available — skip
                 }
@@ -125,6 +126,7 @@ class SymbolDiscovery {
                 if (adapter.supports(symbol)) {
                     supporting.push(name);
                 }
+            // eslint-disable-next-line unused-imports/no-unused-vars
             } catch (_) {
                 // skip
             }

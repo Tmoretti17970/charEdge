@@ -26,9 +26,9 @@ const REGIMES = {
 
 function classifyRegime(features) {
     const { momentum, volatility, volume } = features;
-    const { rsi, trendStrength, priceVsEma, macdCrossover } = momentum;
+    const { rsi, trendStrength, priceVsEma, _macdCrossover } = momentum;
     const { atrRatio, bollingerWidth } = volatility;
-    const { volumeSpike, volumeRatio } = volume;
+    const { volumeSpike, _volumeRatio } = volume;
 
     // Breakout detection: high volume + expanding volatility + strong momentum
     if (volumeSpike > 2.0 && bollingerWidth > 0.04 && trendStrength > 15) {
@@ -134,7 +134,7 @@ function detectKeyLevels(candles, lookback = 50) {
     const used = new Set();
     for (let i = 0; i < levels.length; i++) {
         if (used.has(i)) continue;
-        let cluster = [levels[i]];
+        const cluster = [levels[i]];
         for (let j = i + 1; j < levels.length; j++) {
             if (used.has(j)) continue;
             if (Math.abs(levels[j].price - levels[i].price) / levels[i].price < 0.003) {
@@ -161,7 +161,7 @@ function detectKeyLevels(candles, lookback = 50) {
 
 // ─── Pulse Templates ────────────────────────────────────────────
 
-function generatePulseText(regime, features, symbol, tf) {
+function generatePulseText(regime, features, symbol, _tf) {
     const { momentum, volume } = features;
     const sym = symbol || 'Chart';
     const volDesc = volume.volumeRatio > 1.5 ? 'elevated volume' :
@@ -192,7 +192,7 @@ function generatePulseText(regime, features, symbol, tf) {
 // ─── Bias Templates ─────────────────────────────────────────────
 
 function generateBias(regime, features, lastClose) {
-    const { momentum } = features;
+    const { _momentum } = features;
     const price = lastClose ? `$${lastClose.toLocaleString()}` : '';
 
     if (regime.bias === 'bullish') {

@@ -19,9 +19,9 @@
 //   );
 // ═══════════════════════════════════════════════════════════════════
 
-import { indicators } from './IndicatorLibrary.js';
-import { logger } from '../../../utils/logger.ts';
 import { computePool } from '../infra/ComputeWorkerPool.js';
+import { indicators } from './IndicatorLibrary.js';
+import { logger } from '@/observability/logger';
 
 // ─── Cache Interface ───────────────────────────────────────────
 // We lazily import DataCache to avoid circular deps & keep the
@@ -34,6 +34,7 @@ async function getCache() {
     const mod = await import('../../DataCache.ts');
     _dataCache = mod.dataCache || mod.default;
     return _dataCache;
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return null;
   }
@@ -66,6 +67,7 @@ class _IndicatorWorkerBridge {
           this._ready = true;
           resolve(true);
         }
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) {
         this._fallback = true;
         resolve(false);

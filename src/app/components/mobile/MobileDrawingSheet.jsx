@@ -14,7 +14,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { C, M } from '../../../constants.js';
-import { useChartStore } from '../../../state/useChartStore.js';
+import { useChartToolsStore } from '../../../state/useChartStore';
 
 // ─── Tool definitions (compact for mobile) ─────────────────────
 const MOBILE_TOOLS = [
@@ -44,13 +44,13 @@ const MOBILE_TOOLS = [
  * Mobile-optimized bottom sheet for drawing tools.
  */
 export default function MobileDrawingSheet() {
-  const activeTool = useChartStore((s) => s.activeTool);
-  const setActiveTool = useChartStore((s) => s.setActiveTool);
-  const clearActiveTool = useChartStore((s) => s.clearActiveTool);
-  const drawings = useChartStore((s) => s.drawings);
-  const clearAllDrawings = useChartStore((s) => s.clearAllDrawings);
-  const magnetMode = useChartStore((s) => s.magnetMode);
-  const toggleMagnetMode = useChartStore((s) => s.toggleMagnetMode);
+  const activeTool = useChartToolsStore((s) => s.activeTool);
+  const setActiveTool = useChartToolsStore((s) => s.setActiveTool);
+  const clearActiveTool = useChartToolsStore((s) => s.clearActiveTool);
+  const drawings = useChartToolsStore((s) => s.drawings);
+  const clearAllDrawings = useChartToolsStore((s) => s.clearAllDrawings);
+  const magnetMode = useChartToolsStore((s) => s.magnetMode);
+  const toggleMagnetMode = useChartToolsStore((s) => s.toggleMagnetMode);
 
   const [expanded, setExpanded] = useState(false);
   const [touchStartY, setTouchStartY] = useState(0);

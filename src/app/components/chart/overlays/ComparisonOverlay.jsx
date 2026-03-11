@@ -4,9 +4,9 @@
 // Similar to TradingView's "Compare" feature.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { C, F } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore.js';
+import { useChartStore } from '../../../../state/useChartStore';
 import SymbolSearch from '../../ui/SymbolSearch.jsx';
 
 const COMPARE_COLORS = ['#FF6D00', '#AB47BC', '#00BCD4', '#4CAF50', '#F44336'];

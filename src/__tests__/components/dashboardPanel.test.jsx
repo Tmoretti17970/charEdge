@@ -10,9 +10,8 @@
 //   - DashboardPrimitives.jsx      (shared sub-components)
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, vi } from 'vitest';
-import React from 'react';
 import fs from 'node:fs';
+import { describe, it, expect } from 'vitest';
 
 const dashSrc = fs.readFileSync('src/app/components/dashboard/DashboardPanel.jsx', 'utf8');
 const narrativeSrc = fs.readFileSync('src/app/components/dashboard/DashboardNarrativeLayout.jsx', 'utf8');

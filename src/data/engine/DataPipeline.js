@@ -13,11 +13,11 @@
 //   dataPipeline.getDataSource('BTCUSDT'); // → 'LIVE' | 'DELAYED' | ...
 // ═══════════════════════════════════════════════════════════════════
 
-import { tickerPlant } from './streaming/TickerPlant.js';
 import { pythAdapter } from '../adapters/PythAdapter.js';
 import { getBandwidthMonitor } from './infra/BandwidthMonitor.js';
 import { getBatteryThrottle } from './infra/BatteryThrottle.js';
-import { logger } from '../../utils/logger.js';
+import { tickerPlant } from './streaming/TickerPlant.js';
+import { logger } from '@/observability/logger.js';
 
 // ─── Data Source Constants ──────────────────────────────────────
 
@@ -222,6 +222,7 @@ class DataPipeline extends EventTarget {
   getConfidence(symbol) {
     try {
       return pythAdapter.getConfidence(symbol);
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return null;
     }

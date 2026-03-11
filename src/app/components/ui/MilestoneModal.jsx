@@ -7,10 +7,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useState, useCallback } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { C, F, M } from '../../../constants.js';
-import { useGamificationStore } from '../../../state/useGamificationStore.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { useGamificationStore } from '../../../state/useGamificationStore';
+import { alpha } from '@/shared/colorUtils';
 
 const PARTICLE_COLORS = ['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#007AFF', '#AF52DE', '#FF6B9D'];
 
@@ -46,12 +45,17 @@ export default function MilestoneModal() {
   const clearPendingMilestone = useGamificationStore((s) => s.clearPendingMilestone);
   const notifEnabled = useGamificationStore((s) => s.notificationPrefs.achievements);
   const [visible, setVisible] = useState(false);
-  const prefersReducedMotion = useReducedMotion();
+  const skipMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+  const [animating, setAnimating] = useState(false);
 
   const dismiss = useCallback(() => {
-    setVisible(false);
-    clearPendingMilestone();
-  }, [clearPendingMilestone]);
+    setAnimating(false);
+    // Wait for exit transition before unmounting
+    setTimeout(() => {
+      setVisible(false);
+      clearPendingMilestone();
+    }, skipMotion ? 0 : 300);
+  }, [clearPendingMilestone, skipMotion]);
 
   useEffect(() => {
     if (pendingMilestone) {
@@ -60,33 +64,26 @@ export default function MilestoneModal() {
         return;
       }
       setVisible(true);
+      requestAnimationFrame(() => requestAnimationFrame(() => setAnimating(true)));
       const timer = setTimeout(dismiss, 5000);
       return () => clearTimeout(timer);
     }
   }, [pendingMilestone, dismiss, notifEnabled, clearPendingMilestone]);
 
-  // Sprint 1: Framer Motion transitions
-  const springTransition = prefersReducedMotion
-    ? { duration: 0.01 }
-    : { type: 'spring', stiffness: 300, damping: 25 };
-
   const showModal = visible && pendingMilestone;
   const particles = showModal
     ? Array.from({ length: 30 }, (_, i) => ({
-        delay: Math.random() * 0.5,
-        color: PARTICLE_COLORS[i % PARTICLE_COLORS.length],
-      }))
+      delay: Math.random() * 0.5,
+      color: PARTICLE_COLORS[i % PARTICLE_COLORS.length],
+    }))
     : [];
 
+  const dur = skipMotion ? '0ms' : '300ms';
+
+  if (!showModal) return null;
+
   return (
-    <AnimatePresence>
-      {showModal && (
-    <motion.div
-      key="milestone-backdrop"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: prefersReducedMotion ? 0.01 : 0.3 }}
+    <div
       onClick={dismiss}
       style={{
         position: 'fixed',
@@ -100,17 +97,15 @@ export default function MilestoneModal() {
         WebkitBackdropFilter: 'blur(8px)',
         cursor: 'pointer',
         overflow: 'hidden',
+        opacity: animating ? 1 : 0,
+        transition: `opacity ${dur} ease`,
       }}
     >
       {particles.map((p, i) => (
         <Particle key={i} delay={p.delay} color={p.color} />
       ))}
 
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        transition={springTransition}
+      <div
         style={{
           background: alpha(C.sf, 0.95),
           backdropFilter: 'blur(20px)',
@@ -122,6 +117,9 @@ export default function MilestoneModal() {
           maxWidth: 380,
           boxShadow: `0 0 60px ${alpha('#FFD700', 0.2)}, 0 20px 60px ${alpha(C.bg, 0.5)}`,
           position: 'relative',
+          transform: animating ? 'scale(1)' : 'scale(0.95)',
+          opacity: animating ? 1 : 0,
+          transition: `transform ${dur} cubic-bezier(0.32, 0.72, 0, 1), opacity ${dur} ease`,
         }}
       >
         <div
@@ -157,10 +155,8 @@ export default function MilestoneModal() {
         <div style={{ fontSize: 10, color: C.t3, fontFamily: M, marginTop: 16, opacity: 0.6 }}>
           Click anywhere to dismiss
         </div>
-      </motion.div>
-    </motion.div>
-      )}
-    </AnimatePresence>
+      </div>
+    </div>
   );
 }
 

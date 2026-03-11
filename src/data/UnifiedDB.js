@@ -1,4 +1,4 @@
-import { logger } from '../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — UnifiedDB (IDB Consolidation)
@@ -17,10 +17,10 @@ import { logger } from '../utils/logger';
 // ═══════════════════════════════════════════════════════════════════
 
 const UNIFIED_DB_NAME = 'charEdge-unified';
-const UNIFIED_DB_VERSION = 1;
+const UNIFIED_DB_VERSION = 3; // P2 7.1+7.2+7.3: Added candles + session + audioNotes stores
 
 // Old database names (for migration)
-const OLD_DBS = ['charEdge-cache', 'charEdge-ticks', 'charEdge-os-v10'];
+const OLD_DBS = ['charEdge-cache', 'charEdge-ticks', 'charEdge-os-v10', 'charEdge_candleCache', 'charedge-session-recovery'];
 const MIGRATION_FLAG = 'charEdge-unified-migrated';
 
 // ─── Store Schemas ─────────────────────────────────────────────
@@ -39,11 +39,11 @@ const CACHE_STORES = [
 
 // From charEdge-os-v10 (StorageService/MiniDB)
 const USER_STORES_SCHEMA = {
-  trades:     { keyPath: 'id', indexes: ['date', 'symbol', 'playbook'] },
-  playbooks:  { keyPath: 'id', indexes: ['name'] },
-  notes:      { keyPath: 'id', indexes: ['date'] },
+  trades: { keyPath: 'id', indexes: ['date', 'symbol', 'playbook'] },
+  playbooks: { keyPath: 'id', indexes: ['name'] },
+  notes: { keyPath: 'id', indexes: ['date'] },
   tradePlans: { keyPath: 'id', indexes: ['date'] },
-  settings:   { keyPath: 'key', indexes: [] },
+  settings: { keyPath: 'key', indexes: [] },
 };
 
 // ─── Database Manager ──────────────────────────────────────────
@@ -104,6 +104,21 @@ function openUnifiedDB() {
             }
           }
         }
+
+        // ── P2 7.1: Candle cache store (for CandleVirtualizer) ──
+        if (!db.objectStoreNames.contains('candleCache')) {
+          db.createObjectStore('candleCache');
+        }
+
+        // ── P2 7.2: Session recovery store ──
+        if (!db.objectStoreNames.contains('session')) {
+          db.createObjectStore('session', { keyPath: 'key' });
+        }
+
+        // ── P2 7.3: Voice-to-chart audio notes store (VoiceToChart consolidation) ──
+        if (!db.objectStoreNames.contains('audioNotes')) {
+          db.createObjectStore('audioNotes', { keyPath: 'id' });
+        }
       };
 
       req.onsuccess = (event) => {
@@ -127,6 +142,7 @@ function openUnifiedDB() {
         logger.data.warn('[UnifiedDB] Failed to open unified database');
         reject(new Error('IndexedDB unavailable'));
       };
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       if (!settled) {
         settled = true;
@@ -152,6 +168,7 @@ async function _migrateOldDBs(unifiedDb) {
   // Skip if already migrated
   try {
     if (localStorage.getItem(MIGRATION_FLAG)) return;
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) { /* localStorage unavailable — skip migration check */ }
 
   let migrated = false;
@@ -183,6 +200,7 @@ async function _migrateOldDBs(unifiedDb) {
   // Set flag so migration doesn't re-run
   try {
     localStorage.setItem(MIGRATION_FLAG, Date.now().toString());
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) { /* ignore */ }
 
   // Delete old databases (fire-and-forget, non-blocking)
@@ -190,6 +208,7 @@ async function _migrateOldDBs(unifiedDb) {
     for (const dbName of OLD_DBS) {
       try {
         indexedDB.deleteDatabase(dbName);
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { /* silent */ }
     }
   }
@@ -266,6 +285,7 @@ function _openOldDB(name) {
       const req = indexedDB.open(name);
       req.onsuccess = (e) => resolve(e.target.result);
       req.onerror = () => resolve(null);
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       resolve(null);
     }
@@ -280,6 +300,7 @@ function _readAllFromStore(db, storeName) {
       const req = store.getAll();
       req.onsuccess = () => resolve(req.result || []);
       req.onerror = () => resolve([]);
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       resolve([]);
     }
@@ -296,6 +317,7 @@ function _writeAllToStore(db, storeName, records) {
       }
       tx.oncomplete = () => resolve();
       tx.onerror = () => resolve();
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       resolve();
     }
@@ -312,6 +334,7 @@ function _addAllToStore(db, storeName, records) {
       }
       tx.oncomplete = () => resolve();
       tx.onerror = () => resolve();
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       resolve();
     }

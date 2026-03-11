@@ -11,7 +11,8 @@ let _savedChartSessions = [];
 try {
   const raw = localStorage.getItem(SESSION_KEY);
   if (raw) _savedChartSessions = JSON.parse(raw);
-} catch (_) {}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+} catch (_) { /* ignored */ }
 
 /**
  * Create chart session analytics state (for integration with existing stores).
@@ -88,7 +89,8 @@ export const createChartSessionSlice = (set, get) => ({
     };
 
     const sessions = [...state.chartSessions, session].slice(-100);
-    try { localStorage.setItem(SESSION_KEY, JSON.stringify(sessions)); } catch (_) {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    try { localStorage.setItem(SESSION_KEY, JSON.stringify(sessions)); } catch (_) { /* ignored */ }
 
     set({
       chartSessionActive: false,

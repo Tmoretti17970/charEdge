@@ -5,38 +5,40 @@
 // inline=true → compact 3-widget preview; inline=false → full view.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useDataStore } from '../../../state/useDataStore.js';
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+// eslint-disable-next-line import/order
+import { useDataStore } from '../../../state/useDataStore.js';
 
 // ─── Market Intelligence Widgets ─────────────────────────────────
 import FearGreedWidget from '../social/FearGreedWidget.jsx';
-import XSentimentWidget from '../social/XSentimentWidget.jsx';
-import HeatmapWidget from '../social/HeatmapWidget.jsx';
 import FundingRatesWidget from '../social/FundingRatesWidget.jsx';
-import WhaleAlertWidget from '../social/WhaleAlertWidget.jsx';
+import HeatmapWidget from '../social/HeatmapWidget.jsx';
 import LiquidationTicker from '../social/LiquidationTicker.jsx';
+// eslint-disable-next-line import/order
 import MacroCalendarWidget from '../social/MacroCalendarWidget.jsx';
 
 // ─── Discover Components ─────────────────────────────────────────
-import SectorRotationMap from './SectorRotationMap.jsx';
-import OptionsFlowScanner from './OptionsFlowScanner.jsx';
-import InsiderTracker from './InsiderTracker.jsx';
-import AnalystConsensus from './AnalystConsensus.jsx';
-import TechnicalScanner from './TechnicalScanner.jsx';
-import CorrelationMatrix from './CorrelationMatrix.jsx';
-import VolatilityDashboard from './VolatilityDashboard.jsx';
-import ConfluenceView from './ConfluenceView.jsx';
-import SmartAlerts from './SmartAlerts.jsx';
-import SocialValidation from './SocialValidation.jsx';
-import EconomicCalendarPro from './EconomicCalendarPro.jsx';
-import EarningsIntelligence from './EarningsIntelligence.jsx';
 
 // ─── Predictions ─────────────────────────────────────────────────
 import PollCard from '../social/PollCard.jsx';
-import TraderLeaderboard from '../social/TraderLeaderboard.jsx';
 import TournamentPanel from '../social/TournamentPanel.jsx';
+import TraderLeaderboard from '../social/TraderLeaderboard.jsx';
+import WhaleAlertWidget from '../social/WhaleAlertWidget.jsx';
+import XSentimentWidget from '../social/XSentimentWidget.jsx';
+import AnalystConsensus from './AnalystConsensus.jsx';
+import ConfluenceView from './ConfluenceView.jsx';
+import CorrelationMatrix from './CorrelationMatrix.jsx';
+import EarningsIntelligence from './EarningsIntelligence.jsx';
+import EconomicCalendarPro from './EconomicCalendarPro.jsx';
+import InsiderTracker from './InsiderTracker.jsx';
+import OptionsFlowScanner from './OptionsFlowScanner.jsx';
+import SectorRotationMap from './SectorRotationMap.jsx';
+import SmartAlerts from './SmartAlerts.jsx';
+import SocialValidation from './SocialValidation.jsx';
+import TechnicalScanner from './TechnicalScanner.jsx';
+import VolatilityDashboard from './VolatilityDashboard.jsx';
+import { alpha } from '@/shared/colorUtils';
 
 // ═════════════════════════════════════════════════════════════════
 // Market Intel Content

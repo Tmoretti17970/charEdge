@@ -4,9 +4,9 @@
 // Appears when a drawing is selected. TradingView-style UX.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { C, F } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore.js';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { C } from '../../../../constants.js';
+import { useChartStore } from '../../../../state/useChartStore';
 
 const PRESET_COLORS = [
   '#2962FF', '#FF6D00', '#EF5350', '#26A69A', '#AB47BC',
@@ -15,7 +15,7 @@ const PRESET_COLORS = [
   '#607D8B', '#FFEB3B', '#FF5722', '#D1D4DC', '#787B86',
 ];
 
-const LINE_WIDTHS = [1, 2, 3, 4, 5];
+const _LINE_WIDTHS = [1, 2, 3, 4, 5];
 
 const DASH_PATTERNS = [
   { label: '──', value: [], name: 'Solid' },

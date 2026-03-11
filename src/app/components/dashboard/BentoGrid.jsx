@@ -8,8 +8,8 @@
 // - Quick-resize drag handles
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 
 const COLUMN_COUNT = 4;
 const ROW_HEIGHT = 180;
@@ -56,7 +56,7 @@ export default function BentoGrid({
   });
 
   const [dragId, setDragId] = useState(null);
-  const [resizeId, setResizeId] = useState(null);
+  const [_resizeId, _setResizeId] = useState(null);
   const gridRef = useRef(null);
 
   // Serialize layout on change

@@ -13,7 +13,7 @@
 //
 // ═══════════════════════════════════════════════════════════════════
 
-import { logger } from '../utils/logger.js';
+import { logger } from '@/observability/logger.js';
 
 // ─── Constants ─────────────────────────────────────────────────
 

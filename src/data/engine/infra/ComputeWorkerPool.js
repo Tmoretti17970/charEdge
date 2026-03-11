@@ -1,4 +1,4 @@
-import { logger } from '../../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v17 — Compute Worker Pool
 //
@@ -143,6 +143,7 @@ class PoolWorker {
 
     try {
       this.worker.postMessage(taskData, transferables);
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       // Fallback: structured clone (slower but works for any data)
       this.worker.postMessage(taskData);
@@ -415,6 +416,7 @@ class _ComputeWorkerPool {
     try {
       const { computeTask } = await import('./ComputeWorker.js');
       return computeTask(task);
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       throw new Error('Fallback computation failed');
     }

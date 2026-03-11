@@ -15,14 +15,12 @@ export interface CandleParams {
   yMax: number;
   mainH?: number;
   hollow?: boolean; // 5A.3.2: hollow candles mode
-  [key: string]: unknown;
 }
 
 /** Theme colors for candle rendering. */
 export interface CandleTheme {
   bullCandle?: string;
   bearCandle?: string;
-  [key: string]: unknown;
 }
 
 /** Bar data shape for candle rendering. */
@@ -31,7 +29,6 @@ export interface CandleBar {
   high: number;
   low: number;
   close: number;
-  [key: string]: unknown;
 }
 
 /** Minimal renderer interface to avoid circular WebGLRenderer dependency. */
@@ -114,38 +111,62 @@ export function drawCandles(
   gl.useProgram(prog);
   gl.viewport(0, 0, cW, cH);
 
-  // Set uniforms
+  // Item 22: Cache uniform/attrib locations per program (avoid ~18 GL calls/frame)
+  if (!(prog as unknown)._candleLocs) {
+    (prog as unknown)._candleLocs = {
+      u_resolution: gl.getUniformLocation(prog, 'u_resolution'),
+      u_bodyWidth: gl.getUniformLocation(prog, 'u_bodyWidth'),
+      u_wickWidth: gl.getUniformLocation(prog, 'u_wickWidth'),
+      u_yMin: gl.getUniformLocation(prog, 'u_yMin'),
+      u_yMax: gl.getUniformLocation(prog, 'u_yMax'),
+      u_mainH: gl.getUniformLocation(prog, 'u_mainH'),
+      u_panOffset: gl.getUniformLocation(prog, 'u_panOffset'),
+      u_hollow: gl.getUniformLocation(prog, 'u_hollow'),
+      u_bullColor: gl.getUniformLocation(prog, 'u_bullColor'),
+      u_bearColor: gl.getUniformLocation(prog, 'u_bearColor'),
+      a_position: gl.getAttribLocation(prog, 'a_position'),
+      a_x: gl.getAttribLocation(prog, 'a_x'),
+      a_open: gl.getAttribLocation(prog, 'a_open'),
+      a_high: gl.getAttribLocation(prog, 'a_high'),
+      a_low: gl.getAttribLocation(prog, 'a_low'),
+      a_close: gl.getAttribLocation(prog, 'a_close'),
+      a_isBull: gl.getAttribLocation(prog, 'a_isBull'),
+      a_isWick: gl.getAttribLocation(prog, 'a_isWick'),
+    };
+  }
+  const locs = (prog as unknown)._candleLocs;
+
+  // Set uniforms via cached locations
   const mainH = params.mainH || cH / pr;
-  gl.uniform2f(gl.getUniformLocation(prog, 'u_resolution'), cW, cH);
-  gl.uniform1f(gl.getUniformLocation(prog, 'u_bodyWidth'), Math.max(1, barSpacing * 0.35 * pr));
-  gl.uniform1f(gl.getUniformLocation(prog, 'u_wickWidth'), Math.max(0.5, pr * 0.5));
-  gl.uniform1f(gl.getUniformLocation(prog, 'u_yMin'), params.yMin);
-  gl.uniform1f(gl.getUniformLocation(prog, 'u_yMax'), params.yMax);
-  gl.uniform1f(gl.getUniformLocation(prog, 'u_mainH'), mainH * pr);
-  gl.uniform1f(gl.getUniformLocation(prog, 'u_panOffset'), 0.0);
-  gl.uniform1f(gl.getUniformLocation(prog, 'u_hollow'), params.hollow ? 1.0 : 0.0);
+  gl.uniform2f(locs.u_resolution, cW, cH);
+  gl.uniform1f(locs.u_bodyWidth, Math.max(1, barSpacing * 0.35 * pr));
+  gl.uniform1f(locs.u_wickWidth, Math.max(1.5, pr));
+  gl.uniform1f(locs.u_yMin, params.yMin);
+  gl.uniform1f(locs.u_yMax, params.yMax);
+  gl.uniform1f(locs.u_mainH, mainH * pr);
+  gl.uniform1f(locs.u_panOffset, 0.0);
+  gl.uniform1f(locs.u_hollow, params.hollow ? 1.0 : 0.0);
 
   // Bull/bear colors
   const bullRGBA = r._parseColor(theme.bullCandle || '#26A69A');
   const bearRGBA = r._parseColor(theme.bearCandle || '#EF5350');
-  gl.uniform4fv(gl.getUniformLocation(prog, 'u_bullColor'), bullRGBA);
-  gl.uniform4fv(gl.getUniformLocation(prog, 'u_bearColor'), bearRGBA);
+  gl.uniform4fv(locs.u_bullColor, bullRGBA);
+  gl.uniform4fv(locs.u_bearColor, bearRGBA);
 
   // Set up quad attribute
-  const aPos = gl.getAttribLocation(prog, 'a_position');
   gl.bindBuffer(gl.ARRAY_BUFFER, r._buffers.quad);
-  gl.enableVertexAttribArray(aPos);
-  gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
-  gl.vertexAttribDivisor(aPos, 0); // per-vertex
+  gl.enableVertexAttribArray(locs.a_position);
+  gl.vertexAttribPointer(locs.a_position, 2, gl.FLOAT, false, 0, 0);
+  gl.vertexAttribDivisor(locs.a_position, 0); // per-vertex
 
-  // Upload candle instance data
+  // #24: Upload candle instance data via bufferSubData (buffer pre-allocated at max capacity)
   gl.bindBuffer(gl.ARRAY_BUFFER, r._buffers.candleInstances);
-  gl.bufferData(gl.ARRAY_BUFFER, data.subarray(0, instanceCount * 7), gl.DYNAMIC_DRAW);
+  gl.bufferSubData(gl.ARRAY_BUFFER, 0, data, 0, instanceCount * 7);
 
   const stride = 7 * 4;
-  const attrs = ['a_x', 'a_open', 'a_high', 'a_low', 'a_close', 'a_isBull', 'a_isWick'];
-  for (let i = 0; i < attrs.length; i++) {
-    const loc = gl.getAttribLocation(prog, attrs[i]);
+  const attrLocs = [locs.a_x, locs.a_open, locs.a_high, locs.a_low, locs.a_close, locs.a_isBull, locs.a_isWick];
+  for (let i = 0; i < attrLocs.length; i++) {
+    const loc = attrLocs[i];
     if (loc >= 0) {
       gl.enableVertexAttribArray(loc);
       gl.vertexAttribPointer(loc, 1, gl.FLOAT, false, stride, i * 4);
@@ -157,8 +178,7 @@ export function drawCandles(
   gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, instanceCount);
 
   // Clean up
-  for (const attr of attrs) {
-    const loc = gl.getAttribLocation(prog, attr);
+  for (const loc of attrLocs) {
     if (loc >= 0) gl.vertexAttribDivisor(loc, 0);
   }
 

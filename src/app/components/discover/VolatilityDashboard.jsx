@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 const VIX_CURRENT = 18.4;
 const VIX_CHANGE = -1.2;

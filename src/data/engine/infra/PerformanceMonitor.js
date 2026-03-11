@@ -21,7 +21,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { CircularBuffer } from '../streaming/StreamingMetrics.js';
-import { logger } from '../../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 // ─── Quality Levels ────────────────────────────────────────────
 
 const QUALITY_LEVELS = {
@@ -34,14 +34,14 @@ const QUALITY_LEVELS = {
 
 // ─── Config ────────────────────────────────────────────────────
 
-const FRAME_BUDGET_MS = 16.67;       // 60fps target
+const _FRAME_BUDGET_MS = 16.67;       // 60fps target
 const JANK_THRESHOLD_MS = 25;        // Frame is janky if > 25ms
 const SAMPLE_WINDOW = 120;           // Analyze last 120 frames (~2 sec)
 const JANK_RATE_DOWNGRADE = 0.15;    // Downgrade if >15% of frames are janky
 const JANK_RATE_UPGRADE = 0.03;      // Upgrade if <3% of frames are janky
 const SMOOTH_FRAMES_FOR_UPGRADE = 300; // Need 300 smooth frames (~5 sec) to upgrade
-const MIN_LEVEL = 'minimal';
-const MAX_LEVEL = 'ultra';
+const _MIN_LEVEL = 'minimal';
+const _MAX_LEVEL = 'ultra';
 
 // ─── Performance Monitor ───────────────────────────────────────
 

@@ -4,7 +4,7 @@
 // Single-click fires default action; hold opens submenu.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { C, F, GLASS, DEPTH } from '../../../constants.js';
 
 // ─── Segment definitions ───────────────────────────────────────

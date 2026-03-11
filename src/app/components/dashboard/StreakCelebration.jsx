@@ -6,12 +6,12 @@
 // break, and fires confetti-like animation on milestone days.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo, useState, useEffect } from 'react';
-import { C, M, F } from '../../../constants.js';
+import { useMemo, useState, useEffect } from 'react';
+import { C, M } from '../../../constants.js';
+import { useGamificationStore } from '../../../state/useGamificationStore';
+import { useJournalStore } from '../../../state/useJournalStore';
 import { radii } from '../../../theme/tokens.js';
-import { useGamificationStore } from '../../../state/useGamificationStore.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { useBreakpoints } from '../../../utils/useMediaQuery.js';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 // ─── Milestone thresholds ────────────────────────────────────────
 
@@ -38,7 +38,7 @@ function getCurrentMilestone(current) {
 
 export default function StreakCelebration() {
   const streaks = useGamificationStore((s) => s.streaks) || {};
-  const trades = useJournalStore((s) => s.trades);
+  const _trades = useJournalStore((s) => s.trades);
   const { isMobile } = useBreakpoints();
   const [showCelebration, setShowCelebration] = useState(false);
 

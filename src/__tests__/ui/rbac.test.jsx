@@ -6,10 +6,10 @@
 
 // @vitest-environment jsdom
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
-import React from 'react';
+// eslint-disable-next-line import/order
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ─── Mock the auth store ────────────────────────────────────────
 
@@ -30,8 +30,8 @@ vi.mock('../../../state/useAuthStore.js', () => ({
 }));
 
 // Import AFTER mocks
-import { useRole } from '../../app/hooks/useRole.js';
 import RoleGate from '../../app/components/auth/RoleGate.jsx';
+import { useRole } from '../../hooks/useRole.js';
 
 // ─── useRole Tests ──────────────────────────────────────────────
 

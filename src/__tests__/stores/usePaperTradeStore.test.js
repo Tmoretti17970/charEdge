@@ -5,6 +5,7 @@
 // order placement, position management, P&L, SL/TP, and stats.
 // ═══════════════════════════════════════════════════════════════════
 
+// eslint-disable-next-line import/order
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock crypto.randomUUID for deterministic IDs in tests

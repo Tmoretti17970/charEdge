@@ -10,9 +10,9 @@
 //   </Tooltip>
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../../state/useUserStore.js';
 import React from 'react';
 import { C, F, M } from '../../../constants.js';
+import { useUserStore } from '../../../state/useUserStore';
 import { space, radii, transition, zIndex as zi } from '../../../theme/tokens.js';
 
 /**

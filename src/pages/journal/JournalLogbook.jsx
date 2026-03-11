@@ -3,18 +3,18 @@
 // Extracted from JournalPage (Phase 0.1 decomposition)
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useRef } from 'react';
-import { C, F, M } from '../../constants.js';
+import { useState, useEffect, useRef } from 'react';
+import { JournalEmptyState } from '../../app/components/ui/EmptyState.jsx';
 import { Card } from '../../app/components/ui/UIKit.jsx';
-import VirtualList from '../../utils/VirtualList.jsx';
-import JournalFilterBar from '../../app/features/journal/journal_ui/JournalFilterBar.jsx';
-import JournalTradeRow, { GRID_COLS, GRID_COLS_NO_CHECK } from '../../app/features/journal/journal_ui/JournalTradeRow.jsx';
 import { BulkActionBar } from '../../app/features/journal/journal_ui/BulkOperations.jsx';
+import ContextPerformanceTab from '../../app/features/journal/journal_ui/ContextPerformanceTab.jsx';
 import {
   AdvancedFilters,
 } from '../../app/features/journal/journal_ui/JournalEvolution.jsx';
-import ContextPerformanceTab from '../../app/features/journal/journal_ui/ContextPerformanceTab.jsx';
-import { JournalEmptyState } from '../../app/components/ui/EmptyState.jsx';
+import JournalFilterBar from '../../app/features/journal/journal_ui/JournalFilterBar.jsx';
+import JournalTradeRow, { GRID_COLS, GRID_COLS_NO_CHECK } from '../../app/features/journal/journal_ui/JournalTradeRow.jsx';
+import { C, F, M } from '../../constants.js';
+import VirtualList from '@/shared/VirtualList.jsx';
 
 const COLUMNS = [
   { id: 'date', label: 'Date', width: '100px', sortable: true },
@@ -44,7 +44,7 @@ export default function JournalLogbook({
   handleViewOnChart,
   handleReplay,
   handleShare,
-  handleExportCSV,
+  _handleExportCSV,
   handleBulkDelete,
   handleBulkTag,
   handleBulkEdit,

@@ -10,12 +10,12 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { logger } from '../../../utils/logger.ts';
 import { C, F, M } from '../../../constants.js';
-import { ModalOverlay, Btn, inputStyle } from '../../components/ui/UIKit.jsx';
-import toast from '../../components/ui/Toast.jsx';
-import { createAnnotatedSnapshot } from '../../../utils/chartExport.js';
 import LabsBadge from '../../components/ui/LabsBadge.jsx';
+import toast from '../../components/ui/Toast.jsx';
+import { ModalOverlay, Btn, inputStyle } from '../../components/ui/UIKit.jsx';
+import { createAnnotatedSnapshot } from '@/charting_library/utils/chartExport';
+import { logger } from '@/observability/logger';
 
 /**
  * Snapshot publisher modal.

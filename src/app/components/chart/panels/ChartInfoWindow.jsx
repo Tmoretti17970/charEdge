@@ -4,11 +4,11 @@
 // floating data box. Price+delta on horizontal, date on vertical.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo } from 'react';
-import { C, F, M } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore.js';
+import { useMemo } from 'react';
 import { INDICATORS } from '../../../../charting_library/studies/indicators/registry.js';
-import { logger } from '../../../../utils/logger';
+import { C, M } from '../../../../constants.js';
+import { useChartStore } from '../../../../state/useChartStore';
+import { logger } from '@/observability/logger';
 
 function fmt(v) {
   if (v == null || isNaN(v)) return '—';
@@ -141,65 +141,14 @@ export default function ChartInfoWindow({ data, barIdx, mouseY }) {
         )}
       </div>
 
-      {/* ─── Compact OHLCV Row (top-left) ─── */}
-      <div
-        className="tf-fade-in"
-        style={{
-          position: 'absolute',
-          top: 28,
-          left: 8,
-          zIndex: 55,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          padding: '2px 8px',
-          background: pillBg,
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          border: `1px solid ${pillBorder}`,
-          borderRadius: 6,
-          pointerEvents: 'none',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-        }}
-      >
-        {/* Date */}
-        {bar.time && (
-          <span style={{ fontSize: 9, color: C.t3, fontWeight: 500, fontFamily: M }}>
-            {new Date(bar.time).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-          </span>
-        )}
-        <span style={{ width: 1, height: 10, background: 'rgba(255,255,255,0.06)' }} />
-        {/* OHLC inline */}
-        {[
-          { label: 'O', value: bar.open, color: changeColor },
-          { label: 'H', value: bar.high, color: '#26A69A' },
-          { label: 'L', value: bar.low, color: '#EF5350' },
-          { label: 'C', value: bar.close, color: changeColor },
-        ].map(({ label, value, color }) => (
-          <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <span style={{ fontSize: 8, color: C.t3, fontWeight: 700 }}>{label}</span>
-            <span style={{ fontSize: 9, color, fontWeight: 600, fontVariantNumeric: 'tabular-nums', fontFamily: M }}>{fmt(value)}</span>
-          </span>
-        ))}
-        {/* Volume */}
-        {bar.volume != null && (
-          <>
-            <span style={{ width: 1, height: 10, background: 'rgba(255,255,255,0.06)' }} />
-            <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <span style={{ fontSize: 8, color: C.t3, fontWeight: 700 }}>V</span>
-              <span style={{ fontSize: 9, color: C.t2, fontVariantNumeric: 'tabular-nums', fontFamily: M }}>{fmt(bar.volume)}</span>
-            </span>
-          </>
-        )}
-      </div>
-
       {/* ─── Indicator Values (inline dots) ─── */}
+      {/* Item 38: OHLCV row removed — UnifiedStatusBar is the canonical source */}
       {indicatorValues.length > 0 && (
         <div
           className="tf-fade-in"
           style={{
             position: 'absolute',
-            top: 50,
+            top: 28,
             left: 8,
             zIndex: 55,
             display: 'flex',

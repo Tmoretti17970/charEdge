@@ -30,7 +30,11 @@ test.describe('Indicator Panel', () => {
             const searchInput = page.locator('input[placeholder*="earch"], input[placeholder*="ndicator"]').first();
             if (await searchInput.isVisible({ timeout: 5_000 })) {
                 await searchInput.fill('SMA');
-                await page.waitForTimeout(1000);
+                // Wait for search results to filter
+                await page.waitForFunction(
+                    () => document.querySelector('[class*="result"], [class*="option"], [role="option"]'),
+                    { timeout: 5_000 }
+                ).catch(() => { });
             }
         }
     });

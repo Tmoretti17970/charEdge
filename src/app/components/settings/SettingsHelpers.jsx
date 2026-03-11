@@ -3,7 +3,7 @@
 // Reusable UI components used across all Settings section files.
 // ═══════════════════════════════════════════════════════════════════
 
-import { C, F, M } from '../../../constants.js';
+import { C, M } from '../../../constants.js';
 import { radii } from '../../../theme/tokens.js';
 import TFIcon from '../ui/TFIcon.jsx';
 import s from './SettingsHelpers.module.css';

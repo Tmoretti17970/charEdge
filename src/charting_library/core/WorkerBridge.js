@@ -1,4 +1,4 @@
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — WorkerBridge
@@ -162,7 +162,7 @@ export class WorkerBridge {
     }
 
     return new Promise((resolve) => {
-      const id = this._storeCallback('indicator', resolve);
+      const _id = this._storeCallback('indicator', resolve);
 
       // Phase 1.2.3: Zero-copy transfer via Transferable ArrayBuffers.
       // After postMessage, the source buffers become detached.

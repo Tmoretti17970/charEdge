@@ -115,7 +115,7 @@ function handleMessage(port, msg) {
 //   const worker = new SharedWorker(new URL('./RateLimitWorker.js', import.meta.url))
 //   worker.port.postMessage({ type: 'REQUEST', providerId: 'polygon' })
 
-// eslint-disable-next-line no-restricted-globals
+ 
 self.onconnect = function (e) {
     const port = e.ports[0];
     port.onmessage = (event) => handleMessage(port, event.data);

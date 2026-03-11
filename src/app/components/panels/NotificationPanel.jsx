@@ -9,7 +9,7 @@
 import { useMemo, useRef, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useNotificationLog } from '../../../state/useNotificationLog.js';
-import { useHotkeys } from '../../../utils/useHotkeys.js';
+import { useHotkeys } from '@/hooks/useHotkeys';
 
 // ─── Type styling ─────────────────────────────────────────────────
 

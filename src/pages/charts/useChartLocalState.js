@@ -4,13 +4,13 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { useChartStore } from '../../state/useChartStore.js';
-import { useJournalStore } from '../../state/useJournalStore.js';
-import { useWatchlistStore } from '../../state/useWatchlistStore.js';
-import { useScriptStore } from '../../state/useScriptStore.js';
-import { usePanelStore } from '../../state/usePanelStore.js';
-import { useBreakpoints } from '../../utils/useMediaQuery.js';
 import { analyzeAll } from '../../charting_library/studies/PriceActionEngine.js';
+import { useChartStore } from '../../state/useChartStore';
+import { useJournalStore } from '../../state/useJournalStore';
+import { useLayoutStore } from '../../state/useLayoutStore';
+import { useScriptStore } from '../../state/useScriptStore.js';
+import { useWatchlistStore } from '../../state/useWatchlistStore.js';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 export default function useChartLocalState() {
   // ─── Store selectors ──────────────────────────────────────────
@@ -45,7 +45,7 @@ export default function useChartLocalState() {
   const showQuickJournal = useChartStore((s) => s.showQuickJournal);
   const toggleQuickJournal = useChartStore((s) => s.toggleQuickJournal);
 
-  const openPanel = usePanelStore((s) => s.openPanel);
+  const openPanel = useLayoutStore((s) => s.openPanel);
   const { isMobile } = useBreakpoints();
   const enabledScriptCount = useScriptStore((s) => s.scripts.filter((sc) => sc.enabled).length);
 
@@ -73,6 +73,7 @@ export default function useChartLocalState() {
   const [walkForwardOpen, setWalkForwardOpen] = useState(false);
   const [futuresOpen, setFuturesOpen] = useState(false);
   const [workspaceMode, setWorkspaceMode] = useState(() => {
+    // eslint-disable-next-line unused-imports/no-unused-vars
     try { return localStorage.getItem('charEdge-workspace-mode') === 'true'; } catch (_) { return false; }
   });
 

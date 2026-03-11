@@ -10,36 +10,44 @@
 //   - ChartPanelManager (side panels, modals, mobile sheets)
 // ═══════════════════════════════════════════════════════════════════
 
+// eslint-disable-next-line import/order
 import React, { useEffect, useState, useRef, Suspense } from 'react';
-import { C, F } from '../constants.js';
-import DataSourceBadge from '../app/components/ui/DataSourceBadge.jsx';
-import NoDataState from '../app/components/ui/NoDataState.jsx';
+const ChartMinimap = React.lazy(() => import('../app/components/chart/ui/ChartMinimap.jsx'));
+const UnifiedStatusBar = React.lazy(() => import('../app/components/chart/ui/UnifiedStatusBar.jsx'));
+const DepthChart = React.lazy(() => import('../app/components/chart/DepthChart.jsx'));
+ 
+// eslint-disable-next-line import/order
+import { C } from '../constants.js';
 
 // Core (always needed)
 import ChartCanvas from '../app/components/chart/core/ChartCanvas.jsx';
-import UnifiedChartToolbar from '../app/components/chart/UnifiedChartToolbar.jsx';
 import ChartSkeleton from '../app/components/chart/ui/ChartSkeleton.jsx';
+import UnifiedChartToolbar from '../app/components/chart/UnifiedChartToolbar.jsx';
 const DrawingSidebar = React.lazy(() => import('../app/components/chart/tools/DrawingSidebar.jsx'));
 const LiveTicker = React.lazy(() => import('../app/misc/components/LiveTicker.jsx'));
 const DataQualityIndicator = React.lazy(() => import('../app/components/chart/ui/DataQualityIndicator.jsx').then(m => ({ default: m.DataQualityIndicator })));
-import { fetchSymbolSearch } from '../data/FetchService.ts';
 import Coachmark from '../app/components/ui/Coachmark.jsx';
+import DataSourceBadge from '../app/components/ui/DataSourceBadge.jsx';
+import NoDataState from '../app/components/ui/NoDataState.jsx';
+// eslint-disable-next-line import/order
+import { fetchSymbolSearch } from '../data/FetchService';
 
 // Extracted sub-modules
-import useChartLocalState from './charts/useChartLocalState.js';
-import useChartDataLoader from './charts/useChartDataLoader.js';
-import useChartKeyboardHandler from './charts/useChartKeyboardHandler.js';
-import useChartDrawingHandler from './charts/useChartDrawingHandler.js';
-import useChartMouseHandlers from './charts/useChartMouseHandlers.js';
 import ChartOverlays from './charts/ChartOverlays.jsx';
 import ChartPanelManager from './charts/ChartPanelManager.jsx';
+import useChartDataLoader from './charts/useChartDataLoader.js';
+import useChartDrawingHandler from './charts/useChartDrawingHandler.js';
+import useChartKeyboardHandler from './charts/useChartKeyboardHandler';
+import useChartLocalState from './charts/useChartLocalState.js';
+import useChartMouseHandlers from './charts/useChartMouseHandlers.js';
+import { useChartStore } from '../state/useChartStore';
 
 // Lazy-loaded (opened on demand)
 const ReplayBar = React.lazy(() => import('../app/components/chart/panels/ReplayBar.jsx'));
 const QuadChart = React.lazy(() => import('../app/components/widgets/QuadChart.jsx'));
 const WorkspaceLayout = React.lazy(() => import('../app/layouts/WorkspaceLoader.jsx'));
 const FocusMode = React.lazy(() => import('../app/components/chart/overlays/FocusMode.jsx'));
-const AICopilotBar = React.lazy(() => import('../app/components/chart/AICopilotBar.jsx'));
+const _AICopilotBar = React.lazy(() => import('../app/components/chart/AICopilotBar.jsx'));
 const ActionSidebar = React.lazy(() => import('../app/components/chart/ActionSidebar.jsx'));
 const TradeEntryBar = React.lazy(() => import('../app/components/chart/chart_ui/TradeEntryBar.jsx'));
 const SwipeChartNav = React.lazy(() => import('../app/components/mobile/SwipeChartNav.jsx'));
@@ -71,7 +79,7 @@ export default function ChartsPage() {
   return <ChartsPageInner mountTime={mountTimeRef.current} />;
 }
 
-function ChartsPageInner({ mountTime }) {
+function ChartsPageInner({ _mountTime }) {
   // All state consolidated into one hook
   const state = useChartLocalState();
   const {
@@ -106,6 +114,11 @@ function ChartsPageInner({ mountTime }) {
     analysis, isWatched, toggleWatchlist, matchingTrades,
   } = state;
 
+  // Reactive selectors for minimap/status bar toggles
+  const showMinimap = useChartStore((s) => s.showMinimap);
+  const showStatusBar = useChartStore((s) => s.showStatusBar);
+  const showDepthChart = useChartStore((s) => s.showDepthChart);
+
   // ─── Extracted hooks ──────────────────────────────────────────
   const {
     tick, wsStatus, isLive, wsSupported, dataWarning, setDataWarning,
@@ -118,8 +131,8 @@ function ChartsPageInner({ mountTime }) {
   });
 
   const {
-    handleDrawingClick, handleAICopilotCommand, handleContextMenu,
-    contextMenuHandlers, copyFeedback, scriptOutputs, setEditorOutputs,
+    handleDrawingClick, _handleAICopilotCommand, handleContextMenu,
+    contextMenuHandlers, _copyFeedback, scriptOutputs, setEditorOutputs,
   } = useChartDrawingHandler(chartRef);
 
   const { onMouseMove, onMouseLeave, onDoubleClick, onChartContextMenu } = useChartMouseHandlers({
@@ -134,7 +147,9 @@ function ChartsPageInner({ mountTime }) {
     replayIdx: replayMode ? replayIdx : -1,
     activeGhost: replayMode ? activeGhost : null,
     drawings, drawingsVisible, showVolumeProfile, activeTool, pendingDrawing,
-    onDrawingClick: handleDrawingClick, scriptOutputs,
+    // Bridge: engine fires onBarClick(price, time, bar); handleDrawingClick expects {price, barIdx}
+    onBarClick: (price, _time, bar) => handleDrawingClick({ price, barIdx: bar?.index ?? 0 }),
+    scriptOutputs,
     comparisonData, comparisonSymbol,
     srLevels: intelligence.enabled && intelligence.showSR ? analysis?.levels : null,
     patternMarkers: intelligence.enabled && intelligence.showPatterns ? analysis?.patterns : null,
@@ -149,7 +164,6 @@ function ChartsPageInner({ mountTime }) {
         <UnifiedChartToolbar
           symbol={symbol} setSymbolInput={setSymbolInput}
           onSearchSelect={(sym) => { setSymbol(sym); setSymbolInput(sym); }}
-          isWatched={isWatched} toggleWatchlist={toggleWatchlist}
           showIndicators={showIndicators} setShowIndicators={setShowIndicators}
           showObjectTree={showObjectTree} setShowObjectTree={setShowObjectTree}
           showTrades={showTrades} setShowTrades={setShowTrades}
@@ -229,62 +243,89 @@ function ChartsPageInner({ mountTime }) {
               <FocusMode isActive={focusMode} onExit={() => setFocusMode(false)} symbol={symbol} timeframe={tf} lastPrice={data?.[data.length - 1]?.close} />
             </Suspense>
           )}
-          <div
-            className="tf-chart-area"
-            style={{
-              flex: 1, position: 'relative', minHeight: 0, overflow: 'hidden',
-              opacity: (dataLoading && (!data || data.length === 0)) ? 0.5 : 1,
-              marginLeft: 0,
-              transition: 'opacity 0.25s ease, margin-left 0.28s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            }}
-            onDoubleClick={onDoubleClick} onMouseMove={onMouseMove}
-            onMouseLeave={onMouseLeave} onContextMenu={onChartContextMenu}
-          >
-            {multiMode ? (
-              <Suspense fallback={<div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.t3 }}>Loading...</div>}>
-                <QuadChart layoutMode={layoutMode} />
-              </Suspense>
-            ) : isMobile ? (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <div
+              className="tf-chart-area"
+              style={{
+                flex: 1, position: 'relative', minHeight: 0, overflow: 'hidden',
+                opacity: (dataLoading && (!data || data.length === 0)) ? 0.5 : 1,
+                marginLeft: 0,
+                transition: 'opacity 0.25s ease, margin-left 0.28s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              }}
+              onDoubleClick={onDoubleClick} onMouseMove={onMouseMove}
+              onMouseLeave={onMouseLeave} onContextMenu={onChartContextMenu}
+            >
+              {multiMode ? (
+                <Suspense fallback={<div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.t3 }}>Loading...</div>}>
+                  <QuadChart layoutMode={layoutMode} />
+                </Suspense>
+              ) : isMobile ? (
+                <Suspense fallback={null}>
+                  <SwipeChartNav watchlist={watchlistSymbols} currentSymbol={symbol} onSymbolChange={(sym) => { setSymbol(sym); setSymbolInput(sym); }}>
+                    <ChartCanvas {...chartCanvasProps} />
+                  </SwipeChartNav>
+                </Suspense>
+              ) : (
+                <ChartCanvas {...chartCanvasProps} />
+              )}
+              {dataLoading && (!data || data.length === 0) && (
+                <div style={{
+                  position: 'absolute', inset: 0, zIndex: 15,
+                  transition: 'opacity 0.25s ease-out',
+                  opacity: 1,
+                }}>
+                  <ChartSkeleton phase={3} />
+                </div>
+              )}
+              {!dataLoading && dataSource === 'no_data' && (
+                <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: 'var(--tf-bg)', display: 'flex' }}>
+                  <NoDataState symbol={symbol} onSettingsClick={() => import('../app/components/ui/Toast.jsx').then(({ default: toast }) => toast.info('Navigate to Settings → API Keys to add your Polygon.io key.')).catch(() => { })} /> {/* intentional: Toast import is best-effort UI */}
+                </div>
+              )}
+              <ChartOverlays
+                symbol={symbol} tf={tf} data={data} isMobile={isMobile} multiMode={multiMode}
+                hoverInfo={hoverInfo} showTrades={showTrades} matchingTrades={matchingTrades}
+                contextMenu={contextMenu} closeContextMenu={closeContextMenu} contextMenuHandlers={contextMenuHandlers}
+                tradeMode={tradeMode} tradeStep={tradeStep}
+                showQuickJournal={showQuickJournal} toggleQuickJournal={toggleQuickJournal}
+                radialMenu={radialMenu} setRadialMenu={setRadialMenu}
+                setDrawSidebarOpen={setDrawSidebarOpen} setShowIndicators={setShowIndicators}
+                setShowSnapshotPublisher={setShowSnapshotPublisher}
+                chartAnalysisOpen={chartAnalysisOpen} setChartAnalysisOpen={setChartAnalysisOpen}
+                paperTradeOpen={paperTradeOpen} setPaperTradeOpen={setPaperTradeOpen}
+                walkForwardOpen={walkForwardOpen} setWalkForwardOpen={setWalkForwardOpen}
+                futuresOpen={futuresOpen} setFuturesOpen={setFuturesOpen}
+                isLandscapeFullscreen={isLandscapeFullscreen} setIsLandscapeFullscreen={setIsLandscapeFullscreen}
+                setShowMobileSettings={setShowMobileSettings} setShowMobileShare={setShowMobileShare}
+                setShowCopilot={setShowCopilot}
+                openPanel={(view) => openPanel(view)}
+                showAutoFit={true}
+                onAutoFit={() => window.dispatchEvent(new CustomEvent('charEdge:autoFit'))}
+              />
+            </div>
+
+            {/* ─── Depth Chart (inside chart flex column so it's not clipped) ─── */}
+            {!workspaceMode && showDepthChart && (
               <Suspense fallback={null}>
-                <SwipeChartNav watchlist={watchlistSymbols} currentSymbol={symbol} onSymbolChange={(sym) => { setSymbol(sym); setSymbolInput(sym); }}>
-                  <ChartCanvas {...chartCanvasProps} />
-                </SwipeChartNav>
+                <DepthChart
+                  symbol={symbol}
+                  height={160}
+                  onClose={() => useChartStore.getState().toggleDepthChart()}
+                />
               </Suspense>
-            ) : (
-              <ChartCanvas {...chartCanvasProps} />
             )}
-            {dataLoading && (!data || data.length === 0) && (
-              <div style={{
-                position: 'absolute', inset: 0, zIndex: 15,
-                transition: 'opacity 0.25s ease-out',
-                opacity: 1,
-              }}>
-                <ChartSkeleton phase={3} />
-              </div>
+
+            {/* ─── Minimap & Status Bar (inside chart flex column) ─── */}
+            {!workspaceMode && showMinimap && (
+              <Suspense fallback={null}>
+                <ChartMinimap visibleBars={80} scrollOffset={0} />
+              </Suspense>
             )}
-            {!dataLoading && dataSource === 'no_data' && (
-              <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: 'var(--tf-bg)', display: 'flex' }}>
-                <NoDataState symbol={symbol} onSettingsClick={() => import('../app/components/ui/Toast.jsx').then(({ default: toast }) => toast.info('Navigate to Settings → API Keys to add your Polygon.io key.')).catch(() => { })} /> {/* intentional: Toast import is best-effort UI */}
-              </div>
+            {showStatusBar && (
+              <Suspense fallback={null}>
+                <UnifiedStatusBar showPipeline={!isMobile} />
+              </Suspense>
             )}
-            <ChartOverlays
-              symbol={symbol} tf={tf} data={data} isMobile={isMobile} multiMode={multiMode}
-              hoverInfo={hoverInfo} showTrades={showTrades} matchingTrades={matchingTrades}
-              contextMenu={contextMenu} closeContextMenu={closeContextMenu} contextMenuHandlers={contextMenuHandlers}
-              tradeMode={tradeMode} tradeStep={tradeStep}
-              showQuickJournal={showQuickJournal} toggleQuickJournal={toggleQuickJournal}
-              radialMenu={radialMenu} setRadialMenu={setRadialMenu}
-              setDrawSidebarOpen={setDrawSidebarOpen} setShowIndicators={setShowIndicators}
-              setShowSnapshotPublisher={setShowSnapshotPublisher}
-              chartAnalysisOpen={chartAnalysisOpen} setChartAnalysisOpen={setChartAnalysisOpen}
-              paperTradeOpen={paperTradeOpen} setPaperTradeOpen={setPaperTradeOpen}
-              walkForwardOpen={walkForwardOpen} setWalkForwardOpen={setWalkForwardOpen}
-              futuresOpen={futuresOpen} setFuturesOpen={setFuturesOpen}
-              isLandscapeFullscreen={isLandscapeFullscreen} setIsLandscapeFullscreen={setIsLandscapeFullscreen}
-              setShowMobileSettings={setShowMobileSettings} setShowMobileShare={setShowMobileShare}
-              setShowCopilot={setShowCopilot}
-              openPanel={(view) => openPanel(view)}
-            />
           </div>
         </div>
       )}

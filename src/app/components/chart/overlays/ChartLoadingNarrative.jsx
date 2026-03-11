@@ -11,7 +11,7 @@
 //   4. Ready → auto-dismiss
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import styles from '../../../../styles/ChartLoadingNarrative.module.css';
 
 const STEPS = [

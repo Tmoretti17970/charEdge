@@ -3,11 +3,10 @@
 //
 // Consumes Button.module.css. Supports variants (primary, secondary,
 // ghost, icon, danger), sizes (sm, md, lg), loading state, and
-// spring press animation via framer-motion.
+// spring press animation via CSS transitions.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { forwardRef } from 'react';
-import { motion } from 'framer-motion';
+import { forwardRef } from 'react';
 import styles from '../../../styles/Button.module.css';
 
 const VARIANT_MAP = {
@@ -63,25 +62,28 @@ const Button = forwardRef(function Button(
 
   const dangerStyle = isDanger
     ? {
-        background: 'linear-gradient(135deg, hsl(356, 75%, 53%), hsl(356, 65%, 45%))',
-        boxShadow: '0 4px 16px hsla(356, 75%, 53%, 0.19)',
-        ...style,
-      }
+      background: 'linear-gradient(135deg, hsl(356, 75%, 53%), hsl(356, 65%, 45%))',
+      boxShadow: '0 4px 16px hsla(356, 75%, 53%, 0.19)',
+      ...style,
+    }
     : style;
 
   return (
-    <motion.button
+    <button
       ref={ref}
       className={classes}
       disabled={disabled || loading}
       style={{
         width: fullWidth ? '100%' : undefined,
         position: 'relative',
+        transition: 'scale 150ms cubic-bezier(0.4, 0, 0.2, 1)',
         ...dangerStyle,
       }}
-      whileTap={{ scale: 0.97 }}
-      whileHover={{ scale: 1.02 }}
-      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+      onPointerDown={(e) => {
+        if (!disabled && !loading) e.currentTarget.style.scale = '0.97';
+      }}
+      onPointerUp={(e) => { e.currentTarget.style.scale = ''; }}
+      onPointerLeave={(e) => { e.currentTarget.style.scale = ''; }}
       {...props}
     >
       {loading && (
@@ -98,7 +100,7 @@ const Button = forwardRef(function Button(
       )}
       {icon && <span style={{ display: 'flex', alignItems: 'center' }}>{icon}</span>}
       {children}
-    </motion.button>
+    </button>
   );
 });
 

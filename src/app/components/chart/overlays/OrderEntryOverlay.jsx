@@ -6,9 +6,9 @@
 // Integrates with usePaperTradeStore (paper) and AlpacaAdapter (live).
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useCallback, useMemo } from 'react';
-import { usePaperTradeStore, ORDER_TYPES, POSITION_SIDE } from '../../../../state/usePaperTradeStore.js';
+import { useState, useCallback, useMemo } from 'react';
 import { alpacaAdapter } from '../../../../data/adapters/AlpacaAdapter.js';
+import { usePaperTradeStore, ORDER_TYPES, POSITION_SIDE } from '../../../../state/usePaperTradeStore';
 
 const SIDE_COLORS = {
   buy: { bg: 'rgba(16, 185, 129, 0.15)', border: '#10b981', text: '#34d399' },

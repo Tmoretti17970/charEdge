@@ -7,7 +7,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useRef } from 'react';
-import { useAlertStore, requestNotificationPermission } from '../../../state/useAlertStore.ts';
+import { useAlertStore, requestNotificationPermission } from '../../../state/useAlertStore';
 
 export default function PushRegistration() {
     const pushSubscribed = useAlertStore((s) => s.pushSubscribed);

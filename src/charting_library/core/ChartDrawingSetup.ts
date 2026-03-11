@@ -51,7 +51,7 @@ export function createChartDrawingSetup(engine: EngineRef) {
       if (!engine.bars || !engine.bars.length) return { price, time };
 
       let targetBar: Bar | null = null;
-      const vis = (engine.state.lastRender as any)?.vis;
+      const vis = (engine.state.lastRender as unknown)?.vis;
       if (vis && vis.length > 0) {
         let minTimeDiff = Infinity;
         for (const b of vis) {

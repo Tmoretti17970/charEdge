@@ -27,7 +27,10 @@ export function createTimeTransform(bars, startIdx, exactStart, visibleBars, cha
      * @returns {number} pixel x coordinate.
      */
     indexToPixel: (idx) => {
-      return (idx - exactStart + 0.5) * barSpacing;
+      // Float precision guard: round to 2 decimal places to prevent
+      // sub-pixel drift from floating-point accumulation across many bars
+      const raw = (idx - exactStart + 0.5) * barSpacing;
+      return Math.round(raw * 100) / 100;
     },
 
     /**

@@ -7,7 +7,7 @@
 // Applied during OPFS → render pipeline. Never mutates stored data.
 // ═══════════════════════════════════════════════════════════════════
 
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ─── Types ──────────────────────────────────────────────────────
 

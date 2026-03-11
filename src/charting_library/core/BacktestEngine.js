@@ -142,7 +142,7 @@ export function runBacktest(bars, strategy, config = {}) {
 
   for (let i = 1; i < bars.length; i++) {
     const bar = bars[i];
-    const prevBar = bars[i - 1];
+    const _prevBar = bars[i - 1];
     context.barIndex = i;
     context.equity = equity;
     context.position = openPosition ? {
@@ -185,7 +185,8 @@ export function runBacktest(bars, strategy, config = {}) {
     let signal;
     try {
       signal = strategy.onBar(bar, i, context);
-    } catch (e) {
+    // eslint-disable-next-line unused-imports/no-unused-vars
+    } catch (_e) {
       // Strategy error on this bar — skip
       equityCurve.push(equity);
       continue;

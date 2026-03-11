@@ -9,7 +9,7 @@
 // animations. Drag-to-select on mobile for single-gesture TF switching.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useCallback, useRef, useEffect, memo } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import { C, GLASS, M } from '../../../../constants.js';
 
 const TIMEFRAMES = ['1m', '5m', '15m', '1H', '4H', '1D', '1W', '1M'];

@@ -12,7 +12,7 @@
 //   apiMeter.getStats(); // → { binance: { callsPerMin: 4, total: 127 } }
 // ═══════════════════════════════════════════════════════════════════
 
-import { logger } from '../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ─── Ring Buffer for Rolling Window ─────────────────────────────
 

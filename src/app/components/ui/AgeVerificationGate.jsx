@@ -8,17 +8,19 @@
 
 import { useState, useEffect } from 'react';
 import { C, F } from '../../../constants.js';
-import { GLASS, DEPTH } from '../../../constants.js';
+import { DEPTH } from '../../../constants.js';
 
 const STORAGE_KEY = 'charedge-age-verified';
 
 function isVerified() {
     try { return localStorage.getItem(STORAGE_KEY) === 'true'; }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     catch (_) { return false; }
 }
 
 function setVerified() {
     try { localStorage.setItem(STORAGE_KEY, 'true'); }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     catch (_) { /* localStorage blocked */ }
 }
 

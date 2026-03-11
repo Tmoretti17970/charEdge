@@ -5,13 +5,13 @@
 // status reporting for the Settings page.
 // ═══════════════════════════════════════════════════════════════════
 
-import { hasApiKey } from './ApiKeyStore.js';
+import { fmpAdapter } from '../adapters/FMPAdapter.js';
+import { pythAdapter } from '../adapters/PythAdapter.js';
+import { tiingoAdapter } from '../adapters/TiingoAdapter.js';
 import { fetchAlpaca } from './AlpacaProvider.js';
+import { hasApiKey } from './ApiKeyStore.js';
 import { fetchPolygon } from './PolygonProvider.js';
 // AlphaVantage removed from cascade — 25 req/day provides no unique data vs Polygon/FMP (Task 1B.2)
-import { pythAdapter } from '../adapters/PythAdapter.js';
-import { fmpAdapter } from '../adapters/FMPAdapter.js';
-import { tiingoAdapter } from '../adapters/TiingoAdapter.js';
 
 // ─── Equity Provider Chain ──────────────────────────────────────
 

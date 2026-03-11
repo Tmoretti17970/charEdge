@@ -6,8 +6,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import type { Bar } from './helpers.ts';
-import { closes } from './helpers.ts';
-import { sma, ema, wma } from './movingAverages.ts';
+import { sma, nanSafeSma, ema, wma } from './movingAverages.ts';
 
 /** CCI (Commodity Channel Index). */
 export function cci(bars: Bar[], period: number = 20): number[] {
@@ -59,7 +58,7 @@ export function aroon(bars: Bar[], period: number = 25): { up: number[]; down: n
 
   for (let i = period; i < bars.length; i++) {
     let highIdx = i, lowIdx = i;
-    for (let j = i - period; j <= i; j++) {
+    for (let j = i - period; j < i; j++) {
       if (bars[j].high >= bars[highIdx].high) highIdx = j;
       if (bars[j].low <= bars[lowIdx].low) lowIdx = j;
     }
@@ -70,7 +69,9 @@ export function aroon(bars: Bar[], period: number = 25): { up: number[]; down: n
   return { up, down, osc };
 }
 
-/** Percentage Price Oscillator (PPO). */
+/** Percentage Price Oscillator (PPO).
+ * #17 Fix: Pass raw ppoLine to ema() — ema() is NaN-tolerant and finds
+ * the first valid SMA seed window. No zero-filling needed. */
 export function ppo(
   src: number[], fastP: number = 12, slowP: number = 26, signalP: number = 9,
 ): { ppo: number[]; signal: number[]; histogram: number[] } {
@@ -80,7 +81,7 @@ export function ppo(
     if (isNaN(v) || isNaN(slowEma[i]) || slowEma[i] === 0) return NaN;
     return ((v - slowEma[i]) / slowEma[i]) * 100;
   });
-  const signalLine = ema(ppoLine.map(v => isNaN(v) ? 0 : v), signalP);
+  const signalLine = ema(ppoLine, signalP);
   const hist = ppoLine.map((v, i) => isNaN(v) || isNaN(signalLine[i]) ? NaN : v - signalLine[i]);
   return { ppo: ppoLine, signal: signalLine, histogram: hist };
 }
@@ -98,11 +99,12 @@ export function dpo(src: number[], period: number = 20): number[] {
   return out;
 }
 
-/** TRIX — Triple EMA rate of change (momentum oscillator). */
+/** TRIX — Triple EMA rate of change (momentum oscillator).
+ * #17 Fix: ema() is NaN-tolerant — chains directly without zero-filling. */
 export function trix(src: number[], period: number = 15): number[] {
   const e1 = ema(src, period);
-  const e2 = ema(e1.map(v => isNaN(v) ? 0 : v), period);
-  const e3 = ema(e2.map(v => isNaN(v) ? 0 : v), period);
+  const e2 = ema(e1, period);
+  const e3 = ema(e2, period);
   const out = new Array(src.length).fill(NaN);
   for (let i = 1; i < src.length; i++) {
     if (!isNaN(e3[i]) && !isNaN(e3[i - 1]) && e3[i - 1] !== 0) {
@@ -112,30 +114,34 @@ export function trix(src: number[], period: number = 15): number[] {
   return out;
 }
 
-/** KST (Know Sure Thing) — momentum oscillator. */
+/** KST (Know Sure Thing) — momentum oscillator.
+ * #17 Fix: Use nanSafeSma instead of sma(arr.map(v => isNaN(v) ? 0 : v), p)
+ * to avoid corrupting values during warm-up. */
 export function kst(src: number[]): { kst: number[]; signal: number[] } {
   const r1 = roc(src, 10);
   const r2 = roc(src, 15);
   const r3 = roc(src, 20);
   const r4 = roc(src, 30);
-  const s1 = sma(r1.map(v => isNaN(v) ? 0 : v), 10);
-  const s2 = sma(r2.map(v => isNaN(v) ? 0 : v), 10);
-  const s3 = sma(r3.map(v => isNaN(v) ? 0 : v), 10);
-  const s4 = sma(r4.map(v => isNaN(v) ? 0 : v), 15);
+  const s1 = nanSafeSma(r1, 10);
+  const s2 = nanSafeSma(r2, 10);
+  const s3 = nanSafeSma(r3, 10);
+  const s4 = nanSafeSma(r4, 15);
   const kstLine = s1.map((v, i) => {
     if (isNaN(v) || isNaN(s2[i]) || isNaN(s3[i]) || isNaN(s4[i])) return NaN;
     return v * 1 + s2[i] * 2 + s3[i] * 3 + s4[i] * 4;
   });
-  const signalLine = sma(kstLine.map(v => isNaN(v) ? 0 : v), 9);
+  const signalLine = nanSafeSma(kstLine, 9);
   return { kst: kstLine, signal: signalLine };
 }
 
-/** Coppock Curve. */
+/** Coppock Curve.
+ * #17 Fix: Use wma() directly — WMA naturally produces NaN when window
+ * contains NaN values, which is correct behavior for warm-up. */
 export function coppock(src: number[], longP: number = 14, shortP: number = 11, wmaP: number = 10): number[] {
   const longROC = roc(src, longP);
   const shortROC = roc(src, shortP);
   const sum = longROC.map((v, i) => isNaN(v) || isNaN(shortROC[i]) ? NaN : v + shortROC[i]);
-  return wma(sum.map(v => isNaN(v) ? 0 : v), wmaP);
+  return wma(sum, wmaP);
 }
 
 /** Momentum — simple price difference over N periods. */
@@ -147,7 +153,8 @@ export function momentum(src: number[], period: number = 10): number[] {
   return out;
 }
 
-/** True Strength Index (TSI). */
+/** True Strength Index (TSI).
+ * #17 Fix: ema() is NaN-tolerant — chains directly without zero-filling. */
 export function tsi(
   src: number[], longP: number = 25, shortP: number = 13, signalP: number = 13,
 ): { tsi: number[]; signal: number[] } {
@@ -160,9 +167,9 @@ export function tsi(
   }
 
   const pcEma1 = ema(pc, longP);
-  const pcEma2 = ema(pcEma1.map(v => isNaN(v) ? 0 : v), shortP);
+  const pcEma2 = ema(pcEma1, shortP);
   const absPcEma1 = ema(absPC, longP);
-  const absPcEma2 = ema(absPcEma1.map(v => isNaN(v) ? 0 : v), shortP);
+  const absPcEma2 = ema(absPcEma1, shortP);
 
   const tsiLine = new Array(len).fill(NaN);
   for (let i = 0; i < len; i++) {
@@ -171,7 +178,7 @@ export function tsi(
     }
   }
 
-  const signalLine = ema(tsiLine.map(v => isNaN(v) ? 0 : v), signalP);
+  const signalLine = ema(tsiLine, signalP);
   return { tsi: tsiLine, signal: signalLine };
 }
 
@@ -199,10 +206,11 @@ export function awesomeOscillator(bars: Bar[]): number[] {
   return fast.map((v, i) => isNaN(v) || isNaN(slow[i]) ? NaN : v - slow[i]);
 }
 
-/** Accelerator Oscillator — AO minus SMA(5 of AO). */
+/** Accelerator Oscillator — AO minus SMA(5 of AO).
+ * #17 Fix: Use nanSafeSma for AO input which has NaN during warm-up. */
 export function acceleratorOscillator(bars: Bar[]): number[] {
   const ao = awesomeOscillator(bars);
-  const aoSma = sma(ao.map(v => isNaN(v) ? 0 : v), 5);
+  const aoSma = nanSafeSma(ao, 5);
   return ao.map((v, i) => isNaN(v) || isNaN(aoSma[i]) ? NaN : v - aoSma[i]);
 }
 
@@ -219,11 +227,13 @@ export function chaikinOscillator(bars: Bar[], fastP: number = 3, slowP: number 
   return fastEma.map((v, i) => isNaN(v) || isNaN(slowEma[i]) ? NaN : v - slowEma[i]);
 }
 
-/** Mass Index. */
+/** Mass Index.
+ * #17 Fix: ema() is NaN-tolerant for double EMA chain.
+ * Sum loop skips NaN ratio values instead of zero-filling. */
 export function massIndex(bars: Bar[], emaPeriod: number = 9, sumPeriod: number = 25): number[] {
   const hl = bars.map(b => b.high - b.low);
   const singleEma = ema(hl, emaPeriod);
-  const doubleEma = ema(singleEma.map(v => isNaN(v) ? 0 : v), emaPeriod);
+  const doubleEma = ema(singleEma, emaPeriod);
   const ratio = singleEma.map((v, i) => {
     if (isNaN(v) || isNaN(doubleEma[i]) || doubleEma[i] === 0) return NaN;
     return v / doubleEma[i];
@@ -231,10 +241,16 @@ export function massIndex(bars: Bar[], emaPeriod: number = 9, sumPeriod: number 
   const out = new Array(bars.length).fill(NaN);
   for (let i = sumPeriod - 1; i < bars.length; i++) {
     let sum = 0;
+    let validCount = 0;
     for (let j = i - sumPeriod + 1; j <= i; j++) {
-      sum += isNaN(ratio[j]) ? 0 : ratio[j];
+      if (!isNaN(ratio[j])) {
+        sum += ratio[j];
+        validCount++;
+      }
     }
-    out[i] = sum;
+    // Only output if we have enough valid values
+    out[i] = validCount >= sumPeriod / 2 ? sum : NaN;
   }
   return out;
 }
+

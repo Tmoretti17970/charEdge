@@ -21,7 +21,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { pipelineLogger } from './DataPipelineLogger.js';
-import { logger } from '../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ─── Constants ─────────────────────────────────────────────────
 
@@ -113,6 +113,7 @@ class _MemoryBudget {
         const bytes = estimator();
         breakdown[name] = bytes;
         totalUsed += bytes;
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) {
         breakdown[name] = 0;
       }
@@ -217,7 +218,7 @@ class _MemoryBudget {
     this._lastStatus = status;
   }
 
-  async _triggerDegradation(status) {
+  async _triggerDegradation(_status) {
     pipelineLogger.info('MemoryBudget', `Triggering degradation (level ${this._degradationLevel})`);
 
     try {

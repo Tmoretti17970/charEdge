@@ -2,23 +2,23 @@
 // charEdge — Broker Detection + Routing
 // ═══════════════════════════════════════════════════════════════════
 
-import { parseTradovate } from './parsers/tradovate.js';
+import { parseBinance } from './parsers/binance.js';
+import { parseBybit } from './parsers/bybit.js';
+import { parsecharEdgeCSV } from './parsers/charedge.js';
+import { parseCoinbase } from './parsers/coinbase.js';
+import { parseFidelity } from './parsers/fidelity.js';
+import { parseGenericCSV } from './parsers/generic.js';
+import { parseIBKR } from './parsers/ibkr.js';
+import { parseKraken } from './parsers/kraken.js';
+import { parseMT5 } from './parsers/mt5.js';
 import { parseNinjaTrader } from './parsers/ninjatrader.js';
+import { parseRobinhood } from './parsers/robinhood.js';
 import { parseThinkorSwim } from './parsers/thinkorswim.js';
 import { parseTradeStation } from './parsers/tradestation.js';
-import { parseIBKR } from './parsers/ibkr.js';
-import { parseRobinhood } from './parsers/robinhood.js';
+import { parseTradovate } from './parsers/tradovate.js';
 import { parseWebull } from './parsers/webull.js';
-import { parseMT5 } from './parsers/mt5.js';
-import { parsecharEdgeCSV } from './parsers/charedge.js';
-import { parseGenericCSV } from './parsers/generic.js';
 
 // H2.1: Crypto + Fidelity parsers
-import { parseBinance } from './parsers/binance.js';
-import { parseCoinbase } from './parsers/coinbase.js';
-import { parseKraken } from './parsers/kraken.js';
-import { parseBybit } from './parsers/bybit.js';
-import { parseFidelity } from './parsers/fidelity.js';
 
 /**
  * Auto-detect broker from CSV headers.

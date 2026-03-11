@@ -5,49 +5,48 @@
 // The story-driven layout: Hero → Trend → Insights → Activity.
 // ═══════════════════════════════════════════════════════════════════
 
-import s from './DashboardPanel.module.css';
 import { useState } from 'react';
 import { C, F, M, GLASS } from '../../../constants.js';
 import { text, radii } from '../../../theme/tokens.js';
 import { fmtD, timeAgo, METRIC_TIPS } from '../../../utils.js';
-import { Card } from '../ui/UIKit.jsx';
 import { MilestoneBar } from '../ui/EmptyState.jsx';
-import DashboardHero from './DashboardHero.jsx';
+import { Card } from '../ui/UIKit.jsx';
 import WidgetBoundary from '../ui/WidgetBoundary.jsx';
-import WidgetCustomizer from '../widgets/WidgetCustomizer.jsx';
+import DailyChallengeCard from '../widgets/DailyChallengeCard.jsx';
 import EquityCurveChart from '../widgets/EquityCurveChart.jsx';
 import TradeHeatmap from '../widgets/TradeHeatmap.jsx';
-import DailyChallengeCard from '../widgets/DailyChallengeCard.jsx';
-import XPActivityFeed from '../widgets/XPActivityFeed.jsx';
 import WeeklyChallengeCard from '../widgets/WeeklyChallengeCard.jsx';
-import WeeklyReport from './WeeklyReport.jsx';
-import SimilarTrades from './SimilarTrades.jsx';
-import TradeReplayPanel from './TradeReplayPanel.jsx';
-import MorningBriefing from './MorningBriefing.jsx';
-import AIInsightCard from './AIInsightCard.jsx';
-import SessionTimeline from './SessionTimeline.jsx';
-import RiskDashboard from './RiskDashboard.jsx';
-import HeroTradeSpotlight from './HeroTradeSpotlight.jsx';
-import ProgressArc from './ProgressArc.jsx';
-import AchievementShowcase from './AchievementShowcase.jsx';
-import ContextualInjector from './ContextualInjector.jsx';
-import NLQueryBar from './NLQueryBar.jsx';
-import PreMarketChecklist from './PreMarketChecklist.jsx';
-import StreakCelebration from './StreakCelebration.jsx';
-import AccountabilityWidget from './AccountabilityWidget.jsx';
-import WeeklyDigest from './WeeklyDigest.jsx';
-
-import { PersonaTierBanner } from './PersonaLayoutController.jsx';
-import BentoCustomizer from './BentoCustomizer.jsx';
-import WhatIfPanel from './WhatIfPanel.jsx';
+import WidgetCustomizer from '../widgets/WidgetCustomizer.jsx';
 import WidgetSuggestionBanner from '../widgets/WidgetSuggestionBanner.jsx';
-import HUDBar from './HUDBar.jsx';
+import XPActivityFeed from '../widgets/XPActivityFeed.jsx';
+import AccountabilityWidget from './AccountabilityWidget.jsx';
+import AchievementShowcase from './AchievementShowcase.jsx';
+import AIInsightCard from './AIInsightCard.jsx';
+import BentoCustomizer from './BentoCustomizer.jsx';
+import ContextualInjector from './ContextualInjector.jsx';
+import DashboardHero from './DashboardHero.jsx';
+import s from './DashboardPanel.module.css';
 import {
     DashHeader,
     NarrativeSectionHeader,
     NarrativeDivider,
     BentoMetricCard,
 } from './DashboardPrimitives.jsx';
+import HeroTradeSpotlight from './HeroTradeSpotlight.jsx';
+import HUDBar from './HUDBar.jsx';
+import MorningBriefing from './MorningBriefing.jsx';
+import NLQueryBar from './NLQueryBar.jsx';
+import { PersonaTierBanner } from './PersonaLayoutController.jsx';
+import PreMarketChecklist from './PreMarketChecklist.jsx';
+import ProgressArc from './ProgressArc.jsx';
+import RiskDashboard from './RiskDashboard.jsx';
+import SessionTimeline from './SessionTimeline.jsx';
+import SimilarTrades from './SimilarTrades.jsx';
+import StreakCelebration from './StreakCelebration.jsx';
+import TradeReplayPanel from './TradeReplayPanel.jsx';
+import WeeklyDigest from './WeeklyDigest.jsx';
+import WeeklyReport from './WeeklyReport.jsx';
+import WhatIfPanel from './WhatIfPanel.jsx';
 
 export default function DashboardNarrativeLayout({
     trades,
@@ -60,7 +59,7 @@ export default function DashboardNarrativeLayout({
     setPage,
     activeWidgets,
     activePreset,
-    onDashboardFilter,
+    _onDashboardFilter,
     onLayoutToggle,
     editMode,
     onToggleEdit,
@@ -80,6 +79,21 @@ export default function DashboardNarrativeLayout({
         }}>
             {/* Task 4.9.1.2: HUD Bar — sticky glassmorphism bar */}
             <HUDBar />
+            {/* P2 3.6: Canonical layout mode indicator */}
+            <div style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '0 24px', marginBottom: 4,
+            }}>
+                <span style={{
+                    fontSize: 9, fontWeight: 700, color: C.t3,
+                    textTransform: 'uppercase', letterSpacing: '0.05em',
+                }}>Layout</span>
+                <span style={{
+                    fontSize: 9, fontWeight: 700, color: C.b,
+                    background: `${C.b}12`, borderRadius: 4,
+                    padding: '1px 6px',
+                }}>Narrative</span>
+            </div>
             <DashHeader
                 trades={trades}
                 computing={computing}
@@ -220,12 +234,8 @@ export default function DashboardNarrativeLayout({
                     <div className="tf-section-accent" style={{ marginBottom: 12 }}>Activity Heatmap</div>
                     <WidgetBoundary name="Calendar" height={340}>
                         <TradeHeatmap trades={trades} onDayClick={(date) => {
-                            if (onDashboardFilter) {
-                                const dStr = date.toISOString().slice(0, 10);
-                                onDashboardFilter({ dateRange: 'custom', customDateFrom: dStr, customDateTo: dStr });
-                            } else {
-                                setPage('journal');
-                            }
+                            const dStr = date.toISOString().slice(0, 10);
+                            window.dispatchEvent(new CustomEvent('charEdge:open-logbook', { detail: { date: dStr } }));
                         }} />
                     </WidgetBoundary>
                 </Card>

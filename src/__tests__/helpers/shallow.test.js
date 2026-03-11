@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect } from 'vitest';
-import { shallow } from '../../utils/shallow.js';
+import { shallow } from '@/shared/shallow';
 
 describe('shallow', () => {
   // ─── Primitives ────────────────────────────────────────────────

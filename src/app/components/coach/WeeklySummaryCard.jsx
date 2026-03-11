@@ -5,7 +5,6 @@
 // top symbols, emotion breakdown, and key moments timeline.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
 import { C, F, M } from '../../../constants.js';
 
 export default function WeeklySummaryCard({ summary }) {

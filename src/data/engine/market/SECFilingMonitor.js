@@ -1,4 +1,4 @@
-import { logger } from '../../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v14 — SEC Filing Monitor
 //
@@ -22,7 +22,7 @@ import { logger } from '../../../utils/logger.ts';
 // ─── Configuration ─────────────────────────────────────────────
 
 const POLL_INTERVAL_MS = 10 * 60 * 1000;  // 10 minutes
-const EFTS_BASE = 'https://efts.sec.gov/LATEST/search-index';
+const _EFTS_BASE = 'https://efts.sec.gov/LATEST/search-index';
 const EDGAR_SEARCH_BASE = 'https://efts.sec.gov/LATEST/search';
 const MAX_FILINGS_PER_CHECK = 20;
 const FILING_TYPES_WATCHED = ['8-K', '10-K', '10-Q', '13F-HR', '4', 'SC 13G', 'S-1'];
@@ -250,7 +250,8 @@ class _SECFilingMonitor {
       }
 
       entry.lastCheck = Date.now();
-    } catch (err) {
+    // eslint-disable-next-line unused-imports/no-unused-vars
+    } catch (_err) {
       // Fallback to direct EDGAR filings
       await this._checkViaFilings(symbol, entry);
     }
@@ -313,6 +314,7 @@ class _SECFilingMonitor {
       } else {
         filing.urgency = 2;
       }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       filing.urgency = filing.urgency || 2;
     }
@@ -347,6 +349,7 @@ class _SECFilingMonitor {
           icon: '/favicon.ico',
           tag: `sec-${filing.accessionNumber}`,
         });
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { /* silent */ }
     }
   }

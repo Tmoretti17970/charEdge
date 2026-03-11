@@ -5,8 +5,8 @@
 // Auto-triggers monthly, dismissable, with optional comment.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, memo, useCallback } from 'react';
-import { logger } from '../../../utils/logger';
+import { useState, useEffect, memo, useCallback } from 'react';
+import { logger } from '@/observability/logger';
 
 const STORAGE_KEY = 'charedge_nps_last';
 const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;

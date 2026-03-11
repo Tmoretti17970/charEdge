@@ -5,7 +5,7 @@
 // Each version is a collapsible card with tag, date, and items.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { C, F, M } from '../constants.js';
 
 // ─── Changelog Data ─────────────────────────────────────────────

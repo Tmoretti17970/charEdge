@@ -6,7 +6,6 @@
 // All variants use the existing tf-skeleton CSS animation class.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
 import { C } from '../../../constants.js';
 
 const shimmer = (w, h, extra = {}) => ({

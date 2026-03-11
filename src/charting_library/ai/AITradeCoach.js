@@ -13,7 +13,7 @@ import { AI_DISCLAIMER } from './AIChartAnalysis.js';
 
 // ─── Grade Constants ─────────────────────────────────────────────
 
-const GRADES = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'];
+const _GRADES = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'];
 const GRADE_COLORS = {
   'A+': '#00E676', 'A': '#26A69A', 'A-': '#26A69A',
   'B+': '#66BB6A', 'B': '#66BB6A', 'B-': '#9CCC65',
@@ -59,7 +59,7 @@ function scoreToGrade(score) {
  * @param {Object} [options] - Grading options
  * @returns {TradeGrade}
  */
-export function gradeTrade(trade, bars, options = {}) {
+export function gradeTrade(trade, bars, _options = {}) {
   if (!trade || !bars?.length) {
     return createDefaultGrade('Insufficient data for grading');
   }

@@ -5,9 +5,9 @@
 // and account summary. Works with both paper trading and Alpaca live.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { usePaperTradeStore } from '../../../../state/usePaperTradeStore.js';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { alpacaAdapter } from '../../../../data/adapters/AlpacaAdapter.js';
+import { usePaperTradeStore } from '../../../../state/usePaperTradeStore';
 import s from './PositionPanel.module.css';
 
 // ─── Component ──────────────────────────────────────────────────
@@ -36,6 +36,7 @@ export default function PositionPanel({ currentPrice, symbol }) {
       setLivePositions(pos || []);
       setLiveOrders(ord || []);
       setLiveAccount(acc);
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       /* silent */
     } finally {
@@ -179,7 +180,7 @@ export default function PositionPanel({ currentPrice, symbol }) {
                 <th className={s.th}>Current</th>
                 <th className={s.thRight}>P&L</th>
                 <th className={s.thRight}>P&L %</th>
-                <th className={s.th}></th>
+                <th className={s.th} />
               </tr>
             </thead>
             <tbody>
@@ -228,7 +229,7 @@ export default function PositionPanel({ currentPrice, symbol }) {
                 <th className={s.th}>Qty</th>
                 <th className={s.th}>Price</th>
                 <th className={s.th}>Status</th>
-                <th className={s.th}></th>
+                <th className={s.th} />
               </tr>
             </thead>
             <tbody>

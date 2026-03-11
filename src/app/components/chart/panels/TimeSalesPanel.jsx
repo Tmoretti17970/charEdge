@@ -9,8 +9,9 @@
 //   <TimeSalesPanel symbol="BTCUSDT" maxRows={200} />
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { webSocketService } from '../../../../data/WebSocketService.ts';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { webSocketService } from '../../../../data/WebSocketService';
+// eslint-disable-next-line import/order
 import s from './TimeSalesPanel.module.css';
 
 // ─── Helpers ────────────────────────────────────────────────────
@@ -39,16 +40,9 @@ function formatQty(qty) {
     return qty.toFixed(6);
 }
 
-/**
- * Format price with appropriate decimal places.
- */
-function formatPrice(price) {
-    if (price >= 10_000) return price.toFixed(2);
-    if (price >= 100) return price.toFixed(2);
-    if (price >= 1) return price.toFixed(4);
-    if (price >= 0.01) return price.toFixed(6);
-    return price.toFixed(8);
-}
+// Sprint 9 #73: formatPrice consolidated into shared/formatting.ts
+// eslint-disable-next-line import/order
+import { formatPrice } from '../../../shared/formatting';
 
 // ─── Constants ──────────────────────────────────────────────────
 

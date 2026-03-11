@@ -11,6 +11,31 @@
 import { formatPrice } from '../CoordinateSystem.js';
 import { tfToMs, formatCountdown, formatTimeLabel } from '../barCountdown.js';
 import { CrosshairNode } from '../../scene/RenderNode.js';
+import { binarySearchByTime } from '../binarySearchByTime.js';
+
+// ─── P3: measureText cache for static strings ────────────────────
+// Caches TextMetrics keyed by "font|text" to avoid redundant browser
+// measureText() calls for labels that don't change frame-to-frame.
+const _measureCache = new Map<string, number>();
+let _measureCacheFont = '';
+
+function cachedMeasureText(ctx: CanvasRenderingContext2D, text: string): number {
+  const font = ctx.font;
+  // Invalidate cache on font change
+  if (font !== _measureCacheFont) {
+    _measureCache.clear();
+    _measureCacheFont = font;
+  }
+  const key = text;
+  let w = _measureCache.get(key);
+  if (w === undefined) {
+    w = ctx.measureText(text).width;
+    // Cap cache size to prevent unbounded growth
+    if (_measureCache.size > 500) _measureCache.clear();
+    _measureCache.set(key, w);
+  }
+  return w;
+}
 
 /**
  * Render the UI layer: crosshair, tooltip, countdown, synced crosshair, magnet dot.
@@ -96,6 +121,37 @@ export function executeUIStage(fs, ctx, engine) {
     tCtx.setLineDash([]);
     tCtx.restore();
 
+    // Item 27: Draw crosshair vertical line in indicator panes
+    const paneManager = engine._paneManager;
+    if (paneManager && S.mouseX >= 0 && S.mouseX <= R.cW) {
+      for (const pane of paneManager.indicatorPanes) {
+        if (pane.state.collapsed) continue;
+        const paneUiCtx = pane.layers.getCtx?.('UI') || pane.layers.getCtx?.(4);
+        if (!paneUiCtx) continue;
+        const paneBW = pane.layers.bitmapWidth || 0;
+        const paneBH = pane.layers.bitmapHeight || 0;
+        if (paneBW <= 0 || paneBH <= 0) continue;
+
+        paneUiCtx.save();
+        paneUiCtx.strokeStyle = thm.crosshairColor || 'rgba(149,152,161,0.5)';
+        paneUiCtx.lineWidth = Math.max(1, Math.round(pr));
+        paneUiCtx.globalAlpha = crosshairOpacity;
+        if (crosshairLineStyle === 'dotted') {
+          paneUiCtx.setLineDash([Math.round(1 * pr), Math.round(3 * pr)]);
+        } else if (crosshairLineStyle === 'solid') {
+          paneUiCtx.setLineDash([]);
+        } else {
+          paneUiCtx.setLineDash([Math.round(4 * pr), Math.round(4 * pr)]);
+        }
+        paneUiCtx.beginPath();
+        paneUiCtx.moveTo(bx + 0.5, 0);
+        paneUiCtx.lineTo(bx + 0.5, paneBH);
+        paneUiCtx.stroke();
+        paneUiCtx.setLineDash([]);
+        paneUiCtx.restore();
+      }
+    }
+
     // ─── Sync CrosshairNode with scene graph ──────────────────
     if (ctx.sceneGraph) {
       _syncCrosshairNode(ctx.sceneGraph, S.mouseX, S.mouseY, R.cW, topCanvas.height / pr);
@@ -163,7 +219,7 @@ export function executeUIStage(fs, ctx, engine) {
     if (!fs.compact && hoverIdx != null) {
       const hoverBar = bars[hoverIdx];
       if (hoverBar?.time) {
-        const timeText = formatTimeLabel(hoverBar.time, fs.timeframe);
+        const timeText = formatTimeLabel(hoverBar.time, fs.timeframe, undefined, fs.activeTimezone || 'UTC');
         const axFs = Math.round(10 * pr);
         tCtx.font = `bold ${axFs}px Arial`;
         const tlW = tCtx.measureText(timeText).width + Math.round(18 * pr);
@@ -200,8 +256,15 @@ export function executeUIStage(fs, ctx, engine) {
   }
 
   // ─── Bar Countdown ──────────────────────────────────────────
-  if (!fs.compact && bars.length > 0) {
-    drawBarCountdown(tCtx, fs, bars, R, pr);
+  // Sprint 18 #115: Countdown is now a DOM overlay (CountdownOverlay).
+  // Position it here so it follows viewport changes.
+  if (!fs.compact && bars.length > 0 && engine._countdownOverlay) {
+    const lastBar = bars[bars.length - 1];
+    if (lastBar && R.p2y) {
+      const cx = R.cW + 2;
+      const cy = R.p2y(lastBar.close) + 12;
+      engine._countdownOverlay.setPosition(cx, cy);
+    }
   }
 
   // ─── Drawing Top Layer ──────────────────────────────────────
@@ -241,6 +304,7 @@ function formatVolume(v) {
 }
 
 // Sprint 12: OHLCV Legend Bar + indicator value lines
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function drawLegendBar(tCtx, fs, bars, R, pr, thm, engine) {
   const S = engine.state;
   const LX = Math.round(8 * pr);   // left margin
@@ -273,12 +337,12 @@ function drawLegendBar(tCtx, fs, bars, R, pr, thm, engine) {
   const tfLabel = fs.timeframe || '';
   tCtx.fillStyle = '#D1D4DC';
   tCtx.fillText(symLabel, cx, LY);
-  cx += tCtx.measureText(symLabel).width + Math.round(4 * pr);
+  cx += cachedMeasureText(tCtx, symLabel) + Math.round(4 * pr);
 
   tCtx.font = `${tinyFs}px Arial`;
   tCtx.fillStyle = dimColor;
   tCtx.fillText(`· ${tfLabel}`, cx, LY + Math.round(1 * pr));
-  cx += tCtx.measureText(`· ${tfLabel}`).width + Math.round(10 * pr);
+  cx += cachedMeasureText(tCtx, `· ${tfLabel}`) + Math.round(10 * pr);
 
   // OHLCV values
   tCtx.font = `${tinyFs}px Arial`;
@@ -303,98 +367,28 @@ function drawLegendBar(tCtx, fs, bars, R, pr, thm, engine) {
   // Volume
   tCtx.fillStyle = dimColor;
   tCtx.fillText('Vol', cx, LY + Math.round(1 * pr));
-  cx += tCtx.measureText('Vol').width + Math.round(2 * pr);
+  cx += cachedMeasureText(tCtx, 'Vol') + Math.round(2 * pr);
   tCtx.fillStyle = valColor;
   const volText = formatVolume(bar.volume);
   tCtx.fillText(volText, cx, LY + Math.round(1 * pr));
+  cx += cachedMeasureText(tCtx, volText) + Math.round(8 * pr);
 
-  LY += lineH;
+  // Store the end-X of the OHLCV line (CSS pixels) so the React
+  // IndicatorLegendHeader overlay can position itself inline.
+  S._legendEndX = cx / pr;
 
-  // ─── Indicator Value Lines ────────────────────────────────
-  const allInds = [...(fs.overlayInds || []), ...(fs.paneInds || [])];
-  const highlightIdx = S._highlightedIndicator;
-  const hiddenSet = S.hiddenIndicators || new Set();
-
-  for (let i = 0; i < allInds.length; i++) {
-    const ind = allInds[i];
-    if (!ind) continue;
-
-    const isHighlighted = highlightIdx === i;
-    const isHidden = hiddenSet.has(i);
-    const isDimmed = highlightIdx >= 0 && !isHighlighted;
-
-    const rowY = LY;
-    let rx = LX;
-
-    // Color dot
-    const dotColor = ind.outputs?.[0]?.color || '#2962FF';
-    const dotR = Math.round(3.5 * pr);
-    tCtx.beginPath();
-    tCtx.arc(rx + dotR, rowY + lineH / 2, dotR, 0, Math.PI * 2);
-    tCtx.fillStyle = isDimmed ? dotColor + '55' : dotColor;
-    tCtx.fill();
-    rx += dotR * 2 + Math.round(5 * pr);
-
-    // Indicator name
-    tCtx.font = isHighlighted ? `bold ${tinyFs}px Arial` : `${tinyFs}px Arial`;
-    const indName = ind.label || ind.shortName || ind.indicatorId || 'Indicator';
-    tCtx.fillStyle = isDimmed ? dimColor + '66' : (isHighlighted ? '#D1D4DC' : dimColor);
-    tCtx.fillText(indName, rx, rowY + Math.round(2 * pr));
-    const nameW = tCtx.measureText(indName).width;
-
-    // Hit region for indicator name (click-to-highlight)
-    hitRegions.push({
-      x: LX / pr, y: rowY / pr,
-      w: (rx + nameW) / pr, h: lineH / pr,
-      type: 'indicator', idx: i,
-    });
-
-    rx += nameW + Math.round(8 * pr);
-
-    // Indicator value(s) at crosshair
-    if (ind.computed && !isHidden) {
-      tCtx.font = `${tinyFs}px Arial`;
-      for (const out of ind.outputs || []) {
-        const vals = ind.computed[out.key];
-        if (!vals) continue;
-        const val = idx < vals.length ? vals[idx] : NaN;
-        if (isNaN(val)) continue;
-        const outColor = out.color || dotColor;
-        tCtx.fillStyle = isDimmed ? outColor + '55' : outColor;
-        const valStr = val.toFixed(2);
-        tCtx.fillText(valStr, rx, rowY + Math.round(2 * pr));
-        rx += tCtx.measureText(valStr).width + Math.round(6 * pr);
-      }
-    }
-
-    // Eye icon (toggle visibility)
-    const eyeX = rx + Math.round(4 * pr);
-    const eyeR = Math.round(4 * pr);
-    tCtx.beginPath();
-    tCtx.arc(eyeX + eyeR, rowY + lineH / 2, eyeR, 0, Math.PI * 2);
-    tCtx.fillStyle = isHidden ? '#EF5350' + '66' : dimColor + '88';
-    tCtx.fill();
-    // Filled vs hollow to indicate visible/hidden
-    if (!isHidden) {
-      tCtx.beginPath();
-      tCtx.arc(eyeX + eyeR, rowY + lineH / 2, eyeR * 0.4, 0, Math.PI * 2);
-      tCtx.fillStyle = thm.bg || '#131722';
-      tCtx.fill();
-    }
-
-    hitRegions.push({
-      x: eyeX / pr, y: rowY / pr,
-      w: (eyeR * 2 + Math.round(4 * pr)) / pr, h: lineH / pr,
-      type: 'eye', idx: i,
-    });
-
-    LY += lineH;
+  // Expose as CSS custom property on tf-chart-area for React overlays
+  const chartArea = engine.topCanvas?.closest?.('.tf-chart-area')
+    || engine.topCanvas?.parentElement?.parentElement;
+  if (chartArea) {
+    (chartArea as HTMLElement).style.setProperty('--legend-end-x', `${Math.round(cx / pr)}px`);
   }
 
   // Store hit regions for InputManager
   S._legendHitRegions = hitRegions;
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function drawTooltip(tCtx, hoverBar, bx, by, pr, R, thm, topCanvas, engine) {
   const fs2 = Math.round(10 * pr);
   const pad = Math.round(8 * pr);
@@ -411,8 +405,8 @@ function drawTooltip(tCtx, hoverBar, bx, by, pr, R, thm, topCanvas, engine) {
   if (hoverBar.volume != null) {
     const vol = hoverBar.volume >= 1e9 ? (hoverBar.volume / 1e9).toFixed(1) + 'B'
       : hoverBar.volume >= 1e6 ? (hoverBar.volume / 1e6).toFixed(1) + 'M'
-      : hoverBar.volume >= 1e3 ? (hoverBar.volume / 1e3).toFixed(1) + 'K'
-      : hoverBar.volume.toFixed(0);
+        : hoverBar.volume >= 1e3 ? (hoverBar.volume / 1e3).toFixed(1) + 'K'
+          : hoverBar.volume.toFixed(0);
     lines.push({ label: 'V', value: vol, color: thm.textSecondary || '#787B86' });
   }
 
@@ -481,13 +475,17 @@ function drawTooltip(tCtx, hoverBar, bx, by, pr, R, thm, topCanvas, engine) {
   tCtx.restore();
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function drawSyncedCrosshair(tCtx, fs, bars, R, pr, topCanvas) {
   const syncTime = fs.syncedCrosshair.time;
   let syncX = null;
-  for (let i = 0; i < bars.length; i++) {
-    if (Math.abs(bars[i].time - syncTime) < (bars[1]?.time - bars[0]?.time || 60000) * 0.6) {
-      syncX = Math.round(R.timeTransform.indexToPixel(i) * pr);
-      break;
+  // Sprint 11 B11: O(log n) binary search replaces linear scan
+  const idx = binarySearchByTime(bars, syncTime);
+  if (idx >= 0) {
+    const bar = bars[idx];
+    const tolerance = (bars[1]?.time - bars[0]?.time || 60000) * 0.6;
+    if (Math.abs(bar.time - syncTime) < tolerance) {
+      syncX = Math.round(R.timeTransform.indexToPixel(idx) * pr);
     }
   }
   if (syncX !== null && syncX >= 0 && syncX <= Math.round(R.cW * pr)) {
@@ -508,7 +506,8 @@ function drawSyncedCrosshair(tCtx, fs, bars, R, pr, topCanvas) {
   }
 }
 
-function drawBarCountdown(tCtx, fs, bars, R, pr) {
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function _drawBarCountdown(tCtx, fs, bars, R, pr) {
   const lastBar = bars[bars.length - 1];
   const tfMs = tfToMs(fs.timeframe);
   if (tfMs > 0 && lastBar?.time) {
@@ -533,6 +532,8 @@ function drawBarCountdown(tCtx, fs, bars, R, pr) {
   }
 }
 
+ 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function drawMagnetDot(tCtx, fs, bars, R, pr, S) {
   const bar = bars[fs.hoverIdx];
   if (!bar || !R.p2y) return;
@@ -554,6 +555,7 @@ function drawMagnetDot(tCtx, fs, bars, R, pr, S) {
   tCtx.stroke();
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function drawPaneSplitters(tCtx, R, pr, topCanvas) {
   const mainBH = Math.round(R.mainH * pr);
   const hoverIdx = R._splitterHoverIdx ?? -1;
@@ -601,6 +603,8 @@ function drawPaneSplitters(tCtx, R, pr, topCanvas) {
  * Scroll-to-now floating button — appears when user has scrolled away from
  * the latest bar (scrollOffset > 5). TradingView-style right-pointing chevron.
  */
+ 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function drawScrollToNow(tCtx, fs, R, pr, S, thm) {
   if (S.scrollOffset <= 5 || fs.compact) {
     S._scrollToNowBtn = null;
@@ -672,6 +676,7 @@ function drawScrollToNow(tCtx, fs, R, pr, S, thm) {
  * Sync the CrosshairNode in the scene graph.
  * Uses a single node whose bounds encompass the cross area.
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _syncCrosshairNode(sceneGraph, mouseX, mouseY, chartWidth, chartHeight) {
   let node = sceneGraph.getNode('crosshair');
   if (!node) {

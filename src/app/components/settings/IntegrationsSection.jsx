@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { C, F, M } from '../../../constants.js';
-import { radii } from '../../../theme/tokens.js';
+import { C, M } from '../../../constants.js';
 import { getApiKey, setApiKey, getProviderStatus } from '../../../data/DataProvider.js';
 import { configureSupabase, signIn, signUp, signOut, getAuth, getSyncStatus, sync } from '../../../data/StorageAdapter.js';
+import { radii } from '../../../theme/tokens.js';
 import { Card, Btn, inputStyle } from '../ui/UIKit.jsx';
 import { SectionHeader, SettingRow, StatusBadge, AlertBanner } from './SettingsHelpers.jsx';
 

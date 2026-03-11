@@ -12,28 +12,29 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import type { Bar } from '../../types/data.js';
+import { logger } from '@/observability/logger';
 
 // ─── Timeframe Duration Map ──────────────────────────────────────
 
 /** Duration in milliseconds per timeframe */
 const TF_DURATION_MS: Record<string, number> = {
-  '1m':  60_000,
-  '3m':  3 * 60_000,
-  '5m':  5 * 60_000,
+  '1m': 60_000,
+  '3m': 3 * 60_000,
+  '5m': 5 * 60_000,
   '15m': 15 * 60_000,
   '30m': 30 * 60_000,
-  '1h':  60 * 60_000,
-  '2h':  2 * 60 * 60_000,
-  '4h':  4 * 60 * 60_000,
-  '6h':  6 * 60 * 60_000,
-  '8h':  8 * 60 * 60_000,
+  '1h': 60 * 60_000,
+  '2h': 2 * 60 * 60_000,
+  '4h': 4 * 60 * 60_000,
+  '6h': 6 * 60 * 60_000,
+  '8h': 8 * 60 * 60_000,
   '12h': 12 * 60 * 60_000,
-  '1D':  24 * 60 * 60_000,
-  '1d':  24 * 60 * 60_000,
-  '3D':  3 * 24 * 60 * 60_000,
-  '3d':  3 * 24 * 60 * 60_000,
-  '1W':  7 * 24 * 60 * 60_000,
-  '1w':  7 * 24 * 60 * 60_000,
+  '1D': 24 * 60 * 60_000,
+  '1d': 24 * 60 * 60_000,
+  '3D': 3 * 24 * 60 * 60_000,
+  '3d': 3 * 24 * 60 * 60_000,
+  '1W': 7 * 24 * 60 * 60_000,
+  '1w': 7 * 24 * 60 * 60_000,
 };
 
 // ─── Core Aggregation ────────────────────────────────────────────
@@ -76,7 +77,7 @@ function alignTimestamp(ts: number, tfMs: number): number {
 export function aggregateBars(bars: Bar[], targetTf: string): Bar[] {
   const tfMs = TF_DURATION_MS[targetTf];
   if (!tfMs) {
-    console.warn(`[TimeAggregator] Unknown timeframe: ${targetTf}`);
+    logger.data.warn(`[TimeAggregator] Unknown timeframe: ${targetTf}`);
     return bars;
   }
 
@@ -145,7 +146,7 @@ export function getDeriveableTimeframes(sourceTf: string): string[] {
   const sourceMs = TF_DURATION_MS[sourceTf];
   if (!sourceMs) return [];
   return Object.entries(TF_DURATION_MS)
-    .filter(([tf, ms]) => ms > sourceMs && ms % sourceMs === 0)
+    .filter(([_tf, ms]) => ms > sourceMs && ms % sourceMs === 0)
     .map(([tf]) => tf)
     // Deduplicate case variants (1D/1d)
     .filter((tf, i, arr) => arr.indexOf(tf) === i);

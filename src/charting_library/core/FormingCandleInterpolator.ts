@@ -207,11 +207,25 @@ export class FormingCandleInterpolator {
 
     /** Get the current interpolated OHLC (read-only snapshot). */
     get current(): Readonly<OHLC> {
-        return { ...this._current };
+        return this._current;
     }
 
     /** Get the target OHLC (read-only snapshot). */
     get target(): Readonly<OHLC> {
-        return { ...this._target };
+        return this._target;
+    }
+
+    /**
+     * #20: Maximum absolute delta between current and target across O/H/L/C.
+     * Used by ChartEngine._needsNextFrame() for sub-pixel early exit.
+     */
+    maxDelta(): number {
+        if (this._done || !this._initialized) return 0;
+        return Math.max(
+            Math.abs(this._current.open - this._target.open),
+            Math.abs(this._current.high - this._target.high),
+            Math.abs(this._current.low - this._target.low),
+            Math.abs(this._current.close - this._target.close),
+        );
     }
 }

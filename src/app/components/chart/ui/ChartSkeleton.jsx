@@ -13,7 +13,7 @@
 //   "mini"   — compact skeleton for widgets
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { memo } from 'react';
+import { memo } from 'react';
 
 // Deterministic "random" candle heights for consistent skeleton appearance
 const CANDLE_PATTERN = [

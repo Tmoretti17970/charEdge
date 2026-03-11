@@ -82,17 +82,21 @@ export function getSmartGuides(enabled, x, y, drawings, activeDrawing, anchorToP
   if (!enabled) return [];
   const guides = [];
   const threshold = 4;
+  const MAX_GUIDES = 6; // BUG-09: cap guide output
   for (const d of drawings) {
     if (d === activeDrawing || !d.visible) continue;
     for (const pt of d.points || []) {
       const px = anchorToPixel(pt);
       if (!px) continue;
+      // BUG-09: Skip points far from cursor (>200px in either axis)
+      if (Math.abs(x - px.x) > 200 && Math.abs(y - px.y) > 200) continue;
       if (Math.abs(y - px.y) < threshold) {
         guides.push({ type: 'horizontal', y: px.y, fromX: Math.min(x, px.x) - 20, toX: Math.max(x, px.x) + 20 });
       }
       if (Math.abs(x - px.x) < threshold) {
         guides.push({ type: 'vertical', x: px.x, fromY: Math.min(y, px.y) - 20, toY: Math.max(y, px.y) + 20 });
       }
+      if (guides.length >= MAX_GUIDES) return guides; // BUG-09: early exit
     }
   }
   return guides;
@@ -128,7 +132,8 @@ export function doMagnetSnap(ctx) {
     const SCAN_RADIUS = snapStrength;
     for (const bar of visibleBars) {
       const barX = bar.x;
-      if (Math.abs(x - barX) > SCAN_RADIUS) continue;
+      if (barX < x - SCAN_RADIUS) continue; // BUG-10: sorted bars left of range
+      if (barX > x + SCAN_RADIUS) break; // BUG-10: sorted bars — early exit
       const ohlcEntries = [
         { key: 'open', price: bar.open, py: bar.openY ?? priceToPixel(bar.open) },
         { key: 'high', price: bar.high, py: bar.highY ?? priceToPixel(bar.high) },

@@ -17,9 +17,9 @@
 //   await storageAdapter.sync();             // push/pull with cloud
 // ═══════════════════════════════════════════════════════════════════
 
-import StorageService from './StorageService.ts';
-import SecureStore from '../utils/SecureStore.ts';
-import { logger } from '../utils/logger';
+import StorageService from './StorageService';
+import { logger } from '@/observability/logger';
+import SecureStore from '@/security/SecureStore';
 
 // ─── I1.2: Auth State ───────────────────────────────────────────
 
@@ -44,6 +44,7 @@ async function _loadAuth() {
       // Re-encrypt if this was legacy plain-text data (migration)
       if (!saved._f) await _saveAuth();
     }
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     /* ignore */
   }
@@ -61,6 +62,7 @@ async function _saveAuth() {
       provider: _authState.provider,
       _tokenExpiresAt: _authState._tokenExpiresAt,
     });
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     /* ignore */
   }
@@ -234,6 +236,7 @@ function _loadSyncQueue() {
   try {
     const raw = localStorage.getItem(SYNC_QUEUE_KEY);
     if (raw) _syncQueue = JSON.parse(raw);
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     _syncQueue = [];
   }
@@ -250,6 +253,7 @@ function _saveSyncQueue() {
       _syncQueue = _syncQueue.slice(-250);
       try {
         localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(_syncQueue));
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) {
         // If still too big, clear the queue entirely to prevent data loss on new writes
         logger.data.error('[StorageAdapter] Sync queue too large even after trim, clearing');

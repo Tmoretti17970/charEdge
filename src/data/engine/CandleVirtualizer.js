@@ -13,36 +13,16 @@
 //
 // ═══════════════════════════════════════════════════════════════════
 
-import { logger } from '../../utils/logger.js';
+import { openUnifiedDB } from '../../data/UnifiedDB.js';
+import { logger } from '@/observability/logger.js';
 
 // ─── Constants ─────────────────────────────────────────────────
 
 const DEFAULT_WINDOW_SIZE = 5_000;      // Bars in memory
 const DEFAULT_EVICTION_BATCH = 1_000;   // Bars per eviction write
 const DEFAULT_RESTORE_BATCH = 500;      // Bars per restore read
-const DB_NAME = 'charEdge_candleCache';
-const DB_VERSION = 1;
-const STORE_NAME = 'bars';
-
-// ─── IndexedDB Helpers ─────────────────────────────────────────
-
-/**
- * Open the candle cache database.
- * @returns {Promise<IDBDatabase>}
- */
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME);
-      }
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
+// P2 7.1: Consolidated into UnifiedDB — no longer uses private 'charEdge_candleCache'
+const STORE_NAME = 'candles';
 
 /**
  * Build a storage key for a set of bars.
@@ -99,18 +79,18 @@ class _CandleVirtualizer {
   // ── Initialization ─────────────────────────────────────────
 
   /**
-   * Initialize IndexedDB connection.
+   * Initialize IndexedDB connection via UnifiedDB (P2 7.1).
    * @returns {Promise<void>}
    */
   async _ensureDB() {
     if (this._dbReady) return;
     if (this._dbInitPromise) return this._dbInitPromise;
 
-    this._dbInitPromise = openDB().then(db => {
+    this._dbInitPromise = openUnifiedDB().then(db => {
       this._db = db;
       this._dbReady = true;
     }).catch(err => {
-      logger.data.warn('[CandleVirtualizer] IndexedDB init failed:', err?.message);
+      logger.data.warn('[CandleVirtualizer] UnifiedDB init failed:', err?.message);
       this._dbReady = false;
     });
 

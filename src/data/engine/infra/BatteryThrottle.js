@@ -74,6 +74,7 @@ export class BatteryThrottle extends EventTarget {
         this._battery.addEventListener('chargingchange', this._onChargingChange);
         this._battery.addEventListener('levelchange', this._onLevelChange);
       }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       // Battery API not available — remain at defaults (no throttle)
       this._apiAvailable = false;

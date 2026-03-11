@@ -5,8 +5,8 @@
 // TradeMarkerOverlay, and TradePLPill chart overlay components.
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
+import { describe, it, expect } from 'vitest';
 
 const read = (rel) => fs.readFileSync(`src/${rel}`, 'utf8');
 

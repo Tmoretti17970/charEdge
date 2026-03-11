@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 const MOCK_FUNDING = [
   { pair: 'BTCUSDT', rate: 0.01, predicted: 0.0085, oi: '18.2B' },

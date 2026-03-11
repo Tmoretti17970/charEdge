@@ -23,6 +23,8 @@ export interface ApiKeyStore {
 export interface RateLimiterOptions {
   windowMs?: number | undefined;
   max?: number | undefined;
+  /** Use Redis-backed rate limiting (distributed). Falls back to in-memory if Redis unavailable. */
+  useRedis?: boolean | undefined;
 }
 
 export interface CorsOptions {
@@ -97,12 +99,50 @@ export function apiKeyAuth(keyStore: ApiKeyStore): RequestHandler {
   };
 }
 
-// ─── Rate Limiter ─────────────────────────────────────────────
-
 /**
- * In-memory sliding window rate limiter.
+ * Rate limiter middleware.
+ *
+ * Supports two modes:
+ * - **In-memory** (default): sliding window per-key, suitable for dev/single-instance.
+ * - **Redis** (`useRedis: true`): delegates to redis.ts `checkRateLimit()` for
+ *   distributed production deployments. Falls back to in-memory if Redis unavailable.
  */
-export function rateLimiter({ windowMs = 60_000, max = 60 }: RateLimiterOptions = {}): RequestHandler {
+export function rateLimiter({ windowMs = 60_000, max = 60, useRedis = false }: RateLimiterOptions = {}): RequestHandler {
+  // ── Redis-backed path ──────────────────────────────────────
+  if (useRedis) {
+    return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      try {
+        const { checkRateLimit } = await import('./services/redis.js');
+        const key = `rl:${req.userId || req.apiKey?.id || req.ip || 'anon'}`;
+        const windowSec = Math.ceil(windowMs / 1000);
+        const { allowed, remaining, resetIn } = await checkRateLimit(key, max, windowSec);
+
+        res.set('X-RateLimit-Limit', String(max));
+        res.set('X-RateLimit-Remaining', String(remaining));
+        res.set('X-RateLimit-Reset', String(Math.ceil((Date.now() + resetIn * 1000) / 1000)));
+
+        if (!allowed) {
+          res.set('Retry-After', String(resetIn));
+          res.status(429).json({
+            ok: false,
+            error: {
+              code: 'RATE_LIMITED',
+              message: `Rate limit exceeded. Try again in ${resetIn}s.`,
+              retryAfter: resetIn,
+            },
+          });
+          return;
+        }
+
+        next();
+      } catch {
+        // Redis unavailable — fall through to allow request (fail-open)
+        next();
+      }
+    };
+  }
+
+  // ── In-memory sliding window path ──────────────────────────
   const hits = new Map<string, RateLimitEntry>();
 
   // Cleanup expired entries every 5 minutes
@@ -234,6 +274,7 @@ export function auditLogger({ getDb, skipMethods = ['GET', 'HEAD', 'OPTIONS'] }:
           }),
           Date.now(),
         );
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (_) {
         // Non-critical — never block the response
       }
@@ -297,4 +338,23 @@ export function errorResponse(res: Response, status: number, code: string, messa
     ok: false,
     error: { code, message },
   });
+}
+
+// ─── P2 8.4: Not Found Handler ──────────────────────────────────
+
+/**
+ * Catch-all 404 handler for API routes.
+ * Mount after all API route handlers to return proper JSON 404s
+ * instead of falling through to the SPA index.html catch-all.
+ */
+export function notFound(): RequestHandler {
+  return (_req: Request, res: Response, _next: NextFunction): void => {
+    res.status(404).json({
+      ok: false,
+      error: {
+        code: 'NOT_FOUND',
+        message: `API endpoint not found: ${_req.method} ${_req.originalUrl}`,
+      },
+    });
+  };
 }

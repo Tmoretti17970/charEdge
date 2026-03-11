@@ -93,6 +93,7 @@ function verify(token: string, secret: string): JWTPayload | null {
         }
 
         return payload;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
         return null;
     }

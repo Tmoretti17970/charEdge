@@ -4,7 +4,7 @@
 // Measures rendering throughput for 10K/50K/100K candle datasets.
 // Reports: fps, avg frame time, p50/p95/p99 frame times, memory.
 // ═══════════════════════════════════════════════════════════════════
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 // ─── Helpers ─────────────────────────────────────────────────────
 

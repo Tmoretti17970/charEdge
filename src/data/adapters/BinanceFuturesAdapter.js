@@ -22,9 +22,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { BaseAdapter } from './BaseAdapter.js';
-
-import { logger } from '../../utils/logger.ts';
-const FAPI_BASE = 'https://fapi.binance.com/fapi/v1';
+import { logger } from '@/observability/logger';
+const FAPI_BASE = '/api/binance-futures/fapi/v1';
 const FUTURES_WS = 'wss://fstream.binance.com/ws';
 
 const CACHE = new Map();
@@ -58,6 +57,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
     this._liquidationCallbacks = new Set();
     this._markPriceWS = null;
     this._markPriceCallbacks = new Map(); // symbol → Set<callback>
+    this._geoBlocked = false;
   }
 
   supports(symbol) {
@@ -77,6 +77,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
    * @returns {Promise<{ symbol, openInterest, time } | null>}
    */
   async fetchOpenInterest(symbol) {
+    if (this._geoBlocked) return null;
     const sym = toFuturesSymbol(symbol);
     const cacheKey = `oi-${sym}`;
     const cached = getCached(cacheKey);
@@ -84,6 +85,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
 
     try {
       const resp = await fetch(`${FAPI_BASE}/openInterest?symbol=${sym}`);
+      if (resp.status === 451) this._geoBlocked = true;
       if (!resp.ok) return null;
       const data = await resp.json();
 
@@ -109,6 +111,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
    * @returns {Promise<Array<{ time, oi, oiValue }>>}
    */
   async fetchOpenInterestHistory(symbol, period = '5m', limit = 100) {
+    if (this._geoBlocked) return [];
     const sym = toFuturesSymbol(symbol);
     const cacheKey = `oi-hist-${sym}-${period}`;
     const cached = getCached(cacheKey);
@@ -116,6 +119,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
 
     try {
       const resp = await fetch(`${FAPI_BASE}/openInterestHist?symbol=${sym}&period=${period}&limit=${limit}`);
+      if (resp.status === 451) this._geoBlocked = true;
       if (!resp.ok) return [];
       const data = await resp.json();
 
@@ -142,6 +146,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
    * @returns {Promise<Array<{ symbol, fundingRate, fundingTime, markPrice }>>}
    */
   async fetchFundingRate(symbol, limit = 20) {
+    if (this._geoBlocked) return [];
     const sym = toFuturesSymbol(symbol);
     const cacheKey = `funding-${sym}`;
     const cached = getCached(cacheKey);
@@ -149,6 +154,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
 
     try {
       const resp = await fetch(`${FAPI_BASE}/fundingRate?symbol=${sym}&limit=${limit}`);
+      if (resp.status === 451) this._geoBlocked = true;
       if (!resp.ok) return [];
       const data = await resp.json();
 
@@ -197,6 +203,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
    * @returns {Promise<Array<{ time, longShortRatio, longAccount, shortAccount }>>}
    */
   async fetchLongShortRatio(symbol, period = '5m', limit = 30) {
+    if (this._geoBlocked) return [];
     const sym = toFuturesSymbol(symbol);
     const cacheKey = `lsr-${sym}-${period}`;
     const cached = getCached(cacheKey);
@@ -204,6 +211,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
 
     try {
       const resp = await fetch(`${FAPI_BASE}/topLongShortPositionRatio?symbol=${sym}&period=${period}&limit=${limit}`);
+      if (resp.status === 451) this._geoBlocked = true;
       if (!resp.ok) return [];
       const data = await resp.json();
 
@@ -234,6 +242,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
    * @returns {Promise<Array<{ time, buySellRatio, buyVol, sellVol }>>}
    */
   async fetchTakerVolume(symbol, period = '5m', limit = 30) {
+    if (this._geoBlocked) return [];
     const sym = toFuturesSymbol(symbol);
     const cacheKey = `taker-${sym}-${period}`;
     const cached = getCached(cacheKey);
@@ -241,6 +250,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
 
     try {
       const resp = await fetch(`${FAPI_BASE}/takerlongshortRatio?symbol=${sym}&period=${period}&limit=${limit}`);
+      if (resp.status === 451) this._geoBlocked = true;
       if (!resp.ok) return [];
       const data = await resp.json();
 
@@ -267,10 +277,12 @@ class _BinanceFuturesAdapter extends BaseAdapter {
    * @returns {Promise<{ markPrice, indexPrice, estimatedSettlePrice, fundingRate, nextFundingTime } | null>}
    */
   async fetchMarkPrice(symbol) {
+    if (this._geoBlocked) return null;
     const sym = toFuturesSymbol(symbol);
 
     try {
       const resp = await fetch(`${FAPI_BASE}/premiumIndex?symbol=${sym}`);
+      if (resp.status === 451) this._geoBlocked = true;
       if (!resp.ok) return null;
       const data = await resp.json();
 
@@ -285,6 +297,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
         interestRate: parseFloat(data.interestRate),
         time: data.time,
       };
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return null;
     }
@@ -350,6 +363,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
       };
 
       this._liquidationWS.onerror = () => { /* silent */ };
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       this._liquidationWS = null;
     }
@@ -422,6 +436,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
       };
 
       this._markPriceWS.onerror = () => { /* silent */ };
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       this._markPriceWS = null;
     }
@@ -494,6 +509,7 @@ class _BinanceFuturesAdapter extends BaseAdapter {
         currentOI: lastOI,
         timestamp: Date.now(),
       };
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return null;
     }
@@ -546,15 +562,90 @@ class _BinanceFuturesAdapter extends BaseAdapter {
     };
   }
 
+  // ─── CoinGecko Fallback (geo-blocked regions) ──────────────
+
+  /** @private */
+  async _fetchCoinGeckoSnapshot(symbol) {
+    const cacheKey = 'cg-deriv-snap';
+    const cached = getCached(cacheKey);
+    if (cached) return cached;
+
+    try {
+      const resp = await fetch('/api/coingecko/derivatives');
+      if (!resp.ok) return null;
+      const tickers = await resp.json();
+
+      const sym = toFuturesSymbol(symbol);
+      const base = sym.replace('USDT', '');
+
+      // Find matching Binance perpetual contract
+      const ticker = tickers.find(t =>
+        t.market?.toLowerCase().includes('binance') &&
+        t.contract_type === 'perpetual' &&
+        (t.symbol?.toUpperCase().includes(base + '/USDT') ||
+         t.symbol?.toUpperCase().replace('_PERP', '').replace('/', '') === sym)
+      );
+
+      if (!ticker) return null;
+
+      const price = parseFloat(ticker.price) || 0;
+      const oiUsd = ticker.open_interest_usd || ticker.open_interest || 0;
+      const fundingRate = (ticker.funding_rate || 0) / 100; // CG gives %, convert to decimal
+
+      const result = {
+        symbol: sym,
+        openInterest: {
+          symbol: sym,
+          openInterest: price > 0 ? oiUsd / price : 0,
+          time: Date.now(),
+        },
+        funding: {
+          rate: fundingRate,
+          ratePct: ticker.funding_rate || 0,
+          nextFundingTime: null,
+          sentiment: fundingRate > 0 ? 'longs pay shorts (bullish bias)' :
+                     fundingRate < 0 ? 'shorts pay longs (bearish bias)' : 'neutral',
+        },
+        longShortRatio: null,
+        markPrice: {
+          symbol: sym,
+          markPrice: price,
+          indexPrice: ticker.index ? parseFloat(ticker.index) : price,
+          estimatedSettlePrice: 0,
+          fundingRate,
+          fundingRatePct: ticker.funding_rate || 0,
+          nextFundingTime: null,
+          interestRate: 0,
+          time: Date.now(),
+        },
+        takerVolume: null,
+        timestamp: Date.now(),
+        source: 'coingecko',
+      };
+
+      setCache(cacheKey, result, 30000);
+      return result;
+    } catch (err) {
+      logger.data.warn('[BinanceFutures] CoinGecko fallback failed:', err?.message);
+      return null;
+    }
+  }
+
   // ─── Comprehensive Derivatives Snapshot ────────────────────
 
   /**
    * Fetch a full derivatives snapshot for a symbol in one call.
    * Combines OI, funding, L/S ratio, and mark price.
+   * Falls back to CoinGecko if Binance is geo-blocked (HTTP 451).
    * @param {string} symbol
    * @returns {Promise<Object>}
    */
   async fetchDerivativesSnapshot(symbol) {
+    // If previously geo-blocked, skip Binance entirely
+    if (this._geoBlocked) {
+      return this._fetchCoinGeckoSnapshot(symbol);
+    }
+
     const [oi, funding, lsr, markPrice, takerVol] = await Promise.all([
       this.fetchOpenInterest(symbol),
       this.fetchCurrentFunding(symbol),
@@ -562,6 +653,13 @@ class _BinanceFuturesAdapter extends BaseAdapter {
       this.fetchMarkPrice(symbol),
       this.fetchTakerVolume(symbol, '1h', 1),
     ]);
+
+    // If all returned null, likely geo-blocked — fallback to CoinGecko
+    if (!oi && !funding && !markPrice) {
+      this._geoBlocked = true;
+      logger.data.warn('[BinanceFutures] API geo-blocked. Falling back to CoinGecko.');
+      return this._fetchCoinGeckoSnapshot(symbol);
+    }
 
     return {
       symbol: toFuturesSymbol(symbol),

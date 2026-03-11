@@ -16,9 +16,9 @@
 //   ✓ Fallback between REST and SSE
 // ═══════════════════════════════════════════════════════════════════
 
-import { BaseAdapter } from './BaseAdapter.js';
-import { logger } from '../../utils/logger.ts';
 import { pythCandleAggregator, SUPPORTED_INTERVALS } from '../engine/streaming/PythCandleAggregator.js';
+import { BaseAdapter } from './BaseAdapter.js';
+import { logger } from '@/observability/logger';
 
 // ─── Hermes API Endpoints ───────────────────────────────────────
 
@@ -431,6 +431,7 @@ export class PythAdapter extends BaseAdapter {
               }
             }
           }
+        // eslint-disable-next-line unused-imports/no-unused-vars
         } catch (_) {
           /* ignore individual message parse errors */
         }

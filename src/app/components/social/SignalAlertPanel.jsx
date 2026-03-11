@@ -3,8 +3,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
 import { useSignalStore } from '../../../state/useSignalStore.js';
+import { alpha } from '@/shared/colorUtils';
 
 function timeAgo(ts) {
   const diff = Date.now() - ts;

@@ -5,7 +5,7 @@
 // sections, recommendation pills, and week-over-week comparison.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
 
 const GRADE_COLORS = {

@@ -33,7 +33,7 @@ interface IntentSignals {
   hasOpenPosition: boolean;
 }
 
-const DECAY_RATE = 0.95; // Signal decay per second
+const _DECAY_RATE = 0.95; // Signal decay per second
 const CONFIDENCE_THRESHOLD = 0.4;
 
 /**

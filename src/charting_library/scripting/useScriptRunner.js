@@ -12,7 +12,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useScriptStore } from '../../state/useScriptStore.js';
-import { executeScript } from './ScriptEngine.js';
+import { executeScriptAsync } from './ScriptEngine.js';
 
 /**
  * @param {Object[]} bars - Current OHLCV data
@@ -36,30 +36,41 @@ export default function useScriptRunner(bars) {
       return;
     }
 
-    const newOutputs = {};
-    const newErrors = {};
+    let cancelled = false;
 
-    for (const script of enabledScripts) {
-      try {
-        const result = executeScript(script.code, bars, script.params || {});
-        if (result.error) {
-          newErrors[script.id] = result.error;
-        } else {
-          // Tag each output with script metadata
-          newOutputs[script.id] = result.outputs.map((out) => ({
-            ...out,
-            _scriptId: script.id,
-            _scriptName: script.name,
-          }));
+    (async () => {
+      const newOutputs = {};
+      const newErrors = {};
+
+      for (const script of enabledScripts) {
+        if (cancelled) return;
+        try {
+          const result = await executeScriptAsync(script.code, bars, script.params || {});
+          if (cancelled) return;
+          if (result.error) {
+            newErrors[script.id] = result.error;
+          } else {
+            // Tag each output with script metadata
+            newOutputs[script.id] = result.outputs.map((out) => ({
+              ...out,
+              _scriptId: script.id,
+              _scriptName: script.name,
+            }));
+          }
+        } catch (err) {
+          if (cancelled) return;
+          newErrors[script.id] = err.message || 'Execution failed';
         }
-      } catch (err) {
-        newErrors[script.id] = err.message || 'Execution failed';
       }
-    }
 
-    setEditorOutputsRaw(newOutputs);
-    setErrors(newErrors);
-    prevBarsRef.current = bars;
+      if (!cancelled) {
+        setEditorOutputsRaw(newOutputs);
+        setErrors(newErrors);
+        prevBarsRef.current = bars;
+      }
+    })();
+
+    return () => { cancelled = true; };
   }, [bars, enabledScripts]);
 
   // Manual editor output injection (from ScriptEditor "Run" button)

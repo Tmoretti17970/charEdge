@@ -16,7 +16,7 @@
 
 import { RESOLUTION_MS, normalizeResolution } from './DataFeed.js';
 import { createLRUCache, getTTLForResolution, barCacheKey } from './LRUCache.js';
-import { logger } from '../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ── Binance API endpoints ──
 const REST_BASE =
@@ -245,6 +245,7 @@ export function createBinanceFeed(options = {}) {
 
             onBar(bar);
           }
+        // eslint-disable-next-line unused-imports/no-unused-vars
         } catch (_) {
           // Silently ignore parse errors (heartbeats, etc.)
         }

@@ -20,8 +20,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { useRole } from '../../hooks/useRole.js';
 import { C, F } from '../../../constants.js';
+import { useRole } from '../../../hooks/useRole.js';
 
 /**
  * @param {Object} props
@@ -31,7 +31,7 @@ import { C, F } from '../../../constants.js';
  * @param {React.ReactNode} props.children
  */
 export default function RoleGate({ minRole, mode = 'hide', fallback = null, children }) {
-    const { hasRole, role } = useRole();
+    const { hasRole, _role } = useRole();
 
     if (hasRole(minRole)) {
         return <>{children}</>;

@@ -3,15 +3,15 @@
 // Dropdown to switch between built-in and custom workspace presets.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { C, F, M } from '../../../../constants.js';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { C, F } from '../../../../constants.js';
+import { useChartStore } from '../../../../state/useChartStore';
 import {
   useWorkspaceStore,
   BUILT_IN_PRESETS,
   captureState,
   restoreState,
-} from '../../../../state/useWorkspaceStore.js';
-import { useChartStore } from '../../../../state/useChartStore.js';
+} from '../../../../state/useWorkspaceStore';
 
 export default function WorkspacePresets() {
   const [open, setOpen] = useState(false);
@@ -97,7 +97,7 @@ export default function WorkspacePresets() {
   const builtIn = BUILT_IN_PRESETS.find((p) => p.id === activePreset);
   const customWs = workspaces.find((w) => w.id === activePreset);
   const activeLabel = builtIn?.name || customWs?.name || null;
-  const activeIcon = builtIn?.icon || '📂';
+  const _activeIcon = builtIn?.icon || '📂';
 
   return (
     <div ref={ref} style={{ position: 'relative', display: 'flex', flexShrink: 0 }}>

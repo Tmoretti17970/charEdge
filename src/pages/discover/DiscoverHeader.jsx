@@ -5,10 +5,10 @@
 // and filter toggle button.
 // ═══════════════════════════════════════════════════════════════════
 
-import { C, F } from '../../constants.js';
-import { alpha } from '../../utils/colorUtils.js';
-import NotificationBell from '../../app/components/social/NotificationBell.jsx';
 import DiscoverLayoutEngine from '../../app/components/discover/DiscoverLayoutEngine.jsx';
+import NotificationBell from '../../app/components/social/NotificationBell.jsx';
+import { C, F } from '../../constants.js';
+import { alpha } from '@/shared/colorUtils';
 
 export default function DiscoverHeader({
   searchQuery,

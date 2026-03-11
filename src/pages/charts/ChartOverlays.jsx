@@ -5,12 +5,12 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { Suspense } from 'react';
-import { C } from '../../constants.js';
-import { useChartStore } from '../../state/useChartStore.js';
-import { useBacktestStore } from '../../state/useBacktestStore.js';
-import { useStrategyBuilderStore } from '../../state/useStrategyBuilderStore.js';
 import ChartContextMenu from '../../app/components/chart/chart_ui/ChartContextMenu.jsx';
-import { isEnabled, FEATURES } from '../../utils/featureFlags.js';
+import { C } from '../../constants.js';
+import { useBacktestStore } from '../../state/useBacktestStore.js';
+import { useChartStore } from '../../state/useChartStore';
+import { useStrategyBuilderStore } from '../../state/useStrategyBuilderStore';
+import { isEnabled, FEATURES } from '@/shared/featureFlags';
 
 // Lazy-loaded overlays
 const IndicatorLegendHeader = React.lazy(() => import('../../app/components/chart/core/IndicatorLegendHeader.jsx'));
@@ -21,7 +21,6 @@ const TradePLPill = React.lazy(() => import('../../app/components/chart/overlays
 const RiskGuardOverlay = React.lazy(() => import('../../app/components/chart/overlays/RiskGuardOverlay.jsx'));
 const MobileDrawingSheet = React.lazy(() => import('../../app/components/mobile/MobileDrawingSheet.jsx'));
 const QuickStylePalette = React.lazy(() => import('../../app/components/chart/QuickStylePalette.jsx'));
-const PositionSizer = React.lazy(() => import('../../app/components/chart/chart_ui/PositionSizer.jsx'));
 const QuickJournalPanel = React.lazy(() => import('../../app/components/chart/chart_ui/QuickJournalPanel.jsx'));
 const RadialMenu = React.lazy(() => import('../../app/components/chart/RadialMenu.jsx'));
 const DrawingPropertyEditor = React.lazy(() => import('../../app/components/chart/tools/DrawingPropertyEditor.jsx'));
@@ -109,8 +108,11 @@ export default function ChartOverlays({
   isLive: _isLive,
   setShowIndicators: _setShowIndicators2,
   // AI palette callbacks
-  setShowCopilot,
-  openPanel,
+  _setShowCopilot,
+  _openPanel,
+  // Auto-fit button
+  showAutoFit,
+  onAutoFit,
 }) {
   const selectedDrawingId = useChartStore((s) => s.selectedDrawingId);
   const showComparisonOverlay = useChartStore((s) => s.showComparisonOverlay);
@@ -121,7 +123,7 @@ export default function ChartOverlays({
 
   return (
     <>
-      {/* Indicator Legend Header — persistent top-left overlay */}
+      {/* Indicator Legend Header — positioned inline after OHLCV bar */}
       {!multiMode && !isMobile && (
         <Suspense fallback={null}>
           <IndicatorLegendHeader
@@ -165,7 +167,11 @@ export default function ChartOverlays({
       {/* Trade P/L Summary Pill */}
       {!multiMode && !isMobile && showTrades && matchingTrades.length > 0 && (
         <Suspense fallback={null}>
-          <TradePLPill trades={matchingTrades} />
+          <TradePLPill
+            trades={matchingTrades}
+            showAutoFit={showAutoFit}
+            onAutoFit={onAutoFit}
+          />
         </Suspense>
       )}
 
@@ -190,12 +196,7 @@ export default function ChartOverlays({
         </Suspense>
       )}
 
-      {/* F3.1: Chart Trade Overlays — only mount PositionSizer when in trade mode */}
-      {tradeMode && (
-        <Suspense fallback={null}>
-          <PositionSizer />
-        </Suspense>
-      )}
+      {/* F3.1: PositionSizer — now routed through SlidePanel via ChartPanelManager */}
       {showQuickJournal && (
         <Suspense fallback={null}>
           <QuickJournalPanel onClose={toggleQuickJournal} />
@@ -244,6 +245,7 @@ export default function ChartOverlays({
               if (segId === 'indicator') {
                 if (subItemId === 'more') { setShowIndicators(true); return; }
                 // Directly add indicator by id (rsi, ema, macd, bollinger, vwap)
+                // eslint-disable-next-line unused-imports/no-unused-vars
                 try { useChartStore.getState().addIndicator({ indicatorId: subItemId }); } catch (_) { /* noop */ }
                 return;
               }

@@ -22,12 +22,15 @@
 //     → axesStage        (UI layer — draws price/time labels ON TOP)
 // ═══════════════════════════════════════════════════════════════════
 
+import type { FrameState } from './FrameState.js';
 import { CHANGED } from './FrameState.js';
 import { LAYERS } from './LayerManager.js';
 import { DARK_THEME, LIGHT_THEME } from './ThemeManager.js';
 import { RenderCommandBuffer } from '../gpu/RenderCommandBuffer.js';
+import { getCSSThemeColors } from './ThemeColors';
 import { executeGPUComputeStage } from './stages/GPUComputeStage.js';
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
+import type { StageEngine } from './stages/StageTypes.js';
 
 // ─── Type Definitions ────────────────────────────────────────────
 
@@ -38,19 +41,19 @@ export interface RenderContexts {
   indicatorCtx: CanvasRenderingContext2D;
   drawingCtx: CanvasRenderingContext2D;
   uiCtx: CanvasRenderingContext2D;
-  layers: any;
-  theme: Record<string, string>;
-  webgl: any;
+  layers: unknown;
+  theme: ResolvedTheme;
+  webgl: unknown;
   webglCanvas: HTMLCanvasElement;
-  drawingEngine: any;
-  drawingRenderer: any;
-  sceneGraph: any;
-  commandBuffer: any;
+  drawingEngine: unknown;
+  drawingRenderer: unknown;
+  sceneGraph: unknown;
+  commandBuffer: unknown;
   changeMask: number;
 }
 
 /** Signature for a stage execution function. */
-export type StageFn = (fs: any, ctx: RenderContexts, engine: any) => void;
+export type StageFn = (fs: FrameState, ctx: RenderContexts, engine: StageEngine) => void;
 
 /** Entry in the stage registry. */
 export interface StageEntry {
@@ -72,7 +75,6 @@ export interface ResolvedTheme {
   bearCandle: string;
   bullVolume: string;
   bearVolume: string;
-  [key: string]: string;
 }
 
 /** Map of stage implementations for createDefaultPipeline. */
@@ -88,40 +90,56 @@ export interface StageMap {
 
 // ─── Theme Resolution ────────────────────────────────────────────
 
+// Pre-allocated theme object — mutated in place to avoid hidden class churn.
+// resolveTheme() is called every frame; spreading created ~128 hidden classes per call.
+const _resolved: ResolvedTheme = {
+  bg: '', fg: '', axisBg: '', axisText: '',
+  gridLine: '', gridColor: '', crosshairColor: '',
+  bullCandle: '', bearCandle: '', bullVolume: '', bearVolume: '',
+};
+
 /**
  * Resolve the full theme object from FrameState.
  * Merges base theme with user-configured chart colors.
  */
-export function resolveTheme(fs: any): ResolvedTheme {
+export function resolveTheme(fs: unknown): ResolvedTheme {
   const rawThm = fs.themeName === 'light' ? LIGHT_THEME : DARK_THEME;
-  const thm: any = {
-    ...rawThm,
-    bg: rawThm.background,
-    fg: rawThm.foreground,
-    axisBg: rawThm.axisBackground,
-    axisText: rawThm.textSecondary,
-    gridLine: rawThm.gridColor,
-    gridColor: rawThm.gridColor,
-    crosshairColor: rawThm.crosshairColor,
-    bullCandle: rawThm.candleUp,
-    bearCandle: rawThm.candleDown,
-    bullVolume: rawThm.volumeUp,
-    bearVolume: rawThm.volumeDown,
-  };
 
-  // Apply user-configured chart colors on top
-  if (fs.storeChartColors) {
-    const cc = fs.storeChartColors;
-    if (cc.background) thm.bg = cc.background;
-    if (cc.candleUp) thm.bullCandle = cc.candleUp;
-    if (cc.candleDown) thm.bearCandle = cc.candleDown;
-    if (cc.volumeUp) thm.bullVolume = cc.volumeUp;
-    if (cc.volumeDown) thm.bearVolume = cc.volumeDown;
-    if (cc.gridColor) thm.gridLine = cc.gridColor;
-    if (cc.crosshair) thm.crosshairColor = cc.crosshair;
+  _resolved.bg = rawThm.background;
+  _resolved.fg = rawThm.foreground;
+  _resolved.axisBg = rawThm.axisBackground;
+  _resolved.axisText = rawThm.textSecondary;
+  _resolved.gridLine = rawThm.gridColor;
+  _resolved.gridColor = rawThm.gridColor;
+  _resolved.crosshairColor = rawThm.crosshairColor;
+  _resolved.bullCandle = rawThm.candleUp;
+  _resolved.bearCandle = rawThm.candleDown;
+  _resolved.bullVolume = rawThm.volumeUp;
+  _resolved.bearVolume = rawThm.volumeDown;
+
+  // Sprint 7 #60: Apply CSS custom property colors from brand-colors.css.
+  // These override the base theme defaults but are themselves overridden by
+  // explicit user-configured chart colors (storeChartColors).
+  const cssColors = getCSSThemeColors();
+  for (const key in cssColors) {
+    if (cssColors[key]) {
+      (_resolved as unknown)[key] = cssColors[key];
+    }
   }
 
-  return thm;
+  // Apply user-configured chart colors on top (highest priority)
+  if (fs.storeChartColors) {
+    const cc = fs.storeChartColors;
+    if (cc.background) _resolved.bg = cc.background;
+    if (cc.candleUp) _resolved.bullCandle = cc.candleUp;
+    if (cc.candleDown) _resolved.bearCandle = cc.candleDown;
+    if (cc.volumeUp) _resolved.bullVolume = cc.volumeUp;
+    if (cc.volumeDown) _resolved.bearVolume = cc.volumeDown;
+    if (cc.gridColor) _resolved.gridLine = cc.gridColor;
+    if (cc.crosshair) _resolved.crosshairColor = cc.crosshair;
+  }
+
+  return _resolved;
 }
 
 // ─── RenderPipeline Class ────────────────────────────────────────
@@ -136,11 +154,42 @@ export function resolveTheme(fs: any): ResolvedTheme {
  */
 export class RenderPipeline {
   _stages: StageEntry[];
-  _prevFrameState: any;
+  _prevFrameState: unknown;
+
+  // P2 5.1: Pooled command buffer — reused across frames via reset()
+  _commandBuffer: RenderCommandBuffer;
+  // P2 5.2: Pre-rasterized grid dot canvas (invalidated on theme/DPR change)
+  _dotCanvas: OffscreenCanvas | HTMLCanvasElement | null;
+  _dotCanvasDPR: number;
+  _dotCanvasColor: string;
+
+  // Item 21: Pooled RenderContexts — reused across frames (zero alloc in hot path)
+  _pooledCtx: RenderContexts;
 
   constructor() {
     this._stages = [];
     this._prevFrameState = null;
+    this._commandBuffer = new RenderCommandBuffer();
+    this._dotCanvas = null;
+    this._dotCanvasDPR = 0;
+    this._dotCanvasColor = '';
+    // Item 21: Pre-allocate with null placeholders — mutated in execute()
+    this._pooledCtx = {
+      gridCtx: null as unknown,
+      dataCtx: null as unknown,
+      indicatorCtx: null as unknown,
+      drawingCtx: null as unknown,
+      uiCtx: null as unknown,
+      layers: null,
+      theme: null as unknown,
+      webgl: null,
+      webglCanvas: null as unknown,
+      drawingEngine: null,
+      drawingRenderer: null,
+      sceneGraph: null,
+      commandBuffer: null as unknown,
+      changeMask: 0,
+    };
   }
 
   /**
@@ -153,7 +202,7 @@ export class RenderPipeline {
   /**
    * Execute all stages for a single frame.
    */
-  execute(frameState: any, engine: any, fb: any, skipStages: Set<string> | null): void {
+  execute(frameState: unknown, engine: unknown, fb: unknown, skipStages: Set<string> | null): void {
     // Compute what changed since last frame
     const changeMask = frameState.diff(this._prevFrameState);
     frameState.setChangeMask(changeMask);
@@ -161,32 +210,23 @@ export class RenderPipeline {
     // Resolve theme once per frame (shared across all stages)
     const theme = resolveTheme(frameState);
 
-    // Build the shared render context
-    const commandBuffer = new RenderCommandBuffer();
-    const ctx: RenderContexts = {
-      // Layer 2D contexts
-      gridCtx: engine.gridCtx,
-      dataCtx: engine.mainCtx,
-      indicatorCtx: engine.indicatorCtx,
-      drawingCtx: engine.drawingCtx,
-      uiCtx: engine.topCtx,
-      // Layer manager
-      layers: engine.layers,
-      // Resolved theme
-      theme,
-      // WebGL renderer
-      webgl: engine._webglRenderer,
-      webglCanvas: engine._webglCanvas,
-      // Drawing engine/renderer
-      drawingEngine: engine.drawingEngine,
-      drawingRenderer: engine.drawingRenderer,
-      // Scene graph (Phase 2)
-      sceneGraph: engine._sceneGraph || null,
-      // Render command buffer (Phase 3)
-      commandBuffer,
-      // Change mask
-      changeMask,
-    };
+    // Item 21: Mutate pooled context in-place (zero allocation)
+    this._commandBuffer.reset();
+    const ctx = this._pooledCtx;
+    ctx.gridCtx = engine.gridCtx;
+    ctx.dataCtx = engine.mainCtx;
+    ctx.indicatorCtx = engine.indicatorCtx;
+    ctx.drawingCtx = engine.drawingCtx;
+    ctx.uiCtx = engine.topCtx;
+    ctx.layers = engine.layers;
+    ctx.theme = theme;
+    ctx.webgl = engine._webglRenderer;
+    ctx.webglCanvas = engine._webglCanvas;
+    ctx.drawingEngine = engine.drawingEngine;
+    ctx.drawingRenderer = engine.drawingRenderer;
+    ctx.sceneGraph = engine._sceneGraph || null;
+    ctx.commandBuffer = this._commandBuffer;
+    ctx.changeMask = changeMask;
 
     // Set shared frame uniforms once (resolution, pixelRatio) for ShaderLibrary
     if (engine._webglRenderer?.available) {
@@ -196,8 +236,11 @@ export class RenderPipeline {
       engine._webglRenderer.setFrameUniforms(bw, bh, pr);
     }
 
-    // Run each stage
-    for (const stage of this._stages) {
+    // P1 Task 7: Run stages via indexed loop (avoids iterator alloc + enables V8 inline cache)
+    const stages = this._stages;
+    const stageCount = stages.length;
+    for (let si = 0; si < stageCount; si++) {
+      const stage = stages[si]!;
       // Skip stage if none of its relevant changes occurred
       // Exception: CHANGED.ALL always runs (first frame, resize, etc.)
       if (changeMask !== CHANGED.ALL &&
@@ -220,16 +263,23 @@ export class RenderPipeline {
     }
 
     // Flush all deferred GPU commands (sorted by program/blend/texture/z-order)
-    if (commandBuffer.size > 0 && engine._webglRenderer?.gl) {
+    if (ctx.commandBuffer.size > 0 && engine._webglRenderer?.gl) {
       // Clear WebGL canvas immediately before flushing — NOT earlier in DataStage —
       // to prevent blank-frame flicker when the browser composites between clear and flush.
       engine._webglRenderer.clear();
-      commandBuffer.flush(engine._webglRenderer.gl);
+      ctx.commandBuffer.flush(engine._webglRenderer.gl);
     }
 
     // Clear scene graph dirty flags after all stages have rendered
     if (engine._sceneGraph) {
       engine._sceneGraph.clearDirty();
+    }
+
+    // ─── Per-Pane Rendering (Hybrid DOM Architecture) ──────────────
+    // After main pane stages, iterate indicator panes and render their
+    // independent grid, indicator, and UI stages on their own canvases.
+    if (engine.paneManager && engine.paneManager.indicatorPanes.length > 0) {
+      this._renderIndicatorPanes(frameState, engine, ctx, fb);
     }
 
     // Store for next frame's diff (8.1.5: release old frame to pool)
@@ -252,6 +302,299 @@ export class RenderPipeline {
    */
   getStageNames(): string[] {
     return this._stages.map(s => s.name);
+  }
+
+  /**
+   * Render all indicator panes. Each pane gets its own rendering pass
+   * with independent grid, indicator data, and UI on its own canvases.
+   */
+  _renderIndicatorPanes(frameState: unknown, engine: unknown, mainCtx: RenderContexts, _fb: unknown): void {
+    const paneManager = engine.paneManager;
+    if (!paneManager) return;
+
+    const panes = paneManager.indicatorPanes;
+    const theme = mainCtx.theme;
+
+    for (let pi = 0; pi < panes.length; pi++) {
+      const pane = panes[pi];
+      if (!pane) continue;
+
+      // Skip collapsed panes (only render header)
+      if (pane.state.collapsed) continue;
+
+      // Get per-pane rendering contexts
+      const paneCtxs = paneManager.getPaneContexts(pi);
+      if (!paneCtxs) continue;
+
+      const { gridCtx, indicatorCtx, uiCtx, layers } = paneCtxs;
+
+      // Only render if the pane is dirty
+      if (!pane.state.dirty && !layers.anyDirty()) continue;
+
+      const paneH = pane.state.height || pane.container.clientHeight;
+      const pr = layers.pixelRatio || 1;
+
+      // ─── Pane Grid ────────────────────────────────────────────
+      if (layers.isDirty(LAYERS.GRID)) {
+        layers.clearDirty(LAYERS.GRID);
+        const bw = layers.bitmapWidth || 1;
+        const bh = layers.bitmapHeight || 1;
+        // Clear and fill background
+        gridCtx.fillStyle = theme.bg || '#131722';
+        gridCtx.fillRect(0, 0, bw, bh);
+        // Horizontal grid lines based on pane Y-axis
+        this._drawPaneGrid(gridCtx, pane.state, paneH, pr, theme, bw, bh);
+      }
+
+      // ─── Pane Indicator Data ──────────────────────────────────
+      if (layers.isDirty(LAYERS.INDICATORS)) {
+        layers.clearDirty(LAYERS.INDICATORS);
+        const bw = layers.bitmapWidth || 1;
+        const bh = layers.bitmapHeight || 1;
+        indicatorCtx.clearRect(0, 0, bw, bh);
+        // Render the indicator(s) for this pane
+        this._drawPaneIndicator(indicatorCtx, frameState, pane.state, engine, paneH, pr);
+      }
+
+      // ─── Pane UI (crosshair, header, Y-axis) ──────────────────
+      if (layers.isDirty(LAYERS.UI)) {
+        layers.clearDirty(LAYERS.UI);
+        const bw = layers.bitmapWidth || 1;
+        const bh = layers.bitmapHeight || 1;
+        uiCtx.clearRect(0, 0, bw, bh);
+        // Draw pane header, Y-axis ticks, and synced crosshair
+        this._drawPaneUI(uiCtx, frameState, pane.state, engine, paneH, pr, theme, bw, bh);
+      }
+
+      pane.state.dirty = false;
+    }
+  }
+
+  /**
+   * Draw horizontal grid lines for an indicator pane.
+   */
+  _drawPaneGrid(
+    ctx: CanvasRenderingContext2D, paneState: unknown,
+    paneH: number, pr: number, theme: unknown,
+    bw: number, bh: number,
+  ): void {
+    const { yMin, yMax } = paneState;
+    if (yMin >= yMax) return;
+
+    const range = yMax - yMin;
+    // Compute nice tick spacing
+    const rawStep = range / 5;
+    const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+    const niceSteps = [1, 2, 2.5, 5, 10];
+    let step = niceSteps[niceSteps.length - 1]! * mag;
+    for (const ns of niceSteps) {
+      if (ns * mag >= rawStep) { step = ns * mag; break; }
+    }
+
+    const dotRadius = Math.max(0.8, pr * 0.7);
+    const dotColor = theme.gridLine || 'rgba(54,58,69,0.22)';
+
+    // P2 5.2: Pre-rasterize a single dot to an offscreen canvas;
+    // stamp via drawImage instead of hundreds of arc() calls.
+    if (!this._dotCanvas || this._dotCanvasDPR !== pr || this._dotCanvasColor !== dotColor) {
+      const size = Math.ceil(dotRadius * 2 + 2);
+      const dot = typeof OffscreenCanvas !== 'undefined'
+        ? new OffscreenCanvas(size, size)
+        : document.createElement('canvas');
+      if (!(dot instanceof OffscreenCanvas)) {
+        dot.width = size;
+        dot.height = size;
+      }
+      const dCtx = dot.getContext('2d') as CanvasRenderingContext2D;
+      dCtx.fillStyle = dotColor;
+      dCtx.beginPath();
+      dCtx.arc(size / 2, size / 2, dotRadius, 0, Math.PI * 2);
+      dCtx.fill();
+      this._dotCanvas = dot;
+      this._dotCanvasDPR = pr;
+      this._dotCanvasColor = dotColor;
+    }
+
+    const dotImg = this._dotCanvas;
+    const dotSize = dotImg.width;
+    const halfDot = dotSize / 2;
+    ctx.globalAlpha = 0.18;
+
+    const firstTick = Math.ceil(yMin / step) * step;
+    for (let tick = firstTick; tick <= yMax; tick += step) {
+      const y = Math.round((1 - (tick - yMin) / range) * paneH * pr);
+      if (y >= 0 && y <= bh) {
+        for (let x = Math.round(30 * pr); x < bw; x += Math.round(80 * pr)) {
+          ctx.drawImage(dotImg as unknown, x - halfDot, y - halfDot);
+        }
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /**
+   * Draw indicator data for a pane.
+   */
+  _drawPaneIndicator(
+    ctx: CanvasRenderingContext2D, fs: unknown, paneState: unknown,
+    engine: unknown, paneH: number, pr: number,
+  ): void {
+    const indicators = paneState.indicators || [];
+    if (indicators.length === 0) return;
+
+    const bars = fs.bars || engine.bars;
+    const startIdx = fs.startIdx ?? 0;
+    const endIdx = fs.endIdx ?? bars.length - 1;
+    const { yMin, yMax } = paneState;
+    if (yMin >= yMax || bars.length === 0) return;
+
+    const _bw = ctx.canvas.width;
+    const _bh = ctx.canvas.height;
+    const R = engine.state.lastRender;
+    if (!R?.timeTransform) return;
+
+    // Price-to-Y transform for this pane
+    const range = yMax - yMin;
+    const p2y = (price: number) => (1 - (price - yMin) / range) * paneH;
+
+    for (const ind of indicators) {
+      if (!ind.computed) continue;
+      const hiddenSet = engine.state.hiddenIndicators || new Set();
+      const idx = engine.indicators.indexOf(ind);
+      if (idx >= 0 && hiddenSet.has(idx)) continue;
+
+      for (const out of (ind.outputs || [])) {
+        const vals = ind.computed[out.key];
+        if (!vals) continue;
+
+        ctx.save();
+        ctx.strokeStyle = out.color || '#2962FF';
+        ctx.lineWidth = Math.max(1, (out.lineWidth || 2) * pr);
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        // Line rendering
+        ctx.beginPath();
+        let started = false;
+        for (let i = startIdx; i <= endIdx && i < vals.length; i++) {
+          const val = vals[i];
+          if (val == null || isNaN(val)) { started = false; continue; }
+          const x = R.timeTransform.indexToPixel(i) * pr;
+          const y = p2y(val) * pr;
+          if (!started) { ctx.moveTo(x, y); started = true; }
+          else { ctx.lineTo(x, y); }
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Histogram rendering (MACD, volume-based indicators)
+      if (ind.computed.histogram) {
+        const histVals = ind.computed.histogram;
+        ctx.save();
+        for (let i = startIdx; i <= endIdx && i < histVals.length; i++) {
+          const val = histVals[i];
+          if (val == null || isNaN(val)) continue;
+          const x = R.timeTransform.indexToPixel(i) * pr;
+          const barW = Math.max(1, (R.barWidth || 4) * pr * 0.6);
+          const y = p2y(val) * pr;
+          const zeroY = p2y(0) * pr;
+          ctx.fillStyle = val >= 0
+            ? (engine.state.lastRender?.thm?.bullCandle || '#26A69A')
+            : (engine.state.lastRender?.thm?.bearCandle || '#EF5350');
+          ctx.globalAlpha = 0.7;
+          ctx.fillRect(x - barW / 2, Math.min(y, zeroY), barW, Math.abs(y - zeroY));
+        }
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+    }
+  }
+
+  /**
+   * Draw pane UI: header label, Y-axis ticks, synced crosshair.
+   */
+  _drawPaneUI(
+    ctx: CanvasRenderingContext2D, fs: unknown, paneState: unknown,
+    engine: unknown, paneH: number, pr: number, theme: unknown,
+    bw: number, bh: number,
+  ): void {
+    const { yMin, yMax } = paneState;
+    if (yMin >= yMax) return;
+
+    const range = yMax - yMin;
+
+    // ─── Pane Header ────────────────────────────────────────────
+    const indicators = paneState.indicators || [];
+    const headerLabel = indicators[0]?.label || indicators[0]?.shortName || indicators[0]?.indicatorId || 'Indicator';
+    const headerFs = Math.round(11 * pr);
+    ctx.font = `bold ${headerFs}px Arial`;
+    ctx.fillStyle = theme.fg || '#D1D4DC';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(headerLabel, Math.round(8 * pr), Math.round(4 * pr));
+
+    // Indicator value at crosshair
+    if (indicators[0]?.computed && fs.hoverIdx != null) {
+      let vx = Math.round(8 * pr) + ctx.measureText(headerLabel).width + Math.round(10 * pr);
+      ctx.font = `${Math.round(10 * pr)}px Arial`;
+      for (const out of (indicators[0].outputs || [])) {
+        const vals = indicators[0].computed[out.key];
+        if (!vals) continue;
+        const val = fs.hoverIdx < vals.length ? vals[fs.hoverIdx] : NaN;
+        if (isNaN(val)) continue;
+        ctx.fillStyle = out.color || '#2962FF';
+        const valStr = val.toFixed(2);
+        ctx.fillText(valStr, vx, Math.round(5 * pr));
+        vx += ctx.measureText(valStr).width + Math.round(8 * pr);
+      }
+    }
+
+    // ─── Y-Axis Labels (right edge) ─────────────────────────────
+    const rawStep = range / 5;
+    const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+    const niceSteps = [1, 2, 2.5, 5, 10];
+    let step = niceSteps[niceSteps.length - 1]! * mag;
+    for (const ns of niceSteps) {
+      if (ns * mag >= rawStep) { step = ns * mag; break; }
+    }
+
+    const axFs = Math.round(9 * pr);
+    ctx.font = `${axFs}px Arial`;
+    ctx.fillStyle = theme.axisText || '#787B86';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    const axisX = bw - Math.round(4 * pr);
+
+    const firstTick = Math.ceil(yMin / step) * step;
+    for (let tick = firstTick; tick <= yMax; tick += step) {
+      const y = Math.round((1 - (tick - yMin) / range) * paneH * pr);
+      if (y >= Math.round(15 * pr) && y <= bh - Math.round(5 * pr)) {
+        ctx.fillText(tick.toFixed(2), axisX, y);
+      }
+    }
+
+    // ─── Synced Crosshair (vertical line from main chart) ───────
+    const S = engine.state;
+    if (S.mouseX != null && S.mouseX >= 0 && S.mouseX <= (engine.state.lastRender?.cW || 9999)) {
+      const bx = Math.round(S.mouseX * pr);
+      ctx.strokeStyle = theme.crosshairColor || 'rgba(149,152,161,0.5)';
+      ctx.lineWidth = Math.max(1, Math.round(pr));
+      ctx.setLineDash([Math.round(4 * pr), Math.round(4 * pr)]);
+      ctx.beginPath();
+      ctx.moveTo(bx + 0.5, 0);
+      ctx.lineTo(bx + 0.5, bh);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // ─── Separator line at top ──────────────────────────────────
+    ctx.strokeStyle = theme.gridLine || 'rgba(54,58,69,0.5)';
+    ctx.lineWidth = Math.max(1, pr);
+    ctx.beginPath();
+    ctx.moveTo(0, 0.5);
+    ctx.lineTo(bw, 0.5);
+    ctx.stroke();
   }
 }
 

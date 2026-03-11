@@ -13,7 +13,9 @@
 //   4. 8.1.5: Pooled allocation — eliminates per-frame GC
 // ═══════════════════════════════════════════════════════════════════
 
-import type { Bar, IndicatorConfig, Theme } from '../../types/chart.js';
+import type { Bar, IndicatorConfig } from '../../types/chart.js';
+import type { PaneState} from './PaneState.js';
+import { buildPaneLayout, layoutPanes } from './PaneState.js';
 
 /**
  * Bitmask flags indicating which parts of the frame state changed.
@@ -31,7 +33,8 @@ export const CHANGED = {
   SIZE: 1 << 7,   // canvas dimensions changed
   ANIMATION: 1 << 8,   // candle entrance or tick animation active
   TICK: 1 << 9,   // last bar updated, bar count unchanged (incremental)
-  ALL: 0x3FF,     // all bits set
+  TIMEZONE: 1 << 10,  // active timezone changed
+  ALL: 0x7FF,     // all bits set (11 flags)
 } as const;
 
 export type ChangeMask = number;
@@ -126,6 +129,7 @@ export class FrameState {
   showHeatmap!: boolean;
   showSessions!: boolean;
   useUTC!: boolean;
+  activeTimezone!: string;
   showDelta!: boolean;
   showVP!: boolean;
   showLargeTrades!: boolean;
@@ -180,6 +184,8 @@ export class FrameState {
 
   // ─── Pane transforms ──────────────────────────────────────────
   paneTransforms!: (PaneTransform | null)[];
+  /** Phase 1: First-class pane state array [main, pane_0, pane_1, ...] */
+  panes!: PaneState[];
   patternMarkers!: unknown;
   divergences!: unknown;
   heatmapIntensity!: number;
@@ -197,7 +203,7 @@ export class FrameState {
    * This is the ONLY way to create a FrameState — it captures
    * a consistent snapshot of all rendering inputs.
    */
-  static create(engine: EngineSnapshot, lod: Record<string, any>, prev: FrameState | null): FrameState {
+  static create(engine: EngineSnapshot, lod: Record<string, unknown>, prev: FrameState | null): FrameState {
     const S = engine.state;
     const bars = engine.bars;
     const props = engine.props;
@@ -210,31 +216,58 @@ export class FrameState {
     const mh = layers.mediaHeight || bh / pr;
 
     const compact = !!props.compact;
-    // P1-A #3/#4: Responsive axis sizing — 48px price axis and 20px time axis on mobile
-    const isMobile = mw < 768;
-    const axW = compact ? 0 : (isMobile ? 48 : 72);
-    const txH = compact ? 0 : (isMobile ? 20 : 24);
-    const chartWidth = mw - axW;
-    const availHeight = mh - txH;
-
-    // Indicator layout
-    const indicators = (engine.indicators || []) as any[];
-    const overlayInds = indicators.filter((i: any) => i.mode === 'overlay').slice(0, (lod as any).maxIndicators);
-    const paneInds = indicators.filter((i: any) => i.mode === 'pane').slice(0, Math.max(0, (lod as any).maxIndicators - overlayInds.length));
-    const paneCount = paneInds.length;
-
-    let paneHeight = 0, mainHeight = availHeight;
+    const indicators = (engine.indicators || []) as unknown[];
     const collapsedPanes: Set<number> = engine.state.collapsedPanes || new Set();
-    if (paneCount > 0) {
-      const paneHeightsMap = (props.paneHeights || {}) as Record<number, number>;
-      const totalPaneFraction = paneInds.reduce((sum: number, _: any, idx: number) => {
-        if (collapsedPanes.has(idx)) return sum; // collapsed panes don't take space
-        return sum + (paneHeightsMap[idx] || 0.15);
-      }, 0);
-      const paneTotalH = Math.min(availHeight * 0.6, Math.floor(availHeight * totalPaneFraction));
-      const activePaneCount = paneInds.filter((_: any, idx: number) => !collapsedPanes.has(idx)).length;
-      paneHeight = activePaneCount > 0 ? Math.max(60, Math.floor(paneTotalH / activePaneCount)) : 0;
-      mainHeight = Math.max(100, availHeight - paneHeight * activePaneCount);
+
+    // P1 Task 3: Reuse layout from prev frame if canvas size, zoom & config are unchanged
+    const layoutSame = prev &&
+      bw === prev.bitmapWidth && bh === prev.bitmapHeight &&
+      mw === prev.mediaWidth && mh === prev.mediaHeight &&
+      compact === prev.compact &&
+      indicators.length === prev.indicators.length &&
+      S.visibleBars === prev.visibleBars;
+
+    let axW: number, txH: number, chartWidth: number, availHeight: number;
+    let overlayInds: unknown[], paneInds: unknown[], paneCount: number;
+    let paneHeight: number, mainHeight: number;
+
+    if (layoutSame) {
+      // Reuse cached layout — skip filter/reduce/Math operations
+      axW = prev!.axW;
+      txH = prev!.txH;
+      chartWidth = prev!.chartWidth;
+      availHeight = prev!.availHeight;
+      overlayInds = prev!.overlayInds;
+      paneInds = prev!.paneInds;
+      paneCount = prev!.paneCount;
+      paneHeight = prev!.paneHeight;
+      mainHeight = prev!.mainHeight;
+    } else {
+      // P1-A #3/#4: Responsive axis sizing — 48px price axis and 20px time axis on mobile
+      const isMobile = mw < 768;
+      axW = compact ? 0 : (isMobile ? 48 : 72);
+      txH = compact ? 0 : (isMobile ? 20 : 24);
+      chartWidth = mw - axW;
+      availHeight = mh - txH;
+
+      // Indicator layout
+      overlayInds = indicators.filter((i: unknown) => i.mode === 'overlay').slice(0, (lod as unknown).maxIndicators);
+      paneInds = indicators.filter((i: unknown) => i.mode === 'pane').slice(0, Math.max(0, (lod as unknown).maxIndicators - overlayInds.length));
+      paneCount = paneInds.length;
+
+      paneHeight = 0;
+      mainHeight = availHeight;
+      if (paneCount > 0) {
+        const paneHeightsMap = (props.paneHeights || {}) as Record<number, number>;
+        const totalPaneFraction = paneInds.reduce((sum: number, _: unknown, idx: number) => {
+          if (collapsedPanes.has(idx)) return sum;
+          return sum + (paneHeightsMap[idx] || 0.15);
+        }, 0);
+        const paneTotalH = Math.min(availHeight * 0.6, Math.floor(availHeight * totalPaneFraction));
+        const activePaneCount = paneInds.filter((_: unknown, idx: number) => !collapsedPanes.has(idx)).length;
+        paneHeight = activePaneCount > 0 ? Math.max(60, Math.floor(paneTotalH / activePaneCount)) : 0;
+        mainHeight = Math.max(100, availHeight - paneHeight * activePaneCount);
+      }
     }
 
     // Visible range
@@ -242,21 +275,97 @@ export class FrameState {
     const exactStart = end - S.visibleBars + 1;
     const startIdx = Math.max(0, Math.floor(exactStart));
     const endIdx = Math.floor(end);
-    const visBars = bars.slice(startIdx, Math.min(bars.length, endIdx + 2));
+    const visBarsEnd = Math.min(bars.length, endIdx + 2);
     const barSpacing = chartWidth / S.visibleBars;
 
-    // Price range
-    let lo = Infinity, hi = -Infinity;
-    for (const b of visBars) {
-      if (b.low < lo) lo = b.low;
-      if (b.high > hi) hi = b.high;
-    }
-    const rng = hi - lo || 1;
-    let yMin = lo - rng * 0.06, yMax = hi + rng * 0.06;
-    if (!S.autoScale) {
-      const mid = (yMin + yMax) / 2, half = (yMax - yMin) / 2;
-      yMin = mid - half * S.priceScale + S.priceScroll;
-      yMax = mid + half * S.priceScale + S.priceScroll;
+    // ─── Tick-Only Fast Path ─────────────────────────────────────
+    // When only the last bar's close changed (streaming tick), skip
+    // the full price scan, slice, and pane rebuild by reusing prev frame.
+    const isTickOnly = !!engine._tickUpdate &&
+      prev &&
+      bars.length === prev.barCount &&
+      startIdx === prev.startIdx &&
+      endIdx === prev.endIdx &&
+      S.priceScale === prev.priceScale &&   // Price axis drag → full recompute
+      S.autoScale === prev.autoScale &&     // Auto-scale toggle → full recompute
+      S.priceScroll === prev.priceScroll;   // Price scroll change → full recompute
+
+    let visBars: Bar[];
+    let yMin: number, yMax: number;
+    let panes: PaneState[];
+    let paneTransforms: (PaneTransform | null)[];
+
+    if (isTickOnly && prev) {
+      // Tick fast path: reuse previous visBars but update last bar
+      visBars = prev.visBars;
+      if (visBars.length > 0) {
+        visBars[visBars.length - 1] = bars[bars.length - 1];
+      }
+
+      // Reuse price range — last bar tick rarely escapes the range.
+      // If it does, the next full frame will catch it.
+      const lastBar = bars[bars.length - 1];
+      if (lastBar.high > prev.yMax || lastBar.low < prev.yMin) {
+        // Price escaped — fall through to full scan below
+        yMin = prev.yMin;
+        yMax = prev.yMax;
+        // Expand range to include new extremes
+        if (lastBar.low < prev.yMin) yMin = lastBar.low - (prev.yMax - prev.yMin) * 0.03;
+        if (lastBar.high > prev.yMax) yMax = lastBar.high + (prev.yMax - prev.yMin) * 0.03;
+      } else {
+        yMin = prev.yMin;
+        yMax = prev.yMax;
+      }
+
+      // Reuse pane state entirely — indicator auto-fit is stable during ticks
+      panes = prev.panes;
+      paneTransforms = prev.paneTransforms;
+    } else {
+      // P1 Task 1: Price scan via index loop — avoids slice() copy for the hot path
+      let lo = Infinity, hi = -Infinity;
+      for (let bi = startIdx; bi < visBarsEnd; bi++) {
+        const b = bars[bi];
+        if (b.low < lo) lo = b.low;
+        if (b.high > hi) hi = b.high;
+      }
+      // Create visBars slice after scan (still needed by downstream stages)
+      visBars = bars.slice(startIdx, visBarsEnd);
+      const rng = hi - lo || 1;
+      yMin = lo - rng * 0.06;
+      yMax = hi + rng * 0.06;
+      if (!S.autoScale) {
+        const mid = (yMin + yMax) / 2, half = (yMax - yMin) / 2;
+        yMin = mid - half * S.priceScale + S.priceScroll;
+        yMax = mid + half * S.priceScale + S.priceScroll;
+      }
+
+      // ─── Phase 1: Build PaneState array ──────────────────────────
+      // Creates [mainPane, pane_0, pane_1, ...] with independent Y-axis state.
+      panes = buildPaneLayout(
+        indicators,
+        (props.paneHeights || {}) as Record<number, number>,
+        collapsedPanes,
+      );
+
+      // Lay out heights (main pane fills remainder)
+      layoutPanes(panes, availHeight);
+
+      // Auto-fit Y-ranges for each pane
+      panes[0].autoFit(startIdx, endIdx, bars, 0.06); // main pane: 6% padding
+      for (let i = 1; i < panes.length; i++) {
+        panes[i].autoFit(startIdx, endIdx, undefined, 0.05);
+      }
+
+      // ─── Backward-compat: paneTransforms from PaneState ─────────
+      paneTransforms = [];
+      for (let i = 1; i < panes.length; i++) {
+        const pane = panes[i];
+        if (pane.collapsed) {
+          paneTransforms.push(null);
+        } else {
+          paneTransforms.push({ yMin: pane.yMin, yMax: pane.yMax });
+        }
+      }
     }
 
     const percentBase = visBars.length > 0 ? visBars[0].open : 0;
@@ -269,7 +378,9 @@ export class FrameState {
       S.visibleBars !== prev.visibleBars ||
       S.scrollOffset !== prev.scrollOffset ||
       yMin !== prev.yMin ||
-      yMax !== prev.yMax
+      yMax !== prev.yMax ||
+      mw !== prev.mediaWidth ||
+      mh !== prev.mediaHeight
     );
 
     // Animation state
@@ -328,7 +439,8 @@ export class FrameState {
     fs.showVolume = !!props.showVolume;
     fs.showHeatmap = !!props.showHeatmap;
     fs.showSessions = !!props.showSessions;
-    fs.useUTC = props.useUTC !== false; // Sprint 9: UTC/local time toggle (default UTC)
+    fs.activeTimezone = (props.activeTimezone as string) || 'UTC';
+    fs.useUTC = fs.activeTimezone === 'UTC'; // Backward-compat derived from activeTimezone
     fs.showDelta = !!props.showDeltaOverlay;
     fs.showVP = !!props.showVPOverlay;
     fs.showLargeTrades = !!props.showLargeTradesOverlay;
@@ -349,8 +461,17 @@ export class FrameState {
     fs.overlayInds = overlayInds;
     fs.paneInds = paneInds;
 
-    // Theme
-    fs.themeName = (props.theme as string) || 'dark';
+    // Theme — resolve with DOM fallback for first-frame hydration race.
+    // earlyThemeInit() in theme.js sets the correct class on <html> synchronously
+    // before React mounts, so we read it when the store value may be stale.
+    let _theme = (props.theme as string) || 'dark';
+    if (_theme === 'system') {
+      _theme = (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+    }
+    if (_theme === 'dark' && typeof document !== 'undefined' && document.documentElement.classList.contains('theme-light')) {
+      _theme = 'light';
+    }
+    fs.themeName = _theme;
     fs.storeChartColors = (storeChartColors as Record<string, string>) || null;
 
     // Animation
@@ -381,38 +502,7 @@ export class FrameState {
     fs.paneHeights = (props.paneHeights as Record<number, number>) || null;
     fs.collapsedPanes = collapsedPanes;
 
-    // Sprint 11: Per-pane independent price transforms
-    // Each indicator pane gets its own yMin/yMax based on its data range.
-    const paneTransforms: (PaneTransform | null)[] = [];
-    if (paneCount > 0) {
-      for (let i = 0; i < paneCount; i++) {
-        const ind = paneInds[i] as any;
-        if (!ind || !ind.computed || collapsedPanes.has(i)) {
-          paneTransforms.push(null);
-          continue;
-        }
-        // Scan all outputs to find data range
-        let pMin = Infinity, pMax = -Infinity;
-        for (const output of ind.outputs) {
-          const vals = ind.computed[output.key];
-          if (!vals) continue;
-          const s = Math.max(0, startIdx);
-          const e = Math.min(vals.length - 1, endIdx);
-          for (let j = s; j <= e; j++) {
-            const v = vals[j];
-            if (v != null && isFinite(v)) {
-              if (v < pMin) pMin = v;
-              if (v > pMax) pMax = v;
-            }
-          }
-        }
-        if (pMin === Infinity) { pMin = 0; pMax = 100; }
-        const pRng = pMax - pMin || 1;
-        pMin -= pRng * 0.05;
-        pMax += pRng * 0.05;
-        paneTransforms.push({ yMin: pMin, yMax: pMax });
-      }
-    }
+    fs.panes = panes;
     fs.paneTransforms = paneTransforms;
     fs.patternMarkers = props.patternMarkers || null;
     fs.divergences = props.divergences || null;
@@ -421,7 +511,7 @@ export class FrameState {
     fs.rangeBarSize = props.rangeBarSize as number | undefined;
 
     // Drawing version from drawing engine
-    fs.drawingVersion = (engine as any).drawingEngine?.version ?? 0;
+    fs.drawingVersion = (engine as unknown).drawingEngine?.version ?? 0;
 
     return fs;
   }
@@ -435,11 +525,14 @@ export class FrameState {
 
     let mask: ChangeMask = CHANGED.NONE;
 
-    // Viewport
+    // Viewport — includes both horizontal (scroll/zoom) AND vertical (Y-axis) changes.
+    // Without yMin/yMax here, price axis drag wouldn't trigger indicator/drawing re-render.
     if (this.startIdx !== prev.startIdx ||
       this.endIdx !== prev.endIdx ||
       this.visibleBars !== prev.visibleBars ||
-      this.scrollOffset !== prev.scrollOffset) {
+      this.scrollOffset !== prev.scrollOffset ||
+      this.yMin !== prev.yMin ||
+      this.yMax !== prev.yMax) {
       mask |= CHANGED.VIEWPORT;
     }
 
@@ -477,6 +570,11 @@ export class FrameState {
       this.compact !== prev.compact ||
       this.autoScale !== prev.autoScale) {
       mask |= CHANGED.PROPS;
+    }
+
+    // Timezone
+    if (this.activeTimezone !== prev.activeTimezone) {
+      mask |= CHANGED.TIMEZONE;
     }
 
     // Size
@@ -524,6 +622,7 @@ export class FrameState {
 // Pre-allocates FrameState objects to avoid per-frame GC pressure.
 // Pool size = 4 (double-buffer + 2 spare for async consumers).
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 class _FrameStatePool {
   private readonly _pool: FrameState[] = [];
   private readonly _maxSize: number;

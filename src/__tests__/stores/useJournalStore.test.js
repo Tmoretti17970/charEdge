@@ -5,6 +5,7 @@
 // auto-archive slices.
 // ═══════════════════════════════════════════════════════════════════
 
+// eslint-disable-next-line import/order
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock telemetry to prevent side effects

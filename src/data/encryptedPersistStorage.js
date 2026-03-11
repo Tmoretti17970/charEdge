@@ -21,7 +21,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { encryptedStore } from './EncryptedStore.js';
-import { logger } from '../utils/logger';
+import { logger } from '@/observability/logger';
 
 /**
  * Create a Zustand-compatible persist storage adapter backed by
@@ -94,7 +94,11 @@ export function encryptedPersistStorage(storeName) {
                 await encryptedStore.put(storeName, name, value);
             } catch (err) {
                 logger.data.warn(`[EncryptedPersist] setItem("${name}") failed:`, err?.message);
-                // Fallback: try localStorage (degraded mode)
+                // Fallback: try localStorage (degraded mode — NO ENCRYPTION)
+                logger.data.warn(
+                    `[EncryptedPersist] ⚠️ Falling back to UNENCRYPTED localStorage for "${name}". ` +
+                    'Data will NOT be encrypted at rest. Ensure IndexedDB is available.'
+                );
                 try {
                     localStorage.setItem(name, JSON.stringify(value));
                 } catch { /* quota exceeded */ }

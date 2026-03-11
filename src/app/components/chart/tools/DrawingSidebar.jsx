@@ -4,9 +4,8 @@
 // Slides in when draw mode is activated via toolbar toggle.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useRef, useEffect } from 'react';
-import { C, GLASS, DEPTH } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore.js';
+import { useState, useRef, useEffect } from 'react';
+import { useChartToolsStore } from '../../../../state/useChartStore';
 
 // ─── Drawing Tool Data ───────────────────────────────────────────
 const S = 16;
@@ -161,15 +160,15 @@ function ToolTip({ text, shortcut, pos }) {
 
 // ─── Sidebar Component ───────────────────────────────────────────
 export default function DrawingSidebar({ isOpen, onClose }) {
-  const activeTool = useChartStore((s) => s.activeTool);
-  const setActiveTool = useChartStore((s) => s.setActiveTool);
-  const magnetMode = useChartStore((s) => s.magnetMode);
-  const toggleMagnetMode = useChartStore((s) => s.toggleMagnetMode);
-  const undoDrawing = useChartStore((s) => s.undoDrawing);
-  const redoDrawing = useChartStore((s) => s.redoDrawing);
-  const hasUndo = useChartStore((s) => s.drawingHistory.length > 0);
-  const hasRedo = useChartStore((s) => s.drawingFuture.length > 0);
-  const drawings = useChartStore((s) => s.drawings);
+  const activeTool = useChartToolsStore((s) => s.activeTool);
+  const setActiveTool = useChartToolsStore((s) => s.setActiveTool);
+  const magnetMode = useChartToolsStore((s) => s.magnetMode);
+  const toggleMagnetMode = useChartToolsStore((s) => s.toggleMagnetMode);
+  const undoDrawing = useChartToolsStore((s) => s.undoDrawing);
+  const redoDrawing = useChartToolsStore((s) => s.redoDrawing);
+  const hasUndo = useChartToolsStore((s) => s.drawingHistory.length > 0);
+  const hasRedo = useChartToolsStore((s) => s.drawingFuture.length > 0);
+  const drawings = useChartToolsStore((s) => s.drawings);
 
   const [expandedGroup, setExpandedGroup] = useState(null);
   const [tooltip, setTooltip] = useState(null);
@@ -198,7 +197,7 @@ export default function DrawingSidebar({ isOpen, onClose }) {
       document.removeEventListener('mouseup', onUp);
       // Persist position
       setPos((p) => {
-        try { localStorage.setItem('charEdge-draw-pos', JSON.stringify(p)); } catch { }
+        try { localStorage.setItem('charEdge-draw-pos', JSON.stringify(p)); } catch { /* no-op */ }
         return p;
       });
     };
@@ -232,7 +231,7 @@ export default function DrawingSidebar({ isOpen, onClose }) {
     if (toolId && activeTool !== toolId) {
       const next = [toolId, ...recents.filter((r) => r !== toolId)].slice(0, 3);
       setRecents(next);
-      try { localStorage.setItem('charEdge-draw-recents', JSON.stringify(next)); } catch { }
+      try { localStorage.setItem('charEdge-draw-recents', JSON.stringify(next)); } catch { /* no-op */ }
     }
   };
 
@@ -241,9 +240,9 @@ export default function DrawingSidebar({ isOpen, onClose }) {
   };
 
   const handleClearAll = () => {
-    const s = useChartStore.getState();
+    const s = useChartToolsStore.getState();
     if (s.drawings.length > 0) {
-      useChartStore.setState({
+      useChartToolsStore.setState({
         drawingHistory: [...s.drawingHistory.slice(-49), s.drawings],
         drawingFuture: [],
       });

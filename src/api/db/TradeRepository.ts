@@ -122,7 +122,7 @@ export class TradeRepository {
      * List trades with optional filters and pagination.
      */
     list(userId: string, filters: TradeFilters = {}, pagination: PaginationOptions = {}): PaginatedResult<Trade> {
-        const { limit = 50, offset = 0 } = pagination;
+        const { limit = 50, _offset = 0 } = pagination;
         const conditions: string[] = ['user_id = ?'];
         const params: unknown[] = [userId];
 

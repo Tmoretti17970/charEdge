@@ -5,11 +5,11 @@
 // Placed above the dashboard widget grid.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useLayoutStore } from '../../../state/useLayoutStore.js';
 import { useState, useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { evaluateSuggestions } from '../../../utils/widgetSuggestionEngine.js';
+import { C, F } from '../../../constants.js';
+import { useJournalStore } from '../../../state/useJournalStore';
+import { useLayoutStore } from '../../../state/useLayoutStore';
+import { evaluateSuggestions } from '@/app/features/widgetSuggestionEngine';
 
 export default function WidgetSuggestionBanner() {
   const trades = useJournalStore((s) => s.trades);

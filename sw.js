@@ -37,7 +37,8 @@ self.addEventListener('activate', (event) => {
     caches.keys().then(keys =>
       Promise.all(
         keys
-          .filter(key => key !== STATIC_CACHE && key !== DYNAMIC_CACHE)
+          // Only delete charEdge caches — other apps on same origin may have their own
+          .filter(key => (key.startsWith('charEdge-') || key.startsWith('ce-')) && key !== STATIC_CACHE && key !== DYNAMIC_CACHE)
           .map(key => caches.delete(key))
       )
     ).then(() => self.clients.claim())
@@ -243,21 +244,34 @@ async function replayMutations() {
 
     console.log(`[SW] Background Sync: replaying ${all.length} queued mutations`);
 
+    const replayedIds = [];
     for (const mutation of all) {
       try {
         await fetch(mutation.url, {
           method: mutation.method || 'POST',
-          headers: mutation.headers || { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            // Idempotency key: backend should reject duplicate replay IDs
+            'X-Idempotency-Key': mutation.id + '-' + (mutation.timestamp || 0),
+            ...(mutation.headers || {}),
+          },
           body: mutation.body ? JSON.stringify(mutation.body) : undefined,
         });
-        // Delete successfully replayed mutation
-        const delTx = db.transaction(SYNC_STORE, 'readwrite');
-        delTx.objectStore(SYNC_STORE).delete(mutation.id);
-        await new Promise(r => { delTx.oncomplete = r; delTx.onerror = r; });
+        replayedIds.push(mutation.id);
       } catch {
         // If replay fails, keep the mutation for next sync
         console.warn(`[SW] Failed to replay mutation ${mutation.id}, will retry`);
       }
+    }
+
+    // Batch-delete all successfully replayed mutations in one transaction
+    if (replayedIds.length > 0) {
+      const delTx = db.transaction(SYNC_STORE, 'readwrite');
+      const delStore = delTx.objectStore(SYNC_STORE);
+      for (const id of replayedIds) {
+        delStore.delete(id);
+      }
+      await new Promise(r => { delTx.oncomplete = r; delTx.onerror = r; });
     }
 
     db.close();
@@ -276,7 +290,7 @@ self.addEventListener('sync', (event) => {
 // Also replay on service worker activation (in case sync API isn't available)
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'replay-sync-queue') {
-    replayMutations();
+    event.waitUntil(replayMutations());
   }
 });
 

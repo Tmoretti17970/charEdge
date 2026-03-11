@@ -43,7 +43,8 @@ describe('ReplayEngine', () => {
         // Polyfill requestAnimationFrame for Node/vitest
         if (typeof globalThis.requestAnimationFrame === 'undefined') {
             let rafId = 0;
-            globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => ++rafId) as typeof requestAnimationFrame;
+            // eslint-disable-next-line no-undef
+            globalThis.requestAnimationFrame = ((_cb: FrameRequestCallback) => ++rafId) as typeof requestAnimationFrame;
             globalThis.cancelAnimationFrame = (() => { }) as typeof cancelAnimationFrame;
         }
         provider = createMockProvider(10);

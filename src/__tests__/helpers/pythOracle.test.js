@@ -8,6 +8,7 @@
 //   - DataPipeline confidence propagation
 // ═══════════════════════════════════════════════════════════════════
 
+// eslint-disable-next-line import/order
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // ── Mock browser APIs ──────────────────────────────────────────
@@ -46,19 +47,16 @@ vi.stubGlobal('fetch', vi.fn(() =>
 
 // ── Import after mocks ──────────────────────────────────────────
 
-import PythCandleAggregator, {
-  pythCandleAggregator,
-  INTERVALS,
-  SUPPORTED_INTERVALS,
-  MAX_CANDLES,
-} from '../../data/engine/streaming/PythCandleAggregator.js';
-
 import {
   PYTH_FEEDS,
   FEED_TO_SYMBOL,
   SYMBOL_TO_FEED,
 } from '../../data/adapters/PythAdapter.js';
-
+import PythCandleAggregator, {
+  INTERVALS,
+  SUPPORTED_INTERVALS,
+  MAX_CANDLES,
+} from '../../data/engine/streaming/PythCandleAggregator.js';
 import { SymbolRegistry } from '../../data/SymbolRegistry.js';
 
 // ═══════════════════════════════════════════════════════════════════

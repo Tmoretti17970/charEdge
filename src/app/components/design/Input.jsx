@@ -5,8 +5,7 @@
 // error state, and prefix/suffix slots.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { forwardRef, useState, useId } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { forwardRef, useState, useId } from 'react';
 
 /**
  * Design system input with animated focus ring and floating label.
@@ -40,19 +39,8 @@ const Input = forwardRef(function Input(
     <div className={className} style={{ position: 'relative', ...style }}>
       {/* Floating label */}
       {label && (
-        <motion.label
+        <label
           htmlFor={inputId}
-          initial={false}
-          animate={{
-            y: isFloating ? -22 : 0,
-            scale: isFloating ? 0.85 : 1,
-            color: error
-              ? 'hsl(356, 75%, 53%)'
-              : focused
-                ? 'var(--c-accent-blue, hsl(217, 91%, 60%))'
-                : 'var(--c-fg-secondary, hsl(210, 13%, 68%))',
-          }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
           style={{
             position: 'absolute',
             left: prefix ? 36 : 12,
@@ -61,10 +49,17 @@ const Input = forwardRef(function Input(
             pointerEvents: 'none',
             transformOrigin: 'left center',
             zIndex: 1,
+            transform: isFloating ? 'translateY(-22px) scale(0.85)' : 'translateY(0) scale(1)',
+            color: error
+              ? 'hsl(356, 75%, 53%)'
+              : focused
+                ? 'var(--c-accent-blue, hsl(217, 91%, 60%))'
+                : 'var(--c-fg-secondary, hsl(210, 13%, 68%))',
+            transition: 'transform 200ms cubic-bezier(0.4, 0, 0.2, 1), color 200ms ease',
           }}
         >
           {label}
-        </motion.label>
+        </label>
       )}
 
       {/* Input wrapper */}
@@ -74,13 +69,12 @@ const Input = forwardRef(function Input(
           alignItems: 'center',
           gap: 'var(--sp-2, 8px)',
           background: 'var(--tf-sf, var(--c-bg-secondary))',
-          border: `1px solid ${
-            error
+          border: `1px solid ${error
               ? 'hsl(356, 75%, 53%)'
               : focused
                 ? 'var(--c-border-focus, hsl(217, 91%, 60%))'
                 : 'var(--c-border, hsl(225, 13%, 18%))'
-          }`,
+            }`,
           borderRadius: 'var(--br-lg, 12px)',
           padding: '0 var(--sp-3, 12px)',
           transition: 'border-color var(--dur-normal, 200ms) var(--ease-default)',
@@ -131,23 +125,19 @@ const Input = forwardRef(function Input(
       </div>
 
       {/* Error message */}
-      <AnimatePresence>
-        {error && (
-          <motion.p
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            style={{
-              color: 'hsl(356, 75%, 53%)',
-              fontSize: 'var(--fs-xs, 11px)',
-              marginTop: 'var(--sp-1, 4px)',
-              paddingLeft: 'var(--sp-3, 12px)',
-            }}
-          >
-            {error}
-          </motion.p>
-        )}
-      </AnimatePresence>
+      {error && (
+        <p
+          style={{
+            color: 'hsl(356, 75%, 53%)',
+            fontSize: 'var(--fs-xs, 11px)',
+            marginTop: 'var(--sp-1, 4px)',
+            paddingLeft: 'var(--sp-3, 12px)',
+            animation: 'tf-fade-in 150ms ease',
+          }}
+        >
+          {error}
+        </p>
+      )}
     </div>
   );
 });

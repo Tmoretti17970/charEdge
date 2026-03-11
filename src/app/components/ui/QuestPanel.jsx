@@ -8,9 +8,9 @@
 
 import { memo } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useGamificationStore, QUEST_DEFS } from '../../../state/useGamificationStore.js';
+import { useGamificationStore, QUEST_DEFS } from '../../../state/useGamificationStore';
 import { Card, Btn } from '../ui/UIKit.jsx';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 export const QuestPanel = memo(function QuestPanel() {
   const activeQuests = useGamificationStore((s) => s.activeQuests);
@@ -29,12 +29,13 @@ export const QuestPanel = memo(function QuestPanel() {
 
         // Determine current step info
         let currentStep = null;
-        let pct = 0;
+        let _pct = 0;
         if (isActive && questState) {
           const stepIdx = quest.steps.findIndex((s) => questState.progress < s.target);
           currentStep = stepIdx === -1 ? quest.steps[quest.steps.length - 1] : quest.steps[stepIdx];
           const maxTarget = quest.steps[quest.steps.length - 1].target;
-          pct = Math.min(100, Math.round((questState.progress / maxTarget) * 100));
+           
+          _pct = Math.min(100, Math.round((questState.progress / maxTarget) * 100));
         }
 
         return (

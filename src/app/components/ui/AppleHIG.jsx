@@ -9,7 +9,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { radii, transition } from '../../../theme/tokens.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── SegmentedControl ───────────────────────────────────────────
 // Apple-style segmented picker with animated sliding indicator.

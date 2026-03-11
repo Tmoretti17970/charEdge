@@ -3,13 +3,13 @@
 // Full theme editor: Theme, Accent, Font Size, Chart Style, Density.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../../state/useUserStore.js';
 import { useState } from 'react';
 import { C } from '../../../constants.js';
-import { Card } from '../ui/UIKit.jsx';
 import { DENSITY_MODES } from '../../../state/user/densitySlice.js';
-import { ACCENT_PRESETS, CHART_COLOR_PRESETS } from '../../../state/user/themeSlice.js';
+import { ACCENT_PRESETS, CHART_COLOR_PRESETS } from '../../../state/user/themeSlice';
+import { useUserStore } from '../../../state/useUserStore';
 import TFIcon from '../ui/TFIcon.jsx';
+import { Card } from '../ui/UIKit.jsx';
 import { SectionHeader } from './SettingsHelpers.jsx';
 
 // ─── Shared Styles ───────────────────────────────────────────────

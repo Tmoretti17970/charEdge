@@ -57,7 +57,7 @@ describe('4.1.1 — TradeSnapshot (types)', () => {
 
 describe('4.1.1 — TradeSnapshot (intelligence/)', () => {
     it('captureTradeSnapshot returns full snapshot', async () => {
-        const mod = await import('../../intelligence/TradeSnapshot.ts');
+        const mod = await import('../../trading/TradeSnapshot.ts');
         const snapshot = mod.captureTradeSnapshot({
             symbol: 'AAPL',
             side: 'long',
@@ -77,7 +77,7 @@ describe('4.1.1 — TradeSnapshot (intelligence/)', () => {
     });
 
     it('closeTradeSnapshot computes P&L', async () => {
-        const mod = await import('../../intelligence/TradeSnapshot.ts');
+        const mod = await import('../../trading/TradeSnapshot.ts');
         const entry = mod.captureTradeSnapshot({
             symbol: 'BTC',
             side: 'long',
@@ -93,7 +93,7 @@ describe('4.1.1 — TradeSnapshot (intelligence/)', () => {
     });
 
     it('closeTradeSnapshot handles loss', async () => {
-        const mod = await import('../../intelligence/TradeSnapshot.ts');
+        const mod = await import('../../trading/TradeSnapshot.ts');
         const entry = mod.captureTradeSnapshot({
             symbol: 'ETH',
             side: 'long',
@@ -108,9 +108,9 @@ describe('4.1.1 — TradeSnapshot (intelligence/)', () => {
     });
 
     it('querySnapshots filters by symbol', async () => {
-        const mod = await import('../../intelligence/TradeSnapshot.ts');
+        const mod = await import('../../trading/TradeSnapshot.ts');
         // loadSnapshots returns whatever is in localStorage
-        const all = mod.loadSnapshots();
+        const _all = mod.loadSnapshots();
         const btc = mod.querySnapshots({ symbol: 'BTC' });
         // All returned items should have the matching symbol
         for (const s of btc) {

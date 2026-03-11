@@ -19,6 +19,7 @@ export { fetchPolygon, createPolygonWSAdapter } from './providers/PolygonProvide
 export { fetchAlphaVantage } from './providers/AlphaVantageProvider.js';
 export { WSRouter, wsRouter, createPythWSAdapter, createKrakenWSAdapter } from './providers/WSRouter.js';
 export { fetchEquityPremium, fetchPythQuote, getProviderStatus } from './providers/ProviderRegistry.js';
+export { fetchWithSpeculation, fetchWithBudget } from './providers/ProviderOrchestrator.js';
 
 // ─── Adapter re-exports ─────────────────────────────────────────
 export { pythAdapter } from './adapters/PythAdapter.js';
@@ -32,16 +33,16 @@ export { tiingoAdapter } from './adapters/TiingoAdapter.js';
 export { whaleAlertAdapter } from './adapters/WhaleAlertAdapter.js';
 export { newsAggregator } from './NewsAggregator.js';
 export { derivedEngine } from './DerivedDataEngine.js';
-export { dataCache } from './DataCache.ts';
+export { dataCache } from './DataCache';
 export { cacheManager } from './engine/infra/CacheManager.js';
 
 // ─── Engine re-exports ──────────────────────────────────────────
-export { orderFlowEngine } from './engine/orderflow/OrderFlowEngine.ts';
+export { orderFlowEngine } from './engine/orderflow/OrderFlowEngine';
 export { volumeProfileEngine } from './engine/orderflow/VolumeProfileEngine.js';
 export { orderFlowBridge } from './engine/orderflow/OrderFlowBridge.js';
 export { indicators } from './engine/indicators/IndicatorLibrary.js';
 export { binanceFuturesAdapter } from './adapters/BinanceFuturesAdapter.js';
-export { depthEngine } from './engine/orderflow/DepthEngine.ts';
+export { depthEngine } from './engine/orderflow/DepthEngine';
 
 // ─── Orderflow ──────────────────────────────────────────────────
 export { getTradeHeatmapEngine } from './engine/orderflow/TradeHeatmapEngine.js';

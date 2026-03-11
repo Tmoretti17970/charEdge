@@ -24,7 +24,7 @@ export interface IntentSlice {
  *     ...createIntentSlice(...a),
  *   }));
  */
-export const createIntentSlice = (set: any): IntentSlice => ({
+export const createIntentSlice = (set: unknown): IntentSlice => ({
   intent: {
     mode: 'analysis',
     confidence: 0,
@@ -34,7 +34,7 @@ export const createIntentSlice = (set: any): IntentSlice => ({
   forcedMode: null,
 
   setIntent: (intent: IntentState) =>
-    set((state: any) => ({
+    set((state: unknown) => ({
       intent: state.forcedMode
         ? { ...intent, mode: state.forcedMode, confidence: 1 }
         : intent,

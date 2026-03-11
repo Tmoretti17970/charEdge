@@ -4,7 +4,7 @@
 // Stores auth in sessionStorage so it persists per tab session.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 const PASS = 'Charts2026';
 const STORAGE_KEY = 'ce_auth';
@@ -26,7 +26,7 @@ export default function PasswordGate({ children }) {
     const handleSubmit = useCallback((e) => {
         e.preventDefault();
         if (value === PASS) {
-            try { sessionStorage.setItem(STORAGE_KEY, '1'); } catch { }
+            try { sessionStorage.setItem(STORAGE_KEY, '1'); } catch { /* no-op */ }
             setAuthed(true);
         } else {
             setError(true);
@@ -54,6 +54,8 @@ export default function PasswordGate({ children }) {
 
                 <input
                     ref={inputRef}
+                    id="ce-access-code"
+                    name="access-code"
                     type="password"
                     placeholder="Enter access code"
                     value={value}

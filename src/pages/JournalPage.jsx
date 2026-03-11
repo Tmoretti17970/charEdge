@@ -2,54 +2,54 @@
 // charEdge — Journal Page (Orchestrator)
 //
 // Narrative layout:
-//   1. Header — title, CTA, insight sub-tabs
-//   2. Top pane — Dashboard / Analytics / Notes / Plans
-//   3. Bottom pane — Logbook (filters, trade table)
-//   4. Inspector — §4.12 Liquid Glass modeless trailing inspector
+//   1. Header — title, CTA, search pill, insight sub-tabs
+//   2. Full pane — Dashboard / Analytics / Notes / Plans
+//   3. Inspector — §4.12 Liquid Glass modeless trailing inspector
 //
+// Logbook is accessed via the header segmented button (📓 Logbook | + Add Trade)
 // Mobile: delegates to JournalMobileView.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useJournalStore } from '../state/useJournalStore.js';
-import { useBreakpoints } from '../utils/useMediaQuery.js';
+// eslint-disable-next-line import/order
+import { useState, useEffect, useCallback } from 'react';
 
 // Analytics
-import { useAnalyticsStore } from '../state/useAnalyticsStore.js';
+import CSVImportModal from '../app/components/dialogs/CSVImportModal.jsx';
+import TradeFormModal from '../app/components/dialogs/TradeFormModal.jsx';
+import TradingJournalInspector from '../app/components/journal/TradingJournalInspector.jsx';
+import CooldownOverlay from '../app/components/panels/CooldownOverlay.jsx';
+// eslint-disable-next-line import/order
 import { computeAndStore } from '../app/features/analytics/analyticsSingleton.js';
 
-// Split Pane
-import SplitPaneLayout from '../app/components/ui/SplitPaneLayout.jsx';
-import CooldownOverlay from '../app/components/panels/CooldownOverlay.jsx';
+// Cooldown
+// eslint-disable-next-line import/order
 import { useCooldownEnforcer } from '../hooks/useCooldownEnforcer.js';
 
 // Modals
-import TradeFormModal from '../app/components/dialogs/TradeFormModal.jsx';
-import CSVImportModal from '../app/components/dialogs/CSVImportModal.jsx';
 // Wave 0: PublishTradeModal quarantined — social features removed from v1.0 scope
 
 // §4.12: Liquid Glass trailing inspector
-import TradingJournalInspector from '../app/components/journal/TradingJournalInspector.jsx';
-
-// Bulk selection
-import { useBulkSelection } from '../app/features/journal/journal_ui/BulkOperations.jsx';
+import { useAnalyticsStore } from '../state/useAnalyticsStore';
+// eslint-disable-next-line import/order
+import { useJournalStore } from '../state/useJournalStore';
 
 // Extracted hooks + components
+// eslint-disable-next-line import/order
 import {
   useJournalFilters,
   useJournalKeyboardHandler,
   useJournalTradeActions,
-  JournalLogbook,
   JournalHeader,
   JournalMobileView,
 } from './journal/index.js';
 
 // Extracted top-pane renderer
 import JournalTopPane from './journal/JournalTopPane.jsx';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 export default function JournalPage() {
   const trades = useJournalStore((s) => s.trades);
-  const { isMobile, isTablet } = useBreakpoints();
+  const { isMobile } = useBreakpoints();
 
   // ─── Journal tab state ──────────────────────────────────────
   const [journalTab, setJournalTab] = useState('dashboard');
@@ -71,13 +71,6 @@ export default function JournalPage() {
   // ─── Hooks ──────────────────────────────────────────────────
   const filters = useJournalFilters(trades);
   const actions = useJournalTradeActions(trades);
-  const bulk = useBulkSelection(filters.filteredTrades);
-
-  // ─── UI state ───────────────────────────────────────────────
-  const [expandedId, setExpandedId] = useState(null);
-  const [focusedIdx, setFocusedIdx] = useState(-1);
-  const [bulkMode, setBulkMode] = useState(false);
-  const [showAIGrades, setShowAIGrades] = useState(false);
 
   // ─── Analytics ──────────────────────────────────────────────
   const result = useAnalyticsStore((s) => s.result);
@@ -126,13 +119,13 @@ export default function JournalPage() {
   useJournalKeyboardHandler({
     filteredTrades: filters.filteredTrades,
     storeActions: actions.storeActions,
-    expandedId,
-    setExpandedId,
-    focusedIdx,
-    setFocusedIdx,
-    bulkMode,
-    setBulkMode,
-    bulk,
+    expandedId: null,
+    setExpandedId: () => { },
+    focusedIdx: -1,
+    setFocusedIdx: () => { },
+    bulkMode: false,
+    setBulkMode: () => { },
+    bulk: { selectNone: () => { }, toggle: () => { }, isSelected: () => false, selectAll: () => { }, invertSelection: () => { }, count: 0, allSelected: false },
     trades,
     openAddTrade: actions.openAddTrade,
     handleExportCSV: actions.handleExportCSV,
@@ -169,7 +162,7 @@ export default function JournalPage() {
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // DESKTOP RENDER
+  // DESKTOP RENDER — Full-height single pane (logbook in ⌘K)
   // ═══════════════════════════════════════════════════════════════
   return (
     <div role="main" aria-label="Journal" data-container="journal" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
@@ -188,57 +181,14 @@ export default function JournalPage() {
         onOverride={cooldown.override}
       />
 
-      {/* ─── Work Area (Split Pane) ──── */}
-      <div style={{ flex: 1, minHeight: 0 }}>
-        <SplitPaneLayout
-          topPane={
-            <JournalTopPane
-              journalTab={journalTab}
-              result={result}
-              computing={computing}
-              trades={trades}
-              filters={filters}
-            />
-          }
-          bottomPane={
-            <JournalLogbook
-              trades={trades}
-              filteredTrades={filters.filteredTrades}
-              filters={filters}
-              bulk={bulk}
-              bulkMode={bulkMode}
-              setBulkMode={setBulkMode}
-              expandedId={expandedId}
-              setExpandedId={setExpandedId}
-              deleteConfirm={actions.deleteConfirm}
-              isTablet={isTablet}
-              handleSort={filters.handleSort}
-              handleEdit={actions.handleEdit}
-              handleDelete={actions.handleDelete}
-              setDeleteConfirm={actions.setDeleteConfirm}
-              handleViewOnChart={actions.handleViewOnChart}
-              handleReplay={actions.handleReplay}
-              handleShare={actions.handleShare}
-              handleExportCSV={actions.handleExportCSV}
-              handleBulkDelete={actions.handleBulkDelete}
-              handleBulkTag={actions.handleBulkTag}
-              handleBulkEdit={actions.handleBulkEdit}
-              handleBulkExport={actions.handleBulkExport}
-              openAddTrade={actions.openAddTrade}
-              setCsvModalOpen={actions.setCsvModalOpen}
-              showAIGrades={showAIGrades}
-              setShowAIGrades={setShowAIGrades}
-              onInspectTrade={openInspector}
-            />
-          }
-          defaultTopHeight={typeof window !== 'undefined' ? window.innerHeight * 0.45 : 400}
-          minTopHeight={60}
-          maxTopHeight={typeof window !== 'undefined' ? window.innerHeight * 0.85 : 800}
-          collapsible={true}
-          snapThreshold={120}
-          startBottomCollapsed={true}
-          bottomCollapsedLabel="Logbook"
-          bottomCollapsedMeta={`${trades.length} trade${trades.length !== 1 ? 's' : ''}`}
+      {/* ─── Full-Height Work Area ──── */}
+      <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+        <JournalTopPane
+          journalTab={journalTab}
+          result={result}
+          computing={computing}
+          trades={trades}
+          filters={filters}
         />
       </div>
 
@@ -260,4 +210,6 @@ export default function JournalPage() {
     </div>
   );
 }
+
+
 

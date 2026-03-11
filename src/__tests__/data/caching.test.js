@@ -39,6 +39,7 @@ describe('Sprint 2 — CacheManager page cache', () => {
   });
 
   it('builds page keys with page: prefix', () => {
+    // eslint-disable-next-line no-template-curly-in-string
     expect(source).toContain('page:${sym}:${tfId}:${ts}');
   });
 

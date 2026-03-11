@@ -7,7 +7,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 // @ts-nocheck
-import { logger } from '../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 
 // ─── Constants ──────────────────────────────────────────────────
 

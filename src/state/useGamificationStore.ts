@@ -13,12 +13,12 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { create } from 'zustand';
-import { createTournamentSlice, MOCK_TOURNAMENTS } from './gamification/tournamentSlice.js';
-import { createGoalSlice, GOAL_DEFAULTS } from './gamification/goalSlice.js';
-import { ACHIEVEMENTS, createAchievementSlice } from './gamification/achievementSlice.js';
-import { CHALLENGE_POOL, WEEKLY_CHALLENGE_POOL, createChallengeSlice, getTodayKey, getDateKey } from './gamification/challengeSlice.js';
+import { createTournamentSlice, MOCK_TOURNAMENTS } from './gamification/tournamentSlice';
+import { createGoalSlice, GOAL_DEFAULTS } from './gamification/goalSlice';
+import { ACHIEVEMENTS, createAchievementSlice } from './gamification/achievementSlice';
+import { CHALLENGE_POOL, WEEKLY_CHALLENGE_POOL, createChallengeSlice, getTodayKey, getDateKey } from './gamification/challengeSlice';
 import { QUEST_DEFS, createQuestSlice } from './gamification/questSlice.js';
-import { COSMETIC_REWARDS, MILESTONE_DEFS, createCosmeticSlice } from './gamification/cosmeticSlice.js';
+import { COSMETIC_REWARDS, MILESTONE_DEFS, createCosmeticSlice } from './gamification/cosmeticSlice';
 
 // ─── Rank Tiers ─────────────────────────────────────────────────
 
@@ -302,6 +302,7 @@ const useGamificationStore = create((...a) => {
         };
         localStorage.removeItem('tf-tournament-store');
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) { /* ignore */ }
 
     // Migrate goal data from old localStorage key
@@ -322,6 +323,7 @@ const useGamificationStore = create((...a) => {
         };
         localStorage.removeItem('charEdge-goals');
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) { /* ignore */ }
 
     set({

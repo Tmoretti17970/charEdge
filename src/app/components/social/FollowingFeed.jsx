@@ -7,11 +7,11 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
-import { useSocialStore } from '../../../state/useSocialStore.js';
 import { MOCK_SNAPSHOTS, MOCK_PROFILES } from '../../../data/socialMockData.js';
+import { useSocialStore } from '../../../state/useSocialStore.js';
+import { alpha } from '@/shared/colorUtils';
 
-export default function FollowingFeed({ zenMode = false }) {
+export default function FollowingFeed({ _zenMode = false }) {
   const following = useSocialStore((s) => s.following);
   const [loading, setLoading] = useState(true);
 

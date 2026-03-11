@@ -5,11 +5,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useState, useCallback } from 'react';
-import { useChartStore } from '../../state/useChartStore.js';
-import { useChartTradeHandler } from '../../app/components/chart/chart_ui/useChartTradeHandler.js';
-import { TOOL_CONFIG, magnetSnap } from '../../charting_library/tools/drawingTools.js';
-import { exportChartPNG, copyChartToClipboard, generateShareURL } from '../../utils/chartExport.js';
+import { useChartTradeHandler } from '../../app/components/chart/hooks/useChartTradeHandler.js';
 import { parseChartCommand } from '../../charting_library/ai/AICopilotEngine.js';
+import { TOOL_CONFIG, magnetSnap } from '../../charting_library/tools/drawingTools.js';
+import { useChartStore } from '../../state/useChartStore';
+import { exportChartPNG, copyChartToClipboard, generateShareURL } from '@/charting_library/utils/chartExport';
 // Wave 0: scripting quarantined — stub useScriptRunner
 const useScriptRunner = () => ({ scriptOutputs: null, setEditorOutputs: () => { }, errors: [] });
 
@@ -44,31 +44,54 @@ export default function useChartDrawingHandler(chartRef) {
 
   // --- Drawing Tool Event Listeners (Legacy Canvas Bridge) ---
   useEffect(() => {
-    const handleClear = () => useChartStore.getState().setDrawings([]);
+    const handleClear = () => {
+      const engine = chartRef.current?.getDrawingEngine?.();
+      if (engine) { engine.clearAll(); } else { useChartStore.getState().setDrawings([]); }
+    };
     const handleDelete = () => {
-      const state = useChartStore.getState();
-      if (state.selectedDrawingId) {
-        state.setDrawings(state.drawings.filter((d) => d.id !== state.selectedDrawingId));
-        state.setSelectedDrawing(null);
+      const engine = chartRef.current?.getDrawingEngine?.();
+      if (engine) {
+        engine.deleteSelected();
+      } else {
+        const state = useChartStore.getState();
+        if (state.selectedDrawingId) {
+          state.setDrawings(state.drawings.filter((d) => d.id !== state.selectedDrawingId));
+          state.setSelectedDrawing(null);
+        }
       }
     };
     const handleToggleVis = (e) => {
       const id = e.detail;
-      const state = useChartStore.getState();
-      state.setDrawings(
-        state.drawings.map((d) => (d.id === id ? { ...d, visible: d.visible === false ? true : false } : d)),
-      );
+      const engine = chartRef.current?.getDrawingEngine?.();
+      if (engine) {
+        engine.toggleVisibility(id);
+      } else {
+        const state = useChartStore.getState();
+        state.setDrawings(
+          state.drawings.map((d) => (d.id === id ? { ...d, visible: d.visible === false ? true : false } : d)),
+        );
+      }
     };
     const handleToggleLock = (e) => {
       const id = e.detail;
-      const state = useChartStore.getState();
-      state.setDrawings(state.drawings.map((d) => (d.id === id ? { ...d, locked: !d.locked } : d)));
+      const engine = chartRef.current?.getDrawingEngine?.();
+      if (engine) {
+        engine.toggleLock(id);
+      } else {
+        const state = useChartStore.getState();
+        state.setDrawings(state.drawings.map((d) => (d.id === id ? { ...d, locked: !d.locked } : d)));
+      }
     };
     const handleDeleteSpecific = (e) => {
       const id = e.detail;
-      const state = useChartStore.getState();
-      state.setDrawings(state.drawings.filter((d) => d.id !== id));
-      if (state.selectedDrawingId === id) state.setSelectedDrawing(null);
+      const engine = chartRef.current?.getDrawingEngine?.();
+      if (engine) {
+        engine.removeDrawing(id);
+      } else {
+        const state = useChartStore.getState();
+        state.setDrawings(state.drawings.filter((d) => d.id !== id));
+        if (state.selectedDrawingId === id) state.setSelectedDrawing(null);
+      }
     };
 
     window.addEventListener('charEdge:clear-drawings', handleClear);

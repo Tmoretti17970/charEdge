@@ -3,7 +3,6 @@
 // Shows the active data source: LIVE, RELAY, ORACLE, DELAYED, CACHED, NO DATA
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
 
 const BADGE_CONFIG = {
   // Direct exchange WebSocket (lowest latency)

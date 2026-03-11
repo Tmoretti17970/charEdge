@@ -26,7 +26,11 @@ import { calculateVRVP } from './computations.js';
 export function renderOverlayIndicator(ctx, indicator, params) {
   if (!indicator.computed || !indicator.visible) return;
 
-  const { rawBars, startIdx, endIdx, barSpacing, priceToY, pixelRatio: pr, bitmapWidth: bw, bitmapHeight: bh } = params;
+  const { rawBars, startIdx, exactStart: exStart, endIdx, barSpacing, priceToY, pixelRatio: pr, bitmapWidth: bw, bitmapHeight: _bh } = params;
+  // Use exactStart (float) for X positioning to match the candle renderer's
+  // timeTransform.indexToPixel() which also uses exactStart. Falls back to
+  // startIdx if exactStart is not provided (backward compat).
+  const xOrigin = exStart != null ? exStart : startIdx;
 
   // Render fills first (behind lines)
   if (indicator.fills) {
@@ -35,31 +39,50 @@ export function renderOverlayIndicator(ctx, indicator, params) {
       const lowerVals = indicator.computed[fill.lower];
       if (!upperVals || !lowerVals) continue;
 
-      ctx.fillStyle = fill.color;
-      ctx.beginPath();
+      const df = fill.dynamicFill;
 
-      // Forward sweep (upper line)
-      let started = false;
-      for (let i = startIdx; i <= endIdx && i < upperVals.length; i++) {
-        if (isNaN(upperVals[i])) continue;
-        const x = Math.round((i - startIdx + 0.5) * barSpacing * pr);
-        const y = Math.round(priceToY(upperVals[i]) * pr);
-        if (!started) {
-          ctx.moveTo(x, y);
-          started = true;
-        } else ctx.lineTo(x, y);
+      if (df) {
+        // Dynamic fill: render bar-by-bar segments with bull/bear coloring
+        for (let i = startIdx; i <= endIdx && i < upperVals.length && i < lowerVals.length; i++) {
+          if (isNaN(upperVals[i]) || isNaN(lowerVals[i])) continue;
+          const isBull = upperVals[i] >= lowerVals[i];
+          ctx.fillStyle = isBull ? df.bullColor : df.bearColor;
+
+          const x0 = Math.round((i - xOrigin) * barSpacing * pr);
+          const x1 = Math.round((i - xOrigin + 1) * barSpacing * pr);
+          const yU = Math.round(priceToY(upperVals[i]) * pr);
+          const yL = Math.round(priceToY(lowerVals[i]) * pr);
+
+          ctx.fillRect(x0, Math.min(yU, yL), x1 - x0, Math.abs(yL - yU) || 1);
+        }
+      } else {
+        // Static fill: single polygon sweep
+        ctx.fillStyle = fill.color;
+        ctx.beginPath();
+
+        // Forward sweep (upper line)
+        let started = false;
+        for (let i = startIdx; i <= endIdx && i < upperVals.length; i++) {
+          if (isNaN(upperVals[i])) continue;
+          const x = Math.round((i - xOrigin + 0.5) * barSpacing * pr);
+          const y = Math.round(priceToY(upperVals[i]) * pr);
+          if (!started) {
+            ctx.moveTo(x, y);
+            started = true;
+          } else ctx.lineTo(x, y);
+        }
+
+        // Backward sweep (lower line)
+        for (let i = Math.min(endIdx, lowerVals.length - 1); i >= startIdx; i--) {
+          if (isNaN(lowerVals[i])) continue;
+          const x = Math.round((i - xOrigin + 0.5) * barSpacing * pr);
+          const y = Math.round(priceToY(lowerVals[i]) * pr);
+          ctx.lineTo(x, y);
+        }
+
+        ctx.closePath();
+        ctx.fill();
       }
-
-      // Backward sweep (lower line)
-      for (let i = Math.min(endIdx, lowerVals.length - 1); i >= startIdx; i--) {
-        if (isNaN(lowerVals[i])) continue;
-        const x = Math.round((i - startIdx + 0.5) * barSpacing * pr);
-        const y = Math.round(priceToY(lowerVals[i]) * pr);
-        ctx.lineTo(x, y);
-      }
-
-      ctx.closePath();
-      ctx.fill();
     }
   }
 
@@ -122,6 +145,8 @@ export function renderOverlayIndicator(ctx, indicator, params) {
     if (!values || output.type !== 'line') continue;
 
     const lineWidth = Math.max(1, Math.round((output.width || 2) * pr));
+    const savedAlpha = ctx.globalAlpha;
+    if (output.opacity !== undefined) ctx.globalAlpha *= output.opacity;
     ctx.strokeStyle = output.color;
     ctx.lineWidth = lineWidth;
     ctx.lineJoin = 'round';
@@ -130,26 +155,99 @@ export function renderOverlayIndicator(ctx, indicator, params) {
     ctx.beginPath();
     let started = false;
     let lastPixelX = -Infinity;
+    // M4 (FLLM): track min/max Y per pixel column so signal crosses
+    // are never visually lost during overlay line decimation
+    let colMinY = Infinity;
+    let colMaxY = -Infinity;
+    let _colFirstY = 0;
+    let colLastY = 0;
+    let colCount = 0;
 
     for (let i = startIdx; i <= endIdx && i < values.length; i++) {
       if (isNaN(values[i])) {
+        // Flush pending M4 column before gap
+        if (colCount > 1) {
+          ctx.lineTo(lastPixelX, colMinY);
+          ctx.lineTo(lastPixelX, colMaxY);
+          ctx.lineTo(lastPixelX, colLastY);
+        }
         started = false;
         lastPixelX = -Infinity;
+        colCount = 0;
         continue;
       }
-      const x = Math.round((i - startIdx + 0.5) * barSpacing * pr);
-      // Per-pixel-column dedup: skip if same pixel column as previous point
-      if (started && x === lastPixelX) continue;
-      lastPixelX = x;
+      const x = Math.round((i - xOrigin + 0.5) * barSpacing * pr);
       const y = Math.round(priceToY(values[i]) * pr);
+
+      if (x === lastPixelX && started) {
+        // Same pixel column — accumulate M4 envelope
+        if (y < colMinY) colMinY = y;
+        if (y > colMaxY) colMaxY = y;
+        colLastY = y;
+        colCount++;
+        continue;
+      }
+
+      // Flush previous M4 column
+      if (colCount > 1) {
+        ctx.lineTo(lastPixelX, colMinY);
+        ctx.lineTo(lastPixelX, colMaxY);
+        ctx.lineTo(lastPixelX, colLastY);
+      }
+
+      // Start new column
+      lastPixelX = x;
+      colMinY = y;
+      colMaxY = y;
+       
+      _colFirstY = y;
+      colLastY = y;
+      colCount = 1;
+
       if (!started) {
         ctx.moveTo(x, y);
         started = true;
       } else ctx.lineTo(x, y);
     }
 
+    // Flush final M4 column
+    if (colCount > 1) {
+      ctx.lineTo(lastPixelX, colMinY);
+      ctx.lineTo(lastPixelX, colMaxY);
+      ctx.lineTo(lastPixelX, colLastY);
+    }
+
     ctx.stroke();
     ctx.setLineDash([]);
+    if (output.opacity !== undefined) ctx.globalAlpha = savedAlpha;
+  }
+
+  // Render dots outputs (e.g. Parabolic SAR)
+  for (const output of indicator.outputs) {
+    if (output.type !== 'dots') continue;
+    const values = indicator.computed[output.key];
+    if (!values) continue;
+
+    const radius = Math.max(2, Math.round(2.5 * pr));
+    const dc = output.dynamicColor;
+    const directionArr = dc ? indicator.computed[dc.key] : null;
+
+    for (let i = startIdx; i <= endIdx && i < values.length; i++) {
+      if (isNaN(values[i])) continue;
+      const x = Math.round((i - xOrigin + 0.5) * barSpacing * pr);
+      const y = Math.round(priceToY(values[i]) * pr);
+
+      // Dynamic coloring: bull (up trend) = teal, bear = red
+      if (directionArr && i < directionArr.length) {
+        ctx.fillStyle = directionArr[i] ? dc.bullColor : dc.bearColor;
+      } else {
+        ctx.fillStyle = output.color;
+      }
+
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, 2 * Math.PI);
+      ctx.fill();
+    }
   }
 }
 
@@ -212,7 +310,7 @@ export function renderPaneIndicator(ctx, indicator, params, theme = {}) {
       // Band label
       if (band.label) {
         const fs = Math.round(9 * pr);
-        ctx.font = `${fs}px Arial`;
+        ctx.font = `${fs}px Inter, sans-serif`;
         ctx.fillStyle = band.color || 'rgba(120,123,134,0.5)';
         ctx.textAlign = 'right';
         ctx.textBaseline = 'bottom';
@@ -227,9 +325,18 @@ export function renderPaneIndicator(ctx, indicator, params, theme = {}) {
     if (!values) continue;
 
     if (output.type === 'histogram') {
-      // MACD histogram bars
+      // MACD histogram bars — batch by color to reduce draw calls
       const barW = Math.max(1, Math.floor(barSpacing * 0.6 * pr));
       const zeroY = Math.round(valToY(0));
+
+      // 4 color buckets: bullGrow, bullFade, bearGrow, bearFade
+      const buckets = [[], [], [], []];
+      const bucketColors = [
+        'rgba(38, 166, 154, 0.7)',   // bull growing
+        'rgba(38, 166, 154, 0.35)',  // bull fading
+        'rgba(239, 83, 80, 0.35)',   // bear growing
+        'rgba(239, 83, 80, 0.7)',    // bear fading
+      ];
 
       for (let i = startIdx; i <= endIdx && i < values.length; i++) {
         if (isNaN(values[i])) continue;
@@ -238,17 +345,28 @@ export function renderPaneIndicator(ctx, indicator, params, theme = {}) {
         const h = Math.abs(y - zeroY);
 
         const isPos = values[i] >= 0;
-        // Color based on direction change
         const prevVal = i > 0 && !isNaN(values[i - 1]) ? values[i - 1] : values[i];
         const growing = isPos ? values[i] > prevVal : values[i] < prevVal;
 
-        if (isPos) {
-          ctx.fillStyle = growing ? 'rgba(38, 166, 154, 0.7)' : 'rgba(38, 166, 154, 0.35)';
-        } else {
-          ctx.fillStyle = growing ? 'rgba(239, 83, 80, 0.35)' : 'rgba(239, 83, 80, 0.7)';
-        }
+        const bucketIdx = isPos ? (growing ? 0 : 1) : (growing ? 2 : 3);
+        buckets[bucketIdx].push(
+          x - Math.floor(barW / 2),
+          Math.min(y, zeroY),
+          barW,
+          Math.max(1, h)
+        );
+      }
 
-        ctx.fillRect(x - Math.floor(barW / 2), Math.min(y, zeroY), barW, Math.max(1, h));
+      // Flush each bucket in a single beginPath/fill
+      for (let b = 0; b < 4; b++) {
+        const rects = buckets[b];
+        if (rects.length === 0) continue;
+        ctx.fillStyle = bucketColors[b];
+        ctx.beginPath();
+        for (let j = 0; j < rects.length; j += 4) {
+          ctx.rect(rects[j], rects[j + 1], rects[j + 2], rects[j + 3]);
+        }
+        ctx.fill();
       }
     } else if (output.type === 'line') {
       // Line
@@ -261,23 +379,61 @@ export function renderPaneIndicator(ctx, indicator, params, theme = {}) {
       ctx.beginPath();
       let started = false;
       let lastPixelX = -Infinity;
+      // M4 (FLLM): track min/max Y per pixel column so signal crosses
+      // are never visually lost during pane line decimation
+      let colMinY = Infinity;
+      let colMaxY = -Infinity;
+      let _colFirstY = 0;
+      let colLastY = 0;
+      let colCount = 0;
 
       for (let i = startIdx; i <= endIdx && i < values.length; i++) {
         if (isNaN(values[i])) {
+          if (colCount > 1) {
+            ctx.lineTo(lastPixelX, colMinY);
+            ctx.lineTo(lastPixelX, colMaxY);
+            ctx.lineTo(lastPixelX, colLastY);
+          }
           started = false;
           lastPixelX = -Infinity;
+          colCount = 0;
           continue;
         }
         const x = Math.round((i - startIdx + 0.5) * barSpacing * pr);
-        // Per-pixel-column dedup: skip if same pixel column as previous point
-        if (started && x === lastPixelX) continue;
-        lastPixelX = x;
         const y = Math.round(valToY(values[i]));
+
+        if (x === lastPixelX && started) {
+          if (y < colMinY) colMinY = y;
+          if (y > colMaxY) colMaxY = y;
+          colLastY = y;
+          colCount++;
+          continue;
+        }
+
+        if (colCount > 1) {
+          ctx.lineTo(lastPixelX, colMinY);
+          ctx.lineTo(lastPixelX, colMaxY);
+          ctx.lineTo(lastPixelX, colLastY);
+        }
+
+        lastPixelX = x;
+        colMinY = y;
+        colMaxY = y;
+         
+        _colFirstY = y;
+        colLastY = y;
+        colCount = 1;
 
         if (!started) {
           ctx.moveTo(x, y);
           started = true;
         } else ctx.lineTo(x, y);
+      }
+
+      if (colCount > 1) {
+        ctx.lineTo(lastPixelX, colMinY);
+        ctx.lineTo(lastPixelX, colMaxY);
+        ctx.lineTo(lastPixelX, colLastY);
       }
 
       ctx.stroke();
@@ -287,7 +443,7 @@ export function renderPaneIndicator(ctx, indicator, params, theme = {}) {
 
   // ── Indicator label ──
   const fs = Math.round(10 * pr);
-  ctx.font = `bold ${fs}px Arial`;
+  ctx.font = `bold ${fs}px Inter, sans-serif`;
   ctx.fillStyle = theme.textSecondary || '#787B86';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
@@ -296,7 +452,7 @@ export function renderPaneIndicator(ctx, indicator, params, theme = {}) {
   // Current values
   if (indicator.computed) {
     let ox = Math.round(8 * pr) + ctx.measureText(indicator.label).width + Math.round(12 * pr);
-    ctx.font = `${fs}px Arial`;
+    ctx.font = `${fs}px Inter, sans-serif`;
     for (const output of indicator.outputs) {
       const values = indicator.computed[output.key];
       if (!values) continue;
@@ -313,7 +469,7 @@ export function renderPaneIndicator(ctx, indicator, params, theme = {}) {
   // ── Pane axis labels ──
   const axisX = paneWidth;
   const axFs = Math.round(9 * pr);
-  ctx.font = `${axFs}px Arial`;
+  ctx.font = `${axFs}px Inter, sans-serif`;
   ctx.fillStyle = theme.textSecondary || '#787B86';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';

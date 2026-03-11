@@ -10,7 +10,6 @@
 // When WS was connected but disconnected, pulses orange to indicate frozen prices.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
 import { C, M } from '../../../../constants.js';
 
 export default function DataSourceBadge({ isLive, wsSupported, wsStatus, dataSource, dataLoading }) {

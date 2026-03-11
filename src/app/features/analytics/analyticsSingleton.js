@@ -15,9 +15,9 @@
 //   useEffect(() => { computeAndStore(trades, { mcRuns: 500 }); }, [trades]);
 // ═══════════════════════════════════════════════════════════════════
 
+import { useAnalyticsStore } from '../../../state/useAnalyticsStore';
 import { AnalyticsBridge } from './AnalyticsBridge.js';
-import { logger } from '../../../utils/logger.ts';
-import { useAnalyticsStore } from '../../../state/useAnalyticsStore.js';
+import { logger } from '@/observability/logger';
 
 let _instance = null;
 

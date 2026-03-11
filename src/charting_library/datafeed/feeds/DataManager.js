@@ -11,7 +11,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { RESOLUTION_MS, normalizeResolution } from './DataFeed.js';
-import { logger } from '../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 /**
  * @typedef {Object} DataManagerOptions
@@ -96,6 +96,7 @@ export function createDataManager(engine, dataFeed, options = {}) {
       let _symbolInfo;
       try {
         _symbolInfo = await dataFeed.resolveSymbol(symbol);
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) {
         // Non-fatal: continue without symbol info
       }

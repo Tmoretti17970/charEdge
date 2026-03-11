@@ -128,7 +128,10 @@ const useStrategyBuilderStore = create(
             case 'bollinger_upper': return `_bb${src.params.period || 20}[i]?.upper`;
             case 'bollinger_lower': return `_bb${src.params.period || 20}[i]?.lower`;
             case 'vwap': return '_vwap[i]';
-            case 'number': return String(src.params.value || 0);
+            case 'number': {
+              const n = Number(src.params.value);
+              return String(isFinite(n) ? n : 0);
+            }
             default: return '0';
           }
         };
@@ -218,16 +221,51 @@ const useStrategyBuilderStore = create(
 
           // Signal function — returns 1 (long), -1 (short), 0 (no signal)
           signal(i, bars, ctx) {
+            // P1: Blocked globals to shadow inside new Function()
+            const BLOCKED_GLOBALS = [
+              'window', 'document', 'globalThis', 'self',
+              'fetch', 'XMLHttpRequest', 'WebSocket', 'Worker',
+              'localStorage', 'sessionStorage', 'indexedDB',
+              'navigator', 'location', 'history',
+              'setTimeout', 'setInterval', 'requestAnimationFrame',
+              'alert', 'confirm', 'prompt', 'console',
+              'Blob', 'URL', 'TextEncoder', 'TextDecoder',
+              'FormData', 'Headers', 'Request', 'Response',
+              'AbortController', 'BroadcastChannel', 'MessageChannel', 'crypto',
+            ];
+
+            // P1: Dangerous pattern check
+            const DANGEROUS = [
+              /\beval\s*\(/,
+              /\bFunction\s*\(/,
+              /\bimport\s*\(/,
+              /\b__proto__\b/,
+              /\bconstructor\s*\[/,
+              /\bconstructor\s*\.\s*constructor/,
+              /\[\s*['"]constructor['"]\s*\]/,
+              /\[\s*['"]__proto__['"]\s*\]/,
+            ];
+
             // Evaluate using compiled conditions
             try {
               const evalInCtx = (condition) => {
-                // Build scope variables
-                const scope = { ...ctx, i, Math };
-                return new Function(...Object.keys(scope), `return ${condition};`)(...Object.values(scope));
+                // Validate condition against dangerous patterns
+                for (const pat of DANGEROUS) {
+                  if (pat.test(condition)) return false;
+                }
+                // Build scope: blocked globals (undefined) + context variables
+                const scopeKeys = [...BLOCKED_GLOBALS, ...Object.keys(ctx), 'i', 'Math'];
+                const scopeVals = [
+                  ...BLOCKED_GLOBALS.map(() => undefined),
+                  ...Object.values(ctx),
+                  i, Math,
+                ];
+                return new Function(...scopeKeys, `"use strict";\nreturn ${condition};`)(...scopeVals);
               };
 
               if (evalInCtx(longCond)) return 1;
               if (evalInCtx(shortCond)) return -1;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             } catch (_) {
               // Evaluation error — no signal
             }

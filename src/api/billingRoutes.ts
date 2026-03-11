@@ -126,6 +126,7 @@ export function registerBillingRoutes(app: Application): void {
       const Stripe = require('stripe');
       stripe = new Stripe(key, { apiVersion: '2024-12-18.acacia' });
       return stripe;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
       process.stdout.write('[Billing] Stripe SDK not installed. Run: npm install stripe\n');
       return null;

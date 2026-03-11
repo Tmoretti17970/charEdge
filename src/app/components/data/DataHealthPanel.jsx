@@ -12,9 +12,8 @@
 // Accessible from PipelineDevTools or Settings page.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback } from 'react';
-
-import { logger } from '../../../utils/logger.ts';
+import { useState, useEffect, useCallback } from 'react';
+import { logger } from '@/observability/logger';
 // ─── Styles ────────────────────────────────────────────────────
 
 const s = {
@@ -129,18 +128,21 @@ export default function DataHealthPanel() {
       try {
         const { memoryBudget } = await import('../../data/engine/MemoryBudget.js');
         result.memory = memoryBudget.getStatus();
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { result.memory = null; }
 
       // Circuit breaker states
       try {
         const { getAllCircuitStates } = await import('../../../data/engine/infra/CircuitBreaker');
         result.circuits = getAllCircuitStates?.() || {};
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { result.circuits = {}; }
 
       // OPFS usage
       try {
         const { opfsBarStore } = await import('../../data/engine/OPFSBarStore.js');
         result.opfs = opfsBarStore.getStats?.() || {};
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { result.opfs = {}; }
 
       // IndexedDB cache stats
@@ -148,12 +150,14 @@ export default function DataHealthPanel() {
         const { dataCache } = await import('../../data/DataCache.ts');
         result.idb = await dataCache.getStats?.() || {};
         result.storage = await dataCache.getStorageUsage?.() || {};
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { result.idb = {}; result.storage = {}; }
 
       // FetchService cache stats
       try {
         const { cacheStats } = await import('../../data/FetchService.ts');
         result.fetchCache = cacheStats?.() || {};
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { result.fetchCache = {}; }
 
       // Bandwidth
@@ -161,12 +165,14 @@ export default function DataHealthPanel() {
         const { getBandwidthMonitor } = await import('../../data/engine/BandwidthMonitor.js');
         const bw = getBandwidthMonitor?.();
         result.bandwidth = bw?.getReport?.() || {};
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { result.bandwidth = {}; }
 
       // Event bus stats
       try {
         const { dataEventBus } = await import('../../data/engine/DataEventBus.js');
         result.events = dataEventBus.getStats?.() || {};
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { result.events = {}; }
 
       // Streaming indicators
@@ -176,6 +182,7 @@ export default function DataHealthPanel() {
           active: streamingIndicatorBridge.getActiveSymbols?.() || {},
           workerActive: streamingIndicatorBridge.isWorkerActive?.() || false,
         };
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { result.indicators = {}; }
 
       setData(result);

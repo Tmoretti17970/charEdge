@@ -3,7 +3,6 @@
 // Day of Week vs Hour of Day matrix visualization
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
 import { C, M } from '../../../constants.js';
 import { fmtD } from '../../../utils.js';
 
@@ -46,7 +45,7 @@ export default function ProfitHeatmap({ matrix }) {
       <div style={{ minWidth: 600 }}>
         {/* Header row (Hours) */}
         <div style={{ display: 'grid', gridTemplateColumns: '40px repeat(24, 1fr)', gap: 2, marginBottom: 4 }}>
-          <div></div>
+          <div />
           {hours.map((h) => (
             <div
               key={h}

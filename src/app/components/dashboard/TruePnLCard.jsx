@@ -7,8 +7,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useMemo, useState } from 'react';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { computeBatchTruePnL } from '../../../services/TruePnL.ts';
+import { useJournalStore } from '../../../state/useJournalStore';
+import { computeBatchTruePnL } from '@/trading/TruePnL';
 
 const FONT = 'var(--forge-font, Inter, sans-serif)';
 const MONO = 'var(--forge-mono, "JetBrains Mono", monospace)';
@@ -93,7 +93,7 @@ export default function TruePnLCard() {
     ].filter((s) => s.value > 0);
 
     const totalCost = segments.reduce((sum, s) => sum + s.value, 0);
-    const barWidth = absGross > 0 ? Math.min((totalCost / absGross) * 100, 100) : 0;
+    const _barWidth = absGross > 0 ? Math.min((totalCost / absGross) * 100, 100) : 0;
 
     return (
         <div style={CARD_STYLE}>

@@ -13,12 +13,12 @@
 //   <CrossExchangePanel symbol="BTCUSDT" />
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { F, M } from '../../../constants.js';
 import { binanceFuturesAdapter } from '../../../data/adapters/BinanceFuturesAdapter.js';
 import { bybitFuturesAdapter } from '../../../data/adapters/BybitFuturesAdapter.js';
 import { fundingScanner } from '../../../data/engine/market/FundingArbitrageScanner.js';
-import { logger } from '../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ─── Formatters ────────────────────────────────────────────────
 
@@ -141,7 +141,7 @@ export default function CrossExchangePanel({ symbol = 'BTCUSDT' }) {
   const unsubs = useRef([]);
 
   // Fetch derivatives data
-  const fetchData = useCallback(async () => {
+  const fetchExchangeData = useCallback(async () => {
     const upper = (symbol || '').toUpperCase();
     try {
       const [bSnap, byOI, byFunding, oiDiv, fundAlert] = await Promise.allSettled([
@@ -169,8 +169,8 @@ export default function CrossExchangePanel({ symbol = 'BTCUSDT' }) {
   }, [symbol]);
 
   useEffect(() => {
-    fetchData();
-    const timer = setInterval(fetchData, 15000); // Refresh every 15s
+    fetchExchangeData();
+    const timer = setInterval(fetchExchangeData, 15000); // Refresh every 15s
 
     // Start funding scanner if not running
     fundingScanner.startScanning();
@@ -193,7 +193,7 @@ export default function CrossExchangePanel({ symbol = 'BTCUSDT' }) {
       }
       unsubs.current = [];
     };
-  }, [symbol, fetchData]);
+  }, [symbol, fetchExchangeData]);
 
   const binanceOI = binanceData?.openInterest?.openInterest || 0;
   const bybitOI = bybitData?.openInterest?.openInterest || 0;

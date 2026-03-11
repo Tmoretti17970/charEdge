@@ -3,10 +3,10 @@
 // Tests for CoachingEngine, PreTradeAnalyzer, and JournalSummarizer.
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { generateWeeklyReport, scoreToGrade } from '../../charting_library/ai/CoachingEngine.js';
-import { analyzePreTrade } from '../../charting_library/ai/PreTradeAnalyzer.js';
 import { summarizeWeek } from '../../charting_library/ai/JournalSummarizer.js';
+import { analyzePreTrade } from '../../charting_library/ai/PreTradeAnalyzer.js';
 
 // ─── Test Helpers ────────────────────────────────────────────────
 

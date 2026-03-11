@@ -5,7 +5,7 @@
 // are correctly fixed, plus the defaultTf and replaceAll sync fixes.
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 // ─── Fix 1: buildCacheKey standardizes on colon format ──────────
 
@@ -236,6 +236,7 @@ describe('FetchService — uses buildCacheKey for key construction', () => {
     const fs = await import('fs');
     const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
     expect(source).toContain('buildCacheKey');
+    // eslint-disable-next-line no-template-curly-in-string
     expect(source).not.toContain("const key = `${sym}_${tfId}`");
   });
 

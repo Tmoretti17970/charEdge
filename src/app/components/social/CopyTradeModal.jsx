@@ -2,10 +2,10 @@
 // charEdge — Copy Trade Configuration Modal
 // ═══════════════════════════════════════════════════════════════════
 
-import { useSocialStore } from '../../../state/useSocialStore.js';
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { useSocialStore } from '../../../state/useSocialStore.js';
+import { alpha } from '@/shared/colorUtils';
 
 export default function CopyTradeModal({ open, onClose, trader }) {
   const [allocation, setAllocation] = useState(10);

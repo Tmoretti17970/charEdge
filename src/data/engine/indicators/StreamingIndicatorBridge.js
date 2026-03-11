@@ -1,4 +1,4 @@
-import { logger } from '../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v15 — Streaming Indicator Bridge
@@ -305,6 +305,7 @@ class _StreamingIndicatorBridge {
         this._worker = null;
         this._workerReady = false;
       };
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       this._worker = null;
     }
@@ -366,7 +367,7 @@ class _StreamingIndicatorBridge {
     }
 
     // Fallback: main-thread computation
-    for (const [key, entry] of state.indicators) {
+    for (const [_key, entry] of state.indicators) {
       const inst = entry.instance;
       let value;
 

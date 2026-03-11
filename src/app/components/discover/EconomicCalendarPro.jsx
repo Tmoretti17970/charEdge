@@ -13,7 +13,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Mock Economic Calendar Data ────────────────────────────────
 
@@ -84,7 +84,7 @@ export default function EconomicCalendarPro() {
   const [impactFilter, setImpactFilter] = useState('all');
   const [countryFilter, setCountryFilter] = useState('all');
   const [collapsed, setCollapsed] = useState(false);
-  const [now, setNow] = useState(Date.now());
+  const [_now, setNow] = useState(Date.now());
 
   // Update "now" every minute for countdown timers
   useEffect(() => {

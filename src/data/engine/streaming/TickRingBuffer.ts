@@ -191,10 +191,10 @@ export class TickRingBuffer {
 
         for (let i = 0; i < count; i++) {
             const idx = (this._head - 1 - i + this.capacity) % this.capacity;
-            const p = this._price[idx];
-            const q = this._qty[idx];
-            sumPQ += p * q;
-            sumQ += q;
+            const price = this._price[idx];
+            const quantity = this._qty[idx];
+            sumPQ += price * quantity;
+            sumQ += quantity;
         }
 
         return sumQ === 0 ? NaN : sumPQ / sumQ;

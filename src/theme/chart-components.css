@@ -312,7 +312,7 @@ html.theme-light .tf-chart-dropdown-item[data-active='true'] {
   font-size: 11px;
   color: var(--tf-t2);
   flex-shrink: 0;
-  overflow: hidden;
+  overflow: visible;
   white-space: nowrap;
 }
 
@@ -331,6 +331,22 @@ html.theme-light .tf-chart-status-bar {
   padding: 1px 6px;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.03);
+  transition: transform 0.1s ease-out;
+}
+
+/* #58: Live price badge micro-pulse */
+@keyframes tfPricePulse {
+  0% {
+    transform: scale(1.04);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.tf-chart-status-bar .tf-status-close.tf-price-pulse {
+  animation: tfPricePulse 150ms ease-out;
 }
 
 html.theme-light .tf-chart-status-bar .tf-status-close {

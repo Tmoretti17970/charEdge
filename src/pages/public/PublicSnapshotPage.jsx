@@ -8,8 +8,8 @@
 
 import { useEffect, useState } from 'react';
 import { C, F, M } from '../../constants.js';
-import { space, radii } from '../../theme/tokens.js';
 import { snapshotPageMeta, applyMetaToHead } from '../../seo/meta.js';
+import { space, radii } from '../../theme/tokens.js';
 import { PublicNav, PublicFooter } from './PublicSymbolPage.jsx';
 
 /**

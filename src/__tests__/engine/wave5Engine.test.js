@@ -4,7 +4,7 @@
 // Tests for Wave 5 engine hardening utilities.
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { barBisect, barNearest, barRange } from '../../engine/barBisect.js';
 
 // ─── Helper ─────────────────────────────────────────────────────

@@ -21,6 +21,7 @@ import './migrations/index.ts'; // Register all migrations
 
 // ─── Constants ──────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, '..', '..', '..');
 const DATA_DIR = join(PROJECT_ROOT, 'data');

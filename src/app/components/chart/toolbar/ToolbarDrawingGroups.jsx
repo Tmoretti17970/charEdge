@@ -4,7 +4,7 @@
 // Contains drawing tool icons, tool groups, and dropdown selectors.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { C } from '../../../../constants.js';
 import s from './ToolbarDrawingGroups.module.css';
 

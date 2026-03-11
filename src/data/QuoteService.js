@@ -15,10 +15,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { isCrypto } from '../constants.js';
-import { toBinancePair } from './BinanceClient.js';
 import { YahooAdapter } from './adapters/YahooAdapter.js';
+import { toBinancePair } from './BinanceClient.js';
 import { apiMeter } from './engine/infra/ApiMeter.js';
-import { logger } from '../utils/logger';
+import { logger } from '@/observability/logger';
 
 const CACHE_TTL = 60_000; // 60s TTL
 const MAX_CACHE_SIZE = 200;
@@ -166,6 +166,7 @@ async function _fetchSparkline(symbol) {
         const raw = await res.json();
         if (!Array.isArray(raw)) return [];
         return raw.map(k => parseFloat(k[4]));
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
         return [];
     }
@@ -230,7 +231,7 @@ export async function getQuote(symbol) {
  * @param {boolean} [isCryptoAsset]
  * @returns {Promise<number[]>}
  */
-export async function getSparkline(symbol, isCryptoAsset) {
+export async function getSparkline(symbol, _isCryptoAsset) {
     const quote = await getQuote(symbol);
     if (quote?.sparkline?.length > 0) return quote.sparkline;
 
@@ -283,6 +284,152 @@ export function getQuoteCacheStats() {
     };
 }
 
+// ─── Batch Quotes (Item #12) ────────────────────────────────────
+
+/**
+ * Batch-fetch all crypto ticker data in a single Binance API call.
+ * Collapses N crypto symbols → 1 HTTP request.
+ * @param {string[]} symbols - Crypto symbols (already uppercased)
+ * @returns {Promise<Map<string, Object>>} symbol → ticker data
+ * @private
+ */
+async function _batchCryptoTickers(symbols) {
+    const results = new Map();
+    if (symbols.length === 0) return results;
+
+    try {
+        const pairs = symbols.map(s => toBinancePair(s));
+        const base = typeof window === 'undefined'
+            ? `http://localhost:${globalThis.__TF_PORT || 3000}`
+            : '';
+        const symbolsParam = encodeURIComponent(JSON.stringify(pairs));
+        const url = `${base}/api/binance/v3/ticker/24hr?symbols=${symbolsParam}`;
+        const res = await fetch(url);
+        if (!res.ok) return results;
+        apiMeter.record('binance');
+
+        const data = await res.json();
+        const tickers = Array.isArray(data) ? data : [data];
+
+        for (const ticker of tickers) {
+            if (!ticker?.symbol) continue;
+            // Reverse-map pair back to charEdge symbol
+            const sym = ticker.symbol.replace(/USDT$|BUSD$|USDC$/, '');
+            results.set(sym, {
+                symbol: sym,
+                price: parseFloat(ticker.lastPrice),
+                high24h: parseFloat(ticker.highPrice),
+                low24h: parseFloat(ticker.lowPrice),
+                change24h: parseFloat(ticker.priceChange),
+                changePct: parseFloat(ticker.priceChangePercent),
+                volume24h: parseFloat(ticker.volume),
+                source: 'binance',
+                _raw: ticker,
+            });
+        }
+    } catch (e) {
+        logger.data.warn('[QuoteService] Batch crypto ticker failed', e.message);
+    }
+    return results;
+}
+
+/**
+ * Batch-fetch sparkline data for multiple crypto symbols.
+ * Uses Binance klines (1h × 24) — one request per symbol but parallelized.
+ * @param {string[]} symbols - Crypto symbols
+ * @returns {Promise<Map<string, number[]>>}
+ * @private
+ */
+async function _batchCryptoSparklines(symbols) {
+    const results = new Map();
+    if (symbols.length === 0) return results;
+
+    const base = typeof window === 'undefined'
+        ? `http://localhost:${globalThis.__TF_PORT || 3000}`
+        : '';
+
+    const fetches = symbols.map(async (sym) => {
+        try {
+            const pair = toBinancePair(sym);
+            const url = `${base}/api/binance/v3/klines?symbol=${pair}&interval=1h&limit=24`;
+            const res = await fetch(url);
+            if (!res.ok) return;
+            const raw = await res.json();
+            if (Array.isArray(raw)) {
+                results.set(sym, raw.map(k => parseFloat(k[4])));
+            }
+        // eslint-disable-next-line unused-imports/no-unused-vars
+        } catch (_) { /* skip failed symbols */ }
+    });
+
+    await Promise.allSettled(fetches);
+    apiMeter.record('binance');
+    return results;
+}
+
+/**
+ * Batch-fetch quotes for multiple symbols in minimal HTTP requests.
+ *
+ * Optimization vs getQuote() loop:
+ *   - Crypto: ALL symbols → 1 Binance /ticker/24hr call (was N calls)
+ *   - Sparklines: parallel with Promise.allSettled
+ *   - Equity: parallel Yahoo fetches (Yahoo has no batch endpoint)
+ *   - Honors existing cache + in-flight dedup
+ *
+ * @param {string[]} symbols - Array of symbols to fetch
+ * @returns {Promise<Map<string, Object>>} symbol → quote data
+ */
+export async function batchGetQuotes(symbols) {
+    if (!symbols || symbols.length === 0) return new Map();
+
+    const normalized = symbols.map(s => (s || '').toUpperCase()).filter(Boolean);
+    const results = new Map();
+    const uncachedCrypto = [];
+    const uncachedEquity = [];
+
+    // 1. Serve from cache where fresh
+    for (const sym of normalized) {
+        const cached = _cache.get(sym);
+        if (_isFresh(cached)) {
+            results.set(sym, cached.data);
+        } else if (isCrypto(sym)) {
+            uncachedCrypto.push(sym);
+        } else {
+            uncachedEquity.push(sym);
+        }
+    }
+
+    // 2. Batch-fetch all uncached crypto in ONE Binance request
+    const [cryptoTickers, cryptoSparklines] = await Promise.all([
+        _batchCryptoTickers(uncachedCrypto),
+        _batchCryptoSparklines(uncachedCrypto),
+    ]);
+
+    for (const sym of uncachedCrypto) {
+        const ticker = cryptoTickers.get(sym);
+        if (!ticker) continue;
+        const data = {
+            ...ticker,
+            sparkline: cryptoSparklines.get(sym) || [],
+        };
+        _cache.set(sym, { data, ts: Date.now() });
+        results.set(sym, data);
+    }
+
+    // 3. Parallel-fetch uncached equity (no batch endpoint available)
+    if (uncachedEquity.length > 0) {
+        const equityFetches = uncachedEquity.map(async (sym) => {
+            // Reuse getQuote() which handles inflight dedup + cache write
+            const quote = await getQuote(sym);
+            if (quote) results.set(sym, quote);
+        });
+        await Promise.allSettled(equityFetches);
+    }
+
+    _evictStale();
+    return results;
+}
+
 // ─── Default Export ─────────────────────────────────────────────
 
 export default {
@@ -292,4 +439,5 @@ export default {
     invalidate,
     clearQuoteCache,
     getQuoteCacheStats,
+    batchGetQuotes,
 };

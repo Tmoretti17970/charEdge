@@ -1,5 +1,5 @@
-import { Card } from '../ui/UIKit.jsx';
 import PlaybookManager from '../../features/playbook/PlaybookManager.jsx';
+import { Card } from '../ui/UIKit.jsx';
 import { SectionHeader } from './SettingsHelpers.jsx';
 
 export default function PlaybooksSection() {

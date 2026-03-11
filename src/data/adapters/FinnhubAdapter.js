@@ -1,4 +1,4 @@
-import { logger } from '../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v11 — Finnhub Adapter
 //
@@ -348,6 +348,7 @@ class _FinnhubAdapter {
               }
             }
           }
+        // eslint-disable-next-line unused-imports/no-unused-vars
         } catch (_) {
           /* ignore */
         }
@@ -365,6 +366,7 @@ class _FinnhubAdapter {
       this._ws.onerror = () => {
         this._wsConnected = false;
       };
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       this._ws = null;
     }

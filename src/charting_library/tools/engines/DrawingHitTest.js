@@ -7,6 +7,33 @@
 export const CLICK_BUFFER = 5;
 
 /**
+ * Compute the axis-aligned bounding box for a drawing's pixel-space points.
+ * Used by SpatialIndex to enable O(1) point queries instead of O(n) linear scans.
+ *
+ * @param {Array<{x:number,y:number}>} points  pixel-space points
+ * @param {number} [buffer=CLICK_BUFFER]  padding around the bounding box
+ * @returns {{ x: number, y: number, w: number, h: number }}
+ */
+export function computeBoundingBox(points, buffer = CLICK_BUFFER) {
+  if (!points || points.length === 0) {
+    return { x: 0, y: 0, w: 0, h: 0 };
+  }
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const p of points) {
+    if (p.x < minX) minX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y > maxY) maxY = p.y;
+  }
+  return {
+    x: minX - buffer,
+    y: minY - buffer,
+    w: maxX - minX + buffer * 2,
+    h: maxY - minY + buffer * 2,
+  };
+}
+
+/**
  * Distance from point (px,py) to line segment (a→b).
  */
 export function distToSegment(px, py, a, b) {
@@ -118,7 +145,7 @@ export function hitTestDrawingBody(drawing, x, y, points) {
       const dx = midX - points[0].x, dy = midY - points[0].y;
       const len = Math.sqrt(dx * dx + dy * dy);
       if (len > 0) {
-        const scale = 10000 / len;
+        const scale = Math.max(10000, len * 20) / len; // BUG-14: proportional extension
         const endX = points[0].x + dx * scale, endY = points[0].y + dy * scale;
         if (distToSegment(x, y, points[0], { x: endX, y: endY }) < CLICK_BUFFER) return true;
         if (distToSegment(x, y, points[1], { x: points[1].x + dx * scale, y: points[1].y + dy * scale }) < CLICK_BUFFER) return true;

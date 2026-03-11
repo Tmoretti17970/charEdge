@@ -5,8 +5,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useMemo } from 'react';
-import { useChartStore } from '../../../../state/useChartStore.js';
-import { useJournalStore } from '../../../../state/useJournalStore.js';
+import { useChartStore } from '../../../../state/useChartStore';
+import { useJournalStore } from '../../../../state/useJournalStore';
 import { POPULAR_SYMBOLS } from './commandRegistry.js';
 
 // ─── Fuzzy Match ────────────────────────────────────────────────
@@ -96,6 +96,7 @@ export default function useCommandSearch(commands, query, actions) {
     }
 
     return [...matchedCmds, ...matchedSyms];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [commands, query, symbolResults]);
 
   // Group filtered commands

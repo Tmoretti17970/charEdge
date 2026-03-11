@@ -6,20 +6,17 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
-import { TFS } from '../../constants.js';
-import { reportError } from '../../utils/globalErrorHandler.js';
-import { useChartStore } from '../../state/useChartStore.js';
-import { useWatchlistStore } from '../../state/useWatchlistStore.js';
-import { useAlertStore, checkSymbolAlerts, requestNotificationPermission } from '../../state/useAlertStore.js';
-import { useJournalStore } from '../../state/useJournalStore.js';
-import useWebSocket from '../../data/useWebSocket.js';
-import { WebSocketService } from '../../data/WebSocketService.ts';
-import { fetchOHLC, fetchOHLCPage, warmCache } from '../../data/FetchService.ts';
-
-import { tickerPlant } from '../../data/engine/streaming/TickerPlant.js';
 import { dataPipeline } from '../../data/engine/DataPipeline.js';
-import { parseShareURL } from '../../utils/chartExport.js';
-import { logger } from '../../utils/logger';
+import { tickerPlant } from '../../data/engine/streaming/TickerPlant.js';
+import { fetchOHLC, fetchOHLCPage, warmCache } from '../../data/FetchService';
+import useWebSocket from '../../data/hooks/useWebSocket.js';
+import { WebSocketService } from '../../data/WebSocketService';
+import { useAlertStore, checkSymbolAlerts, requestNotificationPermission } from '../../state/useAlertStore';
+import { useChartStore } from '../../state/useChartStore';
+import { useWatchlistStore } from '../../state/useWatchlistStore.js';
+import { parseShareURL } from '@/charting_library/utils/chartExport';
+import { logger } from '@/observability/logger';
+import { reportError } from '@/shared/globalErrorHandler';
 
 /**
  * Hook that manages all chart data lifecycle:
@@ -38,7 +35,7 @@ export default function useChartDataLoader() {
   const setSymbol = useChartStore((s) => s.setSymbol);
   const historyLoading = useChartStore((s) => s.historyLoading);
   const historyExhausted = useChartStore((s) => s.historyExhausted);
-  const oldestTime = useChartStore((s) => s.oldestTime);
+  const _oldestTime = useChartStore((s) => s.oldestTime);
 
   const [dataWarning, setDataWarning] = useState(null);
 
@@ -95,7 +92,7 @@ export default function useChartDataLoader() {
   }, []);
 
   // Listen for alert triggers and show toast
-  const totalAlerts = useAlertStore((s) => s.alerts.filter((a) => a.active).length);
+  const _totalAlerts = useAlertStore((s) => s.alerts.filter((a) => a.active).length);
   useEffect(() => {
     const handler = (e) => {
       import('../../app/components/ui/Toast.jsx')
@@ -359,7 +356,7 @@ export default function useChartDataLoader() {
       if (typeof cancelIdleCallback === 'function') cancelIdleCallback(scheduleId);
       else clearTimeout(scheduleId);
     };
-  }, [symbol, tf]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [symbol, tf]);  
 
   return {
     tick,

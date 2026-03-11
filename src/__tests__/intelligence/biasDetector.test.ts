@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect } from 'vitest';
-import { detectBiases, type TradeLike } from '../../intelligence/BiasDetector';
+import { detectBiases, type TradeLike } from '@/psychology/BiasDetector';
 
 const makeTrade = (overrides: Partial<TradeLike> = {}): TradeLike => ({
     id: `t-${Math.random().toString(36).slice(2, 6)}`,

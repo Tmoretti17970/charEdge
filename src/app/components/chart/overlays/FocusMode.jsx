@@ -5,9 +5,7 @@
 // Mouse-to-top-edge reveals floating info bar.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useChartStore } from '../../../../state/useChartStore.js';
-import { C } from '../../../../constants.js';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 export default function FocusMode({ isActive, onExit, symbol, timeframe, lastPrice }) {
   const [showOverlay, setShowOverlay] = useState(false);

@@ -13,8 +13,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { BaseAdapter } from './BaseAdapter.js';
-
-import { logger } from '../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 const OKX_REST = 'https://www.okx.com';
 const OKX_WS   = 'wss://ws.okx.com:8443/ws/v5/public';
 
@@ -174,12 +173,13 @@ export class OKXAdapter extends BaseAdapter {
           type: 'CRYPTO',
           exchange: 'OKX',
         }));
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return [];
     }
   }
 
-  getLastPrice(symbol) {
+  getLastPrice(_symbol) {
     return null;
   }
 

@@ -57,6 +57,7 @@ class _PrefetchPredictor {
         this._model = JSON.parse(raw);
         if (this._model.version !== 1) this._model = null;
       }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { /* localStorage unavailable */ }
 
     if (!this._model) {
@@ -76,6 +77,7 @@ class _PrefetchPredictor {
   _saveModel() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this._model));
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { /* storage full or unavailable */ }
   }
 
@@ -92,7 +94,7 @@ class _PrefetchPredictor {
     const sym = symbol.toUpperCase();
     const model = this._loadModel();
     const now = Date.now();
-    const hour = new Date().getHours().toString();
+    const hour = new Date().getUTCHours().toString();
 
     // 1. Time-of-day: increment hourly frequency
     if (!model.hourly[hour]) model.hourly[hour] = {};
@@ -148,7 +150,7 @@ class _PrefetchPredictor {
     };
 
     // Strategy 1: Time-of-day (weight: 1.0)
-    const hour = new Date().getHours().toString();
+    const hour = new Date().getUTCHours().toString();
     const hourData = model.hourly[hour];
     if (hourData) {
       const sorted = Object.entries(hourData).sort((a, b) => b[1] - a[1]);

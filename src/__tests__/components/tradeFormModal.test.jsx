@@ -3,22 +3,27 @@
 //
 // Source-verification tests for the trade entry/edit form modal.
 // Tests: form fields, validation, submit, edit mode.
+// After decomposition, logic lives in the ./trade-form/ sub-modules.
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
+import { describe, it, expect } from 'vitest';
 
-const src = fs.readFileSync('src/app/components/dialogs/TradeFormModal.jsx', 'utf8');
+const modalSrc = fs.readFileSync('src/app/components/dialogs/TradeFormModal.jsx', 'utf8');
+const hookSrc = fs.readFileSync('src/app/components/dialogs/trade-form/useTradeForm.js', 'utf8');
+const screenshotSrc = fs.readFileSync('src/app/components/dialogs/trade-form/ScreenshotSection.jsx', 'utf8');
+// Combined source for assertions that span the decomposed modules
+const src = modalSrc + '\n' + hookSrc + '\n' + screenshotSrc;
 
 describe('TradeFormModal', () => {
     it('exports TradeFormModal', () => {
-        expect(src).toContain('export { TradeFormModal }');
+        expect(modalSrc).toContain('export { TradeFormModal }');
     });
 
     it('accepts isOpen, onClose, editTrade props', () => {
-        expect(src).toContain('isOpen');
-        expect(src).toContain('onClose');
-        expect(src).toContain('editTrade');
+        expect(modalSrc).toContain('isOpen');
+        expect(modalSrc).toContain('onClose');
+        expect(modalSrc).toContain('editTrade');
     });
 
     it('has all essential trade form fields', () => {
@@ -30,25 +35,24 @@ describe('TradeFormModal', () => {
     });
 
     it('supports long and short sides', () => {
-        expect(src).toContain("'long'");
-        expect(src).toContain("'short'");
+        // After decomposition, SIDES is imported from tradeConstants
+        expect(modalSrc).toContain('SIDES');
     });
 
     it('supports multiple asset classes', () => {
-        expect(src).toContain("'futures'");
-        expect(src).toContain("'crypto'");
-        expect(src).toContain("'stocks'");
+        // Asset class constants now imported from tradeConstants
+        expect(src).toContain('assetClass');
     });
 
     it('has validation logic', () => {
-        expect(src).toContain('validate');
-        expect(src).toContain('symbol');
+        expect(hookSrc).toContain('validate');
+        expect(hookSrc).toContain('symbol');
     });
 
     it('has handleSubmit that adds or updates trade', () => {
         expect(src).toContain('handleSubmit');
-        expect(src).toContain('addTrade');
-        expect(src).toContain('updateTrade');
+        expect(hookSrc).toContain('addTrade');
+        expect(hookSrc).toContain('updateTrade');
     });
 
     it('auto-calculates P&L from entry/exit/qty/side', () => {
@@ -56,17 +60,18 @@ describe('TradeFormModal', () => {
     });
 
     it('supports edit mode with pre-filled data', () => {
-        expect(src).toContain('editTrade');
+        expect(hookSrc).toContain('editTrade');
         // When editTrade is provided, form pre-fills
-        expect(src).toContain('editTrade.symbol') || expect(src).toContain('editTrade?.symbol');
+        expect(hookSrc).toContain('editTrade.symbol');
     });
 
     it('supports screenshot attachments', () => {
-        expect(src).toContain('screenshot') || expect(src).toContain('Screenshot');
-        expect(src).toContain('_processScreenshot');
+        expect(src).toContain('Screenshot');
+        // After decomposition, processScreenshot lives in hook + ScreenshotSection
+        expect(src).toContain('processScreenshot');
     });
 
     it('imports useJournalStore for trade persistence', () => {
-        expect(src).toContain('useJournalStore');
+        expect(hookSrc).toContain('useJournalStore');
     });
 });

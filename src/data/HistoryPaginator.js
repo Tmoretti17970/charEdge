@@ -7,9 +7,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { isCrypto } from '../constants.js';
-import { validateCandleArray } from './engine/infra/DataValidator';
 import { toBinancePair, BINANCE_INTERVALS, fetchBinanceBatch } from './BinanceClient.js';
-import { logger } from '../utils/logger';
+import { validateCandleArray } from './engine/infra/DataValidator';
+import { logger } from '@/observability/logger';
 
 /** Dedup in-flight pagination requests. */
 const _historyInflight = new Map();

@@ -7,9 +7,9 @@
 
 import { memo, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useGamificationStore, getRankForXP, getXPToNextLevel } from '../../../state/useGamificationStore.js';
+import { useGamificationStore, getRankForXP, getXPToNextLevel } from '../../../state/useGamificationStore';
 import { Card } from '../ui/UIKit.jsx';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Source → Icon + Label mapping ─────────────────────────────
 

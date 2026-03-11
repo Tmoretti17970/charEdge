@@ -8,9 +8,9 @@
 
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useGamificationStore, ACHIEVEMENTS, RANKS, getRankForXP, getXPToNextLevel } from '../../../state/useGamificationStore.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { useGamificationStore, ACHIEVEMENTS, RANKS, getRankForXP, getXPToNextLevel } from '../../../state/useGamificationStore';
 import { RARITY_COLORS } from './AchievementToast.jsx';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Stats Header ───────────────────────────────────────────────
 

@@ -3,9 +3,9 @@
 // Previously: useTradeStore.js
 // ═══════════════════════════════════════════════════════════════════
 
-import { trackFirstAction, trackWorkflow } from '../../utils/telemetry.js';
+import { trackFirstAction, trackWorkflow } from '../../observability/telemetry';
 import { captureTradeContext } from '../../hooks/useSnapshotCapture.js';
-import { applyLeakTags } from '../../services/LeakDetector.js';
+import { applyLeakTags } from '@/psychology/LeakDetectorService.js';
 
 export const createTradeSlice = (set) => ({
   trades: [],

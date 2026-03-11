@@ -13,8 +13,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { BaseAdapter } from './BaseAdapter.js';
-
-import { logger } from '../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 const CB_REST = 'https://api.exchange.coinbase.com';
 const CB_WS   = 'wss://ws-feed.exchange.coinbase.com';
 
@@ -143,6 +142,7 @@ export class CoinbaseAdapter extends BaseAdapter {
         low: stats ? parseFloat(stats.low) : lastPrice,
         open: openPrice,
       };
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return null;
     }
@@ -196,12 +196,13 @@ export class CoinbaseAdapter extends BaseAdapter {
           type: 'CRYPTO',
           exchange: 'Coinbase',
         }));
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return [];
     }
   }
 
-  getLastPrice(symbol) {
+  getLastPrice(_symbol) {
     return null;
   }
 

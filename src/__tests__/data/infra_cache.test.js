@@ -8,7 +8,7 @@
 //           dataInfraRound9.test.js (CacheManager LRU + IDB TTL)
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // ═══════════════════════════════════════════════════════════════════
 // CacheManager — unified 3-tier cache

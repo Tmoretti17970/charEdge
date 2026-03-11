@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
+import { useGamificationStore, getRankForXP, getXPToNextLevel } from '../../../state/useGamificationStore';
 import { useSocialStore } from '../../../state/useSocialStore.js';
-import { alpha } from '../../../utils/colorUtils.js';
-import { useGamificationStore, getRankForXP, getXPToNextLevel } from '../../../state/useGamificationStore.js';
+import { alpha } from '@/shared/colorUtils';
 
 function TrustBadge({ score }) {
   if (!score) return null;
@@ -78,6 +78,7 @@ export default function TraderLeaderboard() {
 
   const rank = useMemo(() => getRankForXP(xp), [xp]);
   const progress = useMemo(() => getXPToNextLevel(xp), [xp]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const season = useMemo(() => getCurrentSeason(), [leaderboard]);
 
   const [hoveredRow, setHoveredRow] = useState(null);
@@ -85,6 +86,7 @@ export default function TraderLeaderboard() {
 
   useEffect(() => {
     loadLeaderboard();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const MOVEMENT_ICONS = { promoted: '↑', demoted: '↓', stayed: '→' };

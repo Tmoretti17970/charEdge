@@ -4,10 +4,10 @@
 // Tests for: Rule Engine, Cooldown Logic, Streak Analysis, Post-Trade Review
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, beforeEach } from 'vitest';
-import { evaluateCondition, DEFAULT_RULES } from '../../state/useRuleEngine.ts';
-import { buildSessionContext } from '../../hooks/useCooldownEnforcer.js';
+import { describe, it, expect } from 'vitest';
 import { computeStreaks, computeRecovery } from '../../app/features/analytics/analytics_ui/StreakAnalysis.jsx';
+import { buildSessionContext } from '../../hooks/useCooldownEnforcer.js';
+import { evaluateCondition, DEFAULT_RULES } from '../../state/useRuleEngine.ts';
 
 // ─── Helpers ────────────────────────────────────────────────────
 

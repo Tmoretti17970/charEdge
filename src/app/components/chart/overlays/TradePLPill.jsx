@@ -3,7 +3,7 @@
 // Floating pill showing aggregate trade stats when trade markers visible.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { C, F } from '../../../../constants.js';
 
 /**
@@ -39,7 +39,7 @@ export function computeTradeStats(trades) {
   };
 }
 
-export default function TradePLPill({ trades }) {
+export default function TradePLPill({ trades, showAutoFit, onAutoFit }) {
   const [expanded, setExpanded] = useState(false);
 
   const stats = useMemo(() => computeTradeStats(trades), [trades]);
@@ -53,88 +53,123 @@ export default function TradePLPill({ trades }) {
     <div
       style={{
         position: 'absolute',
-        top: 42,
-        right: 12,
+        top: 4,
+        right: 68,
         zIndex: 80,
         fontFamily: F,
         userSelect: 'none',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
       }}
     >
-      {/* Pill */}
-      <button
-        onClick={() => setExpanded(!expanded)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          padding: '4px 12px',
-          borderRadius: 16,
-          border: `1px solid ${pillColor}40`,
-          background: `${pillColor}12`,
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          color: pillColor,
-          fontFamily: F,
-          fontSize: 11,
-          fontWeight: 700,
-          cursor: 'pointer',
-          transition: 'all 0.15s ease',
-          boxShadow: `0 2px 8px ${pillColor}20`,
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.03)';
-          e.currentTarget.style.boxShadow = `0 4px 12px ${pillColor}30`;
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
-          e.currentTarget.style.boxShadow = `0 2px 8px ${pillColor}20`;
-        }}
-      >
-        <span style={{ fontSize: 12 }}>{isPositive ? '▲' : '▼'}</span>
-        <span>{isPositive ? '+' : ''}{stats.totalPL.toLocaleString()}</span>
-        <span style={{ opacity: 0.6, fontWeight: 500 }}>
-          ({stats.count} trade{stats.count !== 1 ? 's' : ''})
-        </span>
-        <span style={{
-          fontSize: 8, color: C.t3, transition: 'transform 0.15s',
-          transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-        }}>▼</span>
-      </button>
-
-      {/* Expanded breakdown */}
-      {expanded && (
-        <div
-          className="tf-fade-in"
+      {/* Auto-Fit Button — appears to the left of the pill */}
+      {showAutoFit && (
+        <button
+          onClick={onAutoFit}
           style={{
-            marginTop: 6,
-            padding: 12,
-            background: `${C.sf2}F5`,
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            border: `1px solid ${C.bd}`,
-            borderRadius: 10,
-            boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-            minWidth: 180,
-            animation: 'tfDropdownIn 0.15s ease-out',
+            width: 24,
+            height: 24,
+            borderRadius: 4,
+            border: 'none',
+            background: '#2962FF',
+            color: '#fff',
+            fontSize: 14,
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+            padding: 0,
+            flexShrink: 0,
+          }}
+          title="Auto-fit price axis"
+        >⊞</button>
+      )}
+
+      {/* Pill + Dropdown wrapper — dropdown appears BELOW the pill */}
+      <div style={{ position: 'relative' }}>
+        {/* Pill */}
+        <button
+          onClick={() => setExpanded(!expanded)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '4px 12px',
+            borderRadius: 16,
+            border: `1px solid ${pillColor}40`,
+            background: `${pillColor}12`,
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            color: pillColor,
+            fontFamily: F,
+            fontSize: 11,
+            fontWeight: 700,
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+            boxShadow: `0 2px 8px ${pillColor}20`,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.03)';
+            e.currentTarget.style.boxShadow = `0 4px 12px ${pillColor}30`;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.boxShadow = `0 2px 8px ${pillColor}20`;
           }}
         >
-          <div style={{
-            fontSize: 9, fontWeight: 700, color: C.t3,
-            letterSpacing: '0.5px', marginBottom: 8,
-          }}>
-            TRADE SUMMARY
-          </div>
+          <span style={{ fontSize: 12 }}>{isPositive ? '▲' : '▼'}</span>
+          <span>{isPositive ? '+' : ''}{stats.totalPL.toLocaleString()}</span>
+          <span style={{ opacity: 0.6, fontWeight: 500 }}>
+            ({stats.count} trade{stats.count !== 1 ? 's' : ''})
+          </span>
+          <span style={{
+            fontSize: 8, color: C.t3, transition: 'transform 0.15s',
+            transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+          }}>▼</span>
+        </button>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-            <StatItem label="Win Rate" value={`${stats.winRate}%`} color={stats.winRate >= 50 ? '#26A69A' : '#EF5350'} />
-            <StatItem label="Avg P/L" value={stats.avgPL >= 0 ? `+${stats.avgPL}` : stats.avgPL} color={stats.avgPL >= 0 ? '#26A69A' : '#EF5350'} />
-            <StatItem label="Wins" value={stats.wins} color="#26A69A" />
-            <StatItem label="Losses" value={stats.losses} color="#EF5350" />
-            <StatItem label="Best" value={stats.bestTrade >= 0 ? `+${stats.bestTrade}` : stats.bestTrade} color="#26A69A" />
-            <StatItem label="Worst" value={stats.worstTrade >= 0 ? `+${stats.worstTrade}` : stats.worstTrade} color="#EF5350" />
+        {/* Expanded breakdown — positioned absolutely below the pill */}
+        {expanded && (
+          <div
+            className="tf-fade-in"
+            style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              marginTop: 6,
+              padding: 12,
+              background: `${C.sf2}F5`,
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              border: `1px solid ${C.bd}`,
+              borderRadius: 10,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+              minWidth: 220,
+              animation: 'tfDropdownIn 0.15s ease-out',
+              zIndex: 90,
+            }}
+          >
+            <div style={{
+              fontSize: 9, fontWeight: 700, color: C.t3,
+              letterSpacing: '0.5px', marginBottom: 8,
+            }}>
+              TRADE SUMMARY
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+              <StatItem label="Win Rate" value={`${stats.winRate}%`} color={stats.winRate >= 50 ? '#26A69A' : '#EF5350'} />
+              <StatItem label="Avg P/L" value={stats.avgPL >= 0 ? `+${stats.avgPL}` : stats.avgPL} color={stats.avgPL >= 0 ? '#26A69A' : '#EF5350'} />
+              <StatItem label="Wins" value={stats.wins} color="#26A69A" />
+              <StatItem label="Losses" value={stats.losses} color="#EF5350" />
+              <StatItem label="Best" value={stats.bestTrade >= 0 ? `+${stats.bestTrade}` : stats.bestTrade} color="#26A69A" />
+              <StatItem label="Worst" value={stats.worstTrade >= 0 ? `+${stats.worstTrade}` : stats.worstTrade} color="#EF5350" />
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

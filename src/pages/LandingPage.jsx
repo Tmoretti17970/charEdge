@@ -5,9 +5,9 @@
 // cards, and architecture highlights. Styled via CSS module.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { C } from '../constants.js';
-import { useUIStore } from '../state/useUIStore.js';
+import { useUIStore } from '../state/useUIStore';
 import s from './LandingPage.module.css';
 
 // ─── Animated Counter ────────────────────────────────────────────

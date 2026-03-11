@@ -6,8 +6,8 @@
 // institutional patterns side-by-side for correlation analysis.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { logger } from '../../../utils/logger';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { logger } from '@/observability/logger';
 
 // ─── Default Watchlist ─────────────────────────────────────────
 
@@ -213,7 +213,7 @@ export default function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
     };
   }, [collectData]);
 
-  const activeSymbols = useMemo(() => {
+  const _activeSymbols = useMemo(() => {
     return symbols.filter(s => data[s.toUpperCase()]);
   }, [symbols, data]);
 

@@ -3,7 +3,7 @@
 // Visual mini-canvas thumbnails for chart type selection
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { C, F, CHART_TYPES } from '../../../../constants.js';
 
 // Draw a small preview chart on a mini canvas
@@ -67,7 +67,7 @@ function drawMiniChart(canvas, typeId, colors) {
       ctx.fill();
       break;
 
-    case 'baseline':
+    case 'baseline': {
       const mid = (yMax + yMin) / 2;
       ctx.setLineDash([2, 2]);
       ctx.strokeStyle = '#555';
@@ -86,6 +86,7 @@ function drawMiniChart(canvas, typeId, colors) {
       ctx.lineWidth = 1.2 * pr;
       ctx.stroke();
       break;
+    }
 
     default: // candles, hollow, ohlc, heikin-ashi etc.
       prices.forEach((b, i) => {

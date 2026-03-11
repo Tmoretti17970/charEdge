@@ -5,19 +5,18 @@
 // Uses SettingsTabShell for layout and SettingsControls for form controls.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { C, F, M } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore.js';
-import SettingsTabShell from '../../settings/SettingsTabShell.jsx';
+import { useChartStore } from '../../../../state/useChartStore';
 import {
     ColorSwatch,
     Toggle,
     RangeSlider,
-    NumberInput,
     SelectDropdown,
     LineStylePicker,
     SectionLabel,
 } from '../../settings/SettingsControls.jsx';
+import SettingsTabShell from '../../settings/SettingsTabShell.jsx';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -114,6 +113,7 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
     const toolLabel = TOOL_LABELS[drawing.type] || drawing.type;
 
     // ─── Apply style to engine ────────────────────────────────────
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const updateStyle = useCallback((key, value) => {
         if (!engine || !drawing.id) return;
         engine.updateStyle(drawing.id, { [key]: value });

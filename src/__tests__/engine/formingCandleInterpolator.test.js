@@ -5,6 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect } from 'vitest';
+// eslint-disable-next-line import/order
 import { FormingCandleInterpolator } from '../../charting_library/core/FormingCandleInterpolator.ts';
 
 describe('FormingCandleInterpolator', () => {
@@ -152,8 +153,11 @@ describe('FormingCandleInterpolator', () => {
 
 // ─── ChartEngine Integration (Source Verification) ──────────────
 
+// eslint-disable-next-line import/order
 import fs from 'fs';
+// eslint-disable-next-line import/order
 import { fileURLToPath } from 'url';
+// eslint-disable-next-line import/order
 import path from 'path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

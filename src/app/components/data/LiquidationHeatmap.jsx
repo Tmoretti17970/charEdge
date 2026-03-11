@@ -14,16 +14,16 @@
 //   <LiquidationHeatmap symbol="BTCUSDT" currentPrice={65000} />
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { F, M } from '../../../constants.js';
 import { binanceFuturesAdapter } from '../../../data/adapters/BinanceFuturesAdapter.js';
 import { bybitFuturesAdapter } from '../../../data/adapters/BybitFuturesAdapter.js';
-import { logger } from '../../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ─── Constants ─────────────────────────────────────────────────
 
 const LEVERAGE_RATIOS = [3, 5, 10, 25, 50, 100]; // Common leverage tiers
-const ZONE_COUNT = 20; // Number of price zones to show
+const _ZONE_COUNT = 20; // Number of price zones to show
 
 // ─── Helpers ───────────────────────────────────────────────────
 

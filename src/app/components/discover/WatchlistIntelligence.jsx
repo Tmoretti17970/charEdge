@@ -7,8 +7,8 @@
 
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
+import { alpha } from '@/shared/colorUtils';
 
 // Generate intelligent data per symbol
 function generateIntel(symbol) {

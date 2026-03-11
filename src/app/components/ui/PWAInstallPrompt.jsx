@@ -6,7 +6,7 @@
 // install CTA when the user is eligible.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback, memo } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 
 const STORAGE_KEY = 'charedge_pwa_dismissed';
 const SESSION_COUNT_KEY = 'charedge_pwa_sessions';

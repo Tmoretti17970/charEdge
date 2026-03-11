@@ -5,7 +5,7 @@
 // dark ↔ light switching and state persistence.
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { useUserStore } from '../../state/useUserStore.ts';
 
 describe('Theme Toggle — useUserStore', () => {

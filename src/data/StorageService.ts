@@ -13,12 +13,13 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { openUnifiedDB } from './UnifiedDB.js';
-import { logger } from '../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ─── Database Access ────────────────────────────────────────────
 let _db = null;
 let _memFallback = null;  // Map<storeName, Map<pk, record>>
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 async function _getDB() {
   if (_db) return _db;
   if (_memFallback) return null;
@@ -26,6 +27,7 @@ async function _getDB() {
   try {
     _db = await openUnifiedDB();
     return _db;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_) {
     logger.data.warn('[StorageService] UnifiedDB unavailable — using in-memory fallback');
     _memFallback = new Map();
@@ -37,6 +39,7 @@ async function _getDB() {
 }
 
 // ─── Low-level Helpers ──────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _idbPut(db, table, item) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(table, 'readwrite');
@@ -54,6 +57,7 @@ function _idbPut(db, table, item) {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _idbBulkPut(db, table, items) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(table, 'readwrite');
@@ -76,6 +80,7 @@ function _idbBulkPut(db, table, items) {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _idbGet(db, table, key) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(table, 'readonly');
@@ -85,6 +90,7 @@ function _idbGet(db, table, key) {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _idbGetAll(db, table) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(table, 'readonly');
@@ -94,6 +100,7 @@ function _idbGetAll(db, table) {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _idbDelete(db, table, key) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(table, 'readwrite');
@@ -103,6 +110,7 @@ function _idbDelete(db, table, key) {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _idbClear(db, table) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(table, 'readwrite');
@@ -112,6 +120,7 @@ function _idbClear(db, table) {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _idbCount(db, table) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(table, 'readonly');
@@ -121,6 +130,7 @@ function _idbCount(db, table) {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _idbWhere(db, table, field, value) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(table, 'readonly');
@@ -128,6 +138,7 @@ function _idbWhere(db, table, field, value) {
     let req;
     try {
       req = store.index(field).getAll(value);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
       // Index doesn't exist — fall back to full scan
       req = store.getAll();
@@ -140,6 +151,7 @@ function _idbWhere(db, table, field, value) {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _idbWhereRange(db, table, field, lower, upper) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(table, 'readonly');
@@ -149,6 +161,7 @@ function _idbWhereRange(db, table, field, lower, upper) {
       const req = store.index(field).getAll(range);
       req.onsuccess = () => resolve(req.result || []);
       req.onerror = () => reject(req.error);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
       const req = store.getAll();
       req.onsuccess = () =>
@@ -162,6 +175,7 @@ function _idbWhereRange(db, table, field, lower, upper) {
 // Generates the standard { getAll, put, delete, replaceAll } API
 // for a given store name + primary key field.
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _makeCRUD(table, pk) {
   return {
     async getAll() {
@@ -248,10 +262,60 @@ const StorageService = {
         return { ok: false, error: e.message };
       }
     },
+
+    /**
+     * Cursor-based pagination for trades.
+     * @param {string|null} cursor - Last trade ID from previous page (null = first page)
+     * @param {number} limit - Max records per page (default 50)
+     * @returns {{ ok, data, nextCursor }}
+     */
+    async getPage(cursor = null, limit = 50) {
+      try {
+        const db = await _getDB();
+
+        // Memory fallback — simple array slice
+        if (!db) {
+          const all = [..._memFallback.get('trades').values()];
+          const startIdx = cursor ? all.findIndex((t) => t.id === cursor) + 1 : 0;
+          const page = all.slice(startIdx, startIdx + limit);
+          const nextCursor = page.length === limit ? page[page.length - 1].id : null;
+          return { ok: true, data: page, nextCursor };
+        }
+
+        // IDB cursor-based pagination
+        return new Promise((resolve) => {
+          const tx = db.transaction('trades', 'readonly');
+          const store = tx.objectStore('trades');
+          const results = [];
+          let skipping = !!cursor;
+
+          const req = store.openCursor();
+          req.onsuccess = () => {
+            const c = req.result;
+            if (!c || results.length >= limit) {
+              const nextCursor = results.length >= limit && c ? c.value.id : null;
+              resolve({ ok: true, data: results, nextCursor });
+              return;
+            }
+            // Skip past the cursor key
+            if (skipping) {
+              if (c.value.id === cursor) { skipping = false; c.continue(); return; }
+              c.continue();
+              return;
+            }
+            results.push(c.value);
+            c.continue();
+          };
+          req.onerror = () => resolve({ ok: false, data: [], nextCursor: null, error: req.error?.message });
+        });
+      } catch (e) {
+        return { ok: false, data: [], nextCursor: null, error: e.message };
+      }
+    },
   },
 
   playbooks: _makeCRUD('playbooks', 'id'),
-  notes:     _makeCRUD('notes',     'id'),
+  notes: _makeCRUD('notes', 'id'),
   tradePlans: _makeCRUD('tradePlans', 'id'),
 
   settings: {
@@ -374,6 +438,7 @@ const StorageService = {
 
       allTrades.sort((a, b) => {
         const da = a.date || a.entryDate || 0;
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         const db_ = b.date || b.entryDate || 0;
         return (
           (typeof da === 'string' ? new Date(da).getTime() : da) -

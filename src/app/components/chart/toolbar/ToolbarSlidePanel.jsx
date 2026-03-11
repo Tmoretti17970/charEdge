@@ -8,7 +8,7 @@
 //   - Auto-closes on click-outside
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { C, F } from '../../../../constants.js';
 
 export default function ToolbarSlidePanel({ isOpen, onClose, title, children, width = 280 }) {

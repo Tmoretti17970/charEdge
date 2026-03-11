@@ -68,6 +68,7 @@ function nextPow2(n: number): number {
 }
 
 /** Composite key for pool bucket: "F32:1024" */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function bucketKey(Ctor: TypedArrayConstructor, size: number): string {
     const name = Ctor === Float32Array ? 'F32'
         : Ctor === Float64Array ? 'F64'
@@ -86,6 +87,7 @@ const MAX_FREE_PER_BUCKET = 8;
 /** Maximum total pool memory (128MB). Beyond this, don't pool released buffers. */
 const MAX_POOL_MEMORY = 128 * 1024 * 1024;
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 class _BufferPool {
     private _buckets = new Map<string, PoolBucket>();
     private _totalFreeBytes = 0;
@@ -100,6 +102,7 @@ class _BufferPool {
      * @returns         A typed array of length >= minLength
      */
     acquire<T extends TypedArray>(
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         Ctor: { new(length: number): T; BYTES_PER_ELEMENT: number },
         minLength: number,
     ): T {

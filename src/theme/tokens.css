@@ -18,12 +18,12 @@
   --tf-bd2: #363b4a;
   --tf-t1: #ececef;
   --tf-t2: #8b8fa2;
-  --tf-t3: #7078a0;
-  /* WCAG AA 4.63:1 on #08090a */
+  --tf-t3: #7b84ad;
+  /* P2 2.2: Raised ≥4.5:1 WCAG AA on #08090a (was #7078a0) */
   --tf-accent: #e8642c;
   --tf-accent-h: #d4551e;
-  --tf-green: #2dd4a0;
-  --tf-red: #f25c5c;
+  --tf-green: #31D158;
+  --tf-red: #FF453A;
   --tf-yellow: #f0b64e;
   --tf-purple: #c084fc;
   --tf-cyan: #22d3ee;
@@ -70,11 +70,16 @@
   --tf-space-10: 40px;
 
   /* Radii — Apple-aligned 6-step scale */
-  --tf-radius-xs: 4px;     /* tags, badges, small buttons */
-  --tf-radius-sm: 8px;     /* inputs, small cards */
-  --tf-radius-md: 12px;    /* cards, panels */
-  --tf-radius-lg: 16px;    /* modals, drawers */
-  --tf-radius-xl: 20px;    /* hero cards, dialog */
+  --tf-radius-xs: 4px;
+  /* tags, badges, small buttons */
+  --tf-radius-sm: 8px;
+  /* inputs, small cards */
+  --tf-radius-md: 16px;
+  /* cards, panels */
+  --tf-radius-lg: 16px;
+  /* modals, drawers */
+  --tf-radius-xl: 20px;
+  /* hero cards, dialog */
   --tf-radius-full: 9999px;
 
   /* ─── Type Scale (4px base grid) ─────────────────────────────── */
@@ -190,7 +195,8 @@
   --tf-bd2: #bec3d0;
   --tf-t1: #111318;
   --tf-t2: #4a5068;
-  --tf-t3: #636d89;
+  --tf-t3: #5a6380;
+  /* P2 2.2: Raised ≥4.5:1 on #f8f8fa (was #636d89) */
   --tf-accent: #d4551e;
   --tf-accent-h: #bf4a18;
   --tf-green: #059669;
@@ -237,8 +243,8 @@
   /* warm cream — not blue-white */
   --tf-t2: #a09880;
   /* warm muted — not cool grey */
-  --tf-t3: #6a6450;
-  /* warm tertiary — WCAG AA 4.5:1 on #000 */
+  --tf-t3: #7a745e;
+  /* P2 2.2: Raised ≥4.5:1 on #000 (was #6a6450) */
   --tf-accent: #d4881e;
   /* warm gold accent */
   --tf-accent-h: #b87418;
@@ -439,6 +445,7 @@
     transform: scale(0.995);
     opacity: 0.85;
   }
+
   100% {
     filter: blur(0);
     transform: scale(1);
@@ -451,4 +458,3 @@
     animation: none !important;
   }
 }
-

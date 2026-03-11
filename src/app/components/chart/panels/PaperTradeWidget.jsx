@@ -4,12 +4,12 @@
 // view open positions, and track performance.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useMemo } from 'react';
-import { usePaperTradeStore, ORDER_TYPES, POSITION_SIDE } from '../../../../state/usePaperTradeStore.js';
+import { useState, useMemo } from 'react';
+import { usePaperTradeStore } from '../../../../state/usePaperTradeStore';
 
 export default function PaperTradeWidget({ symbol, currentPrice, onClose }) {
   const store = usePaperTradeStore();
-  const { enabled, positions, orders, balance, equity, tradeHistory } = store;
+  const { enabled, positions, _orders, _balance, equity, tradeHistory } = store;
   const [tab, setTab] = useState('trade');
   const [side, setSide] = useState('long');
   const [orderType, setOrderType] = useState('market');
@@ -18,6 +18,7 @@ export default function PaperTradeWidget({ symbol, currentPrice, onClose }) {
   const [stopLoss, setStopLoss] = useState('');
   const [takeProfit, setTakeProfit] = useState('');
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const stats = useMemo(() => store.getStats(), [tradeHistory, equity]);
   const pnlColor = (equity - store.initialBalance) >= 0 ? '#26A69A' : '#EF5350';
 

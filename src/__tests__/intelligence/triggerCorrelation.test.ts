@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect } from 'vitest';
-import { analyzeTriggerCorrelation, type TradeLike } from '../../intelligence/TriggerCorrelation';
+import { analyzeTriggerCorrelation, type TradeLike } from '@/psychology/TriggerCorrelation';
 
 const makeTrade = (overrides: Partial<TradeLike> = {}): TradeLike => ({
     id: `t-${Math.random().toString(36).slice(2, 6)}`,

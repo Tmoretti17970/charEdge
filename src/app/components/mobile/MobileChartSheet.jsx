@@ -9,7 +9,7 @@
 
 import { useState, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useChartStore } from '../../../state/useChartStore.js';
+import { useChartStore } from '../../../state/useChartStore';
 
 
 const MOBILE_CHART_TYPES = [
@@ -59,9 +59,9 @@ export default function MobileChartSheet({ isOpen, onClose, onScreenshot, onFull
 
   const toggleIndicator = useCallback(
     (qi) => {
-      const idx = indicators.findIndex((ind) => ind.type === qi.type && ind.params?.period === qi.params?.period);
-      if (idx >= 0) {
-        removeIndicator(idx);
+      const match = indicators.find((ind) => (ind.indicatorId || ind.type) === qi.type && ind.params?.period === qi.params?.period);
+      if (match) {
+        removeIndicator(match.id);
       } else {
         addIndicator({ ...qi });
       }

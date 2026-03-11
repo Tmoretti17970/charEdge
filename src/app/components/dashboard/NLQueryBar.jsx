@@ -5,11 +5,12 @@
 // Parses intent using template matching and renders inline answers.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { C, M, F } from '../../../constants.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { useBreakpoints } from '../../../utils/useMediaQuery.js';
+import { useState, useCallback, useRef } from 'react';
+import { C, M } from '../../../constants.js';
+import { useJournalStore } from '../../../state/useJournalStore';
 import { fmtD } from '../../../utils.js';
+import AIOrb from '../design/AIOrb.jsx';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 // ─── Query Parser ────────────────────────────────────────────────
 
@@ -204,7 +205,7 @@ export default function NLQueryBar() {
     >
       {/* Search input */}
       <form onSubmit={handleSubmit} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: isMobile ? '8px 12px' : '10px 16px' }}>
-        <span style={{ fontSize: 14, flexShrink: 0, opacity: 0.6 }}>🔮</span>
+        <AIOrb size={16} />
         <input
           ref={inputRef}
           type="text"

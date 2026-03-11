@@ -4,8 +4,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useMemo } from 'react';
-import ChartWrapper from '../chart/core/ChartWrapper.jsx';
 import { C, M } from '../../../constants.js';
+import ChartWrapper from '../chart/core/ChartWrapper.jsx';
 
 /**
  * @param {Array} eq - Equity curve array from computeFast: [{ date, pnl, daily, dd }]

@@ -157,8 +157,8 @@ export function renderVolumeProfile(ctx, profile, chartWidth, chartHeight, price
     upColor = 'rgba(38, 166, 154, 0.4)',
     downColor = 'rgba(239, 83, 80, 0.4)',
     pocColor = 'rgba(255, 193, 7, 0.8)',
-    vahColor = 'rgba(38, 166, 154, 0.15)',
-    valColor = 'rgba(239, 83, 80, 0.15)',
+    _vahColor = 'rgba(38, 166, 154, 0.15)',
+    _valColor = 'rgba(239, 83, 80, 0.15)',
     side = 'left',  // 'left' or 'right'
   } = options;
 

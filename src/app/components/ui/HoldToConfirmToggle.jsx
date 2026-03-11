@@ -6,7 +6,7 @@
 // Shake + color flash on premature release.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { C, M } from '../../../constants.js';
 import { radii } from '../../../theme/tokens.js';
 

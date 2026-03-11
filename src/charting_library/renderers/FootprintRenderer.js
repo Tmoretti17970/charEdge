@@ -3,7 +3,7 @@
 // Specialized canvas renderer for Volume Delta Footprints
 // ═══════════════════════════════════════════════════════════════════
 
-import { C, F, M } from '../../constants.js';
+import { C, M } from '../../constants.js';
 
 export class FootprintRenderer {
   /**

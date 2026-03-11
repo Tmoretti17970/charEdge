@@ -84,7 +84,7 @@ const usePaperTradeStore = create(
             ? currentPrice + slippage
             : currentPrice - slippage;
 
-          const cost = fillPrice * order.quantity;
+          const _cost = fillPrice * order.quantity;
           const commission = commissionPerTrade;
 
           const position = {
@@ -237,7 +237,7 @@ const usePaperTradeStore = create(
        * Close a position at market price.
        */
       closePosition(positionId, currentPrice) {
-        const { positions, balance, commissionPerTrade, slippageBps } = get();
+        const { positions, _balance, commissionPerTrade, slippageBps } = get();
         const pos = positions.find(p => p.id === positionId);
         if (!pos) return;
 

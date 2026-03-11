@@ -10,7 +10,9 @@ export const SESSION_STATES = {
     id: 'pre-market',
     label: 'Pre-Market',
     emoji: '🌅',
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     gradient: (C) => `linear-gradient(135deg, ${C.b}08, ${C.p}06)`,
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     borderColor: (C) => `${C.b}20`,
     coaching: 'Review your plan. Set your risk limits. Visualize success.',
     actions: ['review-plan', 'set-alerts', 'checklist'],
@@ -19,7 +21,9 @@ export const SESSION_STATES = {
     id: 'active',
     label: 'Active Session',
     emoji: '📊',
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     gradient: (C) => `linear-gradient(135deg, ${C.g}08, ${C.b}06)`,
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     borderColor: (C) => `${C.g}20`,
     coaching: 'Execute with discipline. Follow your plan.',
     actions: ['add-trade', 'quick-add', 'check-risk'],
@@ -28,7 +32,9 @@ export const SESSION_STATES = {
     id: 'cooling-down',
     label: 'Cooling Down',
     emoji: '🧊',
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     gradient: (C) => `linear-gradient(135deg, ${C.r}08, ${C.y}06)`,
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     borderColor: (C) => `${C.y}20`,
     coaching: 'Step away. Breathe. Your next trade can wait.',
     actions: ['breathing', 'review-rules'],
@@ -37,7 +43,9 @@ export const SESSION_STATES = {
     id: 'post-market',
     label: 'Post-Market',
     emoji: '🌙',
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     gradient: (C) => `linear-gradient(135deg, ${C.p}08, ${C.b}06)`,
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     borderColor: (C) => `${C.p}20`,
     coaching: 'Markets closed. Time to reflect on execution.',
     actions: ['debrief', 'review-trades', 'plan-tomorrow'],
@@ -46,7 +54,9 @@ export const SESSION_STATES = {
     id: 'debrief',
     label: 'Debrief',
     emoji: '📝',
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     gradient: (C) => `linear-gradient(135deg, ${C.y}08, ${C.g}06)`,
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     borderColor: (C) => `${C.y}20`,
     coaching: 'What did you learn today? Write it down.',
     actions: ['journal', 'grade-trades', 'set-goals'],
@@ -55,7 +65,7 @@ export const SESSION_STATES = {
 
 // ─── Automatic State Detection ───────────────────────────────────
 
-function detectState(trades = [], opts = {}) {
+function detectState(_trades = [], opts = {}) {
   const now = new Date();
   const h = now.getHours() + now.getMinutes() / 60;
 

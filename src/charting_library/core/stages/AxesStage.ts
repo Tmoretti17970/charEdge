@@ -12,6 +12,7 @@
 import { formatPrice } from '../CoordinateSystem.js';
 import { formatTimeLabel } from '../barCountdown.js';
 import { filterOverlappingLabels, filterOverlappingTimeLabels } from '../NiceTicks.js';
+import { temporalEngine } from '../TemporalEngine.ts';
 
 // ─── Offscreen Bitmap Cache ──────────────────────────────────────
 let _axesCache = { canvas: null, ctx: null, key: '' };
@@ -20,10 +21,11 @@ let _axesCache = { canvas: null, ctx: null, key: '' };
  * Build invalidation key from rendering inputs.
  * Captures everything that affects static label positions/text.
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _axesCacheKey(fs, engine) {
   const niceStep = engine._lastNiceStep;
   const tickStr = niceStep?.ticks?.join(',') ?? '';
-  return `${fs.bitmapWidth}:${fs.bitmapHeight}:${fs.pixelRatio}:${fs.chartWidth}:${fs.mainHeight}:${tickStr}:${fs.startIdx}:${fs.scaleMode}`;
+  return `${fs.bitmapWidth}:${fs.bitmapHeight}:${fs.pixelRatio}:${fs.chartWidth}:${fs.mainHeight}:${tickStr}:${fs.startIdx}:${fs.scaleMode}:${fs.activeTimezone || 'UTC'}`;
 }
 
 /**
@@ -127,6 +129,7 @@ export function executeAxesStage(fs, ctx, engine) {
         color: axisColor,
         align: 'right',
       }));
+      // eslint-disable-next-line no-undef
       const priceTextFn = () => webgl.drawSDFText(sdfEntries, { pixelRatio: pr });
       const cmdBuf = ctx.commandBuffer;
       if (cmdBuf) {
@@ -173,7 +176,7 @@ export function executeAxesStage(fs, ctx, engine) {
         // Skip if too close to previous label
         if (x - lastLabelX < MIN_LABEL_PX * pr * 0.8) continue;
 
-        const label = formatTimeLabel(vis[i].time, fs.timeframe, prevTime);
+        const label = formatTimeLabel(vis[i].time, fs.timeframe, prevTime, fs.activeTimezone || 'UTC');
         prevTime = vis[i].time;
         timeLabels.push({ text: label, x, y: tY + Math.round(5 * pr), fontSize: 10 });
         lastLabelX = x;
@@ -197,7 +200,8 @@ export function executeAxesStage(fs, ctx, engine) {
           const t = typeof vis[i].time === 'number' ? vis[i].time : +new Date(vis[i].time);
           const pt = typeof vis[i - 1].time === 'number' ? vis[i - 1].time : +new Date(vis[i - 1].time);
           const DAY_MS = 86400000;
-          if (Math.floor(t / DAY_MS) !== Math.floor(pt / DAY_MS)) {
+          const tz = fs.activeTimezone || 'UTC';
+          if (temporalEngine.dayStartUTC(t, tz) !== temporalEngine.dayStartUTC(pt, tz)) {
             const sx = Math.round(timeTransform.indexToPixel(start + i) * pr);
             if (sx > 0 && sx < cBW) {
               oCtx.beginPath();
@@ -250,6 +254,7 @@ export function executeAxesStage(fs, ctx, engine) {
           color: axisColor,
           align: 'center',
         }));
+        // eslint-disable-next-line no-undef
         const timeTextFn = () => webgl.drawSDFText(sdfEntries, { pixelRatio: pr });
         const cmdBuf = ctx.commandBuffer;
         if (cmdBuf) {
@@ -359,28 +364,10 @@ export function executeAxesStage(fs, ctx, engine) {
     mCtx.restore();
   }
   if (!S.autoScale) {
+    // Hit region only — visual button is now a DOM overlay in ChartEngineWidget
     const afSize = Math.round(20 * pr);
-    const afX = bw - Math.round(axW * pr) + Math.round(4 * pr);
+    const afX = bw - Math.round(axW * pr) - afSize - Math.round(30 * pr);
     const afY = Math.round(4 * pr);
-    mCtx.fillStyle = '#2962FF';
-    mCtx.beginPath();
-    const r2 = Math.round(3 * pr);
-    mCtx.moveTo(afX + r2, afY);
-    mCtx.lineTo(afX + afSize - r2, afY);
-    mCtx.quadraticCurveTo(afX + afSize, afY, afX + afSize, afY + r2);
-    mCtx.lineTo(afX + afSize, afY + afSize - r2);
-    mCtx.quadraticCurveTo(afX + afSize, afY + afSize, afX + afSize - r2, afY + afSize);
-    mCtx.lineTo(afX + r2, afY + afSize);
-    mCtx.quadraticCurveTo(afX, afY + afSize, afX, afY + afSize - r2);
-    mCtx.lineTo(afX, afY + r2);
-    mCtx.quadraticCurveTo(afX, afY, afX + r2, afY);
-    mCtx.closePath();
-    mCtx.fill();
-    mCtx.fillStyle = '#FFFFFF';
-    mCtx.font = `bold ${Math.round(12 * pr)}px Arial`;
-    mCtx.textAlign = 'center';
-    mCtx.textBaseline = 'middle';
-    mCtx.fillText('⊞', afX + afSize / 2, afY + afSize / 2);
     S._autoFitBtn = { x: afX / pr, y: afY / pr, w: afSize / pr, h: afSize / pr };
   } else {
     S._autoFitBtn = null;
@@ -429,6 +416,7 @@ export { _axesCache };
  * Parse a CSS color string to a normalized [r, g, b, a] Float32Array.
  * Lightweight hex-only parser for axis text (avoids canvas getImageData).
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function _parseColorToArray(color) {
   if (color.startsWith('#')) {
     const hex = color.slice(1);

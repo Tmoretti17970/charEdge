@@ -4,9 +4,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useRef } from 'react';
-import { useHotkeys } from '../../utils/useHotkeys.js';
-import { undoStack, executeUndo, executeRedo } from '../../utils/UndoStack.js';
 import toast from '../../app/components/ui/Toast.jsx';
+import { useHotkeys } from '@/hooks/useHotkeys';
+import { undoStack, executeUndo, executeRedo } from '@/shared/UndoStack';
 
 /**
  * @param {object} opts

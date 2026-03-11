@@ -1,4 +1,4 @@
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — TextAtlas (SDF)
@@ -299,7 +299,7 @@ export class TextAtlas {
    */
   measureText(text, fontSize) {
     let width = 0;
-    const scale = fontSize / (GLYPH_SIZE * 0.7);
+    const _scale = fontSize / (GLYPH_SIZE * 0.7);
     for (const ch of text) {
       const glyph = this._glyphs.get(ch);
       if (glyph) {
@@ -342,7 +342,7 @@ export class TextAtlas {
       const { text, fontSize, color } = entry;
       const scale = fontSize / (GLYPH_SIZE * 0.7);
       const quadH = GLYPH_SIZE * scale * pr;
-      const quadAspect = 1.0; // Square cells in atlas
+      const _quadAspect = 1.0; // Square cells in atlas
 
       // Compute text width for alignment
       let totalW = 0;

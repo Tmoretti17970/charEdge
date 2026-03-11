@@ -40,7 +40,7 @@ export function renderPitchfork(ctx, pts, drawing, style, lw, pr, size) {
   ctx.setLineDash([]);
 }
 
-export function renderParallelChannel(ctx, pts, style, lw, pr, size) {
+export function renderParallelChannel(ctx, pts, style, lw, pr, _size) {
   if (pts.length < 2) return;
   const [p0, p1] = pts;
   ctx.strokeStyle = style.color; ctx.lineWidth = lw;
@@ -63,7 +63,7 @@ export function renderParallelChannel(ctx, pts, style, lw, pr, size) {
   ctx.setLineDash([]);
 }
 
-export function renderRegressionChannel(ctx, pts, drawing, style, lw, pr, size) {
+export function renderRegressionChannel(ctx, pts, drawing, style, lw, pr, _size) {
   if (pts.length < 2 || !drawing.points || drawing.points.length < 2) return;
   const x1 = pts[0].x, y1 = pts[0].y, x2 = pts[1].x, y2 = pts[1].y;
   if (Math.abs(x2 - x1) < 2) return;

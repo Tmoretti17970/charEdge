@@ -4,7 +4,6 @@
 // Status indicator badges with semantic colors from design tokens.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
 
 const STATUS_STYLES = {
   success: {

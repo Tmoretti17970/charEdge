@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useSocialStore } from '../../../state/useSocialStore.js';
-import { alpha } from '../../../utils/colorUtils.js';
 import { MOCK_COMMENTS, MOCK_PROFILES } from '../../../data/socialMockData.js';
+import { useSocialStore } from '../../../state/useSocialStore.js';
+import { alpha } from '@/shared/colorUtils';
 
 function timeAgo(ts) {
   const diff = Date.now() - ts;
@@ -113,7 +113,7 @@ function MiniChart({ symbol, width = 320, height = 80 }) {
 // ─── Reaction Emoji Button ──────────────────────────────────
 const REACTIONS = ['🔥', '📈', '📉', '💎', '🧠'];
 
-function ReactionBar({ snapshotId }) {
+function ReactionBar({ _snapshotId }) {
   const [reactions, setReactions] = useState({});
   const [myReaction, setMyReaction] = useState(null);
 
@@ -577,6 +577,7 @@ export default function ChartIdeasFeed({ zenMode = false, onPostIdea }) {
 
   useEffect(() => {
     loadFeed({ reset: true });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -585,6 +586,7 @@ export default function ChartIdeasFeed({ zenMode = false, onPostIdea }) {
       authorIds.forEach((id) => fetchProfile(id));
       setProfilesFetched(true);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feed, profilesFetched]);
 
   const displayFeed = zenMode

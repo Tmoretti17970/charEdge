@@ -7,7 +7,7 @@
 //   3. Stitch — sequential bar reveal animation (left-to-right stagger)
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const PHASES = { IDLE: 'idle', DISCONNECT: 'disconnect', SYNC: 'sync', STITCH: 'stitch' };
 const BAR_REVEAL_STAGGER = 15; // ms per bar reveal

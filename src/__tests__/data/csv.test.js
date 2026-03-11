@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseCSVRaw, autoMap, parseNumeric, parseDate, normTrade, tradeHash, importCSV, exportCSV } from '../../charting_library/datafeed/csv.js';
+import { parseCSVRaw, autoMap, parseNumeric, parseDate, normTrade, tradeHash, importCSV, exportCSVString } from '../../charting_library/datafeed/csv.js';
 
 // ─── parseNumeric ───────────────────────────────────────────────
 describe('parseNumeric', () => {
@@ -322,7 +322,7 @@ describe('importCSV', () => {
 
 // ─── exportCSV ──────────────────────────────────────────────────
 describe('exportCSV', () => {
-  it('produces valid CSV with headers', () => {
+  it('produces valid CSV with headers', async () => {
     const trades = [
       {
         date: '2025-01-15',
@@ -337,15 +337,15 @@ describe('exportCSV', () => {
         tags: ['scalp', 'breakout'],
       },
     ];
-    const csv = exportCSV(trades);
+    const csv = await exportCSVString(trades);
     expect(csv.startsWith('Date,Symbol,Side')).toBe(true);
     expect(csv).toContain('BTC');
     expect(csv).toContain('500');
     expect(csv).toContain('scalp;breakout');
   });
 
-  it('handles empty trades', () => {
-    const csv = exportCSV([]);
+  it('handles empty trades', async () => {
+    const csv = await exportCSVString([]);
     expect(csv.startsWith('Date,Symbol,Side')).toBe(true);
   });
 });

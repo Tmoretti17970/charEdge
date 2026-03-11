@@ -37,7 +37,7 @@ export interface AuthState {
 
 // ─── Store ─────────────────────────────────────────────────────────
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set, _get) => ({
     user: null,
     session: null,
     loading: true,

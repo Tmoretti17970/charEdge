@@ -16,8 +16,8 @@
 
 import { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { C, M } from '../../constants.js';
-import { space, radii, text, transition, preset } from '../../theme/tokens.js';
 import { useScriptStore } from '../../state/useScriptStore.js';
+import { space, radii, text, transition, preset } from '../../theme/tokens.js';
 import { executeScript, validateScript } from './ScriptEngine.js';
 
 const MIN_HEIGHT = 120;

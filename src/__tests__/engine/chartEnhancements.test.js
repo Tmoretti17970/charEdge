@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { toRenkoBricks, toRangeBars, autoATR } from '../../charting_library/core/barTransforms.js';
+// eslint-disable-next-line import/order
 import { getSessionsForTimeRange } from '../../charting_library/renderers/SessionDividers.js';
 
 // ═══════════════════════════════════════════════════════════════════
@@ -218,6 +219,7 @@ describe('getSessionsForTimeRange', () => {
 // VWAP Bands Tests (Sprint: Charting Mega-Sprint)
 // ═══════════════════════════════════════════════════════════════════
 
+// eslint-disable-next-line import/order
 import { vwapBands } from '../../charting_library/studies/indicators/computations.js';
 
 describe('vwapBands', () => {
@@ -306,6 +308,10 @@ describe('vwapBands', () => {
 // Alert Zone Drawing Model Tests
 // ═══════════════════════════════════════════════════════════════════
 
+import * as C from '../../charting_library/studies/indicators/computations.js';
+import { INDICATORS, createIndicatorInstance } from '../../charting_library/studies/indicators/registry.js';
+import { computeVolumeDelta } from '../../charting_library/studies/indicators/volumeDelta.js';
+// eslint-disable-next-line import/order
 import { DEFAULT_STYLES, TOOL_POINT_COUNT, createDrawing } from '../../charting_library/tools/tools/DrawingModel.js';
 
 describe('Alert Zone Drawing', () => {
@@ -391,6 +397,8 @@ describe('ChartTemplateStore', () => {
 // Bar Countdown Utility Tests
 // ═══════════════════════════════════════════════════════════════════
 
+ 
+// eslint-disable-next-line import/order
 import { tfToMs, formatCountdown, formatTimeLabel } from '../../charting_library/core/barCountdown.js';
 
 describe('tfToMs', () => {
@@ -472,6 +480,7 @@ describe('formatTimeLabel', () => {
 // Drawing Undo/Redo Stack Tests
 // ═══════════════════════════════════════════════════════════════════
 
+// eslint-disable-next-line import/order
 import { useChartStore } from '../../state/useChartStore.ts';
 
 describe('Drawing Undo/Redo', () => {
@@ -622,7 +631,6 @@ describe('Chart Appearance State', () => {
 // Volume Delta Computation Tests
 // ═══════════════════════════════════════════════════════════════════
 
-import { computeVolumeDelta } from '../../charting_library/studies/indicators/volumeDelta.js';
 
 describe('computeVolumeDelta', () => {
   it('should return positive delta for bullish bars', () => {
@@ -681,7 +689,6 @@ describe('computeVolumeDelta', () => {
 // Volume Delta Indicator Registration Tests
 // ═══════════════════════════════════════════════════════════════════
 
-import { INDICATORS, createIndicatorInstance } from '../../charting_library/studies/indicators/registry.js';
 
 describe('Volume Delta Indicator Registration', () => {
   it('should be registered in INDICATORS', () => {
@@ -727,6 +734,8 @@ describe('Volume Delta Indicator Registration', () => {
 // Volume Spike Detection Tests
 // ═══════════════════════════════════════════════════════════════════
 
+ 
+// eslint-disable-next-line import/order
 import { detectVolumeSpikes } from '../../charting_library/studies/indicators/volumeSpikes.js';
 
 describe('detectVolumeSpikes', () => {
@@ -813,6 +822,8 @@ describe('detectVolumeSpikes', () => {
 // Chart Annotation Store Tests
 // ═══════════════════════════════════════════════════════════════════
 
+ 
+// eslint-disable-next-line import/order
 import { useAnnotationStore } from '../../state/useAnnotationStore.ts';
 
 describe('Annotation Store', () => {
@@ -889,6 +900,8 @@ describe('Annotation Store', () => {
 // Trade P/L Computation Tests
 // ═══════════════════════════════════════════════════════════════════
 
+ 
+// eslint-disable-next-line import/order
 import { computeTradeStats } from '../../app/components/chart/overlays/TradePLPill.jsx';
 
 describe('computeTradeStats', () => {
@@ -958,6 +971,8 @@ describe('computeTradeStats', () => {
 // CoordinateSystem Tests (Pixel-Perfect Transforms)
 // ═══════════════════════════════════════════════════════════════════
 
+ 
+// eslint-disable-next-line import/order
 import {
   mediaToBitmap,
   bitmapToMedia,
@@ -1172,6 +1187,8 @@ describe('formatPrice', () => {
 // TimeAxis Tests
 // ═══════════════════════════════════════════════════════════════════
 
+ 
+// eslint-disable-next-line import/order
 import { createTimeTransform as createTimeTransformTA, candleLayout } from '../../charting_library/core/TimeAxis.js';
 
 describe('TimeAxis createTimeTransform', () => {
@@ -1232,6 +1249,8 @@ describe('candleLayout', () => {
 // FrameBudget Tests (LOD Management)
 // ═══════════════════════════════════════════════════════════════════
 
+ 
+// eslint-disable-next-line import/order
 import { FrameBudget, IndicatorCache } from '../../charting_library/core/FrameBudget.js';
 
 describe('FrameBudget', () => {
@@ -1353,14 +1372,16 @@ describe('IndicatorCache', () => {
 // DrawingModel Serialization Tests
 // ═══════════════════════════════════════════════════════════════════
 
+ 
+// eslint-disable-next-line import/order
 import { generateId, serializeDrawings, deserializeDrawings, FIB_LEVELS, FIB_COLORS } from '../../charting_library/tools/tools/DrawingModel.js';
 
 describe('generateId', () => {
-  it('should generate unique IDs starting with draw_', () => {
+  it('should generate unique IDs starting with drw_', () => {
     const id1 = generateId();
     const id2 = generateId();
     expect(id1).not.toBe(id2);
-    expect(id1).toMatch(/^draw_/);
+    expect(id1).toMatch(/^drw_/);
   });
 });
 
@@ -1394,7 +1415,7 @@ describe('createDrawing for all tool types', () => {
     for (const type of toolTypes) {
       const drawing = createDrawing(type);
       expect(drawing.type).toBe(type);
-      expect(drawing.id).toMatch(/^draw_/);
+      expect(drawing.id).toMatch(/^drw_/);
       expect(drawing.points).toEqual([]);
       expect(drawing.state).toBe('creating');
       expect(drawing.locked).toBe(false);
@@ -1422,7 +1443,6 @@ describe('FIB_LEVELS and FIB_COLORS', () => {
 // Indicator Computations Tests (SMA, EMA, RSI, MACD, BB, etc.)
 // ═══════════════════════════════════════════════════════════════════
 
-import * as C from '../../charting_library/studies/indicators/computations.js';
 
 describe('SMA', () => {
   it('should compute simple moving average', () => {
@@ -1918,8 +1938,9 @@ describe('Features Slice — Intelligence Toggles', () => {
 // DrawingEngine State Machine Tests
 // ═══════════════════════════════════════════════════════════════════
 
+ 
+// eslint-disable-next-line import/order
 import { createDrawingEngine } from '../../charting_library/tools/tools/DrawingEngine.js';
-import { TOOL_POINT_COUNT } from '../../charting_library/tools/tools/DrawingModel.js';
 
 /**
  * Helper: create an engine with mock coordinate converters.
@@ -1974,7 +1995,7 @@ describe('DrawingEngine — Tool Activation', () => {
 
 describe('DrawingEngine — 2-Point Tool Completion (trendline)', () => {
   it('should complete a trendline after 2 clicks', () => {
-    let stateLog = [];
+    const stateLog = [];
     const engine = makeTestEngine({
       onStateChange: (s) => stateLog.push(s),
     });
@@ -2445,6 +2466,8 @@ describe('DrawingEngine — Hit-Test All Tool Types', () => {
 // Phase 3 Deep Dive — Screener Tests
 // ═══════════════════════════════════════════════════════════════════
 
+ 
+// eslint-disable-next-line import/order
 import { screenSymbols, getScreenableIndicators } from '../../charting_library/core/Screener.js';
 
 describe('Screener — screenSymbols', () => {
@@ -2530,6 +2553,7 @@ describe('Screener — getScreenableIndicators', () => {
 // Phase 3 Deep Dive — Drawing Alert Engine Tests
 // ═══════════════════════════════════════════════════════════════════
 
+// eslint-disable-next-line import/order
 import { createDrawingAlert, checkDrawingAlerts, getAlertTriggerTypes } from '../../charting_library/tools/DrawingAlertEngine.js';
 
 describe('DrawingAlertEngine — createDrawingAlert', () => {

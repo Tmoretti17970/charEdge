@@ -5,8 +5,8 @@
 
 import React, { useState, useMemo } from 'react';
 import { C, M } from '../../../../constants.js';
-import { Card } from '../../../components/ui/UIKit.jsx';
 import { fmtD } from '../../../../utils.js';
+import { Card } from '../../../components/ui/UIKit.jsx';
 import BreakdownBarChart from '../../../components/widgets/BreakdownBarChart.jsx';
 import { SectionLabel, WinRateByCategory, headerRow, dataRow } from './AnalyticsPrimitives.jsx';
 

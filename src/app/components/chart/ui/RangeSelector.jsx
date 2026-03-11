@@ -4,7 +4,7 @@
 // Phase 3 Task 3.3.3: Quick range presets (1D, 5D, 1M, 3M, 6M, 1Y, ALL).
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { C, F } from '../../../constants.js';
 
 const RANGES = [

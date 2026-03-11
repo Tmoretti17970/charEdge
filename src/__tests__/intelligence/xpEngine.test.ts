@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect } from 'vitest';
-import { createInitialState, awardXP, updateStreak } from '../../intelligence/XPEngine';
+import { createInitialState, awardXP, updateStreak } from '@/state/gamification/XPEngine';
 
 describe('XPEngine', () => {
     it('creates initial state', () => {

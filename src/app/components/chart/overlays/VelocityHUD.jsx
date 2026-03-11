@@ -5,7 +5,7 @@
 // Rolling 5s/30s/5m windows with acceleration indicator.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 const WINDOWS = [
   { label: '5s', ms: 5_000 },
@@ -39,6 +39,9 @@ function formatVelocity(v) {
 export default function VelocityHUD({ ticks = [], visible = true }) {
   const [velocities, setVelocities] = useState({});
   const prevVelocityRef = useRef(0);
+  // P2 2.5: Dimmed auto-fade after 10s of no data change
+  const [dimmed, setDimmed] = useState(false);
+  const fadeTimerRef = useRef(null);
 
   const computeVelocities = useCallback(() => {
     if (!ticks.length) return;
@@ -64,10 +67,15 @@ export default function VelocityHUD({ ticks = [], visible = true }) {
     }
 
     setVelocities(result);
+    // P2 2.5: Reset fade on new data
+    setDimmed(false);
+    if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current);
+    fadeTimerRef.current = setTimeout(() => setDimmed(true), 10_000);
   }, [ticks]);
 
   useEffect(() => {
     computeVelocities();
+    return () => { if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current); };
   }, [computeVelocities]);
 
   if (!visible || !Object.keys(velocities).length) return null;
@@ -79,6 +87,11 @@ export default function VelocityHUD({ ticks = [], visible = true }) {
   return (
     <div
       className="tf-depth-surface"
+      onMouseEnter={() => setDimmed(false)}
+      onMouseLeave={() => {
+        if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current);
+        fadeTimerRef.current = setTimeout(() => setDimmed(true), 10_000);
+      }}
       style={{
         position: 'absolute',
         top: 8,
@@ -95,6 +108,8 @@ export default function VelocityHUD({ ticks = [], visible = true }) {
         gap: 2,
         minWidth: 100,
         pointerEvents: 'auto',
+        opacity: dimmed ? 0.3 : 1,
+        transition: 'opacity 0.6s ease',
       }}
     >
       <div style={{

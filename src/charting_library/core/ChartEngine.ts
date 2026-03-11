@@ -1,40 +1,30 @@
 /// <reference types="vite/client" />
-import { DARK_THEME, LIGHT_THEME } from './ThemeManager.js';
 import { FrameBudget } from './FrameBudget.js';
+import { detectDisplayHz } from './DisplayHz.js';
 import { microJankDetector } from './MicroJankDetector.js';
 import { createChartDrawingSetup } from './ChartDrawingSetup.js';
-import { niceScale, formatPrice, createPriceTransform } from './CoordinateSystem.js';
-import { createTimeTransform } from './TimeAxis.js';
-import { resolveTheme } from './RenderPipeline.js';
-import { renderOverlayIndicator, renderPaneIndicator } from '../studies/indicators/renderer.js';
 import { InputManager } from './InputManager.js';
-import { HeatmapRenderer } from '../renderers/HeatmapRenderer.js';
-import { getAggregator } from '../../data/OrderFlowAggregator.js';
-import { drawSessionDividers } from '../renderers/SessionDividers.js';
-import { renderDeltaHistogram, renderVolumeProfile, renderLargeTradeMarkers } from '../renderers/OrderFlowOverlays.js';
-import { renderOIOverlay, renderLiquidationMarkers } from '../renderers/DerivativesOverlays.js';
-import { toRenkoBricks, toRangeBars } from './barTransforms.js';
-import { tfToMs, formatCountdown, formatTimeLabel } from './barCountdown.js';
-import { getChartDrawFunction } from '../renderers/renderers/ChartTypes.js';
-import { LayerManager, LAYERS } from './LayerManager.js';
+import type { LayerManager} from './LayerManager.js';
+import { LAYERS } from './LayerManager.js';
+import { PaneManager } from './PaneManager.js';
 import { BarDataBuffer } from './BarDataBuffer.js';
-import { autoDecimate } from './Decimator.js';
 import { WorkerBridge } from './WorkerBridge.js';
 import { loadDrawings } from '../tools/DrawingPersistence.js';
 import { WebGLRenderer } from '../renderers/WebGLRenderer.ts';
 import { WebGPUCompute } from '../renderers/WebGPUCompute.js';
 import { checkDrawingAlerts } from '../tools/DrawingAlertEngine.js';
 import { validateBars, validateProps, validateIndicators } from './validateBars.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@/observability/logger.js';
 import { memoryBudget } from '../../data/engine/infra/MemoryBudget.js';
 import { renderTradeMarkers as renderTradeMarkersImpl } from '../renderers/TradeMarkerRenderer.js';
 
 import type { Bar } from '../../types/chart.js';
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const __DEV__ = typeof import.meta !== 'undefined' && import.meta.env?.DEV;
 
 // ─── Forge Render Pipeline ───────────────────────────────────────
-import { FrameState, CHANGED } from './FrameState.js';
+import { FrameState } from './FrameState.js';
 import { createDefaultPipeline } from './RenderPipeline.js';
 import { executeGridStage } from './stages/GridStage.js';
 import { executeDataStage } from './stages/DataStage.js';
@@ -45,6 +35,7 @@ import { executeAxesStage } from './stages/AxesStage.js';
 import { executeUIStage } from './stages/UIStage.js';
 import { SceneGraph } from '../scene/SceneGraph.js';
 import { FormingCandleInterpolator } from './FormingCandleInterpolator.js';
+import { CountdownOverlay } from './CountdownOverlay.js';
 import { markCleanExit } from './SessionRecovery.js';
 
 // ─── Type Definitions ────────────────────────────────────────────
@@ -77,6 +68,7 @@ export interface ChartProps {
   showOIOverlay?: boolean;
   magnetMode?: boolean;
   useUTC?: boolean;
+  activeTimezone?: string;
   trades?: unknown[];
   srLevels?: unknown[];
   oiData?: unknown;
@@ -89,7 +81,6 @@ export interface ChartProps {
   renkoBrickSize?: number;
   rangeBarSize?: number;
   storeChartColors?: Record<string, string>;
-  [key: string]: unknown;
 }
 
 /** Constructor options for ChartEngine. */
@@ -132,7 +123,6 @@ export interface EngineState {
   yAxisLocked: boolean; // Task 1.4.14: Y-axis lock toggle
   _scrollToNowBtn?: { x: number; y: number; w: number; h: number } | null;
   _autoFitBtn?: { x: number; y: number; w: number; h: number } | null;
-  [key: string]: unknown;
 }
 
 export class ChartEngine {
@@ -160,6 +150,7 @@ export class ChartEngine {
 
   // Layer system
   layers: LayerManager;
+  paneManager: PaneManager;
   mainCanvas: HTMLCanvasElement;
   topCanvas: HTMLCanvasElement;
   mainCtx: CanvasRenderingContext2D;
@@ -170,6 +161,7 @@ export class ChartEngine {
 
   // WebGL
   _webglCanvas: HTMLCanvasElement;
+  _pendingWebGLResize = false;
   _webglRenderer: WebGLRenderer;
 
   // WebGPU
@@ -185,8 +177,8 @@ export class ChartEngine {
   state: EngineState;
 
   // Drawing
-  drawingEngine: any;
-  drawingRenderer: any;
+  drawingEngine: unknown;
+  drawingRenderer: unknown;
 
   // Input
   inputManager: InputManager;
@@ -199,7 +191,7 @@ export class ChartEngine {
   _sceneGraph: SceneGraph;
 
   // Pipeline
-  _pipeline: any;
+  _pipeline: unknown;
   _lastNiceStep: unknown;
   _lastDisplayTicks: unknown;
   _lastPriceTransform: unknown;
@@ -215,6 +207,7 @@ export class ChartEngine {
   // Countdown
   _countdownTick: number;
   _countdownInterval: ReturnType<typeof setInterval>;
+  _countdownOverlay: CountdownOverlay | null;
 
   // Task 2.3.25: Live subscription tracking — countdown only fires when live data flows
   _hasLiveSubscription: boolean;
@@ -251,7 +244,7 @@ export class ChartEngine {
     this.timeframe = options.props?.tf || '1h';
 
     // Task 8.2.1: Forming candle interpolation (replaces ad-hoc spring physics)
-    this._formingInterpolator = new FormingCandleInterpolator(0.3, 0.001);
+    this._formingInterpolator = new FormingCandleInterpolator(0.15, 0.001);
     this._animTarget = null; // Compat: kept for FrameState snapshot
     this._animCurrent = null; // Compat: kept for FrameState snapshot
     this._lastFrameTime = performance.now();
@@ -262,8 +255,13 @@ export class ChartEngine {
     this._prevVisibleBars = -1;
     this._viewportChanged = true; // Force first render
 
-    // ─── 5-Layer Compositing System ────────────────────────────────
-    this.layers = new LayerManager(container);
+    // ─── Hybrid DOM Pane Architecture ──────────────────────────────
+    // PaneManager creates the main pane's LayerManager + DOM container.
+    // engine.layers is a backward-compat alias to mainPane.layers.
+    this.paneManager = new PaneManager(container, {
+      onResize: () => { this.resize(); this._scheduleDraw(); },
+    });
+    this.layers = this.paneManager.mainPane.layers;
 
     // Backward-compat aliases for code that references mainCanvas/topCanvas
     this.mainCanvas = this.layers.getCanvas(LAYERS.DATA);
@@ -277,7 +275,10 @@ export class ChartEngine {
     // ─── WebGL Renderer (GPU-accelerated candlesticks, volume, lines) ─
     this._webglCanvas = document.createElement('canvas');
     this._webglCanvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:6;pointer-events:none';
-    container.appendChild(this._webglCanvas);
+    // Append to the main pane container (inside the flex layout), NOT the
+    // engine container. This ensures the WebGL canvas resizes with the pane
+    // when the side panel opens/closes.
+    this.paneManager.mainPane.container.appendChild(this._webglCanvas);
     this._webglRenderer = new WebGLRenderer(this._webglCanvas);
 
     // ─── WebGPU Compute (GPU-accelerated indicator computation) ──
@@ -324,12 +325,18 @@ export class ChartEngine {
     this.resize = this.resize.bind(this);
 
     // Drawing engine setup (magnetSnap, onChange, onStateChange) extracted to ChartDrawingSetup.ts
-    const drawingSetup = createChartDrawingSetup(this as any);
+    const drawingSetup = createChartDrawingSetup(this as unknown);
     this.drawingEngine = drawingSetup.drawingEngine;
     this.drawingRenderer = drawingSetup.drawingRenderer;
-    this.inputManager = new InputManager(this as any);
+    this.inputManager = new InputManager(this as unknown);
     this.raf = null;
     this.fb = new FrameBudget({ targetFps: 60 });
+
+    // P3: Detect actual display refresh rate and update frame budget accordingly.
+    // Resolves in ~500ms; until then, the 60fps default is used.
+    detectDisplayHz().then(({ hz }) => {
+      this.fb = new FrameBudget({ targetFps: hz });
+    }).catch(() => { /* keep default 60fps budget */ });
 
     // ─── Scene Graph (Phase 2) ────────────────────────────────────
     this._sceneGraph = new SceneGraph(
@@ -372,26 +379,20 @@ export class ChartEngine {
         (this.indicators.length * this.bars.length * 8) +
         ((this.drawingEngine?.getDrawings?.()?.length || 0) * 200);
     });
-    this._memoryUnsubscribe = memoryBudget.onPressure((status: any) => {
+    this._memoryUnsubscribe = memoryBudget.onPressure((status: unknown) => {
       this._degradationLevel = status.level === 'critical' ? 2 : status.level === 'warning' ? 1 : 0;
     });
 
-    // Countdown timer: only repaint the lightweight UI layer every second.
-    // Task 2.3.25: Guard with _hasLiveSubscription — when no live data flows,
-    // the interval is a no-op so the GPU can sleep at 0% utilization.
+    // Sprint 18 #115: DOM-based countdown overlay replaces canvas-drawn countdown.
+    // No longer forces 1/s UIStage repaints — the DOM element self-updates.
     this._hasLiveSubscription = false;
     this._pendingScaleReset = false;
     this._countdownTick = 0;
+    this._countdownOverlay = new CountdownOverlay(container);
+    // Keep a lightweight 1/s tick for memory-pressure frame counting only.
+    // No markDirty() → GPU sleeps.
     this._countdownInterval = setInterval(() => {
-      if (!this._hasLiveSubscription) return;
-      this.layers.markDirty(LAYERS.UI);
-      this.state.topDirty = true;
       this._countdownTick++;
-      if (this._countdownTick % 10 === 0) {
-        this.layers.markDirty(LAYERS.DATA);
-        this.state.mainDirty = true;
-      }
-      this._scheduleDraw();
     }, 1000);
   }
 
@@ -411,7 +412,8 @@ export class ChartEngine {
     // Task 2.3.23: Mark clean shutdown so recovery prompt is suppressed
     markCleanExit().catch(() => { /* best effort on unload */ });
 
-    this.layers.dispose();
+    // Dispose pane manager (disposes all panes + their LayerManagers)
+    this.paneManager.destroy();
     this.inputManager.destroy();
     this.drawingEngine.dispose();
     if (this._workerBridge) this._workerBridge.dispose();
@@ -419,6 +421,7 @@ export class ChartEngine {
     if (this._webglCanvas?.parentElement) this._webglCanvas.parentElement.removeChild(this._webglCanvas);
     if (this.raf) cancelAnimationFrame(this.raf);
     if (this._countdownInterval) clearInterval(this._countdownInterval);
+    if (this._countdownOverlay) this._countdownOverlay.dispose();
     // P3-2: Unregister memory estimator
     memoryBudget.unregister('chartEngine');
     if (this._memoryUnsubscribe) this._memoryUnsubscribe();
@@ -437,7 +440,8 @@ export class ChartEngine {
    * ```
    */
   getCanvas(): HTMLCanvasElement {
-    return this.layers.getSnapshotCanvas();
+    // Composite all panes (main + indicators) for export
+    return this.paneManager.getSnapshotCanvas();
   }
 
   /**
@@ -458,11 +462,9 @@ export class ChartEngine {
     // Sync WebGL overlay canvas dimensions
     if (this._webglRenderer && this._webglCanvas) {
       const pr = window.devicePixelRatio || 1;
-      // Grid/UI layers use clamped DPR (1x) to save GPU bandwidth.
-      // Data layers (candles, indicators) keep full DPR for crispness.
-      const gridPr = Math.min(pr, 1);
-      const w = this.container.clientWidth;
-      const h = this.container.clientHeight;
+      const paneEl = this.paneManager.mainPane.container;
+      const w = paneEl.clientWidth;
+      const h = paneEl.clientHeight;
       this._webglCanvas.width = w * pr;
       this._webglCanvas.height = h * pr;
       this._webglCanvas.style.width = w + 'px';
@@ -487,8 +489,14 @@ export class ChartEngine {
     if (this.inputManager?.hasActiveAnimations()) return true;
     // B2.4: Y-axis tick cross-fade transition
     if (this._niceStepTransition) return true;
-    // Task 8.2.1: Animation in progress — keep rendering until interpolator settles
-    if (!this._formingInterpolator.isDone) return true;
+    // Task 8.2.1 + #20: Animation in progress — keep rendering only if
+    // the remaining delta maps to ≥0.5 physical pixel on screen.
+    if (!this._formingInterpolator.isDone) {
+      const delta = this._formingInterpolator.maxDelta();
+      const pr = window.devicePixelRatio || 1;
+      const pxDelta = delta * (this.state.priceScale || 1) * pr;
+      if (pxDelta >= 0.5) return true;
+    }
     // Live chart types that need continuous updates
     if (this.props.showHeatmap || this.props.chartType === 'footprint') return true;
     return false;
@@ -557,7 +565,7 @@ export class ChartEngine {
       this._formingInterpolator.setTarget({ open: last.open, high: last.high, low: last.low, close: last.close });
       // Compat: keep _animTarget/_animCurrent for FrameState snapshot
       this._animTarget = { open: last.open, high: last.high, low: last.low, close: last.close };
-      this._animCurrent = this._formingInterpolator.current as any;
+      this._animCurrent = this._formingInterpolator.current as unknown;
     } else {
       // New bar added or data reset — snap immediately
       if (bars.length > 0) {
@@ -602,6 +610,15 @@ export class ChartEngine {
     }
 
     this.bars = bars;
+
+    // Sprint 18 #115: Update countdown overlay context
+    if (this._countdownOverlay && bars.length > 0) {
+      const lastBar = bars[bars.length - 1];
+      this._countdownOverlay.setContext(this.timeframe, lastBar.time || lastBar.t);
+      if (this._tickUpdate && !this._countdownOverlay['_intervalId']) {
+        this._countdownOverlay.start();
+      }
+    }
     // Populate typed array buffer for high-perf access
     this._barBuffer.fromArray(bars);
     // Task 2.3.27: Only mark DATA + UI dirty on tick updates — Grid and Indicators
@@ -613,6 +630,21 @@ export class ChartEngine {
       this.layers.markDirty(LAYERS.INDICATORS);
       this.state.mainDirty = true;
     }
+
+    // Mark indicator pane layers dirty so they re-render with updated data.
+    // #19: On tick updates (same bar count), indicator computed data hasn't
+    // changed — skip the expensive markAllDirty() to avoid redundant repaints.
+    if (!this._tickUpdate) {
+      for (const pane of this.paneManager.indicatorPanes) {
+        pane.layers.markAllDirty();
+        pane.state.dirty = true;
+        // Auto-fit Y-axis to indicator data range
+        if (pane.state.autoScale) {
+          this._autoFitPaneY(pane);
+        }
+      }
+    }
+
     this._scheduleDraw();
 
     // ─── Drawing Alert Check (Sprint 4) ─────────────────────────
@@ -620,7 +652,60 @@ export class ChartEngine {
       const current = bars[bars.length - 1].close;
       const prev = bars[bars.length - 2].close;
       const currentTime = bars[bars.length - 1].time;
-      const triggered = checkDrawingAlerts(this.alerts as any[], current, currentTime, prev);
+      const triggered = checkDrawingAlerts(this.alerts as unknown[], current, currentTime, prev);
+      if (triggered.length > 0 && this.callbacks.onDrawingAlert) {
+        for (const alert of triggered) {
+          this.callbacks.onDrawingAlert(alert);
+        }
+      }
+    }
+  }
+
+  /**
+   * P1 Task 2: Lightweight fast path for streaming tick updates.
+   *
+   * Mutates the last bar in-place and schedules a minimal redraw.
+   * Skips validation, full buffer rebuild, indicator pane dirty marks,
+   * and price scale heuristics — ~5x faster than setData() for ticks.
+   *
+   * @param bar - Updated OHLCV values for the last (forming) bar
+   */
+  updateLast(bar: Bar): void {
+    const bars = this.bars;
+    if (bars.length === 0) return;
+
+    // Mutate last bar in-place (same array reference = no GC)
+    const last = bars[bars.length - 1];
+    last.open = bar.open;
+    last.high = bar.high;
+    last.low = bar.low;
+    last.close = bar.close;
+    last.volume = bar.volume;
+    last.time = bar.time;
+
+    // Update typed array buffer (last entry only)
+    this._barBuffer.updateLast(bar);
+
+    // Route through forming candle interpolator
+    this._tickUpdate = true;
+    this._formingInterpolator.setTarget({ open: bar.open, high: bar.high, low: bar.low, close: bar.close });
+    this._animTarget = { open: bar.open, high: bar.high, low: bar.low, close: bar.close };
+    this._animCurrent = this._formingInterpolator.current as unknown;
+
+    // Mark live subscription active
+    this._hasLiveSubscription = true;
+
+    // Minimal dirty marking — only DATA + UI (no grid, no indicators)
+    this.layers.markDirty(LAYERS.DATA);
+    this.state.topDirty = true;
+
+    this._scheduleDraw();
+
+    // Drawing alert check (hot path — inline for speed)
+    if (this.alerts?.length > 0 && bars.length >= 2) {
+      const prev = bars[bars.length - 2].close;
+      const currentTime = bar.time;
+      const triggered = checkDrawingAlerts(this.alerts as unknown[], bar.close, currentTime, prev);
       if (triggered.length > 0 && this.callbacks.onDrawingAlert) {
         for (const alert of triggered) {
           this.callbacks.onDrawingAlert(alert);
@@ -654,6 +739,14 @@ export class ChartEngine {
       }
     }
     this.indicators = indicators;
+
+    // Sync indicator panes with PaneManager
+    this.paneManager.syncIndicators(
+      indicators as unknown[],
+      this.props.paneHeights as unknown,
+      this.state.collapsedPanes,
+    );
+
     this.layers.markDirty(LAYERS.INDICATORS);
     this.state.mainDirty = true;
     this._scheduleDraw();
@@ -680,12 +773,25 @@ export class ChartEngine {
         }
       }
     }
+    // ─── Shallow diff: skip markDirty() if nothing actually changed ──
+    let changed = false;
+    for (const key in props) {
+      if ((props as unknown)[key] !== (this.props as unknown)[key]) {
+        changed = true;
+        break;
+      }
+    }
+
     const prevSymbol = this.symbol;
     const prevTf = this.timeframe;
     this.props = { ...this.props, ...props };
     this.symbol = this.props.symbol || this.symbol;
     this.timeframe = this.props.tf || this.timeframe;
-    this.markDirty();
+
+    // Only trigger a full repaint if at least one prop value changed
+    if (changed) {
+      this.markDirty();
+    }
 
     // Bug fix: Reset price scale when symbol or timeframe changes.
     // Without this, the Y-axis stays locked to the previous symbol's range
@@ -770,7 +876,58 @@ export class ChartEngine {
     p2y: unknown,
     pr: number,
   ): void {
-    (renderTradeMarkersImpl as any)(ctx, trades, symbol, bars, startIdx, endIdx, timeTransform, p2y, pr);
+    (renderTradeMarkersImpl as unknown)(ctx, trades, symbol, bars, startIdx, endIdx, timeTransform, p2y, pr);
+  }
+
+  /**
+   * Auto-fit a pane's Y-axis to the visible range of its indicator data.
+   * Scans computed indicator outputs within the visible bar range to find
+   * min/max values, then sets paneState.yMin/yMax with 10% padding.
+   */
+  _autoFitPaneY(pane: unknown): void {
+    const indicators = pane.state.indicators || [];
+    const bars = this.bars;
+    if (bars.length === 0 || indicators.length === 0) return;
+
+    const S = this.state;
+    const visibleBars = S.visibleBars || 80;
+    const endIdx = Math.max(0, bars.length - 1 - (S.scrollOffset || 0));
+    const startIdx = Math.max(0, endIdx - visibleBars + 1);
+
+    let dataMin = Infinity;
+    let dataMax = -Infinity;
+
+    for (const ind of indicators) {
+      if (!ind.computed) continue;
+      for (const out of (ind.outputs || [])) {
+        const vals = ind.computed[out.key];
+        if (!vals) continue;
+        for (let i = startIdx; i <= endIdx && i < vals.length; i++) {
+          const v = vals[i];
+          if (v == null || isNaN(v)) continue;
+          if (v < dataMin) dataMin = v;
+          if (v > dataMax) dataMax = v;
+        }
+      }
+      // Also check histogram values
+      if (ind.computed.histogram) {
+        const histVals = ind.computed.histogram;
+        for (let i = startIdx; i <= endIdx && i < histVals.length; i++) {
+          const v = histVals[i];
+          if (v == null || isNaN(v)) continue;
+          if (v < dataMin) dataMin = v;
+          if (v > dataMax) dataMax = v;
+        }
+      }
+    }
+
+    if (dataMin === Infinity || dataMax === -Infinity) return;
+
+    // Add 10% padding
+    const range = dataMax - dataMin || 1;
+    const pad = range * 0.1;
+    pane.state.yMin = dataMin - pad;
+    pane.state.yMax = dataMax + pad;
   }
 
   /**
@@ -813,7 +970,7 @@ export class ChartEngine {
 
       const result = this._formingInterpolator.tick(dt);
 
-      const lastBar = bars[bars.length - 1] as any;
+      const lastBar = bars[bars.length - 1] as unknown;
       lastBar._animOpen = result.open;
       lastBar._animHigh = result.high;
       lastBar._animLow = result.low;
@@ -840,7 +997,7 @@ export class ChartEngine {
 
     // Only run the pipeline when something is dirty
     if (S.mainDirty || S.topDirty || this.layers.anyDirty()) {
-      const frameState = FrameState.create(this as any, lod as any, this._pipeline._prevFrameState);
+      const frameState = FrameState.create(this as unknown, lod as unknown, this._pipeline._prevFrameState);
 
       // Mark layers dirty based on engine dirty flags.
       // Note: GRID is NOT included here — grid lines only change on viewport

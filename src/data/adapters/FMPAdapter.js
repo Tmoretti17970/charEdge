@@ -23,8 +23,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { BaseAdapter } from './BaseAdapter.js';
-
-import { logger } from '../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 // Phase 2.1.1: Requests go through server proxy (API key injected server-side)
 const PROXY_BASE = '/api/proxy/fmp';
 

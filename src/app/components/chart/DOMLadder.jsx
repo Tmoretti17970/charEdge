@@ -4,9 +4,9 @@
 // Shows bid/ask levels with size bars and cumulative delta
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 
-const ROWS = 20;
+const _ROWS = 20;
 const MAX_DISPLAY_LEVELS = 10; // per side
 
 const styles = {

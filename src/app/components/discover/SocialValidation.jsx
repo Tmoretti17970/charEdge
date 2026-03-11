@@ -4,9 +4,9 @@
 // Sprint 19: Community consensus overlay for research validation.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 const MOCK_SYMBOLS = [
   { symbol: 'NVDA', watchers: 1842, bullVotes: 78, bearVotes: 22, conviction: 89, topIdea: 'AI capex cycle accelerating — $1000 by June', ideaAuthor: 'CryptoKing', ideaReturn: '+12.4%' },

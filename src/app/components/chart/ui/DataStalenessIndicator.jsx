@@ -12,7 +12,7 @@
 //   <DataStalenessIndicator symbol="BTCUSDT" tfId="1D" isLive={wsConnected} />
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { cacheManager } from '../../../../data/engine/infra/CacheManager.js';
 
 // ─── Constants ─────────────────────────────────────────────────

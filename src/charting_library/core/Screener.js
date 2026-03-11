@@ -15,7 +15,6 @@
 //   const results = screenSymbols(watchlist, conditions, barsMap);
 // ═══════════════════════════════════════════════════════════════════
 
-import * as C from '../studies/indicators/computations.js';
 import { INDICATORS } from '../studies/indicators/registry.js';
 
 /**
@@ -41,6 +40,7 @@ function evaluateCondition(condition, bars) {
   let computed;
   try {
     computed = indDef.compute(bars, mergedParams);
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return { pass: false, actual: null, detail: 'Computation error' };
   }

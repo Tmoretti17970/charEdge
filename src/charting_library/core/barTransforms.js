@@ -4,6 +4,16 @@
 // ═══════════════════════════════════════════════════════════════════
 
 /**
+ * Canonical bar factory — guarantees consistent V8 hidden class across
+ * ALL bar transform outputs. Property order: time, open, high, low, close, volume.
+ * Extra fields (_isUp, _widthRatio, etc.) are assigned AFTER construction
+ * so they occupy the same hidden class extension slot.
+ */
+function makeBar(time, open, high, low, close, volume) {
+  return { time, open, high, low, close, volume };
+}
+
+/**
  * Calculate Average True Range (ATR).
  * @param {Array} bars - OHLCV bars
  * @param {number} period - ATR period (default 14)
@@ -59,15 +69,9 @@ export function toRenkoBricks(bars, brickSize) {
         const open = lastClose;
         const close = lastClose + dir * bs;
 
-        bricks.push({
-          time: bars[i].time, // Use source bar time for positioning
-          open,
-          close,
-          high: Math.max(open, close),
-          low: Math.min(open, close),
-          volume: bars[i].volume || 0,
-          _isUp: dir > 0,
-        });
+        const bar = makeBar(bars[i].time, open, Math.max(open, close), Math.min(open, close), close, bars[i].volume || 0);
+        bar._isUp = dir > 0;
+        bricks.push(bar);
 
         lastClose = close;
         lastDir = dir;
@@ -187,28 +191,14 @@ export function toHeikinAshi(bars) {
   const b0 = bars[0];
   const haClose0 = (b0.open + b0.high + b0.low + b0.close) / 4;
   const haOpen0 = (b0.open + b0.close) / 2;
-  ha[0] = {
-    time: b0.time,
-    open: haOpen0,
-    close: haClose0,
-    high: Math.max(b0.high, haOpen0, haClose0),
-    low: Math.min(b0.low, haOpen0, haClose0),
-    volume: b0.volume || 0,
-  };
+  ha[0] = makeBar(b0.time, haOpen0, Math.max(b0.high, haOpen0, haClose0), Math.min(b0.low, haOpen0, haClose0), haClose0, b0.volume || 0);
 
   for (let i = 1; i < bars.length; i++) {
     const b = bars[i];
     const prev = ha[i - 1];
     const haClose = (b.open + b.high + b.low + b.close) / 4;
     const haOpen = (prev.open + prev.close) / 2;
-    ha[i] = {
-      time: b.time,
-      open: haOpen,
-      close: haClose,
-      high: Math.max(b.high, haOpen, haClose),
-      low: Math.min(b.low, haOpen, haClose),
-      volume: b.volume || 0,
-    };
+    ha[i] = makeBar(b.time, haOpen, Math.max(b.high, haOpen, haClose), Math.min(b.low, haOpen, haClose), haClose, b.volume || 0);
   }
 
   return ha;
@@ -369,10 +359,11 @@ export function toVolumeCandles(bars) {
   }
   if (maxVol === 0) maxVol = 1;
 
-  return bars.map(b => ({
-    ...b,
-    _widthRatio: Math.max(0.2, (b.volume || 0) / maxVol),
-  }));
+  return bars.map(b => {
+    const bar = makeBar(b.time, b.open, b.high, b.low, b.close, b.volume || 0);
+    bar._widthRatio = Math.max(0.2, (b.volume || 0) / maxVol);
+    return bar;
+  });
 }
 
 /**
@@ -381,8 +372,9 @@ export function toVolumeCandles(bars) {
  */
 export function toHiLoBars(bars) {
   if (!bars || bars.length === 0) return [];
-  return bars.map(b => ({
-    ...b,
-    _isHiLo: true,
-  }));
+  return bars.map(b => {
+    const bar = makeBar(b.time, b.open, b.high, b.low, b.close, b.volume || 0);
+    bar._isHiLo = true;
+    return bar;
+  });
 }

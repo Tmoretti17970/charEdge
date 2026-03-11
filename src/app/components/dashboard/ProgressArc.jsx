@@ -6,12 +6,12 @@
 // Highlights personal bests and improvement trends.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo } from 'react';
-import { C, M, F } from '../../../constants.js';
+import { useMemo } from 'react';
+import { C, M } from '../../../constants.js';
+import { useJournalStore } from '../../../state/useJournalStore';
 import { radii } from '../../../theme/tokens.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { useBreakpoints } from '../../../utils/useMediaQuery.js';
 import { fmtD } from '../../../utils.js';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 export default function ProgressArc() {
   const trades = useJournalStore((s) => s.trades);
@@ -45,7 +45,7 @@ export default function ProgressArc() {
     const lw = calc(lastWeek);
 
     // Detect personal bests (all-time)
-    const allTimePnl = trades.reduce((s, t) => s + (t.pnl || 0), 0);
+    const _allTimePnl = trades.reduce((s, t) => s + (t.pnl || 0), 0);
     const bestTrade = [...trades].sort((a, b) => (b.pnl || 0) - (a.pnl || 0))[0];
     const weekPnlIsRecord = lw.count > 0 && tw.pnl > lw.pnl && tw.pnl > 0;
 

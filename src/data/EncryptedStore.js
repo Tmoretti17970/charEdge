@@ -13,7 +13,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 const DB_NAME = 'charEdge_encrypted';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const KEY_STORE = '__crypto_keys__';
 
 // ─── Encrypted Store ────────────────────────────────────────────
@@ -41,17 +41,14 @@ class EncryptedStore {
 
     /** @private */
     async _doInit() {
-        // Generate or retrieve encryption key
-        this._cryptoKey = await this._getOrCreateKey();
-
-        // Open IndexedDB
+        // Open IndexedDB first (key store included in schema)
         this._db = await new Promise((resolve, reject) => {
             const req = indexedDB.open(DB_NAME, DB_VERSION);
 
             req.onupgradeneeded = (e) => {
                 const db = e.target.result;
                 // Create stores for common data types
-                for (const store of ['journal', 'trades', 'settings', 'apikeys']) {
+                for (const store of ['journal', 'trades', 'settings', 'apikeys', KEY_STORE]) {
                     if (!db.objectStoreNames.contains(store)) {
                         db.createObjectStore(store);
                     }
@@ -61,6 +58,9 @@ class EncryptedStore {
             req.onsuccess = (e) => resolve(e.target.result);
             req.onerror = (e) => reject(e.target.error);
         });
+
+        // Now that DB is open, get or create encryption key
+        this._cryptoKey = await this._getOrCreateKey();
     }
 
     // ─── CRUD ───────────────────────────────────────────────────
@@ -106,6 +106,7 @@ class EncryptedStore {
         try {
             const json = await this._decrypt(encrypted);
             return JSON.parse(json);
+        // eslint-disable-next-line unused-imports/no-unused-vars
         } catch (_) {
             return null; // Corrupted or wrong key
         }
@@ -145,27 +146,40 @@ class EncryptedStore {
 
     /**
      * Get or create the AES-GCM encryption key.
-     * Key is stored in sessionStorage (cleared when tab closes).
+     * Key is stored as a non-extractable CryptoKey in IndexedDB
+     * (IDB supports structured clone of CryptoKey objects).
      * @private
      */
     async _getOrCreateKey() {
-        // Try to load from sessionStorage
-        const stored = sessionStorage.getItem(KEY_STORE);
-        if (stored) {
-            const jwk = JSON.parse(stored);
-            return crypto.subtle.importKey('jwk', jwk, { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']);
+        // Try to load from IndexedDB (the key store is created in _doInit)
+        if (this._db) {
+            const existing = await new Promise((resolve, reject) => {
+                const tx = this._db.transaction(KEY_STORE, 'readonly');
+                const store = tx.objectStore(KEY_STORE);
+                const req = store.get('master');
+                req.onsuccess = () => resolve(req.result || null);
+                req.onerror = (e) => reject(e.target.error);
+            });
+            if (existing) return existing;
         }
 
-        // Generate new key
+        // Generate new non-extractable key
         const key = await crypto.subtle.generateKey(
             { name: 'AES-GCM', length: 256 },
-            true, // Extractable (for sessionStorage)
+            false, // Non-extractable — key material cannot be read by JS
             ['encrypt', 'decrypt'],
         );
 
-        // Store in sessionStorage
-        const jwk = await crypto.subtle.exportKey('jwk', key);
-        sessionStorage.setItem(KEY_STORE, JSON.stringify(jwk));
+        // Store in IndexedDB if DB is ready
+        if (this._db) {
+            await new Promise((resolve, reject) => {
+                const tx = this._db.transaction(KEY_STORE, 'readwrite');
+                const store = tx.objectStore(KEY_STORE);
+                const req = store.put(key, 'master');
+                req.onsuccess = () => resolve();
+                req.onerror = (e) => reject(e.target.error);
+            });
+        }
 
         return key;
     }

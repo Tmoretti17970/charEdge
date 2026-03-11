@@ -4,8 +4,8 @@
 
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
 import { useSocialStore } from '../../../state/useSocialStore.js';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Mini Equity Curve ──────────────────────────────────────────
 function MiniEquityCurve({ pnl = 0, width = 120, height = 32 }) {
@@ -55,7 +55,7 @@ export default function CopyTradePanel({ onCopyTrader }) {
   const toggleActive = useSocialStore((s) => s.toggleActive);
   const removeCopyTarget = useSocialStore((s) => s.removeCopyTarget);
   const getTotalCopyPnl = useSocialStore((s) => s.getTotalCopyPnl);
-  const [historyFilter, setHistoryFilter] = useState('all');
+  const [historyFilter, _setHistoryFilter] = useState('all');
 
   const totalPnl = getTotalCopyPnl();
   const filteredHistory = historyFilter === 'all'

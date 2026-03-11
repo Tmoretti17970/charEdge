@@ -13,7 +13,7 @@ describe('19.3 — MFEMAETracker', () => {
     let tracker;
 
     beforeEach(async () => {
-        const mod = await import('../../intelligence/MFEMAETracker.ts');
+        const mod = await import('../../trading/MFEMAETracker.ts');
         tracker = new mod.MFEMAETracker();
     });
 
@@ -109,7 +109,7 @@ describe('19.5 — AlphaTagEngine', () => {
     let engine;
 
     beforeEach(async () => {
-        const mod = await import('../../intelligence/AlphaTagEngine.ts');
+        const mod = await import('../../psychology/AlphaTagEngine.ts');
         engine = new mod.AlphaTagEngine();
     });
 
@@ -145,7 +145,7 @@ describe('19.5 — AlphaTagEngine', () => {
     });
 
     it('detects volume spike from bars', () => {
-        const bars = Array.from({ length: 20 }, (_, i) => ({
+        const bars = Array.from({ length: 20 }, (_, _i) => ({
             open: 100, high: 102, low: 98, close: 101, volume: 1000,
         }));
         // Last bar with 3x volume
@@ -158,6 +158,34 @@ describe('19.5 — AlphaTagEngine', () => {
         const bars = [
             { open: 100, high: 102, low: 98, close: 100, volume: 1000 },
             { open: 102, high: 104, low: 101, close: 103, volume: 1000 }, // gap up 2%
+        ];
+        const result = engine.generateTags([], bars);
+        expect(result.tags).toContain('gap-up');
+    });
+
+    it('detects gap down from bars', () => {
+        const bars = [
+            { open: 100, high: 102, low: 98, close: 100, volume: 1000 },
+            { open: 97, high: 99, low: 96, close: 97, volume: 1000 }, // gap down 3%
+        ];
+        const result = engine.generateTags([], bars);
+        expect(result.tags).toContain('gap-down');
+    });
+
+    it('does NOT flag tiny gap (0.5%)', () => {
+        const bars = [
+            { open: 100, high: 102, low: 98, close: 100, volume: 1000 },
+            { open: 100.5, high: 103, low: 100, close: 102, volume: 1000 }, // 0.5% — well below threshold
+        ];
+        const result = engine.generateTags([], bars);
+        expect(result.tags).not.toContain('gap-up');
+        expect(result.tags).not.toContain('gap-down');
+    });
+
+    it('flags gap at exact boundary (2%)', () => {
+        const bars = [
+            { open: 100, high: 102, low: 98, close: 100, volume: 1000 },
+            { open: 102, high: 104, low: 101, close: 103, volume: 1000 }, // exactly 2%
         ];
         const result = engine.generateTags([], bars);
         expect(result.tags).toContain('gap-up');
@@ -194,7 +222,7 @@ describe('19.2 — GhostTradeEngine', () => {
     let engine;
 
     beforeEach(async () => {
-        const mod = await import('../../intelligence/GhostTradeEngine.ts');
+        const mod = await import('../../trading/GhostTradeEngine.ts');
         engine = new mod.GhostTradeEngine();
         engine.setSymbol('BTCUSD');
     });
@@ -272,7 +300,7 @@ describe('19.8 — DecisionTreeJournal', () => {
     let tree;
 
     beforeEach(async () => {
-        const mod = await import('../../intelligence/DecisionTreeJournal.ts');
+        const mod = await import('../../journal/DecisionTreeJournal.ts');
         tree = new mod.DecisionTreeJournal();
     });
 
@@ -339,7 +367,7 @@ describe('19.8 — DecisionTreeJournal', () => {
     });
 
     it('getDefaultTree returns a copy', async () => {
-        const mod = await import('../../intelligence/DecisionTreeJournal.ts');
+        const mod = await import('../../journal/DecisionTreeJournal.ts');
         const config = mod.DecisionTreeJournal.getDefaultTree();
         expect(config.nodes.length).toBe(4);
         expect(config.nodeOrder.length).toBe(4);
@@ -350,7 +378,7 @@ describe('19.8 — DecisionTreeJournal', () => {
 
 describe('19.4 — TruePnL computation', () => {
     it('computeTruePnL handles all cost components', async () => {
-        const { computeTruePnL } = await import('../../services/TruePnL.ts');
+        const { computeTruePnL } = await import('../../trading/TruePnL.ts');
         const result = computeTruePnL({
             entry: 100,
             exit: 110,
@@ -369,7 +397,7 @@ describe('19.4 — TruePnL computation', () => {
     });
 
     it('computeBatchTruePnL aggregates correctly', async () => {
-        const { computeBatchTruePnL } = await import('../../services/TruePnL.ts');
+        const { computeBatchTruePnL } = await import('../../trading/TruePnL.ts');
         const summary = computeBatchTruePnL([
             { entry: 100, exit: 110, qty: 1, fees: 2 },
             { entry: 200, exit: 190, qty: 1, fees: 3, side: 'short' },

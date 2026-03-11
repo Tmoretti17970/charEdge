@@ -6,7 +6,6 @@
 // from the live API. Disappears when data is current.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
 import styles from './FreshnessBadge.module.css';
 
 function FreshnessBadge({ isFreshening = false, source = 'live' }) {

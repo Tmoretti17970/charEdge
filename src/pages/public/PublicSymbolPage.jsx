@@ -10,8 +10,8 @@
 
 import { useEffect, useState } from 'react';
 import { C, F, M } from '../../constants.js';
-import { space, radii } from '../../theme/tokens.js';
 import { symbolPageMeta, applyMetaToHead } from '../../seo/meta.js';
+import { space, radii } from '../../theme/tokens.js';
 
 /**
  * @param {Object} props

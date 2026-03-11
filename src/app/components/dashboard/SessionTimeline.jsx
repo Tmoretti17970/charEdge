@@ -6,11 +6,11 @@
 // Provides at-a-glance understanding of when trades were executed.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo } from 'react';
-import { C, M, F } from '../../../constants.js';
+import { useMemo } from 'react';
+import { C, M } from '../../../constants.js';
+import { useJournalStore } from '../../../state/useJournalStore';
 import { radii } from '../../../theme/tokens.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { useBreakpoints } from '../../../utils/useMediaQuery.js';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 // ─── Session Boundaries ──────────────────────────────────────────
 

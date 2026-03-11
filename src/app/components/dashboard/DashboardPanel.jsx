@@ -9,18 +9,18 @@
 // Sub-components live in DashboardPrimitives.jsx.
 // ═══════════════════════════════════════════════════════════════════
 
-import s from './DashboardPanel.module.css';
-import { useLayoutStore } from '../../../state/useLayoutStore.js';
-import { useGamificationStore } from '../../../state/useGamificationStore.js';
 import { useMemo, useState } from 'react';
-import { useUIStore } from '../../../state/useUIStore.js';
+import { safeSum } from '../../../charting_library/model/Money.js';
+import { useGamificationStore } from '../../../state/useGamificationStore';
+import { useLayoutStore } from '../../../state/useLayoutStore';
+import { useUIStore } from '../../../state/useUIStore';
 import { DashboardEmptyState } from '../ui/EmptyState.jsx';
 import { DashboardSkeleton } from '../ui/WidgetSkeleton.jsx';
-import { safeSum } from '../../../charting_library/model/Money.js';
-import { useBreakpoints } from '../../../utils/useMediaQuery.js';
-import { DashHeader } from './DashboardPrimitives.jsx';
-import DashboardNarrativeLayout from './DashboardNarrativeLayout.jsx';
 import DashboardCustomLayout from './DashboardCustomLayout.jsx';
+import DashboardNarrativeLayout from './DashboardNarrativeLayout.jsx';
+import s from './DashboardPanel.module.css';
+import { DashHeader } from './DashboardPrimitives.jsx';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 export default function DashboardPanel({ trades, result, computing, onDashboardFilter }) {
   const setPage = useUIStore((s) => s.setPage);

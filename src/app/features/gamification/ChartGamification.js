@@ -11,6 +11,7 @@ let _savedProgress = null;
 try {
   const raw = localStorage.getItem(GAMIFICATION_KEY);
   if (raw) _savedProgress = JSON.parse(raw);
+// eslint-disable-next-line unused-imports/no-unused-vars
 } catch (_) { /* storage/API may be blocked */ }
 
 const ACHIEVEMENTS = [
@@ -65,7 +66,7 @@ export function createGamificationState() {
   return _savedProgress || defaults;
 }
 
-export function trackActivity(state, type, detail = {}) {
+export function trackActivity(state, type, _detail = {}) {
   const updated = { ...state };
 
   switch (type) {
@@ -106,6 +107,7 @@ export function trackActivity(state, type, detail = {}) {
   updated.level = Math.floor(1 + Math.sqrt(updated.xp / 50));
 
   // Persist
+  // eslint-disable-next-line unused-imports/no-unused-vars
   try { localStorage.setItem(GAMIFICATION_KEY, JSON.stringify(updated)); } catch (_) { /* storage/API may be blocked */ }
 
   return { state: updated, newUnlocks };

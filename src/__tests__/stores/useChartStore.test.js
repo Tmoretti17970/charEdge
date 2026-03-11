@@ -4,6 +4,7 @@
 // Tests for useChartStore (coreSlice, indicatorSlice, drawingSlice).
 // ═══════════════════════════════════════════════════════════════════
 
+// eslint-disable-next-line import/order
 import { describe, it, expect, beforeEach } from 'vitest';
 
 // We test the slices in isolation to avoid needing full store setup

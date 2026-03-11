@@ -17,7 +17,8 @@
 //   - footprint    (Footprint volume delta cells)
 // ═══════════════════════════════════════════════════════════════════
 
-import { mediaToBitmap, positionsLine, positionsBox, candleBodyWidth } from '../../core/CoordinateSystem.js';
+import { candleBodyWidth } from '../../core/CoordinateSystem.js';
+import { barX, priceY, withAlpha } from '../../core/scales';
 import { FootprintRenderer } from '../FootprintRenderer.js';
 
 /**
@@ -103,48 +104,7 @@ export function getChartTypeDefaults(typeId) {
 }
 
 // ─── Shared Helpers ───────────────────────────────────────────────
-
-/**
- * Get the x-coordinate for a bar index in bitmap (physical pixel) space.
- * Uses timeTransform if available (ChartEngine path), falls back to barSpacing math.
- */
-function barX(i, params) {
-  const { startIdx, firstVisibleIdx, barSpacing, pixelRatio, timeTransform } = params;
-  if (timeTransform) {
-    return Math.round(timeTransform.indexToPixel(startIdx + i) * pixelRatio);
-  }
-  return Math.round((startIdx + i - (firstVisibleIdx ?? startIdx) + 0.5) * barSpacing * pixelRatio);
-}
-
-/**
- * Convert a price to bitmap y-coordinate.
- */
-function priceY(price, params) {
-  return Math.round(params.priceToY(price) * params.pixelRatio);
-}
-
-/**
- * Safely apply alpha to any CSS color string (hex or rgba).
- * Returns a properly formatted rgba() string.
- */
-function withAlpha(color, alpha) {
-  if (!color) return `rgba(0,0,0,${alpha})`;
-  // If already rgba, replace the alpha
-  const rgbaMatch = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-  if (rgbaMatch) {
-    return `rgba(${rgbaMatch[1]},${rgbaMatch[2]},${rgbaMatch[3]},${alpha})`;
-  }
-  // Hex color → extract RGB and apply alpha
-  let hex = color.replace('#', '');
-  if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
-  if (hex.length >= 6) {
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
-    return `rgba(${r},${g},${b},${alpha})`;
-  }
-  return color; // fallback
-}
+// barX, priceY, withAlpha imported from core/scales.ts
 
 // ═══════════════════════════════════════════════════════════════════
 // Draw Functions
@@ -540,7 +500,7 @@ export function drawRange(ctx, bars, params, theme) {
  * Draw Footprint chart (volume delta cells).
  * Delegates to FootprintRenderer for each bar.
  */
-export function drawFootprint(ctx, bars, params, theme, aggregator) {
+export function drawFootprint(ctx, bars, params, _theme, _aggregator) {
   if (!bars?.length) return;
   const { pixelRatio } = params;
   const bodyW = candleBodyWidth(params.barSpacing);

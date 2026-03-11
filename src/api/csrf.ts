@@ -12,7 +12,7 @@
 // Uses crypto.randomUUID() for cryptographically secure tokens.
 // ═══════════════════════════════════════════════════════════════════
 
-import { randomUUID } from 'node:crypto';
+import { randomUUID, timingSafeEqual } from 'node:crypto';
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
 
 const CSRF_COOKIE = 'csrfToken';
@@ -64,7 +64,10 @@ export function csrfProtect(): RequestHandler {
         }
 
         // Constant-time comparison to prevent timing attacks
-        if (cookieToken.length !== headerToken.length || cookieToken !== headerToken) {
+        const tokensMatch = cookieToken.length === headerToken.length &&
+            timingSafeEqual(Buffer.from(cookieToken), Buffer.from(headerToken));
+
+        if (!tokensMatch) {
             res.status(403).json({
                 ok: false,
                 error: {

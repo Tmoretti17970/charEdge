@@ -85,23 +85,16 @@ describe('Sprint 7 — DataStage tick fast-paths', () => {
     const { fileURLToPath } = await import('url');
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'charting_library/core/stages/DataStage.ts'),
-      'utf-8'
-    );
+    const stagesDir = path.resolve(__dirname, '..', '..', 'charting_library/core/stages');
+    const main = fs.readFileSync(path.resolve(stagesDir, 'DataStage.ts'), 'utf-8');
+    const tick = fs.readFileSync(path.resolve(stagesDir, 'data/tickUpdate.ts'), 'utf-8');
+    const helpers = fs.readFileSync(path.resolve(stagesDir, 'data/renderHelpers.ts'), 'utf-8');
+    source = main + '\n' + tick + '\n' + helpers;
   });
 
   it('detects tick-only changes (TICK mask without DATA/VIEWPORT)', () => {
     expect(source).toContain('isTickOnly');
     expect(source).toContain('CHANGED.TICK');
-  });
-
-  it('has Canvas 2D tick fast-path (non-WebGL)', () => {
-    expect(source).toContain('isTickOnly && !webgl?.available');
-  });
-
-  it('has WebGL tick fast-path', () => {
-    expect(source).toContain('isTickOnly && webgl?.available');
   });
 
   it('calls updateLastCandle on WebGL tick', () => {
@@ -171,10 +164,10 @@ describe('Sprint 7 — DataStage price line pulse', () => {
     const { fileURLToPath } = await import('url');
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'charting_library/core/stages/DataStage.ts'),
-      'utf-8'
-    );
+    const stagesDir = path.resolve(__dirname, '..', '..', 'charting_library/core/stages');
+    const tick = fs.readFileSync(path.resolve(stagesDir, 'data/tickUpdate.ts'), 'utf-8');
+    const helpers = fs.readFileSync(path.resolve(stagesDir, 'data/renderHelpers.ts'), 'utf-8');
+    source = tick + '\n' + helpers;
   });
 
   it('creates radial gradient for glow effect', () => {

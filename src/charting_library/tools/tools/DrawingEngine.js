@@ -18,17 +18,6 @@
 //   DrawingCRUD.js     — add/remove/duplicate/multi-select/clipboard/groups
 // ═══════════════════════════════════════════════════════════════════
 
-import { createDrawing, TOOL_POINT_COUNT } from './DrawingModel.js';
-
-// ── Sub-modules ──────────────────────────────────────────────────
-import { hitTestDrawingBody, distToSegment, hitTestNearest as hitTestNearestImpl } from '../engines/DrawingHitTest.js';
-import {
-  doMagnetSnap as doMagnetSnapImpl,
-  applyAngleSnap as applyAngleSnapImpl,
-  getSmartGuides as getSmartGuidesImpl,
-  getRoundPriceLevels,
-  formatRound,
-} from '../engines/DrawingSnap.js';
 import {
   generateId,
   addDrawing as addDrawingImpl,
@@ -56,6 +45,15 @@ import {
   setDrawingLabel as setDrawingLabelImpl,
   toggleSyncAcrossTimeframes as toggleSyncImpl,
 } from '../engines/DrawingCRUD.js';
+import { hitTestDrawingBody, hitTestNearest as hitTestNearestImpl } from '../engines/DrawingHitTest.js';
+import {
+  doMagnetSnap as doMagnetSnapImpl,
+  applyAngleSnap as applyAngleSnapImpl,
+  getSmartGuides as getSmartGuidesImpl,
+} from '../engines/DrawingSnap.js';
+import { createDrawing, TOOL_POINT_COUNT } from './DrawingModel.js';
+
+// ── Sub-modules ──────────────────────────────────────────────────
 
 /** Interaction states */
 const STATE = {
@@ -85,7 +83,7 @@ export function createDrawingEngine(options = {}) {
   let activeTool = null;
   let activeDrawing = null;
   let selectedDrawingId = null;
-  let selectedDrawingIds = new Set();
+  const selectedDrawingIds = new Set();
   let hoveredDrawingId = null;
   let hoveredAnchorIdx = -1;
   let dragAnchorIdx = -1;
@@ -98,7 +96,7 @@ export function createDrawingEngine(options = {}) {
   let stickyMode = false;
   let stickyToolType = null;
   let stickyStyleOverrides = {};
-  let toolStyleMemory = {};
+  const toolStyleMemory = {};
 
   // Coordinate converters
   let pixelToPrice = null;
@@ -391,6 +389,20 @@ export function createDrawingEngine(options = {}) {
   }
 
   function onDoubleClick(x, y) {
+    // BUG-03: Finalize polyline (Infinity point count) with double-click
+    if (interactionState === STATE.CREATING && activeDrawing) {
+      const needed = TOOL_POINT_COUNT[activeDrawing.type] || 2;
+      if (needed === Infinity && activeDrawing._confirmedPoints >= 2) {
+        activeDrawing.points.length = activeDrawing._confirmedPoints;
+        if (activeDrawing.type && activeDrawing.style) toolStyleMemory[activeDrawing.type] = { ...activeDrawing.style };
+        activeDrawing.state = 'idle';
+        activeDrawing = null;
+        activeTool = null;
+        setState(STATE.IDLE);
+        emit();
+        return true;
+      }
+    }
     const hit = hitTest(x, y);
     if (!hit) return false;
     const drawing = hit.drawing;
@@ -440,6 +452,20 @@ export function createDrawingEngine(options = {}) {
           setState(STATE.IDLE);
         }
         emit(); return true;
+      }
+    }
+    // BUG-03: Finalize polyline (Infinity point count) with Enter key
+    if (key === 'Enter' && interactionState === STATE.CREATING && activeDrawing) {
+      const needed = TOOL_POINT_COUNT[activeDrawing.type] || 2;
+      if (needed === Infinity && activeDrawing._confirmedPoints >= 2) {
+        activeDrawing.points.length = activeDrawing._confirmedPoints;
+        if (activeDrawing.type && activeDrawing.style) toolStyleMemory[activeDrawing.type] = { ...activeDrawing.style };
+        activeDrawing.state = 'idle';
+        activeDrawing = null;
+        activeTool = null;
+        setState(STATE.IDLE);
+        emit();
+        return true;
       }
     }
     if ((key === 'Delete' || key === 'Backspace') && selectedDrawingId) {

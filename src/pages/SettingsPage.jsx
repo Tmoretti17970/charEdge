@@ -15,26 +15,27 @@
 // Each section is in its own file under app/components/settings/.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useState, useMemo } from 'react';
-import { C, F } from '../constants.js';
-import { radii } from '../theme/tokens.js';
-import { useUserStore } from '../state/useUserStore.js';
-import { Card } from '../app/components/ui/UIKit.jsx';
-import TFIcon from '../app/components/ui/TFIcon.jsx';
-import { useBreakpoints } from '../utils/useMediaQuery.js';
+import { useState } from 'react';
+// eslint-disable-next-line import/order
 import MobileSettings from '../app/components/mobile/MobileSettings.jsx';
 
 // Section components
-import TradingSetupSection from '../app/components/settings/TradingSetupSection.jsx';
-import AppearanceSection from '../app/components/settings/AppearanceSection.jsx';
-import PlaybooksSection from '../app/components/settings/PlaybooksSection.jsx';
-import DataSection from '../app/components/settings/DataSection.jsx';
-import IntegrationsSection from '../app/components/settings/IntegrationsSection.jsx';
-import ProfileSection from '../app/components/settings/ProfileSection.jsx';
 import AchievementsSection from '../app/components/settings/AchievementsSection.jsx';
+import AppearanceSection from '../app/components/settings/AppearanceSection.jsx';
 import DangerZoneSection from '../app/components/settings/DangerZoneSection.jsx';
-import FeatureLabPanel from '../app/components/settings/FeatureLabPanel.jsx';
 import DataPrivacySection from '../app/components/settings/DataPrivacySection.jsx';
+import DataSection from '../app/components/settings/DataSection.jsx';
+import FeatureLabPanel from '../app/components/settings/FeatureLabPanel.jsx';
+import IntegrationsSection from '../app/components/settings/IntegrationsSection.jsx';
+import PlaybooksSection from '../app/components/settings/PlaybooksSection.jsx';
+import ProfileSection from '../app/components/settings/ProfileSection.jsx';
+import TradingSetupSection from '../app/components/settings/TradingSetupSection.jsx';
+import TFIcon from '../app/components/ui/TFIcon.jsx';
+import { Card } from '../app/components/ui/UIKit.jsx';
+import { C, F } from '../constants.js';
+import { useUserStore } from '../state/useUserStore';
+import { radii } from '../theme/tokens.js';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 // ─── Section Definitions ────────────────────────────────────────
 

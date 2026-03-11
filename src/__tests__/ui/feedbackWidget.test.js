@@ -3,9 +3,9 @@
 // Validates FeedbackWidget structure, exports, and App integration.
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import { describe, it, expect } from 'vitest';
 
 // ─── Component validation ───────────────────────────────────────
 

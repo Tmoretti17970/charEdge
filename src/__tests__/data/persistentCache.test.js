@@ -109,7 +109,7 @@ describe('OPFSBarStore', () => {
     }
 
     _fileName(symbol, interval) {
-      const safe = `${symbol}_${interval}`.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+      const safe = `${symbol}_${interval}`.replace(/[^a-zA-Z0-9_\-.]/g, '_');
       return `${safe}.json`;
     }
 
@@ -390,7 +390,7 @@ describe('ServiceWorker - Registration', () => {
 describe('3-Tier Cache Strategy', () => {
   it('OPFS cache key format is safe for filenames', () => {
     const sanitize = (sym, interval) => {
-      const safe = `${sym}_${interval}`.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+      const safe = `${sym}_${interval}`.replace(/[^a-zA-Z0-9_\-.]/g, '_');
       return `${safe}.json`;
     };
     expect(sanitize('BTCUSDT', '1h')).toBe('BTCUSDT_1h.json');

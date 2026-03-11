@@ -1,24 +1,32 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Command Palette v2.0 (Ctrl+K / ⌘K)
-// Phase 0.1 refactor: ~250 lines (was 628)
-// Logic extracted into: command/commandRegistry, command/useCommandSearch
-// UI extracted into: command/CommandItem
+// charEdge — Command Palette v3.0 (Ctrl+K / ⌘K)
+//
+// Two modes:
+//   1. Commands — search & execute app commands (navigate, theme, etc.)
+//   2. Logbook  — Spotlight trade browser with search, sparklines, etc.
+//
+// External triggers:
+//   - ⌘K keyboard shortcut toggles the palette
+//   - 'charEdge:open-logbook' custom event opens directly in Logbook mode
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../../state/useUserStore.js';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { C, F, M, GLASS, DEPTH } from '../../../constants.js';
-import { useUIStore } from '../../../state/useUIStore.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { useChartStore } from '../../../state/useChartStore.js';
 import { exportCSV } from '../../../charting_library/datafeed/csv.js';
-
+import { C, F, M, GLASS, DEPTH } from '../../../constants.js';
+import { useChartStore } from '../../../state/useChartStore';
+import { useJournalStore } from '../../../state/useJournalStore';
+import { useUIStore } from '../../../state/useUIStore';
+import { useUserStore } from '../../../state/useUserStore';
+import CommandItem from './command/CommandItem.jsx';
 import { getCommands } from './command/commandRegistry.js';
 import useCommandSearch from './command/useCommandSearch.js';
-import CommandItem from './command/CommandItem.jsx';
+import SpotlightLogbook from './SpotlightLogbook.jsx';
+import { useHotkeys } from '@/hooks/useHotkeys';
 
 export default function CommandPalette() {
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState('commands'); // 'commands' | 'logbook'
+  const [filterDate, setFilterDate] = useState(null);
   const [query, setQuery] = useState('');
   const [selectedIdx, setSelectedIdx] = useState(0);
   const inputRef = useRef(null);
@@ -49,35 +57,60 @@ export default function CommandPalette() {
       },
       toggleTheme: () => { useUserStore.getState().toggleTheme(); setOpen(false); },
       toggleZen: () => { useUIStore.getState().toggleZen(); setOpen(false); },
+      openLogbook: () => { setMode('logbook'); if (!open) setOpen(true); },
     }),
-    [setPage],
+    [setPage, open],
   );
 
   const commands = useMemo(() => getCommands(actions), [actions]);
   const { filtered, grouped } = useCommandSearch(commands, query, actions);
 
-  // ─── Keyboard Shortcuts ───────────────────────────────────
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+  // ─── Keyboard Shortcuts (P2 4.3: migrated to useHotkeys) ────
+  useHotkeys([
+    // Ctrl+K toggle
+    {
+      key: 'ctrl+k', handler: (e) => {
         e.preventDefault(); e.stopPropagation();
-        setOpen((o) => !o); setQuery(''); setSelectedIdx(0);
-        return;
+        setOpen((o) => {
+          if (!o) { setMode('commands'); setFilterDate(null); }
+          return !o;
+        });
+        setQuery(''); setSelectedIdx(0);
       }
-      if (e.key === 'Escape' && open) { e.preventDefault(); setOpen(false); return; }
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
-      if (!open && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        const pages = { 1: 'dashboard', 2: 'journal', 3: 'charts', 4: 'insights', 5: 'settings' };
-        if (pages[e.key]) { e.preventDefault(); setPage(pages[e.key]); return; }
-        if (e.key === 'n' || e.key === 'N') { e.preventDefault(); actions.addTrade(); return; }
-        if (e.key === 't' || e.key === 'T') { e.preventDefault(); actions.toggleTheme(); return; }
+    },
+    // Escape to close
+    {
+      key: 'Escape', handler: (e) => {
+        if (open) { e.preventDefault(); setOpen(false); }
       }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, setPage, actions]);
+    },
+  ], { scope: 'global', enabled: true });
 
-  useEffect(() => { if (open) setTimeout(() => inputRef.current?.focus(), 50); }, [open]);
+  // Page navigation + quick actions (only when palette is closed)
+  useHotkeys([
+    { key: '1', handler: (e) => { e.preventDefault(); setPage('dashboard'); } },
+    { key: '2', handler: (e) => { e.preventDefault(); setPage('journal'); } },
+    { key: '3', handler: (e) => { e.preventDefault(); setPage('charts'); } },
+    { key: '4', handler: (e) => { e.preventDefault(); setPage('insights'); } },
+    { key: '5', handler: (e) => { e.preventDefault(); setPage('settings'); } },
+    { key: 'n', handler: (e) => { e.preventDefault(); actions.addTrade(); } },
+    { key: 't', handler: (e) => { e.preventDefault(); actions.toggleTheme(); } },
+  ], { scope: 'global', enabled: !open });
+
+  // ─── External Logbook trigger (from heatmap, nav pill, etc.) ─
+  useEffect(() => {
+    const handler = (e) => {
+      setMode('logbook');
+      setFilterDate(e.detail?.date || null);
+      setOpen(true);
+    };
+    window.addEventListener('charEdge:open-logbook', handler);
+    return () => window.removeEventListener('charEdge:open-logbook', handler);
+  }, []);
+
+  useEffect(() => {
+    if (open && mode === 'commands') setTimeout(() => inputRef.current?.focus(), 50);
+  }, [open, mode]);
 
   const handlePaletteKeys = useCallback(
     (e) => {
@@ -90,9 +123,25 @@ export default function CommandPalette() {
 
   useEffect(() => setSelectedIdx(0), [query]);
 
+  // ─── Logbook Mode ─────────────────────────────────────────
+  if (open && mode === 'logbook') {
+    return (
+      <SpotlightLogbook
+        isOpen={true}
+        onClose={() => setOpen(false)}
+        filterDate={filterDate}
+      />
+    );
+  }
+
   if (!open) return null;
 
   let flatIdx = 0;
+
+  // ─── Mode pill styles ─────────────────────────────────────
+  const pillBase = { padding: '4px 10px', borderRadius: 8, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', cursor: 'pointer', border: 'none', transition: 'all 0.15s', flexShrink: 0 };
+  const pillActive = { ...pillBase, background: C.b, color: '#fff' };
+  const pillInactive = { ...pillBase, background: C.sf2, color: C.t3 };
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 5000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '12vh', animation: 'fadeIn 0.15s ease-out' }}>
@@ -125,6 +174,9 @@ export default function CommandPalette() {
           {query && (
             <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', color: C.t3, cursor: 'pointer', fontSize: 14, padding: 0 }}>✕</button>
           )}
+          {/* Mode pills */}
+          <button style={pillActive} onClick={() => setMode('commands')}>⌘ Commands</button>
+          <button style={pillInactive} onClick={() => { setMode('logbook'); setFilterDate(null); }}>📋 Logbook</button>
         </div>
 
         {/* Results */}

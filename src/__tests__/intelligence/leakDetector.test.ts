@@ -26,12 +26,12 @@ const makeTrade = (overrides = {}) => ({
 
 describe('4.3.1 — LeakDetector (intelligence/)', () => {
     it('imports LeakDetector class', async () => {
-        const mod = await import('../../intelligence/LeakDetector.ts');
+        const mod = await import('../../psychology/LeakDetector.ts');
         expect(mod.default).toBeDefined();
     });
 
     it('analyze returns empty report for no trades', async () => {
-        const mod = await import('../../intelligence/LeakDetector.ts');
+        const mod = await import('../../psychology/LeakDetector.ts');
         const detector = new mod.default();
         const report = detector.analyze([]);
         expect(report.leaks).toEqual([]);
@@ -40,7 +40,7 @@ describe('4.3.1 — LeakDetector (intelligence/)', () => {
     });
 
     it('detects revenge trading (rapid trade after loss)', async () => {
-        const mod = await import('../../intelligence/LeakDetector.ts');
+        const mod = await import('../../psychology/LeakDetector.ts');
         const detector = new mod.default();
         const now = Date.now();
 
@@ -62,7 +62,7 @@ describe('4.3.1 — LeakDetector (intelligence/)', () => {
     });
 
     it('detects overtrading', async () => {
-        const mod = await import('../../intelligence/LeakDetector.ts');
+        const mod = await import('../../psychology/LeakDetector.ts');
         const detector = new mod.default();
         const now = Date.now();
 
@@ -82,7 +82,7 @@ describe('4.3.1 — LeakDetector (intelligence/)', () => {
     });
 
     it('report has required fields', async () => {
-        const mod = await import('../../intelligence/LeakDetector.ts');
+        const mod = await import('../../psychology/LeakDetector.ts');
         const detector = new mod.default();
         const report = detector.analyze([makeTrade()]);
 
@@ -95,7 +95,7 @@ describe('4.3.1 — LeakDetector (intelligence/)', () => {
     });
 
     it('each leak has required shape', async () => {
-        const mod = await import('../../intelligence/LeakDetector.ts');
+        const mod = await import('../../psychology/LeakDetector.ts');
         const detector = new mod.default();
         const now = Date.now();
 
@@ -117,7 +117,7 @@ describe('4.3.1 — LeakDetector (intelligence/)', () => {
     });
 
     it('score is high for well-spaced winning trades', async () => {
-        const mod = await import('../../intelligence/LeakDetector.ts');
+        const mod = await import('../../psychology/LeakDetector.ts');
         const detector = new mod.default();
 
         const trades = Array.from({ length: 5 }, (_, i) =>

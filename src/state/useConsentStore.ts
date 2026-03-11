@@ -20,6 +20,7 @@ function loadConsent() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_) { /* ignore corrupt data */ }
   return null;
 }
@@ -30,6 +31,7 @@ function saveConsent(state) {
       analytics: state.analytics,
       consentedAt: state.consentedAt,
     }));
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_) { /* localStorage full or blocked */ }
 }
 
@@ -72,7 +74,8 @@ const useConsentStore = create((set, get) => ({
   /** Reset consent (e.g. for data deletion) */
   resetConsent: () => {
     set({ analytics: null, consentedAt: null });
-    try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    try { localStorage.removeItem(STORAGE_KEY); } catch (_) { /* ignored */ }
   },
 }));
 

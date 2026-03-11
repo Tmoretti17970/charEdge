@@ -12,7 +12,7 @@
 //   utils/metricTips.js  — METRIC_TIPS
 // ═══════════════════════════════════════════════════════════════════
 
-export { uid, fmt, fmtD } from './utils/formatting.js';
-export { fmtPrice, niceNum, niceScale, findNearestBar, bestTfForTrade, toHeikinAshi } from './utils/chartMath.js';
-export { todayStr, timeAgo } from './utils/time.js';
-export { METRIC_TIPS } from './utils/metricTips.js';
+export { uid, fmt, fmtD } from '@/shared/formatting';
+export { fmtPrice, niceNum, niceScale, findNearestBar, bestTfForTrade, toHeikinAshi } from '@/charting_library/utils/chartMath';
+export { todayStr, timeAgo } from '@/shared/time';
+export { METRIC_TIPS } from '@/trading/metricTips';

@@ -11,10 +11,10 @@
 //           dataInfraRound9.test.js
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -108,6 +108,7 @@ describe('FetchService — delta-only fetching support', () => {
   it('fetchBinanceBatch accepts startTime parameter', async () => {
     const source = readSource('data/BinanceClient.js');
     expect(source).toContain('async function fetchBinanceBatch(pair, interval, limit, endTime, startTime)');
+    // eslint-disable-next-line no-template-curly-in-string
     expect(source).toContain('if (startTime) url += `&startTime=${startTime}`');
   });
 
@@ -686,19 +687,19 @@ describe('isCrypto unification', () => {
 
 describe('useOrderFlowConnection isCrypto', () => {
   let source;
-  beforeAll(() => { source = readSource('app/hooks/useOrderFlowConnection.js'); });
+  beforeAll(() => { source = readSource('data/engine/orderflow/useOrderFlowConnection.js'); });
 
   it('has no local isCryptoSymbol function', () => { expect(source).not.toMatch(/function\s+isCryptoSymbol/); });
-  it('imports isCrypto from constants.js', () => { expect(source).toContain("import { isCrypto } from '../../constants.js'"); });
+  it('imports isCrypto from constants.js', () => { expect(source).toContain("import { isCrypto } from '../../../constants.js'"); });
   it('uses isCrypto() for crypto guard', () => { expect(source).toContain('isCrypto(upper)'); });
 });
 
 describe('useOrderFlowConnection — uses CacheManager', () => {
   let source;
-  beforeAll(() => { source = readSource('app/hooks/useOrderFlowConnection.js'); });
+  beforeAll(() => { source = readSource('data/engine/orderflow/useOrderFlowConnection.js'); });
 
   it('does NOT import DataCache directly', () => { expect(source).not.toMatch(/from\s+['"].*DataCache/); });
-  it('imports cacheManager from CacheManager.js', () => { expect(source).toContain("from '../../data/engine/infra/CacheManager.js'"); expect(source).toContain('cacheManager'); });
+  it('imports cacheManager from CacheManager.js', () => { expect(source).toContain("from '../infra/CacheManager.js'"); expect(source).toContain('cacheManager'); });
   it('uses cacheManager.evictAll() for periodic eviction', () => { expect(source).toContain('cacheManager.evictAll()'); });
   it('does NOT call dataCache.evictIfOverBudget()', () => { expect(source).not.toContain('dataCache.evictIfOverBudget'); });
 });

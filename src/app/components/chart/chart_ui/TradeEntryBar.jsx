@@ -4,10 +4,10 @@
 // Shows current step, side toggle, level readouts, and actions.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useChartStore } from '../../../../state/useChartStore.js';
 import { useMemo } from 'react';
 import { C, M } from '../../../../constants.js';
-import { calcRiskReward, calcPositionSize } from '../../../../state/chart/tradeSlice.js';
+import { calcRiskReward, calcPositionSize } from '../../../../state/chart/tradeSlice';
+import { useChartStore } from '../../../../state/useChartStore';
 import Icon from '../../design/Icon.jsx';
 
 const STEPS = [
@@ -22,8 +22,8 @@ export default function TradeEntryBar() {
   const tradeStep = useChartStore((s) => s.tradeStep);
   const tradeSide = useChartStore((s) => s.tradeSide);
   const pendingEntry = useChartStore((s) => s.pendingEntry);
-  const pendingSL = useChartStore((s) => s.pendingSL);
-  const pendingTP = useChartStore((s) => s.pendingTP);
+  const pendingSL = useChartStore((s) => s.pendingStopLoss);
+  const pendingTP = useChartStore((s) => s.pendingTakeProfit);
   const setTradeSide = useChartStore((s) => s.setTradeSide);
   const exitTradeMode = useChartStore((s) => s.exitTradeMode);
   const riskAmount = useChartStore((s) => s.riskAmount);

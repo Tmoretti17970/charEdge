@@ -28,6 +28,7 @@ export interface UseLongPressCrosshairReturn {
     isCrosshairActive: boolean;
     position: CrosshairPosition | null;
     /** Ref to attach to the chart container element */
+    // eslint-disable-next-line no-undef
     containerRef: React.RefObject<HTMLElement | null>;
 }
 

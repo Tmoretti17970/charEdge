@@ -5,6 +5,7 @@
 // Verifies that store actions correctly mutate state.
 // ═══════════════════════════════════════════════════════════════════
 
+// eslint-disable-next-line import/order
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock telemetry to avoid side effects

@@ -150,6 +150,7 @@ export const createAchievementSlice = (set, get) => ({
           newAchievements[ach.id] = { unlockedAt: Date.now(), seen: false };
           pending.push({ id: ach.id, name: ach.name, emoji: ach.emoji, rarity: ach.rarity });
         }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (_) {
         // Skip broken checks
       }

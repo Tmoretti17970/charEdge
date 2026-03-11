@@ -5,10 +5,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
     captureRecoveryState,
-    hasRecoveryState,
-    getRecoveryState,
-    markCleanExit,
-    clearRecoveryState,
     startAutoSave,
     stopAutoSave,
 } from '../../charting_library/core/SessionRecovery.js';

@@ -6,11 +6,10 @@
 // Appears in the sidebar below the XP badge.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../../state/useUserStore.js';
-import React from 'react';
-import { TIER_CONFIG, TIERS } from '../../../state/user/personaSlice.js';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { TIER_CONFIG, TIERS } from '../../../state/user/personaSlice.js';
+import { useUserStore } from '../../../state/useUserStore';
+import { alpha } from '@/shared/colorUtils';
 
 const NEXT_TIER = {
   [TIERS.EXPLORER]: TIERS.BUILDER,

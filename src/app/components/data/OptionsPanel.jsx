@@ -11,9 +11,9 @@
 //   <OptionsPanel symbol="SPY" />
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { logger } from '../../../utils/logger.ts';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
+import { logger } from '@/observability/logger';
 
 // ─── Styles ────────────────────────────────────────────────────
 
@@ -206,7 +206,7 @@ function PCRatioChart({ data, maxItems = 20 }) {
 
 // ─── Main Component ────────────────────────────────────────────
 
-export default function OptionsPanel({ symbol = 'SPY' }) {
+export default function OptionsPanel({ _symbol = 'SPY' }) {
   const [pcRatioData, setPCRatioData] = useState([]);
   const [vixTermStructure, setVixTermStructure] = useState([]);
   const [vix, setVix] = useState(null);
@@ -214,7 +214,7 @@ export default function OptionsPanel({ symbol = 'SPY' }) {
   const [vixRegime, setVixRegime] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchData = useCallback(async () => {
+  const fetchOptionsData = useCallback(async () => {
     setLoading(true);
     try {
       const [cboeMod, engineMod] = await Promise.all([
@@ -249,10 +249,10 @@ export default function OptionsPanel({ symbol = 'SPY' }) {
   }, []);
 
   useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 5 * 60 * 1000); // 5 min refresh
+    fetchOptionsData();
+    const interval = setInterval(fetchOptionsData, 5 * 60 * 1000); // 5 min refresh
     return () => clearInterval(interval);
-  }, [fetchData]);
+  }, [fetchOptionsData]);
 
   const latestPC = pcRatioData[0];
   const pcSparkData = useMemo(() =>
@@ -268,7 +268,7 @@ export default function OptionsPanel({ symbol = 'SPY' }) {
           <div style={S.title}>📊 Options Intelligence</div>
           <div style={S.subtitle}>Free CBOE data · P/C Ratio, VIX, Term Structure</div>
         </div>
-        <button onClick={fetchData} style={S.btn}>↻ Refresh</button>
+        <button onClick={fetchOptionsData} style={S.btn}>↻ Refresh</button>
       </div>
 
       {loading && !vix ? (

@@ -63,6 +63,21 @@ function ema(values, period) {
   return result;
 }
 
+function wilderSmooth(values, period) {
+  const result = [];
+  let sum = 0;
+  for (let i = 0; i < values.length; i++) {
+    if (i < period) {
+      sum += values[i];
+      result.push(i === period - 1 ? sum / period : null);
+    } else {
+      const prev = result[i - 1];
+      result.push((prev * (period - 1) + values[i]) / period);
+    }
+  }
+  return result;
+}
+
 function tr(candles) {
   return candles.map((c, i) => {
     if (i === 0) return c.high - c.low;
@@ -208,7 +223,7 @@ export const indicators = {
     const result = [];
 
     for (let i = 0; i < candles.length + disp; i++) {
-      const cIdx = Math.min(i, candles.length - 1);
+      const _cIdx = Math.min(i, candles.length - 1);
       const time = i < candles.length ? candles[i].time : candles[candles.length - 1].time + (i - candles.length + 1) * 60000;
 
       // Tenkan-sen (Conversion Line): (9-period high + 9-period low) / 2
@@ -268,7 +283,8 @@ export const indicators = {
 
     // Compute ATR
     const trValues = tr(candles);
-    const atrValues = sma(trValues, period);
+    // Wilder-smoothed ATR (matches charting layer / TA-Lib)
+    const atrValues = wilderSmooth(trValues, period);
 
     const result = [];
     let prevUpperBand = 0;
@@ -335,7 +351,11 @@ export const indicators = {
     const result = [];
     let cumVolume = 0;
     let cumTPVolume = 0;
-    let cumTPSqVolume = 0;
+    // Welford's online variance: tracks weighted sum of squared deviations
+    // from the running mean. Numerically stable for high-priced instruments
+    // (BTC $100k, BRK.A $600k+) where the naive (Σx²/n - μ²) formula
+    // suffers from catastrophic cancellation.
+    let welfordM2 = 0;
     let lastDay = null;
 
     for (const c of candles) {
@@ -344,14 +364,15 @@ export const indicators = {
         // Reset for new day
         cumVolume = 0;
         cumTPVolume = 0;
-        cumTPSqVolume = 0;
+        welfordM2 = 0;
         lastDay = day;
       }
 
       const tp = (c.high + c.low + c.close) / 3;
+      const prevVwap = cumVolume > 0 ? cumTPVolume / cumVolume : 0;
+
       cumVolume += c.volume;
       cumTPVolume += tp * c.volume;
-      cumTPSqVolume += tp * tp * c.volume;
 
       if (cumVolume === 0) {
         result.push({ time: c.time, vwap: tp, upper1: tp, upper2: tp, upper3: tp, lower1: tp, lower2: tp, lower3: tp });
@@ -359,7 +380,9 @@ export const indicators = {
       }
 
       const vwap = cumTPVolume / cumVolume;
-      const variance = (cumTPSqVolume / cumVolume) - (vwap * vwap);
+      // Welford's incremental update: M2 += weight * (x - oldMean) * (x - newMean)
+      welfordM2 += c.volume * (tp - prevVwap) * (tp - vwap);
+      const variance = welfordM2 / cumVolume;
       const stddev = Math.sqrt(Math.max(0, variance));
 
       result.push({
@@ -560,9 +583,10 @@ export const indicators = {
       dx.push(pdi + mdi > 0 ? (Math.abs(pdi - mdi) / (pdi + mdi)) * 100 : 0);
     }
 
-    // Smooth DX to get ADX
+    // Smooth DX to get ADX using Wilder's recursive smoothing
     const result = [];
     const offset = period; // First DI values start at index 'period'
+    let prevADX = null;
 
     for (let i = 0; i < candles.length; i++) {
       if (i < offset) {
@@ -581,15 +605,19 @@ export const indicators = {
         continue;
       }
 
-      // Simple ADX: running average of DX
-      let adxSum = 0;
-      for (let j = dxIdx - period + 1; j <= dxIdx; j++) {
-        adxSum += dx[j];
+      // Wilder's recursive ADX smoothing
+      if (prevADX === null) {
+        // Seed: first ADX = SMA of first `period` DX values
+        let s = 0;
+        for (let j = dxIdx - period + 1; j <= dxIdx; j++) s += dx[j];
+        prevADX = s / period;
+      } else {
+        prevADX = (prevADX * (period - 1) + dx[dxIdx]) / period;
       }
 
       result.push({
         time: candles[i].time,
-        adx: Math.round((adxSum / period) * 100) / 100,
+        adx: Math.round(prevADX * 100) / 100,
         pdi: Math.round(diPlus[dxIdx] * 100) / 100,
         mdi: Math.round(diMinus[dxIdx] * 100) / 100,
       });
@@ -637,8 +665,8 @@ export const indicators = {
       result.push({
         time: c.time,
         open: Math.round(haOpen * 100) / 100,
-        high: Math.max(c.high, haOpen, haClose),
-        low: Math.min(c.low, haOpen, haClose),
+        high: Math.round(Math.max(c.high, haOpen, haClose) * 100) / 100,
+        low: Math.round(Math.min(c.low, haOpen, haClose) * 100) / 100,
         close: Math.round(haClose * 100) / 100,
         volume: c.volume,
       });
@@ -666,7 +694,7 @@ export const indicators = {
     }
 
     const bricks = [];
-    let lastClose = candles[0].close;
+    const lastClose = candles[0].close;
     let lastBrickClose = Math.round(lastClose / brickSize) * brickSize;
 
     for (const c of candles) {
@@ -780,11 +808,11 @@ export const indicators = {
 
     for (let i = 1; i < candles.length; i++) {
       const high = candles[i].high;
-      const low  = candles[i].low;
+      const low = candles[i].low;
 
       if (currentDir === 0) {
-        const upBoxes  = Math.floor((high - colTop) / boxSize);
-        const dnBoxes  = Math.floor((colBot - low) / boxSize);
+        const upBoxes = Math.floor((high - colTop) / boxSize);
+        const dnBoxes = Math.floor((colBot - low) / boxSize);
         if (upBoxes >= reversalCount) {
           currentDir = 1;
           colTop += upBoxes * boxSize;

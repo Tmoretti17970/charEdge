@@ -11,7 +11,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useCallback } from 'react';
-import { useChartStore } from '../state/useChartStore.js';
+import { useChartStore } from '../state/useChartStore';
 import { createSnapshot, indicatorKey } from '../types/TradeSnapshot.js';
 import type { TradeSnapshot, TradeContext } from '../types/TradeSnapshot.js';
 

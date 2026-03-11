@@ -10,14 +10,14 @@
 //   • Draggable (position persisted to localStorage)
 // ═══════════════════════════════════════════════════════════════════
 
-import { useState, useCallback, useRef, useEffect } from 'react';
 import { GripVertical, X, Sparkles, TrendingUp, Layers, Activity, Triangle } from 'lucide-react';
+import { useState, useCallback } from 'react';
 import { C, F, GLASS } from '../../../constants.js';
-import { useChartStore } from '../../../state/useChartStore.js';
-import { radii, transition, zIndex } from '../../../theme/tokens.js';
-import { alpha } from '../../../utils/colorUtils.js';
-import { ToggleSwitch } from '../ui/AppleHIG.jsx';
 import useCopilotPipeline from '../../../hooks/useCopilotPipeline.js';
+import { useChartStore } from '../../../state/useChartStore';
+import { radii, transition, zIndex } from '../../../theme/tokens.js';
+import { ToggleSwitch } from '../ui/AppleHIG.jsx';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Feature Definitions (Icon-Only) ────────────────────────────
 const AI_FEATURES = [
@@ -97,7 +97,7 @@ export default function AIAnalysisPanel({ isOpen, onClose }) {
             document.removeEventListener('mousemove', onMove);
             document.removeEventListener('mouseup', onUp);
             setPos((p) => {
-                try { localStorage.setItem('charEdge-ai-panel-pos', JSON.stringify(p)); } catch { }
+                try { localStorage.setItem('charEdge-ai-panel-pos', JSON.stringify(p)); } catch { /* no-op */ }
                 return p;
             });
         };

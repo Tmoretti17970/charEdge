@@ -53,7 +53,8 @@ export class ReplayInterpolator {
      * @param progress 0 = start of bar, 1 = full bar revealed
      */
     getPartialBar(progress: number): PartialBar {
-        const p = Math.max(0, Math.min(1, progress));
+        // #61: Apply easeInOutCubic for smoother, more natural animation
+        const p = easeInOutCubic(Math.max(0, Math.min(1, progress)));
         const { open, high, low, close, time, volume } = this.bar;
 
         if (p === 0) {
@@ -122,3 +123,9 @@ export class ReplayInterpolator {
 function lerp(a: number, b: number, t: number): number {
     return a + (b - a) * t;
 }
+
+/** #61: Smooth easing for replay animation */
+function easeInOutCubic(t: number): number {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+

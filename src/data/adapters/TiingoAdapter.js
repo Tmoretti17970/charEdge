@@ -18,7 +18,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { BaseAdapter } from './BaseAdapter.js';
-import { logger } from '../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 
 const PROXY_BASE = '/api/proxy/tiingo';
 
@@ -64,14 +64,18 @@ class TiingoAdapter extends BaseAdapter {
         const data = await this._request(`tiingo/daily/${symbol}/prices`, params);
         if (!Array.isArray(data) || data.length === 0) return [];
 
-        const bars = data.map(bar => ({
-            time: new Date(bar.date).getTime(),
-            open: bar.adjOpen ?? bar.open,
-            high: bar.adjHigh ?? bar.high,
-            low: bar.adjLow ?? bar.low,
-            close: bar.adjClose ?? bar.close,
-            volume: bar.adjVolume ?? bar.volume ?? 0,
-        })).sort((a, b) => a.time - b.time);
+        const bars = data.map(bar => {
+            const timeMs = new Date(bar.date).getTime();
+            return {
+                time: timeMs,
+                _openMs: timeMs,
+                open: bar.adjOpen ?? bar.open,
+                high: bar.adjHigh ?? bar.high,
+                low: bar.adjLow ?? bar.low,
+                close: bar.adjClose ?? bar.close,
+                volume: bar.adjVolume ?? bar.volume ?? 0,
+            };
+        }).sort((a, b) => a.time - b.time);
 
         CACHE.set(cacheKey, { data: bars, expiry: Date.now() + LONG_CACHE_TTL });
         return bars;

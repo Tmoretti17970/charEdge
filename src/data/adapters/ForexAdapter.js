@@ -15,9 +15,9 @@
 //   forexAdapter.subscribe('EUR/USD', (data) => { ... });
 // ═══════════════════════════════════════════════════════════════════
 
-import { pythAdapter } from './PythAdapter.js';
 import { finnhubAdapter } from './FinnhubAdapter.js';
-import { logger } from '../../utils/logger';
+import { pythAdapter } from './PythAdapter.js';
+import { logger } from '@/observability/logger';
 
 // ─── FX Pair Registry ───────────────────────────────────────────
 

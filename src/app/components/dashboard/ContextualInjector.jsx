@@ -6,11 +6,11 @@
 // Cards are dismissable and auto-expire after their context ends.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { C, M, F } from '../../../constants.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { useBreakpoints } from '../../../utils/useMediaQuery.js';
+import { useJournalStore } from '../../../state/useJournalStore';
 import { fmtD } from '../../../utils.js';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 // ─── Context Rule Definitions ────────────────────────────────────
 

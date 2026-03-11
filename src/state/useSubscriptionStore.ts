@@ -26,7 +26,7 @@ const FREE_FEATURES = {
   priority: false,
 };
 
-export const useSubscriptionStore = create((set, get) => ({
+export const useSubscriptionStore = create((set, _get) => ({
   // ─── State ─────────────────────────────────────────────────────
   plan: 'free',
   status: 'active',

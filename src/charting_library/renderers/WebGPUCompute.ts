@@ -24,7 +24,7 @@ import RSI_SHADER from '../shaders/compute/rsi.wgsl?raw';
 import BOLLINGER_SHADER from '../shaders/compute/bollinger.wgsl?raw';
 import LTTB_SHADER from '../shaders/compute/lttb.wgsl?raw';
 import VP_BIN_SHADER from '../shaders/compute/volumeProfile.wgsl?raw';
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ─── Type Definitions ────────────────────────────────────────
 

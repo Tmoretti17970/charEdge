@@ -6,11 +6,10 @@
 // resize. Minimalist, non-intrusive design.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useLayoutStore } from '../../../state/useLayoutStore.js';
-import React from 'react';
 import { C, M, F } from '../../../constants.js';
 import { DEFAULT_CARDS } from '../../../state/layout/bentoSlice.js';
-import { useBreakpoints } from '../../../utils/useMediaQuery.js';
+import { useLayoutStore } from '../../../state/useLayoutStore';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 export default function BentoCustomizer() {
   const customizing = useLayoutStore((s) => s.customizing);

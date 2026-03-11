@@ -3,8 +3,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect, vi } from 'vitest';
-import { analytics, consoleBackend, noopBackend, EVENTS } from '../../../services/analytics.ts';
-import type { AnalyticsBackend } from '../../../services/analytics.ts';
+import { analytics, consoleBackend, noopBackend, EVENTS } from '@/observability/analytics.ts';
+import type { AnalyticsBackend } from '@/observability/analytics.ts';
 import { generateOpenApiSpec } from '../../../api/openapi.ts';
 import { aiDisclaimer, AI_DISCLAIMER } from '../../../api/aiDisclaimer.ts';
 
@@ -100,10 +100,10 @@ describe('AI Disclaimer Middleware', () => {
         const middleware = aiDisclaimer();
         let capturedBody: Record<string, unknown> | null = null;
 
-        const req = {} as any;
+        const req = {} as unknown;
         const res = {
             json: vi.fn((body: unknown) => { capturedBody = body as Record<string, unknown>; return res; }),
-        } as any;
+        } as unknown;
         const next = vi.fn();
 
         middleware(req, res, next);

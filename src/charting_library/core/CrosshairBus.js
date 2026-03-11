@@ -1,4 +1,4 @@
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Crosshair Sync Bus
@@ -23,6 +23,7 @@ try {
   if (typeof BroadcastChannel !== 'undefined') {
     bc = new BroadcastChannel('charEdge-crosshair');
   }
+// eslint-disable-next-line unused-imports/no-unused-vars
 } catch (_) {
   bc = null;
 }
@@ -44,6 +45,7 @@ function emit(data) {
 
   // Notify other tabs / windows via BroadcastChannel
   if (bc) {
+    // eslint-disable-next-line unused-imports/no-unused-vars
     try { bc.postMessage(data); } catch (_) { /* noop */ }
   }
 

@@ -7,7 +7,7 @@ import React, { useMemo } from 'react';
 import { C, M } from '../../../../constants.js';
 import { Card, AutoGrid } from '../../../components/ui/UIKit.jsx';
 import { SectionLabel } from './AnalyticsPrimitives.jsx';
-import { groupTradesBy } from '../../../../utils/groupTradesBy.js';
+import { groupTradesBy } from '@/trading/groupTradesBy';
 
 function AssetBreakdownTab({ trades, computing }) {
   const groups = useMemo(

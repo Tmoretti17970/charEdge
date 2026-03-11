@@ -28,6 +28,7 @@ function _getWorker() {
     );
     _worker.port.start();
     return _worker;
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     _workerFailed = true;
     return null;
@@ -63,7 +64,7 @@ export async function fetchPageViaWorker(sym, tfId, beforeTime) {
 
   // If already pending for this key, return existing promise
   if (_pending.has(key)) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       const existing = _pending.get(key);
       const origResolve = existing.resolve;
       existing.resolve = (val) => { origResolve(val); resolve(val); };

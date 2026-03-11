@@ -3,12 +3,14 @@
 //
 // Renders semi-transparent entry→exit rectangles on the chart canvas.
 // Win = green alpha fill, Loss = red alpha fill, dashed border.
-// Stores `_tradeHitRegions[]` for O(1) cursor hit-testing.
+// Uses SpatialIndex for O(1) cursor hit-testing (Sprint 13–14, Task #100).
 //
 // Heatmap mode (4.8.5): behavioral color-coding using LeakDetector
 // tags — FOMO pulses red, REVENGE pulses orange, FEAR pulses yellow,
 // clean trades glow green.
 // ═══════════════════════════════════════════════════════════════════
+
+import { SpatialIndex } from '../scene/SpatialIndex.js';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -73,6 +75,8 @@ export class GhostBoxRenderer {
         this._heatmapMode = false;
         /** @type {number} Animated pulse phase (0-1) for heatmap pulsing */
         this._pulsePhase = 0;
+        /** @type {SpatialIndex|null} Spatial index for O(1) hit testing */
+        this._spatialIndex = null;
     }
 
     /** Toggle visibility */
@@ -216,6 +220,25 @@ export class GhostBoxRenderer {
         ctx.restore();
 
         this._tradeHitRegions = regions;
+
+        // Build spatial index from hit regions for O(1) point queries
+        if (regions.length > 0) {
+            const maxX = Math.max(...regions.map(r => r.x2));
+            const maxY = Math.max(...regions.map(r => r.y2));
+            this._spatialIndex = new SpatialIndex(maxX + 1, maxY + 1, 64);
+            for (let i = 0; i < regions.length; i++) {
+                const r = regions[i];
+                this._spatialIndex.insert({
+                    id: `ghost-${i}`,
+                    visible: true,
+                    zIndex: 0,
+                    bounds: { x: r.x1, y: r.y1, w: r.x2 - r.x1, h: r.y2 - r.y1 },
+                    _trade: r.trade,
+                });
+            }
+        } else {
+            this._spatialIndex = null;
+        }
     }
 
     /**
@@ -227,6 +250,13 @@ export class GhostBoxRenderer {
      * @returns {TradeForGhostBox|null}
      */
     hitTest(x, y) {
+        // O(1) spatial index query when available
+        if (this._spatialIndex) {
+            const hits = this._spatialIndex.queryPoint(x, y);
+            if (hits.length > 0) return hits[0]._trade;
+            return null;
+        }
+        // Fallback: linear scan
         for (const region of this._tradeHitRegions) {
             if (x >= region.x1 && x <= region.x2 &&
                 y >= region.y1 && y <= region.y2) {

@@ -8,9 +8,9 @@
 
 import { useState, useCallback } from 'react';
 import { C, M } from '../../../constants.js';
+import { useSocialStore } from '../../../state/useSocialStore.js';
 import { space, radii, text, transition, preset } from '../../../theme/tokens.js';
 import { Btn } from '../../components/ui/UIKit.jsx';
-import { useSocialStore } from '../../../state/useSocialStore.js';
 
 const SUGGESTED_TAGS = [
   'btc',

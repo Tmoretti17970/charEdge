@@ -17,12 +17,12 @@
 // ─── Interval Definitions ──────────────────────────────────────
 
 const INTERVALS = {
-  '1m':  60_000,
-  '5m':  300_000,
+  '1m': 60_000,
+  '5m': 300_000,
   '15m': 900_000,
-  '1h':  3_600_000,
-  '4h':  14_400_000,
-  '1d':  86_400_000,
+  '1h': 3_600_000,
+  '4h': 14_400_000,
+  '1d': 86_400_000,
 };
 
 const SUPPORTED_INTERVALS = Object.keys(INTERVALS);
@@ -248,6 +248,7 @@ class PythCandleAggregator extends EventTarget {
   _newCandle(openTime, price, intervalMs) {
     return {
       time: openTime,
+      _openMs: openTime,
       open: price,
       high: price,
       low: price,

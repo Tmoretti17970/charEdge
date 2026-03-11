@@ -17,7 +17,7 @@
 //        3.4.4 (speed controls)
 // ═══════════════════════════════════════════════════════════════════
 
-import { EventEmitter } from '../../utils/EventEmitter.ts';
+import { EventEmitter } from '@/shared/EventEmitter.ts';
 import { ReplayInterpolator } from './ReplayInterpolator.js';
 import type { OHLCBar } from './ReplayInterpolator.js';
 

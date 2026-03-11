@@ -4,12 +4,12 @@
 // inline × remove, and click-to-edit. TradingView-style.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo, useCallback, useState } from 'react';
-import { C, F } from '../../../../constants.js';
-import Icon from '../../design/Icon.jsx';
-import { useChartStore } from '../../../../state/useChartStore.js';
-import { INDICATORS } from '../../../../charting_library/studies/indicators/registry.js';
+import { useMemo, useCallback, useState } from 'react';
 import { formatPrice } from '../../../../charting_library/core/CoordinateSystem.js';
+import { INDICATORS } from '../../../../charting_library/studies/indicators/registry.js';
+import { C, F } from '../../../../constants.js';
+import { useChartToolsStore } from '../../../../state/useChartStore';
+import Icon from '../../design/Icon.jsx';
 
 /**
  * Format large numbers compactly: 1234567 → 1.23M
@@ -23,11 +23,11 @@ function compactNum(n) {
   return formatPrice(n);
 }
 
-export default function IndicatorLegendHeader({ data, hoverIdx, onEditIndicator }) {
-  const indicators = useChartStore((s) => s.indicators);
-  const removeIndicator = useChartStore((s) => s.removeIndicator);
-  const toggleIndicatorVisibility = useChartStore((s) => s.toggleIndicatorVisibility);
-  const updateIndicator = useChartStore((s) => s.updateIndicator);
+export default function IndicatorLegendHeader({ data, hoverIdx, _onEditIndicator }) {
+  const indicators = useChartToolsStore((s) => s.indicators);
+  const removeIndicator = useChartToolsStore((s) => s.removeIndicator);
+  const toggleIndicatorVisibility = useChartToolsStore((s) => s.toggleIndicatorVisibility);
+  const updateIndicator = useChartToolsStore((s) => s.updateIndicator);
   const [hoveredIdx, setHoveredIdx] = useState(null);
   const [editIdx, setEditIdx] = useState(null); // Sprint 11: inline quick-edit
 
@@ -54,7 +54,7 @@ export default function IndicatorLegendHeader({ data, hoverIdx, onEditIndicator 
       const paramStr = paramVals.length > 0 ? `(${paramVals.join(', ')})` : '';
 
       // Compute live indicator values from raw bar data
-      let liveValues = [];
+      const liveValues = [];
       if (data?.length > 0 && def.compute && barIdx >= 0) {
         try {
           const computed = def.compute(data, ind.params || {});
@@ -70,6 +70,7 @@ export default function IndicatorLegendHeader({ data, hoverIdx, onEditIndicator 
               });
             }
           }
+        // eslint-disable-next-line unused-imports/no-unused-vars
         } catch (_) {
           // Computation failed — show without values
         }
@@ -77,6 +78,7 @@ export default function IndicatorLegendHeader({ data, hoverIdx, onEditIndicator 
 
       return {
         idx,
+        indId: ind.id,
         id: regId,
         shortName: def.shortName || def.name || regId.toUpperCase(),
         paramStr,
@@ -90,20 +92,20 @@ export default function IndicatorLegendHeader({ data, hoverIdx, onEditIndicator 
     }).filter(Boolean);
   }, [indicators, data, barIdx]);
 
-  const handleRemove = useCallback((e, idx) => {
+  const handleRemove = useCallback((e, indId) => {
     e.stopPropagation();
-    removeIndicator(idx);
-    if (editIdx === idx) setEditIdx(null);
+    removeIndicator(indId);
+    if (editIdx === indId) setEditIdx(null);
   }, [removeIndicator, editIdx]);
 
-  const handleToggleVis = useCallback((e, idx) => {
+  const handleToggleVis = useCallback((e, indId) => {
     e.stopPropagation();
-    toggleIndicatorVisibility(idx);
+    toggleIndicatorVisibility(indId);
   }, [toggleIndicatorVisibility]);
 
-  const handleEdit = useCallback((idx) => {
+  const handleEdit = useCallback((indId) => {
     // Sprint 11: Toggle inline quick-edit popover
-    setEditIdx((prev) => (prev === idx ? null : idx));
+    setEditIdx((prev) => (prev === indId ? null : indId));
   }, []);
 
   if (!legendItems.length) return null;
@@ -113,13 +115,13 @@ export default function IndicatorLegendHeader({ data, hoverIdx, onEditIndicator 
       className="tf-fade-in"
       style={{
         position: 'absolute',
-        top: 6,
-        left: 6,
+        top: 4,
+        left: 'var(--legend-end-x, 420px)',
         zIndex: 50,
         display: 'flex',
-        flexWrap: 'wrap',
+        flexWrap: 'nowrap',
         gap: 4,
-        maxWidth: 'calc(100% - 80px)',
+        maxWidth: 'calc(100% - var(--legend-end-x, 420px) - 80px)',
         pointerEvents: 'auto',
       }}
     >
@@ -129,18 +131,18 @@ export default function IndicatorLegendHeader({ data, hoverIdx, onEditIndicator 
           style={{ position: 'relative' }}
         >
           <div
-            onMouseEnter={() => setHoveredIdx(item.idx)}
+           onMouseEnter={() => setHoveredIdx(item.indId)}
             onMouseLeave={() => setHoveredIdx(null)}
-            onClick={() => handleEdit(item.idx)}
+            onClick={() => handleEdit(item.indId)}
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 4,
               padding: '2px 6px',
-              background: editIdx === item.idx ? `${C.b}18` : hoveredIdx === item.idx ? `${C.sf2}E8` : `${C.sf2}B0`,
+              background: editIdx === item.indId ? `${C.b}18` : hoveredIdx === item.indId ? `${C.sf2}E8` : `${C.sf2}B0`,
               backdropFilter: 'blur(8px)',
               WebkitBackdropFilter: 'blur(8px)',
-              border: `1px solid ${editIdx === item.idx ? C.b : hoveredIdx === item.idx ? C.bd2 : C.bd}`,
+              border: `1px solid ${editIdx === item.indId ? C.b : hoveredIdx === item.indId ? C.bd2 : C.bd}`,
               borderRadius: 6,
               cursor: 'pointer',
               transition: 'all 0.15s ease',
@@ -186,58 +188,56 @@ export default function IndicatorLegendHeader({ data, hoverIdx, onEditIndicator 
               </span>
             )}
 
-            {/* Eye toggle (on hover) */}
-            {hoveredIdx === item.idx && (
-              <button
-                onClick={(e) => handleToggleVis(e, item.idx)}
-                title={item.visible ? 'Hide' : 'Show'}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: C.t3,
-                  fontSize: 9,
-                  cursor: 'pointer',
-                  padding: '0 1px',
-                  lineHeight: 1,
-                  fontFamily: F,
-                  opacity: 0.7,
-                }}
-              >
-                {item.visible ? <Icon name="eye" size={9} /> : <Icon name="eye-off" size={9} />}
-              </button>
-            )}
+            {/* Eye toggle — always visible */}
+            <button
+              onClick={(e) => handleToggleVis(e, item.indId)}
+              title={item.visible ? 'Hide' : 'Show'}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: C.t3,
+                fontSize: 9,
+                cursor: 'pointer',
+                padding: '0 1px',
+                lineHeight: 1,
+                fontFamily: F,
+                opacity: 0.6,
+              }}
+            >
+              {item.visible ? <Icon name="eye" size={9} /> : <Icon name="eye-off" size={9} />}
+            </button>
 
-            {/* × Remove button (on hover) */}
-            {hoveredIdx === item.idx && (
-              <button
-                onClick={(e) => handleRemove(e, item.idx)}
-                title="Remove indicator"
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: C.t3,
-                  fontSize: 11,
-                  cursor: 'pointer',
-                  padding: '0 1px',
-                  lineHeight: 1,
-                  fontFamily: F,
-                  transition: 'color 0.1s',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = C.r || '#EF5350'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = C.t3; }}
-              >
-                ×
-              </button>
-            )}
+            {/* × Remove button — always visible */}
+            <button
+              onClick={(e) => handleRemove(e, item.indId)}
+              title="Remove indicator"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: C.t3,
+                fontSize: 11,
+                cursor: 'pointer',
+                padding: '0 1px',
+                lineHeight: 1,
+                fontFamily: F,
+                transition: 'color 0.1s',
+                opacity: 0.6,
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = C.r || '#EF5350'; e.currentTarget.style.opacity = '1'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = C.t3; e.currentTarget.style.opacity = '0.6'; }}
+            >
+              ×
+            </button>
           </div>
 
           {/* Sprint 11: Inline Quick-Edit Popover */}
-          {editIdx === item.idx && (
+          {editIdx === item.indId && (
             <IndicatorQuickEdit
-              idx={item.idx}
-              indicator={indicators[item.idx]}
+              idx={item.indId}
+              indicator={indicators.find(ind => ind.id === item.indId)}
               onClose={() => setEditIdx(null)}
               updateIndicator={updateIndicator}
+              removeIndicator={removeIndicator}
             />
           )}
         </div>
@@ -248,7 +248,7 @@ export default function IndicatorLegendHeader({ data, hoverIdx, onEditIndicator 
 
 // ─── Sprint 11: Inline Quick-Edit Sub-component ─────────────────
 
-function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator }) {
+function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator, removeIndicator }) {
   // Defined inside the component to avoid TDZ — C may not be
   // initialized at module-evaluation time in the bundled chunk.
   const COLOR_SWATCHES = [
@@ -315,15 +315,28 @@ function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator }) {
         <span style={{ fontSize: 11, fontWeight: 700, color: C.t1 }}>
           {def?.shortName || regId}
         </span>
-        <button
-          onClick={onClose}
-          style={{
-            background: 'none', border: 'none', color: C.t3,
-            fontSize: 12, cursor: 'pointer', padding: '1px 4px', lineHeight: 1,
-          }}
-        >
-          ×
-        </button>
+        <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+          <button
+            onClick={() => { onClose(); removeIndicator(idx); }}
+            title="Delete indicator"
+            style={{
+              background: 'none', border: 'none', color: '#EF5350',
+              fontSize: 10, cursor: 'pointer', padding: '1px 4px', lineHeight: 1,
+              fontFamily: F,
+            }}
+          >
+            🗑
+          </button>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'none', border: 'none', color: C.t3,
+              fontSize: 12, cursor: 'pointer', padding: '1px 4px', lineHeight: 1,
+            }}
+          >
+            ×
+          </button>
+        </div>
       </div>
 
       {/* Parameter sliders */}

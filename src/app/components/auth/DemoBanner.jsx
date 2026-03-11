@@ -5,7 +5,7 @@
 // (no Supabase auth configured). Includes a CTA to sign up and
 // a one-time dismiss. Data is local-only in demo mode.
 // ═══════════════════════════════════════════════════════════════════
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
 const DISMISS_KEY = 'charEdge-demo-dismissed';
 

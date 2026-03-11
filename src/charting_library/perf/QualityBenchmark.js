@@ -1,4 +1,3 @@
-import { logger } from '../../utils/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — QualityBenchmark
@@ -73,6 +72,7 @@ export class QualityBenchmark {
           // Mock/unavailable — create zeroed data
           data = new Uint8ClampedArray(width * height * 4);
         }
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) {
         data = new Uint8ClampedArray(width * height * 4);
       }

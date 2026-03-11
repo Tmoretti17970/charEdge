@@ -1,10 +1,11 @@
+// eslint-disable-next-line import/order
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // ─── Imports ────────────────────────────────────────────────────
+import { ChartPerfMonitor } from '../../charting_library/core/ChartPerfMonitor.js';
+import { QualityBenchmark } from '../../charting_library/perf/QualityBenchmark.js';
 import { RenderProfiler } from '../../charting_library/perf/RenderProfiler.js';
 import { StressTest } from '../../charting_library/perf/StressTest.js';
-import { QualityBenchmark } from '../../charting_library/perf/QualityBenchmark.js';
-import { ChartPerfMonitor } from '../../charting_library/core/ChartPerfMonitor.js';
 
 // ═══════════════════════════════════════════════════════════════════
 // RenderProfiler Tests

@@ -9,15 +9,14 @@
 // Accessed from Settings → Feature Lab tab.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../../state/useUserStore.js';
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
+import { C, F, M } from '../../../constants.js';
+import { trackFeatureUse } from '../../../observability/telemetry';
 import {
   TIER_CONFIG,
   TIERS,
-  FEATURE_TIERS,
 } from '../../../state/user/personaSlice.js';
-import { C, F, M } from '../../../constants.js';
-import { trackFeatureUse } from '../../../utils/telemetry.js';
+import { useUserStore } from '../../../state/useUserStore';
 
 const TIER_ORDER = [TIERS.EXPLORER, TIERS.BUILDER, TIERS.ARCHITECT];
 
@@ -177,6 +176,7 @@ export default function FeatureLabPanel() {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const allFeatures = useMemo(() => getAllFeatures(), [tier, getAllFeatures]);
 
   const filtered = useMemo(() => {

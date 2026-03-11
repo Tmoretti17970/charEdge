@@ -27,6 +27,7 @@ export interface InstrumentInfo {
 
 // ─── SecurityMaster ────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 class _SecurityMaster {
   /** canonical ID → InstrumentInfo */
   private _instruments: Map<string, InstrumentInfo> = new Map();
@@ -50,7 +51,7 @@ class _SecurityMaster {
     // Strip common separators and uppercase
     const cleaned = rawSymbol
       .toUpperCase()
-      .replace(/[\/\-_.\s]/g, '');
+      .replace(/[/\-_.\s]/g, '');
 
     // Check alias map
     const alias = this._aliases.get(cleaned.toLowerCase());
@@ -91,7 +92,7 @@ class _SecurityMaster {
     // Register aliases (lowercase for case-insensitive lookup)
     this._aliases.set(canonicalId.toLowerCase(), canonicalId);
     for (const alias of aliases) {
-      this._aliases.set(alias.toLowerCase().replace(/[\/\-_.\s]/g, ''), canonicalId);
+      this._aliases.set(alias.toLowerCase().replace(/[/\-_.\s]/g, ''), canonicalId);
     }
   }
 

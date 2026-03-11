@@ -80,6 +80,7 @@ const FEATURE_COUNT = 18; // Total features in the flat vector
 
 // ─── Feature Extractor ──────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 class _FeatureExtractor {
 
     /**

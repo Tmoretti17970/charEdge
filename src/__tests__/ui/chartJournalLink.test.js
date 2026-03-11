@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { tradeNav, findBarByTimestamp, centerBarInViewport } from '../../utils/navigateToTrade.js';
+import { tradeNav, findBarByTimestamp, centerBarInViewport } from '@/trading/navigateToTrade';
 
 // ═══ tradeNav Event Bus ═════════════════════════════════════════
 describe('tradeNav event bus', () => {

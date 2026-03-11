@@ -26,10 +26,12 @@ describe('Chart Load — performance instrumentation', () => {
   });
 
   it('marks chart load start with performance.mark', () => {
+    // eslint-disable-next-line no-template-curly-in-string
     expect(source).toContain("performance.mark(`${markId}-start`)");
   });
 
   it('marks chart load end with performance.mark', () => {
+    // eslint-disable-next-line no-template-curly-in-string
     expect(source).toContain("performance.mark(`${markId}-end`)");
   });
 
@@ -38,6 +40,7 @@ describe('Chart Load — performance instrumentation', () => {
   });
 
   it('generates unique mark IDs per load', () => {
+    // eslint-disable-next-line no-template-curly-in-string
     expect(source).toContain('tf-chart-load-${symbol}-${tf}-${Date.now()}');
   });
 });

@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/order
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
 
 // ─── OffscreenCanvas Polyfill for Node.js ───────────────────────
@@ -36,12 +37,12 @@ beforeAll(() => {
 });
 
 // ─── Imports ────────────────────────────────────────────────────
+import { SpringAnimator, SpringAnimator2D } from '../../charting_library/animation/SpringAnimator.js';
+import { Bloom } from '../../charting_library/effects/Bloom.js';
+import { MotionBlur } from '../../charting_library/effects/MotionBlur.js';
 import { subPixelSnap, subPixelSnapPoint, drawSubPixelLine, drawSubPixelRect } from '../../charting_library/effects/SubPixelAA.js';
 import { TemporalAccumulator, halton, getJitterOffset } from '../../charting_library/effects/TemporalAA.js';
-import { SpringAnimator, SpringAnimator2D, SPRING_PRESETS } from '../../charting_library/animation/SpringAnimator.js';
 import { FontEngine } from '../../charting_library/typography/FontEngine.js';
-import { MotionBlur } from '../../charting_library/effects/MotionBlur.js';
-import { Bloom } from '../../charting_library/effects/Bloom.js';
 
 // ─── Canvas/Context Mock ────────────────────────────────────────
 

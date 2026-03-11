@@ -1,4 +1,4 @@
-import { logger } from '../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v12 — Frankfurter Adapter (ECB Exchange Rates)
 //
@@ -66,6 +66,7 @@ class _FrankfurterAdapter {
       if (!resp.ok) return null;
 
       return await resp.json();
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return null;
     }
@@ -119,6 +120,7 @@ class _FrankfurterAdapter {
         rate: json.rates?.[to] || null,
         date: json.date,
       };
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return null;
     }
@@ -133,6 +135,7 @@ class _FrankfurterAdapter {
       const resp = await fetch(`${BASE_URL}/currencies`);
       if (!resp.ok) return {};
       return await resp.json();
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return {};
     }
@@ -159,6 +162,7 @@ class _FrankfurterAdapter {
         Math.pow(r.CHF, 0.036);
 
       return Math.round(dxy * 100) / 100;
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return null;
     }

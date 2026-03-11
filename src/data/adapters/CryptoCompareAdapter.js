@@ -6,9 +6,9 @@
 // Free tier: 100K calls/month with API key.
 // ═══════════════════════════════════════════════════════════════════
 
-import { BaseAdapter } from './BaseAdapter.js';
-import { logger } from '../../utils/logger.ts';
 import { CRYPTO_IDS } from '../../constants.js';
+import { BaseAdapter } from './BaseAdapter.js';
+import { logger } from '@/observability/logger';
 
 const API_BASE =
   typeof window === 'undefined'
@@ -97,6 +97,7 @@ export class CryptoCompareAdapter extends BaseAdapter {
           close: d.close,
           volume: d.volumefrom || d.volumeto || 0,
         }));
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return null;
     }
@@ -130,6 +131,7 @@ export class CryptoCompareAdapter extends BaseAdapter {
         low: d.LOW24HOUR || 0,
         open: d.OPEN24HOUR || 0,
       };
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return null;
     }

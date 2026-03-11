@@ -198,6 +198,7 @@ export class TemporalAccumulator {
 
     try {
       this._accumCanvas = new OffscreenCanvas(w, h);
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       // Fallback for environments without OffscreenCanvas
       this._accumCanvas = document.createElement('canvas');

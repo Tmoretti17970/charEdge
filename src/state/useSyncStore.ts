@@ -19,7 +19,7 @@
 //   'idle' → 'syncing' → 'error' → 'idle'
 //
 // Usage:
-//   import { useSyncStore } from './useSyncStore.js';
+//   import { useSyncStore } from './useSyncStore';
 //   const sync = useSyncStore(s => s.sync);
 //   await sync(); // manual sync
 //   // Auto-sync runs every 5 minutes when authenticated
@@ -28,7 +28,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { applyRemoteChanges, getClientId } from '../services/SyncUtils.js';
-import { logger } from '../utils/logger.js';
+import { logger } from '@/observability/logger.js';
 
 // ─── Change Queue ───────────────────────────────────────────────
 // Tracks local mutations that haven't been synced yet.

@@ -2,14 +2,14 @@
 // Logger — Unit Tests
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 describe('Structured Logger', () => {
   let loggerModule;
 
   beforeEach(async () => {
     // Fresh import each test to reset module state
-    loggerModule = await import('../../utils/logger.js');
+    loggerModule = await import('../../observability/logger.js');
   });
 
   it('exports logger with all expected tags', () => {

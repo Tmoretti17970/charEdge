@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { alpha } from '@/shared/colorUtils';
 
 // Mock Fear & Greed data — replace with API (alternative.me/crypto/fear-and-greed-index/)
 const MOCK_FG_DATA = {

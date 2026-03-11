@@ -8,10 +8,10 @@
 //   4. AI disclaimer coverage across all AI modules
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, beforeAll } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { describe, it, expect, beforeAll } from 'vitest';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

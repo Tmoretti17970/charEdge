@@ -247,7 +247,6 @@
 @container chart (max-width: 600px) {
   .tf-chart-legend { flex-direction: column !important; font-size: 10px !important; }
   .tf-chart-axis-label { font-size: 9px !important; padding: 1px 2px !important; }
-  .tf-chart-minimap { display: none !important; }
 }
 
 @container chart (min-width: 601px) {

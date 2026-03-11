@@ -8,7 +8,7 @@
 
 import { useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
+import { useJournalStore } from '../../../state/useJournalStore';
 import { Card } from '../../components/ui/UIKit.jsx';
 
 /** Get the start of the current week (Monday 00:00). */
@@ -59,7 +59,7 @@ function computeWeek(trades) {
 export default function WeeklyReport() {
   const trades = useJournalStore((s) => s.trades);
 
-  const { thisWeek, lastWeek, insights } = useMemo(() => {
+  const { thisWeek, _lastWeek, insights } = useMemo(() => {
     const wsThis = weekStart();
     const wsLast = lastWeekStart();
 

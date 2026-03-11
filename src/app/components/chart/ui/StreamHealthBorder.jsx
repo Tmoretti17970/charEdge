@@ -7,7 +7,7 @@
 // CSS animations for a non-distracting yet informative indicator.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 // ─── Health Status → Visual Mapping ────────────────────────────
 

@@ -5,7 +5,6 @@
 // Active dot scales up + accent color, inactive muted.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
 import { C } from '../../../constants.js';
 
 /**

@@ -4,13 +4,13 @@
 // Sprint 18: Customizable widget layout controls.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useLayoutStore } from '../../../state/useLayoutStore.js';
 import { useState } from 'react';
-import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { C, F } from '../../../constants.js';
 import { DISCOVER_PRESETS as PRESETS } from '../../../state/layout/discoverLayoutSlice.js';
-import s from './DiscoverLayoutEngine.module.css';
+import { useLayoutStore } from '../../../state/useLayoutStore';
 import Icon from '../design/Icon.jsx';
+import s from './DiscoverLayoutEngine.module.css';
+import { alpha } from '@/shared/colorUtils';
 
 export default function DiscoverLayoutEngine() {
   const [open, setOpen] = useState(false);

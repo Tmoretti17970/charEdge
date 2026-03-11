@@ -9,12 +9,12 @@
 //   - Drawdown from peak
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../../state/useUserStore.js';
-import React, { useMemo } from 'react';
-import { C, M, F } from '../../../constants.js';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { useBreakpoints } from '../../../utils/useMediaQuery.js';
+import { useMemo } from 'react';
+import { C, M } from '../../../constants.js';
+import { useJournalStore } from '../../../state/useJournalStore';
+import { useUserStore } from '../../../state/useUserStore';
 import { fmtD } from '../../../utils.js';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 // ─── Component ───────────────────────────────────────────────────
 

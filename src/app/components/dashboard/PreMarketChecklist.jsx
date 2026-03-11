@@ -6,11 +6,10 @@
 // Awards XP on full completion and tracks streaks.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo, useState, useCallback } from 'react';
-import { C, M, F } from '../../../constants.js';
-import { useChecklistStore } from '../../../state/useChecklistStore.js';
-import { useGamificationStore } from '../../../state/useGamificationStore.js';
-import { useBreakpoints } from '../../../utils/useMediaQuery.js';
+import { useMemo, useState, useCallback } from 'react';
+import { C, M } from '../../../constants.js';
+import { useGamificationStore } from '../../../state/useGamificationStore';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 // ─── Pre-market items (daily ritual, separate from per-trade checklist) ──
 
@@ -37,6 +36,7 @@ export default function PreMarketChecklist() {
     try {
       const saved = localStorage.getItem('tf-premarket-' + getTodayKey());
       return saved ? JSON.parse(saved) : {};
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { return {}; }
   });
   // Sprint 1: Auto-collapse on same-day revisits or if already completed
@@ -53,14 +53,17 @@ export default function PreMarketChecklist() {
       // Collapse on revisit (not first visit today)
       if (visited) return true;
       // Mark first visit
+      // eslint-disable-next-line unused-imports/no-unused-vars
       try { localStorage.setItem('tf-premarket-visited-' + todayKey, '1'); } catch (_) { /* storage may be blocked */ }
       return false;
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { /* storage may be blocked */ }
     return false;
   });
   const [xpAwarded, setXpAwarded] = useState(() => {
     try {
       return localStorage.getItem('tf-premarket-xp-' + getTodayKey()) === 'true';
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) { return false; }
   });
 
@@ -74,6 +77,7 @@ export default function PreMarketChecklist() {
       const next = { ...prev, [id]: !prev[id] };
       try {
         localStorage.setItem('tf-premarket-' + getTodayKey(), JSON.stringify(next));
+      // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { /* storage may be blocked */ }
 
       // Check if all done → award XP + auto-collapse
@@ -83,6 +87,7 @@ export default function PreMarketChecklist() {
         setXpAwarded(true);
         try {
           localStorage.setItem('tf-premarket-xp-' + getTodayKey(), 'true');
+        // eslint-disable-next-line unused-imports/no-unused-vars
         } catch (_) { /* storage may be blocked */ }
         // Sprint 1: Auto-collapse after completion with a brief delay for feedback
         setTimeout(() => setCollapsed(true), 1200);

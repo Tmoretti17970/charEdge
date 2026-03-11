@@ -3,14 +3,16 @@ let _savedQuickStyles = null;
 try {
   const raw = localStorage.getItem('charEdge-quick-styles');
   if (raw) _savedQuickStyles = JSON.parse(raw);
-} catch (_) { }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+} catch (_) { /* ignored */ }
 
 // Load persisted per-tool style memory
 let _savedToolStyleMemory = null;
 try {
   const raw = localStorage.getItem('charEdge-tool-style-memory');
   if (raw) _savedToolStyleMemory = JSON.parse(raw);
-} catch (_) { }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+} catch (_) { /* ignored */ }
 
 const DEFAULT_QUICK_STYLES = [
   { id: 'qs1', color: '#2962FF', lineWidth: 2, label: 'Blue' },
@@ -25,14 +27,16 @@ let _savedToolbarPosition = 'top';
 try {
   const raw = localStorage.getItem('charEdge-toolbar-position');
   if (raw && ['top', 'left', 'right'].includes(raw)) _savedToolbarPosition = raw;
-} catch (_) { }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+} catch (_) { /* ignored */ }
 
 // Load persisted per-tool drawing defaults (Batch 15)
 let _savedDrawingDefaults = null;
 try {
   const raw = localStorage.getItem('charEdge-drawing-defaults');
   if (raw) _savedDrawingDefaults = JSON.parse(raw);
-} catch (_) { }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+} catch (_) { /* ignored */ }
 
 export const createDrawingSlice = (set, get) => ({
   activeTool: null,
@@ -70,7 +74,8 @@ export const createDrawingSlice = (set, get) => ({
 
   // Sprint 12.3: Toolbar position (top | left | right)
   setToolbarPosition: (pos) => {
-    try { localStorage.setItem('charEdge-toolbar-position', pos); } catch (_) { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    try { localStorage.setItem('charEdge-toolbar-position', pos); } catch (_) { /* ignored */ }
     set({ toolbarPosition: pos });
   },
 
@@ -81,20 +86,23 @@ export const createDrawingSlice = (set, get) => ({
     const styles = s.quickStyles.map((qs) =>
       qs.id === id ? { ...qs, ...updates } : qs
     );
-    try { localStorage.setItem('charEdge-quick-styles', JSON.stringify(styles)); } catch (_) { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    try { localStorage.setItem('charEdge-quick-styles', JSON.stringify(styles)); } catch (_) { /* ignored */ }
     return { quickStyles: styles };
   }),
 
   addQuickStyle: (style) => set((s) => {
     const id = `qs_${Date.now()}`;
     const styles = [...s.quickStyles, { id, lineWidth: 2, label: 'Custom', ...style }];
-    try { localStorage.setItem('charEdge-quick-styles', JSON.stringify(styles)); } catch (_) { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    try { localStorage.setItem('charEdge-quick-styles', JSON.stringify(styles)); } catch (_) { /* ignored */ }
     return { quickStyles: styles };
   }),
 
   removeQuickStyle: (id) => set((s) => {
     const styles = s.quickStyles.filter((qs) => qs.id !== id);
-    try { localStorage.setItem('charEdge-quick-styles', JSON.stringify(styles)); } catch (_) { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    try { localStorage.setItem('charEdge-quick-styles', JSON.stringify(styles)); } catch (_) { /* ignored */ }
     return {
       quickStyles: styles,
       activeQuickStyleId: s.activeQuickStyleId === id ? null : s.activeQuickStyleId,
@@ -102,14 +110,16 @@ export const createDrawingSlice = (set, get) => ({
   }),
 
   resetQuickStyles: () => {
-    try { localStorage.removeItem('charEdge-quick-styles'); } catch (_) { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    try { localStorage.removeItem('charEdge-quick-styles'); } catch (_) { /* ignored */ }
     set({ quickStyles: DEFAULT_QUICK_STYLES, activeQuickStyleId: null });
   },
 
   // Per-tool style memory
   setToolStyleMemory: (toolType, style) => set((s) => {
     const memory = { ...s.toolStyleMemory, [toolType]: style };
-    try { localStorage.setItem('charEdge-tool-style-memory', JSON.stringify(memory)); } catch (_) { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    try { localStorage.setItem('charEdge-tool-style-memory', JSON.stringify(memory)); } catch (_) { /* ignored */ }
     return { toolStyleMemory: memory };
   }),
 
@@ -139,7 +149,7 @@ export const createDrawingSlice = (set, get) => ({
     set({
       drawings: prev,
       drawingHistory: s.drawingHistory.slice(0, -1),
-      drawingFuture: [...s.drawingFuture, s.drawings],
+      drawingFuture: [...s.drawingFuture.slice(-49), s.drawings], // BUG-11: cap future at 50
     });
   },
 
@@ -158,14 +168,16 @@ export const createDrawingSlice = (set, get) => ({
   // Batch 15: Per-tool drawing defaults
   setDrawingDefault: (toolType, defaults) => set((s) => {
     const drawingDefaults = { ...s.drawingDefaults, [toolType]: { ...(s.drawingDefaults[toolType] || {}), ...defaults } };
-    try { localStorage.setItem('charEdge-drawing-defaults', JSON.stringify(drawingDefaults)); } catch (_) { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    try { localStorage.setItem('charEdge-drawing-defaults', JSON.stringify(drawingDefaults)); } catch (_) { /* ignored */ }
     return { drawingDefaults };
   }),
 
   resetDrawingDefaults: (toolType) => set((s) => {
     const drawingDefaults = { ...s.drawingDefaults };
     delete drawingDefaults[toolType];
-    try { localStorage.setItem('charEdge-drawing-defaults', JSON.stringify(drawingDefaults)); } catch (_) { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    try { localStorage.setItem('charEdge-drawing-defaults', JSON.stringify(drawingDefaults)); } catch (_) { /* ignored */ }
     return { drawingDefaults };
   }),
 });

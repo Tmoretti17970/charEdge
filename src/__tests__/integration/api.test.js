@@ -4,8 +4,8 @@
 // Tests the API routes, middleware, and server integration.
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, beforeEach } from 'vitest';
 import fs from 'node:fs';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 describe('6.1 — API Routes (routes.ts)', () => {
   let routesSource;
@@ -107,6 +107,7 @@ describe('6.1 — API Routes (routes.ts)', () => {
   });
 
   it('CRUD factory has bulk upsert', () => {
+    // eslint-disable-next-line no-template-curly-in-string
     expect(routesSource).toContain('`${path}/bulk`');
     expect(routesSource).toContain('bulkUpsert');
   });

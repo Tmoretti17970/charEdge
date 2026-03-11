@@ -10,7 +10,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 // @ts-nocheck — JS file with JSDoc types
-import { logger } from '../../utils/logger.ts';
+import { logger } from '@/observability/logger';
 
 // ─── Constants ──────────────────────────────────────────────────
 

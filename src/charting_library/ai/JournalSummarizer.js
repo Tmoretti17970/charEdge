@@ -46,6 +46,7 @@ Data:
     });
 
     return { ...base, narrative: response.text, narrativeSource: response.provider };
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     // LLM unavailable — return template-based summary
     return base;
@@ -59,7 +60,7 @@ Data:
  * @param {Object|null} [analyticsResult=null] - Output from computeFast()
  * @returns {Object} Weekly summary
  */
-export function summarizeWeek(trades, notes = [], analyticsResult = null) {
+export function summarizeWeek(trades, notes = [], _analyticsResult = null) {
   if (!trades || trades.length === 0) {
     return createEmptySummary();
   }
@@ -155,7 +156,7 @@ function computeKeyMoments(trades) {
 
 // ─── Narrative Builder ───────────────────────────────────────────
 
-function buildNarrative(trades, netPnl, wr, topSymbols, emotionBreakdown, keyMoments) {
+function buildNarrative(trades, netPnl, wr, topSymbols, emotionBreakdown, _keyMoments) {
   const parts = [];
 
   // Opening sentence

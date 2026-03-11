@@ -4,8 +4,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState } from 'react';
-import { C, F } from '../../constants.js';
 import { Btn, ModalOverlay, inputStyle } from '../../app/components/ui/UIKit.jsx';
+import { C, F } from '../../constants.js';
 
 export default function NoteFormModal({ isOpen, onClose, onSave, editNote, isMobile }) {
   const [title, setTitle] = useState('');

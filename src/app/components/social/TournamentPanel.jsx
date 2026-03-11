@@ -2,10 +2,10 @@
 // charEdge — Tournament Panel
 // ═══════════════════════════════════════════════════════════════════
 
-import { useGamificationStore } from '../../../state/useGamificationStore.js';
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { useGamificationStore } from '../../../state/useGamificationStore';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Countdown Display ──────────────────────────────────────────
 function Countdown({ endDate, color }) {

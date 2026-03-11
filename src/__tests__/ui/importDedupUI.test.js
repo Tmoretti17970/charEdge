@@ -3,11 +3,11 @@
 // Validates that importFile() dedup works end-to-end via the options API.
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+// eslint-disable-next-line import/order
+import { describe, it, expect } from 'vitest';
 
 // We test the public importFile API with mock File objects
 import { importFile } from '../../data/importExport/importFile.js';
-import { tradeHash } from '../../charting_library/datafeed/csv.js';
 
 // Helper: create a mock File from CSV text
 function mockCSV(text, name = 'test.csv') {

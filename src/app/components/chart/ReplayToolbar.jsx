@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { space, radii, text, transition } from '../../../theme/tokens.js';
+import { transition } from '../../../theme/tokens.js';
 
 const SPEEDS = [
     { label: '1x', value: 1 },
@@ -24,7 +24,7 @@ export default function ReplayToolbar({
 }) {
     const [qty, setQty] = useState(1);
     const [stats, setStats] = useState(null);
-    const [tick, setTick] = useState(0);
+    const [_tick, setTick] = useState(0);
 
     // Refresh stats periodically when paper trading is active
     useEffect(() => {

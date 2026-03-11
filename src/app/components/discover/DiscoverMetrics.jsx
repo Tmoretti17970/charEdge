@@ -6,10 +6,10 @@
 // Displayed in Settings → Telemetry section.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useDataStore } from '../../../state/useDataStore.js';
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { useDataStore } from '../../../state/useDataStore.js';
+import { alpha } from '@/shared/colorUtils';
 
 export default function DiscoverMetrics() {
   const [expanded, setExpanded] = useState(false);
@@ -35,7 +35,7 @@ export default function DiscoverMetrics() {
     return `${Math.round(sec / 60)}m`;
   };
 
-  const fmtPct = (v) => `${(v * 100).toFixed(0)}%`;
+  const _fmtPct = (v) => `${(v * 100).toFixed(0)}%`;
 
   return (
     <div

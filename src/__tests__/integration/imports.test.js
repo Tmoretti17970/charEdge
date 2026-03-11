@@ -3,9 +3,9 @@
 // Automated sweep: no broken imports, no unused imports, brackets OK.
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
+import { describe, it, expect } from 'vitest';
 
 const SRC = path.resolve('src');
 

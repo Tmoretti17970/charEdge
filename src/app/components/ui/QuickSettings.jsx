@@ -6,13 +6,13 @@
 // Theme, default symbol, timeframe, risk per trade, account size.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useUserStore } from '../../../state/useUserStore.js';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useUIStore } from '../../../state/useUIStore.js';
-import { alpha } from '../../../utils/colorUtils.js';
+import { useUIStore } from '../../../state/useUIStore';
+import { useUserStore } from '../../../state/useUserStore';
+import { alpha } from '@/shared/colorUtils';
 
-export default function QuickSettings({ anchorRef, onClose }) {
+export default function QuickSettings({ _anchorRef, onClose }) {
   const panelRef = useRef(null);
   const theme = useUserStore((s) => s.theme);
   const toggleTheme = useUserStore((s) => s.toggleTheme);

@@ -217,6 +217,7 @@ export class FontEngine {
         this.clearCache();
       }
       return this._fontLoaded;
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return false;
     }
@@ -228,6 +229,7 @@ export class FontEngine {
     try {
       this._measureCanvas = new OffscreenCanvas(1, 1);
       this._measureCtx = this._measureCanvas.getContext('2d');
+    // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       // Fallback for environments without OffscreenCanvas
       if (typeof document !== 'undefined') {

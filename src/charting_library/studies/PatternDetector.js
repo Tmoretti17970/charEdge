@@ -1,4 +1,4 @@
-import { logger } from '../../utils/logger';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v10 — Behavioral Pattern Detector (Sprint 4.1)
@@ -38,6 +38,7 @@ function fmtPct(n) {
 function getHour(trade) {
   try {
     return new Date(trade.date).getHours();
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return -1;
   }
@@ -45,6 +46,7 @@ function getHour(trade) {
 function getDayOfWeek(trade) {
   try {
     return new Date(trade.date).getDay();
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return -1;
   }
@@ -52,6 +54,7 @@ function getDayOfWeek(trade) {
 function getDateStr(trade) {
   try {
     return new Date(trade.date).toISOString().slice(0, 10);
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return '';
   }
@@ -59,6 +62,7 @@ function getDateStr(trade) {
 function minutesBetween(t1, t2) {
   try {
     return Math.abs(new Date(t1.date) - new Date(t2.date)) / 60000;
+  // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return Infinity;
   }
