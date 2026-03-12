@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState } from 'react';
 import { C, M } from '../../../constants.js';
 import { getApiKey, setApiKey, getProviderStatus } from '../../../data/DataProvider.js';
@@ -6,7 +7,7 @@ import { radii } from '../../../theme/tokens.js';
 import { Card, Btn, inputStyle } from '../ui/UIKit.jsx';
 import { SectionHeader, SettingRow, StatusBadge, AlertBanner } from './SettingsHelpers.jsx';
 
-export default function IntegrationsSection() {
+function IntegrationsSection() {
   return (
     <section style={{ marginBottom: 40 }}>
       <SectionHeader icon="plug" title="Integrations" description="API keys, data sources, and cloud sync" />
@@ -121,3 +122,5 @@ function CloudSyncSection() {
     </Card>
   );
 }
+
+export default React.memo(IntegrationsSection);

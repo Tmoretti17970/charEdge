@@ -11,7 +11,7 @@
 import { isCrypto } from '../../constants.js';
 import { getAggregator, removeAggregator } from '../../data/OrderFlowAggregator.js';
 import { WS_STATUS } from '../../data/WebSocketService';
-import { useChartStore } from '../../state/useChartStore';
+import { useChartCoreStore } from '../../state/chart/useChartCoreStore';
 import { tickChannel } from '../core/TickChannel.js';
 import { logger } from '@/observability/logger';
 
@@ -116,7 +116,7 @@ class DatafeedService {
           currentEntry.status = 'ready';
           currentEntry._abortController = null;
           // Notify Zustand so useChartBars subscribers re-evaluate
-          useChartStore.getState().setDataMeta(bars.length, 'datafeed:equity', bars[0]?.time ?? null);
+          useChartCoreStore.getState().setDataMeta(bars.length, 'datafeed:equity', bars[0]?.time ?? null);
           // Push to TickChannel so ChartEngine gets bars directly (matches crypto path)
           tickChannel.pushHistorical(key, bars);
           currentEntry.subscribers.forEach(sub => {
@@ -162,7 +162,7 @@ class DatafeedService {
       currentEntry.status = 'ready';
       currentEntry._abortController = null;
       // Notify Zustand so useChartBars subscribers re-evaluate
-      useChartStore.getState().setDataMeta(bars.length, 'datafeed:crypto', bars[0]?.time ?? null);
+      useChartCoreStore.getState().setDataMeta(bars.length, 'datafeed:crypto', bars[0]?.time ?? null);
 
       currentEntry.subscribers.forEach(sub => {
         if (sub.onHistorical) sub.onHistorical(bars);
@@ -216,24 +216,24 @@ class DatafeedService {
     const wsUrl = `wss://data-stream.binance.vision/stream?streams=${klineStream}/${tradeStream}/${depthStream}`;
     const ws = new WebSocket(wsUrl);
     this.sockets.set(key, ws);
-    useChartStore.getState().setWsStatus(WS_STATUS.CONNECTING);
+    useChartCoreStore.getState().setWsStatus(WS_STATUS.CONNECTING);
 
     const aggregator = getAggregator(key, 0.5); // Default tick size for MVP
 
     ws.onopen = () => {
-      useChartStore.getState().setWsStatus(WS_STATUS.CONNECTED);
+      useChartCoreStore.getState().setWsStatus(WS_STATUS.CONNECTED);
     };
 
     ws.onerror = () => {
       // Expected during symbol switching — suppress to avoid console noise
-      useChartStore.getState().setWsStatus(WS_STATUS.DISCONNECTED);
+      useChartCoreStore.getState().setWsStatus(WS_STATUS.DISCONNECTED);
     };
 
     ws.onclose = () => {
       this.sockets.delete(key);
       // Only reconnect if the subscription is still active (not cleaned up)
       if (this.cache.has(key) && this.cache.get(key).subscribers.size > 0) {
-        useChartStore.getState().setWsStatus(WS_STATUS.RECONNECTING);
+        useChartCoreStore.getState().setWsStatus(WS_STATUS.RECONNECTING);
         const baseDelay = 5000;
         const jitter = Math.random() * baseDelay * 0.5; // 0–2500ms jitter prevents thundering herd
         const timer = setTimeout(() => {
@@ -244,7 +244,7 @@ class DatafeedService {
         }, baseDelay + jitter);
         this._reconnectTimers.set(key, timer);
       } else {
-        useChartStore.getState().setWsStatus(WS_STATUS.DISCONNECTED);
+        useChartCoreStore.getState().setWsStatus(WS_STATUS.DISCONNECTED);
       }
     };
 
@@ -282,7 +282,7 @@ class DatafeedService {
             // Append new candle in-place — O(1) push instead of O(N) spread
             prev.push(bar);
             // Bump barCount so useChartBars subscribers re-evaluate on new candle
-            useChartStore.getState().setDataMeta(prev.length, 'datafeed:live', prev[0]?.time ?? null);
+            useChartCoreStore.getState().setDataMeta(prev.length, 'datafeed:live', prev[0]?.time ?? null);
             // Evict oldest bars to cap memory usage
             if (prev.length > MAX_BARS) {
               prev.splice(0, prev.length - MAX_BARS);

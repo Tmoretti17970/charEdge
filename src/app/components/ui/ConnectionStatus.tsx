@@ -5,6 +5,7 @@
 // Shows LIVE / STALE / DISCONNECTED badge in the chart header.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { C, F } from '../../../constants.js';
 
 type ConnectionState = 'live' | 'stale' | 'disconnected' | 'error';
@@ -54,7 +55,7 @@ interface ConnectionStatusProps {
     detail?: string;
 }
 
-export default function ConnectionStatus({
+function ConnectionStatus({
     state = 'live',
     latencyMs,
     detail,
@@ -110,3 +111,5 @@ export default function ConnectionStatus({
 }
 
 export type { ConnectionState, ConnectionStatusProps };
+
+export default React.memo(ConnectionStatus);

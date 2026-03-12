@@ -8,9 +8,10 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useBacktestStore } from '../../../../state/useBacktestStore.js';
-import { useChartStore, useChartFeaturesStore } from '../../../../state/useChartStore';
 import { useStrategyBuilderStore } from '../../../../state/useStrategyBuilderStore';
 import ChartTradeToolbar from '../chart_ui/ChartTradeToolbar.jsx';
+import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 
 // ─── Tab Definitions ──────────────────────────────────────────────
 const TABS = [
@@ -219,8 +220,8 @@ export default function CommandCenterMenu({
             <ToggleItem label="Extended Hours" active={showExtendedHours} onClick={toggleExtendedHours} />
             <ToggleItem label="Pattern Detection" active={showPatternOverlays} onClick={togglePatternOverlays} />
 
-            <ActionItem label="Volume Delta" onClick={() => { useChartStore.getState().addIndicator({ indicatorId: 'volumeDelta', params: {} }); close(); }} />
-            <ActionItem label="Anchored VWAP" onClick={() => { useChartStore.getState().addIndicator({ indicatorId: 'vwap', params: { anchorTime: Date.now() } }); close(); }} />
+            <ActionItem label="Volume Delta" onClick={() => { useChartToolsStore.getState().addIndicator({ indicatorId: 'volumeDelta', params: {} }); close(); }} />
+            <ActionItem label="Anchored VWAP" onClick={() => { useChartToolsStore.getState().addIndicator({ indicatorId: 'vwap', params: { anchorTime: Date.now() } }); close(); }} />
             <ToggleItem label="Volume Spikes" active={showVolumeSpikes} onClick={toggleVolumeSpikes} />
             <ToggleItem label="Delta Histogram" active={showDeltaOverlay} onClick={toggleDeltaOverlay} />
             <ToggleItem label="Volume Profile" active={showVPOverlay} onClick={toggleVPOverlay} />

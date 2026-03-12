@@ -5,10 +5,10 @@
 // ReactionBar after any trade is logged. Mounted in App.jsx.
 // ═══════════════════════════════════════════════════════════════════
 
-import { Suspense } from 'react';
+import React, { Suspense } from 'react';
 import ReactionBar, { useReactionBar } from './ReactionBar.jsx';
 
-export default function ReactionBarOverlay() {
+function ReactionBarOverlay() {
     const { tradeId, visible, dismiss } = useReactionBar();
 
     if (!visible || !tradeId) return null;
@@ -19,3 +19,5 @@ export default function ReactionBarOverlay() {
         </Suspense>
     );
 }
+
+export default React.memo(ReactionBarOverlay);

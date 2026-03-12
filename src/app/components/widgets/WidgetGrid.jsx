@@ -23,7 +23,7 @@ const STORAGE_KEY = 'charEdge-dashboard-layout';
  * @param {boolean} editable - Enable drag-and-drop
  * @param {Function} onLayoutChange - Callback with new widget order
  */
-export default function WidgetGrid({ widgets, cols = 2, gap = 16, editable = false, onLayoutChange }) {
+function WidgetGrid({ widgets, cols = 2, gap = 16, editable = false, onLayoutChange }) {
   const [dragIdx, setDragIdx] = useState(-1);
   const [overIdx, setOverIdx] = useState(-1);
   const [order, setOrder] = useState(() => widgets.map((_, i) => i));
@@ -193,3 +193,5 @@ export function saveLayout(orderedIds) {
 }
 
 export { WidgetGrid };
+
+export default React.memo(WidgetGrid);

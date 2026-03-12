@@ -7,13 +7,14 @@
 //   • Streak flame icon + counter (if active)
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { C, F, M } from '../../../constants.js';
 import { useGamificationStore, getRankForXP, getXPToNextLevel } from '../../../state/useGamificationStore';
 import { alpha } from '@/shared/colorUtils';
 
-export default function SidebarXPBadge() {
+function SidebarXPBadge() {
   const xp = useGamificationStore((s) => s.xp);
   const enabled = useGamificationStore((s) => s.enabled);
   const streaks = useGamificationStore((s) => s.streaks);
@@ -203,3 +204,4 @@ export default function SidebarXPBadge() {
 
 export { SidebarXPBadge };
 
+export default React.memo(SidebarXPBadge);

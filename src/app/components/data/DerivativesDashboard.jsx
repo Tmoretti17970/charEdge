@@ -9,6 +9,7 @@
 //   <DerivativesDashboard symbol="BTCUSDT" />
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { binanceFuturesAdapter } from '../../../data/adapters/BinanceFuturesAdapter.js';
@@ -143,7 +144,7 @@ function LiquidationFeed({ liquidations }) {
 
 // ─── Main Component ────────────────────────────────────────────
 
-export default function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
+function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
   const [snapshot, setSnapshot] = useState(null);
   const [oiHistory, setOiHistory] = useState([]);
   const [fundingHistory, setFundingHistory] = useState([]);
@@ -326,3 +327,5 @@ export default function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
     </div>
   );
 }
+
+export default React.memo(DerivativesDashboard);

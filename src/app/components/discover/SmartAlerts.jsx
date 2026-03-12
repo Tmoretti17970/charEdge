@@ -4,6 +4,7 @@
 // Sprint 16: Intelligent, contextual alert management center.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
@@ -37,7 +38,7 @@ const MOCK_ALERTS = [
   { id: 10, type: 'volume', symbol: 'AMD', priority: 'fyi', message: 'Dark pool activity spike — 2.8M shares block traded', time: '6h ago', outcome: '-0.8% since alert' },
 ];
 
-export default function SmartAlerts() {
+function SmartAlerts() {
   const [collapsed, setCollapsed] = useState(false);
   const [filter, setFilter] = useState('all');
   const [quietMode, setQuietMode] = useState(false);
@@ -122,3 +123,5 @@ export default function SmartAlerts() {
 }
 
 export { SmartAlerts };
+
+export default React.memo(SmartAlerts);

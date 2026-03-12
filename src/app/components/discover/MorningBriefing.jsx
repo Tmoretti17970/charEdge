@@ -12,6 +12,7 @@
 // Decomposed: sub-components live in ./morning-briefing/.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useBriefingStore } from '../../../state/useBriefingStore.js';
@@ -31,7 +32,7 @@ import WatchlistDigest from './morning-briefing/WatchlistDigest.jsx';
 import { fetchBriefingData } from '@/journal/briefingService.js';
 import { alpha } from '@/shared/colorUtils';
 
-export default function MorningBriefing() {
+function MorningBriefing() {
   const watchlistItems = useWatchlistStore((s) => s.items);
   const trades = useJournalStore((s) => s.trades);
   const briefing = useBriefingStore((s) => s.briefing);
@@ -201,3 +202,5 @@ export default function MorningBriefing() {
 }
 
 export { MorningBriefing };
+
+export default React.memo(MorningBriefing);

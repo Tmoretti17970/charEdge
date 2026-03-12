@@ -3,6 +3,7 @@
 // 5-step spotlight tour highlighting key features on first visit.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useEffect, useState, useCallback } from 'react';
 import { C, F } from '../../../constants.js';
 import { useUserStore } from '../../../state/useUserStore';
@@ -60,7 +61,7 @@ const TOUR_STEPS = [
   },
 ];
 
-export default function GuidedTour() {
+function GuidedTour() {
   const tourStep = useUserStore((s) => s.tourStep);
   const tourCompleted = useUserStore((s) => s.tourCompleted);
   const wizardComplete = useUserStore((s) => s.wizardComplete);
@@ -304,3 +305,5 @@ export default function GuidedTour() {
     </div>
   );
 }
+
+export default React.memo(GuidedTour);

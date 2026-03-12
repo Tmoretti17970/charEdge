@@ -4,6 +4,7 @@
 // Sprint 11: Interactive correlation heatmap for portfolio risk.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
@@ -24,7 +25,7 @@ function simCorr(a, b, tf) {
 
 const TF_OPTIONS = ['30D', '90D', '1Y'];
 
-export default function CorrelationMatrix() {
+function CorrelationMatrix() {
   const [collapsed, setCollapsed] = useState(false);
   const [tf, setTf] = useState('90D');
   const [showMacro, setShowMacro] = useState(true);
@@ -152,3 +153,5 @@ export default function CorrelationMatrix() {
 }
 
 export { CorrelationMatrix };
+
+export default React.memo(CorrelationMatrix);

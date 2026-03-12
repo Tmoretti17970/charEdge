@@ -7,7 +7,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { C } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 import { useUIStore } from '../../../../state/useUIStore';
 
 /**
@@ -19,7 +20,7 @@ import { useUIStore } from '../../../../state/useUIStore';
  */
 export function launchTradeReplay(trade, opts = {}) {
   const { replayMode = false, highlightTrade = true } = opts;
-  const store = useChartStore.getState();
+  const store = useChartCoreStore.getState();
   const ui = useUIStore.getState();
 
   // 1. Switch to chart page

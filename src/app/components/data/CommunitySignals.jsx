@@ -5,9 +5,10 @@
 // Requires a signaling server (planned for Horizon 3).
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { C, M } from '../../../constants.js';
 
-export default function CommunitySignals() {
+function CommunitySignals() {
   return (
     <div style={{
       padding: '20px 16px',
@@ -26,3 +27,5 @@ export default function CommunitySignals() {
     </div>
   );
 }
+
+export default React.memo(CommunitySignals);

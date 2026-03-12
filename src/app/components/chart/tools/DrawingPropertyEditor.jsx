@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { C } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore';
+import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 
 const PRESET_COLORS = [
   '#2962FF', '#FF6D00', '#EF5350', '#26A69A', '#AB47BC',
@@ -25,9 +25,9 @@ const DASH_PATTERNS = [
 ];
 
 export default function DrawingPropertyEditor() {
-  const selectedDrawingId = useChartStore((s) => s.selectedDrawingId);
-  const drawings = useChartStore((s) => s.drawings);
-  const setDrawings = useChartStore((s) => s.setDrawings);
+  const selectedDrawingId = useChartToolsStore((s) => s.selectedDrawingId);
+  const drawings = useChartToolsStore((s) => s.drawings);
+  const setDrawings = useChartToolsStore((s) => s.setDrawings);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showFillPicker, setShowFillPicker] = useState(false);
   const [customColor, setCustomColor] = useState('');
@@ -79,7 +79,7 @@ export default function DrawingPropertyEditor() {
       })),
       style: { ...drawing.style },
     };
-    useChartStore.getState().addDrawing(newDrawing);
+    useChartToolsStore.getState().addDrawing(newDrawing);
   }, [drawing]);
 
   const handleToggleVisibility = useCallback(() => {

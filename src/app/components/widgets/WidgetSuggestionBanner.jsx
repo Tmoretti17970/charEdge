@@ -5,13 +5,14 @@
 // Placed above the dashboard widget grid.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, F } from '../../../constants.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useLayoutStore } from '../../../state/useLayoutStore';
 import { evaluateSuggestions } from '@/app/features/widgetSuggestionEngine';
 
-export default function WidgetSuggestionBanner() {
+function WidgetSuggestionBanner() {
   const trades = useJournalStore((s) => s.trades);
   const activeWidgets = useLayoutStore((s) => s.activeWidgets);
   const dismissedSuggestions = useLayoutStore((s) => s.dismissedSuggestions || []);
@@ -118,3 +119,5 @@ export default function WidgetSuggestionBanner() {
     </div>
   );
 }
+
+export default React.memo(WidgetSuggestionBanner);

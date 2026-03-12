@@ -1,0 +1,184 @@
+/* Auto-extracted from UnifiedStatusBar.jsx */
+
+.s0 {
+  display: block;
+  flex-shrink: 0;
+}
+
+.s1 {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 13px;
+}
+
+.s2 {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  animation: tfUnifiedExpand 0.2s ease forwards;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.s3 {
+  font-size: 8px;
+  opacity: 0.6;
+}
+
+.s4 {
+  font-size: 9px;
+  opacity: 0.5;
+}
+
+.s5 {
+  font-weight: 600;
+  color: var(--tf-t1);
+  font-size: 10px;
+}
+
+.s6 {
+  font-size: 8px;
+  opacity: 0.5;
+}
+
+.s7 {
+  font-size: 8px;
+  opacity: 0.5;
+}
+
+.s8 {
+  font-weight: 600;
+  font-size: 10px;
+  color: var(--tf-t1);
+}
+
+.s9 {
+  font-size: 10px;
+  color: #f59e0b;
+  font-weight: 700;
+}
+
+.s10 {
+  font-size: 8px;
+  font-weight: 700;
+  color: #f59e0b;
+  background-color: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 3px;
+  padding: 0px 3px;
+}
+
+.s11 {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: #ef4444;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  font-size: 10px;
+}
+
+.s12 {
+  position: absolute;
+  bottom: 28px;
+  right: 0;
+  width: 380px;
+  max-height: 280px;
+  overflow: auto;
+  background-color: var(--bg-surface-overlay, rgba(15, 23, 42, 0.95));
+  border: 1px solid var(--border-subtle, rgba(148, 163, 184, 0.2));
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 10px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  z-index: 1000;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.s13 {
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #e2e8f0;
+  font-size: 11px;
+}
+
+.s14 {
+  color: #64748b;
+  padding: 8px;
+}
+
+.s15 {
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+.s16 {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.s17 {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.s18 {
+  font-size: 7px;
+  margin-left: 1px;
+}
+
+.s19 {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 6px;
+  min-width: 160px;
+  max-height: 280px;
+  overflow-y: auto;
+  transform-origin: bottom right;
+}
+
+.s20 {
+  width: 18px;
+  text-align: center;
+  font-weight: 700;
+  flex-shrink: 0;
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.s21 {
+  margin-left: auto;
+  font-size: 12px;
+}
+
+.s22 {
+  font-size: 7px;
+  margin-left: 1px;
+}
+
+.s23 {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 6px;
+  min-width: 120px;
+  transform-origin: bottom right;
+}
+
+.s24 {
+  width: 18px;
+  text-align: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.s25 {
+  margin-left: auto;
+  font-size: 12px;
+}

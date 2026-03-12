@@ -1,10 +1,11 @@
+import React from 'react';
 import { C } from '../../../constants.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useUserStore } from '../../../state/useUserStore';
 import { Card, Btn } from '../ui/UIKit.jsx';
 import { SectionHeader } from './SettingsHelpers.jsx';
 
-export default function DangerZoneSection() {
+function DangerZoneSection() {
   const tradeCount = useJournalStore((s) => s.trades.length);
 
   const handleReset = async () => {
@@ -39,3 +40,5 @@ export default function DangerZoneSection() {
     </section>
   );
 }
+
+export default React.memo(DangerZoneSection);

@@ -11,6 +11,7 @@
 //   4. Ready → auto-dismiss
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import styles from '../../../../styles/ChartLoadingNarrative.module.css';
 
@@ -29,7 +30,7 @@ const STEPS = [
  * @param {string} props.symbol - Ticker being loaded
  * @param {number} props.barCount - Number of bars loaded so far
  */
-export default function ChartLoadingNarrative({ status, symbol, barCount }) {
+function ChartLoadingNarrative({ status, symbol, barCount }) {
     const [currentStep, setCurrentStep] = useState(0);
     const [exiting, setExiting] = useState(false);
     const [visible, setVisible] = useState(true);
@@ -91,3 +92,5 @@ export default function ChartLoadingNarrative({ status, symbol, barCount }) {
         </div>
     );
 }
+
+export default React.memo(ChartLoadingNarrative);

@@ -3,13 +3,14 @@
 // Spotlight-style global Trade Entry overlay
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import JournalQuickAdd from '../../features/journal/journal_ui/JournalQuickAdd.jsx';
 import { toast } from '../ui/Toast.jsx';
 
-export default function GlobalQuickAddModal() {
+function GlobalQuickAddModal() {
   const [isOpen, setIsOpen] = useState(false);
   const addTrade = useJournalStore((s) => s.addTrade);
 
@@ -126,3 +127,5 @@ export default function GlobalQuickAddModal() {
     </div>
   );
 }
+
+export default React.memo(GlobalQuickAddModal);

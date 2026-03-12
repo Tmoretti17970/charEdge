@@ -3,6 +3,7 @@
 // Histogram showing frequency of R-multiple outcomes
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useMemo } from 'react';
 import { C, M } from '../../../constants.js';
 import ChartWrapper from '../chart/core/ChartWrapper.jsx';
@@ -11,7 +12,7 @@ import ChartWrapper from '../chart/core/ChartWrapper.jsx';
  * @param {Array} trades - Full trades array
  * @param {number} height - Chart height
  */
-export default function RDistributionChart({ trades = [], height = 200 }) {
+function RDistributionChart({ trades = [], height = 200 }) {
   const config = useMemo(() => {
     // Filter trades with valid R-multiples
     const rValues = trades.map((t) => t.rMultiple).filter((r) => r != null && isFinite(r));
@@ -97,3 +98,5 @@ export default function RDistributionChart({ trades = [], height = 200 }) {
 
   return <ChartWrapper config={config} height={height} />;
 }
+
+export default React.memo(RDistributionChart);

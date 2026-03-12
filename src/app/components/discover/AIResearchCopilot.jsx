@@ -9,6 +9,7 @@
 //   - Rule-based reasoning engine (no external API needed)
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useRef, useEffect } from 'react';
 import { C, F } from '../../../constants.js';
 import { useJournalStore } from '../../../state/useJournalStore';
@@ -99,7 +100,7 @@ function generateResponse(query, trades, watchlist) {
 // Main Component
 // ═══════════════════════════════════════════════════════════════════
 
-export default function AIResearchCopilot() {
+function AIResearchCopilot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
@@ -425,3 +426,5 @@ function MessageBubble({ message, onFollowUp }) {
 }
 
 export { AIResearchCopilot };
+
+export default React.memo(AIResearchCopilot);

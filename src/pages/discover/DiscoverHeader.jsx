@@ -1,12 +1,11 @@
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Discover Header
 // Extracted from CommunityPage.jsx for single-responsibility.
-// Contains: page title, search bar, notification bell, layout engine,
-// and filter toggle button.
+// Contains: page title, search bar, layout engine, and filter toggle.
 // ═══════════════════════════════════════════════════════════════════
 
 import DiscoverLayoutEngine from '../../app/components/discover/DiscoverLayoutEngine.jsx';
-import NotificationBell from '../../app/components/social/NotificationBell.jsx';
+// NotificationBell quarantined (no backend) — see _quarantine/p2p/
 import { C, F } from '../../constants.js';
 import { alpha } from '@/shared/colorUtils';
 
@@ -67,7 +66,6 @@ export default function DiscoverHeader({
           />
         </div>
 
-        <NotificationBell />
         <DiscoverLayoutEngine />
 
         {/* Filter Toggle */}

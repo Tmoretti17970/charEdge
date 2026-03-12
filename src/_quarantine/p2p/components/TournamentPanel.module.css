@@ -1,0 +1,95 @@
+/* Auto-extracted from TournamentPanel.jsx */
+
+.s0 {
+  display: flex;
+  gap: 8px;
+}
+
+.s1 {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.s2 {
+  text-align: center;
+  width: 80px;
+}
+
+.s3 {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.s4 {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.s5 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.s6 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.s7 {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.s8 {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.s9 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.s10 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 20px;
+}
+
+.s11 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.s12 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 20px;
+}
+
+.s13 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.s14 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 20px;
+}

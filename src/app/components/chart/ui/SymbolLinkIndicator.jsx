@@ -4,14 +4,15 @@
 // Charts in the same group auto-sync symbols.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useChartStore } from '../../../../state/useChartStore';
+import React from 'react';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 
 const LINK_GROUPS = [null, 'A', 'B', 'C', 'D'];
 const LINK_COLORS = { A: '#EF5350', B: '#42A5F5', C: '#66BB6A', D: '#AB47BC' };
 
-export default function SymbolLinkIndicator() {
-    const linkGroup = useChartStore((s) => s.linkGroup);
-    const setLinkGroup = useChartStore((s) => s.setLinkGroup);
+function SymbolLinkIndicator() {
+    const linkGroup = useChartFeaturesStore((s) => s.linkGroup);
+    const setLinkGroup = useChartFeaturesStore((s) => s.setLinkGroup);
 
     const handleCycle = () => {
         const idx = LINK_GROUPS.indexOf(linkGroup);
@@ -47,3 +48,5 @@ export default function SymbolLinkIndicator() {
         </button>
     );
 }
+
+export default React.memo(SymbolLinkIndicator);

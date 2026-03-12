@@ -8,9 +8,10 @@ import React, { Suspense } from 'react';
 import ChartContextMenu from '../../app/components/chart/chart_ui/ChartContextMenu.jsx';
 import { C } from '../../constants.js';
 import { useBacktestStore } from '../../state/useBacktestStore.js';
-import { useChartStore } from '../../state/useChartStore';
 import { useStrategyBuilderStore } from '../../state/useStrategyBuilderStore';
 import { isEnabled, FEATURES } from '@/shared/featureFlags';
+import { useChartToolsStore } from '../../state/chart/useChartToolsStore';
+import { useChartFeaturesStore } from '../../state/chart/useChartFeaturesStore';
 
 // Lazy-loaded overlays
 const IndicatorLegendHeader = React.lazy(() => import('../../app/components/chart/core/IndicatorLegendHeader.jsx'));
@@ -114,9 +115,9 @@ export default function ChartOverlays({
   showAutoFit,
   onAutoFit,
 }) {
-  const selectedDrawingId = useChartStore((s) => s.selectedDrawingId);
-  const showComparisonOverlay = useChartStore((s) => s.showComparisonOverlay);
-  const showDataWindow = useChartStore((s) => s.showDataWindow);
+  const selectedDrawingId = useChartToolsStore((s) => s.selectedDrawingId);
+  const showComparisonOverlay = useChartFeaturesStore((s) => s.showComparisonOverlay);
+  const showDataWindow = useChartFeaturesStore((s) => s.showDataWindow);
   const backtestPanelOpen = useBacktestStore((s) => s.panelOpen);
   const backtestResultsOpen = useBacktestStore((s) => s.resultsOpen);
   const strategyBuilderOpen = useStrategyBuilderStore((s) => s.panelOpen);
@@ -224,14 +225,14 @@ export default function ChartOverlays({
               // ── Draw submenu ──
               if (segId === 'draw') {
                 if (subItemId === 'more') { setDrawSidebarOpen(true); return; }
-                useChartStore.getState().setActiveTool(subItemId); // trendline, hline, fib, channel, rect
+                useChartToolsStore.getState().setActiveTool(subItemId); // trendline, hline, fib, channel, rect
                 return;
               }
               // ── Trade submenu ──
               if (segId === 'trade') {
                 if (subItemId === 'more') { /* future: open full trade panel */ return; }
-                if (subItemId === 'long') { useChartStore.getState().startTradeMode('long'); return; }
-                if (subItemId === 'short') { useChartStore.getState().startTradeMode('short'); return; }
+                if (subItemId === 'long') { useChartFeaturesStore.getState().startTradeMode('long'); return; }
+                if (subItemId === 'short') { useChartFeaturesStore.getState().startTradeMode('short'); return; }
                 if (subItemId === 'close') { /* future: close position */ return; }
                 return;
               }
@@ -246,13 +247,13 @@ export default function ChartOverlays({
                 if (subItemId === 'more') { setShowIndicators(true); return; }
                 // Directly add indicator by id (rsi, ema, macd, bollinger, vwap)
                 // eslint-disable-next-line unused-imports/no-unused-vars
-                try { useChartStore.getState().addIndicator({ indicatorId: subItemId }); } catch (_) { /* noop */ }
+                try { useChartToolsStore.getState().addIndicator({ indicatorId: subItemId }); } catch (_) { /* noop */ }
                 return;
               }
               // ── Measure submenu ──
               if (segId === 'measure') {
                 if (subItemId === 'more') { /* future */ return; }
-                useChartStore.getState().setActiveTool('measure');
+                useChartToolsStore.getState().setActiveTool('measure');
                 return;
               }
               // ── Screenshot submenu ──
@@ -277,7 +278,7 @@ export default function ChartOverlays({
       {showComparisonOverlay && !multiMode && !isMobile && (
         <Suspense fallback={null}>
           <ComparisonOverlay
-            onClose={() => useChartStore.getState().toggleComparisonOverlay()}
+            onClose={() => useChartFeaturesStore.getState().toggleComparisonOverlay()}
           />
         </Suspense>
       )}

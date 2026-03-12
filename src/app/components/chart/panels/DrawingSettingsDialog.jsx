@@ -7,7 +7,6 @@
 
 import { useState, useCallback } from 'react';
 import { C, F, M } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore';
 import {
     ColorSwatch,
     Toggle,
@@ -17,6 +16,7 @@ import {
     SectionLabel,
 } from '../../settings/SettingsControls.jsx';
 import SettingsTabShell from '../../settings/SettingsTabShell.jsx';
+import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -86,8 +86,8 @@ function parseTimeInput(str) {
 
 export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
     const [activeTab, setActiveTab] = useState('style');
-    const drawingDefaults = useChartStore((s) => s.drawingDefaults) || {};
-    const setDrawingDefault = useChartStore((s) => s.setDrawingDefault);
+    const drawingDefaults = useChartToolsStore((s) => s.drawingDefaults) || {};
+    const setDrawingDefault = useChartToolsStore((s) => s.setDrawingDefault);
 
     // ─── Local state ──────────────────────────────────────────────
     const [color, setColor] = useState(drawing?.style?.color || '#2962FF');

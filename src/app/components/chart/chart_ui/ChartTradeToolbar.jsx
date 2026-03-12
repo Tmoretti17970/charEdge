@@ -5,13 +5,14 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { C } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
+import { useChartTradeStore } from '../../../../state/chart/useChartTradeStore';
 
 export default function ChartTradeToolbar() {
-  const tradeMode = useChartStore((s) => s.tradeMode);
-  const tradeSide = useChartStore((s) => s.tradeSide);
-  const enterTradeMode = useChartStore((s) => s.enterTradeMode);
-  const exitTradeMode = useChartStore((s) => s.exitTradeMode);
+  const tradeMode = useChartFeaturesStore((s) => s.tradeMode);
+  const tradeSide = useChartFeaturesStore((s) => s.tradeSide);
+  const enterTradeMode = useChartTradeStore((s) => s.enterTradeMode);
+  const exitTradeMode = useChartFeaturesStore((s) => s.exitTradeMode);
 
   const isLong = tradeMode && tradeSide === 'long';
   const isShort = tradeMode && tradeSide === 'short';

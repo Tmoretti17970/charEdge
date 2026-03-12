@@ -3,29 +3,21 @@
 //
 // Phase B Sprint 5: Supports inline (condensed) mode for unified feed.
 // inline=true → compact 3-widget preview; inline=false → full view.
+//
+// Social widgets (FearGreed, Sentiment, Heatmap, Polls, Tournaments,
+// Leaderboard, WhaleAlert, Liquidation, FundingRates, MacroCalendar)
+// quarantined — replaced with Coming Soon placeholders.
+// Non-social discover components (AnalystConsensus, CorrelationMatrix,
+// etc.) remain active.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
 // eslint-disable-next-line import/order
 import { useDataStore } from '../../../state/useDataStore.js';
 
-// ─── Market Intelligence Widgets ─────────────────────────────────
-import FearGreedWidget from '../social/FearGreedWidget.jsx';
-import FundingRatesWidget from '../social/FundingRatesWidget.jsx';
-import HeatmapWidget from '../social/HeatmapWidget.jsx';
-import LiquidationTicker from '../social/LiquidationTicker.jsx';
-// eslint-disable-next-line import/order
-import MacroCalendarWidget from '../social/MacroCalendarWidget.jsx';
-
-// ─── Discover Components ─────────────────────────────────────────
-
-// ─── Predictions ─────────────────────────────────────────────────
-import PollCard from '../social/PollCard.jsx';
-import TournamentPanel from '../social/TournamentPanel.jsx';
-import TraderLeaderboard from '../social/TraderLeaderboard.jsx';
-import WhaleAlertWidget from '../social/WhaleAlertWidget.jsx';
-import XSentimentWidget from '../social/XSentimentWidget.jsx';
+// ─── Discover Components (non-social, still active) ─────────────
 import AnalystConsensus from './AnalystConsensus.jsx';
 import ConfluenceView from './ConfluenceView.jsx';
 import CorrelationMatrix from './CorrelationMatrix.jsx';
@@ -40,179 +32,123 @@ import TechnicalScanner from './TechnicalScanner.jsx';
 import VolatilityDashboard from './VolatilityDashboard.jsx';
 import { alpha } from '@/shared/colorUtils';
 
+// Social widgets quarantined — see src/_quarantine/p2p/README.md
+
+// ═════════════════════════════════════════════════════════════════
+// Coming Soon Placeholder (replaces quarantined social widgets)
+// ═════════════════════════════════════════════════════════════════
+function ComingSoonWidget({ icon, title }) {
+  return (
+    <div
+      style={{
+        padding: '32px 20px',
+        textAlign: 'center',
+        background: C.bg2,
+        borderRadius: 14,
+        border: `1px solid ${C.bd}`,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 8,
+      }}
+    >
+      <span style={{ fontSize: 28, opacity: 0.7 }}>{icon}</span>
+      <div style={{ fontSize: 13, fontWeight: 600, color: C.t2, fontFamily: F }}>{title}</div>
+      <span
+        style={{
+          padding: '4px 12px',
+          borderRadius: 16,
+          background: alpha(C.b, 0.08),
+          color: C.b,
+          fontSize: 10,
+          fontWeight: 700,
+          fontFamily: F,
+        }}
+      >
+        Coming Soon
+      </span>
+    </div>
+  );
+}
+
 // ═════════════════════════════════════════════════════════════════
 // Market Intel Content
 // ═════════════════════════════════════════════════════════════════
-function MarketIntelContent({ filter }) {
+function MarketIntelContent() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* Row 1: Sentiment Overview — 2 equal columns */}
+      {/* Row 1: Sentiment Overview — placeholders for quarantined widgets */}
       <div className="tf-discover-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <FearGreedWidget />
-        <XSentimentWidget category={filter} />
+        <ComingSoonWidget icon="😨" title="Fear & Greed Index" />
+        <ComingSoonWidget icon="𝕏" title="Social Sentiment" />
       </div>
 
-      {/* Row 2: Market Heatmap — full width */}
-      <HeatmapWidget />
+      {/* Row 2: Market Heatmap — placeholder */}
+      <ComingSoonWidget icon="🗺️" title="Market Heatmap" />
 
-      {/* Row 3: Sector Rotation (Sprint 6) — full width */}
+      {/* Row 3: Sector Rotation — active (non-social) */}
       <SectorRotationMap />
 
-      {/* Row 4: Options Flow + Insider Tracker (Sprint 7 + 8) */}
+      {/* Row 4: Options Flow + Insider Tracker — active */}
       <div className="tf-discover-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
         <OptionsFlowScanner />
         <InsiderTracker />
       </div>
 
-      {/* Row 5: Analyst Consensus (Sprint 9) — full width */}
+      {/* Row 5: Analyst Consensus — active */}
       <AnalystConsensus />
 
-      {/* Row 6: Technical Scanner (Sprint 10) — full width */}
+      {/* Row 6: Technical Scanner — active */}
       <TechnicalScanner />
 
-      {/* Row 7: Enhanced Calendar + Earnings (Sprint 4 + 5) */}
+      {/* Row 7: Calendar + Earnings — active */}
       <div className="tf-discover-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
         <EconomicCalendarPro />
         <EarningsIntelligence />
       </div>
 
-      {/* Row 8: Data Tables — 2 columns */}
+      {/* Row 8: Data Tables — placeholders for quarantined widgets */}
       <div className="tf-discover-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <FundingRatesWidget />
-        <MacroCalendarWidget category={filter} />
+        <ComingSoonWidget icon="💰" title="Funding Rates" />
+        <ComingSoonWidget icon="📅" title="Macro Calendar" />
       </div>
 
-      {/* Row 9: Live Feeds — 2 columns */}
+      {/* Row 9: Live Feeds — placeholders for quarantined widgets */}
       <div className="tf-discover-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <WhaleAlertWidget />
-        <LiquidationTicker />
+        <ComingSoonWidget icon="🐋" title="Whale Alerts" />
+        <ComingSoonWidget icon="💧" title="Liquidation Tracker" />
       </div>
 
-      {/* Row 10: Correlation Matrix (Sprint 11) — full width */}
+      {/* Row 10: Correlation Matrix — active */}
       <CorrelationMatrix />
 
-      {/* Row 11: Volatility Dashboard (Sprint 12) — full width */}
+      {/* Row 11: Volatility Dashboard — active */}
       <VolatilityDashboard />
 
-      {/* Row 12: Multi-Timeframe Confluence (Sprint 14) — full width */}
+      {/* Row 12: Confluence — active */}
       <ConfluenceView />
 
-      {/* Row 13: Smart Alerts (Sprint 16) — full width */}
+      {/* Row 13: Smart Alerts — active */}
       <SmartAlerts />
 
-      {/* Row 14: Social Validation (Sprint 19) — full width */}
+      {/* Row 14: Social Validation — active */}
       <SocialValidation />
     </div>
   );
 }
 
 // ═════════════════════════════════════════════════════════════════
-// Predictions Content
+// Predictions Content (quarantined — all social)
 // ═════════════════════════════════════════════════════════════════
-function PredictionsContent({ activePolls, resolvedPolls, onCreatePoll }) {
-  const [subView, setSubView] = useState('predictions');
-
+function PredictionsContent() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* Sub-nav: Predictions / Tournaments */}
-      <div style={{ display: 'flex', gap: 8 }}>
-        {[
-          { id: 'predictions', label: '🔮 Prediction Markets' },
-          { id: 'tournaments', label: '🏆 Tournaments' },
-        ].map((tab) => {
-          const isActive = subView === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setSubView(tab.id)}
-              style={{
-                padding: '7px 18px', borderRadius: 10,
-                border: `1px solid ${isActive ? C.b : C.bd}`,
-                background: isActive ? alpha(C.b, 0.1) : 'transparent',
-                color: isActive ? C.b : C.t2,
-                fontSize: 12, fontWeight: 700, fontFamily: F,
-                cursor: 'pointer', transition: 'all 0.2s',
-              }}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
+      <SectionHeader icon="🔮" title="Predictions & Tournaments" />
+      <div className="tf-discover-grid-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+        <ComingSoonWidget icon="🔮" title="Prediction Markets" />
+        <ComingSoonWidget icon="🏆" title="Trading Tournaments" />
+        <ComingSoonWidget icon="🏅" title="Trader Leaderboard" />
       </div>
-
-      {subView === 'predictions' ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-          {/* Active Predictions Header + Create Button */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <SectionHeader icon="🔮" title="Active Predictions" count={activePolls.length} />
-              <button
-                onClick={onCreatePoll}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 10,
-                  border: 'none',
-                  background: alpha(C.p, 0.12),
-                  color: C.p,
-                  cursor: 'pointer',
-                  fontWeight: 700,
-                  fontSize: 12,
-                  fontFamily: F,
-                  transition: 'all 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = alpha(C.p, 0.2))}
-                onMouseLeave={(e) => (e.currentTarget.style.background = alpha(C.p, 0.12))}
-              >
-                + Create Prediction
-              </button>
-            </div>
-            {activePolls.length === 0 ? (
-              <EmptyState text="No active prediction markets right now." icon="🔮" cta="Create one!" onCta={onCreatePoll} />
-            ) : (
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
-                  gap: 20,
-                }}
-              >
-                {activePolls.map((p) => (
-                  <PollCard key={p.id} pollId={p.id} compact={false} inFeed={false} />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Resolved Predictions */}
-          {resolvedPolls.length > 0 && (
-            <div>
-              <SectionHeader icon="✅" title="Resolved" count={resolvedPolls.length} />
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
-                  gap: 20,
-                }}
-              >
-                {resolvedPolls.map((p) => (
-                  <PollCard key={p.id} pollId={p.id} compact={false} inFeed={false} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Leaderboard */}
-          <div style={{ maxWidth: 480 }}>
-            <SectionHeader icon="🏆" title="Prediction Accuracy Leaderboard" />
-            <TraderLeaderboard />
-          </div>
-        </div>
-      ) : (
-        <TournamentPanel />
-      )}
     </div>
   );
 }
@@ -221,9 +157,7 @@ function PredictionsContent({ activePolls, resolvedPolls, onCreatePoll }) {
 // Combined Intel Section (Market Intel + Predictions)
 // inline=true → compact preview for unified feed
 // ═════════════════════════════════════════════════════════════════
-export default function IntelSection({ activePolls, resolvedPolls, inline = false }) {
-  const filter = useDataStore((s) => s.filter);
-  const openCreatePoll = useDataStore((s) => s.openCreatePoll);
+function IntelSection({ activePolls, resolvedPolls, inline = false }) {
   const setActiveChip = useDataStore((s) => s.setActiveChip);
 
   // Inline mode: show condensed 3-widget preview
@@ -255,10 +189,10 @@ export default function IntelSection({ activePolls, resolvedPolls, inline = fals
           </button>
         </div>
         <div className="tf-discover-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <FearGreedWidget />
-          <XSentimentWidget category={filter} />
+          <ComingSoonWidget icon="😨" title="Fear & Greed Index" />
+          <ComingSoonWidget icon="𝕏" title="Social Sentiment" />
         </div>
-        <HeatmapWidget />
+        <ComingSoonWidget icon="🗺️" title="Market Heatmap" />
       </div>
     );
   }
@@ -266,13 +200,9 @@ export default function IntelSection({ activePolls, resolvedPolls, inline = fals
   // Full mode: all intel + predictions
   return (
     <div role="tabpanel" aria-label="Market Intelligence" style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-      <MarketIntelContent filter={filter} />
+      <MarketIntelContent />
       <div style={{ borderTop: `1px solid ${C.bd}`, paddingTop: 24 }}>
-        <PredictionsContent
-          activePolls={activePolls}
-          resolvedPolls={resolvedPolls}
-          onCreatePoll={openCreatePoll}
-        />
+        <PredictionsContent />
       </div>
     </div>
   );
@@ -346,3 +276,5 @@ function EmptyState({ text, icon, cta, onCta }) {
 }
 
 export { IntelSection, SectionHeader, EmptyState };
+
+export default React.memo(IntelSection);

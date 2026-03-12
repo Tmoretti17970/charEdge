@@ -10,6 +10,7 @@
 //   - Bulk export selected
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useCallback, useMemo } from 'react';
 import { C, F, M } from '../../../../constants.js';
 
@@ -265,4 +266,4 @@ function BulkBtn({ label, onClick, danger }) {
   );
 }
 
-export default BulkActionBar;
+export default React.memo(BulkActionBar);

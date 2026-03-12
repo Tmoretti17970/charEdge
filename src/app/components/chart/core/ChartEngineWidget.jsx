@@ -39,7 +39,6 @@ import { isCrypto } from '../../../../constants.js';
 import { indicatorBridge } from '../../../../data/engine/indicators/IndicatorWorkerBridge.js';
 import { useOrderFlowConnection } from '../../../../data/engine/orderflow/useOrderFlowConnection.js';
 import { useAlertStore } from '../../../../state/useAlertStore';
-import { useChartStore, useChartCoreStore, useChartFeaturesStore, useChartToolsStore } from '../../../../state/useChartStore';
 import { useJournalStore } from '../../../../state/useJournalStore';
 import { useUIStore } from '../../../../state/useUIStore';
 import ChartKeyboardNav from '../ChartKeyboardNav.jsx';
@@ -61,6 +60,9 @@ import { useTradeNavigation } from './hooks/useTradeNavigation';
 import crosshairBus from '@/charting_library/utils/CrosshairBus';
 import { ReplayPaperTrade } from '@/trading/ReplayPaperTrade.js';
 import { startAutoSave } from '@/charting_library/core/SessionRecovery';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
+import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 
 export function resolveSymbol(sym) {
   if (!sym) return 'BTCUSDT';
@@ -83,16 +85,12 @@ export default function ChartEngineWidget({
   // Sprint 6: Split into 3 targeted selectors — changes in one domain don't trigger re-eval in others
 
   // Core (changes rarely — symbol switch, TF switch)
-  // FIX: Read core state from useChartStore (combined bridge) — NOT useChartCoreStore.
-  // useChartCoreStore is a separate Zustand create() with its own state tree.
-  // The toolbar, useChartDataLoader, and all other consumers write to useChartStore.
-  // Reading from useChartCoreStore created a split-brain: setTf() on useChartStore
-  // never propagated to useChartCoreStore, so the engine never saw TF changes.
+  // Now safe to read from useChartCoreStore since ALL consumers write to focused stores.
   const {
     symbol: storeSymbol, tf: storeTf, chartType,
     setData: setStoreData, _setSymbol,
     historyLoading, activeTimezone, setActiveTimezone,
-  } = useChartStore(useShallow((s) => ({
+  } = useChartCoreStore(useShallow((s) => ({
     symbol: s.symbol, tf: s.tf, chartType: s.chartType,
     setData: s.setData, setSymbol: s.setSymbol,
     historyLoading: s.historyLoading,
@@ -101,7 +99,7 @@ export default function ChartEngineWidget({
   })));
 
   // linkGroup is ad-hoc state on the combined store (set externally)
-  const linkGroup = useChartStore((s) => s.linkGroup);
+  const linkGroup = useChartFeaturesStore((s) => s.linkGroup);
 
   // Features (changes on user toggle — not on tick)
   const {
@@ -161,10 +159,10 @@ export default function ChartEngineWidget({
       const { type, group, symbol: newSymbol } = e.data || {};
       if (type === 'symbol-sync' && group && group === linkGroup) {
         // Only update if symbol actually changed to avoid loops
-        const current = useChartStore.getState().symbol;
+        const current = useChartCoreStore.getState().symbol;
         if (current !== newSymbol) {
           // Set symbol directly without broadcasting again (avoid infinite loop)
-          useChartStore.setState({ symbol: newSymbol });
+          useChartCoreStore.setState({ symbol: newSymbol });
         }
       }
     };
@@ -265,7 +263,7 @@ export default function ChartEngineWidget({
     const callbacks = {
       onBarClick: (price, time, bar) => {
         // Trade mode: check store directly (avoids stale closure on tradeMode)
-        const ts = useChartStore.getState();
+        const ts = useChartCoreStore.getState();
         if (ts.tradeMode && ts.tradeStep) {
           switch (ts.tradeStep) {
             case 'entry':
@@ -292,15 +290,15 @@ export default function ChartEngineWidget({
         onCrosshairMove?.(e);
       },
       onDrawingsChange: (drawings) => {
-        useChartStore.getState().setSelectedDrawing(engineRef.current?.drawingEngine?.selectedDrawing?.id || null);
-        useChartStore.getState().setDrawings(drawings);
+        useChartToolsStore.getState().setSelectedDrawing(engineRef.current?.drawingEngine?.selectedDrawing?.id || null);
+        useChartToolsStore.getState().setDrawings(drawings);
       },
       onDrawingStateChange: (state) => {
-        if (state === 'idle') useChartStore.getState().setActiveTool(null);
+        if (state === 'idle') useChartToolsStore.getState().setActiveTool(null);
       },
       // Sprint 11: Pane resize callback — updates Zustand store
       onPaneResize: (paneIdx, fraction) => {
-        useChartStore.getState().setPaneHeight(paneIdx, fraction);
+        useChartFeaturesStore.getState().setPaneHeight(paneIdx, fraction);
       },
       // Sprint 11: Pane collapse toggle
       onPaneToggle: (paneIdx) => {
@@ -326,7 +324,7 @@ export default function ChartEngineWidget({
       aggregatorKey: `${binanceSymbol}_${binanceTf}`
     };
 
-    engineRef.current = new ChartEngine(containerRef.current, { callbacks, props, getMagnetMode: () => useChartStore.getState().magnetMode });
+    engineRef.current = new ChartEngine(containerRef.current, { callbacks, props, getMagnetMode: () => useChartToolsStore.getState().magnetMode });
 
     // Bind global events
     const onClearDrawings = () => engineRef.current.drawingEngine?.clearAll();
@@ -357,7 +355,7 @@ export default function ChartEngineWidget({
       };
       const tool = TOOL_SHORTCUTS[e.key.toLowerCase()];
       if (tool && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        useChartStore.getState().setActiveTool(tool);
+        useChartToolsStore.getState().setActiveTool(tool);
         e.preventDefault();
       }
     };
@@ -437,7 +435,7 @@ export default function ChartEngineWidget({
         if (!d.meta) d.meta = {};
         d.meta.text = text;
         // Trigger re-render
-        useChartStore.getState().setDrawings(de.drawings);
+        useChartToolsStore.getState().setDrawings(de.drawings);
       }
     };
     window.addEventListener('charEdge:submit-drawing-text', handleTextEdit);
@@ -577,7 +575,7 @@ export default function ChartEngineWidget({
   // Sprint 8: Preserve viewport when older bars are prepended
   // Uses queueMicrotask to ensure offset applies before next rAF frame (prevents white flash)
   // FIX: Moved setState reset into queueMicrotask to avoid synchronous setState-during-render.
-  const lastPrependCount = useChartStore((s) => s.lastPrependCount);
+  const lastPrependCount = useChartCoreStore((s) => s.lastPrependCount);
   useEffect(() => {
     if (!engineRef.current || !lastPrependCount) return;
     // Apply offset synchronously and force immediate redraw to avoid blank frame
@@ -586,7 +584,7 @@ export default function ChartEngineWidget({
       engineRef.current.state.scrollOffset += lastPrependCount;
       engineRef.current.markDirty();
       // Reset after consuming — inside microtask to break synchronous setState cycle
-      useChartStore.setState({ lastPrependCount: 0 });
+      useChartCoreStore.setState({ lastPrependCount: 0 });
     });
   }, [lastPrependCount]);
 
@@ -927,7 +925,7 @@ export default function ChartEngineWidget({
             bars={engineRef.current.bars}
             symbol={symbol}
             timeframe={tf}
-            onClose={() => useChartStore.getState().toggleIntelligenceMaster()}
+            onClose={() => useChartFeaturesStore.getState().toggleIntelligenceMaster()}
           />
         </div>
       )}

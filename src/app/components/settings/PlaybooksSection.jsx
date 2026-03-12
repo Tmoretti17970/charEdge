@@ -1,8 +1,9 @@
+import React from 'react';
 import PlaybookManager from '../../features/playbook/PlaybookManager.jsx';
 import { Card } from '../ui/UIKit.jsx';
 import { SectionHeader } from './SettingsHelpers.jsx';
 
-export default function PlaybooksSection() {
+function PlaybooksSection() {
   return (
     <section style={{ marginBottom: 40 }}>
       <SectionHeader icon="book" title="Playbooks" description="Define and manage your trading strategies" />
@@ -12,3 +13,5 @@ export default function PlaybooksSection() {
     </section>
   );
 }
+
+export default React.memo(PlaybooksSection);

@@ -4,7 +4,12 @@
 //
 // Handles the chart-based trade entry workflow: pending levels,
 // risk parameters, position sizing, and trade submission.
+//
+// NOTE: Cross-slice dependency on symbol is resolved by reading
+// useChartCoreStore directly — no combined bridge needed.
 // ═══════════════════════════════════════════════════════════════════
+
+import { useChartCoreStore } from './useChartCoreStore';
 
 // ─── Pure Calculation Helpers (exported for consumer use) ────────
 
@@ -160,7 +165,7 @@ export const createTradeSlice = (set, get) => ({
 
     const trade = {
       id: `ct_${Date.now()}`,
-      symbol: s.symbol || 'UNKNOWN',
+      symbol: useChartCoreStore.getState().symbol || 'UNKNOWN',
       side: s.tradeSide,
       entry: s.pendingEntry,
       stopLoss: s.pendingStopLoss,

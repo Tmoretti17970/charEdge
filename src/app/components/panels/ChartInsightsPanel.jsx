@@ -10,10 +10,12 @@
 //   5. Drawing proximity alerts
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useMemo } from 'react';
 import { analyzeAll, checkDrawingProximity } from '../../../charting_library/studies/PriceActionEngine.js';
 import { C, F, M } from '../../../constants.js';
-import { useChartStore } from '../../../state/useChartStore';
+import { useChartToolsStore } from '../../../state/chart/useChartToolsStore';
+import { useChartFeaturesStore } from '../../../state/chart/useChartFeaturesStore';
 
 /**
  * @param {Array} data - OHLCV data
@@ -22,9 +24,9 @@ import { useChartStore } from '../../../state/useChartStore';
  * @param {Function} onApplyAutoFib - Callback to add auto-fib drawing
  * @param {Function} onCreateAlert - Callback to create alert from S/R level
  */
-export default function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAlert }) {
-  const drawings = useChartStore((s) => s.drawings);
-  const _intelligence = useChartStore((s) => s.intelligence);
+function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAlert }) {
+  const drawings = useChartToolsStore((s) => s.drawings);
+  const _intelligence = useChartFeaturesStore((s) => s.intelligence);
 
   // Run analysis
   const analysis = useMemo(() => {
@@ -364,3 +366,5 @@ function StrengthBar({ strength, maxStrength }) {
 }
 
 export { ChartInsightsPanel };
+
+export default React.memo(ChartInsightsPanel);

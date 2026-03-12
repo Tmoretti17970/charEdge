@@ -11,7 +11,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useCallback } from 'react';
-import { useChartStore } from '../state/useChartStore';
+import { useChartCoreStore } from '../state/chart/useChartCoreStore';
+import { useChartToolsStore } from '../state/chart/useChartToolsStore';
 import { createSnapshot, indicatorKey } from '../types/TradeSnapshot.js';
 import type { TradeSnapshot, TradeContext } from '../types/TradeSnapshot.js';
 
@@ -24,7 +25,7 @@ import type { TradeSnapshot, TradeContext } from '../types/TradeSnapshot.js';
  */
 export function captureSnapshotFromStore(): TradeSnapshot {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const state = useChartStore.getState() as any;
+  const state = useChartCoreStore.getState() as any;
 
   // Build indicator values map
   const indicators: Record<string, number | null> = {};

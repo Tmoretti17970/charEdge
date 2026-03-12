@@ -12,6 +12,7 @@
 //   <DepthPanel symbol="BTCUSDT" />
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { depthEngine } from '../../../data/engine/orderflow/DepthEngine';
@@ -74,7 +75,7 @@ function DepthRow({ level, maxCumQty, side, isWall }) {
 
 // ─── Main Panel ────────────────────────────────────────────────
 
-export default function DepthPanel({ symbol = 'BTCUSDT', levels = 15 }) {
+function DepthPanel({ symbol = 'BTCUSDT', levels = 15 }) {
   const [depth, setDepth] = useState(null);
   const containerRef = useRef(null);
 
@@ -250,3 +251,5 @@ export default function DepthPanel({ symbol = 'BTCUSDT', levels = 15 }) {
     </div>
   );
 }
+
+export default React.memo(DepthPanel);

@@ -5,7 +5,9 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { C, F } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore';
+import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 import {
   useWorkspaceStore,
   BUILT_IN_PRESETS,
@@ -42,7 +44,7 @@ export default function WorkspacePresets() {
     const state = applyPreset(presetId);
     if (state) {
       restoreState(state, {
-        chartStore: useChartStore,
+        chartStore: useChartCoreStore,
       });
     }
     setOpen(false);
@@ -51,7 +53,7 @@ export default function WorkspacePresets() {
   // Apply a custom workspace
   const handleLoadCustom = useCallback((ws) => {
     restoreState(ws.state, {
-      chartStore: useChartStore,
+      chartStore: useChartCoreStore,
     });
     useWorkspaceStore.getState().load(ws.id);
     useWorkspaceStore.setState({ activePreset: ws.id });
@@ -61,7 +63,7 @@ export default function WorkspacePresets() {
   // Save current state as custom preset
   const handleSave = useCallback(() => {
     if (!saveName.trim()) return;
-    const state = captureState({ chartStore: useChartStore });
+    const state = captureState({ chartStore: useChartCoreStore });
     useWorkspaceStore.getState().saveCustomPreset(saveName.trim(), state);
     setSaveName('');
     setSaving(false);
@@ -85,7 +87,7 @@ export default function WorkspacePresets() {
         e.preventDefault();
         const state = applyPreset(BUILT_IN_PRESETS[idx].id);
         if (state) {
-          restoreState(state, { chartStore: useChartStore });
+          restoreState(state, { chartStore: useChartCoreStore });
         }
       }
     };

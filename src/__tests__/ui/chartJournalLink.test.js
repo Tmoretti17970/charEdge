@@ -178,3 +178,54 @@ describe('CalendarHeatmap data processing', () => {
     expect(eq[0].daily).toBe(500);
   });
 });
+
+// ═══ #48 Gap-Fill: Edge Cases ═══════════════════════════════════
+
+describe('tradeNav — edge cases (#48)', () => {
+  beforeEach(() => { tradeNav.clear(); });
+
+  it('event payload preserves all required fields', () => {
+    let received = null;
+    tradeNav.on('navigate', (p) => { received = p; });
+    const payload = {
+      tradeId: 'tx1',
+      symbol: 'ETH',
+      timestamp: 1700000000000,
+      side: 'short',
+      entry: 2000,
+      exit: 1900,
+    };
+    tradeNav.emit('navigate', payload);
+    expect(received).toMatchObject(payload);
+  });
+
+  it('rapid sequential emits deliver all events', () => {
+    let count = 0;
+    tradeNav.on('navigate', () => { count++; });
+    for (let i = 0; i < 10; i++) {
+      tradeNav.emit('navigate', { tradeId: `t${i}` });
+    }
+    expect(count).toBe(10);
+  });
+
+  it('listener receives correct payload on last of rapid emits', () => {
+    let last = null;
+    tradeNav.on('navigate', (p) => { last = p; });
+    tradeNav.emit('navigate', { tradeId: 'first' });
+    tradeNav.emit('navigate', { tradeId: 'second' });
+    tradeNav.emit('navigate', { tradeId: 'third' });
+    expect(last.tradeId).toBe('third');
+  });
+});
+
+describe('findBarByTimestamp — edge cases (#48)', () => {
+  it('handles single-element array', () => {
+    expect(findBarByTimestamp([{ time: 5000 }], 5000)).toBe(0);
+  });
+
+  it('handles two-element array with exact match', () => {
+    const bars = [{ time: 1000 }, { time: 2000 }];
+    expect(findBarByTimestamp(bars, 2000)).toBe(1);
+  });
+});
+

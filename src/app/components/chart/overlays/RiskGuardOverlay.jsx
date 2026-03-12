@@ -9,6 +9,7 @@
 // Renders as a floating overlay in the top-right of the chart area.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useMemo, useEffect, useRef } from 'react';
 // Wave 0: usePropFirmStore quarantined — prop firm features removed from v1.0 scope
 const usePropFirmStore = () => null;
@@ -16,7 +17,7 @@ const _selectPropFirm = () => ({ activeProfile: null, profiles: [] });
 import { useJournalStore } from '../../../../state/useJournalStore';
 import s from './RiskGuardOverlay.module.css';
 
-export default function RiskGuardOverlay() {
+function RiskGuardOverlay() {
   const activeProfile = usePropFirmStore((s) => s.activeProfile);
   const profiles = usePropFirmStore((s) => s.profiles);
   const trades = useJournalStore((s) => s.trades);
@@ -161,3 +162,5 @@ export default function RiskGuardOverlay() {
     </div>
   );
 }
+
+export default React.memo(RiskGuardOverlay);

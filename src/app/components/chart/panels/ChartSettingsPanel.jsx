@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { CHART_TYPES, getChartTypeDefaults } from '../../../../charting_library/renderers/renderers/ChartTypes.js';
 import { C, F } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore';
 import { ColorSwatch, Toggle, RangeSlider, RadioGroup } from '../../settings/SettingsControls.jsx';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 
 // SVG Tab Icons
 const TabIcon = ({ children }) => <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ display: 'block' }}>{children}</svg>;
@@ -34,22 +35,22 @@ const THEME_PILLS = [
 
 export default function ChartSettingsPanel({ _onClose }) {
   const [tab, setTab] = useState('appearance');
-  const appearance = useChartStore((s) => s.chartAppearance);
-  const setAppearance = useChartStore((s) => s.setChartAppearance);
-  const resetAppearance = useChartStore((s) => s.resetChartAppearance);
-  const scaleMode = useChartStore((s) => s.scaleMode);
-  const setScaleMode = useChartStore((s) => s.setScaleMode);
-  const showMinimap = useChartStore((s) => s.showMinimap);
-  const toggleMinimap = useChartStore((s) => s.toggleMinimap);
-  const showStatusBar = useChartStore((s) => s.showStatusBar);
-  const toggleStatusBar = useChartStore((s) => s.toggleStatusBar);
-  const activePreset = useChartStore((s) => s.activePreset);
-  const applyChartPreset = useChartStore((s) => s.applyChartPreset);
+  const appearance = useChartFeaturesStore((s) => s.chartAppearance);
+  const setAppearance = useChartFeaturesStore((s) => s.setChartAppearance);
+  const resetAppearance = useChartFeaturesStore((s) => s.resetChartAppearance);
+  const scaleMode = useChartCoreStore((s) => s.scaleMode);
+  const setScaleMode = useChartCoreStore((s) => s.setScaleMode);
+  const showMinimap = useChartFeaturesStore((s) => s.showMinimap);
+  const toggleMinimap = useChartFeaturesStore((s) => s.toggleMinimap);
+  const showStatusBar = useChartFeaturesStore((s) => s.showStatusBar);
+  const toggleStatusBar = useChartFeaturesStore((s) => s.toggleStatusBar);
+  const activePreset = useChartFeaturesStore((s) => s.activePreset);
+  const applyChartPreset = useChartFeaturesStore((s) => s.applyChartPreset);
   // Sprint 15: Chart type config
-  const chartType = useChartStore((s) => s.chartType) || 'candlestick';
-  const chartTypeConfig = useChartStore((s) => s.chartTypeConfig) || {};
-  const setChartTypeConfig = useChartStore((s) => s.setChartTypeConfig);
-  const resetChartTypeConfig = useChartStore((s) => s.resetChartTypeConfig);
+  const chartType = useChartCoreStore((s) => s.chartType) || 'candlestick';
+  const chartTypeConfig = useChartFeaturesStore((s) => s.chartTypeConfig) || {};
+  const setChartTypeConfig = useChartFeaturesStore((s) => s.setChartTypeConfig);
+  const resetChartTypeConfig = useChartFeaturesStore((s) => s.resetChartTypeConfig);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>

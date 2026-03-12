@@ -4,6 +4,7 @@
 // Sprint 17: Inline education system — teach while showing data.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
@@ -31,7 +32,7 @@ const QUIZ = {
   explanation: 'A high-volume drop that still holds a key support level (50 SMA) is ambiguous. Waiting for confirmation reduces risk. If it bounces, you get a better entry with confirmation. If it breaks down, you avoided a loss.',
 };
 
-export default function ContextualEducation() {
+function ContextualEducation() {
   const [collapsed, setCollapsed] = useState(false);
   const [tipIndex, setTipIndex] = useState(0);
   const [showQuiz, setShowQuiz] = useState(false);
@@ -132,3 +133,5 @@ export default function ContextualEducation() {
 }
 
 export { ContextualEducation };
+
+export default React.memo(ContextualEducation);

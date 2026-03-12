@@ -16,6 +16,7 @@
 // }
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useJournalStore } from '../../../state/useJournalStore';
@@ -36,7 +37,7 @@ const TAKE_AGAIN_OPTIONS = [
   { value: 'unsure', emoji: '🤔', label: 'Unsure' },
 ];
 
-export default function PostTradeReviewModal({ isOpen, onClose, trade }) {
+function PostTradeReviewModal({ isOpen, onClose, trade }) {
   const updateTrade = useJournalStore((s) => s.updateTrade);
 
   // Auto-grade from analyticsFast
@@ -236,3 +237,5 @@ export default function PostTradeReviewModal({ isOpen, onClose, trade }) {
 }
 
 export { PostTradeReviewModal };
+
+export default React.memo(PostTradeReviewModal);

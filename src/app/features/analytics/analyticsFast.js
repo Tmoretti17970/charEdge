@@ -18,6 +18,8 @@ import { gradeTrade } from './metrics/gradeTrade.js';
 import { mcPropFirmPredict } from './metrics/propFirmPredict.js';
 import { computeRDistribution } from './metrics/rDistribution.js';
 import { computeStreakImpact } from './metrics/streakImpact.js';
+// #10: Single source of truth for risk-adjusted metrics
+import { sharpeRatio, sortinoRatio } from '../../../trading/QuantMetrics';
 
 
 
@@ -41,6 +43,7 @@ function computeFast(trades, settings = {}) {
   // All *Cents variables are integers; converted to float at output.
   let totalPnlCents = 0,
     totalFeesCents = 0;
+  let zeroFeeCount = 0; // #12: Track trades with $0 fees
   let winCount = 0,
     lossCount = 0;
   let winSumCents = 0,
@@ -101,6 +104,7 @@ function computeFast(trades, settings = {}) {
     // Core accumulators (integer)
     totalPnlCents += pnlC;
     totalFeesCents += toC(t.fees);
+    if (!t.fees || t.fees === 0) zeroFeeCount++; // #12: Zero-fee detection
     pnls[i] = pnl; // Float64Array for Monte Carlo (drift-tolerant)
 
     if (pnlC > 0) {
@@ -308,17 +312,12 @@ function computeFast(trades, settings = {}) {
   const numDays = dailyEntries.length;
   const dailyPnls = dailyEntries.map(([, cents]) => fromC(cents));
 
-  let dailyMean = 0;
-  for (let i = 0; i < numDays; i++) dailyMean += dailyPnls[i];
-  dailyMean = numDays > 0 ? dailyMean / numDays : 0;
-
-  let dailyVar = 0;
-  for (let i = 0; i < numDays; i++) dailyVar += (dailyPnls[i] - dailyMean) ** 2;
-  const dailyStd = numDays > 1 ? Math.sqrt(dailyVar / (numDays - 1)) : 0;
-
   const Rf = Number(settings.riskFreeRate) || 0;
-  const dailyRf = Rf / 252;
-  const sharpe = dailyStd > 0 ? ((dailyMean - dailyRf) / dailyStd) * Math.sqrt(Math.min(252, numDays)) : 0;
+  // #10: Delegate to QuantMetrics — single source of truth
+  // Cap periods at min(252, numDays) to avoid over-annualizing short datasets
+  const periodsPerYear = Math.min(252, numDays);
+  const sharpe = sharpeRatio(dailyPnls, Rf, periodsPerYear);
+  const sortino = sortinoRatio(dailyPnls, Rf, periodsPerYear);
 
   if (numDays < MIN_SAMPLES.sharpe) {
     warnings.push({
@@ -326,19 +325,6 @@ function computeFast(trades, settings = {}) {
       message: `Sharpe based on ${numDays} trading days (${MIN_SAMPLES.sharpe}+ recommended)`,
     });
   }
-
-  // Sortino
-  let downVar = 0,
-    downCount = 0;
-  for (let i = 0; i < numDays; i++) {
-    if (dailyPnls[i] < dailyRf) {
-      downVar += (dailyPnls[i] - dailyRf) ** 2;
-      downCount++;
-    }
-  }
-  const dDev = downCount > 1 ? Math.sqrt(downVar / downCount) : 0;
-  const sortino = dDev > 0 ? ((dailyMean - dailyRf) / dDev) * Math.sqrt(Math.min(252, numDays)) : 0;
-
   if (numDays < MIN_SAMPLES.sortino) {
     warnings.push({
       metric: 'sortino',
@@ -440,6 +426,14 @@ function computeFast(trades, settings = {}) {
   if (rr > 2.5 && rr !== Infinity) ins.push({ t: 'positive', x: `Excellent ${rr.toFixed(2)}:1 reward/risk.` });
   if (Math.abs(worstStreak) >= 4)
     ins.push({ t: 'warning', x: `${Math.abs(worstStreak)}-trade losing streak. Review risk management.` });
+  // #12: Warn when majority of trades have $0 fees
+  const zeroFeePct = n > 0 ? (zeroFeeCount / n) * 100 : 0;
+  if (zeroFeePct > 50) {
+    warnings.push({
+      metric: 'fees',
+      message: `${Math.round(zeroFeePct)}% of trades have $0 fees — net P&L may be overstated`,
+    });
+  }
   if (!ins.length) ins.push({ t: 'info', x: 'Import more trades for deeper insights.' });
 
   // ─── Return ────────────────────────────────────────────────

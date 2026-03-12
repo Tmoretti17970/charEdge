@@ -3,10 +3,11 @@
 // Inline trade entry: symbol, side, P&L, entry price, asset class
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { C, M } from '../../../../constants.js';
 
-export default function JournalQuickAdd({ onSave, onCancel }) {
+function JournalQuickAdd({ onSave, onCancel }) {
   const [sym, setSym] = useState('');
   const [side, setSide] = useState('long');
   const [pnl, setPnl] = useState('');
@@ -160,3 +161,5 @@ export default function JournalQuickAdd({ onSave, onCancel }) {
     </div>
   );
 }
+
+export default React.memo(JournalQuickAdd);

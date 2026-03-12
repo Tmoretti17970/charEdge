@@ -6,6 +6,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 
-export default function SentimentOverlay() {
+import { memo } from 'react';
+function SentimentOverlay() {
   return null; // P2P mesh not yet available — no-op until Horizon 3
 }
+
+export default memo(SentimentOverlay);

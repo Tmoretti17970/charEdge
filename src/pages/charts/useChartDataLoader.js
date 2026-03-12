@@ -12,7 +12,8 @@ import { fetchOHLC, fetchOHLCPage, warmCache } from '../../data/FetchService';
 import useWebSocket from '../../data/hooks/useWebSocket.js';
 import { WebSocketService } from '../../data/WebSocketService';
 import { useAlertStore, checkSymbolAlerts, requestNotificationPermission } from '../../state/useAlertStore';
-import { useChartStore } from '../../state/useChartStore';
+import { useChartCoreStore } from '../../state/chart/useChartCoreStore';
+import { useChartFeaturesStore } from '../../state/chart/useChartFeaturesStore';
 import { useWatchlistStore } from '../../state/useWatchlistStore.js';
 import { parseShareURL } from '@/charting_library/utils/chartExport';
 import { logger } from '@/observability/logger';
@@ -29,13 +30,13 @@ import { reportError } from '@/shared/globalErrorHandler';
  * - Data warning events from FetchService
  */
 export default function useChartDataLoader() {
-  const symbol = useChartStore((s) => s.symbol);
-  const tf = useChartStore((s) => s.tf);
-  const data = useChartStore((s) => s.data);
-  const setSymbol = useChartStore((s) => s.setSymbol);
-  const historyLoading = useChartStore((s) => s.historyLoading);
-  const historyExhausted = useChartStore((s) => s.historyExhausted);
-  const _oldestTime = useChartStore((s) => s.oldestTime);
+  const symbol = useChartCoreStore((s) => s.symbol);
+  const tf = useChartCoreStore((s) => s.tf);
+  const data = useChartCoreStore((s) => s.data);
+  const setSymbol = useChartCoreStore((s) => s.setSymbol);
+  const historyLoading = useChartCoreStore((s) => s.historyLoading);
+  const historyExhausted = useChartCoreStore((s) => s.historyExhausted);
+  const _oldestTime = useChartCoreStore((s) => s.oldestTime);
 
   const [dataWarning, setDataWarning] = useState(null);
 
@@ -61,10 +62,10 @@ export default function useChartDataLoader() {
   const wsSupported = WebSocketService.isSupported(symbol);
 
   // TickerPlant aggregated data selectors
-  const confidence = useChartStore((s) => s.confidence);
-  const sourceCount = useChartStore((s) => s.sourceCount);
-  const priceSpread = useChartStore((s) => s.priceSpread);
-  const priceSources = useChartStore((s) => s.priceSources);
+  const confidence = useChartCoreStore((s) => s.confidence);
+  const sourceCount = useChartCoreStore((s) => s.sourceCount);
+  const priceSpread = useChartCoreStore((s) => s.priceSpread);
+  const priceSources = useChartCoreStore((s) => s.priceSources);
 
   // Warm cache with adjacent timeframes when symbol changes
   useEffect(() => {
@@ -123,7 +124,7 @@ export default function useChartDataLoader() {
     const markId = `tf-chart-load-${symbol}-${tf}-${Date.now()}`;
     performance.mark(`${markId}-start`);
     const loadTimer = setTimeout(() => {
-      if (!cancelled) useChartStore.getState().setLoading(true);
+      if (!cancelled) useChartCoreStore.getState().setLoading(true);
     }, 0);
 
     const fetchTimer = setTimeout(() => {
@@ -133,7 +134,7 @@ export default function useChartDataLoader() {
           if (cancelled) return;
           performance.mark(`${markId}-end`);
           try { performance.measure(`tf-chart-load`, `${markId}-start`, `${markId}-end`); } catch (e) { logger.ui.warn('Operation failed', e); }
-          useChartStore.getState().setData(newData, source);
+          useChartCoreStore.getState().setData(newData, source);
           if (newData?.length > 0) {
             const last = newData[newData.length - 1].close;
             if (last != null) queueMicrotask(() => checkSymbolAlerts(symbol, last));
@@ -148,7 +149,7 @@ export default function useChartDataLoader() {
           if (cancelled || err?.name === 'AbortError') return;
           reportError(err, { source: 'ChartDataLoader.fetchOHLC' });
           // Phase 0.4: Show empty state instead of fake simulated data
-          useChartStore.getState().setData([], 'none');
+          useChartCoreStore.getState().setData([], 'none');
           setDataWarning(`Could not load data for ${symbol}. Check your connection or try a different symbol.`);
         });
     }, 10);
@@ -171,14 +172,14 @@ export default function useChartDataLoader() {
 
     // Subscribe to aggregated price updates
     const unsub = tickerPlant.subscribe(symbol, (aggData) => {
-      useChartStore.getState().setAggregatedData(aggData);
+      useChartCoreStore.getState().setAggregatedData(aggData);
     });
 
     // Listen for source-change events to update the badge
     const onSourceChange = (e) => {
       const { source } = e.detail || {};
       if (source) {
-        useChartStore.getState().setPipelineSource?.(source);
+        useChartCoreStore.getState().setPipelineSource?.(source);
       }
     };
     dataPipeline.addEventListener('source-change', onSourceChange);
@@ -192,7 +193,7 @@ export default function useChartDataLoader() {
   }, [symbol]);
 
   // Fetch comparison symbol data when comparison is set
-  const comparisonSymbol = useChartStore((s) => s.comparisonSymbol);
+  const comparisonSymbol = useChartFeaturesStore((s) => s.comparisonSymbol);
   useEffect(() => {
     if (!comparisonSymbol) return;
     let cancelled = false;
@@ -200,13 +201,13 @@ export default function useChartDataLoader() {
     fetchOHLC(comparisonSymbol, tf)
       .then(({ data: compData }) => {
         if (cancelled) return;
-        setTimeout(() => useChartStore.getState().setComparison(comparisonSymbol, compData), 0);
+        setTimeout(() => useChartFeaturesStore.getState().setComparison(comparisonSymbol, compData), 0);
       })
       .catch((err) => {
         if (cancelled) return;
         reportError(err, { source: 'ChartDataLoader.comparison' });
         // Phase 0.4: Show empty comparison instead of fake data
-        setTimeout(() => useChartStore.getState().setComparison(comparisonSymbol, []), 0);
+        setTimeout(() => useChartFeaturesStore.getState().setComparison(comparisonSymbol, []), 0);
         setDataWarning(`Could not load comparison data for ${comparisonSymbol}.`);
       });
 
@@ -220,8 +221,8 @@ export default function useChartDataLoader() {
     const shared = parseShareURL();
     if (shared) {
       setSymbol(shared.symbol);
-      if (shared.tf) useChartStore.getState().setTf(shared.tf);
-      if (shared.chartType) useChartStore.getState().setChartType(shared.chartType);
+      if (shared.tf) useChartCoreStore.getState().setTf(shared.tf);
+      if (shared.chartType) useChartCoreStore.getState().setChartType(shared.chartType);
       const url = new URL(window.location.href);
       url.searchParams.delete('chart');
       window.history.replaceState({}, '', url.toString());
@@ -238,7 +239,7 @@ export default function useChartDataLoader() {
   const MAX_PREFETCH_RETRIES = 3;
 
   const prefetchHistory = useCallback(() => {
-    const state = useChartStore.getState();
+    const state = useChartCoreStore.getState();
     if (state.historyLoading || state.historyExhausted) return;
     const oldest = state.oldestTime;
     if (!oldest) return;
@@ -266,8 +267,8 @@ export default function useChartDataLoader() {
             open: b.o, high: b.h, low: b.l, close: b.c, volume: b.v,
           }));
           // A2.2: Guard against stale prefetch from old symbol
-          if (useChartStore.getState().symbol === symbol) {
-            useChartStore.getState().prependData(formatted);
+          if (useChartCoreStore.getState().symbol === symbol) {
+            useChartCoreStore.getState().prependData(formatted);
             prefetchFailCountRef.current = 0;
           }
           return;
@@ -276,11 +277,11 @@ export default function useChartDataLoader() {
         // OPFS miss — fall back to network fetch
         const { data: olderBars, hasMore } = await fetchOHLCPage(symbol, tf, oldest);
         // A2.2: Guard against stale prefetch from old symbol
-        if (useChartStore.getState().symbol === symbol) {
-          useChartStore.getState().prependData(olderBars);
+        if (useChartCoreStore.getState().symbol === symbol) {
+          useChartCoreStore.getState().prependData(olderBars);
           prefetchFailCountRef.current = 0;
           if (!hasMore) {
-            useChartStore.setState({ historyExhausted: true });
+            useChartCoreStore.setState({ historyExhausted: true });
           }
         }
       })
@@ -290,11 +291,11 @@ export default function useChartDataLoader() {
         fetchOHLCPage(symbol, tf, oldest)
           .then(({ data: olderBars, hasMore }) => {
             // A2.2: Guard against stale prefetch from old symbol
-            if (useChartStore.getState().symbol !== symbol) return;
-            useChartStore.getState().prependData(olderBars);
+            if (useChartCoreStore.getState().symbol !== symbol) return;
+            useChartCoreStore.getState().prependData(olderBars);
             prefetchFailCountRef.current = 0;
             if (!hasMore) {
-              useChartStore.setState({ historyExhausted: true });
+              useChartCoreStore.setState({ historyExhausted: true });
             }
           })
           .catch((fetchErr) => {
@@ -302,13 +303,13 @@ export default function useChartDataLoader() {
             prefetchFailCountRef.current++;
             if (prefetchFailCountRef.current >= MAX_PREFETCH_RETRIES) {
               logger.data.warn('[ChartDataLoader] Max prefetch retries reached, stopping history load');
-              useChartStore.setState({ historyExhausted: true });
+              useChartCoreStore.setState({ historyExhausted: true });
             }
           });
       })
       // A2.1: Always reset historyLoading — prevents stuck state after OPFS hit or error
       .finally(() => {
-        useChartStore.getState().setHistoryLoading(false);
+        useChartCoreStore.getState().setHistoryLoading(false);
       });
   }, [symbol, tf]);
 
@@ -327,7 +328,7 @@ export default function useChartDataLoader() {
     prefetchFailCountRef.current = 0;
   }, [symbol, tf]);
   useEffect(() => {
-    const state = useChartStore.getState();
+    const state = useChartCoreStore.getState();
     if (!state.data?.length || adjacentPrefetchedRef.current.has(`${symbol}:${tf}`)) return;
 
     const ADJACENT_TFS = {

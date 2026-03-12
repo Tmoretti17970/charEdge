@@ -16,12 +16,13 @@
 //   delay      – optional appearance delay in ms (default: 800)
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { C, F } from '../../../constants.js';
 import { useUserStore } from '../../../state/useUserStore';
 
-export default function Coachmark({
+function Coachmark({
   tipId,
   targetRef,
   targetSel,
@@ -247,3 +248,5 @@ export default function Coachmark({
     document.body,
   );
 }
+
+export default React.memo(Coachmark);

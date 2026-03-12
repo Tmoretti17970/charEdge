@@ -4,9 +4,11 @@
 // Sprint 12: Volatility regime monitor for risk management.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
+import s from './VolatilityDashboard.module.css';
 
 const VIX_CURRENT = 18.4;
 const VIX_CHANGE = -1.2;
@@ -49,7 +51,7 @@ const SIZING_RULES = {
   extreme: { maxPct: 0.5, tip: 'Minimum sizing only. Prioritize capital preservation.' },
 };
 
-export default function VolatilityDashboard() {
+function VolatilityDashboard() {
   const [collapsed, setCollapsed] = useState(false);
 
   const regimeMeta = REGIME_META[REGIME];
@@ -60,8 +62,8 @@ export default function VolatilityDashboard() {
   return (
     <div style={{ background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 16, overflow: 'hidden' }}>
       <button onClick={() => setCollapsed(!collapsed)} className="tf-btn"
-        style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        className={s.s0}>
+        <div className={s.s1}>
           <span style={{ fontSize: 18 }}>📉</span>
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>Volatility Dashboard</h3>
           <span style={{ fontSize: 10, fontWeight: 700, color: regimeMeta.color, background: alpha(regimeMeta.color, 0.1), padding: '2px 7px', borderRadius: 4, fontFamily: M }}>
@@ -74,7 +76,7 @@ export default function VolatilityDashboard() {
       {!collapsed && (
         <div style={{ padding: '0 20px 20px' }}>
           {/* VIX Hero */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
+          <div className={s.s2}>
             {/* Current VIX */}
             <div style={{ padding: '14px 16px', background: alpha(regimeMeta.color, 0.06), border: `1px solid ${alpha(regimeMeta.color, 0.15)}`, borderRadius: 10, textAlign: 'center' }}>
               <div style={{ fontSize: 9, color: C.t3, fontFamily: F, marginBottom: 2 }}>VIX Index</div>
@@ -99,17 +101,17 @@ export default function VolatilityDashboard() {
 
           {/* Term Structure */}
           <div style={{ marginBottom: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <div className={s.s3}>
               <div style={{ fontSize: 11, fontWeight: 700, color: C.t3, fontFamily: F, textTransform: 'uppercase', letterSpacing: 0.5 }}>VIX Term Structure</div>
               <span style={{ fontSize: 10, fontWeight: 600, color: isContango ? C.g : C.r, fontFamily: F }}>
                 {isContango ? '📈 Contango (Normal)' : '📉 Backwardation (Fear)'}
               </span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 60 }}>
+            <div className={s.s4}>
               {TERM_STRUCTURE.map((t, i) => {
                 const pct = ((t.value - tsMin) / (tsMax - tsMin)) * 100;
                 return (
-                  <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                  <div key={i} className={s.s5}>
                     <span style={{ fontSize: 9, color: C.t2, fontFamily: M }}>{t.value}</span>
                     <div style={{ width: '100%', height: `${Math.max(pct, 10)}%`, background: `linear-gradient(180deg, ${alpha(i === 0 ? regimeMeta.color : C.t3, 0.6)}, ${alpha(i === 0 ? regimeMeta.color : C.t3, 0.2)})`, borderRadius: 3 }} />
                     <span style={{ fontSize: 8, color: C.t3, fontFamily: M }}>{t.label}</span>
@@ -121,14 +123,14 @@ export default function VolatilityDashboard() {
 
           {/* Per-Symbol IV vs HV */}
           <div style={{ fontSize: 11, fontWeight: 700, color: C.t3, fontFamily: F, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Symbol Volatility</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div className={s.s6}>
             {SYMBOL_VOL.map((sv) => {
               const rm = REGIME_META[sv.regime];
               const ivOverHv = sv.iv > sv.hv;
               return (
                 <div key={sv.symbol} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: alpha(C.sf, 0.5), border: `1px solid ${alpha(C.bd, 0.3)}`, borderRadius: 8 }}>
                   <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: F, minWidth: 45 }}>{sv.symbol}</span>
-                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div className={s.s7}>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: 9, color: C.t3, fontFamily: F }}>IV</div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: ivOverHv ? C.y : C.g, fontFamily: M }}>{sv.iv}</div>
@@ -156,3 +158,5 @@ export default function VolatilityDashboard() {
 }
 
 export { VolatilityDashboard };
+
+export default React.memo(VolatilityDashboard);

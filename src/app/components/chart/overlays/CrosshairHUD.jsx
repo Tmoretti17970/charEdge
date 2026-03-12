@@ -5,6 +5,7 @@
 // 16px offset. Auto-repositions to avoid screen edges.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 /**
@@ -30,7 +31,7 @@ const HUD_HEIGHT = 200;
  * Subscribes to CrosshairBus for position updates and renders
  * data for the hovered candle with glass-depth styling.
  */
-export default function CrosshairHUD({ crosshairBus, chartRef, visible = true }) {
+function CrosshairHUD({ crosshairBus, chartRef, visible = true }) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [data, setData] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -180,3 +181,5 @@ export default function CrosshairHUD({ crosshairBus, chartRef, visible = true })
     </div>
   );
 }
+
+export default React.memo(CrosshairHUD);

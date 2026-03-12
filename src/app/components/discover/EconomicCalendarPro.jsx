@@ -11,6 +11,7 @@
 //   - Filter by country, impact
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
@@ -80,7 +81,7 @@ const MOCK_EVENTS = [
 // Main Component
 // ═══════════════════════════════════════════════════════════════════
 
-export default function EconomicCalendarPro() {
+function EconomicCalendarPro() {
   const [impactFilter, setImpactFilter] = useState('all');
   const [countryFilter, setCountryFilter] = useState('all');
   const [collapsed, setCollapsed] = useState(false);
@@ -429,3 +430,5 @@ function formatCalDate(dateStr) {
 }
 
 export { EconomicCalendarPro };
+
+export default React.memo(EconomicCalendarPro);

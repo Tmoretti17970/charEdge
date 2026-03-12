@@ -12,11 +12,12 @@
 //   />
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../constants.js';
 import { useTemplateStore } from '../../state/useTemplateStore';
 
-export default function TemplateSelector({ indicators, chartType, onApply }) {
+function TemplateSelector({ indicators, chartType, onApply }) {
   const templates = useTemplateStore((s) => s.templates);
   const saveTemplate = useTemplateStore((s) => s.saveTemplate);
   const deleteTemplate = useTemplateStore((s) => s.deleteTemplate);
@@ -335,3 +336,5 @@ function TemplateRow({ template, onApply, onDelete, isDeleting }) {
 }
 
 export { TemplateSelector };
+
+export default React.memo(TemplateSelector);

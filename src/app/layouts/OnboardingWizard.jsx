@@ -13,11 +13,13 @@
 // Can be re-triggered from Settings.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { C, F, M } from '../../constants.js';
 import { useUserStore } from '../../state/useUserStore';
 import { space, radii, text, transition, preset } from '../../theme/tokens.js';
 import { Btn } from '../components/ui/UIKit.jsx';
+import s from './OnboardingWizard.module.css';
 
 const STEPS = [
   { title: 'See Your Edge', icon: '📈', subtitle: 'Live markets. Real-time charts. Right now.' },
@@ -166,7 +168,7 @@ function LiveStatsTicker() {
 
 // ─── Main Wizard ─────────────────────────────────────────────────
 
-export default function OnboardingWizard() {
+function OnboardingWizard() {
   const wizardComplete = useUserStore((s) => s.wizardComplete);
   const wizardStep = useUserStore((s) => s.wizardStep);
   const setWizardStep = useUserStore((s) => s.setWizardStep);
@@ -322,7 +324,7 @@ export default function OnboardingWizard() {
             </button>
           )}
 
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className={s.s0}>
             {wizardStep > 0 && wizardStep < STEPS.length - 1 && (
               <button
                 className="tf-btn"
@@ -432,7 +434,7 @@ function StepQuickSetup() {
       {/* Broker — compact grid */}
       <div style={{ marginBottom: space[4] }}>
         <div style={{ ...text.label, marginBottom: space[2] }}>Broker (for CSV auto-detect)</div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        <div className={s.s1}>
           {BROKERS.map((b) => (
             <button
               key={b.id}
@@ -460,7 +462,7 @@ function StepQuickSetup() {
       {/* Theme — inline toggle */}
       <div style={{ display: 'flex', alignItems: 'center', gap: space[3] }}>
         <span style={{ ...text.label }}>Theme</span>
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div className={s.s2}>
           <ThemePill label="🌙 Dark" active={theme === 'dark'} onClick={() => setTheme('dark')} />
           <ThemePill label="☀️ Light" active={theme === 'light'} onClick={() => setTheme('light')} />
         </div>
@@ -539,7 +541,7 @@ function FeatureHighlight({ icon, title, desc }) {
         border: `1px solid ${C.bd}40`,
       }}
     >
-      <span style={{ fontSize: 20, flexShrink: 0 }}>{icon}</span>
+      <span className={s.s3}>{icon}</span>
       <div>
         <div style={{ ...text.h3, fontSize: 12, marginBottom: 2 }}>{title}</div>
         <div style={text.bodyXs}>{desc}</div>
@@ -602,3 +604,5 @@ function SettingInput({ label, value, placeholder, onChange }) {
     </div>
   );
 }
+
+export default React.memo(OnboardingWizard);

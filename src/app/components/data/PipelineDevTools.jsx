@@ -9,6 +9,7 @@
 // development and performance tuning.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { logger } from '@/observability/logger';
 
@@ -126,7 +127,7 @@ function scoreStyle(score) {
 
 // ─── Component ─────────────────────────────────────────────────
 
-export default function PipelineDevTools() {
+function PipelineDevTools() {
   const [visible, setVisible] = useState(false);
   const [snapshot, setSnapshot] = useState(null);
   const intervalRef = useRef(null);
@@ -414,3 +415,5 @@ export default function PipelineDevTools() {
     </div>
   );
 }
+
+export default React.memo(PipelineDevTools);

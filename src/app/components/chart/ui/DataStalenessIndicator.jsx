@@ -12,6 +12,7 @@
 //   <DataStalenessIndicator symbol="BTCUSDT" tfId="1D" isLive={wsConnected} />
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { cacheManager } from '../../../../data/engine/infra/CacheManager.js';
 
@@ -93,7 +94,7 @@ const styles = {
 
 // ─── Component ─────────────────────────────────────────────────
 
-export default function DataStalenessIndicator({ symbol, tfId, isLive = false }) {
+function DataStalenessIndicator({ symbol, tfId, isLive = false }) {
   const [info, setInfo] = useState(null);
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -149,3 +150,5 @@ export default function DataStalenessIndicator({ symbol, tfId, isLive = false })
     </div>
   );
 }
+
+export default React.memo(DataStalenessIndicator);

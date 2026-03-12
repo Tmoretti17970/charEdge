@@ -4,6 +4,7 @@
 // Sprint 20: Guided first-use experience for Discover tab.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
@@ -31,7 +32,7 @@ const STYLES = [
   { id: 'learner', icon: '🎓', label: 'Still Learning', desc: 'Show me the basics' },
 ];
 
-export default function DiscoverOnboarding({ onComplete }) {
+function DiscoverOnboarding({ onComplete }) {
   const [step, setStep] = useState(1);
   const [selectedMarkets, setSelectedMarkets] = useState([]);
   const [selectedSymbols, setSelectedSymbols] = useState([]);
@@ -161,3 +162,5 @@ export default function DiscoverOnboarding({ onComplete }) {
 }
 
 export { DiscoverOnboarding };
+
+export default React.memo(DiscoverOnboarding);

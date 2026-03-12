@@ -1,23 +1,24 @@
 import { useMemo } from 'react';
 import { C, F, M } from '../../../../constants.js';
 import { calcRiskReward, calcPositionSize } from '../../../../state/chart/tradeSlice';
-import { useChartStore } from '../../../../state/useChartStore';
 import { useLayoutStore } from '../../../../state/useLayoutStore';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
+import { useChartTradeStore } from '../../../../state/chart/useChartTradeStore';
 
 export default function PositionSizer() {
   const closePanel = useLayoutStore((s) => s.closePanel);
-  const accountSize = useChartStore((s) => s.accountSize) ?? 25000;
-  const riskPercent = useChartStore((s) => s.riskPercent) ?? 1;
-  const riskAmount = useChartStore((s) => s.riskAmount) ?? (accountSize * (riskPercent / 100));
-  const riskMode = useChartStore((s) => s.riskMode) ?? 'percent';
-  const setAccountSize = useChartStore((s) => s.setAccountSize) ?? (() => {});
-  const setRiskPercent = useChartStore((s) => s.setRiskPercent) ?? (() => {});
-  const setRiskAmount = useChartStore((s) => s.setRiskAmount) ?? (() => {});
-  const setRiskMode = useChartStore((s) => s.setRiskMode) ?? (() => {});
-  const pendingEntry = useChartStore((s) => s.pendingEntry);
-  const pendingSL = useChartStore((s) => s.pendingSL ?? s.pendingStopLoss);
-  const pendingTP = useChartStore((s) => s.pendingTP ?? s.pendingTakeProfit);
-  const tradeSide = useChartStore((s) => s.tradeSide);
+  const accountSize = useChartTradeStore((s) => s.accountSize) ?? 25000;
+  const riskPercent = useChartTradeStore((s) => s.riskPercent) ?? 1;
+  const riskAmount = useChartTradeStore((s) => s.riskAmount) ?? (accountSize * (riskPercent / 100));
+  const riskMode = useChartTradeStore((s) => s.riskMode) ?? 'percent';
+  const setAccountSize = useChartTradeStore((s) => s.setAccountSize) ?? (() => {});
+  const setRiskPercent = useChartTradeStore((s) => s.setRiskPercent) ?? (() => {});
+  const setRiskAmount = useChartTradeStore((s) => s.setRiskAmount) ?? (() => {});
+  const setRiskMode = useChartTradeStore((s) => s.setRiskMode) ?? (() => {});
+  const pendingEntry = useChartTradeStore((s) => s.pendingEntry);
+  const pendingSL = useChartTradeStore((s) => s.pendingSL ?? s.pendingStopLoss);
+  const pendingTP = useChartTradeStore((s) => s.pendingTP ?? s.pendingTakeProfit);
+  const tradeSide = useChartFeaturesStore((s) => s.tradeSide);
 
   const entry = pendingEntry?.price ?? pendingEntry;
   const sl = pendingSL?.price ?? pendingSL;

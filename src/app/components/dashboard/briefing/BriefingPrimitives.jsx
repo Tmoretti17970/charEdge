@@ -58,10 +58,10 @@ export function BriefingTile({ title, children, isMobile, style = {} }) {
         <div style={{
             padding: isMobile ? '8px 12px' : '10px 14px',
             borderRadius: 10,
-            background: GLASS.subtle,
+            background: 'rgba(255,255,255,0.04)',
             backdropFilter: GLASS.blurSm,
             WebkitBackdropFilter: GLASS.blurSm,
-            border: GLASS.border,
+            border: '1px solid rgba(255,255,255,0.06)',
             marginBottom: isMobile ? 8 : 0,
             transition: 'border-color 0.15s ease',
             ...style,

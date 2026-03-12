@@ -10,6 +10,7 @@
 //   <SkeletonLoader variant="metric" count={4} />
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { C } from '../../../constants.js';
 
 
@@ -154,7 +155,7 @@ function SkeletonMetric({ count = 4 }) {
  * @param {number} [lines] — For text variant
  * @param {number} [count] — For metric variant
  */
-export default function SkeletonLoader({ variant = 'card', height, rows, lines, count }) {
+function SkeletonLoader({ variant = 'card', height, rows, lines, count }) {
   switch (variant) {
     case 'chart':
       return <SkeletonChart height={height} />;
@@ -171,3 +172,5 @@ export default function SkeletonLoader({ variant = 'card', height, rows, lines, 
 }
 
 export { ShimmerBar, SkeletonCard, SkeletonChart, SkeletonTable, SkeletonText, SkeletonMetric };
+
+export default React.memo(SkeletonLoader);

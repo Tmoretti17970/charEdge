@@ -5,11 +5,12 @@
 // focus mode. Minimal, non-intrusive UI in bottom-right corner.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useFocusStore } from '../../../state/useFocusStore.js';
 
-export default function FocusOverlay() {
+function FocusOverlay() {
   const focusMode = useFocusStore((s) => s.focusMode);
   const sessionStart = useFocusStore((s) => s.sessionStart);
   const breakReminderMinutes = useFocusStore((s) => s.breakReminderMinutes);
@@ -176,3 +177,5 @@ export default function FocusOverlay() {
     </>
   );
 }
+
+export default React.memo(FocusOverlay);

@@ -4,12 +4,14 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useBacktestStore } from '../../../../state/useBacktestStore.js';
-import { useChartStore, useChartFeaturesStore } from '../../../../state/useChartStore';
 import { useLayoutStore } from '../../../../state/useLayoutStore';
 import { useFocusStore } from '../../../../state/useFocusStore.js';
 import { useStrategyBuilderStore } from '../../../../state/useStrategyBuilderStore';
 import { useUIStore } from '../../../../state/useUIStore';
 import { useUserStore } from '../../../../state/useUserStore';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
+import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 
 // ─── Popular Symbols (for typeahead) ────────────────────────────
 
@@ -35,7 +37,7 @@ export const POPULAR_SYMBOLS = [
 
 export function getCommands(actions) {
   const theme = useUserStore.getState().theme;
-  const cs = useChartStore.getState();
+  const cs = useChartCoreStore.getState();
   const fs = useChartFeaturesStore.getState();
 
   return [
@@ -84,7 +86,7 @@ export function getCommands(actions) {
     { id: 'draw-magnet', label: cs.magnetMode ? 'Disable Magnet Mode' : 'Enable Magnet Mode', group: 'Drawing Tools', shortcut: 'N', icon: '🧲', action: () => { cs.toggleMagnetMode(); actions.close(); } },
     { id: 'draw-undo', label: 'Undo Drawing', group: 'Drawing Tools', shortcut: 'Ctrl+Z', icon: '↶', action: () => { cs.undoDrawing(); actions.close(); } },
     { id: 'draw-redo', label: 'Redo Drawing', group: 'Drawing Tools', shortcut: 'Ctrl+Y', icon: '↷', action: () => { cs.redoDrawing(); actions.close(); } },
-    { id: 'draw-clear', label: 'Clear All Drawings', group: 'Drawing Tools', icon: '🗑️', action: () => { if (cs.drawings?.length > 0) { useChartStore.setState({ drawingHistory: [...(cs.drawingHistory || []).slice(-49), cs.drawings], drawingFuture: [] }); cs.setDrawings?.([]); } actions.close(); } },
+    { id: 'draw-clear', label: 'Clear All Drawings', group: 'Drawing Tools', icon: '🗑️', action: () => { if (cs.drawings?.length > 0) { useChartToolsStore.setState({ drawingHistory: [...(cs.drawingHistory || []).slice(-49), cs.drawings], drawingFuture: [] }); cs.setDrawings?.([]); } actions.close(); } },
 
     // ─── OVERLAYS ────────────────────────────────────────────
     { id: 'ov-compare', label: fs.showComparisonOverlay ? 'Hide Symbol Comparison' : 'Compare Symbols', group: 'Overlays', icon: '⚖️', action: () => { fs.toggleComparisonOverlay(); actions.close(); } },
@@ -130,7 +132,7 @@ export function getCommands(actions) {
 
     // ─── TRADING ─────────────────────────────────────────────
     { id: 'trade-positionsizer', label: 'Position Sizer', group: 'Trading', icon: '⚖️', action: () => { useLayoutStore.getState().togglePanel('positionSizer'); actions.close(); } },
-    { id: 'trade-quickjournal', label: 'Quick Journal Entry', group: 'Trading', icon: '📝', action: () => { useChartStore.getState().toggleQuickJournal(); actions.close(); } },
+    { id: 'trade-quickjournal', label: 'Quick Journal Entry', group: 'Trading', icon: '📝', action: () => { useChartFeaturesStore.getState().toggleQuickJournal(); actions.close(); } },
 
     // ─── LAYOUT ──────────────────────────────────────────────
     { id: 'layout-single', label: 'Single Chart Layout', group: 'Layout', icon: '⬜', action: () => { window.dispatchEvent(new CustomEvent('tf:set-layout', { detail: '1x1' })); actions.close(); } },

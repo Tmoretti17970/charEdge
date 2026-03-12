@@ -4,9 +4,10 @@
 // similar to TradingView's custom timeframe feature.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useRef, useEffect } from 'react';
 import { C, F } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 
 const _VALID_SUFFIXES = ['m', 'h', 'D', 'd', 'W', 'w', 'M'];
 
@@ -37,10 +38,10 @@ function parseTf(input) {
   return `${num}${suffix}`;
 }
 
-export default function CustomTimeframeInput({ onClose }) {
+function CustomTimeframeInput({ onClose }) {
   const [value, setValue] = useState('');
   const [error, setError] = useState('');
-  const setTf = useChartStore((s) => s.setTf);
+  const setTf = useChartCoreStore((s) => s.setTf);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -124,3 +125,5 @@ export default function CustomTimeframeInput({ onClose }) {
     </div>
   );
 }
+
+export default React.memo(CustomTimeframeInput);

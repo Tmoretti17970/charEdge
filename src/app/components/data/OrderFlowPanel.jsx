@@ -12,6 +12,7 @@
 //   <OrderFlowPanel symbol="BTCUSDT" />
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { orderFlowBridge } from '../../../data/engine/orderflow/OrderFlowBridge.js';
@@ -108,7 +109,7 @@ function AggressorGauge({ ratio }) {
 
 // ─── Main Panel ────────────────────────────────────────────────
 
-export default function OrderFlowPanel({ symbol = 'BTCUSDT' }) {
+function OrderFlowPanel({ symbol = 'BTCUSDT' }) {
   const [stats, setStats] = useState(null);
   const [deltas, setDeltas] = useState([]);
   const [cvd, setCvd] = useState([]);
@@ -270,3 +271,5 @@ export default function OrderFlowPanel({ symbol = 'BTCUSDT' }) {
     </div>
   );
 }
+
+export default React.memo(OrderFlowPanel);

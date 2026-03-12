@@ -6,6 +6,7 @@
 // future: wired to API endpoint.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { C, F } from '../../../constants.js';
 
@@ -21,7 +22,7 @@ export const FEEDBACK_STORAGE_KEY = 'charedge-feedback';
 
 // ─── Component ──────────────────────────────────────────────────
 
-export default function FeedbackWidget() {
+function FeedbackWidget() {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState(null);
   const [message, setMessage] = useState('');
@@ -359,3 +360,5 @@ export default function FeedbackWidget() {
     </>
   );
 }
+
+export default React.memo(FeedbackWidget);

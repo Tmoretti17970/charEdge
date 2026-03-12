@@ -3,7 +3,7 @@
 // All logic extracted into sub-modules:
 //   - useChartLocalState (store selectors, local state, refs)
 //   - useChartDataLoader (data fetching, WS, TickerPlant)
-//   - useChartKeyboardHandler (keyboard shortcuts)
+//   - useHotkeys (keyboard shortcuts — declarative, scoped)
 //   - useChartDrawingHandler (drawing tools, AI copilot, exports)
 //   - useChartMouseHandlers (mouse move, context menu, double-click)
 //   - ChartOverlays (chart-area overlays)
@@ -22,12 +22,14 @@ import NoDataState from '../app/components/ui/NoDataState.jsx';
 import { C } from '../constants.js';
 import { fetchSymbolSearch } from '../data/FetchService';
 // Extracted sub-modules
-import { useChartFeaturesStore } from '../state/useChartStore';
+import { useChartFeaturesStore } from '../state/chart/useChartFeaturesStore';
+import { useChartToolsStore } from '../state/chart/useChartToolsStore';
+import { useHotkeys } from '../hooks/useHotkeys';
+import { DRAWING_TOOL_SHORTCUTS, TIMEFRAME_SHORTCUTS } from '../shared/drawingToolIds';
 import ChartOverlays from './charts/ChartOverlays.jsx';
 import ChartPanelManager from './charts/ChartPanelManager.jsx';
 import useChartDataLoader from './charts/useChartDataLoader.js';
 import useChartDrawingHandler from './charts/useChartDrawingHandler.js';
-import useChartKeyboardHandler from './charts/useChartKeyboardHandler';
 import useChartLocalState from './charts/useChartLocalState.js';
 import useChartMouseHandlers from './charts/useChartMouseHandlers.js';
 
@@ -186,17 +188,51 @@ function ChartsPageInner({ _mountTime }) {
     watchlistSymbols,
   } = useChartDataLoader();
 
-  useChartKeyboardHandler({
-    setShowSnapshotPublisher,
-    setSnapshotModalOpen,
-    setShowCopilot,
-    setShowShortcuts,
-    setShowInsights: state.setShowInsights,
-    setShowIndicators,
-    setDrawSidebarOpen,
-    setFocusMode,
-    setTf,
-  });
+  // ─── Keyboard shortcuts (migrated from useChartKeyboardHandler → useHotkeys) ──
+  useHotkeys([
+    // Drawing undo/redo
+    { key: 'ctrl+z', handler: () => useChartToolsStore.getState().undoDrawing(), description: 'Undo drawing' },
+    { key: 'ctrl+shift+z', handler: () => useChartToolsStore.getState().redoDrawing(), description: 'Redo drawing' },
+    { key: 'ctrl+y', handler: () => useChartToolsStore.getState().redoDrawing(), description: 'Redo drawing (alt)' },
+    // Escape: deselect active drawing tool
+    { key: 'Escape', handler: () => useChartToolsStore.getState().setActiveTool(null), description: 'Deselect tool', allowInInput: true },
+    // Ctrl+S → open snapshot publisher
+    { key: 'ctrl+s', handler: () => setShowSnapshotPublisher(true), description: 'Save snapshot' },
+    // Cmd+K / Ctrl+K → toggle AI Copilot
+    { key: 'ctrl+k', handler: () => setShowCopilot((prev) => !prev), description: 'Toggle AI Copilot' },
+    // ? → keyboard shortcuts overlay
+    { key: 'shift+/', handler: () => setShowShortcuts((prev) => !prev), description: 'Show shortcuts' },
+    // Timeframe shortcuts: 1-6
+    ...Object.entries(TIMEFRAME_SHORTCUTS).map(([key, tf]) => ({
+      key, handler: () => setTf(tf), description: `Switch to ${tf} timeframe`,
+    })),
+    // I → toggle insights panel
+    { key: 'i', handler: () => state.setShowInsights((prev) => !prev), description: 'Toggle insights' },
+    // Ctrl+I → toggle indicator panel
+    { key: 'ctrl+i', handler: () => setShowIndicators((prev) => !prev), description: 'Toggle indicators' },
+    // Drawing tool shortcuts: L, R, T, H
+    ...Object.entries(DRAWING_TOOL_SHORTCUTS).map(([key, toolId]) => ({
+      key,
+      handler: () => {
+        const store = useChartToolsStore.getState();
+        store.setActiveTool(store.activeTool === toolId ? null : toolId);
+      },
+      description: `Drawing: ${toolId}`,
+    })),
+    // D → toggle drawing sidebar
+    { key: 'd', handler: () => setDrawSidebarOpen((prev) => !prev), description: 'Toggle drawing sidebar' },
+    // F → toggle focus mode
+    { key: 'f', handler: () => setFocusMode((prev) => !prev), description: 'Toggle focus mode' },
+    // + / = → zoom in, - → zoom out
+    { key: '+', handler: () => window.dispatchEvent(new CustomEvent('charEdge:chart-zoom', { detail: { direction: 'in' } })), description: 'Zoom in' },
+    { key: '=', handler: () => window.dispatchEvent(new CustomEvent('charEdge:chart-zoom', { detail: { direction: 'in' } })), description: 'Zoom in (alt)' },
+    { key: '-', handler: () => window.dispatchEvent(new CustomEvent('charEdge:chart-zoom', { detail: { direction: 'out' } })), description: 'Zoom out' },
+    // / → focus symbol search
+    { key: '/', handler: () => {
+      const searchInput = document.querySelector('.tf-chart-toolbar-btn input, .tf-symbol-search-input');
+      if (searchInput) { searchInput.focus(); searchInput.select?.(); }
+    }, description: 'Symbol search' },
+  ], { scope: 'page:chart', enabled: true });
 
   const {
     handleDrawingClick,

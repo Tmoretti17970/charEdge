@@ -7,6 +7,7 @@
 // CSS animations for a non-distracting yet informative indicator.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useEffect, useState, useMemo } from 'react';
 
 // ─── Health Status → Visual Mapping ────────────────────────────
@@ -44,7 +45,7 @@ const STATUS_CONFIG = {
 
 // ─── Component ─────────────────────────────────────────────────
 
-export default function StreamHealthBorder({ children }) {
+function StreamHealthBorder({ children }) {
   const [health, setHealth] = useState(null);
 
   // Subscribe to pipeline health monitor
@@ -156,3 +157,5 @@ export default function StreamHealthBorder({ children }) {
     </div>
   );
 }
+
+export default React.memo(StreamHealthBorder);

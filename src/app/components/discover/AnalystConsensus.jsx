@@ -4,10 +4,12 @@
 // Sprint 9: Aggregated analyst ratings dashboard.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { alpha } from '@/shared/colorUtils';
+import s from './AnalystConsensus.module.css';
 
 const MOCK_CONSENSUS = [
   {
@@ -50,7 +52,7 @@ function getRatings() {
   return _RATINGS;
 }
 
-export default function AnalystConsensus() {
+function AnalystConsensus() {
   const [collapsed, setCollapsed] = useState(false);
   const [filter, setFilter] = useState('all');
   const [expanded, setExpanded] = useState(null);
@@ -67,8 +69,8 @@ export default function AnalystConsensus() {
   return (
     <div style={{ background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 16, overflow: 'hidden' }}>
       <button onClick={() => setCollapsed(!collapsed)} className="tf-btn"
-        style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        className={s.s0}>
+        <div className={s.s1}>
           <span style={{ fontSize: 18 }}>⭐</span>
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>Analyst Consensus</h3>
           <span style={{ fontSize: 10, fontWeight: 700, color: C.p, background: alpha(C.p, 0.1), padding: '2px 7px', borderRadius: 4, fontFamily: M }}>
@@ -81,7 +83,7 @@ export default function AnalystConsensus() {
       {!collapsed && (
         <div style={{ padding: '0 20px 20px' }}>
           {/* Filters */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+          <div className={s.s2}>
             {['all', 'watchlist'].map((f) => (
               <button key={f} onClick={() => setFilter(f)} className="tf-btn"
                 style={{ padding: '5px 12px', borderRadius: 8, border: `1px solid ${filter === f ? C.b : 'transparent'}`, background: filter === f ? alpha(C.b, 0.08) : 'transparent', color: filter === f ? C.b : C.t3, cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: F }}>
@@ -93,7 +95,7 @@ export default function AnalystConsensus() {
           {data.length === 0 ? (
             <div style={{ padding: 24, textAlign: 'center', color: C.t3, fontSize: 12, fontFamily: F }}>No analyst coverage for your watchlist symbols yet.</div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div className={s.s3}>
               {data.map((stock) => {
                 const total = stock.buy + stock.hold + stock.sell;
                 const buyPct = (stock.buy / total) * 100;
@@ -104,7 +106,7 @@ export default function AnalystConsensus() {
                   <div key={stock.symbol} onClick={() => setExpanded(isExpanded ? null : stock.symbol)}
                     style={{ padding: '12px 14px', background: alpha(C.sf, 0.5), border: `1px solid ${alpha(C.bd, 0.5)}`, borderRadius: 10, cursor: 'pointer', transition: 'all 0.15s ease' }}>
                     {/* Main Row */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div className={s.s4}>
                       <div style={{ minWidth: 70 }}>
                         <div style={{ fontSize: 14, fontWeight: 700, color: C.t1, fontFamily: F }}>{stock.symbol}</div>
                         <div style={{ fontSize: 10, color: C.t3, fontFamily: F }}>{stock.name}</div>
@@ -112,12 +114,12 @@ export default function AnalystConsensus() {
 
                       {/* Consensus Bar */}
                       <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', height: 6, borderRadius: 3, overflow: 'hidden' }}>
+                        <div className={s.s5}>
                           <div style={{ width: `${buyPct}%`, background: C.g }} />
                           <div style={{ width: `${holdPct}%`, background: C.y }} />
                           <div style={{ flex: 1, background: C.r }} />
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
+                        <div className={s.s6}>
                           <span style={{ fontSize: 9, color: C.g, fontFamily: M, fontWeight: 600 }}>{stock.buy} Buy</span>
                           <span style={{ fontSize: 9, color: C.y, fontFamily: M, fontWeight: 600 }}>{stock.hold} Hold</span>
                           <span style={{ fontSize: 9, color: C.r, fontFamily: M, fontWeight: 600 }}>{stock.sell} Sell</span>
@@ -125,7 +127,7 @@ export default function AnalystConsensus() {
                       </div>
 
                       {/* Price Target */}
-                      <div style={{ textAlign: 'right', minWidth: 90 }}>
+                      <div className={s.s7}>
                         <div style={{ fontSize: 9, color: C.t3, fontFamily: F }}>Avg Target</div>
                         <div style={{ fontSize: 14, fontWeight: 700, color: C.t1, fontFamily: M }}>${stock.targetAvg}</div>
                         <div style={{ fontSize: 9, color: stock.upside >= 0 ? C.g : C.r, fontFamily: M, fontWeight: 600 }}>
@@ -157,7 +159,7 @@ export default function AnalystConsensus() {
                               left: `${Math.max(0, Math.min(100, ((stock.current - stock.targetLow) / (stock.targetHigh - stock.targetLow)) * 100))}%`,
                             }} />
                           </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                          <div className={s.s8}>
                             <span style={{ fontSize: 9, color: C.r, fontFamily: M }}>${stock.targetLow}</span>
                             <span style={{ fontSize: 9, color: C.b, fontFamily: M, fontWeight: 600 }}>Current: ${stock.current}</span>
                             <span style={{ fontSize: 9, color: C.g, fontFamily: M }}>${stock.targetHigh}</span>
@@ -166,7 +168,7 @@ export default function AnalystConsensus() {
 
                         {/* Recent Rating Changes */}
                         <div style={{ fontSize: 10, fontWeight: 600, color: C.t3, fontFamily: F, marginBottom: 6 }}>Recent Changes</div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <div className={s.s9}>
                           {stock.recentChanges.map((rc, i) => (
                             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', background: alpha(C.sf, 0.3), borderRadius: 6, fontSize: 10 }}>
                               <span style={{ color: C.t3, fontFamily: M, minWidth: 40 }}>{rc.date}</span>
@@ -191,3 +193,5 @@ export default function AnalystConsensus() {
 }
 
 export { AnalystConsensus };
+
+export default React.memo(AnalystConsensus);

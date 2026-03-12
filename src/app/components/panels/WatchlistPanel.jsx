@@ -11,12 +11,13 @@
 // Responsive: works as sidebar panel or overlay on mobile.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useChartStore } from '../../../state/useChartStore';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useUIStore } from '../../../state/useUIStore';
 import { useWatchlistStore, groupByAssetClass, enrichWithTradeStats } from '../../../state/useWatchlistStore.js';
+import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
 
 const ASSET_ICONS = {
   futures: '📊',
@@ -28,12 +29,12 @@ const ASSET_ICONS = {
   other: '📋',
 };
 
-export default function WatchlistPanel({ compact = false }) {
+function WatchlistPanel({ compact = false }) {
   const items = useWatchlistStore((s) => s.items);
   const addSymbol = useWatchlistStore((s) => s.add);
   const removeSymbol = useWatchlistStore((s) => s.remove);
   const trades = useJournalStore((s) => s.trades);
-  const setChartSymbol = useChartStore((s) => s.setSymbol);
+  const setChartSymbol = useChartCoreStore((s) => s.setSymbol);
   const setPage = useUIStore((s) => s.setPage);
   const [inputValue, setInputValue] = useState('');
   const [hoveredSymbol, setHoveredSymbol] = useState(null);
@@ -408,3 +409,5 @@ function SVGSparkline({ data, color }) {
 }
 
 export { WatchlistPanel };
+
+export default React.memo(WatchlistPanel);

@@ -3,6 +3,7 @@
 // Floating pill showing aggregate trade stats when trade markers visible.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, F } from '../../../../constants.js';
 
@@ -39,7 +40,7 @@ export function computeTradeStats(trades) {
   };
 }
 
-export default function TradePLPill({ trades, showAutoFit, onAutoFit }) {
+function TradePLPill({ trades, showAutoFit, onAutoFit }) {
   const [expanded, setExpanded] = useState(false);
 
   const stats = useMemo(() => computeTradeStats(trades), [trades]);
@@ -186,3 +187,5 @@ function StatItem({ label, value, color }) {
     </div>
   );
 }
+
+export default React.memo(TradePLPill);

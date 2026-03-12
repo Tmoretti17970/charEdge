@@ -5,7 +5,9 @@
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { analyzeAll } from '../../charting_library/studies/PriceActionEngine.js';
-import { useChartStore } from '../../state/useChartStore';
+import { useChartCoreStore } from '../../state/chart/useChartCoreStore';
+import { useChartToolsStore } from '../../state/chart/useChartToolsStore';
+import { useChartFeaturesStore } from '../../state/chart/useChartFeaturesStore';
 import { useJournalStore } from '../../state/useJournalStore';
 import { useLayoutStore } from '../../state/useLayoutStore';
 import { useScriptStore } from '../../state/useScriptStore.js';
@@ -14,36 +16,36 @@ import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 export default function useChartLocalState() {
   // ─── Store selectors ──────────────────────────────────────────
-  const symbol = useChartStore((s) => s.symbol);
-  const tf = useChartStore((s) => s.tf);
-  const chartType = useChartStore((s) => s.chartType);
-  const indicators = useChartStore((s) => s.indicators);
-  const setSymbol = useChartStore((s) => s.setSymbol);
-  const setTf = useChartStore((s) => s.setTf);
-  const data = useChartStore((s) => s.data);
-  const dataSource = useChartStore((s) => s.source);
-  const dataLoading = useChartStore((s) => s.loading);
-  const replayMode = useChartStore((s) => s.replayMode);
-  const replayIdx = useChartStore((s) => s.replayIdx);
-  const activeGhost = useChartStore((s) => s.activeGhost);
-  const layoutMode = useChartStore((s) => s.layoutMode);
-  const setLayoutMode = useChartStore((s) => s.setLayoutMode);
+  const symbol = useChartCoreStore((s) => s.symbol);
+  const tf = useChartCoreStore((s) => s.tf);
+  const chartType = useChartCoreStore((s) => s.chartType);
+  const indicators = useChartToolsStore((s) => s.indicators);
+  const setSymbol = useChartCoreStore((s) => s.setSymbol);
+  const setTf = useChartCoreStore((s) => s.setTf);
+  const data = useChartCoreStore((s) => s.data);
+  const dataSource = useChartCoreStore((s) => s.source);
+  const dataLoading = useChartCoreStore((s) => s.loading);
+  const replayMode = useChartFeaturesStore((s) => s.replayMode);
+  const replayIdx = useChartFeaturesStore((s) => s.replayIdx);
+  const activeGhost = useChartFeaturesStore((s) => s.activeGhost);
+  const layoutMode = useChartFeaturesStore((s) => s.layoutMode);
+  const setLayoutMode = useChartFeaturesStore((s) => s.setLayoutMode);
   const multiMode = layoutMode !== '1x1';
-  const activeTool = useChartStore((s) => s.activeTool);
-  const drawings = useChartStore((s) => s.drawings);
-  const drawingsVisible = useChartStore((s) => s.drawingsVisible);
-  const showVolumeProfile = useChartStore((s) => s.showVolumeProfile);
-  const comparisonSymbol = useChartStore((s) => s.comparisonSymbol);
-  const comparisonData = useChartStore((s) => s.comparisonData);
-  const intelligence = useChartStore((s) => s.intelligence);
-  const pendingDrawing = useChartStore((s) => s.pendingDrawing);
+  const activeTool = useChartToolsStore((s) => s.activeTool);
+  const drawings = useChartToolsStore((s) => s.drawings);
+  const drawingsVisible = useChartToolsStore((s) => s.drawingsVisible);
+  const showVolumeProfile = useChartFeaturesStore((s) => s.showVolumeProfile);
+  const comparisonSymbol = useChartFeaturesStore((s) => s.comparisonSymbol);
+  const comparisonData = useChartFeaturesStore((s) => s.comparisonData);
+  const intelligence = useChartFeaturesStore((s) => s.intelligence);
+  const pendingDrawing = useChartToolsStore((s) => s.pendingDrawing);
 
-  const tradeMode = useChartStore((s) => s.tradeMode);
-  const tradeStep = useChartStore((s) => s.tradeStep);
-  const contextMenu = useChartStore((s) => s.contextMenu);
-  const closeContextMenu = useChartStore((s) => s.closeContextMenu);
-  const showQuickJournal = useChartStore((s) => s.showQuickJournal);
-  const toggleQuickJournal = useChartStore((s) => s.toggleQuickJournal);
+  const tradeMode = useChartFeaturesStore((s) => s.tradeMode);
+  const tradeStep = useChartFeaturesStore((s) => s.tradeStep);
+  const contextMenu = useChartFeaturesStore((s) => s.contextMenu);
+  const closeContextMenu = useChartFeaturesStore((s) => s.closeContextMenu);
+  const showQuickJournal = useChartFeaturesStore((s) => s.showQuickJournal);
+  const toggleQuickJournal = useChartFeaturesStore((s) => s.toggleQuickJournal);
 
   const openPanel = useLayoutStore((s) => s.openPanel);
   const { isMobile } = useBreakpoints();

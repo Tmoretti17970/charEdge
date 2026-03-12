@@ -3,6 +3,7 @@
 // Visual mini-canvas thumbnails for chart type selection
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useRef, useEffect, useState } from 'react';
 import { C, F, CHART_TYPES } from '../../../../constants.js';
 
@@ -167,7 +168,7 @@ function MiniPreview({ type, isActive, isHovered, onClick, onHover, onLeave, col
   );
 }
 
-export default function ChartTypePreview({ currentType, onSelect }) {
+function ChartTypePreview({ currentType, onSelect }) {
   const appearance = { upColor: '#26A69A', downColor: '#EF5350' };
   const [hoveredId, setHoveredId] = useState(null);
 
@@ -208,3 +209,5 @@ export default function ChartTypePreview({ currentType, onSelect }) {
     </div>
   );
 }
+
+export default React.memo(ChartTypePreview);

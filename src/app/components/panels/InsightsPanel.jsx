@@ -9,6 +9,7 @@
 // Decomposed: tab components live in ./insights/.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState } from 'react';
 // eslint-disable-next-line import/order
 import { C, F } from '../../../constants.js';
@@ -24,7 +25,7 @@ const TABS = [
   { id: 'checklist', label: '✅ Checklist' },
 ];
 
-export default function InsightsPanel({ trades = [] }) {
+function InsightsPanel({ trades = [] }) {
   const [tab, setTab] = useState('patterns');
 
   return (
@@ -88,3 +89,5 @@ export default function InsightsPanel({ trades = [] }) {
 }
 
 export { InsightsPanel };
+
+export default React.memo(InsightsPanel);

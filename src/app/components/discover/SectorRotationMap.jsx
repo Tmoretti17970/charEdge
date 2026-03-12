@@ -10,9 +10,11 @@
 //   - Drill-down top movers per sector
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
+import s from './SectorRotationMap.module.css';
 
 // ─── Mock Sector Data ───────────────────────────────────────────
 
@@ -175,7 +177,7 @@ const CYCLE_META = {
 // Main Component
 // ═══════════════════════════════════════════════════════════════════
 
-export default function SectorRotationMap() {
+function SectorRotationMap() {
   const [collapsed, setCollapsed] = useState(false);
   const [activeTF, setActiveTF] = useState('1D');
   const [drillSector, setDrillSector] = useState(null);
@@ -202,18 +204,9 @@ export default function SectorRotationMap() {
       <button
         onClick={() => setCollapsed(!collapsed)}
         className="tf-btn"
-        style={{
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '16px 20px',
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-        }}
+        className={s.s0}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className={s.s1}>
           <span style={{ fontSize: 18 }}>🗺️</span>
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>
             Sector Rotation Map
@@ -242,9 +235,9 @@ export default function SectorRotationMap() {
       {!collapsed && (
         <div style={{ padding: '0 20px 20px' }}>
           {/* Controls Row */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
+          <div className={s.s2}>
             {/* Timeframe Selector */}
-            <div style={{ display: 'flex', gap: 4 }}>
+            <div className={s.s3}>
               {TIMEFRAMES.map((tf) => (
                 <button
                   key={tf}
@@ -264,7 +257,7 @@ export default function SectorRotationMap() {
             </div>
 
             {/* Sort */}
-            <div style={{ display: 'flex', gap: 4 }}>
+            <div className={s.s4}>
               {[
                 { id: 'perf', label: 'Performance' },
                 { id: 'flow', label: 'Money Flow' },
@@ -309,7 +302,7 @@ export default function SectorRotationMap() {
           {drillSector ? (
             <DrillDown sector={SECTORS.find((s) => s.id === drillSector)} activeTF={activeTF} />
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div className={s.s5}>
               {/* Table Header */}
               <div
                 style={{
@@ -346,9 +339,9 @@ export default function SectorRotationMap() {
           )}
 
           {/* Business Cycle Legend */}
-          <div style={{ display: 'flex', gap: 16, marginTop: 14, justifyContent: 'center' }}>
+          <div className={s.s6}>
             {Object.entries(CYCLE_META).map(([key, meta]) => (
-              <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div key={key} className={s.s7}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: meta.color }} />
                 <span style={{ fontSize: 9, color: C.t3, fontFamily: F }}>{meta.label}</span>
               </div>
@@ -385,7 +378,7 @@ function SectorRow({ sector, activeTF, onClick }) {
       className="tf-btn"
     >
       {/* Sector Name */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div className={s.s8}>
         <span style={{ fontSize: 16 }}>{sector.icon}</span>
         <div>
           <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: F }}>{sector.name}</div>
@@ -417,7 +410,7 @@ function SectorRow({ sector, activeTF, onClick }) {
       })}
 
       {/* Money Flow */}
-      <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+      <div className={s.s9}>
         <span style={{ fontSize: 10, color: sector.flow >= 0 ? C.g : C.r }}>
           {sector.flow >= 0 ? '▲' : '▼'}
         </span>
@@ -501,7 +494,7 @@ function DrillDown({ sector, activeTF }) {
       <div style={{ fontSize: 11, fontWeight: 700, color: C.t3, fontFamily: F, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
         Top Movers
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div className={s.s10}>
         {sector.topMovers.map((mover, i) => (
           <div
             key={mover.symbol}
@@ -541,3 +534,5 @@ function DrillDown({ sector, activeTF }) {
 }
 
 export { SectorRotationMap };
+
+export default React.memo(SectorRotationMap);

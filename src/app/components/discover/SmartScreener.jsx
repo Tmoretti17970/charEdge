@@ -11,6 +11,7 @@
 //   - Click result → navigate to Charts
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { SCAN_PRESETS, fetchScreenerResults } from '../../../services/screenerService.js';
@@ -38,7 +39,7 @@ const SORT_OPTIONS = [
 // Main Component
 // ═══════════════════════════════════════════════════════════════════
 
-export default function SmartScreener() {
+function SmartScreener() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activePreset, setActivePreset] = useState(null);
@@ -504,3 +505,5 @@ function MABadge({ label, above }) {
 import { alpha } from '@/shared/colorUtils';
 
 export { SmartScreener };
+
+export default React.memo(SmartScreener);

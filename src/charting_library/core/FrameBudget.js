@@ -253,6 +253,22 @@ class FrameBudget {
     return result;
   }
 
+  // ─── #15: Frame Budget Check ────────────────────────────────
+
+  /**
+   * Check if more work can run in the current frame.
+   * Returns false if >75% of the frame budget has been consumed.
+   * Used by IndicatorWorkerBridge to decide whether to dispatch
+   * more indicator computations or defer to the next frame.
+   *
+   * @returns {boolean} true if there's budget remaining
+   */
+  canRunMore() {
+    if (this._frameStart === 0) return true; // no frame in progress
+    const elapsed = performance.now() - this._frameStart;
+    return elapsed < this._targetMs * 0.75;
+  }
+
   // ─── Internal ──────────────────────────────────────────────
 
   _adjustLOD() {

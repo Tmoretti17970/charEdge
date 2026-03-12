@@ -6,6 +6,7 @@
 // institutional patterns side-by-side for correlation analysis.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { logger } from '@/observability/logger';
 
@@ -130,7 +131,7 @@ const css = {
 
 // ─── Component ─────────────────────────────────────────────────
 
-export default function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
+function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
   const [data, setData] = useState({});
   const [correlatorEvents, setCorrelatorEvents] = useState([]);
   const [hoveredCard, setHoveredCard] = useState(null);
@@ -394,3 +395,5 @@ export default function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
     </div>
   );
 }
+
+export default React.memo(MicrostructureDashboard);

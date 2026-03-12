@@ -15,6 +15,7 @@ import { C, F, M } from '../constants.js';
 import { useAnalyticsStore } from '../state/useAnalyticsStore';
 import { getAuditSummary, getPlatformCLS, getPhase5Summary, SIMPLIFICATION_MANIFESTO } from '@/a11y/cognitiveLoadAudit';
 import { logger } from '@/observability/logger';
+import s from './TelemetryDashboard.module.css';
 
 function formatDuration(ms) {
   if (!ms || ms <= 0) return '—';
@@ -66,14 +67,14 @@ function RankTable({ title, data, labelKey, countKey }) {
       <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 12 }}>
         {title}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div className={s.s0}>
         {data.slice(0, 10).map((item, i) => (
-          <div key={item[labelKey]} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div key={item[labelKey]} className={s.s1}>
             <div style={{ width: 16, fontSize: 10, color: C.t3, fontFamily: M, textAlign: 'right' }}>
               {i + 1}
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+              <div className={s.s2}>
                 <span style={{ fontSize: 12, fontFamily: M, color: C.t1, fontWeight: 500 }}>
                   {item[labelKey]}
                 </span>
@@ -123,9 +124,9 @@ function DailyChart({ dailyMinutes }) {
       <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 12 }}>
         Daily Active Minutes (last 14 days)
       </div>
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 80 }}>
+      <div className={s.s3}>
         {days.map(([day, mins]) => (
-          <div key={day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <div key={day} className={s.s4}>
             <div style={{
               width: '100%',
               height: Math.max(4, (mins / maxMin) * 68),
@@ -175,7 +176,7 @@ export default function TelemetryDashboard() {
       height: '100%',
     }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+      <div className={s.s5}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: C.t1, margin: 0 }}>
             📊 Telemetry Dashboard
@@ -203,7 +204,7 @@ export default function TelemetryDashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
+      <div className={s.s6}>
         <MetricCard
           label="Avg Session"
           value={formatDuration(kpis.avgSessionDuration)}
@@ -235,12 +236,12 @@ export default function TelemetryDashboard() {
       </div>
 
       {/* Rankings */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
+      <div className={s.s7}>
         <RankTable title="Top Pages" data={kpis.topPages} labelKey="page" countKey="count" />
         <RankTable title="Top Features" data={kpis.topFeatures} labelKey="feature" countKey="count" />
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
+      <div className={s.s8}>
         <RankTable title="Click Map" data={clickData} labelKey="target" countKey="count" />
         <RankTable title="Workflows" data={workflowData} labelKey="workflow" countKey="count" />
       </div>
@@ -256,7 +257,7 @@ export default function TelemetryDashboard() {
         <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 12 }}>
           Recent Sessions ({sessions.length})
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 200, overflowY: 'auto' }}>
+        <div className={s.s9}>
           {sessions.slice(-10).reverse().map((s, i) => (
             <div key={s.id || i} style={{
               display: 'flex',
@@ -298,7 +299,7 @@ export default function TelemetryDashboard() {
         padding: 20,
         marginBottom: 20,
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div className={s.s10}>
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F }}>🧠 Cognitive Load Audit</div>
             <div style={{ fontSize: 11, color: C.t3, fontFamily: F, marginTop: 2 }}>Sprint 4 — Screen complexity scores (1-10)</div>
@@ -315,13 +316,13 @@ export default function TelemetryDashboard() {
             );
           })()}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className={s.s11}>
           {getAuditSummary().map((a) => {
             const barColor = a.currentScore > 7 ? '#ef4444' : a.currentScore > 5 ? '#f59e0b' : '#10b981';
             return (
-              <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div key={a.id} className={s.s12}>
                 <div style={{ width: 140, fontSize: 11, fontFamily: M, color: C.t2, flexShrink: 0 }}>{a.name}</div>
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div className={s.s13}>
                   {/* Current bar */}
                   <div style={{ flex: 1, height: 8, borderRadius: 4, background: C.bd, overflow: 'hidden', position: 'relative' }}>
                     <div style={{ width: `${a.currentScore * 10}%`, height: '100%', borderRadius: 4, background: barColor, transition: 'width 0.3s' }} />
@@ -352,7 +353,7 @@ export default function TelemetryDashboard() {
             <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 12 }}>
               ✨ Phase 5 Impact — Polish & Measurement
             </div>
-            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 16 }}>
+            <div className={s.s14}>
               <MetricCard label="Before (CLS)" value={p5.before} accent="#ef4444" />
               <MetricCard label="After (Phase 5)" value={p5.after} accent="#f59e0b" />
               <MetricCard label="Target" value={p5.target} accent="#10b981" />
@@ -367,7 +368,7 @@ export default function TelemetryDashboard() {
               <div style={{ fontSize: 12, fontWeight: 700, color: C.t2, fontFamily: F, marginBottom: 8, letterSpacing: 0.5 }}>
                 📜 SIMPLIFICATION MANIFESTO
               </div>
-              <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <ol className={s.s15}>
                 {SIMPLIFICATION_MANIFESTO.map((p, i) => (
                   <li key={i} style={{ fontSize: 12, color: C.t1, fontFamily: F, fontWeight: 500 }}>
                     {p}
@@ -431,7 +432,7 @@ function RenderPerfSection({ MetricCard }) {
       padding: 20,
       marginBottom: 20,
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div className={s.s16}>
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F }}>⚡ Rendering Performance</div>
           <div style={{ fontSize: 11, color: C.t3, fontFamily: F, marginTop: 2 }}>Phase 3.1.3 — Live metrics + benchmark runner</div>
@@ -457,7 +458,7 @@ function RenderPerfSection({ MetricCard }) {
 
       {/* Live Metrics */}
       {perfData ? (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+        <div className={s.s17}>
           <MetricCard label="FPS" value={perfData.fps ?? '—'} accent={perfData.fps >= 55 ? C.g : C.r} />
           <MetricCard label="Frame Time" value={`${perfData.avgFrameMs?.toFixed(1) ?? '—'}ms`} accent={perfData.avgFrameMs <= 8 ? C.g : C.r} />
           <MetricCard label="Jank Frames" value={perfData.jankFrames ?? 0} accent={perfData.jankFrames > 5 ? '#ef4444' : C.g} />
@@ -475,9 +476,9 @@ function RenderPerfSection({ MetricCard }) {
       {perfData?.stageTimings && Object.keys(perfData.stageTimings).length > 0 && (
         <div style={{ marginBottom: 16 }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: C.t2, fontFamily: F, marginBottom: 8 }}>Stage Waterfall</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div className={s.s18}>
             {Object.entries(perfData.stageTimings).map(([stage, ms]) => (
-              <div key={stage} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div key={stage} className={s.s19}>
                 <div style={{ width: 80, fontSize: 10, fontFamily: M, color: C.t2, textAlign: 'right' }}>{stage}</div>
                 <div style={{ flex: 1, height: 6, borderRadius: 3, background: C.bd, overflow: 'hidden' }}>
                   <div style={{ width: `${Math.min(100, ms * 10)}%`, height: '100%', borderRadius: 3, background: stageColor(ms), transition: 'width 0.3s' }} />
@@ -491,7 +492,7 @@ function RenderPerfSection({ MetricCard }) {
 
       {/* Memory Stats */}
       {perfData?.memory && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+        <div className={s.s20}>
           <MetricCard label="Buffer Memory" value={`${(perfData.memory.bufferBytes / 1024 / 1024).toFixed(1)}MB`} />
           <MetricCard label="Texture Memory" value={`${(perfData.memory.textureBytes / 1024 / 1024).toFixed(1)}MB`} />
         </div>
@@ -520,7 +521,7 @@ function RenderPerfSection({ MetricCard }) {
           <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 10 }}>
             Benchmark: {benchResult.report.verdict}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div className={s.s21}>
             {benchResult.report.gates.map(g => (
               <div key={g.barCount} style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, fontFamily: M }}>
                 <span style={{ width: 80, color: C.t2 }}>{g.label}</span>
@@ -533,7 +534,7 @@ function RenderPerfSection({ MetricCard }) {
         </div>
       )}
       {benchResult?.error && (
-        <div style={{ color: '#ef4444', fontSize: 11 }}>Benchmark error: {benchResult.error}</div>
+        <div className={s.s22}>Benchmark error: {benchResult.error}</div>
       )}
     </div>
   );

@@ -5,6 +5,7 @@
 // useTradeForm hook, and ScreenshotSection now live in ./trade-form/.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { C, F } from '../../../constants.js';
 import { TemplatePicker } from '../../features/journal/journal_ui/JournalEvolution.jsx';
 import { ModalOverlay, Btn, inputStyle } from '../ui/UIKit.jsx';
@@ -23,7 +24,7 @@ import { useTradeForm } from './trade-form/useTradeForm.js';
  * @param {Function} onClose
  * @param {object|null} editTrade - If provided, edit mode. Null = add mode.
  */
-export default function TradeFormModal({ isOpen, onClose, editTrade = null }) {
+function TradeFormModal({ isOpen, onClose, editTrade = null }) {
   const {
     form, errors, isDragging, isEdit,
     showDetails, setShowDetails,
@@ -228,3 +229,5 @@ export default function TradeFormModal({ isOpen, onClose, editTrade = null }) {
 }
 
 export { TradeFormModal };
+
+export default React.memo(TradeFormModal);

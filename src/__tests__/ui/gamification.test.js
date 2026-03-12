@@ -732,3 +732,68 @@ describe('Sprint C+D Persistence', () => {
     expect(s.weeklyChallenge.id).toBe('w_log_20');
   });
 });
+
+// ═══ #49 Gap-Fill: Edge Cases ═══════════════════════════════════
+
+describe('Gamification — edge cases (#49)', () => {
+  beforeEach(reset);
+
+  it('quest completion at exact boundary (10 trades for 10-trade quest)', () => {
+    useGamificationStore.getState().startQuest('volume_trader');
+    const trades = Array.from({ length: 10 }, (_, i) => mkTrade(i));
+    useGamificationStore.getState().evaluateQuestProgress(trades);
+    const aq = useGamificationStore.getState().activeQuests;
+    expect(aq.volume_trader.progress).toBe(10);
+  });
+
+  it('cosmetic equip/unequip toggle is idempotent', () => {
+    useGamificationStore.setState({ xp: 500 });
+    useGamificationStore.getState().equipCosmetic('ocean');
+    expect(useGamificationStore.getState().equippedCosmetic).toBe('ocean');
+    // Re-equip same — should stay ocean
+    useGamificationStore.getState().equipCosmetic('ocean');
+    expect(useGamificationStore.getState().equippedCosmetic).toBe('ocean');
+    // Switch to default
+    useGamificationStore.getState().equipCosmetic('default');
+    expect(useGamificationStore.getState().equippedCosmetic).toBe('default');
+  });
+
+  it('XP accumulates across rank boundaries without loss', () => {
+    // Apprentice→Journeyman at 500, Journeyman→Strategist at 2000
+    useGamificationStore.getState().awardXP(400, 'test');
+    expect(useGamificationStore.getState().getLevel().name).toBe('Apprentice');
+    useGamificationStore.getState().awardXP(200, 'test'); // 600 total
+    expect(useGamificationStore.getState().getLevel().name).toBe('Journeyman');
+    expect(useGamificationStore.getState().xp).toBe(600);
+
+    useGamificationStore.getState().awardXP(1500, 'test'); // 2100 total
+    expect(useGamificationStore.getState().getLevel().name).toBe('Strategist');
+    expect(useGamificationStore.getState().xp).toBe(2100); // No XP lost at boundary
+  });
+
+  it('daily challenge completion awards XP', () => {
+    const todayKey = new Date().toISOString().slice(0, 10);
+    useGamificationStore.setState({
+      dailyChallenge: {
+        id: 'log_3', description: 'Log 3 trades', target: 3,
+        xpReward: 50, type: 'trade_count', dateKey: todayKey,
+        progress: 0, completed: false, completedAt: null,
+        expiresAt: Date.now() + 86400000, _checklistCount: 0,
+      },
+    });
+    const trades = [mkTrade('t1'), mkTrade('t2'), mkTrade('t3')];
+    useGamificationStore.getState().updateChallengeProgress(trades);
+    const ch = useGamificationStore.getState().dailyChallenge;
+    expect(ch.progress).toBeGreaterThanOrEqual(3);
+    expect(ch.completed).toBe(true);
+  });
+
+  it('awardXP log caps at 50 even after rapid bursts', () => {
+    for (let i = 0; i < 100; i++) {
+      useGamificationStore.getState().awardXP(1, `burst_${i}`);
+    }
+    expect(useGamificationStore.getState().xpLog.length).toBeLessThanOrEqual(50);
+    expect(useGamificationStore.getState().xp).toBe(100); // All XP counted
+  });
+});
+

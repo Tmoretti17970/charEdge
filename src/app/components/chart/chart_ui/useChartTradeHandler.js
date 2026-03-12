@@ -9,8 +9,10 @@
 
 import { useCallback } from 'react';
 import { useAlertStore } from '../../../../state/useAlertStore';
-import { useChartStore } from '../../../../state/useChartStore';
 import toast from '../../ui/Toast.jsx';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
+import { useChartTradeStore } from '../../../../state/chart/useChartTradeStore';
 
 /**
  * Hook providing chart click handlers for trade mode.
@@ -18,10 +20,10 @@ import toast from '../../ui/Toast.jsx';
  */
 export function useChartTradeHandler() {
   // Only subscribe to the values we read during render
-  const tradeMode = useChartStore((s) => s.tradeMode);
-  const tradeStep = useChartStore((s) => s.tradeStep);
+  const tradeMode = useChartFeaturesStore((s) => s.tradeMode);
+  const tradeStep = useChartFeaturesStore((s) => s.tradeStep);
   const addAlert = useAlertStore((s) => s.addAlert);
-  const symbol = useChartStore((s) => s.symbol);
+  const symbol = useChartCoreStore((s) => s.symbol);
 
   /**
    * Handle left-click on chart canvas.
@@ -31,7 +33,7 @@ export function useChartTradeHandler() {
     (price, barIdx) => {
       if (!tradeMode) return false;
 
-      const actions = useChartStore.getState();
+      const actions = useChartCoreStore.getState();
       switch (tradeStep) {
         case 'entry':
           actions.setEntry(price, barIdx);
@@ -57,7 +59,7 @@ export function useChartTradeHandler() {
    */
   const handleContextMenu = useCallback((e, price, barIdx, date) => {
     e.preventDefault();
-    useChartStore.getState().setContextMenu({
+    useChartCoreStore.getState().setContextMenu({
       x: e.clientX,
       y: e.clientY,
       price,
@@ -71,27 +73,27 @@ export function useChartTradeHandler() {
    */
   const contextMenuHandlers = {
     onSetEntry: (price, barIdx) => {
-      const a = useChartStore.getState();
+      const a = useChartCoreStore.getState();
       if (!a.tradeMode) a.enterTradeMode('long');
       a.setEntry(price, barIdx);
       toast.info(`Entry set @ $${price.toFixed(2)}`);
     },
     onSetSL: (price, barIdx) => {
-      useChartStore.getState().setSL(price, barIdx);
+      useChartTradeStore.getState().setSL(price, barIdx);
       toast.info(`Stop Loss set @ $${price.toFixed(2)}`);
     },
     onSetTP: (price, barIdx) => {
-      useChartStore.getState().setTP(price, barIdx);
+      useChartTradeStore.getState().setTP(price, barIdx);
       toast.info(`Target set @ $${price.toFixed(2)}`);
     },
     onLongEntry: (price, barIdx) => {
-      const a = useChartStore.getState();
+      const a = useChartCoreStore.getState();
       a.enterTradeMode('long');
       a.setEntry(price, barIdx);
       toast.info(`Long entry set @ $${price.toFixed(2)} — click to set SL`);
     },
     onShortEntry: (price, barIdx) => {
-      const a = useChartStore.getState();
+      const a = useChartCoreStore.getState();
       a.enterTradeMode('short');
       a.setEntry(price, barIdx);
       toast.info(`Short entry set @ $${price.toFixed(2)} — click to set SL`);
@@ -103,14 +105,14 @@ export function useChartTradeHandler() {
       }
     },
     onQuickJournal: () => {
-      useChartStore.getState().toggleQuickJournal();
+      useChartFeaturesStore.getState().toggleQuickJournal();
     },
     onCopyPrice: (price) => {
       navigator.clipboard?.writeText(price.toFixed(2));
       toast.info(`$${price.toFixed(2)} copied`);
     },
     onExitTradeMode: () => {
-      useChartStore.getState().exitTradeMode();
+      useChartFeaturesStore.getState().exitTradeMode();
       toast.info('Trade mode cancelled');
     },
   };

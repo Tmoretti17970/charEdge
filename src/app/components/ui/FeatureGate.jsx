@@ -31,7 +31,7 @@ import styles from './FeatureGate.module.css';
  * @param {React.ReactNode} [fallback] - Custom fallback when locked
  * @param {string} [label] - Human-readable feature name for the unlock prompt
  */
-export default function FeatureGate({ feature, silent = false, children, fallback, label }) {
+function FeatureGate({ feature, silent = false, children, fallback, label }) {
   const _tier = useUserStore((s) => s.tier);
   const isUnlocked = useUserStore((s) => s.isFeatureUnlocked(feature));
   const unlockFeature = useUserStore((s) => s.unlockFeature);
@@ -167,3 +167,5 @@ export function useFeatureAccess(feature) {
 }
 
 export { FeatureGate };
+
+export default React.memo(FeatureGate);

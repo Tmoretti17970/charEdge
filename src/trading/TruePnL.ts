@@ -19,9 +19,11 @@ export interface TruePnLBreakdown {
   commissions: number;
   /** Funding rate cost (crypto/futures) */
   fundingRate: number;
+  /** #13: Borrow cost for short positions */
+  borrowCost: number;
   /** Slippage: difference between intended and actual entry/exit */
   slippage: number;
-  /** Net P&L after all costs: grossPnL - commissions - fundingRate - slippage */
+  /** Net P&L after all costs: grossPnL - commissions - fundingRate - borrowCost - slippage */
   netPnL: number;
   /** Percentage of gross P&L eaten by fees: (totalCosts / |grossPnL|) × 100 */
   feeImpactPct: number;
@@ -40,6 +42,8 @@ export interface TruePnLSummary {
   totalCommissions: number;
   /** Total funding costs */
   totalFunding: number;
+  /** #13: Total borrow costs for short positions */
+  totalBorrowCost: number;
   /** Total slippage costs */
   totalSlippage: number;
   /** Number of trades where fees > 50% of gross (problematic) */
@@ -57,6 +61,8 @@ interface TradeInput {
   pnl?: number;
   /** Funding rate cost (optional, user-entered) */
   fundingRate?: number;
+  /** #13: Borrow rate cost for short positions (optional, user-entered) */
+  borrowRate?: number;
   /** Intended entry price (for slippage calc) */
   intendedEntry?: number;
   /** Intended exit price (for slippage calc) */
@@ -86,6 +92,9 @@ export function computeTruePnL(trade: TradeInput): TruePnLBreakdown {
   // Funding rate (crypto perpetuals, futures)
   const fundingRate = Math.abs(trade.fundingRate ?? 0);
 
+  // #13: Borrow cost for short positions
+  const borrowCost = Math.abs(trade.borrowRate ?? 0);
+
   // Slippage: difference between intended and actual prices
   let slippage = 0;
   if (trade.intendedEntry != null && entry > 0) {
@@ -95,7 +104,7 @@ export function computeTruePnL(trade: TradeInput): TruePnLBreakdown {
     slippage += Math.abs(exit - trade.intendedExit) * qty;
   }
 
-  const totalCosts = commissions + fundingRate + slippage;
+  const totalCosts = commissions + fundingRate + borrowCost + slippage;
   const netPnL = grossPnL - totalCosts;
   // Fee impact: if grossPnL is ~0 but costs > 0, fees consumed all profit → 100%
   const feeImpactPct = Math.abs(grossPnL) > 0
@@ -106,6 +115,7 @@ export function computeTruePnL(trade: TradeInput): TruePnLBreakdown {
     grossPnL: round2(grossPnL),
     commissions: round2(commissions),
     fundingRate: round2(fundingRate),
+    borrowCost: round2(borrowCost),
     slippage: round2(slippage),
     netPnL: round2(netPnL),
     feeImpactPct: round2(feeImpactPct),
@@ -125,6 +135,7 @@ export function computeBatchTruePnL(trades: TradeInput[]): TruePnLSummary {
   let totalGross = 0;
   let totalCommissions = 0;
   let totalFunding = 0;
+  let totalBorrowCost = 0;
   let totalSlippage = 0;
   let totalNet = 0;
   let totalCosts = 0;
@@ -135,6 +146,7 @@ export function computeBatchTruePnL(trades: TradeInput[]): TruePnLSummary {
     totalGross += b.grossPnL;
     totalCommissions += b.commissions;
     totalFunding += b.fundingRate;
+    totalBorrowCost += b.borrowCost;
     totalSlippage += b.slippage;
     totalNet += b.netPnL;
     totalCosts += b.totalCosts;
@@ -146,6 +158,7 @@ export function computeBatchTruePnL(trades: TradeInput[]): TruePnLSummary {
     grossPnL: round2(totalGross),
     commissions: round2(totalCommissions),
     fundingRate: round2(totalFunding),
+    borrowCost: round2(totalBorrowCost),
     slippage: round2(totalSlippage),
     netPnL: round2(totalNet),
     totalCosts: round2(totalCosts),
@@ -158,6 +171,7 @@ export function computeBatchTruePnL(trades: TradeInput[]): TruePnLSummary {
     avgFeeImpactPct: perTrade.length > 0 ? round2(feeImpactSum / perTrade.length) : 0,
     totalCommissions: round2(totalCommissions),
     totalFunding: round2(totalFunding),
+    totalBorrowCost: round2(totalBorrowCost),
     totalSlippage: round2(totalSlippage),
     highFeeTradeCount: highFeeCount,
   };

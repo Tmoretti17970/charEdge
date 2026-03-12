@@ -1,0 +1,85 @@
+/* Auto-extracted from ComparePanel.jsx */
+
+.s0 {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+.s1 {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.s2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.s3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.s4 {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.s5 {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.s6 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.s7 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.s8 {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.s9 {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.s10 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.s11 {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.s12 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 10px;
+}

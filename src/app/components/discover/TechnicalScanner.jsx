@@ -4,9 +4,11 @@
 // Sprint 10: Automated chart pattern & signal detection engine.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
+import s from './TechnicalScanner.module.css';
 
 const MOCK_PATTERNS = [
   { id: 1, symbol: 'NVDA', pattern: 'Bull Flag', type: 'continuation', timeframe: '4H', confidence: 92, direction: 'bullish', target: 945, entry: 892, stop: 865, detected: '2h ago' },
@@ -44,7 +46,7 @@ function getStrengthColors() { return { strong: C.g, high: C.cyan, medium: C.y }
 const _TABS = ['patterns', 'signals', 'confluence'];
 const CONFIDENCE_FILTERS = ['all', 'high', 'medium'];
 
-export default function TechnicalScanner() {
+function TechnicalScanner() {
   const [collapsed, setCollapsed] = useState(false);
   const [tab, setTab] = useState('patterns');
   const [confFilter, setConfFilter] = useState('all');
@@ -60,8 +62,8 @@ export default function TechnicalScanner() {
   return (
     <div style={{ background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 16, overflow: 'hidden' }}>
       <button onClick={() => setCollapsed(!collapsed)} className="tf-btn"
-        style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        className={s.s0}>
+        <div className={s.s1}>
           <span style={{ fontSize: 18 }}>📐</span>
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>Technical Scanner</h3>
           <span style={{ fontSize: 10, fontWeight: 700, color: C.cyan, background: alpha(C.cyan, 0.1), padding: '2px 7px', borderRadius: 4, fontFamily: M }}>
@@ -74,7 +76,7 @@ export default function TechnicalScanner() {
       {!collapsed && (
         <div style={{ padding: '0 20px 20px' }}>
           {/* Tab Toggle */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+          <div className={s.s2}>
             {[{ id: 'patterns', label: '📐 Patterns', count: MOCK_PATTERNS.length }, { id: 'signals', label: '📊 Signals', count: MOCK_SIGNALS.length }, { id: 'confluence', label: '🔭 Confluence', count: CONFLUENCE_DATA.length }].map((t) => (
               <button key={t.id} onClick={() => setTab(t.id)} className="tf-btn"
                 style={{ padding: '5px 14px', borderRadius: 8, border: `1px solid ${tab === t.id ? C.b : 'transparent'}`, background: tab === t.id ? alpha(C.b, 0.08) : 'transparent', color: tab === t.id ? C.b : C.t3, cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: F, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -87,7 +89,7 @@ export default function TechnicalScanner() {
           {/* Patterns Tab */}
           {tab === 'patterns' && (
             <>
-              <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+              <div className={s.s3}>
                 {CONFIDENCE_FILTERS.map((cf) => (
                   <button key={cf} onClick={() => setConfFilter(cf)} className="tf-btn"
                     style={{ padding: '3px 8px', borderRadius: 5, border: `1px solid ${confFilter === cf ? C.p : 'transparent'}`, background: confFilter === cf ? alpha(C.p, 0.08) : 'transparent', color: confFilter === cf ? C.p : C.t3, cursor: 'pointer', fontSize: 10, fontWeight: 600, fontFamily: F, textTransform: 'capitalize' }}>
@@ -95,7 +97,7 @@ export default function TechnicalScanner() {
                   </button>
                 ))}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div className={s.s4}>
                 {patterns.map((p) => (
                   <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: alpha(C.sf, 0.5), border: `1px solid ${alpha(C.bd, 0.3)}`, borderRadius: 8 }}>
                     <div style={{ minWidth: 50 }}>
@@ -107,7 +109,7 @@ export default function TechnicalScanner() {
                       <div style={{ fontSize: 9, color: C.t3, fontFamily: F }}>{p.type} · {p.detected}</div>
                     </div>
                     {/* Confidence */}
-                    <div style={{ textAlign: 'center', minWidth: 50 }}>
+                    <div className={s.s5}>
                       <div style={{ fontSize: 14, fontWeight: 700, fontFamily: M, color: p.confidence >= 80 ? C.g : p.confidence >= 60 ? C.y : C.t3 }}>{p.confidence}%</div>
                       <div style={{ fontSize: 8, color: C.t3, fontFamily: F }}>conf.</div>
                     </div>
@@ -116,7 +118,7 @@ export default function TechnicalScanner() {
                       {p.direction === 'bullish' ? '▲ BULL' : '▼ BEAR'}
                     </span>
                     {/* Target */}
-                    <div style={{ textAlign: 'right', minWidth: 60 }}>
+                    <div className={s.s6}>
                       <div style={{ fontSize: 10, fontWeight: 600, color: C.t1, fontFamily: M }}>T: ${p.target}</div>
                       <div style={{ fontSize: 9, color: C.t3, fontFamily: M }}>S: ${p.stop}</div>
                     </div>
@@ -128,7 +130,7 @@ export default function TechnicalScanner() {
 
           {/* Signals Tab */}
           {tab === 'signals' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div className={s.s7}>
               {MOCK_SIGNALS.map((s) => (
                 <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: alpha(C.sf, 0.5), border: `1px solid ${alpha(C.bd, 0.3)}`, borderRadius: 8 }}>
                   <div style={{ minWidth: 50 }}>
@@ -155,7 +157,7 @@ export default function TechnicalScanner() {
               <div style={{ display: 'grid', gridTemplateColumns: '60px repeat(5, 1fr) 60px', gap: 4, padding: '6px 10px', fontSize: 9, fontWeight: 700, color: C.t3, fontFamily: F, textTransform: 'uppercase' }}>
                 <span>Symbol</span><span style={{ textAlign: 'center' }}>5m</span><span style={{ textAlign: 'center' }}>15m</span><span style={{ textAlign: 'center' }}>1H</span><span style={{ textAlign: 'center' }}>4H</span><span style={{ textAlign: 'center' }}>1D</span><span style={{ textAlign: 'right' }}>Score</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <div className={s.s8}>
                 {CONFLUENCE_DATA.map((cd) => (
                   <div key={cd.symbol} style={{ display: 'grid', gridTemplateColumns: '60px repeat(5, 1fr) 60px', gap: 4, padding: '10px 10px', background: alpha(C.sf, 0.5), borderRadius: 6, alignItems: 'center', border: `1px solid ${alpha(C.bd, 0.3)}` }}>
                     <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: F }}>{cd.symbol}</span>
@@ -177,3 +179,5 @@ export default function TechnicalScanner() {
 }
 
 export { TechnicalScanner };
+
+export default React.memo(TechnicalScanner);

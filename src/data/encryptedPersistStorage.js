@@ -72,19 +72,15 @@ export function encryptedPersistStorage(storeName) {
 
                 return null;
             } catch (err) {
+                // #18: No plaintext fallback — log error and return null
                 logger.data.warn(`[EncryptedPersist] getItem("${name}") failed:`, err?.message);
-                // Graceful fallback: try localStorage as read-only backup
-                try {
-                    const raw = localStorage.getItem(name);
-                    return raw ? JSON.parse(raw) : null;
-                } catch {
-                    return null;
-                }
+                return null;
             }
         },
 
         /**
          * Persist state to encrypted IndexedDB.
+         * #18: NO PLAINTEXT FALLBACK — if encryption fails, data is NOT saved.
          * @param {string} name - Zustand persist key
          * @param {object} value - State to persist
          */
@@ -93,15 +89,15 @@ export function encryptedPersistStorage(storeName) {
                 await encryptedStore.init();
                 await encryptedStore.put(storeName, name, value);
             } catch (err) {
-                logger.data.warn(`[EncryptedPersist] setItem("${name}") failed:`, err?.message);
-                // Fallback: try localStorage (degraded mode — NO ENCRYPTION)
+                // #18: No localStorage fallback — log error, do NOT store plaintext
                 logger.data.warn(
-                    `[EncryptedPersist] ⚠️ Falling back to UNENCRYPTED localStorage for "${name}". ` +
-                    'Data will NOT be encrypted at rest. Ensure IndexedDB is available.'
+                    `[EncryptedPersist] setItem("${name}") failed — data NOT saved:`,
+                    err?.message
                 );
-                try {
-                    localStorage.setItem(name, JSON.stringify(value));
-                } catch { /* quota exceeded */ }
+                logger.data.warn(
+                    '[EncryptedPersist] ⚠️ Encrypted storage unavailable. ' +
+                    'Ensure IndexedDB is enabled. Data will NOT persist until resolved.'
+                );
             }
         },
 

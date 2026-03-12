@@ -11,6 +11,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 // eslint-disable-next-line import/order
+import React from 'react';
 import { logger } from '@/observability/logger';
 import { Layout, Model, Actions, DockLocation } from 'flexlayout-react';
 import { useRef, useCallback, useEffect, useState } from 'react';
@@ -32,7 +33,7 @@ export { LAYOUT_PRESETS };
 
 // ─── Main Component ─────────────────────────────────────────────
 
-export default function WorkspaceLayout({ preset = null }) {
+function WorkspaceLayout({ preset = null }) {
   const layoutRef = useRef(null);
   const [showPresets, setShowPresets] = useState(false);
 
@@ -272,3 +273,5 @@ export default function WorkspaceLayout({ preset = null }) {
     </div>
   );
 }
+
+export default React.memo(WorkspaceLayout);

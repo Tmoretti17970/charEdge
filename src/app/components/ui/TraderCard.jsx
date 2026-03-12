@@ -6,6 +6,7 @@
 // "Copy" button captures the card to clipboard as an image.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useRef, useCallback, useState } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useGamificationStore, getRankForXP, getXPToNextLevel, ACHIEVEMENTS } from '../../../state/useGamificationStore';
@@ -32,7 +33,7 @@ function getFrameForRank(rankLevel) {
   return frame;
 }
 
-export default function TraderCard() {
+function TraderCard() {
   const cardRef = useRef(null);
   const [copied, setCopied] = useState(false);
 
@@ -298,3 +299,5 @@ export default function TraderCard() {
 }
 
 export { TraderCard };
+
+export default React.memo(TraderCard);

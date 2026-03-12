@@ -27,7 +27,7 @@ const SPRING = { type: 'spring', damping: 28, stiffness: 300, mass: 0.8 };
  *   id?: string,
  * }} props
  */
-export default function BottomSheet({
+function BottomSheet({
   open,
   onClose,
   children,
@@ -191,3 +191,5 @@ export default function BottomSheet({
 }
 
 export { BottomSheet, SNAP_POINTS };
+
+export default React.memo(BottomSheet);

@@ -6,13 +6,14 @@
 // Theme, default symbol, timeframe, risk per trade, account size.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useEffect, useRef } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useUIStore } from '../../../state/useUIStore';
 import { useUserStore } from '../../../state/useUserStore';
 import { alpha } from '@/shared/colorUtils';
 
-export default function QuickSettings({ _anchorRef, onClose }) {
+function QuickSettings({ _anchorRef, onClose }) {
   const panelRef = useRef(null);
   const theme = useUserStore((s) => s.theme);
   const toggleTheme = useUserStore((s) => s.toggleTheme);
@@ -301,3 +302,5 @@ function QSDivider() {
     />
   );
 }
+
+export default React.memo(QuickSettings);

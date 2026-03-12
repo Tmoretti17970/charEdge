@@ -3,13 +3,14 @@
 // Day of Week vs Hour of Day matrix visualization
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { C, M } from '../../../constants.js';
 import { fmtD } from '../../../utils.js';
 
 /**
  * @param {Array} matrix - 7x24 array of { pnl, count, wins, winRate }
  */
-export default function ProfitHeatmap({ matrix }) {
+function ProfitHeatmap({ matrix }) {
   if (!matrix || matrix.length !== 7) return null;
 
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -131,3 +132,5 @@ export default function ProfitHeatmap({ matrix }) {
     </div>
   );
 }
+
+export default React.memo(ProfitHeatmap);

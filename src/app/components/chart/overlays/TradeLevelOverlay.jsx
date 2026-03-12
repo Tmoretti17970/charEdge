@@ -6,7 +6,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { useChartStore } from '../../../../state/useChartStore';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
+import { useChartTradeStore } from '../../../../state/chart/useChartTradeStore';
 
 const LEVEL_STYLES = {
   entry: { color: '#2196F3', label: 'Entry', dash: '6 4' },
@@ -20,13 +21,13 @@ function extractPrice(val) {
   return typeof val === 'number' ? val : null;
 }
 
-export default function TradeLevelOverlay({ engineRef }) {
-  const tradeMode = useChartStore((s) => s.tradeMode);
-  const pendingEntry = useChartStore((s) => s.pendingEntry);
-  const pendingSL = useChartStore((s) => s.pendingStopLoss);
-  const pendingTP = useChartStore((s) => s.pendingTakeProfit);
-  const tradeStep = useChartStore((s) => s.tradeStep);
-  const tradeSide = useChartStore((s) => s.tradeSide);
+function TradeLevelOverlay({ engineRef }) {
+  const tradeMode = useChartFeaturesStore((s) => s.tradeMode);
+  const pendingEntry = useChartTradeStore((s) => s.pendingEntry);
+  const pendingSL = useChartTradeStore((s) => s.pendingStopLoss);
+  const pendingTP = useChartTradeStore((s) => s.pendingTakeProfit);
+  const tradeStep = useChartFeaturesStore((s) => s.tradeStep);
+  const tradeSide = useChartFeaturesStore((s) => s.tradeSide);
 
   const [lines, setLines] = useState([]);
 
@@ -181,3 +182,5 @@ export default function TradeLevelOverlay({ engineRef }) {
     </div>
   );
 }
+
+export default React.memo(TradeLevelOverlay);

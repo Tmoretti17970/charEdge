@@ -1,0 +1,66 @@
+/* Auto-extracted from AnalystConsensus.jsx */
+
+.s0 {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.s1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.s2 {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.s3 {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.s4 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.s5 {
+  display: flex;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.s6 {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 3px;
+}
+
+.s7 {
+  text-align: right;
+  min-width: 90px;
+}
+
+.s8 {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.s9 {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

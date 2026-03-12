@@ -5,6 +5,7 @@
 // Center tab is a raised FAB that opens the Quick Add modal.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { C, M } from '../../constants.js';
 import { useUIStore } from '../../state/useUIStore';
 
@@ -52,7 +53,7 @@ const TABS = [
   { id: '_settings', label: 'Settings', icon: 'settings', isSlideOver: true },
 ];
 
-export default function MobileNav() {
+function MobileNav() {
   const page = useUIStore((s) => s.page);
   const setPage = useUIStore((s) => s.setPage);
   const openQuickTrade = useUIStore((s) => s.openQuickTrade);
@@ -204,3 +205,5 @@ export default function MobileNav() {
     </nav>
   );
 }
+
+export default React.memo(MobileNav);

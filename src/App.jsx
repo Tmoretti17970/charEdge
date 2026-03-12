@@ -3,9 +3,8 @@
 // Boot sequence → Loading → Sidebar + Page layout
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useEffect, useState, useCallback, Suspense } from 'react';
+import React, { useState, useCallback, Suspense } from 'react';
 import AuthGate from './app/components/auth/AuthGate.jsx';
-import { processPendingAchievements } from './app/components/ui/AchievementToast.jsx';
 import ErrorBoundary from './app/components/ui/ErrorBoundary.jsx';
 import KeyboardShortcuts from './app/components/ui/KeyboardShortcuts.jsx';
 import { ToastContainer } from './app/components/ui/Toast.jsx';
@@ -15,15 +14,12 @@ import Sidebar from './app/layouts/Sidebar.jsx';
 import DailyGuardBanner from './app/misc/components/DailyGuardBanner.jsx';
 import styles from './App.module.css';
 import { useAppBoot } from './AppBoot.js';
-import { useAuthStore } from './state/useAuthStore.js';
+import { useBootEffects } from './hooks/useBootEffects.js';
 import { useConsentStore } from './state/useConsentStore';
 import { useFocusStore } from './state/useFocusStore.js';
-import { useGamificationStore, XP_TABLE } from './state/useGamificationStore';
-import { useJournalStore } from './state/useJournalStore';
 import { useNotificationLog } from './state/useNotificationLog.js';
 import { useUIStore } from './state/useUIStore';
 import { useUserStore } from './state/useUserStore';
-import { animationBudget } from '@/charting_library/utils/AnimationBudget.js';
 import { useHotkeys } from '@/hooks/useHotkeys';
 import { useBreakpoints } from '@/hooks/useMediaQuery';
 import { installGlobalErrorHandlers } from '@/shared/globalErrorHandler';
@@ -136,125 +132,8 @@ export default function App() {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const closeShortcuts = useCallback(() => setShortcutsOpen(false), []);
 
-  // Hydrate theme + density on mount
-  useEffect(() => {
-    useUserStore.getState().hydrate();
-    useUserStore.getState().init();
-    // Sprint D: Start animation budget monitoring
-    animationBudget.start();
-
-    // Task 2.3.23: Check for crash recovery state on boot
-    let recoveryHandled = false;
-    import('./charting_library/core/SessionRecovery.js').then(({ getRecoveryState, clearRecoveryState }) => {
-      if (recoveryHandled) return;
-      recoveryHandled = true;
-      getRecoveryState().then((recovery) => {
-        if (!recovery) return;
-        // Show recovery toast via existing Toast system
-        import('./app/components/ui/Toast.jsx').then(({ default: toast }) => {
-          toast.action(
-            `💾 Restore session? (${recovery.symbol} ${recovery.timeframe})`,
-            'Restore →',
-            async () => {
-              // Apply recovery state to stores
-              const { useChartStore: chartStore } = await import('./state/useChartStore.js');
-              if (recovery.symbol) chartStore.getState().setSymbol(recovery.symbol);
-              if (recovery.timeframe) chartStore.getState().setTf(recovery.timeframe);
-              if (recovery.chartType) chartStore.getState().setChartType(recovery.chartType);
-              if (recovery.indicators?.length) {
-                // Clear + re-add indicators
-                const existing = chartStore.getState().indicators || [];
-                for (const ind of existing) chartStore.getState().removeIndicator(ind.id);
-                for (const ind of recovery.indicators) chartStore.getState().addIndicator(ind);
-              }
-              if (recovery.page) useUIStore.getState().setPage(recovery.page);
-              clearRecoveryState();
-            },
-            { type: 'info', duration: 12000 },
-          );
-          // Clear recovery state after 15s regardless (auto-dismiss)
-          setTimeout(() => clearRecoveryState(), 15000);
-        }).catch(() => { /* Toast import is best-effort */ });
-      }).catch(() => { /* recovery check is best-effort */ });
-    }).catch(() => { /* SessionRecovery import is best-effort */ });
-
-    return () => animationBudget.stop();
-  }, []);
-
-  // Initialize Supabase auth listener
-  useEffect(() => {
-    const unsubscribe = useAuthStore.getState().initialize();
-    return unsubscribe;
-  }, []);
-
-  // ─── Gamification: react to trade changes ──────────────
-  useEffect(() => {
-    const unsub = useJournalStore.subscribe((state, prevState) => {
-      if (!state.loaded || !useGamificationStore.getState().enabled) return;
-      const trades = state.trades;
-      const prevTrades = prevState.trades;
-
-      // Award XP for new trades (new trades are appended to the END of the array)
-      if (trades.length > prevTrades.length) {
-        const newCount = trades.length - prevTrades.length;
-        for (let i = 0; i < newCount; i++) {
-          useGamificationStore.getState().awardXP(XP_TABLE.trade_logged, 'trade_logged');
-          // Check for notes — index from the END where new trades actually are
-          const trade = trades[trades.length - newCount + i];
-          if (trade && trade.notes && trade.notes.trim().length > 10) {
-            useGamificationStore.getState().awardXP(XP_TABLE.notes_written, 'notes_written');
-          }
-        }
-
-        // Sprint 16: First-trade celebration 🎉
-        if (prevTrades.length === 0 && trades.length >= 1) {
-          import('./state/useUserStore.js').then((mod) => {
-            const onboarding = mod.useUserStore;
-            if (!onboarding.getState().isDiscovered('first_trade')) {
-              onboarding.getState().markDiscovered('first_trade');
-              import('./app/components/ui/Toast.jsx').then(({ default: toast }) => {
-                toast.success('🎉 First trade logged! You\'re on your way.', {
-                  duration: 6000,
-                });
-                // Delayed analytics CTA
-                setTimeout(() => {
-                  toast.action(
-                    '📊 View your analytics',
-                    'Go to Dashboard →',
-                    () => useUIStore.getState().setPage('journal'),
-                    { type: 'info', duration: 8000 },
-                  );
-                }, 2000);
-              }).catch(() => { }); // intentional: Toast import is best-effort UI
-            }
-          }).catch(() => { }); // intentional: dynamic import is best-effort
-        }
-      }
-
-      // Update streaks + evaluate achievements + update daily challenge
-      useGamificationStore.getState().updateStreaks(trades);
-      useGamificationStore.getState().evaluateAchievements(trades);
-      useGamificationStore.getState().updateChallengeProgress(trades);
-
-      // Show achievement toasts (if notifications enabled)
-      if (useGamificationStore.getState().notificationPrefs.achievements) {
-        processPendingAchievements(
-          useGamificationStore.getState().consumePendingAchievements,
-        );
-      } else {
-        // Still consume them so they don't pile up
-        useGamificationStore.getState().consumePendingAchievements();
-      }
-
-      // Sprint C: Evaluate milestones
-      useGamificationStore.getState().evaluateMilestones(trades);
-
-      // Sprint D: Weekly challenge + quest progress
-      useGamificationStore.getState().updateWeeklyChallengeProgress(trades);
-      useGamificationStore.getState().evaluateQuestProgress(trades);
-    });
-    return unsub;
-  }, []);
+  // Post-mount side effects (theme, auth, gamification) — extracted to keep App.jsx render-only
+  useBootEffects();
 
   // Page navigation map: keys 1-3 → pages, 4 → settings slide-over
   const PAGE_KEYS = ['journal', 'charts', 'discover'];

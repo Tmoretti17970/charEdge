@@ -5,12 +5,13 @@
 // XP reward preview, and time remaining.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useGamificationStore } from '../../../state/useGamificationStore';
 import { alpha } from '@/shared/colorUtils';
 
-export default function DailyChallengeCard() {
+function DailyChallengeCard() {
   const challenge = useGamificationStore((s) => s.dailyChallenge);
   const enabled = useGamificationStore((s) => s.enabled);
   const [timeLeft, setTimeLeft] = useState('');
@@ -131,3 +132,5 @@ export default function DailyChallengeCard() {
 }
 
 export { DailyChallengeCard };
+
+export default React.memo(DailyChallengeCard);

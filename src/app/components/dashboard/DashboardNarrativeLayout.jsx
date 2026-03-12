@@ -5,7 +5,7 @@
 // The story-driven layout: Hero → Trend → Insights → Activity.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useState } from 'react';
+import { useState, Suspense, lazy } from 'react';
 import { C, F, M, GLASS } from '../../../constants.js';
 import { text, radii } from '../../../theme/tokens.js';
 import { fmtD, timeAgo, METRIC_TIPS } from '../../../utils.js';
@@ -19,11 +19,10 @@ import WeeklyChallengeCard from '../widgets/WeeklyChallengeCard.jsx';
 import WidgetCustomizer from '../widgets/WidgetCustomizer.jsx';
 import WidgetSuggestionBanner from '../widgets/WidgetSuggestionBanner.jsx';
 import XPActivityFeed from '../widgets/XPActivityFeed.jsx';
-import AccountabilityWidget from './AccountabilityWidget.jsx';
-import AchievementShowcase from './AchievementShowcase.jsx';
-import AIInsightCard from './AIInsightCard.jsx';
+// #35: AccountabilityWidget is now lazy-loaded below
+// #35: AIInsightCard is now lazy-loaded below
 import BentoCustomizer from './BentoCustomizer.jsx';
-import ContextualInjector from './ContextualInjector.jsx';
+// #35: ContextualInjector is now lazy-loaded below
 import DashboardHero from './DashboardHero.jsx';
 import s from './DashboardPanel.module.css';
 import {
@@ -32,21 +31,44 @@ import {
     NarrativeDivider,
     BentoMetricCard,
 } from './DashboardPrimitives.jsx';
-import HeroTradeSpotlight from './HeroTradeSpotlight.jsx';
+// #35: HeroTradeSpotlight is now lazy-loaded below
 import HUDBar from './HUDBar.jsx';
 import MorningBriefing from './MorningBriefing.jsx';
-import NLQueryBar from './NLQueryBar.jsx';
+// #35: NLQueryBar is now lazy-loaded below
 import { PersonaTierBanner } from './PersonaLayoutController.jsx';
 import PreMarketChecklist from './PreMarketChecklist.jsx';
-import ProgressArc from './ProgressArc.jsx';
+// #35: ProgressArc is now lazy-loaded below
 import RiskDashboard from './RiskDashboard.jsx';
-import SessionTimeline from './SessionTimeline.jsx';
-import SimilarTrades from './SimilarTrades.jsx';
-import StreakCelebration from './StreakCelebration.jsx';
-import TradeReplayPanel from './TradeReplayPanel.jsx';
-import WeeklyDigest from './WeeklyDigest.jsx';
+// #35: SessionTimeline, SimilarTrades, StreakCelebration are now lazy-loaded below
+// #35: TradeReplayPanel is now lazy-loaded below
+// #35: WeeklyDigest is now lazy-loaded below
 import WeeklyReport from './WeeklyReport.jsx';
-import WhatIfPanel from './WhatIfPanel.jsx';
+// #35: WhatIfPanel is now lazy-loaded below
+
+// #35: Lazy-loaded advanced widgets with per-widget skeleton loading
+const AIInsightCard = lazy(() => import('./AIInsightCard.jsx'));
+const SessionTimeline = lazy(() => import('./SessionTimeline.jsx'));
+const HeroTradeSpotlight = lazy(() => import('./HeroTradeSpotlight.jsx'));
+const ProgressArc = lazy(() => import('./ProgressArc.jsx'));
+const AchievementShowcase = lazy(() => import('./AchievementShowcase.jsx'));
+const StreakCelebration = lazy(() => import('./StreakCelebration.jsx'));
+const AccountabilityWidget = lazy(() => import('./AccountabilityWidget.jsx'));
+const ContextualInjector = lazy(() => import('./ContextualInjector.jsx'));
+const NLQueryBar = lazy(() => import('./NLQueryBar.jsx'));
+const WeeklyDigest = lazy(() => import('./WeeklyDigest.jsx'));
+const SimilarTrades = lazy(() => import('./SimilarTrades.jsx'));
+const TradeReplayPanel = lazy(() => import('./TradeReplayPanel.jsx'));
+const WhatIfPanel_Lazy = lazy(() => import('./WhatIfPanel.jsx'));
+
+// #35: Widget skeleton fallback
+function WidgetSkeleton({ height = 120 }) {
+    return (
+        <div className="tf-skeleton" style={{
+            height, borderRadius: 12, border: `1px solid var(--tf-bd)`,
+            marginBottom: 16,
+        }} />
+    );
+}
 
 export default function DashboardNarrativeLayout({
     trades,
@@ -324,16 +346,16 @@ export default function DashboardNarrativeLayout({
                 </button>
             ) : (
                 <>
-                    <AIInsightCard />
-                    <SessionTimeline />
-                    <HeroTradeSpotlight />
-                    <ProgressArc />
-                    <AchievementShowcase />
-                    <StreakCelebration />
-                    <AccountabilityWidget />
-                    <ContextualInjector />
-                    <NLQueryBar />
-                    <WeeklyDigest />
+                    <Suspense fallback={<WidgetSkeleton height={160} />}><AIInsightCard /></Suspense>
+                    <Suspense fallback={<WidgetSkeleton height={200} />}><SessionTimeline /></Suspense>
+                    <Suspense fallback={<WidgetSkeleton height={140} />}><HeroTradeSpotlight /></Suspense>
+                    <Suspense fallback={<WidgetSkeleton height={140} />}><ProgressArc /></Suspense>
+                    <Suspense fallback={<WidgetSkeleton height={140} />}><AchievementShowcase /></Suspense>
+                    <Suspense fallback={<WidgetSkeleton height={100} />}><StreakCelebration /></Suspense>
+                    <Suspense fallback={<WidgetSkeleton height={140} />}><AccountabilityWidget /></Suspense>
+                    <Suspense fallback={<WidgetSkeleton height={100} />}><ContextualInjector /></Suspense>
+                    <Suspense fallback={<WidgetSkeleton height={100} />}><NLQueryBar /></Suspense>
+                    <Suspense fallback={<WidgetSkeleton height={140} />}><WeeklyDigest /></Suspense>
 
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16, marginBottom: sectionGap }}>
                         <WeeklyReport />
@@ -341,13 +363,15 @@ export default function DashboardNarrativeLayout({
 
                     {recentTrades.length > 0 && (
                         <div style={{ marginBottom: sectionGap }}>
-                            <SimilarTrades criteria={recentTrades[0]} />
+                            <Suspense fallback={<WidgetSkeleton height={160} />}>
+                                <SimilarTrades criteria={recentTrades[0]} />
+                            </Suspense>
                         </div>
                     )}
 
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16, marginBottom: sectionGap }}>
-                        <TradeReplayPanel />
-                        <WhatIfPanel />
+                        <Suspense fallback={<WidgetSkeleton height={200} />}><TradeReplayPanel /></Suspense>
+                        <Suspense fallback={<WidgetSkeleton height={200} />}><WhatIfPanel_Lazy /></Suspense>
                     </div>
 
                     <button

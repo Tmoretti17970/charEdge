@@ -5,6 +5,7 @@
 // metrics. Uses the tf-metric-tooltip CSS class from components.css.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useRef } from 'react';
 import { C, F } from '../../../constants.js';
 
@@ -173,4 +174,4 @@ export function MetricInfo({ metric, position = 'bottom', style = {} }) {
   );
 }
 
-export default MetricInfo;
+export default React.memo(MetricInfo);

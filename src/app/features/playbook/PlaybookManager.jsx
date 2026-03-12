@@ -12,7 +12,7 @@ import { fmtD, uid } from '../../../utils.js';
 import toast from '../../components/ui/Toast.jsx';
 import { Btn, ModalOverlay, inputStyle } from '../../components/ui/UIKit.jsx';
 
-export default function PlaybookManager() {
+function PlaybookManager() {
   const playbooks = useJournalStore((s) => s.playbooks);
   const addPlaybook = useJournalStore((s) => s.addPlaybook);
   const deletePlaybook = useJournalStore((s) => s.deletePlaybook);
@@ -237,3 +237,5 @@ function PlaybookFormModal({ isOpen, onClose, onSave, editPb }) {
 }
 
 export { PlaybookManager };
+
+export default React.memo(PlaybookManager);

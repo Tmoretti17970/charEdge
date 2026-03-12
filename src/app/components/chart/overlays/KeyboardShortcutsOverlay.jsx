@@ -46,7 +46,7 @@ const SHORTCUT_GROUPS = [
   },
 ];
 
-export default function KeyboardShortcutsOverlay({ onClose }) {
+function KeyboardShortcutsOverlay({ onClose }) {
   const kbdStyle = useMemo(() => ({
     display: 'inline-flex',
     alignItems: 'center',
@@ -179,3 +179,4 @@ export default function KeyboardShortcutsOverlay({ onClose }) {
   );
 }
 
+export default React.memo(KeyboardShortcutsOverlay);

@@ -9,6 +9,7 @@ import { useJournalStore } from '../../../state/useJournalStore';
 import { uid } from '../../../utils.js';
 import toast from '../../components/ui/Toast.jsx';
 import { Card, Btn, ModalOverlay, inputStyle } from '../../components/ui/UIKit.jsx';
+import s from './TradePlanManager.module.css';
 
 const DEFAULT_CHECKLIST = [
   'Market regime confirmed (trend/range)',
@@ -71,9 +72,9 @@ export default function TradePlanManager() {
   }, [tradePlans]);
 
   return (
-    <div style={{ padding: 24, maxWidth: 900 }}>
+    <div className={s.s0}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div className={s.s1}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 800, fontFamily: F, color: C.t1, margin: 0 }}>Trade Plans</h1>
           <p style={{ fontSize: 11, color: C.t3, margin: '4px 0 0', fontFamily: M }}>
@@ -85,7 +86,7 @@ export default function TradePlanManager() {
             setEditPlan(null);
             setFormOpen(true);
           }}
-          style={{ fontSize: 11, padding: '8px 14px' }}
+          className={s.s2}
         >
           + New Plan
         </Btn>
@@ -93,7 +94,7 @@ export default function TradePlanManager() {
 
       {/* Plans */}
       {sorted.length > 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className={s.s3}>
           {sorted.map((plan) => {
             const expanded = expandedId === plan.id;
             const checklistItems = plan.checklist || DEFAULT_CHECKLIST;
@@ -113,15 +114,9 @@ export default function TradePlanManager() {
                 {/* Header Row */}
                 <div
                   onClick={() => setExpandedId(expanded ? null : plan.id)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '12px 16px',
-                    cursor: 'pointer',
-                  }}
+                  className={s.s4}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div className={s.s5}>
                     <span
                       style={{
                         fontSize: 14,
@@ -147,9 +142,9 @@ export default function TradePlanManager() {
                     {isComplete && <span style={{ fontSize: 9, color: C.g, fontWeight: 700 }}>✓ COMPLETED</span>}
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div className={s.s6}>
                     {/* Progress */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <div className={s.s7}>
                       <div style={{ width: 60, height: 4, background: C.bg2, borderRadius: 2, overflow: 'hidden' }}>
                         <div
                           style={{
@@ -170,7 +165,7 @@ export default function TradePlanManager() {
                 {expanded && (
                   <div style={{ padding: '0 16px 16px', borderTop: `1px solid ${C.bd}50` }}>
                     {/* Entry/Exit/Notes Grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, margin: '12px 0' }}>
+                    <div className={s.s8}>
                       {plan.entryReason && (
                         <div>
                           <Label>Entry Criteria</Label>
@@ -200,7 +195,7 @@ export default function TradePlanManager() {
 
                     {/* Checklist */}
                     <Label>Pre-Trade Checklist</Label>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
+                    <div className={s.s9}>
                       {checklistItems.map((item, i) => (
                         <label
                           key={i}
@@ -230,12 +225,12 @@ export default function TradePlanManager() {
                     </div>
 
                     {/* Actions */}
-                    <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+                    <div className={s.s10}>
                       {!isComplete && (
                         <Btn
                           variant="ghost"
                           onClick={() => updateTradePlan(plan.id, { status: 'completed' })}
-                          style={{ fontSize: 10, padding: '4px 10px' }}
+                          className={s.s11}
                         >
                           ✓ Mark Complete
                         </Btn>
@@ -244,7 +239,7 @@ export default function TradePlanManager() {
                         <Btn
                           variant="ghost"
                           onClick={() => updateTradePlan(plan.id, { status: 'active' })}
-                          style={{ fontSize: 10, padding: '4px 10px' }}
+                          className={s.s12}
                         >
                           ↩ Reopen
                         </Btn>
@@ -264,14 +259,14 @@ export default function TradePlanManager() {
                           <Btn
                             variant="ghost"
                             onClick={() => setDeleteConfirm(null)}
-                            style={{ fontSize: 10, padding: '4px 8px' }}
+                            className={s.s13}
                           >
                             Cancel
                           </Btn>
                           <Btn
                             variant="danger"
                             onClick={() => handleDelete(plan.id)}
-                            style={{ fontSize: 10, padding: '4px 8px' }}
+                            className={s.s14}
                           >
                             Delete
                           </Btn>
@@ -295,7 +290,7 @@ export default function TradePlanManager() {
       ) : (
         <Card>
           <div style={{ padding: 48, textAlign: 'center', color: C.t3, fontSize: 13 }}>
-            <div style={{ fontSize: 36, marginBottom: 12 }}>📋</div>
+            <div className={s.s15}>📋</div>
             <div style={{ fontWeight: 700, color: C.t2, marginBottom: 4 }}>No trade plans yet</div>
             <div style={{ marginBottom: 16 }}>
               Create a plan before entering a trade — define your thesis, entry, exit, and checklist.
@@ -376,7 +371,7 @@ function TradePlanFormModal({ isOpen, onClose, onSave, editPlan }) {
         {editPlan ? 'Edit Trade Plan' : 'New Trade Plan'}
       </h3>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+      <div className={s.s16}>
         <div>
           <Label>Symbol</Label>
           <input
@@ -389,7 +384,7 @@ function TradePlanFormModal({ isOpen, onClose, onSave, editPlan }) {
         </div>
         <div>
           <Label>Bias</Label>
-          <div style={{ display: 'flex', gap: 4 }}>
+          <div className={s.s17}>
             {['long', 'short', 'neutral'].map((b) => (
               <button
                 className="tf-btn"
@@ -457,7 +452,7 @@ function TradePlanFormModal({ isOpen, onClose, onSave, editPlan }) {
         />
       </div>
 
-      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+      <div className={s.s18}>
         <Btn variant="ghost" onClick={onClose}>
           Cancel
         </Btn>

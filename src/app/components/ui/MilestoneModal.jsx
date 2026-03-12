@@ -6,6 +6,7 @@
 // Auto-dismisses after 5s or on click.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useEffect, useState, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useGamificationStore } from '../../../state/useGamificationStore';
@@ -40,7 +41,7 @@ function Particle({ delay, color }) {
   );
 }
 
-export default function MilestoneModal() {
+function MilestoneModal() {
   const pendingMilestone = useGamificationStore((s) => s._pendingMilestone);
   const clearPendingMilestone = useGamificationStore((s) => s.clearPendingMilestone);
   const notifEnabled = useGamificationStore((s) => s.notificationPrefs.achievements);
@@ -161,3 +162,5 @@ export default function MilestoneModal() {
 }
 
 export { MilestoneModal };
+
+export default React.memo(MilestoneModal);

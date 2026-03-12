@@ -5,9 +5,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useMemo } from 'react';
-import { useChartStore } from '../../../../state/useChartStore';
 import { useJournalStore } from '../../../../state/useJournalStore';
 import { POPULAR_SYMBOLS } from './commandRegistry.js';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 
 // ─── Fuzzy Match ────────────────────────────────────────────────
 
@@ -44,7 +44,7 @@ export default function useCommandSearch(commands, query, actions) {
     const recent = tradeSymbols.slice(0, 5).map((sym) => ({
       id: `sym-recent-${sym}`, label: sym, sublabel: 'Recent',
       group: 'Recent Symbols', icon: '🕐',
-      action: () => { useChartStore.getState().setSymbol(sym); actions.setPage('charts'); },
+      action: () => { useChartCoreStore.getState().setSymbol(sym); actions.setPage('charts'); },
     }));
     const popular = POPULAR_SYMBOLS
       .filter((p) => !seen.has(p.sym))
@@ -52,7 +52,7 @@ export default function useCommandSearch(commands, query, actions) {
       .map((p) => ({
         id: `sym-${p.sym}`, label: p.sym, sublabel: p.name,
         group: 'Symbols', icon: p.icon,
-        action: () => { useChartStore.getState().setSymbol(p.sym); actions.setPage('charts'); },
+        action: () => { useChartCoreStore.getState().setSymbol(p.sym); actions.setPage('charts'); },
       }));
     return { recent, popular };
   }, [actions]);
@@ -89,7 +89,7 @@ export default function useCommandSearch(commands, query, actions) {
       const arbitraryCmd = {
         id: `sym-open-${q}`, label: q, sublabel: 'Open chart',
         group: 'Symbols', icon: '📈',
-        action: () => { useChartStore.getState().setSymbol(q); actions.setPage('charts'); },
+        action: () => { useChartCoreStore.getState().setSymbol(q); actions.setPage('charts'); },
       };
       const existsAlready = matchedSyms.some((s) => s.label === q);
       return existsAlready ? [...matchedSyms, ...matchedCmds] : [arbitraryCmd, ...matchedSyms, ...matchedCmds];

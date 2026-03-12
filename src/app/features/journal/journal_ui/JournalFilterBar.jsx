@@ -3,11 +3,12 @@
 // Sprint 12: Collapsed by default — search + Filters toggle + summary
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState } from 'react';
 import { C, F, M } from '../../../../constants.js';
 import { fmtD } from '../../../../utils.js';
 
-export default function JournalFilterBar({
+function JournalFilterBar({
   filter,
   setFilter,
   sideFilter,
@@ -288,3 +289,5 @@ export default function JournalFilterBar({
     </>
   );
 }
+
+export default React.memo(JournalFilterBar);

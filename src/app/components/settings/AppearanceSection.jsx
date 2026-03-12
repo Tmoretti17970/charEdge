@@ -3,6 +3,7 @@
 // Full theme editor: Theme, Accent, Font Size, Chart Style, Density.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState } from 'react';
 import { C } from '../../../constants.js';
 import { DENSITY_MODES } from '../../../state/user/densitySlice.js';
@@ -11,6 +12,7 @@ import { useUserStore } from '../../../state/useUserStore';
 import TFIcon from '../ui/TFIcon.jsx';
 import { Card } from '../ui/UIKit.jsx';
 import { SectionHeader } from './SettingsHelpers.jsx';
+import s from './AppearanceSection.module.css';
 
 // ─── Shared Styles ───────────────────────────────────────────────
 
@@ -34,11 +36,11 @@ function ThemePicker() {
   return (
     <Card style={cardWrap}>
       <div style={subLabel()}>
-        <TFIcon name="layers" size={14} style={{ marginRight: 6, verticalAlign: -2 }} />
+        <TFIcon name="layers" size={14} className={s.s0} />
         Theme Mode
       </div>
       <div style={subHint()}>Choose your preferred interface theme</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+      <div className={s.s1}>
         {options.map((opt) => {
           const active = theme === opt.value;
           return (
@@ -84,12 +86,12 @@ function AccentColorPicker() {
   return (
     <Card style={cardWrap}>
       <div style={subLabel()}>
-        <TFIcon name="palette" size={14} style={{ marginRight: 6, verticalAlign: -2 }} />
+        <TFIcon name="palette" size={14} className={s.s2} />
         Accent Color
       </div>
       <div style={subHint()}>Personalize buttons, links, and highlights</div>
 
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
+      <div className={s.s3}>
         {ACCENT_PRESETS.map((preset) => {
           const active = accentColor === preset.hex;
           return (
@@ -108,11 +110,7 @@ function AccentColorPicker() {
               }}
             >
               {active && (
-                <span style={{
-                  position: 'absolute', inset: 0,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#fff', fontSize: 14, fontWeight: 700, textShadow: '0 1px 2px rgba(0,0,0,0.4)',
-                }}>✓</span>
+                <span className={s.s4}>✓</span>
               )}
             </button>
           );
@@ -147,7 +145,7 @@ function AccentColorPicker() {
             type="color"
             value={accentColor}
             onChange={(e) => setAccentColor(e.target.value)}
-            style={{ width: 32, height: 32, border: 'none', cursor: 'pointer', background: 'none', padding: 0 }}
+            className={s.s5}
           />
           <input
             type="text"
@@ -189,14 +187,14 @@ function FontSizeSlider() {
   return (
     <Card style={cardWrap}>
       <div style={subLabel()}>
-        <TFIcon name="edit" size={14} style={{ marginRight: 6, verticalAlign: -2 }} />
+        <TFIcon name="edit" size={14} className={s.s6} />
         Font Size
       </div>
       <div style={subHint()}>
         Adjust the base font size across the interface
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+      <div className={s.s7}>
         <span style={{ fontSize: 11, color: C.t3, fontFamily: "'JetBrains Mono', monospace", minWidth: 28 }}>
           A<span style={{ fontSize: 9 }}>a</span>
         </span>
@@ -249,12 +247,12 @@ function ChartStylePicker() {
   return (
     <Card style={cardWrap}>
       <div style={subLabel()}>
-        <TFIcon name="chart" size={14} style={{ marginRight: 6, verticalAlign: -2 }} />
+        <TFIcon name="chart" size={14} className={s.s8} />
         Chart Colors
       </div>
       <div style={subHint()}>Choose candle color styling for charts</div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 8 }}>
+      <div className={s.s9}>
         {CHART_COLOR_PRESETS.map((preset) => {
           const active = chartColorPreset === preset.id;
           return (
@@ -271,7 +269,7 @@ function ChartStylePicker() {
               }}
             >
               {/* Mini candle preview */}
-              <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end', height: 28 }}>
+              <div className={s.s10}>
                 <MiniCandle color={preset.bull} h={20} body={12} />
                 <MiniCandle color={preset.bear} h={24} body={16} down />
                 <MiniCandle color={preset.bull} h={18} body={10} />
@@ -293,10 +291,7 @@ function ChartStylePicker() {
 function MiniCandle({ color, h, body, down }) {
   const wickH = h - body;
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
-      width: 6,
-    }}>
+    <div className={s.s11}>
       {!down && <div style={{ width: 1, height: wickH, background: color, opacity: 0.6 }} />}
       <div style={{
         width: 6, height: body, borderRadius: 1,
@@ -325,11 +320,11 @@ function DensityPicker() {
   return (
     <Card style={cardWrap}>
       <div style={subLabel()}>
-        <TFIcon name="settings" size={14} style={{ marginRight: 6, verticalAlign: -2 }} />
+        <TFIcon name="settings" size={14} className={s.s12} />
         UI Density
       </div>
       <div style={subHint()}>Controls spacing, font sizes, and control sizes across the app.</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8 }}>
+      <div className={s.s13}>
         {options.map((opt) => {
           const isActive = densityMode === opt.value;
           return (
@@ -360,10 +355,10 @@ function SimpleModePicker() {
 
   return (
     <Card style={cardWrap}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+      <div className={s.s14}>
         <div style={{ flex: 1 }}>
           <div style={subLabel()}>
-            <TFIcon name="layers" size={14} style={{ marginRight: 6, verticalAlign: -2 }} />
+            <TFIcon name="layers" size={14} className={s.s15} />
             Simple Mode
           </div>
           <div style={{ fontSize: 11, color: C.t3, lineHeight: 1.5 }}>
@@ -401,7 +396,7 @@ function SimpleModePicker() {
 
 // ─── Main Export ─────────────────────────────────────────────────
 
-export default function AppearanceSection() {
+function AppearanceSection() {
   return (
     <section style={{ marginBottom: 40 }}>
       <SectionHeader icon="palette" title="Appearance" description="Customize how the interface looks and feels" />
@@ -414,3 +409,5 @@ export default function AppearanceSection() {
     </section>
   );
 }
+
+export default React.memo(AppearanceSection);

@@ -4,12 +4,13 @@
 // Stores auth in sessionStorage so it persists per tab session.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useCallback, useEffect, useRef } from 'react';
 
 const PASS = 'Charts2026';
 const STORAGE_KEY = 'ce_auth';
 
-export default function PasswordGate({ children }) {
+function PasswordGate({ children }) {
     const [authed, setAuthed] = useState(() => {
         try { return sessionStorage.getItem(STORAGE_KEY) === '1'; }
         catch { return false; }
@@ -197,3 +198,5 @@ const styles = {
         boxShadow: '0 4px 16px rgba(245,158,11,0.3)',
     },
 };
+
+export default React.memo(PasswordGate);

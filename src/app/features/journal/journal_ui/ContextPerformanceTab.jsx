@@ -4,6 +4,7 @@
 // confluence score ranges, and pattern-based trade outcomes.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useMemo } from 'react';
 import { C, F, M } from '../../../../constants.js';
 import { fmtD } from '../../../../utils.js';
@@ -14,7 +15,7 @@ import { Card } from '../../../components/ui/UIKit.jsx';
  * @param {boolean} isOpen
  * @param {Function} onClose
  */
-export default function ContextPerformanceTab({ trades, isOpen, onClose }) {
+function ContextPerformanceTab({ trades, isOpen, onClose }) {
   const analysis = useMemo(() => {
     const withContext = trades.filter((t) => t.context?.tags?.length > 0);
     if (!withContext.length) return null;
@@ -351,3 +352,5 @@ function SectionLabel({ text }) {
     </div>
   );
 }
+
+export default React.memo(ContextPerformanceTab);

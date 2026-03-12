@@ -7,8 +7,8 @@
 import { useMemo } from 'react';
 import { INDICATORS } from '../../../../charting_library/studies/indicators/registry.js';
 import { C, M } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore';
 import { logger } from '@/observability/logger';
+import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 
 function fmt(v) {
   if (v == null || isNaN(v)) return '—';
@@ -21,7 +21,7 @@ function fmt(v) {
 }
 
 export default function ChartInfoWindow({ data, barIdx, mouseY }) {
-  const indicators = useChartStore((s) => s.indicators);
+  const indicators = useChartToolsStore((s) => s.indicators);
 
   const bar = useMemo(() => {
     if (!data?.length || barIdx < 0 || barIdx >= data.length) return null;

@@ -8,7 +8,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { INDICATORS as INDICATOR_REGISTRY } from '../../../../charting_library/studies/indicators/registry.js';
 import { C, F } from '../../../../constants.js';
-import { useChartToolsStore } from '../../../../state/useChartStore';
+import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 import {
   ColorSwatch,
   Toggle,

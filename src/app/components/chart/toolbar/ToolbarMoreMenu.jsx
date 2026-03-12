@@ -8,10 +8,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { C } from '../../../../constants.js';
 import { useBacktestStore } from '../../../../state/useBacktestStore.js';
-import { useChartStore, useChartFeaturesStore } from '../../../../state/useChartStore';
 import { useStrategyBuilderStore } from '../../../../state/useStrategyBuilderStore';
 import AIOrb from '../../design/AIOrb.jsx';
 import ChartTradeToolbar from '../chart_ui/ChartTradeToolbar.jsx';
+import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 
 function MenuItem({ children, onClick }) {
   return (
@@ -149,13 +149,13 @@ export default function ToolbarMoreMenu({
             </MenuItem>
           )}
           <MenuItem onClick={() => {
-            useChartStore.getState().addIndicator({ indicatorId: 'volumeDelta', params: {} });
+            useChartToolsStore.getState().addIndicator({ indicatorId: 'volumeDelta', params: {} });
             setMoreMenuOpen(false);
           }}>
             📊 Volume Delta
           </MenuItem>
           <MenuItem onClick={() => {
-            useChartStore.getState().addIndicator({ indicatorId: 'vwap', params: { anchorTime: Date.now() } });
+            useChartToolsStore.getState().addIndicator({ indicatorId: 'vwap', params: { anchorTime: Date.now() } });
             setMoreMenuOpen(false);
           }}>
             📌 Anchored VWAP

@@ -17,6 +17,7 @@
 //   />
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { cacheManager } from '../../../../data/engine/infra/CacheManager.js';
 
@@ -98,7 +99,7 @@ const styles = {
 
 // ─── Component ─────────────────────────────────────────────────
 
-export default function DataFallbackBanner({ symbol, tfId, dataSource, onRetry }) {
+function DataFallbackBanner({ symbol, tfId, dataSource, onRetry }) {
   const [dismissed, setDismissed] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const [cacheAge, setCacheAge] = useState(null);
@@ -180,3 +181,5 @@ export default function DataFallbackBanner({ symbol, tfId, dataSource, onRetry }
     </>
   );
 }
+
+export default React.memo(DataFallbackBanner);

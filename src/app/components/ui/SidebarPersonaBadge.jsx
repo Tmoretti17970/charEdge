@@ -6,6 +6,7 @@
 // Appears in the sidebar below the XP badge.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { C, F, M } from '../../../constants.js';
 import { TIER_CONFIG, TIERS } from '../../../state/user/personaSlice.js';
 import { useUserStore } from '../../../state/useUserStore';
@@ -17,7 +18,7 @@ const NEXT_TIER = {
   [TIERS.ARCHITECT]: null,
 };
 
-export default function SidebarPersonaBadge({ expanded }) {
+function SidebarPersonaBadge({ expanded }) {
   const tier = useUserStore((s) => s.tier);
   const tradeCount = useUserStore((s) => s.tradeCount);
   const config = TIER_CONFIG[tier];
@@ -123,3 +124,5 @@ export default function SidebarPersonaBadge({ expanded }) {
     </div>
   );
 }
+
+export default React.memo(SidebarPersonaBadge);

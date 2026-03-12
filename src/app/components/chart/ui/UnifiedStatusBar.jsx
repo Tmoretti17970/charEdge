@@ -8,15 +8,15 @@
 // Expanded: [● Connected 6.2t/s ▁▂▃ 18ms] + the above
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { tfToMs, formatCountdown } from '../../../../charting_library/core/barCountdown.js';
 import { formatPrice } from '../../../../charting_library/core/CoordinateSystem.js';
 import { C, M, getAssetClass } from '../../../../constants.js';
 import { pipelineLogger } from '../../../../data/engine/infra/DataPipelineLogger.js';
 import { pipelineHealth } from '../../../../data/engine/infra/PipelineHealthMonitor.js';
-import { useChartStore } from '../../../../state/useChartStore';
-import { useChartCoreStore } from '../../../../state/useChartStore';
 import { useChartBars } from '../../../hooks/useChartBars.js';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 
 // ─── Timezone Constants ─────────────────────────────────────────
 const TIMEZONE_OPTIONS = [
@@ -55,6 +55,7 @@ function formatLiveClock(tz) {
 }
 import { logger } from '@/observability/logger';
 import { getMarketStatus } from '@/shared/marketHours';
+import s from './UnifiedStatusBar.module.css';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -132,7 +133,7 @@ function Sparkline({ data, color, width = 48, height = 12 }) {
     const areaPoints = `0,${height} ${points} ${width},${height}`;
 
     return (
-        <svg width={width} height={height} style={{ display: 'block', flexShrink: 0 }}>
+        <svg width={width} height={height} className={s.s0}>
             <defs>
                 <linearGradient id="usb-spark" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={color} stopOpacity="0.35" />
@@ -163,7 +164,7 @@ function SpeedMeter({ rate, maxRate = 100 }) {
     const heights = [3, 5, 8, 10, 13];
 
     return (
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 1, height: 13 }}>
+        <div className={s.s1}>
             {heights.map((h, i) => (
                 <div
                     key={i}
@@ -182,13 +183,13 @@ function SpeedMeter({ rate, maxRate = 100 }) {
 
 // ─── Unified Status Bar ─────────────────────────────────────────
 
-export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
+function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
     // ── Chart data state ──
     const data = useChartBars();
-    const tf = useChartStore((s) => s.tf);
-    const symbol = useChartStore((s) => s.symbol);
-    const scaleMode = useChartStore((s) => s.scaleMode);
-    const setScaleMode = useChartStore((s) => s.setScaleMode);
+    const tf = useChartCoreStore((s) => s.tf);
+    const symbol = useChartCoreStore((s) => s.symbol);
+    const scaleMode = useChartCoreStore((s) => s.scaleMode);
+    const setScaleMode = useChartCoreStore((s) => s.setScaleMode);
 
     const [countdown, setCountdown] = useState('');
     const [scaleOpen, setScaleOpen] = useState(false);
@@ -414,14 +415,7 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
                             }}
                         />
                         {expanded && (
-                            <span style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 5,
-                                animation: 'tfUnifiedExpand 0.2s ease forwards',
-                                overflow: 'hidden',
-                                whiteSpace: 'nowrap',
-                            }}>
+                            <span className={s.s2}>
                                 <span style={{ color: statusColor, fontWeight: 600, fontSize: 10 }}>
                                     {health.overall === 'healthy' ? 'Connected' :
                                         health.overall === 'degraded' ? 'Degraded' :
@@ -436,7 +430,7 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
                                         <span style={{ color: tickColor, fontWeight: 600, fontSize: 11, fontVariantNumeric: 'tabular-nums' }}>
                                             {health.tickRate.toFixed(1)}
                                         </span>
-                                        <span style={{ fontSize: 8, opacity: 0.6 }}>t/s</span>
+                                        <span className={s.s3}>t/s</span>
                                         <span style={{
                                             fontSize: 8, fontWeight: 700, letterSpacing: '0.5px',
                                             color: tickColor, backgroundColor: `${tickColor}18`,
@@ -450,7 +444,7 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
                                 {/* Latency */}
                                 {latency > 0 && (
                                     <>
-                                        <span style={{ fontSize: 9, opacity: 0.5 }}>↕</span>
+                                        <span className={s.s4}>↕</span>
                                         <span style={{ color: latColor, fontWeight: 600, fontSize: 10, fontVariantNumeric: 'tabular-nums' }}>
                                             {latency}ms
                                         </span>
@@ -461,8 +455,8 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
                                 {health.persistence.enabled && (
                                     <>
                                         <span style={{ fontSize: 9 }}>💾</span>
-                                        <span style={{ fontWeight: 600, color: 'var(--tf-t1)', fontSize: 10 }}>{health.persistence.symbols}</span>
-                                        <span style={{ fontSize: 8, opacity: 0.5 }}>sym</span>
+                                        <span className={s.s5}>{health.persistence.symbols}</span>
+                                        <span className={s.s6}>sym</span>
                                     </>
                                 )}
 
@@ -477,28 +471,23 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
                                         }}>
                                             {health.performance.fps}
                                         </span>
-                                        <span style={{ fontSize: 8, opacity: 0.5 }}>FPS</span>
+                                        <span className={s.s7}>FPS</span>
                                     </>
                                 )}
 
                                 {/* Quality */}
                                 <span style={{ fontSize: 9 }}>🎚️</span>
-                                <span style={{ fontWeight: 600, fontSize: 10, color: 'var(--tf-t1)' }}>
+                                <span className={s.s8}>
                                     {health.performance.qualityLevel}
                                 </span>
 
                                 {/* Stale data */}
                                 {staleMs >= STALE_THRESHOLD && (
                                     <>
-                                        <span style={{ fontSize: 10, color: '#f59e0b', fontWeight: 700 }}>
+                                        <span className={s.s9}>
                                             ⚠ Stale
                                         </span>
-                                        <span style={{
-                                            fontSize: 8, fontWeight: 700, color: '#f59e0b',
-                                            backgroundColor: 'rgba(245, 158, 11, 0.12)',
-                                            border: '1px solid rgba(245, 158, 11, 0.25)',
-                                            borderRadius: 3, padding: '0px 3px',
-                                        }}>
+                                        <span className={s.s10}>
                                             {formatElapsed(staleMs)}
                                         </span>
                                     </>
@@ -607,33 +596,21 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
             {/* ─── Error Badge ─── */}
             {expanded && hasErrors && (
                 <span
-                    style={{
-                        display: 'flex', alignItems: 'center', gap: 3,
-                        color: '#ef4444', fontWeight: 600, cursor: 'pointer',
-                        position: 'relative', fontSize: 10,
-                    }}
+                    className={s.s11}
                     onClick={toggleErrors}
                     title="Click to view pipeline logs"
                 >
                     ⚠ {health.errors.total + health.errors.warnings}
                     {showErrors && (
                         <div
-                            style={{
-                                position: 'absolute', bottom: 28, right: 0, width: 380, maxHeight: 280,
-                                overflow: 'auto',
-                                backgroundColor: 'var(--bg-surface-overlay, rgba(15, 23, 42, 0.95))',
-                                border: '1px solid var(--border-subtle, rgba(148, 163, 184, 0.2))',
-                                borderRadius: 8, padding: 8, fontSize: 10,
-                                fontFamily: '"JetBrains Mono", "Fira Code", monospace',
-                                zIndex: 1000, boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-                            }}
+                            className={s.s12}
                             onClick={e => e.stopPropagation()}
                         >
-                            <div style={{ marginBottom: 6, fontWeight: 600, color: '#e2e8f0', fontSize: 11 }}>
+                            <div className={s.s13}>
                                 Pipeline Log
                             </div>
                             {recentErrors.length === 0 && (
-                                <div style={{ color: '#64748b', padding: 8 }}>No recent issues</div>
+                                <div className={s.s14}>No recent issues</div>
                             )}
                             {recentErrors.map((entry, i) => (
                                 <div key={i} style={{
@@ -646,7 +623,7 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
                                     {' '}<span style={{ fontWeight: 600 }}>[{entry.source}]</span>
                                     {' '}{entry.message}
                                     {entry.error && (
-                                        <div style={{ opacity: 0.7, marginTop: 2 }}>└ {entry.error}</div>
+                                        <div className={s.s15}>└ {entry.error}</div>
                                     )}
                                 </div>
                             ))}
@@ -658,8 +635,7 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
             {/* ─── Bar Countdown ─── */}
             {countdown && (
                 <span
-                    className={isUrgent ? 'tf-countdown-urgent' : ''}
-                    style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+                    className={`${isUrgent ? 'tf-countdown-urgent' : ''} ${s.s16}`}
                     title="Time until next bar close"
                 >
                     <span style={{ fontSize: 10 }}>⏱</span>
@@ -668,7 +644,7 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
             )}
 
             {/* ─── Timezone + Live Clock ─── */}
-            <div ref={tzRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div ref={tzRef} className={s.s17}>
                 <span style={{
                     fontSize: 10,
                     fontVariantNumeric: 'tabular-nums',
@@ -693,22 +669,12 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
                     title="Timezone"
                 >
                     🌐 {getTimezoneAbbr(activeTimezone)}
-                    <span style={{ fontSize: 7, marginLeft: 1 }}>▼</span>
+                    <span className={s.s18}>▼</span>
                 </button>
 
                 {tzOpen && (
                     <div
-                        className="tf-chart-dropdown"
-                        style={{
-                            position: 'absolute',
-                            bottom: '100%',
-                            right: 0,
-                            marginBottom: 6,
-                            minWidth: 160,
-                            maxHeight: 280,
-                            overflowY: 'auto',
-                            transformOrigin: 'bottom right',
-                        }}
+                        className={`tf-chart-dropdown ${s.s19}`}
                     >
                         {TIMEZONE_OPTIONS.map((opt) => {
                             const isActive = activeTimezone === opt.iana;
@@ -724,9 +690,9 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
                                         window.dispatchEvent(new CustomEvent('charEdge:set-timezone', { detail: { timezone: opt.iana } }));
                                     }}
                                 >
-                                    <span style={{ width: 18, textAlign: 'center', fontWeight: 700, flexShrink: 0, fontSize: 10, opacity: 0.7 }}>{opt.abbr}</span>
+                                    <span className={s.s20}>{opt.abbr}</span>
                                     {opt.label}
-                                    {isActive && <span style={{ marginLeft: 'auto', fontSize: 12 }}>✓</span>}
+                                    {isActive && <span className={s.s21}>✓</span>}
                                 </button>
                             );
                         })}
@@ -750,20 +716,12 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
                     title="Scale Mode"
                 >
                     {currentScaleMode.icon} {currentScaleMode.label}
-                    <span style={{ fontSize: 7, marginLeft: 1 }}>▼</span>
+                    <span className={s.s22}>▼</span>
                 </button>
 
                 {scaleOpen && (
                     <div
-                        className="tf-chart-dropdown"
-                        style={{
-                            position: 'absolute',
-                            bottom: '100%',
-                            right: 0,
-                            marginBottom: 6,
-                            minWidth: 120,
-                            transformOrigin: 'bottom right',
-                        }}
+                        className={`tf-chart-dropdown ${s.s23}`}
                     >
                         {SCALE_MODES.map((mode) => {
                             const isActive = scaleMode === mode.id;
@@ -774,9 +732,9 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
                                     data-active={isActive || undefined}
                                     onClick={() => { setScaleMode(mode.id); setScaleOpen(false); }}
                                 >
-                                    <span style={{ width: 18, textAlign: 'center', fontWeight: 700, flexShrink: 0 }}>{mode.icon}</span>
+                                    <span className={s.s24}>{mode.icon}</span>
                                     {mode.label}
-                                    {isActive && <span style={{ marginLeft: 'auto', fontSize: 12 }}>✓</span>}
+                                    {isActive && <span className={s.s25}>✓</span>}
                                 </button>
                             );
                         })}
@@ -786,3 +744,5 @@ export default function UnifiedStatusBar({ showPipeline = true, hoveredBar }) {
         </div>
     );
 }
+
+export default React.memo(UnifiedStatusBar);

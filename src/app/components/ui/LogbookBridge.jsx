@@ -7,10 +7,11 @@
 // Replaces the old CommandPalette (⌘K was removed).
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import SpotlightLogbook from './SpotlightLogbook.jsx';
 
-export default function LogbookBridge() {
+function LogbookBridge() {
     const [open, setOpen] = useState(false);
     const [filterDate, setFilterDate] = useState(null);
 
@@ -33,3 +34,5 @@ export default function LogbookBridge() {
         />
     );
 }
+
+export default React.memo(LogbookBridge);

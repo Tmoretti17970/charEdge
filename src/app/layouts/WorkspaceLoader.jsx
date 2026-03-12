@@ -6,7 +6,8 @@
 // helpful fallback message.
 //
 // Usage in ChartsPage:
-//   import WorkspaceLayout from './WorkspaceLoader.jsx';
+//   import React from 'react';
+import WorkspaceLayout from './WorkspaceLoader.jsx';
 // ═══════════════════════════════════════════════════════════════════
 
 import { Suspense, lazy } from 'react';
@@ -47,10 +48,12 @@ function LoadingFallback() {
   );
 }
 
-export default function WorkspaceLoader(props) {
+function WorkspaceLoader(props) {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <WorkspaceLayoutLazy {...props} />
     </Suspense>
   );
 }
+
+export default React.memo(WorkspaceLoader);

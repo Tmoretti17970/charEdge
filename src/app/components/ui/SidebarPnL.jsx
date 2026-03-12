@@ -4,6 +4,7 @@
 // Shows colored dollar amount, win/loss count, and trade count.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useMemo } from 'react';
 import { C, M } from '../../../constants.js';
 import { useJournalStore } from '../../../state/useJournalStore';
@@ -15,7 +16,7 @@ function todayStart() {
   return d.getTime();
 }
 
-export default function SidebarPnL({ expanded = false }) {
+function SidebarPnL({ expanded = false }) {
   const trades = useJournalStore((s) => s.trades);
 
   const { totalPnl, wins, losses, count } = useMemo(() => {
@@ -138,3 +139,5 @@ export default function SidebarPnL({ expanded = false }) {
     </div>
   );
 }
+
+export default React.memo(SidebarPnL);

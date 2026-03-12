@@ -3,6 +3,7 @@
 // Sprint 8 C8.10: Add/remove widgets, apply presets, toggle edit mode.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { WIDGET_REGISTRY, DASHBOARD_PRESETS } from './DashboardWidgets.jsx';
@@ -14,7 +15,7 @@ import { WIDGET_REGISTRY, DASHBOARD_PRESETS } from './DashboardWidgets.jsx';
  * @param {Function} onUpdateWidgets - Callback with new widget ID array
  * @param {Function} onApplyPreset - Callback with preset key
  */
-export default function WidgetCustomizer({ isOpen, onClose, activeWidgets, onUpdateWidgets, onApplyPreset }) {
+function WidgetCustomizer({ isOpen, onClose, activeWidgets, onUpdateWidgets, onApplyPreset }) {
   const [tab, setTab] = useState('widgets'); // 'widgets' | 'presets'
 
   const toggleWidget = useCallback(
@@ -291,3 +292,5 @@ export default function WidgetCustomizer({ isOpen, onClose, activeWidgets, onUpd
 }
 
 export { WidgetCustomizer };
+
+export default React.memo(WidgetCustomizer);

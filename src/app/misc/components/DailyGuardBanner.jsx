@@ -8,13 +8,14 @@
 // Renders nothing when status is 'ok'.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useDailyGuardStore, bannerProps } from '../../../state/useDailyGuardStore.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useUserStore } from '../../../state/useUserStore';
 
-export default function DailyGuardBanner() {
+function DailyGuardBanner() {
   const trades = useJournalStore((s) => s.trades);
   const dailyLossLimit = useUserStore((s) => s.dailyLossLimit);
   const evaluate = useDailyGuardStore((s) => s.evaluate);
@@ -109,3 +110,5 @@ export default function DailyGuardBanner() {
 }
 
 export { DailyGuardBanner };
+
+export default React.memo(DailyGuardBanner);

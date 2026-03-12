@@ -860,3 +860,64 @@
 .tf-bento~div::-webkit-scrollbar {
   display: none;
 }
+
+/* ═══ #29: Interactive State Utilities ════════════════════════════ */
+/* Composable utility classes for consistent hover/active/focus.    */
+
+/* Base interactive — adds hover highlight + transition to any element */
+.tf-interactive {
+  transition: background var(--tf-transition-fast),
+              border-color var(--tf-transition-fast),
+              color var(--tf-transition-fast),
+              transform var(--tf-transition-micro);
+  cursor: pointer;
+}
+
+@media (pointer: fine) {
+  .tf-interactive:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--tf-bd2);
+  }
+}
+
+/* Tactile press — scale down on click for button feel */
+.tf-press:active {
+  transform: scale(0.97);
+  transition-duration: 0.06s;
+}
+
+/* Focus ring — visible keyboard focus for a11y (no effect on click) */
+.tf-focus-ring:focus-visible {
+  outline: 2px solid var(--tf-accent);
+  outline-offset: 2px;
+  border-radius: var(--tf-radius-sm);
+}
+
+/* Hover lift — subtle rise + shadow on hover (cards, tiles) */
+@media (pointer: fine) {
+  .tf-hover-lift {
+    transition: transform var(--tf-transition-base),
+                box-shadow var(--tf-transition-base);
+  }
+
+  .tf-hover-lift:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--tf-shadow-2);
+  }
+
+  .tf-hover-lift:active {
+    transform: translateY(0) scale(0.995);
+    transition-duration: 0.06s;
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .tf-interactive,
+  .tf-press,
+  .tf-hover-lift {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}

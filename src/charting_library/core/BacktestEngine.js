@@ -14,6 +14,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { Calc } from '../model/Calc.js';
+// #10: Single source of truth for risk-adjusted metrics
+import { sharpeRatio as _sharpeRatio, sortinoRatio as _sortinoRatio } from '../../trading/QuantMetrics';
 
 // ─── Default Configuration ───────────────────────────────────────
 
@@ -346,23 +348,13 @@ function computeMetrics(trades, equityCurve, cfg, execMs) {
     if (ddPct > maxDDPct) maxDDPct = ddPct;
   }
 
-  // Sharpe Ratio (simplified: daily returns, annualized)
+  // #10: Sharpe/Sortino — delegated to QuantMetrics (single source of truth)
   const returns = [];
   for (let i = 1; i < equityCurve.length; i++) {
     returns.push((equityCurve[i] - equityCurve[i - 1]) / equityCurve[i - 1]);
   }
-  const avgReturn = returns.length > 0 ? returns.reduce((s, r) => s + r, 0) / returns.length : 0;
-  const stdDev = returns.length > 1
-    ? Math.sqrt(returns.reduce((s, r) => s + (r - avgReturn) ** 2, 0) / (returns.length - 1))
-    : 0;
-  const sharpeRatio = stdDev > 0 ? (avgReturn / stdDev) * Math.sqrt(252) : 0;
-
-  // Sortino Ratio (only downside deviation)
-  const downsideReturns = returns.filter(r => r < 0);
-  const downsideDev = downsideReturns.length > 1
-    ? Math.sqrt(downsideReturns.reduce((s, r) => s + r ** 2, 0) / downsideReturns.length)
-    : 0;
-  const sortinoRatio = downsideDev > 0 ? (avgReturn / downsideDev) * Math.sqrt(252) : 0;
+  const sharpeRatio = _sharpeRatio(returns, 0.04, 252);
+  const sortinoRatio = _sortinoRatio(returns, 0.04, 252);
 
   // Calmar Ratio
   const totalReturn = netPnLPercent;
@@ -409,8 +401,9 @@ function computeMetrics(trades, equityCurve, cfg, execMs) {
     maxConsecutiveWins: maxConsWins,
     maxConsecutiveLosses: maxConsLosses,
     avgHoldingBars: round2(avgHoldingBars),
-    longestTrade: Math.max(...holdingBars),
-    shortestTrade: Math.min(...holdingBars),
+    // #11: Safe reduce instead of Math.max/min(...spread) to avoid stack overflow
+    longestTrade: holdingBars.reduce((a, b) => a > b ? a : b, 0),
+    shortestTrade: holdingBars.reduce((a, b) => a < b ? a : b, Infinity),
     longTrades: longs.length,
     shortTrades: shorts.length,
     longWinRate: longs.length > 0 ? round2((longs.filter(t => t.isWin).length / longs.length) * 100) : 0,

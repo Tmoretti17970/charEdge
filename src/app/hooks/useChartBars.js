@@ -12,9 +12,9 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { datafeedService } from '../../charting_library/datafeed/DatafeedService.js';
-import { useChartStore } from '../../state/useChartStore';
 import { resolveSymbol } from '../../app/components/chart/core/ChartEngineWidget.jsx';
 import { resolveAdapterTimeframe } from '../../constants/TimeframeMap';
+import { useChartCoreStore } from '../../state/chart/useChartCoreStore';
 
 /**
  * Returns the bars array for the current symbol+tf from DatafeedService.
@@ -23,9 +23,9 @@ import { resolveAdapterTimeframe } from '../../constants/TimeframeMap';
  * cache key used by ChartEngineWidget.
  */
 export function useChartBars() {
-  const symbol = useChartStore((s) => s.symbol);
-  const tf = useChartStore((s) => s.tf);
-  const barCount = useChartStore((s) => s.barCount);
+  const symbol = useChartCoreStore((s) => s.symbol);
+  const tf = useChartCoreStore((s) => s.tf);
+  const barCount = useChartCoreStore((s) => s.barCount);
 
   const [bars, setBars] = useState(() => {
     const resolvedSym = resolveSymbol(symbol);

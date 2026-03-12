@@ -7,21 +7,23 @@
 import { useState, useMemo } from 'react';
 import { captureChartState } from '../../../../charting_library/tools/ChartJournalPipeline.js';
 import { C, F, M, EMOJIS } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore';
 import { useJournalStore } from '../../../../state/useJournalStore';
 import { uid } from '../../../../utils.js';
 import toast from '../../ui/Toast.jsx';
 import css from './QuickJournalPanel.module.css';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
+import { useChartTradeStore } from '../../../../state/chart/useChartTradeStore';
 
 const SIDES = ['long', 'short'];
 
 export default function QuickJournalPanel({ onClose }) {
-  const symbol = useChartStore((s) => s.symbol);
-  const pendingEntry = useChartStore((s) => s.pendingEntry);
-  const pendingSL = useChartStore((s) => s.pendingSL);
-  const pendingTP = useChartStore((s) => s.pendingTP);
-  const tradeSide = useChartStore((s) => s.tradeSide);
-  const exitTradeMode = useChartStore((s) => s.exitTradeMode);
+  const symbol = useChartCoreStore((s) => s.symbol);
+  const pendingEntry = useChartTradeStore((s) => s.pendingEntry);
+  const pendingSL = useChartTradeStore((s) => s.pendingSL);
+  const pendingTP = useChartTradeStore((s) => s.pendingTP);
+  const tradeSide = useChartFeaturesStore((s) => s.tradeSide);
+  const exitTradeMode = useChartFeaturesStore((s) => s.exitTradeMode);
   const addTrade = useJournalStore((s) => s.addTrade);
 
   const [form, setForm] = useState({
@@ -78,7 +80,7 @@ export default function QuickJournalPanel({ onClose }) {
       // P2 2.3: Auto-capture chart context for journal entry
       chartContext: (() => {
         try {
-          const chartState = useChartStore.getState();
+          const chartState = useChartCoreStore.getState();
           return captureChartState(chartState);
         } catch { return null; }
       })(),

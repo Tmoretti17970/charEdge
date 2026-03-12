@@ -7,6 +7,7 @@
 // States: Live (green pulse) | Syncing (amber spin) | Stale (grey) | Error (red)
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useEffect, useState, useRef } from 'react';
 import { C } from '../../../constants.js';
 
@@ -24,7 +25,7 @@ const STATES = {
  * @param {number} latencyMs - Optional latency in milliseconds
  * @param {boolean} compact - Compact mode (dot-only, no label)
  */
-export default function ConnectionPulse({ status = 'live', latencyMs = null, compact = false }) {
+function ConnectionPulse({ status = 'live', latencyMs = null, compact = false }) {
     const s = STATES[status] || STATES.stale;
     const [flash, setFlash] = useState(false);
     const prevStatus = useRef(status);
@@ -104,3 +105,5 @@ export default function ConnectionPulse({ status = 'live', latencyMs = null, com
         </div>
     );
 }
+
+export default React.memo(ConnectionPulse);

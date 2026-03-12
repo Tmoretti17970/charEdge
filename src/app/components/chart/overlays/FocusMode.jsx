@@ -5,9 +5,10 @@
 // Mouse-to-top-edge reveals floating info bar.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-export default function FocusMode({ isActive, onExit, symbol, timeframe, lastPrice }) {
+function FocusMode({ isActive, onExit, symbol, timeframe, lastPrice }) {
   const [showOverlay, setShowOverlay] = useState(false);
   const hideTimer = useRef(null);
 
@@ -67,3 +68,5 @@ export default function FocusMode({ isActive, onExit, symbol, timeframe, lastPri
     </div>
   );
 }
+
+export default React.memo(FocusMode);

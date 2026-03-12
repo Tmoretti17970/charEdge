@@ -1,11 +1,11 @@
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — MoreTab Component
 // Extracted from CommunityPage.jsx for single-responsibility.
+//
+// Social features (CopyTrade, LiveRoom, Marketplace) quarantined —
+// replaced with Coming Soon placeholders until backend exists.
 // ═══════════════════════════════════════════════════════════════════
 
-import CopyTradePanel from '../../app/components/social/CopyTradePanel.jsx';
-import IndicatorMarketplace from '../../app/components/social/IndicatorMarketplace.jsx';
-import LiveRoomPanel from '../../app/components/social/LiveRoomPanel.jsx';
 import { C, F } from '../../constants.js';
 import { alpha } from '@/shared/colorUtils';
 
@@ -15,7 +15,44 @@ const MORE_FEATURES = [
   { id: 'marketplace', label: 'Marketplace', icon: '🧩', description: 'Community indicators' },
 ];
 
-export default function MoreTab({ moreActiveFeature, setMoreActiveFeature, onCopyTrader }) {
+function ComingSoonPlaceholder({ feature }) {
+  return (
+    <div
+      style={{
+        padding: '48px 24px',
+        textAlign: 'center',
+        background: C.bg2,
+        borderRadius: 14,
+        border: `1px solid ${C.bd}`,
+      }}
+    >
+      <div style={{ fontSize: 48, marginBottom: 12 }}>{feature.icon}</div>
+      <div style={{ fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 6 }}>
+        {feature.label}
+      </div>
+      <div style={{ color: C.t3, fontSize: 13, fontFamily: F, marginBottom: 16 }}>
+        {feature.description}
+      </div>
+      <span
+        style={{
+          padding: '6px 16px',
+          borderRadius: 20,
+          background: alpha(C.b, 0.1),
+          color: C.b,
+          fontSize: 11,
+          fontWeight: 700,
+          fontFamily: F,
+        }}
+      >
+        Coming Soon
+      </span>
+    </div>
+  );
+}
+
+export default function MoreTab({ moreActiveFeature, setMoreActiveFeature }) {
+  const activeFeatureData = MORE_FEATURES.find((f) => f.id === moreActiveFeature);
+
   return (
     <div role="tabpanel" aria-label="More features" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {!moreActiveFeature ? (
@@ -61,9 +98,7 @@ export default function MoreTab({ moreActiveFeature, setMoreActiveFeature, onCop
           >
             ← Back
           </button>
-          {moreActiveFeature === 'copytrade' && <CopyTradePanel onCopyTrader={onCopyTrader} />}
-          {moreActiveFeature === 'rooms' && <LiveRoomPanel />}
-          {moreActiveFeature === 'marketplace' && <IndicatorMarketplace />}
+          {activeFeatureData && <ComingSoonPlaceholder feature={activeFeatureData} />}
         </div>
       )}
     </div>

@@ -10,10 +10,10 @@
 //   - 'charEdge:open-logbook' custom event opens directly in Logbook mode
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { exportCSV } from '../../../charting_library/datafeed/csv.js';
 import { C, F, M, GLASS, DEPTH } from '../../../constants.js';
-import { useChartStore } from '../../../state/useChartStore';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useUIStore } from '../../../state/useUIStore';
 import { useUserStore } from '../../../state/useUserStore';
@@ -22,8 +22,10 @@ import { getCommands } from './command/commandRegistry.js';
 import useCommandSearch from './command/useCommandSearch.js';
 import SpotlightLogbook from './SpotlightLogbook.jsx';
 import { useHotkeys } from '@/hooks/useHotkeys';
+import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
+import { useChartToolsStore } from '../../../state/chart/useChartToolsStore';
 
-export default function CommandPalette() {
+function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState('commands'); // 'commands' | 'logbook'
   const [filterDate, setFilterDate] = useState(null);
@@ -49,9 +51,9 @@ export default function CommandPalette() {
         a.download = `charEdge-export-${new Date().toISOString().slice(0, 10)}.csv`;
         a.click(); URL.revokeObjectURL(url); setOpen(false);
       },
-      setChartType: (type) => { useChartStore.getState().setChartType(type); setPage('charts'); setOpen(false); },
+      setChartType: (type) => { useChartCoreStore.getState().setChartType(type); setPage('charts'); setOpen(false); },
       setDrawingTool: (toolId) => {
-        useChartStore.getState().setActiveTool(toolId);
+        useChartToolsStore.getState().setActiveTool(toolId);
         if (useUIStore.getState().page !== 'charts') setPage('charts');
         setOpen(false);
       },
@@ -220,3 +222,5 @@ export default function CommandPalette() {
 }
 
 export { CommandPalette };
+
+export default React.memo(CommandPalette);

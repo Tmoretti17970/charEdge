@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
 import {
@@ -30,8 +31,9 @@ import { computeFast } from '../../features/analytics/analyticsFast.js';
 import { generateReport, downloadReport } from '../../features/analytics/ReportGenerator.js';
 import { Card, Btn, inputStyle } from '../ui/UIKit.jsx';
 import { SectionHeader, SettingRow, AlertBanner } from './SettingsHelpers.jsx';
+import s from './DataSection.module.css';
 
-export default function DataSection() {
+function DataSection() {
   const trades = useJournalStore((s) => s.trades);
   const setTrades = useJournalStore((s) => s.setTrades);
   const [importResult, setImportResult] = useState(null);
@@ -307,10 +309,10 @@ export default function DataSection() {
 
         {/* Export */}
         <div style={{ fontSize: 12, fontWeight: 600, color: C.t2, marginBottom: 10 }}>Export</div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
-          <Btn onClick={handleExportCSV} style={{ fontSize: 12, padding: '8px 14px' }}>📥 Export CSV</Btn>
-          <Btn onClick={handleExportJSON} style={{ fontSize: 12, padding: '8px 14px' }}>📥 Export JSON</Btn>
-          <Btn onClick={handleExportReport} style={{ fontSize: 12, padding: '8px 14px' }}>📊 Performance Report</Btn>
+        <div className={s.s0}>
+          <Btn onClick={handleExportCSV} className={s.s1}>📥 Export CSV</Btn>
+          <Btn onClick={handleExportJSON} className={s.s2}>📥 Export JSON</Btn>
+          <Btn onClick={handleExportReport} className={s.s3}>📊 Performance Report</Btn>
         </div>
 
         {/* Import */}
@@ -329,7 +331,7 @@ export default function DataSection() {
           {importResult?.trades?.length > 0 && (
             <div style={{ marginTop: 10 }}>
               <div style={{ fontSize: 11, fontWeight: 600, color: C.t3, marginBottom: 6 }}>Duplicate handling</div>
-              <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+              <div className={s.s4}>
                 {[
                   { id: 'skip', label: '🛡️ Skip duplicates', hint: 'Default — existing trades are preserved' },
                   { id: 'all', label: '📥 Import all', hint: 'Ignore duplicates, import every row' },
@@ -362,14 +364,14 @@ export default function DataSection() {
                   ⚠️ {importResult.duplicates} duplicate{importResult.duplicates !== 1 ? 's' : ''} detected
                 </div>
               )}
-              <Btn onClick={confirmImport} style={{ fontSize: 12, padding: '8px 14px' }}>✅ Confirm Import ({importResult.trades.length} trades)</Btn>
+              <Btn onClick={confirmImport} className={s.s5}>✅ Confirm Import ({importResult.trades.length} trades)</Btn>
             </div>
           )}
         </div>
 
         {/* ─── Backup & Sync ────────────────────────────────── */}
         <div style={{ paddingTop: 20, marginTop: 20, borderTop: `1px solid ${C.bd}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <div className={s.s6}>
             <span style={{ fontSize: 16 }}>🔒</span>
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: C.t1 }}>Backup & Sync</div>
@@ -388,7 +390,7 @@ export default function DataSection() {
                     Pick a folder on your computer. charEdge will auto-save all your data there every 60 seconds.
                     {' '}If the folder is inside Dropbox, OneDrive, or Google Drive — it syncs to the cloud automatically. You own it.
                   </div>
-                  <Btn onClick={handlePickFolder} disabled={backupBusy} style={{ fontSize: 12, padding: '8px 16px' }}>
+                  <Btn onClick={handlePickFolder} disabled={backupBusy} className={s.s7}>
                     📁 Choose Backup Folder
                   </Btn>
                 </div>
@@ -405,14 +407,14 @@ export default function DataSection() {
                       </div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    <Btn onClick={handleToggleAutoSave} disabled={backupBusy} style={{ fontSize: 11, padding: '6px 12px' }}>
+                  <div className={s.s8}>
+                    <Btn onClick={handleToggleAutoSave} disabled={backupBusy} className={s.s9}>
                       {backupStatus.isAutoSaving ? '⏸️ Pause' : '▶️ Resume'} Auto-Save
                     </Btn>
-                    <Btn onClick={handleManualBackup} disabled={backupBusy} style={{ fontSize: 11, padding: '6px 12px' }}>
+                    <Btn onClick={handleManualBackup} disabled={backupBusy} className={s.s10}>
                       💾 Backup Now
                     </Btn>
-                    <Btn onClick={handleRestore} disabled={backupBusy} style={{ fontSize: 11, padding: '6px 12px' }}>
+                    <Btn onClick={handleRestore} disabled={backupBusy} className={s.s11}>
                       📂 Restore from Backup
                     </Btn>
                     <Btn onClick={handleDisconnect} style={{ fontSize: 11, padding: '6px 12px', color: C.r, borderColor: C.r + '40' }}>
@@ -428,8 +430,8 @@ export default function DataSection() {
               <div style={{ fontSize: 11, color: C.t3, marginBottom: 8, fontFamily: M }}>
                 Your browser doesn't support auto-save to a folder. Use manual backup & restore instead.
               </div>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                <Btn onClick={handleFallbackDownload} disabled={backupBusy} style={{ fontSize: 11, padding: '6px 12px' }}>
+              <div className={s.s12}>
+                <Btn onClick={handleFallbackDownload} disabled={backupBusy} className={s.s13}>
                   💾 Download Full Backup
                 </Btn>
                 <div>
@@ -440,7 +442,7 @@ export default function DataSection() {
                     onChange={handleFallbackUpload}
                     style={{ display: 'none' }}
                   />
-                  <Btn onClick={() => restoreFileRef.current?.click()} disabled={backupBusy} style={{ fontSize: 11, padding: '6px 12px' }}>
+                  <Btn onClick={() => restoreFileRef.current?.click()} disabled={backupBusy} className={s.s14}>
                     📂 Restore from File
                   </Btn>
                 </div>
@@ -465,7 +467,7 @@ export default function DataSection() {
 
         {/* ─── Cloud Backup ─────────────────────────────────── */}
         <div style={{ paddingTop: 20, marginTop: 20, borderTop: `1px solid ${C.bd}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <div className={s.s15}>
             <span style={{ fontSize: 16 }}>☁️</span>
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: C.t1 }}>Cloud Backup</div>
@@ -480,13 +482,13 @@ export default function DataSection() {
               <div style={{ fontSize: 11, color: C.t3, marginBottom: 10, fontFamily: M }}>
                 Connect your own cloud storage. All backups are encrypted with your passphrase before upload.
               </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <div className={s.s16}>
                 <Btn onClick={() => handleCloudConnect('google-drive')} disabled={cloudBusy}
-                  style={{ fontSize: 12, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  className={s.s17}>
                   <span style={{ fontSize: 14 }}>🔵</span> Connect Google Drive
                 </Btn>
                 <Btn onClick={() => handleCloudConnect('dropbox')} disabled={cloudBusy}
-                  style={{ fontSize: 12, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  className={s.s18}>
                   <span style={{ fontSize: 14 }}>🔷</span> Connect Dropbox
                 </Btn>
               </div>
@@ -530,11 +532,11 @@ export default function DataSection() {
               </div>
 
               {/* Action buttons */}
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
-                <Btn onClick={handleCloudBackup} disabled={cloudBusy} style={{ fontSize: 11, padding: '6px 12px' }}>
+              <div className={s.s19}>
+                <Btn onClick={handleCloudBackup} disabled={cloudBusy} className={s.s20}>
                   ☁️ Backup to Cloud
                 </Btn>
-                <Btn onClick={handleListBackups} disabled={cloudBusy} style={{ fontSize: 11, padding: '6px 12px' }}>
+                <Btn onClick={handleListBackups} disabled={cloudBusy} className={s.s21}>
                   📋 List Backups
                 </Btn>
                 <Btn onClick={handleCloudDisconnect} style={{ fontSize: 11, padding: '6px 12px', color: C.r, borderColor: C.r + '40' }}>
@@ -567,7 +569,7 @@ export default function DataSection() {
                       <Btn
                         onClick={() => handleCloudRestore(bk.name)}
                         disabled={cloudBusy}
-                        style={{ fontSize: 10, padding: '4px 10px' }}
+                        className={s.s22}
                       >
                         📥 Restore
                       </Btn>
@@ -597,3 +599,4 @@ export default function DataSection() {
   );
 }
 
+export default React.memo(DataSection);

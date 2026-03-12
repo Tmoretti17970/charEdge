@@ -10,6 +10,7 @@
 //   - Watchlist-filtered view
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
@@ -66,7 +67,7 @@ const MOCK_EARNINGS = [
 // Main Component
 // ═══════════════════════════════════════════════════════════════════
 
-export default function EarningsIntelligence() {
+function EarningsIntelligence() {
   const [filter, setFilter] = useState('all'); // 'all' | 'watchlist'
   const [collapsed, setCollapsed] = useState(false);
   const watchlist = useWatchlistStore((s) => s.items);
@@ -404,3 +405,5 @@ function getHeatColor(count) {
 }
 
 export { EarningsIntelligence };
+
+export default React.memo(EarningsIntelligence);

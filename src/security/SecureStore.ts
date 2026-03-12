@@ -1,285 +1,200 @@
 import { logger } from '../observability/logger';
+import {
+  encryptToBase64,
+  decryptFromBase64,
+  isEncryptionSupported,
+} from './DataEncryption';
 
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — SecureStore (H1.2 + Tier 3.1 Security Hardening)
+// charEdge — SecureStore (Phase 2 — #16/#17/#18 Hardened)
 //
 // Encrypted localStorage storage using Web Crypto AES-GCM.
-// Used for sensitive data (auth tokens, API keys) that must not
-// be stored in plain text.
+// Uses the canonical DataEncryption module (PBKDF2 600K + AES-256-GCM).
 //
-// Architecture:
-//   1. Derives an AES-GCM key via PBKDF2 from:
-//      a) User-provided passphrase (preferred, real encryption)
-//      b) Device fingerprint fallback (obfuscation only)
-//   2. Encrypts JSON payloads before storing in localStorage
-//   3. Decrypts on read
-//   4. Falls back to base64 encoding when crypto.subtle is unavailable
-//      (non-secure context, SSR, etc.)
+// SECURITY CHANGES (Phase 2):
+//   #16: Consolidated — uses DataEncryption.ts (600K PBKDF2) instead
+//        of its own duplicate 100K implementation.
+//   #17: Passphrase REQUIRED — device fingerprint fallback removed.
+//        Calls fail with logged error if no passphrase is set.
+//   #18: No plaintext/base64 fallback — if crypto.subtle is unavailable,
+//        operations throw instead of silently storing in plain text.
 // ═══════════════════════════════════════════════════════════════════
 
-const SALT_KEY = 'charEdge-sec-salt';
-const PBKDF2_ITERATIONS = 100_000;
-
 // ─── Passphrase (in-memory only, never persisted) ────────────────
-let _passphrase = null;
+let _passphrase: string | null = null;
 
-// ─── Helpers ─────────────────────────────────────────────────────
-
-/** Check if Web Crypto subtle API is available (requires secure context) */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function _hasCryptoSubtle() {
-  return (
-    typeof globalThis !== 'undefined' &&
-    typeof globalThis.crypto !== 'undefined' &&
-    typeof globalThis.crypto.subtle !== 'undefined'
-  );
-}
-
-/** Get or create a persistent random salt (stored in localStorage) */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function _getSalt() {
-  try {
-    let salt = localStorage.getItem(SALT_KEY);
-    if (!salt) {
-      // Generate 16 random bytes as hex
-      const bytes = new Uint8Array(16);
-      crypto.getRandomValues(bytes);
-      salt = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
-      localStorage.setItem(SALT_KEY, salt);
-    }
-    return salt;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (_) {
-    return 'charEdge-fallback-salt-v1';
-  }
-}
-
-/** Build a deterministic device fingerprint for key derivation */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function _getFingerprint() {
-  const parts = [
-    typeof navigator !== 'undefined' ? navigator.userAgent : 'ssr',
-    typeof location !== 'undefined' ? location.origin : 'localhost',
-    _getSalt(),
-  ];
-  return parts.join('|');
-}
-
-/**
- * Derive an AES-GCM key via PBKDF2.
- * Uses passphrase when set (real encryption), otherwise falls back
- * to device fingerprint (obfuscation only).
- */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-async function _deriveKey() {
-  const enc = new TextEncoder();
-  // Prefer user passphrase over device fingerprint
-  const secret = _passphrase || _getFingerprint();
-  const salt = enc.encode(_getSalt());
-
-  // Import secret as raw key material
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw',
-    enc.encode(secret),
-    'PBKDF2',
-    false,
-    ['deriveKey'],
-  );
-
-  // Derive AES-GCM key
-  return crypto.subtle.deriveKey(
-    {
-      name: 'PBKDF2',
-      salt,
-      iterations: PBKDF2_ITERATIONS,
-      hash: 'SHA-256',
-    },
-    keyMaterial,
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt', 'decrypt'],
-  );
-}
-
-// ─── Base64 Fallback ─────────────────────────────────────────────
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function _b64Encode(str) {
-  try {
-    return btoa(unescape(encodeURIComponent(str)));
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (_) {
-    return btoa(str);
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function _b64Decode(b64) {
-  try {
-    return decodeURIComponent(escape(atob(b64)));
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (_) {
-    return atob(b64);
-  }
-}
+// Minimum passphrase length (#20)
+const MIN_PASSPHRASE_LENGTH = 12;
 
 // ─── Public API ──────────────────────────────────────────────────
 
 /**
  * Encrypt an object and store it in localStorage.
- * Falls back to base64 encoding if Web Crypto is unavailable.
+ * REQUIRES: passphrase must be set via setPassphrase() first.
+ * REQUIRES: Web Crypto API available (secure context).
  *
- * @param {string} key - localStorage key
- * @param {object} data - Plain object to encrypt and store
+ * @param key — localStorage key
+ * @param data — Plain object to encrypt and store
+ * @throws if passphrase not set or crypto unavailable
  */
-async function encryptAndStore(key, data) {
-  const json = JSON.stringify(data);
+async function encryptAndStore(key: string, data: unknown): Promise<void> {
+  // #17: Passphrase required — no fingerprint fallback
+  if (!_passphrase) {
+    logger.ui.warn(
+      '[SecureStore] Cannot encrypt — no passphrase set. Call SecureStore.setPassphrase() first.'
+    );
+    throw new Error('Passphrase required for encryption');
+  }
 
-  if (!_hasCryptoSubtle()) {
-    // Fallback: base64 encode (obfuscation only, not true encryption)
-    if (typeof console !== 'undefined') {
-      logger.ui.warn('[SecureStore] crypto.subtle unavailable — using base64 fallback');
-    }
-    try {
-      localStorage.setItem(key, JSON.stringify({ _f: 'b64', _d: _b64Encode(json) }));
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_) { /* quota exceeded — handled by caller */ }
-    return;
+  // #18: No fallback — crypto.subtle must be available
+  if (!isEncryptionSupported()) {
+    logger.ui.warn('[SecureStore] crypto.subtle unavailable — cannot encrypt data');
+    throw new Error('Web Crypto unavailable — secure context required');
   }
 
   try {
-    const cryptoKey = await _deriveKey();
-    const enc = new TextEncoder();
-    const iv = crypto.getRandomValues(new Uint8Array(12)); // 96-bit IV for AES-GCM
-
-    const ciphertext = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
-      cryptoKey,
-      enc.encode(json),
-    );
-
-    // Store as JSON: { _f: 'aes', _iv: hex, _ct: base64 }
-    const ivHex = Array.from(iv, (b) => b.toString(16).padStart(2, '0')).join('');
-    const ctB64 = btoa(String.fromCharCode(...new Uint8Array(ciphertext)));
-
-    localStorage.setItem(key, JSON.stringify({ _f: 'aes', _iv: ivHex, _ct: ctB64 }));
+    const json = JSON.stringify(data);
+    // #16: Uses canonical DataEncryption (600K PBKDF2 + AES-256-GCM)
+    const encrypted = await encryptToBase64(json, _passphrase);
+    localStorage.setItem(key, encrypted);
   } catch (err) {
-    // If encryption fails, fall back to base64
-    if (typeof console !== 'undefined') {
-      logger.ui.warn('[SecureStore] Encryption failed, using base64 fallback:', err.message);
-    }
-    try {
-      localStorage.setItem(key, JSON.stringify({ _f: 'b64', _d: _b64Encode(json) }));
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_) { /* quota exceeded */ }
+    // #18: No base64 fallback — propagate error
+    logger.ui.warn('[SecureStore] Encryption failed:', (err as Error).message);
+    throw err;
   }
 }
 
 /**
  * Load and decrypt an object from localStorage.
- * Handles both encrypted (AES-GCM) and legacy plain-text formats.
+ * Handles encrypted (AES-GCM) and legacy plain-text formats.
+ * Legacy data is returned as-is for migration by the caller.
  *
- * @param {string} key - localStorage key
- * @returns {object|null} Decrypted object, or null if not found/invalid
+ * @param key — localStorage key
+ * @returns Decrypted object, or null if not found/invalid
  */
-async function loadAndDecrypt(key) {
+async function loadAndDecrypt(key: string): Promise<unknown> {
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return null;
 
-    let envelope;
+    let envelope: Record<string, unknown>;
     try {
       envelope = JSON.parse(raw);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_) {
-      // Not valid JSON — might be legacy plain text
+    } catch {
+      // Not valid JSON — corrupted
       return null;
     }
 
     // ─── Legacy migration: plain-text JSON (no _f field) ─────
     if (!envelope._f) {
-      // This is old unencrypted data — return it and let caller re-save encrypted
+      // Old unencrypted data — return it, caller should re-save encrypted
       return envelope;
     }
 
-    // ─── Base64 fallback format ──────────────────────────────
+    // ─── Legacy base64 format (from old SecureStore) ─────────
+    // Read but don't write — this format is deprecated
     if (envelope._f === 'b64') {
-      return JSON.parse(_b64Decode(envelope._d));
+      try {
+        const decoded = decodeURIComponent(escape(atob(envelope._d as string)));
+        return JSON.parse(decoded);
+      } catch {
+        return atob(envelope._d as string);
+      }
     }
 
     // ─── AES-GCM encrypted format ───────────────────────────
     if (envelope._f === 'aes') {
-      if (!_hasCryptoSubtle()) {
+      if (!isEncryptionSupported()) {
         logger.ui.warn('[SecureStore] Cannot decrypt AES data without crypto.subtle');
         return null;
       }
 
-      const cryptoKey = await _deriveKey();
+      if (!_passphrase) {
+        logger.ui.warn('[SecureStore] Cannot decrypt — no passphrase set');
+        return null;
+      }
 
-      // Decode IV from hex
-      const ivBytes = new Uint8Array(
-        envelope._iv.match(/.{2}/g).map((h) => parseInt(h, 16)),
-      );
-
-      // Decode ciphertext from base64
-      const ctBytes = Uint8Array.from(atob(envelope._ct), (c) => c.charCodeAt(0));
-
-      const plainBuf = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv: ivBytes },
-        cryptoKey,
-        ctBytes,
-      );
-
-      return JSON.parse(new TextDecoder().decode(plainBuf));
+      // #16: Uses canonical DataEncryption decryption
+      const json = await decryptFromBase64(raw, _passphrase);
+      return JSON.parse(json);
     }
 
     // Unknown format
     return null;
   } catch (err) {
-    if (typeof console !== 'undefined') {
-      logger.ui.warn('[SecureStore] Failed to load/decrypt:', err.message);
-    }
+    logger.ui.warn('[SecureStore] Failed to load/decrypt:', (err as Error).message);
     return null;
   }
 }
 
 /**
  * Remove an encrypted entry from localStorage.
- * @param {string} key - localStorage key
  */
-function clear(key) {
+function clear(key: string): void {
   try {
     localStorage.removeItem(key);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (_) { /* ignore */ }
+  } catch { /* ignore */ }
 }
 
 /**
- * Check if SecureStore is using real encryption (vs base64 fallback).
- * Useful for UI indicators.
- * @returns {boolean}
+ * Check if SecureStore can perform real encryption.
+ * Requires both Web Crypto and a passphrase.
  */
-function isEncryptionAvailable() {
-  return _hasCryptoSubtle();
+function isEncryptionAvailable(): boolean {
+  return isEncryptionSupported() && _passphrase !== null;
+}
+
+/**
+ * Check if a passphrase is currently set.
+ */
+function hasPassphrase(): boolean {
+  return _passphrase !== null;
+}
+
+/**
+ * Check if a passphrase needs to be set before encryption can proceed.
+ * UI should show PassphraseGate if this returns true.
+ */
+function isPassphraseRequired(): boolean {
+  return _passphrase === null;
+}
+
+/**
+ * Validate a passphrase string.
+ * #20: Enforces minimum 12 characters.
+ * @returns { valid, error }
+ */
+function validatePassphrase(phrase: string): { valid: boolean; error: string | null } {
+  if (!phrase || typeof phrase !== 'string') {
+    return { valid: false, error: 'Passphrase is required' };
+  }
+  if (phrase.length < MIN_PASSPHRASE_LENGTH) {
+    return { valid: false, error: `Passphrase must be at least ${MIN_PASSPHRASE_LENGTH} characters` };
+  }
+  // Check character class diversity (bonus, not blocking)
+  return { valid: true, error: null };
 }
 
 /**
  * Set a user-provided passphrase for key derivation.
  * Stored in memory only — never persisted to disk.
- * When set, encryption uses this instead of the device fingerprint.
+ * #20: Validates minimum length (12 chars).
  *
- * @param {string|null} phrase - Passphrase string, or null to clear
+ * @param phrase — Passphrase string, or null to clear
+ * @throws if passphrase is too short
  */
-function setPassphrase(phrase) {
-  _passphrase = typeof phrase === 'string' && phrase.length > 0 ? phrase : null;
-}
+function setPassphrase(phrase: string | null): void {
+  if (phrase === null) {
+    _passphrase = null;
+    return;
+  }
 
-/**
- * Check if a passphrase is currently set.
- * @returns {boolean}
- */
-function hasPassphrase() {
-  return _passphrase !== null;
+  const validation = validatePassphrase(phrase);
+  if (!validation.valid) {
+    throw new Error(validation.error || 'Invalid passphrase');
+  }
+
+  _passphrase = phrase;
 }
 
 export const SecureStore = {
@@ -289,6 +204,8 @@ export const SecureStore = {
   isEncryptionAvailable,
   setPassphrase,
   hasPassphrase,
+  isPassphraseRequired,
+  validatePassphrase,
 };
 
 export default SecureStore;

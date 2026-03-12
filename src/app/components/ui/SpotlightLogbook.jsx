@@ -160,7 +160,7 @@ function TradeDetail({ trade: t, onClose }) {
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════
 
-export default function SpotlightLogbook({ isOpen, onClose, filterDate = null }) {
+function SpotlightLogbook({ isOpen, onClose, filterDate = null }) {
     const [query, setQuery] = useState('');
     const [hoveredId, setHoveredId] = useState(null);
     const [expandedId, setExpandedId] = useState(null);
@@ -667,3 +667,5 @@ export default function SpotlightLogbook({ isOpen, onClose, filterDate = null })
         </div>
     );
 }
+
+export default React.memo(SpotlightLogbook);

@@ -8,8 +8,10 @@ import { useEffect, useState, useCallback } from 'react';
 import { useChartTradeHandler } from '../../app/components/chart/hooks/useChartTradeHandler.js';
 import { parseChartCommand } from '../../charting_library/ai/AICopilotEngine.js';
 import { TOOL_CONFIG, magnetSnap } from '../../charting_library/tools/drawingTools.js';
-import { useChartStore } from '../../state/useChartStore';
 import { exportChartPNG, copyChartToClipboard, generateShareURL } from '@/charting_library/utils/chartExport';
+import { useChartCoreStore } from '../../state/chart/useChartCoreStore';
+import { useChartToolsStore } from '../../state/chart/useChartToolsStore';
+import { useChartFeaturesStore } from '../../state/chart/useChartFeaturesStore';
 // Wave 0: scripting quarantined — stub useScriptRunner
 const useScriptRunner = () => ({ scriptOutputs: null, setEditorOutputs: () => { }, errors: [] });
 
@@ -21,19 +23,19 @@ const useScriptRunner = () => ({ scriptOutputs: null, setEditorOutputs: () => { 
  * @returns {Object} Drawing handlers, copilot handler, export handlers, script outputs
  */
 export default function useChartDrawingHandler(chartRef) {
-  const symbol = useChartStore((s) => s.symbol);
-  const tf = useChartStore((s) => s.tf);
-  const chartType = useChartStore((s) => s.chartType);
-  const indicators = useChartStore((s) => s.indicators);
-  const setSymbol = useChartStore((s) => s.setSymbol);
-  const setTf = useChartStore((s) => s.setTf);
-  const data = useChartStore((s) => s.data);
-  const activeTool = useChartStore((s) => s.activeTool);
-  const pendingDrawing = useChartStore((s) => s.pendingDrawing);
-  const setPendingDrawing = useChartStore((s) => s.setPendingDrawing);
-  const addDrawing = useChartStore((s) => s.addDrawing);
-  const magnetMode = useChartStore((s) => s.magnetMode);
-  const tradeMode = useChartStore((s) => s.tradeMode);
+  const symbol = useChartCoreStore((s) => s.symbol);
+  const tf = useChartCoreStore((s) => s.tf);
+  const chartType = useChartCoreStore((s) => s.chartType);
+  const indicators = useChartToolsStore((s) => s.indicators);
+  const setSymbol = useChartCoreStore((s) => s.setSymbol);
+  const setTf = useChartCoreStore((s) => s.setTf);
+  const data = useChartCoreStore((s) => s.data);
+  const activeTool = useChartToolsStore((s) => s.activeTool);
+  const pendingDrawing = useChartToolsStore((s) => s.pendingDrawing);
+  const setPendingDrawing = useChartToolsStore((s) => s.setPendingDrawing);
+  const addDrawing = useChartToolsStore((s) => s.addDrawing);
+  const magnetMode = useChartToolsStore((s) => s.magnetMode);
+  const tradeMode = useChartFeaturesStore((s) => s.tradeMode);
 
   const { handleChartClick: handleTradeClick, handleContextMenu, contextMenuHandlers } = useChartTradeHandler();
 
@@ -46,14 +48,14 @@ export default function useChartDrawingHandler(chartRef) {
   useEffect(() => {
     const handleClear = () => {
       const engine = chartRef.current?.getDrawingEngine?.();
-      if (engine) { engine.clearAll(); } else { useChartStore.getState().setDrawings([]); }
+      if (engine) { engine.clearAll(); } else { useChartToolsStore.getState().setDrawings([]); }
     };
     const handleDelete = () => {
       const engine = chartRef.current?.getDrawingEngine?.();
       if (engine) {
         engine.deleteSelected();
       } else {
-        const state = useChartStore.getState();
+        const state = useChartToolsStore.getState();
         if (state.selectedDrawingId) {
           state.setDrawings(state.drawings.filter((d) => d.id !== state.selectedDrawingId));
           state.setSelectedDrawing(null);
@@ -66,7 +68,7 @@ export default function useChartDrawingHandler(chartRef) {
       if (engine) {
         engine.toggleVisibility(id);
       } else {
-        const state = useChartStore.getState();
+        const state = useChartToolsStore.getState();
         state.setDrawings(
           state.drawings.map((d) => (d.id === id ? { ...d, visible: d.visible === false ? true : false } : d)),
         );
@@ -78,7 +80,7 @@ export default function useChartDrawingHandler(chartRef) {
       if (engine) {
         engine.toggleLock(id);
       } else {
-        const state = useChartStore.getState();
+        const state = useChartToolsStore.getState();
         state.setDrawings(state.drawings.map((d) => (d.id === id ? { ...d, locked: !d.locked } : d)));
       }
     };
@@ -88,7 +90,7 @@ export default function useChartDrawingHandler(chartRef) {
       if (engine) {
         engine.removeDrawing(id);
       } else {
-        const state = useChartStore.getState();
+        const state = useChartToolsStore.getState();
         state.setDrawings(state.drawings.filter((d) => d.id !== id));
         if (state.selectedDrawingId === id) state.setSelectedDrawing(null);
       }
@@ -179,25 +181,25 @@ export default function useChartDrawingHandler(chartRef) {
         return { success: false, message: "I didn't quite catch that." };
       }
 
-      const store = useChartStore.getState();
+      const toolsStore = useChartToolsStore.getState();
       let resultMessage = '';
 
       switch (command.action) {
         case 'add_indicator':
-          store.addIndicator({ type: command.payload });
+          toolsStore.addIndicator({ type: command.payload });
           resultMessage = `Added ${command.payload} to chart.`;
           break;
         case 'clear_indicators':
-          store.setIndicators([]);
+          toolsStore.setIndicators([]);
           resultMessage = 'Cleared all indicators.';
           break;
         case 'clear_drawings':
-          store.setDrawings([]);
+          toolsStore.setDrawings([]);
           resultMessage = 'Cleared all drawings.';
           break;
         case 'clear_all':
-          store.setIndicators([]);
-          store.setDrawings([]);
+          toolsStore.setIndicators([]);
+          toolsStore.setDrawings([]);
           resultMessage = 'Cleared chart fully.';
           break;
         case 'change_tf':
@@ -209,7 +211,7 @@ export default function useChartDrawingHandler(chartRef) {
           resultMessage = `Switched symbol to ${command.payload}.`;
           break;
         case 'activate_tool':
-          store.setActiveTool(command.payload);
+          toolsStore.setActiveTool(command.payload);
           resultMessage = `Activated ${command.payload} drawing tool.`;
           break;
         default:

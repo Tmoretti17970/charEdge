@@ -8,6 +8,7 @@
 // Data comes from computeFast's equity curve (eq array).
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../../constants.js';
 
@@ -233,7 +234,7 @@ function SummaryStats({ weeks }) {
 
 // ═══ Main Component ═══════════════════════════════════════════════
 
-export default function CalendarHeatmap({ eq, trades }) {
+function CalendarHeatmap({ eq, trades }) {
   const [tooltip, setTooltip] = useState(null);
 
   const { weeks, monthLabels } = useMemo(() => buildCalendarData(eq, trades), [eq, trades]);
@@ -359,3 +360,5 @@ export default function CalendarHeatmap({ eq, trades }) {
     </div>
   );
 }
+
+export default React.memo(CalendarHeatmap);

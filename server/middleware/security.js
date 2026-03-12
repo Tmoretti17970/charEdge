@@ -56,6 +56,33 @@ export function securityHeaders({ isProduction }) {
         res.setHeader('X-XSS-Protection', '1; mode=block');
         // Referrer policy
         res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+        // #25: CORS — restrict cross-origin access
+        const origin = req.headers.origin;
+        if (isProduction) {
+            // Production: only allow same-origin (no CORS header = same-origin only)
+            // If a production domain is configured, whitelist it explicitly:
+            const prodOrigin = process.env.CORS_ORIGIN;
+            if (prodOrigin && origin === prodOrigin) {
+                res.setHeader('Access-Control-Allow-Origin', prodOrigin);
+                res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+                res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+            }
+        } else {
+            // Dev: allow Vite dev server ports
+            const devOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'];
+            if (origin && devOrigins.includes(origin)) {
+                res.setHeader('Access-Control-Allow-Origin', origin);
+                res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+                res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+            }
+        }
+
+        // Handle OPTIONS preflight
+        if (req.method === 'OPTIONS') {
+            return res.status(204).end();
+        }
+
         // Expanded Permissions-Policy (Batch 16: 4.5.4)
         res.setHeader('Permissions-Policy', PERMISSIONS_POLICY);
 
@@ -76,24 +103,28 @@ export function securityHeaders({ isProduction }) {
             endpoints: [{ url: '/api/csp-report' }],
         }));
 
+        // #21: Generate per-request CSP nonce for inline scripts
+        const nonce = crypto.randomUUID().replace(/-/g, '');
+        res.locals.cspNonce = nonce;
+
         // CSP directives — shared between enforcement and report-only
         const cspDirectives = [
-            "default-src 'self'",
-            "script-src 'self'",
-            "style-src 'self'",
-            "font-src 'self'",
-            "img-src 'self' data: blob: https:",
-            "connect-src 'self' https://api.binance.com https://data-api.binance.vision wss://stream.binance.com:9443 wss://stream.binance.us:9443 wss://data-stream.binance.vision https://api.coingecko.com https://query1.finance.yahoo.com https://hermes.pyth.network wss://ws.kraken.com https://api.kraken.com https://data.sec.gov https://efts.sec.gov https://api.stlouisfed.org https://api.frankfurter.dev https://api.alternative.me https://apewisdom.io https://finnhub.io wss://ws.finnhub.io https://financialmodelingprep.com https://api.whale-alert.io https://api.etherscan.io https://api.polygon.io wss://socket.polygon.io https://data.alpaca.markets https://paper-api.alpaca.markets https://api.alpaca.markets",
-            "worker-src 'self' blob:",
+            `default-src 'self'`,
+            `script-src 'self' 'nonce-${nonce}'`,
+            `style-src 'self' 'nonce-${nonce}'`,
+            `font-src 'self'`,
+            `img-src 'self' data: blob: https:`,
+            `connect-src 'self' https://api.binance.com https://data-api.binance.vision wss://stream.binance.com:9443 wss://stream.binance.us:9443 wss://data-stream.binance.vision https://api.coingecko.com https://query1.finance.yahoo.com https://hermes.pyth.network wss://ws.kraken.com https://api.kraken.com https://data.sec.gov https://efts.sec.gov https://api.stlouisfed.org https://api.frankfurter.dev https://api.alternative.me https://apewisdom.io https://finnhub.io wss://ws.finnhub.io https://financialmodelingprep.com https://api.whale-alert.io https://api.etherscan.io https://api.polygon.io wss://socket.polygon.io https://data.alpaca.markets https://paper-api.alpaca.markets https://api.alpaca.markets`,
+            `worker-src 'self' blob:`,
             // Sprint 10 #81: Block Flash/Java plugin content
-            "object-src 'none'",
-            "manifest-src 'self'",
-            "base-uri 'self'",
-            "form-action 'self'",
-            "frame-ancestors 'none'",
-            "upgrade-insecure-requests",
-            "report-uri /api/csp-report",
-            "report-to csp-endpoint",
+            `object-src 'none'`,
+            `manifest-src 'self'`,
+            `base-uri 'self'`,
+            `form-action 'self'`,
+            `frame-ancestors 'none'`,
+            `upgrade-insecure-requests`,
+            `report-uri /api/csp-report`,
+            `report-to csp-endpoint`,
         ].join('; ');
 
         if (isProduction) {

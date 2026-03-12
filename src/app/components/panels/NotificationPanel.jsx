@@ -6,6 +6,7 @@
 // Keyboard accessible (Ctrl+. to toggle).
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useMemo, useRef, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useNotificationLog } from '../../../state/useNotificationLog.js';
@@ -48,7 +49,7 @@ function isToday(ts) {
 
 // ─── Panel Component ──────────────────────────────────────────────
 
-export default function NotificationPanel() {
+function NotificationPanel() {
   const entries = useNotificationLog((s) => s.entries);
   const panelOpen = useNotificationLog((s) => s.panelOpen);
   const closePanel = useNotificationLog((s) => s.closePanel);
@@ -377,3 +378,5 @@ export function NotificationBell() {
 }
 
 export { NotificationPanel };
+
+export default React.memo(NotificationPanel);

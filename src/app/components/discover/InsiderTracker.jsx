@@ -4,6 +4,7 @@
 // Sprint 8: SEC insider & institutional activity monitor.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
@@ -31,7 +32,7 @@ const CONGRESS_TRADES = [
   { id: 'c4', date: '2026-02-20', member: 'Rep. D. Crenshaw', party: 'R', symbol: 'XOM', action: 'Sell', amount: '$50K–$100K' },
 ];
 
-export default function InsiderTracker() {
+function InsiderTracker() {
   const [collapsed, setCollapsed] = useState(false);
   const [tab, setTab] = useState('insider'); // 'insider' | 'congress'
   const [filter, setFilter] = useState('all'); // 'all' | 'buys' | 'sells' | 'watchlist' | 'clusters'
@@ -143,3 +144,5 @@ export default function InsiderTracker() {
 }
 
 export { InsiderTracker };
+
+export default React.memo(InsiderTracker);

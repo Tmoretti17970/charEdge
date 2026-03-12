@@ -10,13 +10,16 @@
 
 import React, { useState, useRef, useEffect, useCallback, useLayoutEffect, Suspense } from 'react';
 import { C, F, TFS } from '../../../constants.js';
-import { useChartStore } from '../../../state/useChartStore';
 
 import ChartTypeSelector from './toolbar/ChartTypeSelector.jsx';
 
 import { useBreakpoints } from '@/hooks/useMediaQuery';
+import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
+import { useChartFeaturesStore } from '../../../state/chart/useChartFeaturesStore';
 
 // Extracted sub-components
+
+import { useHotkeys } from '@/hooks/useHotkeys';
 
 // Lazy-load CommandCenterMenu to prevent chunk evaluation order issues
 const CommandCenterMenu = React.lazy(() => import('./toolbar/CommandCenterMenu.jsx'));
@@ -163,15 +166,20 @@ export default function UnifiedChartToolbar({
   const { isMobile } = useBreakpoints();
   const [searchModalOpen, setSearchModalOpen] = useState(false);
 
-
-
+  // #46: Chart keyboard shortcuts
+  useHotkeys([
+    { key: 'b', handler: () => window.dispatchEvent(new CustomEvent('tf:quickLog', { detail: { side: 'long' } })), description: 'Quick Buy' },
+    { key: 's', handler: () => window.dispatchEvent(new CustomEvent('tf:quickLog', { detail: { side: 'short' } })), description: 'Quick Sell' },
+    { key: ' ', handler: () => window.dispatchEvent(new CustomEvent('tf:toggleCrosshair')), description: 'Toggle crosshair' },
+    { key: 'alt+s', handler: () => onSnapshot?.(), description: 'Chart snapshot' },
+  ], { scope: 'critical:chart', enabled: true });
   // Chart Store State
-  const tf = useChartStore((s) => s.tf);
-  const setTf = useChartStore((s) => s.setTf);
-  const chartType = useChartStore((s) => s.chartType);
-  const setChartType = useChartStore((s) => s.setChartType);
-  const showCustomTf = useChartStore((s) => s.showCustomTf);
-  const toggleCustomTf = useChartStore((s) => s.toggleCustomTf);
+  const tf = useChartCoreStore((s) => s.tf);
+  const setTf = useChartCoreStore((s) => s.setTf);
+  const chartType = useChartCoreStore((s) => s.chartType);
+  const setChartType = useChartCoreStore((s) => s.setChartType);
+  const showCustomTf = useChartFeaturesStore((s) => s.showCustomTf);
+  const toggleCustomTf = useChartFeaturesStore((s) => s.toggleCustomTf);
 
   const toolbarRef = useRef(null);
 
@@ -276,6 +284,38 @@ export default function UnifiedChartToolbar({
 
       {/* Flex spacer */}
       <div style={{ flex: 1, minWidth: 4 }} />
+
+      {/* #41: Persistent Buy/Sell buttons */}
+      {!isMobile && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginRight: 4 }}>
+          <button
+            className="tf-btn tf-press"
+            onClick={() => window.dispatchEvent(new CustomEvent('tf:quickLog', { detail: { side: 'long' } }))}
+            title="Buy (B)"
+            style={{
+              padding: '3px 10px', fontSize: 11, fontWeight: 700,
+              background: 'rgba(49,209,88,0.12)', color: '#31D158',
+              border: '1px solid rgba(49,209,88,0.25)', borderRadius: 6,
+              cursor: 'pointer', letterSpacing: '0.02em',
+            }}
+          >
+            BUY
+          </button>
+          <button
+            className="tf-btn tf-press"
+            onClick={() => window.dispatchEvent(new CustomEvent('tf:quickLog', { detail: { side: 'short' } }))}
+            title="Sell (S)"
+            style={{
+              padding: '3px 10px', fontSize: 11, fontWeight: 700,
+              background: 'rgba(255,69,58,0.12)', color: '#FF453A',
+              border: '1px solid rgba(255,69,58,0.25)', borderRadius: 6,
+              cursor: 'pointer', letterSpacing: '0.02em',
+            }}
+          >
+            SELL
+          </button>
+        </div>
+      )}
 
       {/* RIGHT-SIDE */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>

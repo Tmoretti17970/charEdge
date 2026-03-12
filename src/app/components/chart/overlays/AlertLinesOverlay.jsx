@@ -3,13 +3,14 @@
 // Renders active price alerts as annotated dashed lines on the chart.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useMemo } from 'react';
 import { F } from '../../../../constants.js';
 import { useAlertStore } from '../../../../state/useAlertStore';
 import { useChartBars } from '../../../hooks/useChartBars.js';
 import Icon from '../../design/Icon.jsx';
 
-export default function AlertLinesOverlay({ symbol, _chartHeight = 400 }) {
+function AlertLinesOverlay({ symbol, _chartHeight = 400 }) {
   const allAlerts = useAlertStore((s) => s.alerts);
   const data = useChartBars();
 
@@ -121,3 +122,5 @@ export default function AlertLinesOverlay({ symbol, _chartHeight = 400 }) {
     </div>
   );
 }
+
+export default React.memo(AlertLinesOverlay);

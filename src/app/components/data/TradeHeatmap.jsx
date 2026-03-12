@@ -8,6 +8,7 @@
 // Currently local-only — P2P broadcasting planned for Horizon 3.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { C, M, F } from '../../../constants.js';
 import { getTradeHeatmapEngine } from '../../../data/engine/orderflow/TradeHeatmapEngine.js';
@@ -35,7 +36,7 @@ function densityColor(normalized) {
 /**
  * @param {{ symbol: string, priceMin?: number, priceMax?: number, height?: number }} props
  */
-export default function TradeHeatmap({ symbol, priceMin, priceMax, _height = 400 }) {
+function TradeHeatmap({ symbol, priceMin, priceMax, _height = 400 }) {
   const [profile, setProfile] = useState(null);
   const [showEntries, setShowEntries] = useState(true);
   const [showExits, setShowExits] = useState(true);
@@ -244,3 +245,5 @@ export default function TradeHeatmap({ symbol, priceMin, priceMax, _height = 400
     </div>
   );
 }
+
+export default React.memo(TradeHeatmap);

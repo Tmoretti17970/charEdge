@@ -4,9 +4,10 @@
 // locking, and deletion of individual drawings.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState } from 'react';
 import { C, F } from '../../../constants.js';
-import { useChartStore } from '../../../state/useChartStore';
+import { useChartToolsStore } from '../../../state/chart/useChartToolsStore';
 
 /**
  * ObjectTreePanel — Manage drawings on the chart.
@@ -19,13 +20,13 @@ import { useChartStore } from '../../../state/useChartStore';
  * @param {Function} props.onToggleLock
  * @param {Function} props.onDelete
  */
-export default function ObjectTreePanel({ isOpen, onClose }) {
+function ObjectTreePanel({ isOpen, onClose }) {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const drawings = useChartStore((s) => s.drawings);
-  const setDrawings = useChartStore((s) => s.setDrawings);
-  const selectedDrawingId = useChartStore((s) => s.selectedDrawingId);
-  const setSelectedDrawing = useChartStore((s) => s.setSelectedDrawing);
+  const drawings = useChartToolsStore((s) => s.drawings);
+  const setDrawings = useChartToolsStore((s) => s.setDrawings);
+  const selectedDrawingId = useChartToolsStore((s) => s.selectedDrawingId);
+  const setSelectedDrawing = useChartToolsStore((s) => s.setSelectedDrawing);
 
   const onToggleVisibility = (id) => {
     setDrawings(drawings.map((d) => (d.id === id ? { ...d, visible: d.visible === false ? true : false } : d)));
@@ -194,3 +195,5 @@ export default function ObjectTreePanel({ isOpen, onClose }) {
     </div>
   );
 }
+
+export default React.memo(ObjectTreePanel);

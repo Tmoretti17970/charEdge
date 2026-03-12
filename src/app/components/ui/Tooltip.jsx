@@ -25,7 +25,7 @@ import { space, radii, transition, zIndex as zi } from '../../../theme/tokens.js
  * @param {boolean} [props.pulse=false] - Add pulse animation to draw attention
  * @param {string} [props.requiredFeature] - Only show if this feature NOT yet discovered
  */
-export default function Tooltip({ id, children, position = 'bottom', pulse = false, requiredFeature }) {
+function Tooltip({ id, children, position = 'bottom', pulse = false, requiredFeature }) {
   const dismissedTips = useUserStore((s) => s.dismissedTips);
   const discoveredFeatures = useUserStore((s) => s.discoveredFeatures);
   const dismissTip = useUserStore((s) => s.dismissTip);
@@ -163,3 +163,5 @@ export function WithTooltip({ id, children, tip, position = 'bottom', pulse, req
     </div>
   );
 }
+
+export default React.memo(Tooltip);

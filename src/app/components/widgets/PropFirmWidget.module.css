@@ -1,0 +1,54 @@
+/* Auto-extracted from PropFirmWidget.jsx */
+
+.s0 {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.s1 {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.s2 {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.s3 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.s4 {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.s5 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.s6 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.s7 {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}

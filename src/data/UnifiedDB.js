@@ -17,10 +17,19 @@ import { logger } from '@/observability/logger';
 // ═══════════════════════════════════════════════════════════════════
 
 const UNIFIED_DB_NAME = 'charEdge-unified';
-const UNIFIED_DB_VERSION = 3; // P2 7.1+7.2+7.3: Added candles + session + audioNotes stores
+const UNIFIED_DB_VERSION = 4; // P2 v4: Added enc_* stores for EncryptedStore consolidation (#22)
 
 // Old database names (for migration)
-const OLD_DBS = ['charEdge-cache', 'charEdge-ticks', 'charEdge-os-v10', 'charEdge_candleCache', 'charedge-session-recovery'];
+const OLD_DBS = ['charEdge-cache', 'charEdge-ticks', 'charEdge-os-v10', 'charEdge_candleCache', 'charedge-session-recovery', 'charEdge_encrypted'];
+
+// #22: EncryptedStore store name mapping (old → new)
+const ENC_STORE_MAP = {
+  journal: 'enc_journal',
+  trades: 'enc_trades',
+  settings: 'enc_settings',
+  apikeys: 'enc_apikeys',
+  __crypto_keys__: 'enc_crypto_keys',
+};
 const MIGRATION_FLAG = 'charEdge-unified-migrated';
 
 // ─── Store Schemas ─────────────────────────────────────────────
@@ -119,6 +128,13 @@ function openUnifiedDB() {
         if (!db.objectStoreNames.contains('audioNotes')) {
           db.createObjectStore('audioNotes', { keyPath: 'id' });
         }
+
+        // ── #22: EncryptedStore consolidated stores ──
+        for (const newName of Object.values(ENC_STORE_MAP)) {
+          if (!db.objectStoreNames.contains(newName)) {
+            db.createObjectStore(newName);
+          }
+        }
       };
 
       req.onsuccess = (event) => {
@@ -195,6 +211,14 @@ async function _migrateOldDBs(unifiedDb) {
     migrated = true;
   } catch (err) {
     logger.data.warn('[UnifiedDB] User data migration skipped:', err?.message);
+  }
+
+  // 4. #22: Migrate charEdge_encrypted (EncryptedStore)
+  try {
+    await _migrateEncryptedDB(unifiedDb);
+    migrated = true;
+  } catch (err) {
+    logger.data.warn('[UnifiedDB] EncryptedStore migration skipped:', err?.message);
   }
 
   // Set flag so migration doesn't re-run
@@ -275,6 +299,70 @@ async function _migrateUserDB(unifiedDb) {
   } finally {
     oldDb.close();
   }
+}
+
+// #22: Migrate EncryptedStore (charEdge_encrypted → enc_* stores)
+async function _migrateEncryptedDB(unifiedDb) {
+  const oldDb = await _openOldDB('charEdge_encrypted');
+  if (!oldDb) return;
+
+  try {
+    for (const [oldName, newName] of Object.entries(ENC_STORE_MAP)) {
+      if (!oldDb.objectStoreNames.contains(oldName)) continue;
+
+      const records = await _readAllFromStoreWithKeys(oldDb, oldName);
+      if (records.length === 0) continue;
+
+      // Write each record with its original key (out-of-line keys)
+      await _writeAllToStoreWithKeys(unifiedDb, newName, records);
+    }
+    logger.data.info('[UnifiedDB] EncryptedStore migration complete');
+  } finally {
+    oldDb.close();
+  }
+}
+
+// Read all records including their keys (for out-of-line key stores)
+function _readAllFromStoreWithKeys(db, storeName) {
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(storeName, 'readonly');
+      const store = tx.objectStore(storeName);
+      const records = [];
+      const req = store.openCursor();
+      req.onsuccess = (e) => {
+        const cursor = e.target.result;
+        if (cursor) {
+          records.push({ key: cursor.key, value: cursor.value });
+          cursor.continue();
+        } else {
+          resolve(records);
+        }
+      };
+      req.onerror = () => resolve([]);
+    // eslint-disable-next-line unused-imports/no-unused-vars
+    } catch (_) {
+      resolve([]);
+    }
+  });
+}
+
+// Write records with explicit keys (for out-of-line key stores)
+function _writeAllToStoreWithKeys(db, storeName, records) {
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      for (const { key, value } of records) {
+        store.put(value, key);
+      }
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    // eslint-disable-next-line unused-imports/no-unused-vars
+    } catch (_) {
+      resolve();
+    }
+  });
 }
 
 // ─── Helpers ───────────────────────────────────────────────────

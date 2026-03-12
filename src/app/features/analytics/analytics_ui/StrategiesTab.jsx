@@ -10,6 +10,7 @@ import { Card, AutoGrid } from '../../../components/ui/UIKit.jsx';
 import BreakdownBarChart from '../../../components/widgets/BreakdownBarChart.jsx';
 import PlaybookManager from '../../playbook/PlaybookManager.jsx';
 import { SectionLabel, MiniStat, headerRow, dataRow } from './AnalyticsPrimitives.jsx';
+import s from './StrategiesTab.module.css';
 
 function StrategiesTab({ result, computing }) {
   if (!result || !result.bySt) {
@@ -54,7 +55,7 @@ function StrategiesTab({ result, computing }) {
                   }}
                 >
                   <div style={{ fontSize: 14, fontWeight: 800, color: C.t1, marginBottom: 8 }}>{s.name}</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                  <div className={s.s0}>
                     <MiniStat label="P&L" value={fmtD(s.pnl)} color={s.pnl >= 0 ? C.g : C.r} />
                     <MiniStat label="Win Rate" value={`${s.wr.toFixed(0)}%`} color={s.wr >= 50 ? C.g : C.r} />
                     <MiniStat label="Trades" value={s.count} />
@@ -68,14 +69,14 @@ function StrategiesTab({ result, computing }) {
       )}
 
       {/* Chart */}
-      <Card style={{ padding: 16, marginBottom: 16 }}>
+      <Card className={s.s1}>
         <SectionLabel text="P&L by Strategy" />
         <BreakdownBarChart data={result.bySt} height={Math.max(150, strategies.length * 40)} />
       </Card>
 
       {/* Playbook × Day Correlation Matrix */}
       {result.corrMatrix && Object.keys(result.corrMatrix).length > 1 && (
-        <Card style={{ padding: 16, marginBottom: 16 }}>
+        <Card className={s.s2}>
           <SectionLabel text="Playbook × Day Heatmap" />
           <div style={{ fontSize: 11, color: C.t3, marginBottom: 10, lineHeight: 1.5 }}>
             Which playbooks win/lose on which days? Green = profitable, Red = losing.
@@ -143,7 +144,7 @@ function StrategiesTab({ result, computing }) {
       )}
 
       {/* Detailed Table */}
-      <Card style={{ padding: 0, overflow: 'hidden' }}>
+      <Card className={s.s3}>
         <div style={{ ...headerRow, gridTemplateColumns: '1fr 80px 60px 60px 80px 70px' }}>
           <div>Strategy</div>
           <div style={{ textAlign: 'right' }}>P&L</div>
@@ -182,7 +183,7 @@ function StrategiesTab({ result, computing }) {
       {tags.length > 0 && (
         <div style={{ marginTop: 16 }}>
           <SectionLabel text="Custom Tag Correlation" />
-          <Card style={{ padding: 0, overflow: 'hidden' }}>
+          <Card className={s.s4}>
             <div style={{ ...headerRow, gridTemplateColumns: '1fr 80px 60px 60px 80px 70px' }}>
               <div>Tag</div>
               <div style={{ textAlign: 'right' }}>P&L</div>

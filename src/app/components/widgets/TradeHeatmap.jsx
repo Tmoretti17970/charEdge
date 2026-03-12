@@ -15,6 +15,7 @@
 //   <TradeHeatmap trades={trades} onDayClick={(date) => { ... }} />
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useMemo, useState, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
 
@@ -116,7 +117,7 @@ function aggregateMonth(trades, year, month) {
 
 // ─── Heatmap Component ──────────────────────────────────────────
 
-export default function TradeHeatmap({ trades = [], onDayClick = null, initialDate = null }) {
+function TradeHeatmap({ trades = [], onDayClick = null, initialDate = null }) {
   const today = new Date();
   const [viewYear, setViewYear] = useState(initialDate ? initialDate.getFullYear() : today.getFullYear());
   const [viewMonth, setViewMonth] = useState(initialDate ? initialDate.getMonth() : today.getMonth());
@@ -406,3 +407,5 @@ function NavBtn({ onClick, children }) {
 // ─── Pure utility exports (for testing) ─────────────────────────
 
 export { dateKey, pnlToColor, aggregateMonth, daysInMonth, firstDayOfMonth };
+
+export default React.memo(TradeHeatmap);

@@ -4,6 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 
+import { memo } from 'react';
 const BADGE_CONFIG = {
   // Direct exchange WebSocket (lowest latency)
   binance:    { label: 'LIVE',    color: 'var(--tf-green)',  bg: 'rgba(45, 212, 160, 0.12)',  pulse: true },
@@ -65,7 +66,7 @@ const dotStyle = {
  * Data source badge for chart status bar.
  * @param {{ source: string, confidence?: number }} props
  */
-export default function DataSourceBadge({ source, confidence }) {
+function DataSourceBadge({ source, confidence }) {
   if (!source) return null;
 
   const config = BADGE_CONFIG[source] || BADGE_CONFIG.no_data;
@@ -102,3 +103,5 @@ export default function DataSourceBadge({ source, confidence }) {
     </span>
   );
 }
+
+export default memo(DataSourceBadge);

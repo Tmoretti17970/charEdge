@@ -100,7 +100,7 @@ function PageFallback() {
   );
 }
 
-export default function PageRouter() {
+function PageRouter() {
   const page = useUIStore((s) => s.page);
   const Page = PAGES[page] || JournalPage;
   const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
@@ -167,3 +167,4 @@ export default function PageRouter() {
   );
 }
 
+export default React.memo(PageRouter);

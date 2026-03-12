@@ -6,6 +6,7 @@
 // Teaches: pinch-zoom, pan, tap-crosshair, long-press-draw, swipe-nav.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { logger } from '@/observability/logger';
@@ -50,7 +51,7 @@ const GESTURES = [
  * @param {boolean} forceShow - Show regardless of localStorage flag
  * @param {Function} onDismiss - Optional callback after dismissal
  */
-export default function GestureGuide({ forceShow = false, onDismiss }) {
+function GestureGuide({ forceShow = false, onDismiss }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -193,3 +194,5 @@ export function resetGestureGuide() {
 }
 
 export { GestureGuide };
+
+export default React.memo(GestureGuide);

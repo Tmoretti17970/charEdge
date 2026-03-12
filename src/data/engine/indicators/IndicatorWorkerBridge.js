@@ -149,19 +149,27 @@ class _IndicatorWorkerBridge {
 
     if (!this._fallback && this._ready) {
       try {
-        const promises = tasks.map(task =>
-          computePool.submit({
-            type: 'indicator',
-            indicator: task.indicator,
-            data: bars,
-            params: task.params,
-            priority: 'high',
-          }).then(data => ({ indicator: task.indicator, data }))
-            .catch(() => ({ indicator: task.indicator, data: this._computeOnMainThread(task.indicator, task.params, bars) }))
-        );
-        const settled = await Promise.all(promises);
+        // #15: Stagger submissions — yield to event loop between tasks
+        // to prevent frame drops when many indicators recompute at once.
+        // Each task is submitted after a microtask yield (setTimeout(0))
+        // so the browser can process rendering between submissions.
         const results = {};
-        for (const { indicator, data } of settled) results[indicator] = data;
+        for (const task of tasks) {
+          try {
+            const data = await computePool.submit({
+              type: 'indicator',
+              indicator: task.indicator,
+              data: bars,
+              params: task.params,
+              priority: 'high',
+            });
+            results[task.indicator] = data;
+          } catch {
+            results[task.indicator] = this._computeOnMainThread(task.indicator, task.params, bars);
+          }
+          // Yield to event loop between indicator computations
+          await new Promise(resolve => setTimeout(resolve, 0));
+        }
         return results;
       } catch (err) {
         logger.worker.warn('[IndicatorBridge] Pool batch failed, falling back to main thread:', err?.message);

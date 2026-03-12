@@ -10,13 +10,15 @@
 // not a dead end.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { C, F, M } from '../../../constants.js';
 import { space, radii, text } from '../../../theme/tokens.js';
 import { Card, Btn } from './UIKit.jsx';
+import s from './EmptyState.module.css';
 
 // ─── Core EmptyState (enhanced) ─────────────────────────────────
 
-export default function EmptyState({
+function EmptyState({
   icon,
   title,
   message,
@@ -28,7 +30,7 @@ export default function EmptyState({
   preview,
 }) {
   return (
-    <Card className="tf-fade-scale" style={{ padding: 0, textAlign: 'center', overflow: 'hidden' }}>
+    <Card className={`tf-fade-scale ${s.s0}`}>
       {/* Aspirational preview (blurred mockup) */}
       {preview && (
         <div
@@ -40,13 +42,7 @@ export default function EmptyState({
           }}
         >
           <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              filter: 'blur(3px) brightness(0.5)',
-              opacity: 0.6,
-              pointerEvents: 'none',
-            }}
+            className={s.s1}
           >
             {preview}
           </div>
@@ -316,7 +312,7 @@ export function MilestoneBar({ tradeCount }) {
         border: `1px solid ${C.bd}`,
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+      <div className={s.s2}>
         <span style={{ fontSize: 12, color: C.t2, fontWeight: 500 }}>
           {tradeCount} / {nextMilestone.count} trades
         </span>
@@ -389,7 +385,7 @@ function FeatureRoadmap({ items, current }) {
             >
               {unlocked ? '✓' : item.icon}
             </div>
-            <div style={{ flex: 1, textAlign: 'left' }}>
+            <div className={s.s3}>
               <div
                 style={{
                   fontSize: 13,
@@ -426,7 +422,7 @@ function FeatureRoadmap({ items, current }) {
 
 function DashboardPreview() {
   return (
-    <div style={{ padding: 16, display: 'flex', gap: 8, height: '100%' }}>
+    <div className={s.s4}>
       {/* Hero stat */}
       <div
         style={{
@@ -443,7 +439,7 @@ function DashboardPreview() {
         <div style={{ fontSize: 22, fontWeight: 800, fontFamily: M, color: C.g }}>+$1,247.50</div>
       </div>
       {/* Secondary stats */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div className={s.s5}>
         <div style={{ flex: 1, background: C.sf, borderRadius: 6, padding: 8 }}>
           <div style={{ fontSize: 7, color: C.t3 }}>Win Rate</div>
           <div style={{ fontSize: 14, fontWeight: 700, fontFamily: M, color: C.t1 }}>68%</div>
@@ -497,7 +493,7 @@ function JournalPreview() {
             marginBottom: 4,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div className={s.s6}>
             <span style={{ fontWeight: 700, fontFamily: M, fontSize: 12, color: C.t1 }}>{r.sym}</span>
             <span
               style={{ fontSize: 9, color: r.side === 'long' ? C.g : C.r, fontWeight: 600, textTransform: 'uppercase' }}
@@ -554,3 +550,5 @@ function _MetricPreview({ label }) {
     </div>
   );
 }
+
+export default React.memo(EmptyState);

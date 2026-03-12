@@ -1,0 +1,46 @@
+/* Auto-extracted from EmptyState.jsx */
+
+.s0 {
+  padding: 0;
+  text-align: center;
+  overflow: hidden;
+}
+
+.s1 {
+  position: absolute;
+  inset: 0;
+  filter: blur(3px) brightness(0.5);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.s2 {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.s3 {
+  flex: 1;
+  text-align: left;
+}
+
+.s4 {
+  padding: 16px;
+  display: flex;
+  gap: 8px;
+  height: 100%;
+}
+
+.s5 {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.s6 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

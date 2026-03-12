@@ -60,7 +60,7 @@ const SHORTCUT_GROUPS = [
  * Full-screen keyboard shortcuts overlay.
  * Renders when isOpen=true, dismisses on Esc or clicking backdrop.
  */
-export default function KeyboardShortcuts({ isOpen, onClose }) {
+function KeyboardShortcuts({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
@@ -277,3 +277,5 @@ function Kbd({ children }) {
 }
 
 export { KeyboardShortcuts };
+
+export default React.memo(KeyboardShortcuts);

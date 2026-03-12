@@ -7,7 +7,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useChartStore } from '../state/useChartStore';
+import { useChartCoreStore } from '../state/chart/useChartCoreStore';
+import { useChartToolsStore } from '../state/chart/useChartToolsStore';
 import { featureExtractor } from '../charting_library/ai/FeatureExtractor.js';
 import type { FeatureSet } from '../charting_library/ai/FeatureExtractor.js';
 
@@ -96,7 +97,7 @@ export function useCopilotPipeline(): CopilotInsight & {
 
     // Subscribe to bar data changes (debounced)
     useEffect(() => {
-        const unsub = useChartStore.subscribe((state: unknown) => {
+        const unsub = useChartCoreStore.subscribe((state: unknown) => {
             const bars = state.data;
             if (!bars || bars.length < MIN_BARS_FOR_ANALYSIS) return;
 
@@ -145,7 +146,7 @@ export function useCopilotPipeline(): CopilotInsight & {
         setInsight((prev) => ({ ...prev, loading: true }));
         try {
             const { llmService } = await import('../ai/LLMService.js');
-            const state = useChartStore.getState() as unknown;
+            const state = useChartCoreStore.getState() as unknown;
             const bars = state.data || [];
 
             if (!llmService.isAvailable || bars.length < MIN_BARS_FOR_ANALYSIS) {
@@ -192,14 +193,14 @@ export function useCopilotPipeline(): CopilotInsight & {
         const features = insight.features;
         if (!features) return '';
         const { localInsightEngine } = await import('../charting_library/ai/LocalInsightEngine.js');
-        const state = useChartStore.getState() as unknown;
+        const state = useChartCoreStore.getState() as unknown;
         const { text } = localInsightEngine.generateMarketPulse(features, state.symbol, state.tf);
         return text;
     }, [insight.features]);
 
     // Key S&R levels
     const requestKeyLevels = useCallback(async () => {
-        const state = useChartStore.getState() as unknown;
+        const state = useChartCoreStore.getState() as unknown;
         const bars = state.data || [];
         if (bars.length < 10) return [];
         const { localInsightEngine } = await import('../charting_library/ai/LocalInsightEngine.js');

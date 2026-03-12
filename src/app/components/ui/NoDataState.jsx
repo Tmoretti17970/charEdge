@@ -5,6 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 
+import { memo } from 'react';
 const containerStyle = {
   display: 'flex',
   flexDirection: 'column',
@@ -57,7 +58,7 @@ const ctaStyle = {
  * Empty state for charts with no data.
  * @param {{ symbol: string, onSettingsClick?: () => void }} props
  */
-export default function NoDataState({ symbol, onSettingsClick }) {
+function NoDataState({ symbol, onSettingsClick }) {
   return (
     <div style={containerStyle} className="tf-fade-in-up">
       <div style={iconStyle}>📊</div>
@@ -85,3 +86,5 @@ export default function NoDataState({ symbol, onSettingsClick }) {
     </div>
   );
 }
+
+export default memo(NoDataState);

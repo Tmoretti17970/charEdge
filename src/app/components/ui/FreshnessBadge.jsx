@@ -6,6 +6,7 @@
 // from the live API. Disappears when data is current.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import styles from './FreshnessBadge.module.css';
 
 function FreshnessBadge({ isFreshening = false, source = 'live' }) {
@@ -32,4 +33,4 @@ function FreshnessBadge({ isFreshening = false, source = 'live' }) {
     return null;
 }
 
-export default FreshnessBadge;
+export default React.memo(FreshnessBadge);

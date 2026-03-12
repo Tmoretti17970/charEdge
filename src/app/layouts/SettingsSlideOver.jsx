@@ -20,7 +20,7 @@ const SettingsPage = React.lazy(() => import('../../pages/SettingsPage.jsx'));
 
 const PANEL_WIDTH = 480;
 
-export default function SettingsSlideOver() {
+function SettingsSlideOver() {
   const isOpen = useUIStore((s) => s.settingsOpen);
   const close = useUIStore((s) => s.closeSettings);
   const theme = useUserStore((s) => s.theme);
@@ -326,3 +326,5 @@ export default function SettingsSlideOver() {
     </>
   );
 }
+
+export default React.memo(SettingsSlideOver);

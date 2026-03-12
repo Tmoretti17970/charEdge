@@ -7,8 +7,9 @@
 import { useMemo } from 'react';
 import { C, M } from '../../../../constants.js';
 import { calcRiskReward, calcPositionSize } from '../../../../state/chart/tradeSlice';
-import { useChartStore } from '../../../../state/useChartStore';
 import Icon from '../../design/Icon.jsx';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
+import { useChartTradeStore } from '../../../../state/chart/useChartTradeStore';
 
 const STEPS = [
   { id: 'entry', label: '1. Entry', icon: 'pin' },
@@ -18,15 +19,15 @@ const STEPS = [
 ];
 
 export default function TradeEntryBar() {
-  const tradeMode = useChartStore((s) => s.tradeMode);
-  const tradeStep = useChartStore((s) => s.tradeStep);
-  const tradeSide = useChartStore((s) => s.tradeSide);
-  const pendingEntry = useChartStore((s) => s.pendingEntry);
-  const pendingSL = useChartStore((s) => s.pendingStopLoss);
-  const pendingTP = useChartStore((s) => s.pendingTakeProfit);
-  const setTradeSide = useChartStore((s) => s.setTradeSide);
-  const exitTradeMode = useChartStore((s) => s.exitTradeMode);
-  const riskAmount = useChartStore((s) => s.riskAmount);
+  const tradeMode = useChartFeaturesStore((s) => s.tradeMode);
+  const tradeStep = useChartFeaturesStore((s) => s.tradeStep);
+  const tradeSide = useChartFeaturesStore((s) => s.tradeSide);
+  const pendingEntry = useChartTradeStore((s) => s.pendingEntry);
+  const pendingSL = useChartTradeStore((s) => s.pendingStopLoss);
+  const pendingTP = useChartTradeStore((s) => s.pendingTakeProfit);
+  const setTradeSide = useChartTradeStore((s) => s.setTradeSide);
+  const exitTradeMode = useChartFeaturesStore((s) => s.exitTradeMode);
+  const riskAmount = useChartTradeStore((s) => s.riskAmount);
 
   const rr = useMemo(
     () => calcRiskReward(pendingEntry?.price, pendingSL?.price, pendingTP?.price, tradeSide),
@@ -165,7 +166,7 @@ export default function TradeEntryBar() {
       {tradeStep === 'tp' && (
         <button
           className="tf-btn"
-          onClick={() => useChartStore.getState().setTP(pendingEntry?.price, 0)}
+          onClick={() => useChartTradeStore.getState().setTP(pendingEntry?.price, 0)}
           style={{
             padding: '2px 8px',
             fontSize: 9,

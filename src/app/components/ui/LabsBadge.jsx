@@ -35,7 +35,7 @@ const BADGE_STYLE = {
  * Labs/Beta badge — marks experimental features with mock data.
  * @param {{ label?: string, style?: React.CSSProperties }} props
  */
-export default function LabsBadge({ label = 'Labs', style }) {
+function LabsBadge({ label = 'Labs', style }) {
     return (
         <span style={{ ...BADGE_STYLE, ...style }} title="This feature uses simulated data">
             🧪 {label}
@@ -44,3 +44,5 @@ export default function LabsBadge({ label = 'Labs', style }) {
 }
 
 export { LabsBadge };
+
+export default React.memo(LabsBadge);

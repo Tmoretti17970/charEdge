@@ -38,16 +38,25 @@ export const inputStyle = Object.defineProperties(
 );
 
 // ─── Card ───────────────────────────────────────────────────────
+// #30: Added `elevation` prop (1–4) mapping to --tf-shadow-* tokens
+const ELEVATION_MAP = {
+  1: 'var(--tf-shadow-1)',
+  2: 'var(--tf-shadow-2)',
+  3: 'var(--tf-shadow-3)',
+  4: 'var(--tf-shadow-4)',
+};
+
 export const Card = React.forwardRef(function Card(
-  { children, style = {}, onClick, className = '', hoverable = true, ...rest },
+  { children, style = {}, onClick, className = '', hoverable = true, elevation, ...rest },
   ref,
 ) {
+  const elevationStyle = elevation ? { boxShadow: ELEVATION_MAP[elevation] || ELEVATION_MAP[2] } : {};
   return (
     <div
       ref={ref}
       onClick={onClick}
       className={`${hoverable ? 'tf-card-hover' : ''} ${className}`}
-      style={{ ...preset.card, ...style }}
+      style={{ ...preset.card, ...elevationStyle, ...style }}
       {...rest}
     >
       {children}
@@ -56,21 +65,29 @@ export const Card = React.forwardRef(function Card(
 });
 
 // ─── Button ─────────────────────────────────────────────────────
-export function Btn({ children, onClick, disabled, style = {}, variant = 'primary' }) {
+// #30: Added `size` prop — sm (28px), md (34px, default), lg (40px)
+const BTN_SIZES = {
+  sm: { padding: `4px ${space[3]}px`, fontSize: 11 },
+  md: { padding: `${space[2] + 2}px ${space[5]}px`, fontSize: textTokens.bodySm.fontSize },
+  lg: { padding: `${space[3]}px ${space[6]}px`, fontSize: 14 },
+};
+
+export function Btn({ children, onClick, disabled, style = {}, variant = 'primary', size = 'md' }) {
   const bg = variant === 'primary' ? C.b : variant === 'danger' ? C.r : C.bg2;
+  const sizeStyle = BTN_SIZES[size] || BTN_SIZES.md;
   return (
     <button
-      className="tf-btn"
+      className="tf-btn tf-press tf-focus-ring"
       onClick={onClick}
       disabled={disabled}
       style={{
-        padding: `${space[2] + 2}px ${space[5]}px`,
+        padding: sizeStyle.padding,
         borderRadius: radii.lg,
         border: variant === 'ghost' ? `1px solid ${C.bd}` : 'none',
         background: disabled ? C.bg2 : bg,
         color: disabled ? C.t3 : C.t1,
         fontWeight: textTokens.bodySm.fontWeight || 700,
-        fontSize: textTokens.bodySm.fontSize,
+        fontSize: sizeStyle.fontSize,
         fontFamily: F,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
@@ -124,11 +141,13 @@ export function StatCard({
   color = C.t1,
   blurred = false,
   tier = 'primary',
+  compact = false,
   tip = null,
   style = {},
 }) {
   const isHero = tier === 'hero';
   const isSecondary = tier === 'secondary';
+  const isCompact = compact;
 
   // Animate the raw number if provided
   const animatedValue = useCountUp(rawValue !== undefined ? rawValue : null, 800);
@@ -143,7 +162,7 @@ export function StatCard({
     <Card
       className={glowClass}
       style={{
-        padding: isHero ? '20px 22px' : isSecondary ? '10px 14px' : '14px 16px',
+        padding: isCompact ? '8px 10px' : isHero ? '20px 22px' : isSecondary ? '10px 14px' : '14px 16px',
         background: isHero ? `linear-gradient(135deg, ${C.sf}, ${C.b}08)` : C.sf,
         border: `1px solid ${isHero ? C.b + '25' : C.bd}`,
         position: 'relative',
@@ -205,13 +224,23 @@ export function ToolbarBtn({ active, onClick, icon, title, style = {} }) {
 }
 
 // ─── Badge ──────────────────────────────────────────────────────
-export function Badge({ text, color = C.b, style = {} }) {
+// #30: Added `variant` prop — success/warning/danger/info for semantic coloring
+const BADGE_VARIANTS = {
+  default: null,
+  success: C.g,
+  warning: C.y,
+  danger: C.r,
+  info: C.info || '#5c9cf5',
+};
+
+export function Badge({ text, color, variant = 'default', style = {} }) {
+  const resolvedColor = color || BADGE_VARIANTS[variant] || C.b;
   return (
     <span
       style={{
         ...preset.badge,
-        background: color + '20',
-        color,
+        background: resolvedColor + '20',
+        color: resolvedColor,
         ...style,
       }}
     >

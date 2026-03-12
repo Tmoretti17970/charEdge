@@ -10,14 +10,16 @@
 //   • Draggable (position persisted to localStorage)
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { GripVertical, X, Sparkles, TrendingUp, Layers, Activity, Triangle } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { C, F, GLASS } from '../../../constants.js';
 import useCopilotPipeline from '../../../hooks/useCopilotPipeline.js';
-import { useChartStore } from '../../../state/useChartStore';
 import { radii, transition, zIndex } from '../../../theme/tokens.js';
 import { ToggleSwitch } from '../ui/AppleHIG.jsx';
 import { alpha } from '@/shared/colorUtils';
+import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
+import { useChartFeaturesStore } from '../../../state/chart/useChartFeaturesStore';
 
 // ─── Feature Definitions (Icon-Only) ────────────────────────────
 const AI_FEATURES = [
@@ -45,12 +47,12 @@ function conditionColor(label) {
 /**
  * AIAnalysisPanel — Ultra-compact draggable floating intelligence palette.
  */
-export default function AIAnalysisPanel({ isOpen, onClose }) {
-    const intelligence = useChartStore((s) => s.intelligence);
-    const toggleIntelligence = useChartStore((s) => s.toggleIntelligence);
-    const toggleIntelligenceMaster = useChartStore((s) => s.toggleIntelligenceMaster);
-    const symbol = useChartStore((s) => s.symbol);
-    const tf = useChartStore((s) => s.tf);
+function AIAnalysisPanel({ isOpen, onClose }) {
+    const intelligence = useChartFeaturesStore((s) => s.intelligence);
+    const toggleIntelligence = useChartFeaturesStore((s) => s.toggleIntelligence);
+    const toggleIntelligenceMaster = useChartFeaturesStore((s) => s.toggleIntelligenceMaster);
+    const symbol = useChartCoreStore((s) => s.symbol);
+    const tf = useChartCoreStore((s) => s.tf);
 
     const {
         conditionLabel,
@@ -111,7 +113,7 @@ export default function AIAnalysisPanel({ isOpen, onClose }) {
         setCopilotProcessing(true);
         setTimeout(() => {
             try {
-                const result = useChartStore.getState().handleAICopilotCommand?.(cmd.trim());
+                const result = useChartCoreStore.getState().handleAICopilotCommand?.(cmd.trim());
                 setCopilotFeedback(result?.success
                     ? { type: 'success', text: result.message }
                     : { type: 'info', text: `"${cmd.trim()}" sent` });
@@ -436,3 +438,5 @@ export default function AIAnalysisPanel({ isOpen, onClose }) {
         </div>
     );
 }
+
+export default React.memo(AIAnalysisPanel);

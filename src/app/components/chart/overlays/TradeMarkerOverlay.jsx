@@ -6,11 +6,12 @@
 // entry/exit) and provides a link back to the journal.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { C, F, M } from '../../../../constants.js';
 
 const SIDE_COLORS = { long: '#26A69A', short: '#EF5350' };
 
-export default function TradeMarkerOverlay({ trade, onDismiss, onViewJournal }) {
+function TradeMarkerOverlay({ trade, onDismiss, onViewJournal }) {
   if (!trade) return null;
 
   const isWin = (trade.pnl || 0) > 0;
@@ -151,3 +152,5 @@ export default function TradeMarkerOverlay({ trade, onDismiss, onViewJournal }) 
     </div>
   );
 }
+
+export default React.memo(TradeMarkerOverlay);

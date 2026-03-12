@@ -4,6 +4,7 @@
 // Uses csv.js importCSV() for parsing
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useRef, useCallback } from 'react';
 import { importCSV } from '../../../charting_library/datafeed/csv.js';
 import { safeSum } from '../../../charting_library/model/Money.js';
@@ -14,8 +15,9 @@ import { fmtD } from '../../../utils.js';
 import { brokerBadge } from '../../features/trading/BrokerProfiles.js';
 import toast from '../ui/Toast.jsx';
 import { ModalOverlay, Btn } from '../ui/UIKit.jsx';
+import s from './CSVImportModal.module.css';
 
-export default function CSVImportModal({ isOpen, onClose }) {
+function CSVImportModal({ isOpen, onClose }) {
   const addTrades = useJournalStore((s) => s.addTrades);
   const existingTrades = useJournalStore((s) => s.trades);
 
@@ -93,7 +95,7 @@ export default function CSVImportModal({ isOpen, onClose }) {
   return (
     <ModalOverlay isOpen={isOpen} onClose={handleClose} width={640}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div className={s.s0}>
         <h2 style={{ fontSize: 16, fontWeight: 800, fontFamily: F, color: C.t1, margin: 0 }}>Import CSV</h2>
         <button
           className="tf-btn"
@@ -131,7 +133,7 @@ export default function CSVImportModal({ isOpen, onClose }) {
             style={{ display: 'none' }}
             onChange={(e) => processFile(e.target.files[0])}
           />
-          <div style={{ fontSize: 36, marginBottom: 12 }}>📁</div>
+          <div className={s.s1}>📁</div>
           <div style={{ fontSize: 13, fontWeight: 600, color: C.t1, marginBottom: 4 }}>
             Drop CSV file here or click to browse
           </div>
@@ -158,7 +160,7 @@ export default function CSVImportModal({ isOpen, onClose }) {
             }}
           >
             <span style={{ color: C.t2, fontFamily: M }}>{fileName}</span>
-            <div style={{ display: 'flex', gap: 12 }}>
+            <div className={s.s2}>
               <span style={{ color: C.g }}>{result.valid} valid</span>
               {result.warnings > 0 && <span style={{ color: C.y }}>{result.warnings} warnings</span>}
               {result.errors > 0 && <span style={{ color: C.r }}>{result.errors} errors</span>}
@@ -276,7 +278,7 @@ export default function CSVImportModal({ isOpen, onClose }) {
 
           {/* Row-level issues (from csv.js) */}
           {result.issues.length > 0 && (
-            <div style={{ maxHeight: 100, overflowY: 'auto', marginBottom: 12 }}>
+            <div className={s.s3}>
               {result.issues.slice(0, 10).map((issue, i) => (
                 <div key={i} style={{ fontSize: 10, color: C.y, fontFamily: M, padding: '2px 0' }}>
                   ⚠ {issue}
@@ -308,7 +310,7 @@ export default function CSVImportModal({ isOpen, onClose }) {
                   transition: 'border-radius 0.15s',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className={s.s4}>
                   <span style={{ fontSize: 14 }}>
                     {recon.summary.errors > 0 ? '🔴' : recon.summary.warnings > 0 ? '🟡' : '🔵'}
                   </span>
@@ -319,7 +321,7 @@ export default function CSVImportModal({ isOpen, onClose }) {
                     {recon.summary.completeness}% complete
                   </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className={s.s5}>
                   {recon.summary.errors > 0 && (
                     <span style={{ fontSize: 10, color: C.r, fontWeight: 700, fontFamily: M }}>
                       {recon.summary.errors} error{recon.summary.errors !== 1 ? 's' : ''}
@@ -369,7 +371,7 @@ export default function CSVImportModal({ isOpen, onClose }) {
                         alignItems: 'flex-start',
                       }}
                     >
-                      <span style={{ fontSize: 10, flexShrink: 0, marginTop: 1 }}>
+                      <span className={s.s6}>
                         {issue.severity === 'error' ? '🔴' : issue.severity === 'warning' ? '🟡' : '🔵'}
                       </span>
                       <div>
@@ -407,7 +409,7 @@ export default function CSVImportModal({ isOpen, onClose }) {
           )}
 
           {/* Actions */}
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <div className={s.s7}>
             <Btn
               variant="ghost"
               onClick={() => {
@@ -428,8 +430,8 @@ export default function CSVImportModal({ isOpen, onClose }) {
 
       {/* ─── Stage: Done ─────────────────────────────── */}
       {stage === 'done' && (
-        <div style={{ textAlign: 'center', padding: '32px 0' }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
+        <div className={s.s8}>
+          <div className={s.s9}>✅</div>
           <div style={{ fontSize: 14, fontWeight: 700, color: C.t1, marginBottom: 4 }}>
             Imported {importCount} trade{importCount !== 1 ? 's' : ''}
           </div>
@@ -447,3 +449,5 @@ export default function CSVImportModal({ isOpen, onClose }) {
 }
 
 export { CSVImportModal };
+
+export default React.memo(CSVImportModal);

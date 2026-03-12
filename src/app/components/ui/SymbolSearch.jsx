@@ -4,6 +4,7 @@
 // keyboard navigation, and real-time Binance symbol lookup.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 const RECENT_KEY = 'tf_recent_symbols';
@@ -41,7 +42,7 @@ function addRecentSymbol(symbol) {
  * @param {(symbol: string) => void} props.onSelect - Symbol selection callback
  * @param {string}   [props.theme='dark'] - 'dark' | 'light'
  */
-export default function SymbolSearch({ currentSymbol, onSearch, onSelect, theme = 'dark' }) {
+function SymbolSearch({ currentSymbol, onSearch, onSelect, theme = 'dark' }) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -285,3 +286,5 @@ export default function SymbolSearch({ currentSymbol, onSearch, onSelect, theme 
     </div>
   );
 }
+
+export default React.memo(SymbolSearch);

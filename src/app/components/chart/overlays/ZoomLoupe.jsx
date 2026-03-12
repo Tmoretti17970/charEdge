@@ -21,7 +21,7 @@ const PR = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
 /**
  * @param {{ canvasRef: React.RefObject, touchX: number, touchY: number, active: boolean, price?: string }} props
  */
-export default function ZoomLoupe({ canvasRef, touchX, touchY, active, price }) {
+function ZoomLoupe({ canvasRef, touchX, touchY, active, price }) {
     const loupeCanvasRef = useRef(null);
     const rafRef = useRef(null);
 
@@ -100,3 +100,5 @@ export default function ZoomLoupe({ canvasRef, touchX, touchY, active, price }) 
         </div>
     );
 }
+
+export default React.memo(ZoomLoupe);

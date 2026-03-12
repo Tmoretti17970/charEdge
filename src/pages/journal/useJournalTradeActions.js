@@ -7,11 +7,11 @@ import { useState, useCallback } from 'react';
 import toast from '../../app/components/ui/Toast.jsx';
 import { launchTradeReplay } from '../../app/features/journal/journal_ui/TradeReplay.js';
 import { exportCSV } from '../../charting_library/datafeed/csv.js';
-import { useChartStore } from '../../state/useChartStore';
 import { useJournalStore } from '../../state/useJournalStore';
 import { useUIStore } from '../../state/useUIStore';
 import { undoStack, executeUndo } from '@/shared/UndoStack';
 import { navigateToTrade } from '@/trading/navigateToTrade';
+import { useChartCoreStore } from '../../state/chart/useChartCoreStore';
 
 export function useJournalTradeActions(trades) {
   const deleteTrade = useJournalStore((s) => s.deleteTrade);
@@ -19,8 +19,8 @@ export function useJournalTradeActions(trades) {
   const addTrades = useJournalStore((s) => s.addTrades);
   const updateTrade = useJournalStore((s) => s.updateTrade);
   const setPage = useUIStore((s) => s.setPage);
-  const setChartSymbol = useChartStore((s) => s.setSymbol);
-  const setChartTf = useChartStore((s) => s.setTf);
+  const setChartSymbol = useChartCoreStore((s) => s.setSymbol);
+  const setChartTf = useChartCoreStore((s) => s.setTf);
 
   // ─── Modal state ─────────────────────────────────────────────
   const [tradeFormOpen, setTradeFormOpen] = useState(false);

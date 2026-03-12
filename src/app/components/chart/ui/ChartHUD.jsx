@@ -3,17 +3,20 @@
 // Managed overlay for indicator legends, trade P&L, status info.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useEffect, useRef } from 'react';
 import { C } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore';
 import h from './ChartHUD.module.css';
 import { updateFaviconBadge, resetFavicon } from '@/app/misc/faviconBadge';
+import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 
-export default function ChartHUD({ _symbol, _timeframe, lastPrice, data }) {
-  const indicators = useChartStore((s) => s.indicators);
-  const drawings = useChartStore((s) => s.drawings);
-  const replayMode = useChartStore((s) => s.replayMode);
-  const isLive = useChartStore((s) => s.source !== 'simulated');
+function ChartHUD({ _symbol, _timeframe, lastPrice, data }) {
+  const indicators = useChartToolsStore((s) => s.indicators);
+  const drawings = useChartToolsStore((s) => s.drawings);
+  const replayMode = useChartFeaturesStore((s) => s.replayMode);
+  const isLive = useChartCoreStore((s) => s.source !== 'simulated');
 
   // Item 37: HUD is always visible — no auto-fade
   const hudRef = useRef(null);
@@ -133,3 +136,5 @@ export default function ChartHUD({ _symbol, _timeframe, lastPrice, data }) {
     </div>
   );
 }
+
+export default React.memo(ChartHUD);

@@ -13,7 +13,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useChartStore } from '../../state/useChartStore';
+import { useChartCoreStore } from '../../state/chart/useChartCoreStore';
 import { wsService, WS_STATUS, WebSocketService } from '../WebSocketService';
 
 /**
@@ -29,7 +29,7 @@ export default function useWebSocket(symbol, tf) {
   const liveBarRef = useRef(null); // current open bar's start time (ISO)
 
   const onCandle = useCallback((candle) => {
-    const store = useChartStore.getState();
+    const store = useChartCoreStore.getState();
     const currentData = store.data;
     if (!currentData?.length) return;
 

@@ -286,3 +286,48 @@ describe('navigateToTrade()', () => {
     expect(setTf).not.toHaveBeenCalled();
   });
 });
+
+// ═══ #47 Gap-Fill: Edge Cases ═══════════════════════════════════
+
+describe('Rule Engine — edge cases (#47)', () => {
+  beforeEach(resetStore);
+
+  it('evaluate returns empty for empty ruleset', () => {
+    useRuleEngine.setState({ rules: [] });
+    const triggered = useRuleEngine.getState().evaluate({
+      consecLosses: 10, dailyPnl: -9999, tradeCount: 999,
+    });
+    expect(triggered).toEqual([]);
+  });
+
+  it('conflicting rules both fire independently', () => {
+    useRuleEngine.setState({
+      rules: [
+        { id: 'r1', name: 'High PnL', field: 'dailyPnl', operator: '>', value: 100, action: 'warning', enabled: true },
+        { id: 'r2', name: 'Any PnL', field: 'dailyPnl', operator: '>=', value: 0, action: 'info', enabled: true },
+      ],
+    });
+    const triggered = useRuleEngine.getState().evaluate({ dailyPnl: 200 });
+    expect(triggered.length).toBe(2);
+    expect(triggered.map(t => t.rule.id)).toContain('r1');
+    expect(triggered.map(t => t.rule.id)).toContain('r2');
+  });
+
+  it('handles NaN in context gracefully', () => {
+    const rule = { field: 'pnl', operator: '>', value: 0 };
+    expect(evaluateCondition(rule, { pnl: NaN })).toBe(false);
+  });
+
+  it('boundary: operator >= with exact match', () => {
+    const rule = { field: 'count', operator: '>=', value: 10 };
+    expect(evaluateCondition(rule, { count: 10 })).toBe(true);
+    expect(evaluateCondition(rule, { count: 9 })).toBe(false);
+  });
+
+  it('boundary: operator < with exact match', () => {
+    const rule = { field: 'pnl', operator: '<', value: -500 };
+    expect(evaluateCondition(rule, { pnl: -500 })).toBe(false);
+    expect(evaluateCondition(rule, { pnl: -501 })).toBe(true);
+  });
+});
+

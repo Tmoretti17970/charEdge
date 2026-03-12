@@ -14,6 +14,7 @@
 //   <LiquidationHeatmap symbol="BTCUSDT" currentPrice={65000} />
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { F, M } from '../../../constants.js';
 import { binanceFuturesAdapter } from '../../../data/adapters/BinanceFuturesAdapter.js';
@@ -181,7 +182,7 @@ function LiquidationFlash({ events }) {
 
 // ─── Main Component ────────────────────────────────────────────
 
-export default function LiquidationHeatmap({ symbol = 'BTCUSDT', currentPrice }) {
+function LiquidationHeatmap({ symbol = 'BTCUSDT', currentPrice }) {
   const [oiData, setOiData] = useState(null);
   const [liquidationEvents, setLiquidationEvents] = useState([]);
   const [price, setPrice] = useState(currentPrice);
@@ -333,3 +334,5 @@ export default function LiquidationHeatmap({ symbol = 'BTCUSDT', currentPrice })
     </div>
   );
 }
+
+export default React.memo(LiquidationHeatmap);

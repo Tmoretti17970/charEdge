@@ -4,6 +4,7 @@
 // Sprint 7: Unusual options activity feed.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
@@ -25,7 +26,7 @@ const MOCK_FLOWS = [
 
 const FILTERS = ['all', 'calls', 'puts', 'sweeps'];
 
-export default function OptionsFlowScanner() {
+function OptionsFlowScanner() {
   const [collapsed, setCollapsed] = useState(false);
   const [filter, setFilter] = useState('all');
 
@@ -124,3 +125,5 @@ export default function OptionsFlowScanner() {
 }
 
 export { OptionsFlowScanner };
+
+export default React.memo(OptionsFlowScanner);

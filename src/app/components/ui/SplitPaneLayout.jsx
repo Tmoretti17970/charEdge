@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { C, M } from '../../../constants.js';
 
@@ -11,7 +12,7 @@ import { C, M } from '../../../constants.js';
  *   bottomCollapsedLabel — label to show on the grab bar when bottom is collapsed
  *   bottomCollapsedMeta  — secondary text (e.g. "41 trades") on the grab bar
  */
-export default function SplitPaneLayout({
+function SplitPaneLayout({
   topPane,
   bottomPane,
   defaultTopHeight = 400,
@@ -231,5 +232,4 @@ export default function SplitPaneLayout({
   );
 }
 
-
-
+export default React.memo(SplitPaneLayout);

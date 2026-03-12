@@ -6,11 +6,12 @@
 // Glassmorphism styling with subtle hover glow.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState } from 'react';
 import { C, M } from '../../../constants.js';
-import { useChartStore } from '../../../state/useChartStore';
 import { useUIStore } from '../../../state/useUIStore';
 import { alpha } from '@/shared/colorUtils';
+import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
 
 // ─── Simulated prices (in production, use live feed) ─────────────
 const SYMBOL_PRICES = {
@@ -26,11 +27,11 @@ const SYMBOL_PRICES = {
   TSLA: { price: 196.42, change: -0.87 },
 };
 
-export default function SymbolChip({ symbol, showPrice = true, size = 'default' }) {
+function SymbolChip({ symbol, showPrice = true, size = 'default' }) {
   const [hovered, setHovered] = useState(false);
   const setPage = useUIStore((s) => s.setPage);
   const addRecentSymbol = useUIStore((s) => s.addRecentSymbol);
-  const setSymbol = useChartStore((s) => s.setSymbol);
+  const setSymbol = useChartCoreStore((s) => s.setSymbol);
 
   const upper = (symbol || '').toUpperCase();
   const data = SYMBOL_PRICES[upper];
@@ -108,3 +109,5 @@ export default function SymbolChip({ symbol, showPrice = true, size = 'default' 
 }
 
 export { SymbolChip };
+
+export default React.memo(SymbolChip);

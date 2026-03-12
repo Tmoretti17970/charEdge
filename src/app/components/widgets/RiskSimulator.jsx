@@ -1,9 +1,10 @@
+import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, M } from '../../../constants.js';
 import { SectionLabel } from '../../features/analytics/analytics_ui/AnalyticsPrimitives.jsx';
 import { Card } from '../ui/UIKit.jsx';
 
-export default function RiskSimulator({ trades, defaultAccountSize = 10000 }) {
+function RiskSimulator({ trades, defaultAccountSize = 10000 }) {
   const [multiplier, setMultiplier] = useState(1.0);
   const [runs] = useState(2000); // UI fixed for speed
   const seqLen = 100;
@@ -101,3 +102,5 @@ export default function RiskSimulator({ trades, defaultAccountSize = 10000 }) {
     </Card>
   );
 }
+
+export default React.memo(RiskSimulator);

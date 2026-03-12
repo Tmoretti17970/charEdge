@@ -7,6 +7,7 @@
 // Renders inline on DashboardPage when a prop firm profile is active.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useMemo, useState } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useJournalStore } from '../../../state/useJournalStore';
@@ -14,6 +15,7 @@ import { usePropFirmStore, computeEvaluation, PRESETS } from '../../../state/use
 import { fmtD } from '../../../utils.js';
 import { mcPropFirmPredict } from '../../features/analytics/analyticsFast.js';
 import { Card } from '../ui/UIKit.jsx';
+import s from './PropFirmWidget.module.css';
 
 // ─── Progress Bar Component ───────────────────────────────────────
 
@@ -33,7 +35,7 @@ function ProgressBar({ label, current, limit, progress, color, inverse }) {
 
   return (
     <div style={{ marginBottom: 10 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+      <div className={s.s0}>
         <span style={{ fontSize: 10, fontWeight: 700, color: C.t3, fontFamily: M, textTransform: 'uppercase' }}>
           {label}
         </span>
@@ -85,7 +87,7 @@ function DayCounter({ profile, evaluation }) {
   return (
     <div>
       {/* Day Counter */}
-      <div style={{ display: 'flex', gap: 16, marginBottom: 10, alignItems: 'center' }}>
+      <div className={s.s1}>
         {maxDays > 0 && (
           <div>
             <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, fontFamily: M }}>CALENDAR</div>
@@ -119,11 +121,7 @@ function DayCounter({ profile, evaluation }) {
       {/* Mini Calendar Grid */}
       {calendarDays30.length > 0 && (
         <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(7, 1fr)',
-            gap: 2,
-          }}
+          className={s.s2}
         >
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
             <div
@@ -224,7 +222,7 @@ function PropFirmSetup({ onSelect }) {
 
   return (
     <Card style={{ padding: 14 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+      <div className={s.s3}>
         <div style={{ fontSize: 13, fontWeight: 800, color: C.t1 }}>Select Prop Firm</div>
         <button
           className="tf-btn"
@@ -239,7 +237,7 @@ function PropFirmSetup({ onSelect }) {
           <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, fontFamily: M, marginBottom: 4 }}>
             {firmLabels[firm] || firm}
           </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <div className={s.s4}>
             {presets.map((p) => (
               <button
                 className="tf-btn"
@@ -276,7 +274,7 @@ function PropFirmSetup({ onSelect }) {
 
 // ─── Main Widget ──────────────────────────────────────────────────
 
-export default function PropFirmWidget() {
+function PropFirmWidget() {
   const trades = useJournalStore((s) => s.trades);
   const activeProfile = usePropFirmStore((s) => s.activeProfile);
   const createFromPreset = usePropFirmStore((s) => s.createFromPreset);
@@ -311,7 +309,7 @@ export default function PropFirmWidget() {
   return (
     <Card style={{ padding: 16, marginBottom: 16, borderLeft: `3px solid ${borderColor}` }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+      <div className={s.s5}>
         <div>
           <div style={{ fontSize: 14, fontWeight: 800, color: C.t1 }}>🏢 {activeProfile.name}</div>
           <div style={{ fontSize: 10, color: C.t3, fontFamily: M }}>
@@ -372,7 +370,7 @@ export default function PropFirmWidget() {
       )}
 
       {/* P1.2: Progress Bars */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 12 }}>
+      <div className={s.s6}>
         <div>
           {/* Profit Target */}
           <ProgressBar
@@ -443,7 +441,7 @@ export default function PropFirmWidget() {
           <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, fontFamily: M, marginBottom: 6 }}>
             MONTE CARLO PREDICTION ({prediction.runs.toLocaleString()} sims · {prediction.confidence} confidence)
           </div>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <div className={s.s7}>
             {/* Pass probability */}
             <div style={{ textAlign: 'center' }}>
               <div
@@ -496,3 +494,5 @@ export default function PropFirmWidget() {
 }
 
 export { PropFirmSetup, ProgressBar, DayCounter };
+
+export default React.memo(PropFirmWidget);

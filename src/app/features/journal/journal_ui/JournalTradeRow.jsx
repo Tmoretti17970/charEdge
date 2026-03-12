@@ -9,6 +9,7 @@ import { fmtD } from '../../../../utils.js';
 import { Btn } from '../../../components/ui/UIKit.jsx';
 import { gradeTrade } from '../../analytics/analyticsFast.js';
 import { ContextBadge } from './JournalEvolution.jsx';
+import s from './JournalTradeRow.module.css';
 
 const GRID_COLS = '28px 100px 80px 55px 1fr 80px 100px';
 const GRID_COLS_NO_CHECK = '100px 80px 55px 1fr 80px 100px';
@@ -68,13 +69,13 @@ function DesktopRow({ trade: t, isExpanded, onClick, bulkMode, isSelected, onTog
             alignSelf: 'center',
           }}
         >
-          {isSelected && <span style={{ color: '#fff', fontSize: 10, fontWeight: 800 }}>✓</span>}
+          {isSelected && <span className={s.s0}>✓</span>}
         </div>
       )}
       <div style={{ fontFamily: M, fontSize: 11, color: C.t3, fontVariantNumeric: 'tabular-nums' }}>
         {t.date ? new Date(t.date).toLocaleDateString() : '—'}
       </div>
-      <div style={{ fontWeight: 700, display: 'flex', gap: 6, alignItems: 'center' }}>
+      <div className={s.s1}>
         {t.symbol}
         {aiGrade && (
           <div style={{
@@ -153,12 +154,12 @@ function MobileRow({ trade: t, isExpanded, onClick, bulkMode, isSelected, onTogg
             marginTop: 2,
           }}
         >
-          {isSelected && <span style={{ color: '#fff', fontSize: 10, fontWeight: 800 }}>✓</span>}
+          {isSelected && <span className={s.s2}>✓</span>}
         </div>
       )}
       <div style={{ flex: 1 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div className={s.s3}>
+          <div className={s.s4}>
             <span style={{ fontWeight: 700, color: C.t1, fontSize: 13 }}>{t.symbol}</span>
             <span
               style={{
@@ -252,7 +253,7 @@ function ExpandedDetail({
       {t.context && (
         <div style={{ marginBottom: 10 }}>
           <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, marginBottom: 4, fontFamily: M, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Context</div>
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div className={s.s5}>
             <span
               style={{
                 fontSize: 9,
@@ -275,7 +276,7 @@ function ExpandedDetail({
       {t.checklist && Object.keys(t.checklist).length > 0 && (
         <div style={{ marginBottom: 10 }}>
           <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, marginBottom: 4, fontFamily: M, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Checklist</div>
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          <div className={s.s6}>
             {Object.entries(t.checklist).map(([key, val]) => (
               <span
                 key={key}
@@ -299,7 +300,7 @@ function ExpandedDetail({
       {t.tags?.length > 0 && (
         <div style={{ marginBottom: 10 }}>
           <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, marginBottom: 4, fontFamily: M, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Tags</div>
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          <div className={s.s7}>
             {t.tags.map((tag, i) => (
               <span
                 key={i}
@@ -333,7 +334,7 @@ function ExpandedDetail({
           <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, marginBottom: 4, fontFamily: M, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             Screenshots ({t.screenshots.length})
           </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div className={s.s8}>
             {t.screenshots.map((shot, i) => (
               <a
                 key={i}
@@ -356,7 +357,7 @@ function ExpandedDetail({
                 <img
                   src={shot.data}
                   alt={shot.name || `Screenshot ${i + 1}`}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  className={s.s9}
                 />
               </a>
             ))}
@@ -369,32 +370,32 @@ function ExpandedDetail({
         {deleteConfirm === t.id ? (
           <>
             <span style={{ fontSize: 11, color: C.r, alignSelf: 'center', marginRight: 4 }}>Delete this trade?</span>
-            <Btn variant="ghost" onClick={onCancelDelete} style={{ fontSize: 11, padding: '6px 12px' }}>
+            <Btn variant="ghost" onClick={onCancelDelete} className={s.s10}>
               Cancel
             </Btn>
-            <Btn variant="danger" onClick={() => onDelete(t.id)} style={{ fontSize: 11, padding: '6px 12px' }}>
+            <Btn variant="danger" onClick={() => onDelete(t.id)} className={s.s11}>
               Confirm Delete
             </Btn>
           </>
         ) : (
           <>
             {onShare && (
-              <Btn variant="ghost" onClick={() => onShare(t)} style={{ fontSize: 11, padding: '6px 12px' }}>
+              <Btn variant="ghost" onClick={() => onShare(t)} className={s.s12}>
                 📤 Share
               </Btn>
             )}
             {onReplay && (
-              <Btn variant="ghost" onClick={() => onReplay(t)} style={{ fontSize: 11, padding: '6px 12px' }}>
+              <Btn variant="ghost" onClick={() => onReplay(t)} className={s.s13}>
                 ⏪ Replay
               </Btn>
             )}
-            <Btn variant="ghost" onClick={() => onViewChart(t)} style={{ fontSize: 11, padding: '6px 12px' }}>
+            <Btn variant="ghost" onClick={() => onViewChart(t)} className={s.s14}>
               📈 Chart
             </Btn>
-            <Btn variant="ghost" onClick={() => onDeleteConfirm(t.id)} style={{ fontSize: 11, padding: '6px 12px' }}>
+            <Btn variant="ghost" onClick={() => onDeleteConfirm(t.id)} className={s.s15}>
               Delete
             </Btn>
-            <Btn onClick={() => onEdit(t)} style={{ fontSize: 11, padding: '6px 12px' }}>
+            <Btn onClick={() => onEdit(t)} className={s.s16}>
               Edit
             </Btn>
           </>

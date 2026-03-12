@@ -7,6 +7,7 @@
 
 
 // ─── Size Presets (aligned to 4px grid) ──────────────────────────
+import { memo } from 'react';
 const SIZES = {
   xs: 12,
   sm: 16,
@@ -92,7 +93,7 @@ const ICONS = {
  * @param {object} style - Additional inline styles
  * @param {string} title - Accessible title for the icon
  */
-export default function TFIcon({
+function TFIcon({
   name,
   size = 'md',
   color = 'currentColor',
@@ -155,3 +156,5 @@ export default function TFIcon({
 
 // Named exports for direct import
 export { ICONS, SIZES };
+
+export default memo(TFIcon);

@@ -10,6 +10,7 @@
 //   <AlertPanel compact /> — minimal mode for workspace panels
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useCallback, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useAlertStore } from '../../../state/useAlertStore';
@@ -32,7 +33,7 @@ function formatTime(iso) {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-export default function AlertPanel({ compact = false, currentSymbol = '' }) {
+function AlertPanel({ compact = false, currentSymbol = '' }) {
   const alerts = useAlertStore((s) => s.alerts);
   const addAlert = useAlertStore((s) => s.addAlert);
   const removeAlert = useAlertStore((s) => s.removeAlert);
@@ -393,3 +394,5 @@ function AlertRow({ alert, onToggle, onRemove, triggered = false }) {
 }
 
 export { AlertPanel };
+
+export default React.memo(AlertPanel);

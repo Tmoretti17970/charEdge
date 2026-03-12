@@ -5,7 +5,7 @@
 // Inspired by Procreate's recent colors palette.
 // ═══════════════════════════════════════════════════════════════════
 import { useState, useCallback } from 'react';
-import { useChartToolsStore } from '../../../state/useChartStore';
+import { useChartToolsStore } from '../../../state/chart/useChartToolsStore';
 
 const PALETTE_COLORS = [
   '#2962FF', '#EF5350', '#26A69A', '#FF9800', '#AB47BC',

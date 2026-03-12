@@ -9,6 +9,7 @@
 //   <ComparePanel trades={trades} />
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useGamificationStore } from '../../../state/useGamificationStore';
@@ -17,6 +18,7 @@ import {
   computeEquityCurve,
   computeCalendarData,
 } from '../../features/analytics/PerformanceCompare.js';
+import s from './ComparePanel.module.css';
 
 const PERIOD_OPTIONS = [
   { id: 'week', label: 'Weekly' },
@@ -32,7 +34,7 @@ function _fmtPct(n) {
   return (n >= 0 ? '+' : '') + n.toFixed(1) + '%';
 }
 
-export default function ComparePanel({ trades = [] }) {
+function ComparePanel({ trades = [] }) {
   const [tab, setTab] = useState('compare');
 
   return (
@@ -76,7 +78,7 @@ export default function ComparePanel({ trades = [] }) {
         ))}
       </div>
 
-      <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
+      <div className={s.s0}>
         {tab === 'compare' && <CompareTab trades={trades} />}
         {tab === 'goals' && <GoalsTab trades={trades} />}
         {tab === 'equity' && <EquityTab trades={trades} />}
@@ -128,7 +130,7 @@ function CompareTab({ trades }) {
   return (
     <div style={{ padding: 10 }}>
       {/* Period selector */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+      <div className={s.s1}>
         {PERIOD_OPTIONS.map((p) => (
           <button
             className="tf-btn"
@@ -153,12 +155,7 @@ function CompareTab({ trades }) {
 
       {/* Comparison header */}
       <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 6,
-          marginBottom: 10,
-        }}
+        className={s.s2}
       >
         <div
           style={{
@@ -319,23 +316,23 @@ function GoalsTab({ trades }) {
               marginBottom: 4,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+            <div className={s.s3}>
               <span style={{ fontSize: 12 }}>{row.emoji}</span>
               <span style={{ fontSize: 11, fontWeight: 600, color: C.t1, flex: 1 }}>{row.label}</span>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+              <label className={s.s4}>
                 <input
                   aria-label="Compare symbol"
                   type="checkbox"
                   checked={goal.enabled}
                   onChange={() => toggleGoal(row.period)}
-                  style={{ width: 14, height: 14, cursor: 'pointer' }}
+                  className={s.s5}
                 />
               </label>
             </div>
 
             {goal.enabled && (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                <div className={s.s6}>
                   <span style={{ fontSize: 10, color: C.t3 }}>Target: $</span>
                   <input
                     type="number"
@@ -417,20 +414,20 @@ function GoalsTab({ trades }) {
       </div>
 
       <div style={{ background: C.sf, borderRadius: 6, padding: '8px 10px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+        <div className={s.s7}>
           <span style={{ fontSize: 12 }}>🚫</span>
           <span style={{ fontSize: 11, fontWeight: 600, color: C.t1, flex: 1 }}>Daily Loss Limit</span>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+          <label className={s.s8}>
             <input
               type="checkbox"
               checked={dailyLossEnabled}
               onChange={toggleDailyLoss}
-              style={{ width: 14, height: 14, cursor: 'pointer' }}
+              className={s.s9}
             />
           </label>
         </div>
         {dailyLossEnabled && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div className={s.s10}>
             <span style={{ fontSize: 10, color: C.t3 }}>Max loss: $</span>
             <input
               type="number"
@@ -480,7 +477,7 @@ function EquityTab({ trades }) {
   if (curve.length === 0) {
     return (
       <div style={{ padding: 24, textAlign: 'center', color: C.t3 }}>
-        <div style={{ fontSize: 24, marginBottom: 8 }}>📈</div>
+        <div className={s.s11}>📈</div>
         <div style={{ fontSize: 12 }}>No trades to chart</div>
       </div>
     );
@@ -509,12 +506,7 @@ function EquityTab({ trades }) {
     <div style={{ padding: 10 }}>
       {/* Summary stats */}
       <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 6,
-          marginBottom: 10,
-        }}
+        className={s.s12}
       >
         {[
           { label: 'Final Equity', value: fmtD(last.equity), color: last.equity >= 0 ? C.g : C.r },
@@ -617,3 +609,5 @@ function EquityTab({ trades }) {
 }
 
 export { ComparePanel };
+
+export default React.memo(ComparePanel);

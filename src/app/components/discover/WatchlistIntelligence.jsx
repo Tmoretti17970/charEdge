@@ -5,6 +5,7 @@
 // THE highest-retention feature in the entire Discover plan.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
@@ -74,7 +75,7 @@ const SENTIMENT_META = {
 
 const DEFAULT_SYMBOLS = ['ES', 'NQ', 'BTC', 'ETH', 'AAPL', 'SPY'];
 
-export default function WatchlistIntelligence() {
+function WatchlistIntelligence() {
   const [collapsed, setCollapsed] = useState(false);
   const [expandedSym, setExpandedSym] = useState(null);
   const watchlist = useWatchlistStore((s) => s.items);
@@ -210,3 +211,5 @@ export default function WatchlistIntelligence() {
 }
 
 export { WatchlistIntelligence };
+
+export default React.memo(WatchlistIntelligence);

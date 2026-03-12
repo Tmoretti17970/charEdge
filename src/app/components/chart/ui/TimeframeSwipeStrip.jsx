@@ -5,10 +5,11 @@
 // Uses scroll-snap for crisp auto-centering. Arrow key navigation.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useRef, useCallback, useEffect } from 'react';
 import { C, M } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore';
 import { radii } from '../../../../theme/tokens.js';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 
 const TIMEFRAMES = [
     { value: '1m', display: '1m' },
@@ -21,9 +22,9 @@ const TIMEFRAMES = [
     { value: '1M', display: '1M' },
 ];
 
-export default function TimeframeSwipeStrip() {
-    const tf = useChartStore((s) => s.tf);
-    const setTf = useChartStore((s) => s.setTf);
+function TimeframeSwipeStrip() {
+    const tf = useChartCoreStore((s) => s.tf);
+    const setTf = useChartCoreStore((s) => s.setTf);
     const scrollRef = useRef(null);
 
     // Scroll active item into view on mount & tf change
@@ -109,3 +110,5 @@ export default function TimeframeSwipeStrip() {
         </div>
     );
 }
+
+export default React.memo(TimeframeSwipeStrip);

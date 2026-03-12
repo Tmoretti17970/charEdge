@@ -4,6 +4,7 @@
 // Enhanced with latency tier badges (Task 2.4.16) and RTT (Task 2.4.15).
 // ═══════════════════════════════════════════════════════════════════
 
+import { memo } from 'react';
 const TIER_CONFIG = {
   realtime: { icon: '🟢', label: 'Real-Time', desc: '<10ms' },
   fast: { icon: '🟡', label: 'Fast', desc: '<50ms' },
@@ -19,7 +20,7 @@ const TIER_CONFIG = {
  * @param {string}  [props.latencyTier] - 'realtime'|'fast'|'delayed'
  * @param {number}  [props.rttMs]    - Round-trip time in ms
  */
-export default function ConnectionStatus({ status, feedStatus, error, theme = 'dark', latencyTier, rttMs }) {
+function ConnectionStatus({ status, feedStatus, error, theme = 'dark', latencyTier, rttMs }) {
   const isDark = theme === 'dark';
 
   const statusConfig = {
@@ -116,3 +117,4 @@ export default function ConnectionStatus({ status, feedStatus, error, theme = 'd
   );
 }
 
+export default memo(ConnectionStatus);

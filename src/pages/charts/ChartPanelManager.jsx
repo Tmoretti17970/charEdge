@@ -8,8 +8,9 @@ import React, { Suspense, useEffect } from 'react';
 import SlidePanel from '../../app/components/panels/SlidePanel.jsx';
 import { C } from '../../constants.js';
 import { useAlertStore } from '../../state/useAlertStore';
-import { useChartStore } from '../../state/useChartStore';
 import { useLayoutStore } from '../../state/useLayoutStore';
+import { useChartToolsStore } from '../../state/chart/useChartToolsStore';
+import { useChartFeaturesStore } from '../../state/chart/useChartFeaturesStore';
 const IndicatorPanel = React.lazy(() => import('../../app/components/panels/IndicatorPanel.jsx'));
 
 // Lazy-loaded panels & modals
@@ -94,7 +95,7 @@ export default function ChartPanelManager({
 
 
 
-  const showDOM = useChartStore((s) => s.showDOM);
+  const showDOM = useChartFeaturesStore((s) => s.showDOM);
 
   // Item 40: Sync showIndicators toggle → SlidePanel via useLayoutStore
   useEffect(() => {
@@ -136,7 +137,7 @@ export default function ChartPanelManager({
           <DOMLadder
             currentPrice={data?.length ? data[data.length - 1].close : 0}
             symbol={symbol}
-            onClose={() => useChartStore.getState().toggleDOM()}
+            onClose={() => useChartFeaturesStore.getState().toggleDOM()}
           />
         </Suspense>
       )}
@@ -182,8 +183,8 @@ export default function ChartPanelManager({
                   isOpen={true}
                   onClose={closePanel}
                   onApplyAutoFib={(fib) => {
-                    useChartStore.getState().addDrawing(fib);
-                    useChartStore.getState().setIntelligence('showAutoFib', true);
+                    useChartToolsStore.getState().addDrawing(fib);
+                    useChartFeaturesStore.getState().setIntelligence('showAutoFib', true);
                   }}
                   onCreateAlert={(level) => {
                     const { addAlert } = useAlertStore.getState();

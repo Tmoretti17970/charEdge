@@ -8,6 +8,7 @@
 // Shows detected leak tags from LeakDetector for awareness.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useJournalStore } from '../../../state/useJournalStore';
 import styles from './ReactionBar.module.css';
@@ -188,4 +189,4 @@ export function useReactionBar() {
 }
 
 export { ReactionBar };
-export default ReactionBar;
+export default React.memo(ReactionBar);

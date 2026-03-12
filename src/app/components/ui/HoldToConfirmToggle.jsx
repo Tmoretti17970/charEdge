@@ -6,6 +6,7 @@
 // Shake + color flash on premature release.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useRef, useCallback } from 'react';
 import { C, M } from '../../../constants.js';
 import { radii } from '../../../theme/tokens.js';
@@ -22,7 +23,7 @@ import { radii } from '../../../theme/tokens.js';
  * @param {string}     [props.activeColor] - Color when active
  * @param {string}     [props.inactiveColor] - Color when inactive
  */
-export default function HoldToConfirmToggle({
+function HoldToConfirmToggle({
     onConfirm,
     holdDuration = 500,
     label = 'Enable',
@@ -133,3 +134,5 @@ export default function HoldToConfirmToggle({
         </button>
     );
 }
+
+export default React.memo(HoldToConfirmToggle);

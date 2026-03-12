@@ -14,6 +14,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { logger } from '@/observability/logger.js';
+// #14: Wire RTT into heartbeat — adaptive staleness threshold
+import { connectionQuality } from './connectionQuality';
 
 // ─── Constants ─────────────────────────────────────────────────
 
@@ -45,6 +47,9 @@ class _HeartbeatMonitor {
 
     /** @type {Function|null} reference to the reconnect function */
     this._reconnectFn = null;
+
+    /** #14: Base staleness threshold before RTT adjustment */
+    this._baseStalenessMs = DEFAULT_STALENESS_MS;
   }
 
   // ── Configuration ──────────────────────────────────────────
@@ -54,7 +59,8 @@ class _HeartbeatMonitor {
    * @param {number} ms - Staleness threshold in milliseconds
    */
   setStalenessThreshold(ms) {
-    this._stalenessMs = Math.max(ms, MIN_STALENESS_MS);
+    this._baseStalenessMs = Math.max(ms, MIN_STALENESS_MS);
+    this._stalenessMs = this._baseStalenessMs;
   }
 
   // ── Lifecycle ──────────────────────────────────────────────
@@ -180,6 +186,16 @@ class _HeartbeatMonitor {
   /** @private */
   _check() {
     if (!this._running) return;
+
+    // #14: Adapt staleness threshold based on RTT — high-latency connections
+    // get more generous windows (base + 3×avgRtt) to avoid false-positive stale flags
+    const rttStatus = connectionQuality.getStatus();
+    if (rttStatus.avgRttMs > 0) {
+      this._stalenessMs = Math.max(
+        this._baseStalenessMs + 3 * rttStatus.avgRttMs,
+        MIN_STALENESS_MS,
+      );
+    }
 
     const now = Date.now();
     let anyNewStale = false;

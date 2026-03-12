@@ -4,6 +4,7 @@
 // Phase 3 Task 3.3.3: Quick range presets (1D, 5D, 1M, 3M, 6M, 1Y, ALL).
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState } from 'react';
 import { C, F } from '../../../constants.js';
 
@@ -24,7 +25,7 @@ const RANGES = [
  * @param {string}   props.activeRange - Currently selected range ID
  * @param {Function} props.onSelect - Callback when range is selected
  */
-export default function RangeSelector({ activeRange = 'ALL', onSelect }) {
+function RangeSelector({ activeRange = 'ALL', onSelect }) {
     const [hovered, setHovered] = useState(null);
 
     return (
@@ -78,3 +79,5 @@ export default function RangeSelector({ activeRange = 'ALL', onSelect }) {
         </div>
     );
 }
+
+export default React.memo(RangeSelector);

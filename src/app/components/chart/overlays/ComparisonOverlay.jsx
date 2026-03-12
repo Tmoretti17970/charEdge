@@ -4,17 +4,18 @@
 // Similar to TradingView's "Compare" feature.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useCallback } from 'react';
 import { C, F } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore';
 import SymbolSearch from '../../ui/SymbolSearch.jsx';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 
 const COMPARE_COLORS = ['#FF6D00', '#AB47BC', '#00BCD4', '#4CAF50', '#F44336'];
 
-export default function ComparisonOverlay({ onClose }) {
-  const comparisonSymbol = useChartStore((s) => s.comparisonSymbol);
-  const setComparison = useChartStore((s) => s.setComparison);
-  const clearComparison = useChartStore((s) => s.clearComparison);
+function ComparisonOverlay({ onClose }) {
+  const comparisonSymbol = useChartFeaturesStore((s) => s.comparisonSymbol);
+  const setComparison = useChartFeaturesStore((s) => s.setComparison);
+  const clearComparison = useChartFeaturesStore((s) => s.clearComparison);
   const [searchOpen, setSearchOpen] = useState(!comparisonSymbol);
 
   const handleSelect = useCallback((sym) => {
@@ -91,3 +92,5 @@ export default function ComparisonOverlay({ onClose }) {
     </div>
   );
 }
+
+export default React.memo(ComparisonOverlay);

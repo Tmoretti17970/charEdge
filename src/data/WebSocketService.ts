@@ -21,6 +21,8 @@ import {
   isStreamingSupported
 } from './ws/constants.ts';
 import { getBinaryCodec, getStreamingBridge } from './ws/lazyImports.ts';
+// #14: Wire RTT into heartbeat — feed ping/pong to connectionQuality
+import { connectionQuality } from './connectionQuality';
 
 // Re-export WS_STATUS for backward compatibility
 export { WS_STATUS };
@@ -446,6 +448,9 @@ class _WebSocketService {
           this._lastMessageTime = Date.now();
           this._messagesReceived++;
 
+          // #14: Record data arrival as proxy-pong for RTT measurement
+          connectionQuality.recordPong();
+
           // ── 5A.1.2: Push trade ticks to ring buffer IMMEDIATELY ──
           // This is O(1), zero-alloc — safe to do outside rAF batch.
           // The ring buffer captures every tick even if callback dispatch is batched.
@@ -690,6 +695,9 @@ class _WebSocketService {
 
       // Data has arrived recently — connection is healthy
       if (staleness < HEARTBEAT_INTERVAL_MS) return;
+
+      // #14: Record heartbeat as proxy-ping for RTT measurement
+      connectionQuality.recordPing();
 
       // No data for 30s — connection may be dead.
       // Wait an additional PONG_TIMEOUT_MS grace period.

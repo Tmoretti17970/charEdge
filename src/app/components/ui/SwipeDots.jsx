@@ -5,12 +5,13 @@
 // Active dot scales up + accent color, inactive muted.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { C } from '../../../constants.js';
 
 /**
  * @param {{ count: number, active: number, onDotClick?: (i: number) => void }} props
  */
-export default function SwipeDots({ count, active, onDotClick }) {
+function SwipeDots({ count, active, onDotClick }) {
   if (count <= 1) return null;
 
   return (
@@ -51,3 +52,5 @@ export default function SwipeDots({ count, active, onDotClick }) {
 }
 
 export { SwipeDots };
+
+export default React.memo(SwipeDots);

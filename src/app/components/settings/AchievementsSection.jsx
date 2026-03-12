@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState } from 'react';
 import { C, M } from '../../../constants.js';
 import { useGamificationStore, getRankForXP, getXPToNextLevel, ACHIEVEMENTS, COSMETIC_REWARDS } from '../../../state/useGamificationStore';
@@ -5,8 +6,9 @@ import AchievementShelf from '../ui/AchievementShelf.jsx';
 import QuestPanel from '../ui/QuestPanel.jsx';
 import { Card, Btn } from '../ui/UIKit.jsx';
 import { SectionHeader } from './SettingsHelpers.jsx';
+import s from './AchievementsSection.module.css';
 
-export default function AchievementsSection() {
+function AchievementsSection() {
   const xp = useGamificationStore((s) => s.xp);
   const enabled = useGamificationStore((s) => s.enabled);
   const toggleEnabled = useGamificationStore((s) => s.toggleEnabled);
@@ -27,8 +29,8 @@ export default function AchievementsSection() {
       <SectionHeader icon="trophy" title="Gamification" description="XP, achievements, streaks, and progression" />
 
       {/* Master Toggle */}
-      <Card style={{ padding: 20, marginBottom: 16 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Card className={s.s0}>
+        <div className={s.s1}>
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: C.t1 }}>Gamification System</div>
             <div style={{ fontSize: 11, color: C.t3, marginTop: 2 }}>{enabled ? 'XP, achievements, and daily challenges are active' : 'Progression features are disabled'}</div>
@@ -42,8 +44,8 @@ export default function AchievementsSection() {
 
       {/* XP Stats + Rank */}
       {enabled && (
-        <Card style={{ padding: 20, marginBottom: 16 }}>
-          <div style={{ display: 'flex', gap: 20, alignItems: 'center', marginBottom: 16 }}>
+        <Card className={s.s2}>
+          <div className={s.s3}>
             <div style={{ width: 56, height: 56, borderRadius: 14, background: `linear-gradient(135deg, ${rank.color}20, ${rank.color}08)`, border: `2px solid ${rank.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>{rank.emoji}</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 18, fontWeight: 800, fontFamily: M, color: rank.color }}>{rank.name}</div>
@@ -52,7 +54,7 @@ export default function AchievementsSection() {
           </div>
           {progress.nextRank && (
             <div style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+              <div className={s.s4}>
                 <span style={{ fontSize: 10, color: C.t3, fontFamily: M }}>{Math.round(progress.progress * 100)}% to {progress.nextRank.name}</span>
                 <span style={{ fontSize: 10, color: C.t3, fontFamily: M }}>{progress.needed.toLocaleString()} XP needed</span>
               </div>
@@ -61,7 +63,7 @@ export default function AchievementsSection() {
               </div>
             </div>
           )}
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+          <div className={s.s5}>
             {[
               { label: 'Achievements', value: `${unlockedCount}/${ACHIEVEMENTS.length}`, icon: '🏆' },
               { label: 'Trade Streak', value: `${streaks.trading.current}d`, icon: '🔥' },
@@ -69,7 +71,7 @@ export default function AchievementsSection() {
               { label: 'Journal Streak', value: `${streaks.journaling.current}d`, icon: '📝' },
             ].map((s, i) => (
               <div key={i} style={{ flex: '1 1 80px', padding: '8px 12px', background: C.sf, borderRadius: 8, textAlign: 'center' }}>
-                <div style={{ fontSize: 14, marginBottom: 2 }}>{s.icon}</div>
+                <div className={s.s6}>{s.icon}</div>
                 <div style={{ fontSize: 14, fontWeight: 800, fontFamily: M, color: C.t1 }}>{s.value}</div>
                 <div style={{ fontSize: 9, fontWeight: 600, color: C.t3, fontFamily: M }}>{s.label}</div>
               </div>
@@ -78,23 +80,23 @@ export default function AchievementsSection() {
         </Card>
       )}
 
-      {enabled && <Card style={{ padding: 24, marginBottom: 16 }}><AchievementShelf /></Card>}
+      {enabled && <Card className={s.s7}><AchievementShelf /></Card>}
 
       {/* Theme Shop */}
       {enabled && (
-        <Card style={{ padding: 20, marginBottom: 16 }}>
+        <Card className={s.s8}>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, marginBottom: 4 }}>🎨 Theme Shop</div>
           <div style={{ fontSize: 11, color: C.t3, marginBottom: 14 }}>Unlock accent themes by earning XP</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 8 }}>
+          <div className={s.s9}>
             {COSMETIC_REWARDS.map((theme) => {
               const unlocked = xp >= theme.unlockXP;
               const active = equippedCosmetic === theme.id;
               return (
                 <button key={theme.id} className="tf-btn" onClick={() => unlocked && equipCosmetic(theme.id)}
                   style={{ padding: '10px 8px', borderRadius: 10, border: active ? `2px solid ${theme.colors.primary}` : `1px solid ${C.bd}40`, background: active ? theme.colors.primary + '10' : unlocked ? C.sf : C.sf + '60', cursor: unlocked ? 'pointer' : 'not-allowed', opacity: unlocked ? 1 : 0.5, textAlign: 'center', transition: 'all 0.2s' }}>
-                  <div style={{ fontSize: 20, marginBottom: 4 }}>{theme.emoji}</div>
+                  <div className={s.s10}>{theme.emoji}</div>
                   <div style={{ fontSize: 10, fontWeight: 700, fontFamily: M, color: C.t1 }}>{theme.name}</div>
-                  <div style={{ display: 'flex', gap: 3, justifyContent: 'center', marginTop: 4 }}>
+                  <div className={s.s11}>
                     <div style={{ width: 12, height: 12, borderRadius: '50%', background: theme.colors.primary }} />
                     <div style={{ width: 12, height: 12, borderRadius: '50%', background: theme.colors.accent }} />
                   </div>
@@ -108,7 +110,7 @@ export default function AchievementsSection() {
       )}
 
       {enabled && (
-        <Card style={{ padding: 20, marginBottom: 16 }}>
+        <Card className={s.s12}>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, marginBottom: 4 }}>🗺️ Trading Quests</div>
           <div style={{ fontSize: 11, color: C.t3, marginBottom: 14 }}>Guided missions that teach good trading habits</div>
           <QuestPanel />
@@ -117,14 +119,14 @@ export default function AchievementsSection() {
 
       {/* Notification Preferences */}
       {enabled && (
-        <Card style={{ padding: 20, marginBottom: 16 }}>
+        <Card className={s.s13}>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, marginBottom: 12 }}>Notifications</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div className={s.s14}>
             {[
               { key: 'levelUp', label: 'Level-Up Celebration', desc: 'Full-screen modal when you rank up' },
               { key: 'achievements', label: 'Achievement Toasts', desc: 'Pop-up notification when you unlock a badge' },
             ].map(({ key, label, desc }) => (
-              <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={key} className={s.s15}>
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 600, color: C.t1 }}>{label}</div>
                   <div style={{ fontSize: 10, color: C.t3 }}>{desc}</div>
@@ -142,7 +144,7 @@ export default function AchievementsSection() {
       {/* Reset Progress */}
       {enabled && (
         <Card style={{ padding: 20, border: `1px solid ${C.r}20`, background: C.r + '03' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className={s.s16}>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: C.t1 }}>Reset Progress</div>
               <div style={{ fontSize: 11, color: C.t3, marginTop: 2 }}>Clear all XP, achievements, and streaks. Cannot be undone.</div>
@@ -150,9 +152,9 @@ export default function AchievementsSection() {
             {!confirmReset ? (
               <Btn variant="ghost" onClick={() => setConfirmReset(true)} style={{ fontSize: 12, padding: '6px 12px', color: C.r, border: `1px solid ${C.r}30`, flexShrink: 0 }}>Reset</Btn>
             ) : (
-              <div style={{ display: 'flex', gap: 6 }}>
+              <div className={s.s17}>
                 <Btn onClick={() => { resetProgress(); setConfirmReset(false); }} style={{ fontSize: 12, padding: '6px 12px', background: C.r, color: '#fff', border: 'none', flexShrink: 0 }}>Confirm Reset</Btn>
-                <Btn variant="ghost" onClick={() => setConfirmReset(false)} style={{ fontSize: 12, padding: '6px 12px', flexShrink: 0 }}>Cancel</Btn>
+                <Btn variant="ghost" onClick={() => setConfirmReset(false)} className={s.s18}>Cancel</Btn>
               </div>
             )}
           </div>
@@ -161,3 +163,5 @@ export default function AchievementsSection() {
     </section>
   );
 }
+
+export default React.memo(AchievementsSection);

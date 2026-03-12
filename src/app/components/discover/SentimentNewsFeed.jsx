@@ -4,6 +4,7 @@
 // Sprint 15: AI-driven sentiment classification for news.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
@@ -33,7 +34,7 @@ const IMPACT_META = {
   low: { label: 'LOW', color: '#7078a0' },
 };
 
-export default function SentimentNewsFeed({ compact }) {
+function SentimentNewsFeed({ compact }) {
   const [filter, setFilter] = useState('all');
 
   const news = useMemo(() => {
@@ -149,3 +150,5 @@ export default function SentimentNewsFeed({ compact }) {
 }
 
 export { SentimentNewsFeed };
+
+export default React.memo(SentimentNewsFeed);

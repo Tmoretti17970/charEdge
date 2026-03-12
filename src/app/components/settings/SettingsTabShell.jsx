@@ -21,7 +21,7 @@ import { C, F, GLASS, DEPTH } from '../../../constants.js';
  * @param {React.ReactNode} [props.footerExtra] - Extra footer content (e.g. template controls)
  * @param {React.ReactNode} props.children - Active tab content
  */
-export default function SettingsTabShell({
+function SettingsTabShell({
     title,
     iconColor,
     tabs,
@@ -306,3 +306,5 @@ export default function SettingsTabShell({
         </div>
     );
 }
+
+export default React.memo(SettingsTabShell);

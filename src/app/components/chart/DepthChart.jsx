@@ -6,7 +6,7 @@
 
 import { useRef, useEffect, useCallback } from 'react';
 import { C, F } from '../../../constants.js';
-import { useChartStore } from '../../../state/useChartStore';
+import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
 
 const BID_COLOR = '#26A69A';
 const ASK_COLOR = '#EF5350';
@@ -38,7 +38,7 @@ export default function DepthChart({ symbol = '', height = 180, onClose }) {
 
   // Read current price from the store's aggregated price (TickerPlant)
   // Note: s.data no longer exists in the store (Sprint 3: metadata only)
-  const currentPrice = useChartStore((s) => s.aggregatedPrice) || 0;
+  const currentPrice = useChartCoreStore((s) => s.aggregatedPrice) || 0;
 
   // Regenerate depth data periodically
   useEffect(() => {

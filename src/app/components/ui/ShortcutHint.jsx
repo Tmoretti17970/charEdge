@@ -7,6 +7,7 @@
 // Usage:  <ShortcutHint keys="Ctrl+K" />
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { C, M } from '../../../constants.js';
 
 const IS_MAC =
@@ -22,7 +23,7 @@ function formatKey(key) {
   return key;
 }
 
-export default function ShortcutHint({ keys, style = {} }) {
+function ShortcutHint({ keys, style = {} }) {
   if (!keys) return null;
   const parts = formatKey(keys).split('+').filter(Boolean);
 
@@ -64,3 +65,5 @@ export default function ShortcutHint({ keys, style = {} }) {
     </span>
   );
 }
+
+export default React.memo(ShortcutHint);

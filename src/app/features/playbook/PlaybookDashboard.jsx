@@ -14,6 +14,7 @@ import BreakdownBarChart from '../../components/widgets/BreakdownBarChart.jsx';
 import EquityCurveChart from '../../components/widgets/EquityCurveChart.jsx';
 import WinRateDonut from '../../components/widgets/WinRateDonut.jsx';
 import { SectionLabel } from '../analytics/analytics_ui/AnalyticsPrimitives.jsx';
+import s from './PlaybookDashboard.module.css';
 
 // ─── Compute Per-Playbook Analytics ─────────────────────────────
 
@@ -173,7 +174,7 @@ function PlaybookDashboard() {
   if (trades.length === 0) {
     return (
       <Card style={{ padding: 48, textAlign: 'center', color: C.t3, fontSize: 13 }}>
-        <div style={{ fontSize: 36, marginBottom: 12 }}>📋</div>
+        <div className={s.s0}>📋</div>
         <div style={{ fontWeight: 700, color: C.t2, marginBottom: 4 }}>No playbook data</div>
         <div>Tag your trades with strategies to see playbook analytics.</div>
       </Card>
@@ -186,13 +187,7 @@ function PlaybookDashboard() {
     <div>
       {/* Playbook Selector Tabs */}
       <div
-        style={{
-          display: 'flex',
-          gap: 6,
-          overflowX: 'auto',
-          marginBottom: 16,
-          paddingBottom: 4,
-        }}
+        className={s.s1}
       >
         {pbAnalytics.map((pb) => {
           const isActive = pb.name === (active?.name || '');
@@ -240,7 +235,7 @@ function PlaybookDetail({ pb, allPlaybooks }) {
     <div>
       {/* Header */}
       <Card style={{ padding: 16, marginBottom: 16, borderLeft: `4px solid ${pb.pnl >= 0 ? C.g : C.r}` }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className={s.s2}>
           <div>
             <h2 style={{ fontSize: 20, fontWeight: 800, color: C.t1, margin: 0, fontFamily: F }}>{pb.name}</h2>
             <div style={{ fontSize: 11, color: C.t3, fontFamily: M, marginTop: 4 }}>
@@ -281,20 +276,13 @@ function PlaybookDetail({ pb, allPlaybooks }) {
       </AutoGrid>
 
       {/* Equity Curve + Win Rate Donut */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 16, marginBottom: 16 }}>
+      <div className={s.s3}>
         <Card style={{ padding: 16 }}>
           <SectionLabel text={`${pb.name} Equity Curve`} />
           <EquityCurveChart eq={pb.eq} height={220} />
         </Card>
         <Card
-          style={{
-            padding: 16,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minWidth: 160,
-          }}
+          className={s.s4}
         >
           <SectionLabel text="Win Rate" />
           <WinRateDonut wins={pb.wins} losses={pb.losses} size={120} />
@@ -305,7 +293,7 @@ function PlaybookDetail({ pb, allPlaybooks }) {
       </div>
 
       {/* Insights Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+      <div className={s.s5}>
         {/* Emotional Performance */}
         <Card style={{ padding: 16 }}>
           <SectionLabel text="Performance by Emotion" />
@@ -326,12 +314,12 @@ function PlaybookDetail({ pb, allPlaybooks }) {
         <Card style={{ padding: 16 }}>
           <SectionLabel text="Performance by Day" />
           {Object.keys(pb.days).length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div className={s.s6}>
               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day) => {
                 const d = pb.days[day];
                 if (!d)
                   return (
-                    <div key={day} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div key={day} className={s.s7}>
                       <div style={{ width: 36, fontSize: 11, fontWeight: 600, color: C.t3, fontFamily: M }}>{day}</div>
                       <div style={{ flex: 1, height: 6, background: C.bg2, borderRadius: 3 }} />
                       <div style={{ width: 40, fontSize: 10, color: C.t3, textAlign: 'right', fontFamily: M }}>—</div>
@@ -340,7 +328,7 @@ function PlaybookDetail({ pb, allPlaybooks }) {
                 const maxPnl = Math.max(1, ...Object.values(pb.days).map((x) => Math.abs(x.pnl)));
                 const barW = (Math.abs(d.pnl) / maxPnl) * 100;
                 return (
-                  <div key={day} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div key={day} className={s.s8}>
                     <div style={{ width: 36, fontSize: 11, fontWeight: 600, color: C.t2, fontFamily: M }}>{day}</div>
                     <div style={{ flex: 1, height: 6, background: C.bg2, borderRadius: 3, overflow: 'hidden' }}>
                       <div
@@ -387,7 +375,7 @@ function PlaybookDetail({ pb, allPlaybooks }) {
       {allPlaybooks.length > 1 && (
         <Card style={{ padding: 16 }}>
           <SectionLabel text="vs Other Strategies" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className={s.s9}>
             {allPlaybooks.map((p, i) => {
               const isThis = p.name === pb.name;
               const maxPnl = Math.max(1, ...allPlaybooks.map((x) => Math.abs(x.pnl)));

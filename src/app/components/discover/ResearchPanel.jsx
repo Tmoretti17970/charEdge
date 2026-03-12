@@ -6,11 +6,13 @@
 // Collapses to 44px icon rail on < 1200px viewport.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { alpha } from '@/shared/colorUtils';
+import s from './ResearchPanel.module.css';
 
 // ─── Simulated mini-prices (in production, use live feed) ────────
 const MOCK_PRICES = {
@@ -58,7 +60,7 @@ function generateQuickResponse(query, trades) {
 // ResearchPanel Component
 // ═══════════════════════════════════════════════════════════════════
 
-export default function ResearchPanel({ onCompose }) {
+function ResearchPanel({ onCompose }) {
   const [collapsed, setCollapsed] = useState(false);
   const [notes, setNotes] = useState(() => {
     try { return localStorage.getItem('tf-research-notes') || ''; }
@@ -135,10 +137,10 @@ export default function ResearchPanel({ onCompose }) {
         >
           ◀
         </button>
-        <div title="Watchlist" style={{ fontSize: 16, cursor: 'default' }}>📋</div>
-        <div title="Fear & Greed" style={{ fontSize: 16, cursor: 'default' }}>🌡️</div>
-        <div title="Notes" style={{ fontSize: 16, cursor: 'default' }}>📝</div>
-        <div title="AI Copilot" style={{ fontSize: 16, cursor: 'default' }}>🤖</div>
+        <div title="Watchlist" className={s.s0}>📋</div>
+        <div title="Fear & Greed" className={s.s1}>🌡️</div>
+        <div title="Notes" className={s.s2}>📝</div>
+        <div title="AI Copilot" className={s.s3}>🤖</div>
       </div>
     );
   }
@@ -175,7 +177,7 @@ export default function ResearchPanel({ onCompose }) {
         <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F }}>
           Research
         </span>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <div className={s.s4}>
           {onCompose && (
             <button
               onClick={onCompose}
@@ -204,28 +206,20 @@ export default function ResearchPanel({ onCompose }) {
       </div>
 
       {/* ─── Scrollable Content ─────────────────────────────── */}
-      <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'thin' }}>
+      <div className={s.s5}>
         {/* ── Watchlist Mini-Prices ──────────────────────────── */}
         <div style={{ padding: '12px 14px', borderBottom: `1px solid ${alpha(C.bd, 0.5)}` }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, fontFamily: F }}>
             Watchlist
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div className={s.s6}>
             {watchlist.slice(0, 6).map((item) => {
               const p = MOCK_PRICES[item.symbol] || { price: 0, change: 0 };
               const changeColor = p.change >= 0 ? C.g : C.r;
               return (
                 <div
                   key={item.symbol}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '6px 8px',
-                    borderRadius: 8,
-                    transition: 'background 0.15s',
-                    cursor: 'default',
-                  }}
+                  className={s.s7}
                   onMouseEnter={(e) => e.currentTarget.style.background = alpha(C.t3, 0.06)}
                   onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 >
@@ -326,7 +320,7 @@ export default function ResearchPanel({ onCompose }) {
         </div>
 
         {/* ── AI Copilot ─────────────────────────────────────── */}
-        <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minHeight: 200 }}>
+        <div className={s.s8}>
           <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, fontFamily: F }}>
             AI Copilot
           </div>
@@ -334,15 +328,7 @@ export default function ResearchPanel({ onCompose }) {
           {/* Messages */}
           <div
             ref={scrollRef}
-            style={{
-              flex: 1,
-              overflowY: 'auto',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-              maxHeight: 240,
-              scrollbarWidth: 'thin',
-            }}
+            className={s.s9}
           >
             {copilotMessages.length === 0 && (
               <div style={{ fontSize: 11, color: C.t3, fontFamily: F, textAlign: 'center', padding: '16px 8px' }}>
@@ -370,7 +356,7 @@ export default function ResearchPanel({ onCompose }) {
               </div>
             ))}
             {isTyping && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px' }}>
+              <div className={s.s10}>
                 <div className="tf-spin" style={{ width: 10, height: 10, borderRadius: '50%', border: `2px solid ${C.bd}`, borderTopColor: C.p }} />
                 <span style={{ fontSize: 10, color: C.t3, fontFamily: F }}>Analyzing...</span>
               </div>
@@ -379,7 +365,7 @@ export default function ResearchPanel({ onCompose }) {
 
           {/* Quick prompts */}
           {copilotMessages.length === 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+            <div className={s.s11}>
               {['30s summary', 'Bear case', 'Best setup'].map((label) => (
                 <button
                   key={label}
@@ -400,7 +386,7 @@ export default function ResearchPanel({ onCompose }) {
           )}
 
           {/* Input */}
-          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+          <div className={s.s12}>
             <input
               value={copilotInput}
               onChange={(e) => setCopilotInput(e.target.value)}
@@ -443,3 +429,5 @@ export default function ResearchPanel({ onCompose }) {
 }
 
 export { ResearchPanel };
+
+export default React.memo(ResearchPanel);

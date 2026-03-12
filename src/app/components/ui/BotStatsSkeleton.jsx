@@ -6,13 +6,14 @@
 // Audit Item 10: "No skeleton exists for arbitrage/bot monitoring panel"
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { C } from '../../../constants.js';
 
 /**
  * BotStatsSkeleton — loading placeholder for bot/arbitrage stats panel.
  * Shows shimmer placeholders for bot status, P&L, and spread metrics.
  */
-export default function BotStatsSkeleton() {
+function BotStatsSkeleton() {
     return (
         <div
             role="status"
@@ -55,3 +56,5 @@ export default function BotStatsSkeleton() {
         </div>
     );
 }
+
+export default React.memo(BotStatsSkeleton);

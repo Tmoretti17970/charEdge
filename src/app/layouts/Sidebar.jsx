@@ -8,6 +8,7 @@
 // Includes always-visible P&L widget and active indicator bar.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../constants.js';
 import { useUIStore } from '../../state/useUIStore';
@@ -90,7 +91,7 @@ const EXPANDED_WIDTH = 220;
 
 // ─── Sidebar Component ──────────────────────────────────────────
 
-export default function Sidebar() {
+function Sidebar() {
   const page = useUIStore((s) => s.page);
   const setPage = useUIStore((s) => s.setPage);
   const openSettings = useUIStore((s) => s.openSettings);
@@ -595,3 +596,5 @@ function NavButton({ item, active, hovered, expanded, onHover, onClick }) {
 }
 
 export { Sidebar, NAV_ITEMS };
+
+export default React.memo(Sidebar);

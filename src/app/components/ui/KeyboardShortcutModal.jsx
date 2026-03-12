@@ -47,7 +47,7 @@ const SHORTCUT_GROUPS = [
 /**
  * @param {{ isOpen: boolean; onClose: () => void }} props
  */
-export default function KeyboardShortcutModal({ isOpen, onClose }) {
+function KeyboardShortcutModal({ isOpen, onClose }) {
     if (!isOpen) return null;
 
     return (
@@ -90,3 +90,5 @@ export default function KeyboardShortcutModal({ isOpen, onClose }) {
         </div>
     );
 }
+
+export default React.memo(KeyboardShortcutModal);

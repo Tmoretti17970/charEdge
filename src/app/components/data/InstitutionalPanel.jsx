@@ -11,6 +11,7 @@
 //   <InstitutionalPanel symbol="AAPL" />
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { C, F } from '../../../constants.js';
 import { logger } from '@/observability/logger';
@@ -149,7 +150,7 @@ function fmtMoney(n) {
 
 // ─── Panel Component ───────────────────────────────────────────
 
-export default function InstitutionalPanel({ symbol = 'AAPL' }) {
+function InstitutionalPanel({ symbol = 'AAPL' }) {
   const [tab, setTab] = useState('short');
   const [shortInterest, setShortInterest] = useState([]);
   const [shortSaleVol, setShortSaleVol] = useState([]);
@@ -617,3 +618,5 @@ function Holdings13F({ symbol }) {
     </>
   );
 }
+
+export default React.memo(InstitutionalPanel);

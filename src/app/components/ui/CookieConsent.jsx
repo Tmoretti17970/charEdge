@@ -6,12 +6,13 @@
 // Styled with glassmorphism + design tokens.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { C, F } from '../../../constants.js';
 import { GLASS, DEPTH } from '../../../constants.js';
 import { useConsentStore } from '../../../state/useConsentStore';
 import cssStyles from './CookieConsent.module.css';
 
-export default function CookieConsent() {
+function CookieConsent() {
   const analytics = useConsentStore((s) => s.analytics);
   const acceptAll = useConsentStore((s) => s.acceptAll);
   const rejectAll = useConsentStore((s) => s.rejectAll);
@@ -117,3 +118,5 @@ export default function CookieConsent() {
     </div>
   );
 }
+
+export default React.memo(CookieConsent);

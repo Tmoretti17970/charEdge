@@ -4,13 +4,14 @@
 // spring animation, and integration with usePanelStore.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { C, F } from '../../../constants.js';
 import sp from './SlidePanel.module.css';
 
 const MAX_WIDTH = 800;
 
-export default function SlidePanel({ isOpen, onClose, title, children, width = 340, minWidth = 280, onWidthChange }) {
+function SlidePanel({ isOpen, onClose, title, children, width = 340, minWidth = 280, onWidthChange }) {
   const [mounted, setMounted] = useState(false);
   const [resizing, setResizing] = useState(false);
   const [currentWidth, setCurrentWidth] = useState(width);
@@ -116,3 +117,5 @@ export default function SlidePanel({ isOpen, onClose, title, children, width = 3
     </>
   );
 }
+
+export default React.memo(SlidePanel);

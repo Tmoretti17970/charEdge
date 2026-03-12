@@ -7,6 +7,7 @@
 //   3. Stitch — sequential bar reveal animation (left-to-right stagger)
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 
 const PHASES = { IDLE: 'idle', DISCONNECT: 'disconnect', SYNC: 'sync', STITCH: 'stitch' };
@@ -22,7 +23,7 @@ const SYNC_FADE_DURATION = 400;
  * @param {number} props.barsToReveal - number of new bars being stitched
  * @param {function} props.onStitchComplete - callback when stitch animation finishes
  */
-export default function GapStitchOverlay({
+function GapStitchOverlay({
   connectionState = 'connected',
   backfillProgress = 0,
   barsToReveal = 0,
@@ -173,3 +174,5 @@ export default function GapStitchOverlay({
     </div>
   );
 }
+
+export default React.memo(GapStitchOverlay);

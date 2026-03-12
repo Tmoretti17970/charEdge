@@ -6,6 +6,7 @@
 // Stores acknowledgment in localStorage (survives data resets).
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { C, F } from '../../../constants.js';
 import { DEPTH } from '../../../constants.js';
@@ -24,7 +25,7 @@ function setVerified() {
     catch (_) { /* localStorage blocked */ }
 }
 
-export default function AgeVerificationGate({ children }) {
+function AgeVerificationGate({ children }) {
     const [verified, setVerifiedState] = useState(isVerified);
 
     useEffect(() => {
@@ -139,3 +140,5 @@ export default function AgeVerificationGate({ children }) {
         </>
     );
 }
+
+export default React.memo(AgeVerificationGate);

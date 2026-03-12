@@ -55,6 +55,65 @@ function createCondition() {
   };
 }
 
+// ─── #19: Pre-compiled Condition Evaluator ───────────────────────
+// Compiles a condition string into a sandboxed function ONCE at
+// strategy creation time. Same blocked-globals as ScriptEngine.
+
+const _BLOCKED_GLOBALS = [
+  'window', 'document', 'globalThis', 'self',
+  'fetch', 'XMLHttpRequest', 'WebSocket', 'Worker',
+  'localStorage', 'sessionStorage', 'indexedDB',
+  'navigator', 'location', 'history',
+  'setTimeout', 'setInterval', 'requestAnimationFrame',
+  'alert', 'confirm', 'prompt', 'console',
+  'Blob', 'URL', 'TextEncoder', 'TextDecoder',
+  'FormData', 'Headers', 'Request', 'Response',
+  'AbortController', 'BroadcastChannel', 'MessageChannel', 'crypto',
+];
+
+const _DANGEROUS_PATTERNS = [
+  /\beval\s*\(/,
+  /\bFunction\s*\(/,
+  /\bimport\s*\(/,
+  /\b__proto__\b/,
+  /\bconstructor\s*\[/,
+  /\bconstructor\s*\.\s*constructor/,
+  /\[\s*['"]constructor['"]\s*\]/,
+  /\[\s*['"]__proto__['"]\s*\]/,
+];
+
+/**
+ * Pre-compile a condition string into a reusable sandboxed function.
+ * Returns a function (i: number, ctx: Record<string, any>) => boolean
+ * or null if the condition is invalid/dangerous.
+ */
+function _compileCondition(condition: string): ((i: number, ctx: Record<string, unknown>) => boolean) | null {
+  if (!condition || condition === 'false') return null;
+
+  // Validate against dangerous patterns
+  for (const pat of _DANGEROUS_PATTERNS) {
+    if (pat.test(condition)) return null;
+  }
+
+  // Pre-compile the Function ONCE (sandbox hardened)
+  // The function receives blocked globals (as undefined), ctx keys, i, and Math
+  try {
+    return (i: number, ctx: Record<string, unknown>) => {
+      const scopeKeys = [..._BLOCKED_GLOBALS, ...Object.keys(ctx), 'i', 'Math'];
+      const scopeVals = [
+        ..._BLOCKED_GLOBALS.map(() => undefined),
+        ...Object.values(ctx),
+        i, Math,
+      ];
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval
+      const fn = new Function(...scopeKeys, `"use strict";\nreturn ${condition};`);
+      return fn(...scopeVals);
+    };
+  } catch {
+    return null;
+  }
+}
+
 // ─── Store ───────────────────────────────────────────────────────
 
 const useStrategyBuilderStore = create(
@@ -169,6 +228,12 @@ const useStrategyBuilderStore = create(
           _shortCondition: shortCond,
           _exitRules: exitRules,
 
+          // #19: Pre-compiled condition evaluators (sandbox hardened)
+          // Compiled ONCE at strategy creation — not per-bar.
+          // Uses same blocked-globals technique as ScriptEngine.
+          _compiledLong: _compileCondition(longCond),
+          _compiledShort: _compileCondition(shortCond),
+
           // Setup — compute indicators once
           setup(bars) {
             const ctx = {};
@@ -220,51 +285,11 @@ const useStrategyBuilderStore = create(
           },
 
           // Signal function — returns 1 (long), -1 (short), 0 (no signal)
-          signal(i, bars, ctx) {
-            // P1: Blocked globals to shadow inside new Function()
-            const BLOCKED_GLOBALS = [
-              'window', 'document', 'globalThis', 'self',
-              'fetch', 'XMLHttpRequest', 'WebSocket', 'Worker',
-              'localStorage', 'sessionStorage', 'indexedDB',
-              'navigator', 'location', 'history',
-              'setTimeout', 'setInterval', 'requestAnimationFrame',
-              'alert', 'confirm', 'prompt', 'console',
-              'Blob', 'URL', 'TextEncoder', 'TextDecoder',
-              'FormData', 'Headers', 'Request', 'Response',
-              'AbortController', 'BroadcastChannel', 'MessageChannel', 'crypto',
-            ];
-
-            // P1: Dangerous pattern check
-            const DANGEROUS = [
-              /\beval\s*\(/,
-              /\bFunction\s*\(/,
-              /\bimport\s*\(/,
-              /\b__proto__\b/,
-              /\bconstructor\s*\[/,
-              /\bconstructor\s*\.\s*constructor/,
-              /\[\s*['"]constructor['"]\s*\]/,
-              /\[\s*['"]__proto__['"]\s*\]/,
-            ];
-
-            // Evaluate using compiled conditions
+          // #19: Uses pre-compiled functions instead of per-bar new Function()
+          signal(i, _bars, ctx) {
             try {
-              const evalInCtx = (condition) => {
-                // Validate condition against dangerous patterns
-                for (const pat of DANGEROUS) {
-                  if (pat.test(condition)) return false;
-                }
-                // Build scope: blocked globals (undefined) + context variables
-                const scopeKeys = [...BLOCKED_GLOBALS, ...Object.keys(ctx), 'i', 'Math'];
-                const scopeVals = [
-                  ...BLOCKED_GLOBALS.map(() => undefined),
-                  ...Object.values(ctx),
-                  i, Math,
-                ];
-                return new Function(...scopeKeys, `"use strict";\nreturn ${condition};`)(...scopeVals);
-              };
-
-              if (evalInCtx(longCond)) return 1;
-              if (evalInCtx(shortCond)) return -1;
+              if (this._compiledLong && this._compiledLong(i, ctx)) return 1;
+              if (this._compiledShort && this._compiledShort(i, ctx)) return -1;
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             } catch (_) {
               // Evaluation error — no signal

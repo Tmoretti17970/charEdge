@@ -6,6 +6,7 @@
 // Auto-dismisses after 5 seconds or on click.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useEffect, useState, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useGamificationStore } from '../../../state/useGamificationStore';
@@ -46,7 +47,7 @@ function Particle({ delay, color }) {
 
 // ─── Level Up Modal ─────────────────────────────────────────────
 
-export default function LevelUpModal() {
+function LevelUpModal() {
   const pendingLevelUp = useGamificationStore((s) => s._pendingLevelUp);
   const clearPendingLevelUp = useGamificationStore((s) => s.clearPendingLevelUp);
   const levelUpEnabled = useGamificationStore((s) => s.notificationPrefs.levelUp);
@@ -200,3 +201,5 @@ export default function LevelUpModal() {
 }
 
 export { LevelUpModal };
+
+export default React.memo(LevelUpModal);

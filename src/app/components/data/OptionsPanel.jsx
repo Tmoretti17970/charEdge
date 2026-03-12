@@ -11,6 +11,7 @@
 //   <OptionsPanel symbol="SPY" />
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { logger } from '@/observability/logger';
@@ -206,7 +207,7 @@ function PCRatioChart({ data, maxItems = 20 }) {
 
 // ─── Main Component ────────────────────────────────────────────
 
-export default function OptionsPanel({ _symbol = 'SPY' }) {
+function OptionsPanel({ _symbol = 'SPY' }) {
   const [pcRatioData, setPCRatioData] = useState([]);
   const [vixTermStructure, setVixTermStructure] = useState([]);
   const [vix, setVix] = useState(null);
@@ -403,3 +404,5 @@ export default function OptionsPanel({ _symbol = 'SPY' }) {
     </div>
   );
 }
+
+export default React.memo(OptionsPanel);

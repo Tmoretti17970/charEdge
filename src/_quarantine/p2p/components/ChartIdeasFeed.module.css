@@ -1,0 +1,90 @@
+/* Auto-extracted from ChartIdeasFeed.jsx */
+
+.s0 {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.s1 {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.s2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  cursor: pointer;
+  padding: 4px 8px;
+  margin: -4px -8px 10px -8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.s3 {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.s4 {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.s5 {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.s6 {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: color 0.15s;
+  margin-left: auto;
+}
+
+.s7 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.s8 {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.s9 {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.s10 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.s11 {
+  display: flex;
+  gap: 6px;
+}
+
+.s12 {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

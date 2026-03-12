@@ -10,11 +10,12 @@
 //   - Lucide icons + framer-motion animations
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { Search, X, ChevronDown, Layers, LayoutPanelTop, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useState, useCallback, useMemo } from 'react';
 import { INDICATORS } from '../../../charting_library/studies/indicators/registry.js';
 import { C, F, GLASS } from '../../../constants.js';
-import { useChartToolsStore } from '../../../state/useChartStore';
+import { useChartToolsStore } from '../../../state/chart/useChartToolsStore';
 import { radii, transition } from '../../../theme/tokens.js';
 import { Tooltip } from '../ui/AppleHIG.jsx';
 import { alpha } from '@/shared/colorUtils';
@@ -111,7 +112,7 @@ const CATEGORIES = [
  * @param {boolean} props.isOpen     - Panel visibility
  * @param {Function} props.onClose   - Close handler
  */
-export default function IndicatorPanel({ isOpen, _onClose }) {
+function IndicatorPanel({ isOpen, _onClose }) {
   const indicators = useChartToolsStore((s) => s.indicators);
   const addIndicator = useChartToolsStore((s) => s.addIndicator);
   const removeIndicator = useChartToolsStore((s) => s.removeIndicator);
@@ -672,3 +673,5 @@ function CatalogIndicatorRow({ def, onAdd }) {
     </button>
   );
 }
+
+export default React.memo(IndicatorPanel);

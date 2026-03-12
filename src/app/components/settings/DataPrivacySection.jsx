@@ -5,6 +5,7 @@
 // and analytics consent management.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { C, M } from '../../../constants.js';
 import { useConsentStore } from '../../../state/useConsentStore';
 import { useGamificationStore } from '../../../state/useGamificationStore';
@@ -13,7 +14,7 @@ import { useUserStore } from '../../../state/useUserStore';
 import { Card, Btn } from '../ui/UIKit.jsx';
 import { SectionHeader } from './SettingsHelpers.jsx';
 
-export default function DataPrivacySection() {
+function DataPrivacySection() {
   const analytics = useConsentStore((s) => s.analytics);
   const consentedAt = useConsentStore((s) => s.consentedAt);
   const setPreference = useConsentStore((s) => s.setPreference);
@@ -166,3 +167,5 @@ export default function DataPrivacySection() {
     </section>
   );
 }
+
+export default React.memo(DataPrivacySection);

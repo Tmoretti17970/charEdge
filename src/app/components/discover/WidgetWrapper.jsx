@@ -6,11 +6,12 @@
 // Observer, loading skeleton, and consistent styling.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useRef, useEffect } from 'react';
 import { C, F } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
 
-export default function WidgetWrapper({
+function WidgetWrapper({
   id,
   title,
   icon,
@@ -158,3 +159,5 @@ function WidgetSkeleton() {
 }
 
 export { WidgetWrapper };
+
+export default React.memo(WidgetWrapper);

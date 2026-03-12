@@ -6,6 +6,7 @@
 // and price changes. Auto-fetches on symbol change.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useEffect, useState } from 'react';
 import { C, M } from '../../../constants.js';
 import { fetchFundamentals, hasFundamentals, fmtCompact, fmtSupply } from '../../../data/FundamentalService.js';
@@ -14,7 +15,7 @@ import { fetchFundamentals, hasFundamentals, fmtCompact, fmtSupply } from '../..
  * @param {Object} props
  * @param {string} props.symbol - Current chart symbol
  */
-export default function FundamentalsCard({ symbol }) {
+function FundamentalsCard({ symbol }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -217,3 +218,5 @@ function MetricBadge({ label, value }) {
     </div>
   );
 }
+
+export default React.memo(FundamentalsCard);

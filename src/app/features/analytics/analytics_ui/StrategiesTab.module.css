@@ -1,0 +1,27 @@
+/* Auto-extracted from StrategiesTab.jsx */
+
+.s0 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.s1 {
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.s2 {
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.s3 {
+  padding: 0;
+  overflow: hidden;
+}
+
+.s4 {
+  padding: 0;
+  overflow: hidden;
+}

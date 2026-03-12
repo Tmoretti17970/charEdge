@@ -1,0 +1,108 @@
+/* Auto-extracted from AchievementsSection.jsx */
+
+.s0 {
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.s1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.s2 {
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.s3 {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.s4 {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.s5 {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.s6 {
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.s7 {
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.s8 {
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.s9 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+}
+
+.s10 {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+.s11 {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.s12 {
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.s13 {
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.s14 {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.s15 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.s16 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.s17 {
+  display: flex;
+  gap: 6px;
+}
+
+.s18 {
+  font-size: 12px;
+  padding: 6px 12px;
+  flex-shrink: 0;
+}

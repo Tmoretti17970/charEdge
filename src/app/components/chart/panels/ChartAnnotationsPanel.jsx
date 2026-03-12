@@ -5,9 +5,9 @@
 
 import { useState, useRef, useMemo } from 'react';
 import { C, F } from '../../../../constants.js';
-import { useAnnotationStore } from '../../../../state/useAnnotationStore.js';
 import { useChartStore } from '../../../../state/useChartStore';
 import { useChartBars } from '../../../hooks/useChartBars.js';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 
 const EMOJI_OPTIONS = ['📌', '⚠️', '🎯', '💡', '🚀', '🔴', '🟢', '📊', '🧠', '❓'];
 
@@ -22,12 +22,12 @@ function sanitizeAnnotation(text) {
 }
 
 export default function ChartAnnotationsPanel({ _onClose }) {
-  const symbol = useChartStore((s) => s.symbol);
+  const symbol = useChartCoreStore((s) => s.symbol);
   const data = useChartBars();
-  const annotations = useAnnotationStore((s) => s.getForSymbol(symbol));
-  const addAnnotation = useAnnotationStore((s) => s.addAnnotation);
-  const removeAnnotation = useAnnotationStore((s) => s.removeAnnotation);
-  const editAnnotation = useAnnotationStore((s) => s.editAnnotation);
+  const annotations = useChartStore((s) => s.getForSymbol(symbol));
+  const addAnnotation = useChartStore((s) => s.addAnnotation);
+  const removeAnnotation = useChartStore((s) => s.removeAnnotation);
+  const editAnnotation = useChartStore((s) => s.editAnnotation);
 
   const [text, setText] = useState('');
   const [emoji, setEmoji] = useState('📌');
@@ -274,7 +274,7 @@ export default function ChartAnnotationsPanel({ _onClose }) {
           <button
             onClick={() => {
               if (confirm(`Clear all ${annotations.length} annotations for ${symbol}?`)) {
-                useAnnotationStore.getState().clearSymbol(symbol);
+                useChartStore.getState().clearSymbol(symbol);
               }
             }}
             style={{

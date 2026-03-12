@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { C, M } from '../../../constants.js';
 // Wave 0: useSocialStore quarantined — social features removed from v1.0 scope
@@ -9,7 +10,7 @@ import { SectionHeader, SettingRow } from './SettingsHelpers.jsx';
 
 const AVATAR_OPTIONS = ['🔥', '🐂', '🐻', '🦈', '🦅', '🐺', '🦁', '🐲', '🦊', '🎯', '💎', '⚡', '🌊', '🏔️', '🎲', '🧠'];
 
-export default function ProfileSection() {
+function ProfileSection() {
   // Wave 0: useSocialStore quarantined — using local defaults
   const myProfile = null;
   const loadMyProfile = useCallback(() => { }, []);
@@ -61,3 +62,5 @@ export default function ProfileSection() {
     </section>
   );
 }
+
+export default React.memo(ProfileSection);

@@ -4,6 +4,7 @@
 // Sprint 14: Signal alignment across timeframes.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
@@ -29,7 +30,7 @@ const SYMBOLS = ['NVDA', 'META', 'AAPL', 'MSFT', 'GOOGL', 'TSLA', 'AMZN', 'AMD',
 const SIGNAL_COLORS = { bull: C.g, bear: C.r, neutral: '#f0b64e' };
 const SIGNAL_ICONS = { bull: '▲', bear: '▼', neutral: '—' };
 
-export default function ConfluenceView() {
+function ConfluenceView() {
   const [collapsed, setCollapsed] = useState(false);
   const [highOnly, setHighOnly] = useState(false);
 
@@ -113,3 +114,5 @@ export default function ConfluenceView() {
 }
 
 export { ConfluenceView };
+
+export default React.memo(ConfluenceView);

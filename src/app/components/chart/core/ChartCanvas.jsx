@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { useChartStore } from '../../../../state/useChartStore';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 import ChartEngineWidget from './ChartEngineWidget.jsx';
 
 /**
@@ -57,7 +57,7 @@ const ChartCanvas = React.forwardRef(function ChartCanvas(
   // If data is passed directly (from ChartsPage), sync to store
   React.useEffect(() => {
     if (data?.length) {
-      const store = useChartStore.getState();
+      const store = useChartFeaturesStore.getState();
       if (!store.data || store.data.length !== data.length) {
         setTimeout(() => store.setData(data, 'legacy'), 0);
       }

@@ -5,6 +5,7 @@
 // Positioned near ConnectionStatus component.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import offlineManager from '../../../data/engine/OfflineManager';
 import styles from './OfflineBadge.module.css';
@@ -44,4 +45,4 @@ function OfflineBadge() {
     );
 }
 
-export default OfflineBadge;
+export default React.memo(OfflineBadge);

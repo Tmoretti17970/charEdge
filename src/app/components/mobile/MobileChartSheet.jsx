@@ -9,7 +9,9 @@
 
 import { useState, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useChartStore } from '../../../state/useChartStore';
+import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
+import { useChartToolsStore } from '../../../state/chart/useChartToolsStore';
+import { useChartFeaturesStore } from '../../../state/chart/useChartFeaturesStore';
 
 
 const MOBILE_CHART_TYPES = [
@@ -36,14 +38,14 @@ const QUICK_INDICATORS = [
  * @param {Function} onFullscreen - Callback for fullscreen toggle
  */
 export default function MobileChartSheet({ isOpen, onClose, onScreenshot, onFullscreen }) {
-  const chartType = useChartStore((s) => s.chartType);
-  const setChartType = useChartStore((s) => s.setChartType);
-  const indicators = useChartStore((s) => s.indicators);
-  const addIndicator = useChartStore((s) => s.addIndicator);
-  const removeIndicator = useChartStore((s) => s.removeIndicator);
-  const showVolumeProfile = useChartStore((s) => s.showVolumeProfile);
-  const comparisonSymbol = useChartStore((s) => s.comparisonSymbol);
-  const clearComparison = useChartStore((s) => s.clearComparison);
+  const chartType = useChartCoreStore((s) => s.chartType);
+  const setChartType = useChartCoreStore((s) => s.setChartType);
+  const indicators = useChartToolsStore((s) => s.indicators);
+  const addIndicator = useChartToolsStore((s) => s.addIndicator);
+  const removeIndicator = useChartToolsStore((s) => s.removeIndicator);
+  const showVolumeProfile = useChartFeaturesStore((s) => s.showVolumeProfile);
+  const comparisonSymbol = useChartFeaturesStore((s) => s.comparisonSymbol);
+  const clearComparison = useChartFeaturesStore((s) => s.clearComparison);
 
   const [compInput, setCompInput] = useState('');
   const [showCompare, setShowCompare] = useState(false);
@@ -72,7 +74,7 @@ export default function MobileChartSheet({ isOpen, onClose, onScreenshot, onFull
   const handleAddComparison = useCallback(() => {
     const sym = compInput.trim().toUpperCase();
     if (!sym) return;
-    useChartStore.setState({ comparisonSymbol: sym, comparisonData: null });
+    useChartFeaturesStore.setState({ comparisonSymbol: sym, comparisonData: null });
     setCompInput('');
     setShowCompare(false);
   }, [compInput]);
@@ -275,7 +277,7 @@ export default function MobileChartSheet({ isOpen, onClose, onScreenshot, onFull
               icon="📊"
               label={showVolumeProfile ? 'VP On' : 'VP Off'}
               active={showVolumeProfile}
-              onClick={() => useChartStore.setState((s) => ({ showVolumeProfile: !s.showVolumeProfile }))}
+              onClick={() => useChartCoreStore.setState((s) => ({ showVolumeProfile: !s.showVolumeProfile }))}
             />
           </div>
         </Section>

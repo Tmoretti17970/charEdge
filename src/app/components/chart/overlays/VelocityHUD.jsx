@@ -5,6 +5,7 @@
 // Rolling 5s/30s/5m windows with acceleration indicator.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 const WINDOWS = [
@@ -36,7 +37,7 @@ function formatVelocity(v) {
  * @param {Array<{price: number, timestamp: number}>} props.ticks - recent tick data
  * @param {boolean} props.visible - whether to show the HUD
  */
-export default function VelocityHUD({ ticks = [], visible = true }) {
+function VelocityHUD({ ticks = [], visible = true }) {
   const [velocities, setVelocities] = useState({});
   const prevVelocityRef = useRef(0);
   // P2 2.5: Dimmed auto-fade after 10s of no data change
@@ -147,3 +148,5 @@ export default function VelocityHUD({ ticks = [], visible = true }) {
     </div>
   );
 }
+
+export default React.memo(VelocityHUD);

@@ -5,11 +5,12 @@
 
 import { useEffect, useRef, useMemo, useCallback, useState } from 'react';
 import { C, M } from '../../../../constants.js';
-import { useChartStore } from '../../../../state/useChartStore';
 import { useJournalStore } from '../../../../state/useJournalStore';
 import { fmtD } from '../../../../utils.js';
 import { useChartBars } from '../../../hooks/useChartBars.js';
 import { Btn } from '../../ui/UIKit.jsx';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 
 const SPEEDS = [
   { label: '0.5×', ms: 1000 },
@@ -20,18 +21,18 @@ const SPEEDS = [
 ];
 
 export default function ReplayBar() {
-  const replayMode = useChartStore((s) => s.replayMode);
-  const replayIdx = useChartStore((s) => s.replayIdx);
-  const replayPlaying = useChartStore((s) => s.replayPlaying);
+  const replayMode = useChartFeaturesStore((s) => s.replayMode);
+  const replayIdx = useChartFeaturesStore((s) => s.replayIdx);
+  const replayPlaying = useChartFeaturesStore((s) => s.replayPlaying);
   const data = useChartBars();
-  const backtestTrades = useChartStore((s) => s.backtestTrades);
-  const activeGhost = useChartStore((s) => s.activeGhost);
+  const backtestTrades = useChartFeaturesStore((s) => s.backtestTrades);
+  const activeGhost = useChartFeaturesStore((s) => s.activeGhost);
 
-  const setReplayIdx = useChartStore((s) => s.setReplayIdx);
-  const setReplayPlaying = useChartStore((s) => s.setReplayPlaying);
-  const addBacktestTrade = useChartStore((s) => s.addBacktestTrade);
-  const setActiveGhost = useChartStore((s) => s.setActiveGhost);
-  const toggleReplay = useChartStore((s) => s.toggleReplay);
+  const setReplayIdx = useChartFeaturesStore((s) => s.setReplayIdx);
+  const setReplayPlaying = useChartFeaturesStore((s) => s.setReplayPlaying);
+  const addBacktestTrade = useChartFeaturesStore((s) => s.addBacktestTrade);
+  const setActiveGhost = useChartFeaturesStore((s) => s.setActiveGhost);
+  const toggleReplay = useChartFeaturesStore((s) => s.toggleReplay);
 
   const [speedIdx, setSpeedIdx] = useState(1);
   const [ghostSide, setGhostSide] = useState('long');
@@ -43,12 +44,12 @@ export default function ReplayBar() {
   useEffect(() => {
     if (replayPlaying && replayIdx < totalBars - 1) {
       intervalRef.current = setInterval(() => {
-        const current = useChartStore.getState().replayIdx;
-        const max = (useChartStore.getState().barCount || 1) - 1;
+        const current = useChartFeaturesStore.getState().replayIdx;
+        const max = (useChartCoreStore.getState().barCount || 1) - 1;
         if (current >= max) {
-          useChartStore.getState().setReplayPlaying(false);
+          useChartFeaturesStore.getState().setReplayPlaying(false);
         } else {
-          useChartStore.getState().setReplayIdx(current + 1);
+          useChartFeaturesStore.getState().setReplayIdx(current + 1);
         }
       }, SPEEDS[speedIdx].ms);
     }
@@ -100,7 +101,7 @@ export default function ReplayBar() {
 
   // J2.7: Match journal trades to replay bars for annotations
   const journalTrades = useJournalStore((s) => s.trades);
-  const currentSymbol = useChartStore((s) => s.symbol);
+  const currentSymbol = useChartCoreStore((s) => s.symbol);
 
   // Build a map of bar-time → journal trade for current symbol
   const tradeAnnotations = useMemo(() => {

@@ -6,12 +6,13 @@
 // Displayed in Settings → Telemetry section.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useDataStore } from '../../../state/useDataStore.js';
 import { alpha } from '@/shared/colorUtils';
 
-export default function DiscoverMetrics() {
+function DiscoverMetrics() {
   const [expanded, setExpanded] = useState(false);
 
   const tabDwellTimes = useDataStore((s) => s.tabDwellTimes);
@@ -246,3 +247,5 @@ function FunnelRow({ label, rate, numerator, denominator }) {
 }
 
 export { DiscoverMetrics };
+
+export default React.memo(DiscoverMetrics);

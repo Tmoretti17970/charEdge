@@ -9,6 +9,7 @@
 // Phase 1 Task 1.1.1: Financial disclaimer on ALL AI features
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { C, F } from '../../../constants.js';
 
 const DISCLAIMER_TEXT =
@@ -22,7 +23,7 @@ const DISCLAIMER_SHORT =
  * @param {'banner' | 'inline'} [variant='banner'] - Display variant
  * @param {Object} [style] - Additional styles
  */
-export default function FinancialDisclaimer({ variant = 'banner', style }) {
+function FinancialDisclaimer({ variant = 'banner', style }) {
     if (variant === 'inline') {
         return (
             <div
@@ -69,3 +70,5 @@ export default function FinancialDisclaimer({ variant = 'banner', style }) {
 }
 
 export { FinancialDisclaimer, DISCLAIMER_TEXT, DISCLAIMER_SHORT };
+
+export default React.memo(FinancialDisclaimer);

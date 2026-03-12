@@ -4,6 +4,7 @@
 // Sprint 19: Community consensus overlay for research validation.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
@@ -23,7 +24,7 @@ const TOP_IDEAS = [
   { rank: 3, author: 'MacroAlpha', symbol: 'GLD', title: 'Gold as Inflation Hedge 2026', return: '+6.2%', votes: 215 },
 ];
 
-export default function SocialValidation() {
+function SocialValidation() {
   const [collapsed, setCollapsed] = useState(false);
   const [tab, setTab] = useState('consensus'); // 'consensus' | 'ideas'
 
@@ -119,3 +120,5 @@ export default function SocialValidation() {
 }
 
 export { SocialValidation };
+
+export default React.memo(SocialValidation);

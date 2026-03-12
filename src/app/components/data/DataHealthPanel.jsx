@@ -12,6 +12,7 @@
 // Accessible from PipelineDevTools or Settings page.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { logger } from '@/observability/logger';
 // ─── Styles ────────────────────────────────────────────────────
@@ -115,7 +116,7 @@ function formatBytes(bytes) {
 
 // ─── Component ─────────────────────────────────────────────────
 
-export default function DataHealthPanel() {
+function DataHealthPanel() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -367,3 +368,5 @@ export default function DataHealthPanel() {
     </div>
   );
 }
+
+export default React.memo(DataHealthPanel);

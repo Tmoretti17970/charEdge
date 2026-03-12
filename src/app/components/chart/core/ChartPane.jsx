@@ -8,7 +8,7 @@
 //   - indicators (local state, not global store)
 //   - drawings (local state)
 //
-// Unlike ChartsPage which uses global useChartStore, ChartPane is
+// Unlike ChartsPage which uses global useChartFeaturesStore, ChartPane is
 // self-contained so multiple instances can coexist in a dockable layout.
 //
 // Props:

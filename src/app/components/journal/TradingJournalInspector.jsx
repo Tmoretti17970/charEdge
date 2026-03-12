@@ -163,6 +163,9 @@ export default function TradingJournalInspector({ trade, isOpen, onClose, onSave
     const [reflectionAnswers, setReflectionAnswers] = useState({});
     const [reflectionOpen, setReflectionOpen] = useState(false);
 
+    // #44: Advanced sections collapsed by default
+    const [showAdvanced, setShowAdvanced] = useState(false);
+
     // Hydrate reflections from localStorage when trade changes
     useEffect(() => {
         if (!trade?.id) { setReflectionAnswers({}); return; }
@@ -293,6 +296,29 @@ export default function TradingJournalInspector({ trade, isOpen, onClose, onSave
         handleClose();
     }, [trade, form, reflectionAnswers, updateTrade, onSave, handleClose]);
 
+    // #43: Review Later — saves with pending flag + queues for batch review
+    const handleReviewLater = useCallback(() => {
+        if (!trade) return;
+        const update = {
+            ...trade,
+            emotion: form.emotion,
+            notes: form.notes.trim(),
+            tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
+            reviewPending: true,
+        };
+        if (updateTrade) updateTrade(trade.id, update);
+        // Queue in localStorage
+        try {
+            const queue = JSON.parse(localStorage.getItem('tf_review_queue') || '[]');
+            if (!queue.includes(trade.id)) {
+                queue.push(trade.id);
+                localStorage.setItem('tf_review_queue', JSON.stringify(queue));
+            }
+        } catch { /* best effort */ }
+        if (typeof onSave === 'function') onSave(update);
+        handleClose();
+    }, [trade, form, updateTrade, onSave, handleClose]);
+
     // ─── Don't render when closed ─────────────────────────────────
     if (!isOpen && !closing) return null;
 
@@ -329,7 +355,42 @@ export default function TradingJournalInspector({ trade, isOpen, onClose, onSave
 
                 {/* ─── Scrollable Body ────────────────────────── */}
                 <div className={css.body}>
-                    {/* ═══ Psychological Dimensions ═══ */}
+                    {/* ═══ Emotion Chips (always visible — #44) ═══ */}
+                    <div className={css.sectionLabel}>Emotion</div>
+                    <div className={css.emotionRow}>
+                        {DEFAULT_EMOTIONS.map((em) => (
+                            <button
+                                key={em.l}
+                                className={`${css.emotionBtn} ${form.emotion === em.l ? css.active : ''}`}
+                                onClick={() => set('emotion', form.emotion === em.l ? '' : em.l)}
+                                title={em.l}
+                                aria-pressed={form.emotion === em.l}
+                            >
+                                {em.e}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* #44: Advanced toggle */}
+                    <button
+                        className="tf-interactive tf-press"
+                        onClick={() => setShowAdvanced((v) => !v)}
+                        style={{
+                            width: '100%', padding: '6px 10px', marginBottom: 8,
+                            background: showAdvanced ? 'rgba(255,255,255,0.04)' : 'transparent',
+                            border: `1px solid ${showAdvanced ? C.bd : 'transparent'}`,
+                            borderRadius: 8, cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: 6,
+                            fontSize: 11, fontWeight: 600, color: C.t3,
+                        }}
+                    >
+                        <span style={{ fontSize: 10, transition: 'transform 0.2s', transform: showAdvanced ? 'rotate(90deg)' : 'rotate(0)' }}>▶</span>
+                        ⚙️ Advanced
+                        <span style={{ marginLeft: 'auto', fontSize: 9, opacity: 0.6 }}>{showAdvanced ? 'Hide' : 'Show'}</span>
+                    </button>
+
+                    {/* ═══ Advanced: Psychological Dimensions ═══ */}
+                    {showAdvanced && (<>
                     <div className={css.sectionLabel}>Psychological State</div>
                     <div className={css.sliderGroup}>
                         <PsychSlider
@@ -346,7 +407,7 @@ export default function TradingJournalInspector({ trade, isOpen, onClose, onSave
                         />
                     </div>
 
-                    {/* ═══ Pre/Post Mood ═══ */}
+                    {/* ═══ Advanced: Pre/Post Mood ═══ */}
                     <div className={css.sectionLabel}>Emotional Drift</div>
                     <div className={css.moodRow}>
                         <PsychSlider
@@ -369,23 +430,7 @@ export default function TradingJournalInspector({ trade, isOpen, onClose, onSave
                         />
                     </div>
 
-                    {/* ═══ Emotion Chips ═══ */}
-                    <div className={css.sectionLabel}>Emotion</div>
-                    <div className={css.emotionRow}>
-                        {DEFAULT_EMOTIONS.map((em) => (
-                            <button
-                                key={em.l}
-                                className={`${css.emotionBtn} ${form.emotion === em.l ? css.active : ''}`}
-                                onClick={() => set('emotion', form.emotion === em.l ? '' : em.l)}
-                                title={em.l}
-                                aria-pressed={form.emotion === em.l}
-                            >
-                                {em.e}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* ═══ Technical Confluences ═══ */}
+                    {/* ═══ Advanced: Technical Confluences ═══ */}
                     <div className={css.sectionLabel}>Confluences</div>
                     <div className={css.badgeCloud}>
                         {CONFLUENCE_OPTIONS.map((c) => (
@@ -400,7 +445,7 @@ export default function TradingJournalInspector({ trade, isOpen, onClose, onSave
                         ))}
                     </div>
 
-                    {/* ═══ Triggers ═══ */}
+                    {/* ═══ Advanced: Triggers ═══ */}
                     <div className={css.sectionLabel}>Active Triggers</div>
                     <div className={css.triggerGrid}>
                         {TRIGGER_OPTIONS.map((t) => (
@@ -469,6 +514,7 @@ export default function TradingJournalInspector({ trade, isOpen, onClose, onSave
                             ))}
                         </div>
                     )}
+                    </>)}
 
                     {/* ═══ Execution Notes ═══ */}
                     <div className={css.sectionLabel}>Execution Notes</div>
@@ -490,10 +536,25 @@ export default function TradingJournalInspector({ trade, isOpen, onClose, onSave
                         placeholder="comma-separated tags"
                     />
 
-                    {/* ═══ Save ═══ */}
-                    <button className={css.saveBtn} onClick={handleSave}>
-                        Save Journal Entry
-                    </button>
+                    {/* ═══ Save / Review Later ═══ */}
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        <button className={css.saveBtn} onClick={handleSave} style={{ flex: 1 }}>
+                            Save Entry
+                        </button>
+                        <button
+                            className={css.saveBtn}
+                            onClick={handleReviewLater}
+                            style={{
+                                flex: 'none', padding: '0 14px',
+                                background: 'rgba(255,255,255,0.04)',
+                                border: `1px solid ${C.bd}`,
+                                color: C.t2,
+                            }}
+                            title="Save basics now, review psychology later"
+                        >
+                            Review Later
+                        </button>
+                    </div>
                 </div>
             </div>
         </>

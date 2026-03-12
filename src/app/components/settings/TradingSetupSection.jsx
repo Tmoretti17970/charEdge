@@ -1,3 +1,4 @@
+import React from 'react';
 import { C, F } from '../../../constants.js';
 import { useUserStore } from '../../../state/useUserStore';
 import { radii } from '../../../theme/tokens.js';
@@ -6,7 +7,7 @@ import { listPresets } from '../../features/trading/RiskPresets.js';
 import { Card, inputStyle } from '../ui/UIKit.jsx';
 import { SectionHeader, SettingRow } from './SettingsHelpers.jsx';
 
-export default function TradingSetupSection() {
+function TradingSetupSection() {
   const accountSize = useUserStore((s) => s.accountSize);
   const riskPerTrade = useUserStore((s) => s.riskPerTrade);
   const dailyLossLimit = useUserStore((s) => s.dailyLossLimit);
@@ -98,3 +99,5 @@ export default function TradingSetupSection() {
     </section>
   );
 }
+
+export default React.memo(TradingSetupSection);

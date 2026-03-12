@@ -6,6 +6,7 @@
 // Shows name, description, rarity tag, and unlock date.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useGamificationStore, ACHIEVEMENTS, RANKS, getRankForXP, getXPToNextLevel } from '../../../state/useGamificationStore';
@@ -223,7 +224,7 @@ function AchievementBadge({ achievement, unlockData }) {
 
 // ─── Main Shelf Component ───────────────────────────────────────
 
-export default function AchievementShelf() {
+function AchievementShelf() {
   const achievements = useGamificationStore((s) => s.achievements);
   const enabled = useGamificationStore((s) => s.enabled);
   const toggleEnabled = useGamificationStore((s) => s.toggleEnabled);
@@ -332,3 +333,5 @@ export default function AchievementShelf() {
 }
 
 export { AchievementShelf };
+
+export default React.memo(AchievementShelf);

@@ -6,6 +6,7 @@
 // Integrates with usePaperTradeStore (paper) and AlpacaAdapter (live).
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useCallback, useMemo } from 'react';
 import { alpacaAdapter } from '../../../../data/adapters/AlpacaAdapter.js';
 import { usePaperTradeStore, ORDER_TYPES, POSITION_SIDE } from '../../../../state/usePaperTradeStore';
@@ -15,7 +16,7 @@ const SIDE_COLORS = {
   sell: { bg: 'rgba(239, 68, 68, 0.15)', border: '#ef4444', text: '#f87171' },
 };
 
-export default function OrderEntryOverlay({
+function OrderEntryOverlay({
   symbol,
   price,
   currentPrice,
@@ -356,3 +357,5 @@ export default function OrderEntryOverlay({
     </div>
   );
 }
+
+export default React.memo(OrderEntryOverlay);

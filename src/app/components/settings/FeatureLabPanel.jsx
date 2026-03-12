@@ -9,6 +9,7 @@
 // Accessed from Settings → Feature Lab tab.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { trackFeatureUse } from '../../../observability/telemetry';
@@ -165,7 +166,7 @@ function FeatureRow({ id, requiredTier, unlocked, manuallyUnlocked, currentTier 
   );
 }
 
-export default function FeatureLabPanel() {
+function FeatureLabPanel() {
   const tier = useUserStore((s) => s.tier);
   const tradeCount = useUserStore((s) => s.tradeCount);
   const getAllFeatures = useUserStore((s) => s.getAllFeatures);
@@ -313,3 +314,5 @@ export default function FeatureLabPanel() {
     </div>
   );
 }
+
+export default React.memo(FeatureLabPanel);
