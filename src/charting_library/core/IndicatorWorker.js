@@ -22,7 +22,7 @@ let wasmModule = null;
 
 async function initWasm() {
   try {
-    const wasm = await import('./wasmBridge.js');
+    const wasm = await import(/* @vite-ignore */ './wasmBridge.js');
     await wasm.wasmReady;
     if (wasm.isWasmAvailable()) {
       wasmModule = wasm;
