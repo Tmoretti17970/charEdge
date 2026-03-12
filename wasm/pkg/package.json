@@ -1,0 +1,16 @@
+{
+  "name": "charedge-wasm",
+  "type": "module",
+  "description": "High-performance technical indicator engine for charEdge",
+  "version": "0.1.0",
+  "files": [
+    "charedge_wasm_bg.wasm",
+    "charedge_wasm.js",
+    "charedge_wasm.d.ts"
+  ],
+  "main": "charedge_wasm.js",
+  "types": "charedge_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
