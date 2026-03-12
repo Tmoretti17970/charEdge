@@ -23,7 +23,7 @@ function initWasm() {
   initPromise = (async () => {
     try {
       // Dynamic import of the wasm-pack generated module
-      const wasm = await import('../../../wasm/pkg/charedge_wasm.js');
+      const wasm = await import(/* @vite-ignore */ '../../../wasm/pkg/charedge_wasm.js');
       await wasm.default();
       wasmModule = wasm;
       return true;
