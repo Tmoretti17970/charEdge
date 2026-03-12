@@ -14,6 +14,27 @@ import { C, F, M } from '../constants.js';
 
 export const CHANGELOG_ENTRIES = [
   {
+    version: '11.2.0',
+    date: '2026-03-11',
+    tag: 'minor',
+    title: 'Chart UX & Infrastructure',
+    items: [
+      { type: 'new', text: 'Timezone selector in status bar — live clock with selectable timezone display' },
+      { type: 'new', text: 'P&L pill redesign — dropdown menu below pill instead of inline expansion, auto-fit button alongside' },
+      { type: 'new', text: 'Drawing tools template bar — quick-access toolbar for chart annotations' },
+      { type: 'new', text: 'Dashboard narrative layout — hero stats, narrative sections, per-widget loading' },
+      { type: 'new', text: 'WASM indicator engine — compiled and packaged for production builds' },
+      { type: 'polish', text: 'Dark mode briefing tiles — replaced washed-out GLASS.subtle with relative tint for proper surface elevation' },
+      { type: 'polish', text: 'Indicators default to off — EMA/SMA no longer reappear on page reload' },
+      { type: 'polish', text: 'P2P social modules quarantined — cleaner codebase with unused modules moved to _quarantine' },
+      { type: 'perf', text: 'API proxy security hardening — rate limiting, CSP headers, encrypted key storage across 7 endpoints' },
+      { type: 'fix', text: 'Duplicate Live badge removed — LiveTicker and DataSourceBadge no longer both render' },
+      { type: 'fix', text: 'Timeframe switching unstuck — chart no longer locked to 1h interval' },
+      { type: 'fix', text: 'Vercel build fixes — WASM imports with vite-ignore, worker format set to ES modules' },
+      { type: 'fix', text: 'LLMService import path corrected — src/ai/ instead of src/intelligence/' },
+    ],
+  },
+  {
     version: '11.1.0',
     date: '2026-03-06',
     tag: 'minor',

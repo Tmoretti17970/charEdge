@@ -15,6 +15,23 @@ const STORAGE_KEY = 'charedge_last_seen_version';
  */
 const CHANGELOG = [
     {
+        version: '11.2.0',
+        date: '2026-03-11',
+        changes: [
+            { type: 'feature', text: 'Timezone selector — live clock in status bar with selectable timezone' },
+            { type: 'feature', text: 'P&L pill redesign — dropdown menu below pill, auto-fit button alongside' },
+            { type: 'feature', text: 'Drawing tools template bar for chart annotations' },
+            { type: 'feature', text: 'Dashboard narrative layout — hero stats, narrative sections' },
+            { type: 'feature', text: 'WASM indicator engine packaged for production' },
+            { type: 'improvement', text: 'Dark mode briefing tiles — proper surface elevation colors' },
+            { type: 'improvement', text: 'Indicators default to off — no more ghost EMA/SMA on reload' },
+            { type: 'improvement', text: 'API proxy security — rate limiting, CSP, encrypted keys' },
+            { type: 'fix', text: 'Duplicate Live badge removed from chart header' },
+            { type: 'fix', text: 'Timeframe switching no longer stuck on 1h' },
+            { type: 'fix', text: 'Vercel build — WASM imports + worker format fixes' },
+        ],
+    },
+    {
         version: '11.1.0',
         date: '2026-03-06',
         changes: [
@@ -59,7 +76,7 @@ const TYPE_COLORS = {
     breaking: 'var(--c-accent-red, #EF5350)',
 };
 
-const WhatsNewModal = memo(function WhatsNewModal({ currentVersion = '11.1.0' }) {
+const WhatsNewModal = memo(function WhatsNewModal({ currentVersion = '11.2.0' }) {
     const [visible, setVisible] = useState(false);
 
     useEffect(() => {
