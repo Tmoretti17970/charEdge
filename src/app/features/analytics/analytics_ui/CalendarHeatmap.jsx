@@ -30,10 +30,10 @@ function getCellColor(pnl, maxAbsPnl) {
 
   if (pnl > 0) {
     // Green spectrum: light → deep green
-    return `rgba(16, 185, 129, ${alpha.toFixed(2)})`;  // emerald
+    return `rgba(16, 185, 129, ${alpha.toFixed(2)})`; // emerald
   } else {
     // Red spectrum: light → deep red
-    return `rgba(239, 68, 68, ${alpha.toFixed(2)})`;   // red
+    return `rgba(239, 68, 68, ${alpha.toFixed(2)})`; // red
   }
 }
 
@@ -48,12 +48,19 @@ function buildCalendarData(equityCurve, trades) {
     }
   }
 
-  // Count trades per day
+  // Count trades, rule-breaks, and leaks per day
   const tradeCountMap = {};
+  const ruleBreakCountMap = {};
+  const leakCountMap = {};
+  const LEAK_TAGS = ['REVENGE_TRADE', 'FOMO_ENTRY', 'OVERSIZED', 'HOPE_TRADING'];
   if (trades?.length) {
     for (const t of trades) {
       const dateKey = t.date?.slice(0, 10);
-      if (dateKey) tradeCountMap[dateKey] = (tradeCountMap[dateKey] || 0) + 1;
+      if (dateKey) {
+        tradeCountMap[dateKey] = (tradeCountMap[dateKey] || 0) + 1;
+        if (t.ruleBreak) ruleBreakCountMap[dateKey] = (ruleBreakCountMap[dateKey] || 0) + 1;
+        if (t.tags?.some((tag) => LEAK_TAGS.includes(tag))) leakCountMap[dateKey] = (leakCountMap[dateKey] || 0) + 1;
+      }
     }
   }
 
@@ -96,6 +103,8 @@ function buildCalendarData(equityCurve, trades) {
         pnl: isFuture ? null : (data?.pnl ?? null),
         cumPnl: data?.cumPnl ?? null,
         trades: tradeCountMap[dateStr] || 0,
+        ruleBreaks: ruleBreakCountMap[dateStr] || 0,
+        leaks: leakCountMap[dateStr] || 0,
         isFuture,
         isToday: dateStr === today.toISOString().slice(0, 10),
       });
@@ -115,8 +124,15 @@ function Tooltip({ cell, style }) {
   if (!cell) return null;
 
   const dateObj = new Date(cell.date + 'T12:00:00');
-  const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  const dateStr = dateObj.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
   const hasPnl = cell.pnl !== null && cell.pnl !== undefined;
+  const hasRuleBreak = cell.ruleBreaks > 0;
+  const hasLeak = cell.leaks > 0;
 
   return (
     <div
@@ -139,12 +155,30 @@ function Tooltip({ cell, style }) {
       </div>
       {hasPnl ? (
         <>
-          <div style={{ fontSize: 13, fontWeight: 800, color: cell.pnl >= 0 ? '#10B981' : '#EF4444', fontFamily: M, fontVariantNumeric: 'tabular-nums' }}>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 800,
+              color: cell.pnl >= 0 ? '#10B981' : '#EF4444',
+              fontFamily: M,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
             {cell.pnl >= 0 ? '+' : ''}${cell.pnl.toFixed(2)}
           </div>
           {cell.trades > 0 && (
             <div style={{ fontSize: 10, color: C.t3 || '#9CA3AF', marginTop: 2, fontFamily: M }}>
               {cell.trades} trade{cell.trades !== 1 ? 's' : ''}
+            </div>
+          )}
+          {hasRuleBreak && (
+            <div style={{ fontSize: 10, color: '#f0b64e', marginTop: 3, fontFamily: M, fontWeight: 700 }}>
+              ⚠️ {cell.ruleBreaks} rule break{cell.ruleBreaks !== 1 ? 's' : ''}
+            </div>
+          )}
+          {hasLeak && (
+            <div style={{ fontSize: 10, color: '#FF453A', marginTop: 2, fontFamily: M, fontWeight: 700 }}>
+              🚨 {cell.leaks} leak{cell.leaks !== 1 ? 's' : ''}
             </div>
           )}
         </>
@@ -182,10 +216,16 @@ function Legend() {
 
 function SummaryStats({ weeks }) {
   const stats = useMemo(() => {
-    let totalDays = 0, profitDays = 0, lossDays = 0, totalPnl = 0;
+    let totalDays = 0,
+      profitDays = 0,
+      lossDays = 0,
+      totalPnl = 0;
     let bestDay = { pnl: -Infinity, date: '' };
     let worstDay = { pnl: Infinity, date: '' };
-    let currentStreak = 0, bestStreak = 0, worstStreak = 0, currentLoss = 0;
+    let currentStreak = 0,
+      bestStreak = 0,
+      worstStreak = 0,
+      currentLoss = 0;
 
     for (const week of weeks) {
       for (const cell of week) {
@@ -215,17 +255,55 @@ function SummaryStats({ weeks }) {
     { label: 'Trading Days', value: stats.totalDays, color: C.t1 },
     { label: 'Green Days', value: stats.profitDays, color: '#10B981' },
     { label: 'Red Days', value: stats.lossDays, color: '#EF4444' },
-    { label: 'Total P&L', value: `${stats.totalPnl >= 0 ? '+' : ''}$${stats.totalPnl.toFixed(0)}`, color: stats.totalPnl >= 0 ? '#10B981' : '#EF4444' },
-    { label: 'Best Day', value: stats.bestDay.pnl > -Infinity ? `+$${stats.bestDay.pnl.toFixed(0)}` : '—', color: '#10B981' },
-    { label: 'Worst Day', value: stats.worstDay.pnl < Infinity ? `-$${Math.abs(stats.worstDay.pnl).toFixed(0)}` : '—', color: '#EF4444' },
+    {
+      label: 'Total P&L',
+      value: `${stats.totalPnl >= 0 ? '+' : ''}$${stats.totalPnl.toFixed(0)}`,
+      color: stats.totalPnl >= 0 ? '#10B981' : '#EF4444',
+    },
+    {
+      label: 'Best Day',
+      value: stats.bestDay.pnl > -Infinity ? `+$${stats.bestDay.pnl.toFixed(0)}` : '—',
+      color: '#10B981',
+    },
+    {
+      label: 'Worst Day',
+      value: stats.worstDay.pnl < Infinity ? `-$${Math.abs(stats.worstDay.pnl).toFixed(0)}` : '—',
+      color: '#EF4444',
+    },
   ];
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 8, marginBottom: 16 }}>
+    <div
+      style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 8, marginBottom: 16 }}
+    >
       {statItems.map((s) => (
-        <div key={s.label} style={{ background: `${C.bg2 || '#111827'}`, border: `1px solid ${C.bd || '#1F2937'}40`, borderRadius: 8, padding: '8px 10px' }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: C.t3 || '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2, fontFamily: M }}>{s.label}</div>
-          <div style={{ fontSize: 14, fontWeight: 800, color: s.color, fontFamily: M, fontVariantNumeric: 'tabular-nums' }}>{s.value}</div>
+        <div
+          key={s.label}
+          style={{
+            background: `${C.bg2 || '#111827'}`,
+            border: `1px solid ${C.bd || '#1F2937'}40`,
+            borderRadius: 8,
+            padding: '8px 10px',
+          }}
+        >
+          <div
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              color: C.t3 || '#9CA3AF',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              marginBottom: 2,
+              fontFamily: M,
+            }}
+          >
+            {s.label}
+          </div>
+          <div
+            style={{ fontSize: 14, fontWeight: 800, color: s.color, fontFamily: M, fontVariantNumeric: 'tabular-nums' }}
+          >
+            {s.value}
+          </div>
         </div>
       ))}
     </div>
@@ -238,6 +316,20 @@ function CalendarHeatmap({ eq, trades }) {
   const [tooltip, setTooltip] = useState(null);
 
   const { weeks, monthLabels } = useMemo(() => buildCalendarData(eq, trades), [eq, trades]);
+
+  // Compute rule-break and behavioral leak day sets
+  const { ruleBreakDays, leakDays } = useMemo(() => {
+    const rb = new Set();
+    const lk = new Set();
+    const LEAK_TAGS = ['REVENGE_TRADE', 'FOMO_ENTRY', 'OVERSIZED', 'HOPE_TRADING'];
+    for (const t of trades || []) {
+      const dateKey = t.date?.slice(0, 10);
+      if (!dateKey) continue;
+      if (t.ruleBreak) rb.add(dateKey);
+      if (t.tags?.some((tag) => LEAK_TAGS.includes(tag))) lk.add(dateKey);
+    }
+    return { ruleBreakDays: rb, leakDays: lk };
+  }, [trades]);
 
   // Compute max absolute P&L for color scaling
   const maxAbsPnl = useMemo(() => {
@@ -339,6 +431,7 @@ function CalendarHeatmap({ eq, trades }) {
                       transition: 'transform 0.1s, box-shadow 0.1s',
                       outline: cell.isToday ? `2px solid ${C.b || '#00D4AA'}` : 'none',
                       outlineOffset: -1,
+                      position: 'relative',
                     }}
                     onMouseOver={(e) => {
                       if (!cell.isFuture) e.currentTarget.style.transform = 'scale(1.3)';
@@ -346,7 +439,40 @@ function CalendarHeatmap({ eq, trades }) {
                     onMouseOut={(e) => {
                       e.currentTarget.style.transform = 'scale(1)';
                     }}
-                  />
+                  >
+                    {/* Rule-break indicator (amber dot) */}
+                    {ruleBreakDays.has(cell.date) && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: -2,
+                          right: -2,
+                          width: 5,
+                          height: 5,
+                          borderRadius: '50%',
+                          background: '#f0b64e',
+                          border: '1px solid #08090a',
+                          zIndex: 1,
+                        }}
+                      />
+                    )}
+                    {/* Auto-detected leak indicator (red dot) */}
+                    {!ruleBreakDays.has(cell.date) && leakDays.has(cell.date) && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: -2,
+                          right: -2,
+                          width: 5,
+                          height: 5,
+                          borderRadius: '50%',
+                          background: '#FF453A',
+                          border: '1px solid #08090a',
+                          zIndex: 1,
+                        }}
+                      />
+                    )}
+                  </div>
                 ))}
               </div>
             ))}

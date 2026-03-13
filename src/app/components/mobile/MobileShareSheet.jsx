@@ -38,7 +38,7 @@ export default function MobileShareSheet({ isOpen, onClose, canvas, chartInfo = 
       canvas.toBlob((blob) => {
         if (blob) setImageBlob(blob);
       }, 'image/png');
-    // eslint-disable-next-line unused-imports/no-unused-vars
+      // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       toast.error('Failed to capture chart');
       onClose();
@@ -74,7 +74,7 @@ export default function MobileShareSheet({ isOpen, onClose, canvas, chartInfo = 
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': imageBlob })]);
       toast.success('Copied to clipboard');
       onClose();
-    // eslint-disable-next-line unused-imports/no-unused-vars
+      // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       toast.error('Clipboard not available');
     }
@@ -94,7 +94,6 @@ export default function MobileShareSheet({ isOpen, onClose, canvas, chartInfo = 
 
   // ─── Post to Social Feed ──────────────────────────────────
   const handlePostToFeed = useCallback(async () => {
-    // Wave 0: Social features quarantined — post to feed disabled
     toast.info('Social sharing coming soon!');
     onClose();
   }, [onClose]);
@@ -191,7 +190,6 @@ export default function MobileShareSheet({ isOpen, onClose, canvas, chartInfo = 
             Cancel
           </button>
         </div>
-
       </div>
     </>
   );

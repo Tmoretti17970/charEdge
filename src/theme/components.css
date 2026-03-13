@@ -86,12 +86,17 @@
 
 @media (pointer: fine) {
   .tf-card-hover {
-    transition: transform var(--tf-transition-base), box-shadow var(--tf-transition-base), border-color var(--tf-transition-base);
+    transition:
+      transform var(--tf-transition-base),
+      box-shadow var(--tf-transition-base),
+      border-color var(--tf-transition-base);
   }
 
   .tf-card-hover:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.25),
+      0 2px 8px rgba(0, 0, 0, 0.15);
     border-color: var(--tf-bd2);
   }
 
@@ -159,7 +164,10 @@
   border: var(--tf-glass-border);
   border-radius: var(--tf-radius-lg);
   box-shadow: var(--tf-shadow-2), var(--tf-inner-glow);
-  transition: border-color var(--tf-transition-base), box-shadow var(--tf-transition-base), transform var(--tf-transition-base);
+  transition:
+    border-color var(--tf-transition-base),
+    box-shadow var(--tf-transition-base),
+    transform var(--tf-transition-base);
 }
 
 @media (pointer: fine) {
@@ -182,7 +190,11 @@
   box-shadow: var(--tf-shadow-1), var(--tf-inner-glow);
   color: var(--tf-t1);
   cursor: pointer;
-  transition: background var(--tf-transition-fast), border-color var(--tf-transition-fast), box-shadow var(--tf-transition-fast), transform var(--tf-transition-micro);
+  transition:
+    background var(--tf-transition-fast),
+    border-color var(--tf-transition-fast),
+    box-shadow var(--tf-transition-fast),
+    transform var(--tf-transition-micro);
 }
 
 .tf-glass-btn:hover {
@@ -207,20 +219,29 @@
 
 .tf-glow-positive {
   border-color: rgba(45, 212, 160, 0.25) !important;
-  box-shadow: 0 0 20px rgba(45, 212, 160, 0.06), inset 0 0 20px rgba(45, 212, 160, 0.03);
+  box-shadow:
+    0 0 20px rgba(45, 212, 160, 0.06),
+    inset 0 0 20px rgba(45, 212, 160, 0.03);
   animation: glowPulseGreen 3s ease-in-out infinite;
 }
 
 .tf-glow-negative {
   border-color: rgba(242, 92, 92, 0.25) !important;
-  box-shadow: 0 0 20px rgba(242, 92, 92, 0.06), inset 0 0 20px rgba(242, 92, 92, 0.03);
+  box-shadow:
+    0 0 20px rgba(242, 92, 92, 0.06),
+    inset 0 0 20px rgba(242, 92, 92, 0.03);
   animation: glowPulseRed 3s ease-in-out infinite;
 }
 
 /* ═══ Button & Interactive Styles ════════════════════════════════ */
 
 .tf-btn {
-  transition: background var(--tf-transition-fast), color var(--tf-transition-fast), border-color var(--tf-transition-fast), transform var(--tf-transition-micro), box-shadow var(--tf-transition-fast);
+  transition:
+    background var(--tf-transition-fast),
+    color var(--tf-transition-fast),
+    border-color var(--tf-transition-fast),
+    transform var(--tf-transition-micro),
+    box-shadow var(--tf-transition-fast);
 }
 
 .tf-btn:active {
@@ -228,7 +249,10 @@
 }
 
 .tf-icon-btn {
-  transition: background var(--tf-transition-fast), color var(--tf-transition-fast), transform var(--tf-transition-micro);
+  transition:
+    background var(--tf-transition-fast),
+    color var(--tf-transition-fast),
+    transform var(--tf-transition-micro);
 }
 
 .tf-icon-btn:hover {
@@ -274,11 +298,13 @@
   background: var(--tf-accent);
   opacity: 0;
   transform: scale(0.92);
-  transition: opacity var(--tf-transition-base), transform var(--tf-transition-enter);
+  transition:
+    opacity var(--tf-transition-base),
+    transform var(--tf-transition-enter);
   z-index: -1;
 }
 
-.tf-tab-pill[aria-selected="true"]::before {
+.tf-tab-pill[aria-selected='true']::before {
   opacity: 0.12;
   transform: scale(1);
 }
@@ -346,7 +372,6 @@
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     opacity: 1;
@@ -368,26 +393,32 @@
 }
 
 @keyframes glowPulseGreen {
-
   0%,
   100% {
-    box-shadow: 0 0 20px rgba(45, 212, 160, 0.06), inset 0 0 20px rgba(45, 212, 160, 0.03);
+    box-shadow:
+      0 0 20px rgba(45, 212, 160, 0.06),
+      inset 0 0 20px rgba(45, 212, 160, 0.03);
   }
 
   50% {
-    box-shadow: 0 0 30px rgba(45, 212, 160, 0.1), inset 0 0 30px rgba(45, 212, 160, 0.05);
+    box-shadow:
+      0 0 30px rgba(45, 212, 160, 0.1),
+      inset 0 0 30px rgba(45, 212, 160, 0.05);
   }
 }
 
 @keyframes glowPulseRed {
-
   0%,
   100% {
-    box-shadow: 0 0 20px rgba(242, 92, 92, 0.06), inset 0 0 20px rgba(242, 92, 92, 0.03);
+    box-shadow:
+      0 0 20px rgba(242, 92, 92, 0.06),
+      inset 0 0 20px rgba(242, 92, 92, 0.03);
   }
 
   50% {
-    box-shadow: 0 0 30px rgba(242, 92, 92, 0.1), inset 0 0 30px rgba(242, 92, 92, 0.05);
+    box-shadow:
+      0 0 30px rgba(242, 92, 92, 0.1),
+      inset 0 0 30px rgba(242, 92, 92, 0.05);
   }
 }
 
@@ -404,7 +435,6 @@
 }
 
 @keyframes heroGlow {
-
   0%,
   100% {
     opacity: 0.6;
@@ -664,7 +694,6 @@
 }
 
 @keyframes aiOrbBreathe {
-
   0%,
   100% {
     filter: drop-shadow(0 0 4px rgba(232, 100, 44, 0.25));
@@ -787,7 +816,9 @@
 }
 
 .ai-orb {
-  transition: filter 0.3s ease, transform 0.3s ease;
+  transition:
+    filter 0.3s ease,
+    transform 0.3s ease;
 }
 
 .ai-orb:hover {
@@ -796,51 +827,51 @@
 }
 
 /* Bento grid stagger */
-.tf-bento>* {
+.tf-bento > * {
   animation: bentoPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
-.tf-bento>*:nth-child(1) {
+.tf-bento > *:nth-child(1) {
   animation-delay: 0ms;
 }
 
-.tf-bento>*:nth-child(2) {
+.tf-bento > *:nth-child(2) {
   animation-delay: 50ms;
 }
 
-.tf-bento>*:nth-child(3) {
+.tf-bento > *:nth-child(3) {
   animation-delay: 90ms;
 }
 
-.tf-bento>*:nth-child(4) {
+.tf-bento > *:nth-child(4) {
   animation-delay: 120ms;
 }
 
-.tf-bento>*:nth-child(5) {
+.tf-bento > *:nth-child(5) {
   animation-delay: 150ms;
 }
 
-.tf-bento>*:nth-child(6) {
+.tf-bento > *:nth-child(6) {
   animation-delay: 175ms;
 }
 
-.tf-bento>*:nth-child(7) {
+.tf-bento > *:nth-child(7) {
   animation-delay: 195ms;
 }
 
-.tf-bento>*:nth-child(8) {
+.tf-bento > *:nth-child(8) {
   animation-delay: 210ms;
 }
 
-.tf-bento>*:nth-child(9) {
+.tf-bento > *:nth-child(9) {
   animation-delay: 225ms;
 }
 
-.tf-bento>*:nth-child(10) {
+.tf-bento > *:nth-child(10) {
   animation-delay: 240ms;
 }
 
-.tf-bento>*:nth-child(11) {
+.tf-bento > *:nth-child(11) {
   animation-delay: 250ms;
 }
 
@@ -857,7 +888,7 @@
   pointer-events: none;
 }
 
-.tf-bento~div::-webkit-scrollbar {
+.tf-bento ~ div::-webkit-scrollbar {
   display: none;
 }
 
@@ -866,10 +897,11 @@
 
 /* Base interactive — adds hover highlight + transition to any element */
 .tf-interactive {
-  transition: background var(--tf-transition-fast),
-              border-color var(--tf-transition-fast),
-              color var(--tf-transition-fast),
-              transform var(--tf-transition-micro);
+  transition:
+    background var(--tf-transition-fast),
+    border-color var(--tf-transition-fast),
+    color var(--tf-transition-fast),
+    transform var(--tf-transition-micro);
   cursor: pointer;
 }
 
@@ -896,8 +928,9 @@
 /* Hover lift — subtle rise + shadow on hover (cards, tiles) */
 @media (pointer: fine) {
   .tf-hover-lift {
-    transition: transform var(--tf-transition-base),
-                box-shadow var(--tf-transition-base);
+    transition:
+      transform var(--tf-transition-base),
+      box-shadow var(--tf-transition-base);
   }
 
   .tf-hover-lift:hover {
@@ -911,11 +944,66 @@
   }
 }
 
+/* Hover opacity — 0.6 → 1 on hover (most common JS hover pattern) */
+.tf-hover-opacity {
+  opacity: 0.6;
+  transition:
+    opacity var(--tf-transition-fast),
+    color var(--tf-transition-fast);
+}
+
+@media (pointer: fine) {
+  .tf-hover-opacity:hover {
+    opacity: 1;
+  }
+}
+
+/* Hover color — t3 → t1 on hover */
+.tf-hover-brighten {
+  color: var(--tf-t3);
+  transition: color var(--tf-transition-fast);
+}
+
+@media (pointer: fine) {
+  .tf-hover-brighten:hover {
+    color: var(--tf-t1);
+  }
+}
+
+/* Hover scale — 1 → 1.15 on hover (color swatches, icons) */
+.tf-hover-pop {
+  transition: transform var(--tf-transition-fast);
+}
+
+@media (pointer: fine) {
+  .tf-hover-pop:hover {
+    transform: scale(1.15);
+  }
+}
+
+/* Hover danger — t3 → danger red on hover (delete buttons) */
+.tf-hover-danger {
+  transition:
+    color var(--tf-transition-fast),
+    opacity var(--tf-transition-fast);
+}
+
+@media (pointer: fine) {
+  .tf-hover-danger:hover {
+    color: var(--tf-danger, #ef5350) !important;
+    opacity: 1 !important;
+  }
+}
+
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .tf-interactive,
   .tf-press,
-  .tf-hover-lift {
+  .tf-hover-lift,
+  .tf-hover-opacity,
+  .tf-hover-brighten,
+  .tf-hover-pop,
+  .tf-hover-danger {
     transition: none !important;
     transform: none !important;
     animation: none !important;

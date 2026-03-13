@@ -8,12 +8,11 @@ import { useEffect, useState, useCallback } from 'react';
 import { useChartTradeHandler } from '../../app/components/chart/hooks/useChartTradeHandler.js';
 import { parseChartCommand } from '../../charting_library/ai/AICopilotEngine.js';
 import { TOOL_CONFIG, magnetSnap } from '../../charting_library/tools/drawingTools.js';
-import { exportChartPNG, copyChartToClipboard, generateShareURL } from '@/charting_library/utils/chartExport';
 import { useChartCoreStore } from '../../state/chart/useChartCoreStore';
-import { useChartToolsStore } from '../../state/chart/useChartToolsStore';
 import { useChartFeaturesStore } from '../../state/chart/useChartFeaturesStore';
-// Wave 0: scripting quarantined — stub useScriptRunner
-const useScriptRunner = () => ({ scriptOutputs: null, setEditorOutputs: () => { }, errors: [] });
+import { useChartToolsStore } from '../../state/chart/useChartToolsStore';
+import { exportChartPNG, copyChartToClipboard, generateShareURL } from '@/charting_library/utils/chartExport';
+const useScriptRunner = () => ({ scriptOutputs: null, setEditorOutputs: () => {}, errors: [] });
 
 /**
  * Hook that manages drawing tool interactions, AI copilot commands,
@@ -48,7 +47,11 @@ export default function useChartDrawingHandler(chartRef) {
   useEffect(() => {
     const handleClear = () => {
       const engine = chartRef.current?.getDrawingEngine?.();
-      if (engine) { engine.clearAll(); } else { useChartToolsStore.getState().setDrawings([]); }
+      if (engine) {
+        engine.clearAll();
+      } else {
+        useChartToolsStore.getState().setDrawings([]);
+      }
     };
     const handleDelete = () => {
       const engine = chartRef.current?.getDrawingEngine?.();
@@ -109,7 +112,7 @@ export default function useChartDrawingHandler(chartRef) {
       window.removeEventListener('charEdge:toggle-lock', handleToggleLock);
       window.removeEventListener('charEdge:delete-specific', handleDeleteSpecific);
     };
-  }, []);
+  }, [chartRef]);
 
   // Drawing tool click handler — uses TOOL_CONFIG for behavior
   const handleDrawingClick = useCallback(
@@ -177,7 +180,9 @@ export default function useChartDrawingHandler(chartRef) {
       const command = parseChartCommand(inputText);
 
       if (!command) {
-        import('../../app/components/ui/Toast.jsx').then(({ default: toast }) => toast.error("AI couldn't understand that command")).catch(() => { }); // intentional: Toast import is best-effort UI
+        import('../../app/components/ui/Toast.jsx')
+          .then(({ default: toast }) => toast.error("AI couldn't understand that command"))
+          .catch(() => {}); // intentional: Toast import is best-effort UI
         return { success: false, message: "I didn't quite catch that." };
       }
 
@@ -221,11 +226,11 @@ export default function useChartDrawingHandler(chartRef) {
 
       import('../../app/components/ui/Toast.jsx')
         .then(({ default: toast }) => toast.success(resultMessage))
-        .catch(() => { }); // intentional: Toast import is best-effort UI
+        .catch(() => {}); // intentional: Toast import is best-effort UI
 
       return { success: true, message: resultMessage };
     },
-    [setTf, setSymbol]
+    [setTf, setSymbol],
   );
 
   // Export handlers

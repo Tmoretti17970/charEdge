@@ -9,17 +9,17 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useRef, useEffect, useCallback, useLayoutEffect, Suspense } from 'react';
-import { C, F, TFS } from '../../../constants.js';
-
-import ChartTypeSelector from './toolbar/ChartTypeSelector.jsx';
-
-import { useBreakpoints } from '@/hooks/useMediaQuery';
+import { C, TFS } from '../../../constants.js';
 import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
 import { useChartFeaturesStore } from '../../../state/chart/useChartFeaturesStore';
+import ChartTypeSelector from './toolbar/ChartTypeSelector.jsx';
+import { useHotkeys } from '@/hooks/useHotkeys';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
+import { alpha } from '@/shared/colorUtils';
+import { useAccountStore, ACCOUNTS } from '@/state/useAccountStore';
 
 // Extracted sub-components
 
-import { useHotkeys } from '@/hooks/useHotkeys';
 
 // Lazy-load CommandCenterMenu to prevent chunk evaluation order issues
 const CommandCenterMenu = React.lazy(() => import('./toolbar/CommandCenterMenu.jsx'));
@@ -112,7 +112,9 @@ function TimeframeCapsule({ tf, setTf, showCustomTf, toggleCustomTf }) {
       {TFS.map((t) => (
         <button
           key={t.id}
-          ref={(el) => { pillRefs.current[t.id] = el; }}
+          ref={(el) => {
+            pillRefs.current[t.id] = el;
+          }}
           className="tf-chart-tf-pill"
           data-active={tf === t.id || undefined}
           onClick={() => setTf(t.id)}
@@ -145,34 +147,77 @@ function TimeframeCapsule({ tf, setTf, showCustomTf, toggleCustomTf }) {
 // ─── Unified Toolbar Component ────────────────────────────────────
 
 export default function UnifiedChartToolbar({
-  symbol, setSymbolInput, onSearchSelect,
+  symbol,
+  setSymbolInput,
+  onSearchSelect,
 
-  showIndicators, setShowIndicators,
-  showObjectTree, setShowObjectTree,
-  showTrades, setShowTrades, _matchingTradesCount,
+  showIndicators,
+  setShowIndicators,
+  showObjectTree,
+  setShowObjectTree,
+  showTrades,
+  setShowTrades,
+  _matchingTradesCount,
   fetchSymbolSearch,
   onOpenPanel, // new prop to handle opening secondary panels in SlidePanel
   _onOpenCopilot, // Phase 2 AI
   onSnapshot, // Snapshot callback
   // Data source props for badge
-  isLive, wsSupported, wsStatus, dataSource, dataLoading,
+  isLive: _isLive,
+  wsSupported: _wsSupported,
+  wsStatus: _wsStatus,
+  dataSource: _dataSource,
+  dataLoading: _dataLoading,
   // Layout
-  layoutMode, setLayoutMode,
+  layoutMode,
+  setLayoutMode,
   // Batch 2: AI Analysis
   onToggleAnalysis,
   // Sprint 12: Drawing sidebar
-  drawSidebarOpen, onToggleDrawSidebar,
+  drawSidebarOpen,
+  onToggleDrawSidebar,
 }) {
   const { isMobile } = useBreakpoints();
   const [searchModalOpen, setSearchModalOpen] = useState(false);
 
+  // Account store (must be at component level, not inside callbacks)
+  const activeAccountId = useAccountStore((s) => s.activeAccountId);
+  const toggleAccount = useAccountStore((s) => s.toggleAccount);
+
+  // Helper: dispatch instant-trade event with full chart context
+  const dispatchInstantTrade = useCallback(
+    (side) => {
+      const state = useChartCoreStore.getState();
+      const accountId = useAccountStore.getState().activeAccountId;
+      window.dispatchEvent(
+        new CustomEvent('charEdge:instant-trade', {
+          detail: {
+            side,
+            symbol: symbol || state.symbol,
+            price: state.aggregatedPrice,
+            tf: state.tf,
+            accountId,
+          },
+        }),
+      );
+    },
+    [symbol],
+  );
+
   // #46: Chart keyboard shortcuts
-  useHotkeys([
-    { key: 'b', handler: () => window.dispatchEvent(new CustomEvent('tf:quickLog', { detail: { side: 'long' } })), description: 'Quick Buy' },
-    { key: 's', handler: () => window.dispatchEvent(new CustomEvent('tf:quickLog', { detail: { side: 'short' } })), description: 'Quick Sell' },
-    { key: ' ', handler: () => window.dispatchEvent(new CustomEvent('tf:toggleCrosshair')), description: 'Toggle crosshair' },
-    { key: 'alt+s', handler: () => onSnapshot?.(), description: 'Chart snapshot' },
-  ], { scope: 'critical:chart', enabled: true });
+  useHotkeys(
+    [
+      { key: 'b', handler: () => dispatchInstantTrade('long'), description: 'Quick Buy' },
+      { key: 's', handler: () => dispatchInstantTrade('short'), description: 'Quick Sell' },
+      {
+        key: ' ',
+        handler: () => window.dispatchEvent(new CustomEvent('tf:toggleCrosshair')),
+        description: 'Toggle crosshair',
+      },
+      { key: 'alt+s', handler: () => onSnapshot?.(), description: 'Chart snapshot' },
+    ],
+    { scope: 'critical:chart', enabled: true },
+  );
   // Chart Store State
   const tf = useChartCoreStore((s) => s.tf);
   const setTf = useChartCoreStore((s) => s.setTf);
@@ -190,19 +235,27 @@ export default function UnifiedChartToolbar({
       data-container="toolbar"
       role="toolbar"
       aria-label="Chart toolbar"
-
       style={{
         gap: isMobile ? 2 : 4,
-        ...(isMobile ? { padding: '0 6px', height: 'auto', overflow: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' } : {}),
+        ...(isMobile
+          ? { padding: '0 6px', height: 'auto', overflow: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' }
+          : {}),
       }}
     >
       {/* P2 2.6: Compact mode indicator */}
       {isMobile && (
-        <div style={{
-          width: 6, height: 6, borderRadius: '50%',
-          background: C.y, opacity: 0.6,
-          flexShrink: 0, marginRight: 2,
-        }} title="Compact mode — some controls hidden" />
+        <div
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: '50%',
+            background: C.y,
+            opacity: 0.6,
+            flexShrink: 0,
+            marginRight: 2,
+          }}
+          title="Compact mode — some controls hidden"
+        />
       )}
       {/* 1. SYMBOL + SEARCH MODAL TRIGGER + DATA SOURCE */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
@@ -219,11 +272,7 @@ export default function UnifiedChartToolbar({
           {symbol}
           <span style={{ fontSize: 8, color: C.t3 }}>▼</span>
         </button>
-
-
       </div>
-
-
 
       <Divider />
 
@@ -233,14 +282,17 @@ export default function UnifiedChartToolbar({
       <Divider />
 
       {/* 3. CHART TYPES — Visual preview grid */}
-      {!isMobile && (
-        <ChartTypeSelector chartType={chartType} setChartType={setChartType} />
-      )}
+      {!isMobile && <ChartTypeSelector chartType={chartType} setChartType={setChartType} />}
 
       {!isMobile && <Divider />}
 
       {/* 4. INDICATORS */}
-      <ToolbarBtn active={showIndicators} onClick={() => setShowIndicators(!showIndicators)} title="Indicators" style={{ flexShrink: 0 }}>
+      <ToolbarBtn
+        active={showIndicators}
+        onClick={() => setShowIndicators(!showIndicators)}
+        title="Indicators"
+        style={{ flexShrink: 0 }}
+      >
         ƒx
       </ToolbarBtn>
 
@@ -248,13 +300,16 @@ export default function UnifiedChartToolbar({
       {!isMobile && (
         <>
           <Divider />
-          <ToolbarBtn
-            active={drawSidebarOpen}
-            onClick={onToggleDrawSidebar}
-            title="Drawing Tools"
-          >
+          <ToolbarBtn active={drawSidebarOpen} onClick={onToggleDrawSidebar} title="Drawing Tools">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M10.5 1.5l2 2-8 8H2.5v-2l8-8z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              <path
+                d="M10.5 1.5l2 2-8 8H2.5v-2l8-8z"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
               <line x1="8.5" y1="3.5" x2="10.5" y2="5.5" stroke="currentColor" strokeWidth="1" opacity="0.4" />
             </svg>
           </ToolbarBtn>
@@ -276,7 +331,13 @@ export default function UnifiedChartToolbar({
             }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" fill="rgba(232,100,44,0.2)" />
+              <path
+                d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+                fill="rgba(232,100,44,0.2)"
+              />
             </svg>
           </ToolbarBtn>
         </>
@@ -288,28 +349,63 @@ export default function UnifiedChartToolbar({
       {/* #41: Persistent Buy/Sell buttons */}
       {!isMobile && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginRight: 4 }}>
+          {/* Compact REAL/DEMO toggle */}
+          {(() => {
+            const acct = ACCOUNTS.find((a) => a.id === activeAccountId) || ACCOUNTS[0];
+            return (
+              <button
+                className="tf-btn tf-press"
+                onClick={toggleAccount}
+                title={`Trading as ${acct.label} — click to switch`}
+                style={{
+                  padding: '3px 8px',
+                  fontSize: 9,
+                  fontWeight: 700,
+                  background: alpha(acct.color, 0.12),
+                  color: acct.color,
+                  border: `1px solid ${alpha(acct.color, 0.25)}`,
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {acct.icon} {acct.label}
+              </button>
+            );
+          })()}
           <button
             className="tf-btn tf-press"
-            onClick={() => window.dispatchEvent(new CustomEvent('tf:quickLog', { detail: { side: 'long' } }))}
+            onClick={() => dispatchInstantTrade('long')}
             title="Buy (B)"
             style={{
-              padding: '3px 10px', fontSize: 11, fontWeight: 700,
-              background: 'rgba(49,209,88,0.12)', color: '#31D158',
-              border: '1px solid rgba(49,209,88,0.25)', borderRadius: 6,
-              cursor: 'pointer', letterSpacing: '0.02em',
+              padding: '3px 10px',
+              fontSize: 11,
+              fontWeight: 700,
+              background: C.g + '20',
+              color: C.g,
+              border: `1px solid ${C.g}40`,
+              borderRadius: 6,
+              cursor: 'pointer',
+              letterSpacing: '0.02em',
             }}
           >
             BUY
           </button>
           <button
             className="tf-btn tf-press"
-            onClick={() => window.dispatchEvent(new CustomEvent('tf:quickLog', { detail: { side: 'short' } }))}
+            onClick={() => dispatchInstantTrade('short')}
             title="Sell (S)"
             style={{
-              padding: '3px 10px', fontSize: 11, fontWeight: 700,
-              background: 'rgba(255,69,58,0.12)', color: '#FF453A',
-              border: '1px solid rgba(255,69,58,0.25)', borderRadius: 6,
-              cursor: 'pointer', letterSpacing: '0.02em',
+              padding: '3px 10px',
+              fontSize: 11,
+              fontWeight: 700,
+              background: C.r + '20',
+              color: C.r,
+              border: `1px solid ${C.r}40`,
+              borderRadius: 6,
+              cursor: 'pointer',
+              letterSpacing: '0.02em',
             }}
           >
             SELL
@@ -329,11 +425,14 @@ export default function UnifiedChartToolbar({
         <Suspense fallback={null}>
           <CommandCenterMenu
             isMobile={isMobile}
-            showTrades={showTrades} setShowTrades={setShowTrades}
-            showObjectTree={showObjectTree} setShowObjectTree={setShowObjectTree}
+            showTrades={showTrades}
+            setShowTrades={setShowTrades}
+            showObjectTree={showObjectTree}
+            setShowObjectTree={setShowObjectTree}
             onOpenPanel={onOpenPanel}
             onSnapshot={onSnapshot}
-            layoutMode={layoutMode} setLayoutMode={setLayoutMode}
+            layoutMode={layoutMode}
+            setLayoutMode={setLayoutMode}
           />
         </Suspense>
       </div>

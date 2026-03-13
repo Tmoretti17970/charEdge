@@ -6,13 +6,11 @@
 //
 // Social widgets (FearGreed, Sentiment, Heatmap, Polls, Tournaments,
 // Leaderboard, WhaleAlert, Liquidation, FundingRates, MacroCalendar)
-// quarantined — replaced with Coming Soon placeholders.
 // Non-social discover components (AnalystConsensus, CorrelationMatrix,
 // etc.) remain active.
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
 // eslint-disable-next-line import/order
 import { useDataStore } from '../../../state/useDataStore.js';
@@ -144,7 +142,10 @@ function PredictionsContent() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <SectionHeader icon="🔮" title="Predictions & Tournaments" />
-      <div className="tf-discover-grid-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+      <div
+        className="tf-discover-grid-2"
+        style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}
+      >
         <ComingSoonWidget icon="🔮" title="Prediction Markets" />
         <ComingSoonWidget icon="🏆" title="Trading Tournaments" />
         <ComingSoonWidget icon="🏅" title="Trader Leaderboard" />
@@ -157,7 +158,7 @@ function PredictionsContent() {
 // Combined Intel Section (Market Intel + Predictions)
 // inline=true → compact preview for unified feed
 // ═════════════════════════════════════════════════════════════════
-function IntelSection({ activePolls, resolvedPolls, inline = false }) {
+function IntelSection({ activePolls: _activePolls, resolvedPolls: _resolvedPolls, inline = false }) {
   const setActiveChip = useDataStore((s) => s.setActiveChip);
 
   // Inline mode: show condensed 3-widget preview
@@ -167,7 +168,9 @@ function IntelSection({ activePolls, resolvedPolls, inline = false }) {
         role="region"
         aria-label="Market Intelligence Preview"
         style={{
-          display: 'flex', flexDirection: 'column', gap: 16,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
           padding: 20,
           background: alpha(C.sf, 0.3),
           borderRadius: 16,
@@ -179,9 +182,15 @@ function IntelSection({ activePolls, resolvedPolls, inline = false }) {
           <button
             onClick={() => setActiveChip('intel')}
             style={{
-              padding: '5px 14px', borderRadius: 8, border: `1px solid ${C.bd}`,
-              background: 'transparent', color: C.b, fontSize: 11,
-              fontWeight: 700, fontFamily: F, cursor: 'pointer',
+              padding: '5px 14px',
+              borderRadius: 8,
+              border: `1px solid ${C.bd}`,
+              background: 'transparent',
+              color: C.b,
+              fontSize: 11,
+              fontWeight: 700,
+              fontFamily: F,
+              cursor: 'pointer',
               transition: 'all 0.2s',
             }}
           >
@@ -257,15 +266,25 @@ function EmptyState({ text, icon, cta, onCta }) {
         border: `1px solid ${C.bd}`,
       }}
     >
-      {icon && <div className="tf-empty-float" style={{ fontSize: 48, marginBottom: 12 }}>{icon}</div>}
+      {icon && (
+        <div className="tf-empty-float" style={{ fontSize: 48, marginBottom: 12 }}>
+          {icon}
+        </div>
+      )}
       <div style={{ color: C.t3, fontSize: 14, fontFamily: F, marginBottom: cta ? 16 : 0 }}>{text}</div>
       {cta && onCta && (
         <button
           onClick={onCta}
           style={{
-            padding: '8px 20px', borderRadius: 10, border: 'none',
-            background: C.b, color: '#fff', fontSize: 12, fontWeight: 700,
-            cursor: 'pointer', fontFamily: F,
+            padding: '8px 20px',
+            borderRadius: 10,
+            border: 'none',
+            background: C.b,
+            color: '#fff',
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontFamily: F,
           }}
         >
           {cta}

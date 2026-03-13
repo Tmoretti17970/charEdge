@@ -6,8 +6,9 @@
 import { trackFirstAction, trackWorkflow } from '../../observability/telemetry';
 import { captureTradeContext } from '../../hooks/useSnapshotCapture.js';
 import { applyLeakTags } from '@/psychology/LeakDetectorService.js';
+import { getSessionTag } from '../../app/components/dialogs/trade-form/sessionTagger.js';
 
-export const createTradeSlice = (set) => ({
+export const createTradeSlice = (set, get) => ({
   trades: [],
   playbooks: [],
   notes: [],
@@ -19,16 +20,20 @@ export const createTradeSlice = (set) => ({
     trackFirstAction('trade_logged');
     trackWorkflow('trade_logged');
 
+    // Auto-tag with market session
+    let enriched = { ...trade };
+    if (!enriched.sessionTag) {
+      enriched.sessionTag = getSessionTag(enriched.date);
+    }
+
     // 5.6.2: Auto-capture market state snapshot at trade execution time.
-    // Best-effort — never blocks trade creation.
-    let enriched = trade;
-    if (!trade.context?.snapshot) {
+    if (!enriched.context?.snapshot) {
       try {
         enriched = {
-          ...trade,
+          ...enriched,
           context: captureTradeContext({
-            stopLoss: trade.stopLoss,
-            takeProfit: trade.takeProfit,
+            stopLoss: enriched.stopLoss,
+            takeProfit: enriched.takeProfit,
           }),
         };
       } catch {
@@ -36,19 +41,23 @@ export const createTradeSlice = (set) => ({
       }
     }
 
-    // 6.5.1: Auto-detect behavioral leaks and attach tags.
-    // Uses recent trades for context (revenge trade detection).
-    try {
-      const recentTrades =
-        typeof set === 'function'
-          ? [] // get() not available in set-only slices; tags still apply
-          : [];
-      enriched = applyLeakTags(enriched, recentTrades);
-    } catch {
-      // Leak detection failed — store trade without tags
-    }
-
+    // Save immediately (optimistic UI)
     set((s) => ({ trades: [enriched, ...s.trades] }));
+
+    // 6.5.1: Async leak detection — runs after render, never blocks save
+    queueMicrotask(() => {
+      try {
+        const recentTrades = (get().trades || []).slice(1, 11);
+        const tagged = applyLeakTags(enriched, recentTrades);
+        if (tagged !== enriched) {
+          set((s) => ({
+            trades: s.trades.map((t) => (t.id === tagged.id ? tagged : t)),
+          }));
+        }
+      } catch {
+        // Leak detection failed — trade is already saved
+      }
+    });
   },
 
   addTrades: (newTrades) => {

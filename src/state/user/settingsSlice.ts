@@ -9,7 +9,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 const DEFAULT_SETTINGS = {
-  simpleMode: false,
+  simpleMode: true,
   dailyLossLimit: 0,
   defaultSymbol: 'BTC',
   defaultTf: '5m',

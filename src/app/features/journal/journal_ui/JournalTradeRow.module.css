@@ -1,99 +1,112 @@
-/* Auto-extracted from JournalTradeRow.jsx */
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — JournalTradeRow CSS Module (Cockpit Refactor)
+   Semantic class names, CSS-based hover states
+   ═══════════════════════════════════════════════════════════════════ */
 
-.s0 {
+/* ─── Checkmark icon (shared between desktop/mobile) ─────────── */
+.checkmark {
   color: #fff;
   font-size: 10px;
   font-weight: 800;
 }
 
-.s1 {
+/* ─── Symbol cell ─────────────────────────────────────────────── */
+.symbolCell {
   font-weight: 700;
   display: flex;
   gap: 6px;
   align-items: center;
 }
 
-.s2 {
+/* ─── Mobile checkmark (duplicate style for mobile layout) ────  */
+.mobileCheckmark {
   color: #fff;
   font-size: 10px;
   font-weight: 800;
 }
 
-.s3 {
+/* ─── Mobile header row ───────────────────────────────────────── */
+.mobileHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 4px;
 }
 
-.s4 {
+/* ─── Mobile symbol group ─────────────────────────────────────── */
+.mobileSymbolGroup {
   display: flex;
   gap: 8px;
   align-items: center;
 }
 
-.s5 {
+/* ─── Context / behavioral tag container ──────────────────────── */
+.contextTags {
   display: flex;
   gap: 4px;
   flex-wrap: wrap;
   align-items: center;
 }
 
-.s6 {
+/* ─── Checklist tag container ─────────────────────────────────── */
+.checklistTags {
   display: flex;
   gap: 4px;
   flex-wrap: wrap;
 }
 
-.s7 {
+/* ─── Tag list container ──────────────────────────────────────── */
+.tagList {
   display: flex;
   gap: 4px;
   flex-wrap: wrap;
 }
 
-.s8 {
+/* ─── Screenshot grid ─────────────────────────────────────────── */
+.screenshotGrid {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.s9 {
+/* ─── Screenshot image ────────────────────────────────────────── */
+.screenshotImg {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.s10 {
+/* ─── Action buttons (shared size) ────────────────────────────── */
+.cancelBtn,
+.deleteBtn,
+.shareBtn,
+.replayBtn,
+.chartBtn,
+.deleteTriggerBtn,
+.editBtn {
   font-size: 11px;
   padding: 6px 12px;
 }
 
-.s11 {
-  font-size: 11px;
-  padding: 6px 12px;
+/* ─── Desktop row hover (CSS-based, no JS re-renders) ─────────  */
+.desktopRow {
+  transition:
+    background 0.12s ease,
+    border-left-color 0.12s ease;
 }
 
-.s12 {
-  font-size: 11px;
-  padding: 6px 12px;
+.desktopRow:hover {
+  background: var(--tf-sf2, rgba(29, 32, 39, 0.6));
 }
 
-.s13 {
-  font-size: 11px;
-  padding: 6px 12px;
+/* ─── Screenshot hover zoom (CSS-based) ───────────────────────── */
+.screenshotThumb {
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
 }
 
-.s14 {
-  font-size: 11px;
-  padding: 6px 12px;
-}
-
-.s15 {
-  font-size: 11px;
-  padding: 6px 12px;
-}
-
-.s16 {
-  font-size: 11px;
-  padding: 6px 12px;
+.screenshotThumb:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }

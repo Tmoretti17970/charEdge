@@ -8,11 +8,13 @@
 //  - Responsive layout
 // ═══════════════════════════════════════════════════════════════════
 
+import React, { useRef } from 'react';
 import { C, GLASS } from '../../../constants.js';
 import { gradient, text, radii } from '../../../theme/tokens.js';
 import { fmtD } from '../../../utils.js';
 import { Card } from '../ui/UIKit.jsx';
 import { useCountUp } from '@/hooks/useCountUp';
+import { useAccountStore } from '@/state/useAccountStore';
 
 // ─── Mini Sparkline (inline SVG) ────────────────────────────────
 function MiniSparkline({ data, color, width = 120, height = 32 }) {
@@ -45,10 +47,7 @@ function MiniSparkline({ data, color, width = 120, height = 32 }) {
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <polygon
-        fill="url(#sparkFill)"
-        points={`0,${height} ${points} ${width},${height}`}
-      />
+      <polygon fill="url(#sparkFill)" points={`0,${height} ${points} ${width},${height}`} />
       <polyline
         fill="none"
         stroke={color}
@@ -90,15 +89,11 @@ function TrendArrow({ current, previous }) {
   );
 }
 
-export default function DashboardHero({
-  todayPnl,
-  todayCount,
-  winRate,
-  yesterdayPnl,
-  recentDailyPnl = [],
-  isMobile = false,
-}) {
-  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+function DashboardHero({ todayPnl, todayCount, winRate, yesterdayPnl, recentDailyPnl = [], isMobile = false }) {
+  const reducedMotionRef = useRef(
+    typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches,
+  );
+  const prefersReducedMotion = reducedMotionRef.current;
   const shouldAnimate = !prefersReducedMotion;
 
   // Animated hero stat values (count from 0 → target)
@@ -109,18 +104,41 @@ export default function DashboardHero({
   const pnlColor = todayPnl >= 0 ? C.g : todayPnl < 0 ? C.r : C.t3;
   const heroGradient = todayPnl >= 0 ? gradient.heroPositive : gradient.heroNegative;
 
+  const isDemo = useAccountStore((s) => s.activeAccountId === 'demo');
+
   return (
     <div
       className="tf-section-enter"
       style={{
         display: 'grid',
-        gridTemplateColumns: isMobile
-          ? '1fr'
-          : 'minmax(240px, 1.8fr) minmax(120px, 1fr) minmax(120px, 1fr)',
+        gridTemplateColumns: isMobile ? '1fr' : 'minmax(240px, 1.8fr) minmax(120px, 1fr) minmax(120px, 1fr)',
         gap: 12,
         marginBottom: 24,
+        position: 'relative',
       }}
     >
+      {/* DEMO MODE badge */}
+      {isDemo && (
+        <div
+          style={{
+            position: 'absolute',
+            top: -8,
+            right: 8,
+            zIndex: 10,
+            padding: '2px 10px',
+            fontSize: 9,
+            fontWeight: 800,
+            background: 'linear-gradient(135deg, #3b82f620, #3b82f610)',
+            color: '#3b82f6',
+            border: '1px solid #3b82f630',
+            borderRadius: 6,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+          }}
+        >
+          🧪 Demo Mode
+        </div>
+      )}
       {/* ─── Hero P&L Tile ───────────────────────────────────── */}
       <Card
         className={todayPnl >= 0 ? 'tf-glow-positive' : todayPnl < 0 ? 'tf-glow-negative' : ''}
@@ -142,11 +160,7 @@ export default function DashboardHero({
             marginBottom: 6,
           }}
         >
-          <span
-            style={{ ...text.label }}
-          >
-            Today's P&L
-          </span>
+          <span style={{ ...text.label }}>Today's P&L</span>
           <TrendArrow current={todayPnl} previous={yesterdayPnl} />
         </div>
 
@@ -257,10 +271,10 @@ export default function DashboardHero({
         >
           {animatedCount < 1 && todayCount > 0 ? 1 : Math.round(animatedCount)}
         </div>
-        <div style={{ ...text.captionSm, marginTop: 4 }}>
-          today's session
-        </div>
+        <div style={{ ...text.captionSm, marginTop: 4 }}>today's session</div>
       </Card>
     </div>
   );
 }
+
+export default React.memo(DashboardHero);

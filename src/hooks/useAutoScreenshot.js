@@ -65,6 +65,73 @@ export async function getScreenshotsForTrade(tradeId) {
   });
 }
 
+// ─── Standalone Capture (non-hook, for instant-trade flow) ──────
+
+/**
+ * Capture a chart screenshot from the DOM canvas and return it
+ * in the { data, name } format used by JournalTradeRow.
+ *
+ * @param {string} symbol - Trading symbol (e.g. "BTC")
+ * @param {string} timeframe - Chart timeframe (e.g. "1h")
+ * @returns {{ data: string, name: string } | null}
+ */
+export function captureChartScreenshot(symbol, timeframe) {
+  try {
+    // The chart uses a multi-layer canvas system (LayerManager) with
+    // 5 stacked canvases: GRID, DATA, INDICATORS, DRAWINGS, UI.
+    // We need to composite all of them, just like LayerManager.getSnapshotCanvas().
+    const area = document.querySelector('.tf-chart-area');
+    if (!area) return null;
+
+    const canvases = area.querySelectorAll('canvas');
+    if (!canvases.length) return null;
+
+    // Use the first canvas's dimensions as reference
+    const refCanvas = canvases[0];
+    if (!refCanvas || refCanvas.width === 0 || refCanvas.height === 0) return null;
+
+    const w = refCanvas.width; // Already hi-DPI from LayerManager
+    const h = refCanvas.height;
+
+    // Create offscreen canvas and composite all layers in DOM order
+    const offscreen = document.createElement('canvas');
+    offscreen.width = w;
+    offscreen.height = h;
+    const ctx = offscreen.getContext('2d');
+    if (!ctx) return null;
+
+    for (const canvas of canvases) {
+      if (canvas.width > 0 && canvas.height > 0) {
+        ctx.drawImage(canvas, 0, 0);
+      }
+    }
+
+    // Watermark (bottom-right, subtle)
+    const scale = window.devicePixelRatio || 1;
+    const fs = Math.round(12 * scale);
+    ctx.font = `bold ${fs}px Arial`;
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    const dateStr = new Date().toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+    ctx.fillText(
+      `${symbol || 'Chart'} · ${timeframe || ''} · ${dateStr} · charEdge`,
+      w - Math.round(10 * scale),
+      h - Math.round(6 * scale),
+    );
+
+    const dataUrl = offscreen.toDataURL('image/png');
+    const name = `${symbol || 'chart'}_${timeframe || ''}_${Date.now()}.png`;
+    return { data: dataUrl, name };
+  } catch {
+    return null;
+  }
+}
+
 // ─── Hook ───────────────────────────────────────────────────────
 
 /**
@@ -91,9 +158,7 @@ export default function useAutoScreenshot({ getCanvas, symbol, timeframe, enable
         // Small delay to let the trade marker render
         await new Promise((r) => setTimeout(r, 100));
 
-        const blob = await new Promise((resolve) =>
-          canvas.toBlob(resolve, 'image/png'),
-        );
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
 
         if (blob) {
           await _storeScreenshot({

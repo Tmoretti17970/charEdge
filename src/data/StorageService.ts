@@ -14,10 +14,11 @@
 
 import { openUnifiedDB } from './UnifiedDB.js';
 import { logger } from '@/observability/logger';
+import { accountStoreName } from '@/state/useAccountStore';
 
 // ─── Database Access ────────────────────────────────────────────
 let _db = null;
-let _memFallback = null;  // Map<storeName, Map<pk, record>>
+let _memFallback = null; // Map<storeName, Map<pk, record>>
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 async function _getDB() {
@@ -27,11 +28,26 @@ async function _getDB() {
   try {
     _db = await openUnifiedDB();
     return _db;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_) {
     logger.data.warn('[StorageService] UnifiedDB unavailable — using in-memory fallback');
     _memFallback = new Map();
-    for (const s of ['trades', 'playbooks', 'notes', 'tradePlans', 'settings']) {
+    // Initialize both flat stores and account-specific stores for fallback
+    for (const s of [
+      'trades',
+      'playbooks',
+      'notes',
+      'tradePlans',
+      'settings',
+      'trades_real',
+      'trades_demo',
+      'playbooks_real',
+      'playbooks_demo',
+      'notes_real',
+      'notes_demo',
+      'tradePlans_real',
+      'tradePlans_demo',
+    ]) {
       _memFallback.set(s, new Map());
     }
     return null;
@@ -138,7 +154,7 @@ function _idbWhere(db, table, field, value) {
     let req;
     try {
       req = store.index(field).getAll(value);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
       // Index doesn't exist — fall back to full scan
       req = store.getAll();
@@ -161,11 +177,10 @@ function _idbWhereRange(db, table, field, lower, upper) {
       const req = store.index(field).getAll(range);
       req.onsuccess = () => resolve(req.result || []);
       req.onerror = () => reject(req.error);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
       const req = store.getAll();
-      req.onsuccess = () =>
-        resolve((req.result || []).filter((r) => r[field] >= lower && r[field] <= upper));
+      req.onsuccess = () => resolve((req.result || []).filter((r) => r[field] >= lower && r[field] <= upper));
       req.onerror = () => reject(req.error);
     }
   });
@@ -181,7 +196,7 @@ function _makeCRUD(table, pk) {
     async getAll() {
       try {
         const db = await _getDB();
-        if (!db) return { ok: true, data: [...(_memFallback.get(table).values())] };
+        if (!db) return { ok: true, data: [..._memFallback.get(table).values()] };
         const data = await _idbGetAll(db, table);
         return { ok: true, data };
       } catch (e) {
@@ -191,7 +206,10 @@ function _makeCRUD(table, pk) {
     async put(item) {
       try {
         const db = await _getDB();
-        if (!db) { _memFallback.get(table).set(item[pk], item); return { ok: true }; }
+        if (!db) {
+          _memFallback.get(table).set(item[pk], item);
+          return { ok: true };
+        }
         await _idbPut(db, table, item);
         return { ok: true };
       } catch (e) {
@@ -202,7 +220,10 @@ function _makeCRUD(table, pk) {
     async delete(id) {
       try {
         const db = await _getDB();
-        if (!db) { _memFallback.get(table).delete(id); return { ok: true }; }
+        if (!db) {
+          _memFallback.get(table).delete(id);
+          return { ok: true };
+        }
         await _idbDelete(db, table, id);
         return { ok: true };
       } catch (e) {
@@ -213,8 +234,83 @@ function _makeCRUD(table, pk) {
       try {
         const db = await _getDB();
         if (!db) {
-          const m = _memFallback.get(table); m.clear();
+          const m = _memFallback.get(table);
+          m.clear();
           for (const item of items) m.set(item[pk], item);
+          return { ok: true };
+        }
+        await _idbClear(db, table);
+        if (items.length) await _idbBulkPut(db, table, items);
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: e.message };
+      }
+    },
+  };
+}
+
+// ─── Account-Aware CRUD Factory ─────────────────────────────────
+// Resolves the IDB store name at call time using the active account.
+// e.g. 'trades' → 'trades_real' or 'trades_demo'
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function _makeAccountCRUD(base, pk) {
+  return {
+    async getAll() {
+      const table = accountStoreName(base);
+      try {
+        const db = await _getDB();
+        if (!db) {
+          const store = _memFallback.get(table) || _memFallback.get(base);
+          return { ok: true, data: store ? [...store.values()] : [] };
+        }
+        const data = await _idbGetAll(db, table);
+        return { ok: true, data };
+      } catch (e) {
+        return { ok: false, data: [], error: e.message };
+      }
+    },
+    async put(item) {
+      const table = accountStoreName(base);
+      try {
+        const db = await _getDB();
+        if (!db) {
+          const store = _memFallback.get(table) || _memFallback.get(base);
+          if (store) store.set(item[pk], item);
+          return { ok: true };
+        }
+        await _idbPut(db, table, item);
+        return { ok: true };
+      } catch (e) {
+        if (e.isQuotaError) return { ok: false, error: e.message, quotaExceeded: true };
+        return { ok: false, error: e.message };
+      }
+    },
+    async delete(id) {
+      const table = accountStoreName(base);
+      try {
+        const db = await _getDB();
+        if (!db) {
+          const store = _memFallback.get(table) || _memFallback.get(base);
+          if (store) store.delete(id);
+          return { ok: true };
+        }
+        await _idbDelete(db, table, id);
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: e.message };
+      }
+    },
+    async replaceAll(items) {
+      const table = accountStoreName(base);
+      try {
+        const db = await _getDB();
+        if (!db) {
+          const store = _memFallback.get(table) || _memFallback.get(base);
+          if (store) {
+            store.clear();
+            for (const item of items) store.set(item[pk], item);
+          }
           return { ok: true };
         }
         await _idbClear(db, table);
@@ -230,12 +326,17 @@ function _makeCRUD(table, pk) {
 // ─── StorageService API ─────────────────────────────────────────
 const StorageService = {
   trades: {
-    ..._makeCRUD('trades', 'id'),
+    ..._makeAccountCRUD('trades', 'id'),
     async bulkPut(trades) {
+      const table = accountStoreName('trades');
       try {
         const db = await _getDB();
-        if (!db) { for (const t of trades) _memFallback.get('trades').set(t.id, t); return { ok: true }; }
-        await _idbBulkPut(db, 'trades', trades);
+        if (!db) {
+          const store = _memFallback.get(table) || _memFallback.get('trades');
+          if (store) for (const t of trades) store.set(t.id, t);
+          return { ok: true };
+        }
+        await _idbBulkPut(db, table, trades);
         return { ok: true };
       } catch (e) {
         if (e.isQuotaError) return { ok: false, error: e.message, quotaExceeded: true };
@@ -243,20 +344,29 @@ const StorageService = {
       }
     },
     async count() {
+      const table = accountStoreName('trades');
       try {
         const db = await _getDB();
-        if (!db) return { ok: true, data: _memFallback.get('trades').size };
-        const data = await _idbCount(db, 'trades');
+        if (!db) {
+          const store = _memFallback.get(table) || _memFallback.get('trades');
+          return { ok: true, data: store ? store.size : 0 };
+        }
+        const data = await _idbCount(db, table);
         return { ok: true, data };
       } catch (e) {
         return { ok: false, data: 0, error: e.message };
       }
     },
     async clear() {
+      const table = accountStoreName('trades');
       try {
         const db = await _getDB();
-        if (!db) { _memFallback.get('trades').clear(); return { ok: true }; }
-        await _idbClear(db, 'trades');
+        if (!db) {
+          const store = _memFallback.get(table) || _memFallback.get('trades');
+          if (store) store.clear();
+          return { ok: true };
+        }
+        await _idbClear(db, table);
         return { ok: true };
       } catch (e) {
         return { ok: false, error: e.message };
@@ -270,12 +380,14 @@ const StorageService = {
      * @returns {{ ok, data, nextCursor }}
      */
     async getPage(cursor = null, limit = 50) {
+      const table = accountStoreName('trades');
       try {
         const db = await _getDB();
 
         // Memory fallback — simple array slice
         if (!db) {
-          const all = [..._memFallback.get('trades').values()];
+          const store = _memFallback.get(table) || _memFallback.get('trades');
+          const all = store ? [...store.values()] : [];
           const startIdx = cursor ? all.findIndex((t) => t.id === cursor) + 1 : 0;
           const page = all.slice(startIdx, startIdx + limit);
           const nextCursor = page.length === limit ? page[page.length - 1].id : null;
@@ -284,8 +396,8 @@ const StorageService = {
 
         // IDB cursor-based pagination
         return new Promise((resolve) => {
-          const tx = db.transaction('trades', 'readonly');
-          const store = tx.objectStore('trades');
+          const tx = db.transaction(table, 'readonly');
+          const store = tx.objectStore(table);
           const results = [];
           let skipping = !!cursor;
 
@@ -299,7 +411,11 @@ const StorageService = {
             }
             // Skip past the cursor key
             if (skipping) {
-              if (c.value.id === cursor) { skipping = false; c.continue(); return; }
+              if (c.value.id === cursor) {
+                skipping = false;
+                c.continue();
+                return;
+              }
               c.continue();
               return;
             }
@@ -314,9 +430,9 @@ const StorageService = {
     },
   },
 
-  playbooks: _makeCRUD('playbooks', 'id'),
-  notes: _makeCRUD('notes', 'id'),
-  tradePlans: _makeCRUD('tradePlans', 'id'),
+  playbooks: _makeAccountCRUD('playbooks', 'id'),
+  notes: _makeAccountCRUD('notes', 'id'),
+  tradePlans: _makeAccountCRUD('tradePlans', 'id'),
 
   settings: {
     async get(key) {
@@ -335,7 +451,10 @@ const StorageService = {
     async set(key, value) {
       try {
         const db = await _getDB();
-        if (!db) { _memFallback.get('settings').set(key, { key, value }); return { ok: true }; }
+        if (!db) {
+          _memFallback.get('settings').set(key, { key, value });
+          return { ok: true };
+        }
         await _idbPut(db, 'settings', { key, value });
         return { ok: true };
       } catch (e) {
@@ -345,11 +464,11 @@ const StorageService = {
     async getAll() {
       try {
         const db = await _getDB();
-        const rows = db
-          ? await _idbGetAll(db, 'settings')
-          : [..._memFallback.get('settings').values()];
+        const rows = db ? await _idbGetAll(db, 'settings') : [..._memFallback.get('settings').values()];
         const obj = {};
-        rows.forEach((r) => { obj[r.key] = r.value; });
+        rows.forEach((r) => {
+          obj[r.key] = r.value;
+        });
         return { ok: true, data: obj };
       } catch (e) {
         return { ok: false, data: {}, error: e.message };
@@ -379,13 +498,15 @@ const StorageService = {
 
   // ─── Indexed Queries ─────────────────────────────────────
   async getTradesBySymbol(symbol) {
+    const table = accountStoreName('trades');
     try {
       const db = await _getDB();
       if (!db) {
-        const all = [..._memFallback.get('trades').values()];
+        const store = _memFallback.get(table) || _memFallback.get('trades');
+        const all = store ? [...store.values()] : [];
         return { ok: true, data: all.filter((t) => t.symbol === symbol) };
       }
-      const data = await _idbWhere(db, 'trades', 'symbol', symbol);
+      const data = await _idbWhere(db, table, 'symbol', symbol);
       return { ok: true, data };
     } catch (e) {
       return { ok: false, data: [], error: e.message };
@@ -393,13 +514,15 @@ const StorageService = {
   },
 
   async getTradesByDateRange(from, to) {
+    const table = accountStoreName('trades');
     try {
       const db = await _getDB();
       if (!db) {
-        const all = [..._memFallback.get('trades').values()];
+        const store = _memFallback.get(table) || _memFallback.get('trades');
+        const all = store ? [...store.values()] : [];
         return { ok: true, data: all.filter((t) => t.date >= from && t.date <= to) };
       }
-      const data = await _idbWhereRange(db, 'trades', 'date', from, to);
+      const data = await _idbWhereRange(db, table, 'date', from, to);
       return { ok: true, data };
     } catch (e) {
       return { ok: false, data: [], error: e.message };
@@ -430,9 +553,7 @@ const StorageService = {
 
     try {
       const db = await _getDB();
-      const allTrades = db
-        ? await _idbGetAll(db, 'trades')
-        : [..._memFallback.get('trades').values()];
+      const allTrades = db ? await _idbGetAll(db, 'trades') : [..._memFallback.get('trades').values()];
 
       if (allTrades.length === 0) return { ok: true, freed: 0 };
 

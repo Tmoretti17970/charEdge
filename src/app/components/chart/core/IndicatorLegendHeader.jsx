@@ -42,66 +42,76 @@ export default function IndicatorLegendHeader({ data, hoverIdx, _onEditIndicator
   const legendItems = useMemo(() => {
     if (!indicators?.length) return [];
 
-    return indicators.map((ind, idx) => {
-      const regId = ind.indicatorId || ind.type;
-      const def = INDICATORS[regId];
-      if (!def) return null;
+    return indicators
+      .map((ind, idx) => {
+        const regId = ind.indicatorId || ind.type;
+        const def = INDICATORS[regId];
+        if (!def) return null;
+        // Skip pane-type indicators — they have their own sub-pane with a header
+        if (def.mode === 'pane') return null;
 
-      // Build params string, e.g. "20" or "12, 26, 9"
-      const paramVals = Object.entries(ind.params || {})
-        .filter(([, v]) => v != null && v !== '')
-        .map(([, v]) => v);
-      const paramStr = paramVals.length > 0 ? `(${paramVals.join(', ')})` : '';
+        // Build params string, e.g. "20" or "12, 26, 9"
+        const paramVals = Object.entries(ind.params || {})
+          .filter(([, v]) => v != null && v !== '')
+          .map(([, v]) => v);
+        const paramStr = paramVals.length > 0 ? `(${paramVals.join(', ')})` : '';
 
-      // Compute live indicator values from raw bar data
-      const liveValues = [];
-      if (data?.length > 0 && def.compute && barIdx >= 0) {
-        try {
-          const computed = def.compute(data, ind.params || {});
-          if (computed && def.outputs) {
-            for (const out of def.outputs) {
-              const vals = computed[out.key];
-              const val = vals && barIdx < vals.length ? vals[barIdx] : null;
-              liveValues.push({
-                key: out.key,
-                label: out.label,
-                color: ind.color || out.color || '#AAA',
-                value: val != null && !isNaN(val) ? val : null,
-              });
+        // Compute live indicator values from raw bar data
+        const liveValues = [];
+        if (data?.length > 0 && def.compute && barIdx >= 0) {
+          try {
+            const computed = def.compute(data, ind.params || {});
+            if (computed && def.outputs) {
+              for (const out of def.outputs) {
+                const vals = computed[out.key];
+                const val = vals && barIdx < vals.length ? vals[barIdx] : null;
+                liveValues.push({
+                  key: out.key,
+                  label: out.label,
+                  color: ind.color || out.color || '#AAA',
+                  value: val != null && !isNaN(val) ? val : null,
+                });
+              }
             }
+            // eslint-disable-next-line unused-imports/no-unused-vars
+          } catch (_) {
+            // Computation failed — show without values
           }
-        // eslint-disable-next-line unused-imports/no-unused-vars
-        } catch (_) {
-          // Computation failed — show without values
         }
-      }
 
-      return {
-        idx,
-        indId: ind.id,
-        id: regId,
-        shortName: def.shortName || def.name || regId.toUpperCase(),
-        paramStr,
-        color: ind.color || (def.outputs?.[0]?.color) || '#AAA',
-        visible: ind.visible !== false,
-        liveValues,
-        params: ind.params || {},
-        opacity: ind.opacity ?? 1,
-        lineStyle: ind.lineStyle || 'solid',
-      };
-    }).filter(Boolean);
+        return {
+          idx,
+          indId: ind.id,
+          id: regId,
+          shortName: def.shortName || def.name || regId.toUpperCase(),
+          paramStr,
+          color: ind.color || def.outputs?.[0]?.color || '#AAA',
+          visible: ind.visible !== false,
+          liveValues,
+          params: ind.params || {},
+          opacity: ind.opacity ?? 1,
+          lineStyle: ind.lineStyle || 'solid',
+        };
+      })
+      .filter(Boolean);
   }, [indicators, data, barIdx]);
 
-  const handleRemove = useCallback((e, indId) => {
-    e.stopPropagation();
-    removeIndicator(indId);
-    if (editIdx === indId) setEditIdx(null);
-  }, [removeIndicator, editIdx]);
+  const handleRemove = useCallback(
+    (e, indId) => {
+      e.stopPropagation();
+      removeIndicator(indId);
+      if (editIdx === indId) setEditIdx(null);
+    },
+    [removeIndicator, editIdx],
+  );
 
-  const handleToggleVis = useCallback((e, indId) => {
-    e.stopPropagation();
-    toggleIndicatorVisibility(indId);
-  }, [toggleIndicatorVisibility]);
+  const handleToggleVis = useCallback(
+    (e, indId) => {
+      e.stopPropagation();
+      toggleIndicatorVisibility(indId);
+    },
+    [toggleIndicatorVisibility],
+  );
 
   const handleEdit = useCallback((indId) => {
     // Sprint 11: Toggle inline quick-edit popover
@@ -126,12 +136,9 @@ export default function IndicatorLegendHeader({ data, hoverIdx, _onEditIndicator
       }}
     >
       {legendItems.map((item) => (
-        <div
-          key={`${item.id}-${item.idx}`}
-          style={{ position: 'relative' }}
-        >
+        <div key={`${item.id}-${item.idx}`} style={{ position: 'relative' }}>
           <div
-           onMouseEnter={() => setHoveredIdx(item.indId)}
+            onMouseEnter={() => setHoveredIdx(item.indId)}
             onMouseLeave={() => setHoveredIdx(null)}
             onClick={() => handleEdit(item.indId)}
             style={{
@@ -150,40 +157,47 @@ export default function IndicatorLegendHeader({ data, hoverIdx, _onEditIndicator
             }}
           >
             {/* Color dot */}
-            <div style={{
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              background: item.color,
-              flexShrink: 0,
-            }} />
+            <div
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: item.color,
+                flexShrink: 0,
+              }}
+            />
 
             {/* Label */}
-            <span style={{
-              fontSize: 10,
-              fontFamily: F,
-              fontWeight: 600,
-              color: C.t2,
-              letterSpacing: '0.3px',
-              whiteSpace: 'nowrap',
-            }}>
-              {item.shortName}{item.paramStr}
+            <span
+              style={{
+                fontSize: 10,
+                fontFamily: F,
+                fontWeight: 600,
+                color: C.t2,
+                letterSpacing: '0.3px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {item.shortName}
+              {item.paramStr}
             </span>
 
             {/* Live indicator values */}
-            {item.liveValues.length > 0 && item.liveValues.some(v => v.value != null) && (
-              <span style={{
-                fontSize: 10,
-                fontFamily: F,
-                fontWeight: 500,
-                color: item.liveValues[0]?.color || C.t3,
-                letterSpacing: '0.2px',
-                whiteSpace: 'nowrap',
-                opacity: 0.9,
-              }}>
+            {item.liveValues.length > 0 && item.liveValues.some((v) => v.value != null) && (
+              <span
+                style={{
+                  fontSize: 10,
+                  fontFamily: F,
+                  fontWeight: 500,
+                  color: item.liveValues[0]?.color || C.t3,
+                  letterSpacing: '0.2px',
+                  whiteSpace: 'nowrap',
+                  opacity: 0.9,
+                }}
+              >
                 {item.liveValues
-                  .filter(v => v.value != null)
-                  .map(v => compactNum(v.value))
+                  .filter((v) => v.value != null)
+                  .map((v) => compactNum(v.value))
                   .join(' · ')}
               </span>
             )}
@@ -211,6 +225,7 @@ export default function IndicatorLegendHeader({ data, hoverIdx, _onEditIndicator
             <button
               onClick={(e) => handleRemove(e, item.indId)}
               title="Remove indicator"
+              className="tf-hover-danger"
               style={{
                 background: 'none',
                 border: 'none',
@@ -220,11 +235,8 @@ export default function IndicatorLegendHeader({ data, hoverIdx, _onEditIndicator
                 padding: '0 1px',
                 lineHeight: 1,
                 fontFamily: F,
-                transition: 'color 0.1s',
                 opacity: 0.6,
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = C.r || '#EF5350'; e.currentTarget.style.opacity = '1'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = C.t3; e.currentTarget.style.opacity = '0.6'; }}
             >
               ×
             </button>
@@ -234,7 +246,7 @@ export default function IndicatorLegendHeader({ data, hoverIdx, _onEditIndicator
           {editIdx === item.indId && (
             <IndicatorQuickEdit
               idx={item.indId}
-              indicator={indicators.find(ind => ind.id === item.indId)}
+              indicator={indicators.find((ind) => ind.id === item.indId)}
               onClose={() => setEditIdx(null)}
               updateIndicator={updateIndicator}
               removeIndicator={removeIndicator}
@@ -252,8 +264,16 @@ function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator, removeIn
   // Defined inside the component to avoid TDZ — C may not be
   // initialized at module-evaluation time in the bundled chunk.
   const COLOR_SWATCHES = [
-    '#22d3ee', C.g, '#f59e0b', '#ef4444', '#a855f7',
-    '#f472b6', '#6366f1', '#e8642c', '#a3e635', '#ffffff',
+    '#22d3ee',
+    C.g,
+    '#f59e0b',
+    '#ef4444',
+    '#a855f7',
+    '#f472b6',
+    '#6366f1',
+    '#e8642c',
+    '#a3e635',
+    '#ffffff',
   ];
 
   const LINE_STYLES = [
@@ -312,16 +332,22 @@ function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator, removeIn
     >
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: C.t1 }}>
-          {def?.shortName || regId}
-        </span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: C.t1 }}>{def?.shortName || regId}</span>
         <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
           <button
-            onClick={() => { onClose(); removeIndicator(idx); }}
+            onClick={() => {
+              onClose();
+              removeIndicator(idx);
+            }}
             title="Delete indicator"
             style={{
-              background: 'none', border: 'none', color: '#EF5350',
-              fontSize: 10, cursor: 'pointer', padding: '1px 4px', lineHeight: 1,
+              background: 'none',
+              border: 'none',
+              color: '#EF5350',
+              fontSize: 10,
+              cursor: 'pointer',
+              padding: '1px 4px',
+              lineHeight: 1,
               fontFamily: F,
             }}
           >
@@ -330,8 +356,13 @@ function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator, removeIn
           <button
             onClick={onClose}
             style={{
-              background: 'none', border: 'none', color: C.t3,
-              fontSize: 12, cursor: 'pointer', padding: '1px 4px', lineHeight: 1,
+              background: 'none',
+              border: 'none',
+              color: C.t3,
+              fontSize: 12,
+              cursor: 'pointer',
+              padding: '1px 4px',
+              lineHeight: 1,
             }}
           >
             ×
@@ -343,9 +374,7 @@ function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator, removeIn
       {paramDefs.map(([key, value]) => (
         <div key={key} style={{ marginBottom: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-            <span style={{ fontSize: 9, color: C.t3, fontWeight: 600, textTransform: 'capitalize' }}>
-              {key}
-            </span>
+            <span style={{ fontSize: 9, color: C.t3, fontWeight: 600, textTransform: 'capitalize' }}>{key}</span>
             <span style={{ fontSize: 9, color: C.t2, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
               {value}
             </span>
@@ -368,9 +397,7 @@ function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator, removeIn
 
       {/* Color swatches */}
       <div style={{ marginBottom: 8 }}>
-        <span style={{ fontSize: 9, color: C.t3, fontWeight: 600, display: 'block', marginBottom: 4 }}>
-          Color
-        </span>
+        <span style={{ fontSize: 9, color: C.t3, fontWeight: 600, display: 'block', marginBottom: 4 }}>Color</span>
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {COLOR_SWATCHES.map((c) => (
             <button
@@ -386,8 +413,7 @@ function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator, removeIn
                 padding: 0,
                 transition: 'transform 0.15s ease',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.2)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+              className="tf-hover-pop"
             />
           ))}
         </div>
@@ -395,9 +421,7 @@ function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator, removeIn
 
       {/* Line style */}
       <div style={{ marginBottom: 8 }}>
-        <span style={{ fontSize: 9, color: C.t3, fontWeight: 600, display: 'block', marginBottom: 4 }}>
-          Line Style
-        </span>
+        <span style={{ fontSize: 9, color: C.t3, fontWeight: 600, display: 'block', marginBottom: 4 }}>Line Style</span>
         <div style={{ display: 'flex', gap: 4 }}>
           {LINE_STYLES.map((ls) => (
             <button
@@ -444,7 +468,6 @@ function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator, removeIn
           }}
         />
       </div>
-
     </div>
   );
 }

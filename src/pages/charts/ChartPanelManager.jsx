@@ -7,10 +7,10 @@
 import React, { Suspense, useEffect } from 'react';
 import SlidePanel from '../../app/components/panels/SlidePanel.jsx';
 import { C } from '../../constants.js';
+import { useChartFeaturesStore } from '../../state/chart/useChartFeaturesStore';
+import { useChartToolsStore } from '../../state/chart/useChartToolsStore';
 import { useAlertStore } from '../../state/useAlertStore';
 import { useLayoutStore } from '../../state/useLayoutStore';
-import { useChartToolsStore } from '../../state/chart/useChartToolsStore';
-import { useChartFeaturesStore } from '../../state/chart/useChartFeaturesStore';
 const IndicatorPanel = React.lazy(() => import('../../app/components/panels/IndicatorPanel.jsx'));
 
 // Lazy-loaded panels & modals
@@ -18,22 +18,22 @@ const ObjectTreePanel = React.lazy(() => import('../../app/components/panels/Obj
 const WatchlistPanel = React.lazy(() => import('../../app/components/panels/WatchlistPanel.jsx'));
 const AlertPanel = React.lazy(() => import('../../app/components/panels/AlertPanel.jsx'));
 const ChartInsightsPanel = React.lazy(() => import('../../app/components/panels/ChartInsightsPanel.jsx'));
-// Wave 0: Quarantined — script editor frozen for v1.0
 // const ScriptEditor = React.lazy(() => import('../../charting_library/scripting/ScriptEditor.jsx'));
 // const ScriptManager = React.lazy(() => import('../../charting_library/scripting/ScriptManager.jsx'));
-// Wave 0: ShareSnapshotModal quarantined — social sharing removed from v1.0
 // const ShareSnapshotModal = React.lazy(() => import('../../app/features/sharing/ShareSnapshotModal.jsx'));
-// Wave 0: SnapshotPublisher quarantined — social sharing removed from v1.0
 // const SnapshotPublisher = React.lazy(() => import('../../app/features/sharing/SnapshotPublisher.jsx'));
 const ChartSnapshotModal = React.lazy(() => import('../../app/components/chart/panels/ChartSnapshotModal.jsx'));
 const ChartSettingsPanel = React.lazy(() => import('../../app/components/chart/panels/ChartSettingsPanel.jsx'));
-const HotkeyCustomizationPanel = React.lazy(() => import('../../app/components/chart/panels/HotkeyCustomizationPanel.jsx'));
+const HotkeyCustomizationPanel = React.lazy(
+  () => import('../../app/components/chart/panels/HotkeyCustomizationPanel.jsx'),
+);
 const ChartAnnotationsPanel = React.lazy(() => import('../../app/components/chart/panels/ChartAnnotationsPanel.jsx'));
-
 
 const DOMLadder = React.lazy(() => import('../../app/components/chart/DOMLadder.jsx'));
 // DepthChart rendering moved to ChartsPage for proper flex layout
-const KeyboardShortcutsOverlay = React.lazy(() => import('../../app/components/chart/overlays/KeyboardShortcutsOverlay.jsx'));
+const KeyboardShortcutsOverlay = React.lazy(
+  () => import('../../app/components/chart/overlays/KeyboardShortcutsOverlay.jsx'),
+);
 const MobileChartSheet = React.lazy(() => import('../../app/components/mobile/MobileChartSheet.jsx'));
 const MobileShareSheet = React.lazy(() => import('../../app/components/mobile/MobileShareSheet.jsx'));
 const GestureGuide = React.lazy(() => import('../../app/components/ui/GestureGuide.jsx'));
@@ -93,8 +93,6 @@ export default function ChartPanelManager({
   const panelWidth = useLayoutStore.getState().getPanelWidth(activePanel);
   const closePanel = useLayoutStore((s) => s.closePanel);
 
-
-
   const showDOM = useChartFeaturesStore((s) => s.showDOM);
 
   // Item 40: Sync showIndicators toggle → SlidePanel via useLayoutStore
@@ -123,13 +121,14 @@ export default function ChartPanelManager({
             isOpen={showObjectTree}
             onClose={() => setShowObjectTree(false)}
             drawings={drawings}
-            onToggleVisibility={(id) => window.dispatchEvent(new CustomEvent('charEdge:toggle-visibility', { detail: id }))}
+            onToggleVisibility={(id) =>
+              window.dispatchEvent(new CustomEvent('charEdge:toggle-visibility', { detail: id }))
+            }
             onToggleLock={(id) => window.dispatchEvent(new CustomEvent('charEdge:toggle-lock', { detail: id }))}
             onDelete={(id) => window.dispatchEvent(new CustomEvent('charEdge:delete-specific', { detail: id }))}
           />
         </Suspense>
       )}
-
 
       {/* ─── DOM Ladder Overlay ─── */}
       {!workspaceMode && showDOM && (
@@ -155,7 +154,7 @@ export default function ChartPanelManager({
           onPost={() => {
             import('../../app/components/ui/Toast.jsx')
               .then(({ default: toast }) => toast.success('Chart posted to Social Hub! 🚀'))
-              .catch(() => { }); // intentional: Toast import is best-effort UI
+              .catch(() => {}); // intentional: Toast import is best-effort UI
           }}
         />
       </Suspense>
@@ -172,9 +171,7 @@ export default function ChartPanelManager({
         >
           <div style={{ padding: 16, height: '100%', display: 'flex', flexDirection: 'column' }}>
             <Suspense fallback={<div style={{ padding: 16, color: C.t3 }}>Loading component...</div>}>
-              {activePanel === 'indicators' && (
-                <IndicatorPanel isOpen={true} onClose={closePanel} />
-              )}
+              {activePanel === 'indicators' && <IndicatorPanel isOpen={true} onClose={closePanel} />}
               {activePanel === 'watchlist' && <WatchlistPanel compact />}
               {activePanel === 'alerts' && <AlertPanel currentSymbol={symbol} />}
               {activePanel === 'insights' && (
@@ -202,36 +199,24 @@ export default function ChartPanelManager({
                 <ScriptEditor ref={editorRef} bars={data} onResults={setEditorOutputs} />
               )}
               */}
-              {activePanel === 'settings' && (
-                <ChartSettingsPanel onClose={closePanel} />
-              )}
-              {activePanel === 'hotkeys' && (
-                <HotkeyCustomizationPanel onClose={closePanel} />
-              )}
-              {activePanel === 'annotations' && (
-                <ChartAnnotationsPanel onClose={closePanel} />
-              )}
-              {activePanel === 'orderflow' && (
-                <OrderFlowPanel symbol={symbol} />
-              )}
+              {activePanel === 'settings' && <ChartSettingsPanel onClose={closePanel} />}
+              {activePanel === 'hotkeys' && <HotkeyCustomizationPanel onClose={closePanel} />}
+              {activePanel === 'annotations' && <ChartAnnotationsPanel onClose={closePanel} />}
+              {activePanel === 'orderflow' && <OrderFlowPanel symbol={symbol} />}
               {activePanel === 'derivatives' && (
-                <DerivativesDashboard symbol={symbol.toUpperCase().endsWith('USDT') ? symbol.toUpperCase() : symbol.toUpperCase() + 'USDT'} />
+                <DerivativesDashboard
+                  symbol={symbol.toUpperCase().endsWith('USDT') ? symbol.toUpperCase() : symbol.toUpperCase() + 'USDT'}
+                />
               )}
               {activePanel === 'depth' && (
-                <DepthPanel symbol={symbol.toUpperCase().endsWith('USDT') ? symbol.toUpperCase() : symbol.toUpperCase() + 'USDT'} />
+                <DepthPanel
+                  symbol={symbol.toUpperCase().endsWith('USDT') ? symbol.toUpperCase() : symbol.toUpperCase() + 'USDT'}
+                />
               )}
-              {activePanel === 'institutional' && (
-                <InstitutionalPanel symbol={symbol} />
-              )}
-              {activePanel === 'community' && (
-                <CommunitySignals />
-              )}
-              {activePanel === 'positionSizer' && (
-                <PositionSizer />
-              )}
-              {activePanel === 'quickJournal' && (
-                <QuickJournalPanel onClose={closePanel} />
-              )}
+              {activePanel === 'institutional' && <InstitutionalPanel symbol={symbol} />}
+              {activePanel === 'community' && <CommunitySignals />}
+              {activePanel === 'positionSizer' && <PositionSizer />}
+              {activePanel === 'quickJournal' && <QuickJournalPanel onClose={closePanel} />}
             </Suspense>
           </div>
         </SlidePanel>

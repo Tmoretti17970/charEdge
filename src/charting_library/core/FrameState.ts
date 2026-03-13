@@ -14,7 +14,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import type { Bar, IndicatorConfig } from '../../types/chart.js';
-import type { PaneState} from './PaneState.js';
+import type { PaneState } from './PaneState.js';
 import { buildPaneLayout, layoutPanes } from './PaneState.js';
 
 /**
@@ -23,18 +23,18 @@ import { buildPaneLayout, layoutPanes } from './PaneState.js';
  */
 export const CHANGED = {
   NONE: 0,
-  VIEWPORT: 1 << 0,   // scroll, zoom, visibleBars changed
-  DATA: 1 << 1,   // bars array changed (length or content)
-  THEME: 1 << 2,   // theme or chart colors changed
-  INDICATORS: 1 << 3,   // indicator config changed
-  DRAWINGS: 1 << 4,   // drawing state changed
-  MOUSE: 1 << 5,   // cursor position changed
-  PROPS: 1 << 6,   // chart type, scale mode, overlays changed
-  SIZE: 1 << 7,   // canvas dimensions changed
-  ANIMATION: 1 << 8,   // candle entrance or tick animation active
-  TICK: 1 << 9,   // last bar updated, bar count unchanged (incremental)
-  TIMEZONE: 1 << 10,  // active timezone changed
-  ALL: 0x7FF,     // all bits set (11 flags)
+  VIEWPORT: 1 << 0, // scroll, zoom, visibleBars changed
+  DATA: 1 << 1, // bars array changed (length or content)
+  THEME: 1 << 2, // theme or chart colors changed
+  INDICATORS: 1 << 3, // indicator config changed
+  DRAWINGS: 1 << 4, // drawing state changed
+  MOUSE: 1 << 5, // cursor position changed
+  PROPS: 1 << 6, // chart type, scale mode, overlays changed
+  SIZE: 1 << 7, // canvas dimensions changed
+  ANIMATION: 1 << 8, // candle entrance or tick animation active
+  TICK: 1 << 9, // last bar updated, bar count unchanged (incremental)
+  TIMEZONE: 1 << 10, // active timezone changed
+  ALL: 0x7ff, // all bits set (11 flags)
 } as const;
 
 export type ChangeMask = number;
@@ -220,9 +220,12 @@ export class FrameState {
     const collapsedPanes: Set<number> = engine.state.collapsedPanes || new Set();
 
     // P1 Task 3: Reuse layout from prev frame if canvas size, zoom & config are unchanged
-    const layoutSame = prev &&
-      bw === prev.bitmapWidth && bh === prev.bitmapHeight &&
-      mw === prev.mediaWidth && mh === prev.mediaHeight &&
+    const layoutSame =
+      prev &&
+      bw === prev.bitmapWidth &&
+      bh === prev.bitmapHeight &&
+      mw === prev.mediaWidth &&
+      mh === prev.mediaHeight &&
       compact === prev.compact &&
       indicators.length === prev.indicators.length &&
       S.visibleBars === prev.visibleBars;
@@ -245,14 +248,16 @@ export class FrameState {
     } else {
       // P1-A #3/#4: Responsive axis sizing — 48px price axis and 20px time axis on mobile
       const isMobile = mw < 768;
-      axW = compact ? 0 : (isMobile ? 48 : 72);
-      txH = compact ? 0 : (isMobile ? 20 : 24);
+      axW = compact ? 0 : isMobile ? 48 : 72;
+      txH = compact ? 0 : isMobile ? 20 : 24;
       chartWidth = mw - axW;
       availHeight = mh - txH;
 
       // Indicator layout
       overlayInds = indicators.filter((i: unknown) => i.mode === 'overlay').slice(0, (lod as unknown).maxIndicators);
-      paneInds = indicators.filter((i: unknown) => i.mode === 'pane').slice(0, Math.max(0, (lod as unknown).maxIndicators - overlayInds.length));
+      paneInds = indicators
+        .filter((i: unknown) => i.mode === 'pane')
+        .slice(0, Math.max(0, (lod as unknown).maxIndicators - overlayInds.length));
       paneCount = paneInds.length;
 
       paneHeight = 0;
@@ -266,7 +271,10 @@ export class FrameState {
         const paneTotalH = Math.min(availHeight * 0.6, Math.floor(availHeight * totalPaneFraction));
         const activePaneCount = paneInds.filter((_: unknown, idx: number) => !collapsedPanes.has(idx)).length;
         paneHeight = activePaneCount > 0 ? Math.max(60, Math.floor(paneTotalH / activePaneCount)) : 0;
-        mainHeight = Math.max(100, availHeight - paneHeight * activePaneCount);
+        // NOTE: Do NOT subtract paneHeight from mainHeight here.
+        // The main pane's canvas is already sized by CSS flexbox (flex:1 1 auto)
+        // which automatically shrinks the main pane when indicator panes are present.
+        // Subtracting again would double-count and create a visible gap.
       }
     }
 
@@ -281,14 +289,15 @@ export class FrameState {
     // ─── Tick-Only Fast Path ─────────────────────────────────────
     // When only the last bar's close changed (streaming tick), skip
     // the full price scan, slice, and pane rebuild by reusing prev frame.
-    const isTickOnly = !!engine._tickUpdate &&
+    const isTickOnly =
+      !!engine._tickUpdate &&
       prev &&
       bars.length === prev.barCount &&
       startIdx === prev.startIdx &&
       endIdx === prev.endIdx &&
-      S.priceScale === prev.priceScale &&   // Price axis drag → full recompute
-      S.autoScale === prev.autoScale &&     // Auto-scale toggle → full recompute
-      S.priceScroll === prev.priceScroll;   // Price scroll change → full recompute
+      S.priceScale === prev.priceScale && // Price axis drag → full recompute
+      S.autoScale === prev.autoScale && // Auto-scale toggle → full recompute
+      S.priceScroll === prev.priceScroll; // Price scroll change → full recompute
 
     let visBars: Bar[];
     let yMin: number, yMax: number;
@@ -322,7 +331,8 @@ export class FrameState {
       paneTransforms = prev.paneTransforms;
     } else {
       // P1 Task 1: Price scan via index loop — avoids slice() copy for the hot path
-      let lo = Infinity, hi = -Infinity;
+      let lo = Infinity,
+        hi = -Infinity;
       for (let bi = startIdx; bi < visBarsEnd; bi++) {
         const b = bars[bi];
         if (b.low < lo) lo = b.low;
@@ -334,18 +344,15 @@ export class FrameState {
       yMin = lo - rng * 0.06;
       yMax = hi + rng * 0.06;
       if (!S.autoScale) {
-        const mid = (yMin + yMax) / 2, half = (yMax - yMin) / 2;
+        const mid = (yMin + yMax) / 2,
+          half = (yMax - yMin) / 2;
         yMin = mid - half * S.priceScale + S.priceScroll;
         yMax = mid + half * S.priceScale + S.priceScroll;
       }
 
       // ─── Phase 1: Build PaneState array ──────────────────────────
       // Creates [mainPane, pane_0, pane_1, ...] with independent Y-axis state.
-      panes = buildPaneLayout(
-        indicators,
-        (props.paneHeights || {}) as Record<number, number>,
-        collapsedPanes,
-      );
+      panes = buildPaneLayout(indicators, (props.paneHeights || {}) as Record<number, number>, collapsedPanes);
 
       // Lay out heights (main pane fills remainder)
       layoutPanes(panes, availHeight);
@@ -371,7 +378,7 @@ export class FrameState {
     const percentBase = visBars.length > 0 ? visBars[0].open : 0;
 
     // Viewport change detection
-    const viewportChanged = (
+    const viewportChanged =
       !prev ||
       startIdx !== prev.startIdx ||
       endIdx !== prev.endIdx ||
@@ -380,8 +387,7 @@ export class FrameState {
       yMin !== prev.yMin ||
       yMax !== prev.yMax ||
       mw !== prev.mediaWidth ||
-      mh !== prev.mediaHeight
-    );
+      mh !== prev.mediaHeight;
 
     // Animation state
     const animating = !!(engine._animTarget && engine._animCurrent);
@@ -466,9 +472,14 @@ export class FrameState {
     // before React mounts, so we read it when the store value may be stale.
     let _theme = (props.theme as string) || 'dark';
     if (_theme === 'system') {
-      _theme = (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+      _theme =
+        typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
     }
-    if (_theme === 'dark' && typeof document !== 'undefined' && document.documentElement.classList.contains('theme-light')) {
+    if (
+      _theme === 'dark' &&
+      typeof document !== 'undefined' &&
+      document.documentElement.classList.contains('theme-light')
+    ) {
       _theme = 'light';
     }
     fs.themeName = _theme;
@@ -527,12 +538,14 @@ export class FrameState {
 
     // Viewport — includes both horizontal (scroll/zoom) AND vertical (Y-axis) changes.
     // Without yMin/yMax here, price axis drag wouldn't trigger indicator/drawing re-render.
-    if (this.startIdx !== prev.startIdx ||
+    if (
+      this.startIdx !== prev.startIdx ||
       this.endIdx !== prev.endIdx ||
       this.visibleBars !== prev.visibleBars ||
       this.scrollOffset !== prev.scrollOffset ||
       this.yMin !== prev.yMin ||
-      this.yMax !== prev.yMax) {
+      this.yMax !== prev.yMax
+    ) {
       mask |= CHANGED.VIEWPORT;
     }
 
@@ -562,13 +575,15 @@ export class FrameState {
     }
 
     // Props
-    if (this.chartType !== prev.chartType ||
+    if (
+      this.chartType !== prev.chartType ||
       this.scaleMode !== prev.scaleMode ||
       this.showVolume !== prev.showVolume ||
       this.showHeatmap !== prev.showHeatmap ||
       this.showSessions !== prev.showSessions ||
       this.compact !== prev.compact ||
-      this.autoScale !== prev.autoScale) {
+      this.autoScale !== prev.autoScale
+    ) {
       mask |= CHANGED.PROPS;
     }
 

@@ -17,10 +17,17 @@ import { logger } from '@/observability/logger';
 // ═══════════════════════════════════════════════════════════════════
 
 const UNIFIED_DB_NAME = 'charEdge-unified';
-const UNIFIED_DB_VERSION = 4; // P2 v4: Added enc_* stores for EncryptedStore consolidation (#22)
+const UNIFIED_DB_VERSION = 5; // P2 v5: Added account-specific stores (trades_real, trades_demo, etc.)
 
 // Old database names (for migration)
-const OLD_DBS = ['charEdge-cache', 'charEdge-ticks', 'charEdge-os-v10', 'charEdge_candleCache', 'charedge-session-recovery', 'charEdge_encrypted'];
+const OLD_DBS = [
+  'charEdge-cache',
+  'charEdge-ticks',
+  'charEdge-os-v10',
+  'charEdge_candleCache',
+  'charedge-session-recovery',
+  'charEdge_encrypted',
+];
 
 // #22: EncryptedStore store name mapping (old → new)
 const ENC_STORE_MAP = {
@@ -37,9 +44,19 @@ const MIGRATION_FLAG = 'charEdge-unified-migrated';
 
 // From charEdge-cache (DataCache)
 const CACHE_STORES = [
-  'candles', 'quotes', 'fundamentals', 'economic', 'news',
-  'sentiment', 'indicators', 'derivedData', 'volumeProfiles',
-  'filings', 'meta', 'drawings', 'snapshots',
+  'candles',
+  'quotes',
+  'fundamentals',
+  'economic',
+  'news',
+  'sentiment',
+  'indicators',
+  'derivedData',
+  'volumeProfiles',
+  'filings',
+  'meta',
+  'drawings',
+  'snapshots',
 ];
 
 // From charEdge-ticks (TickPersistence)
@@ -54,6 +71,15 @@ const USER_STORES_SCHEMA = {
   tradePlans: { keyPath: 'id', indexes: ['date'] },
   settings: { keyPath: 'key', indexes: [] },
 };
+
+// Account-specific stores — duplicates of user stores per account
+const ACCOUNT_IDS = ['real', 'demo'];
+const ACCOUNT_STORE_BASES = ['trades', 'playbooks', 'notes', 'tradePlans'];
+
+/** Get the IDB store name for a base store and account ID */
+function accountStoreNameFor(base, accountId) {
+  return `${base}_${accountId}`;
+}
 
 // ─── Database Manager ──────────────────────────────────────────
 
@@ -135,6 +161,20 @@ function openUnifiedDB() {
             db.createObjectStore(newName);
           }
         }
+
+        // ── v5: Account-specific stores (dual journal) ──
+        for (const accountId of ACCOUNT_IDS) {
+          for (const base of ACCOUNT_STORE_BASES) {
+            const storeName = accountStoreNameFor(base, accountId);
+            if (!db.objectStoreNames.contains(storeName)) {
+              const schema = USER_STORES_SCHEMA[base];
+              const store = db.createObjectStore(storeName, { keyPath: schema.keyPath });
+              for (const idx of schema.indexes) {
+                store.createIndex(idx, idx, { unique: false });
+              }
+            }
+          }
+        }
       };
 
       req.onsuccess = (event) => {
@@ -158,7 +198,7 @@ function openUnifiedDB() {
         logger.data.warn('[UnifiedDB] Failed to open unified database');
         reject(new Error('IndexedDB unavailable'));
       };
-    // eslint-disable-next-line unused-imports/no-unused-vars
+      // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       if (!settled) {
         settled = true;
@@ -184,8 +224,10 @@ async function _migrateOldDBs(unifiedDb) {
   // Skip if already migrated
   try {
     if (localStorage.getItem(MIGRATION_FLAG)) return;
-  // eslint-disable-next-line unused-imports/no-unused-vars
-  } catch (_) { /* localStorage unavailable — skip migration check */ }
+    // eslint-disable-next-line unused-imports/no-unused-vars
+  } catch (_) {
+    /* localStorage unavailable — skip migration check */
+  }
 
   let migrated = false;
 
@@ -224,16 +266,27 @@ async function _migrateOldDBs(unifiedDb) {
   // Set flag so migration doesn't re-run
   try {
     localStorage.setItem(MIGRATION_FLAG, Date.now().toString());
-  // eslint-disable-next-line unused-imports/no-unused-vars
-  } catch (_) { /* ignore */ }
+    // eslint-disable-next-line unused-imports/no-unused-vars
+  } catch (_) {
+    /* ignore */
+  }
+
+  // 5. v5: Copy existing user stores into *_real account stores
+  try {
+    await _migrateToAccountStores(unifiedDb);
+  } catch (err) {
+    logger.data.warn('[UnifiedDB] Account store migration error (non-fatal):', err?.message);
+  }
 
   // Delete old databases (fire-and-forget, non-blocking)
   if (migrated) {
     for (const dbName of OLD_DBS) {
       try {
         indexedDB.deleteDatabase(dbName);
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      } catch (_) { /* silent */ }
+        // eslint-disable-next-line unused-imports/no-unused-vars
+      } catch (_) {
+        /* silent */
+      }
     }
   }
 }
@@ -322,6 +375,54 @@ async function _migrateEncryptedDB(unifiedDb) {
   }
 }
 
+// v5: Migrate existing flat user stores → *_real account stores (one-time)
+const ACCOUNT_MIGRATION_FLAG = 'charEdge-account-stores-migrated';
+
+async function _migrateToAccountStores(unifiedDb) {
+  // Skip if already migrated
+  try {
+    if (localStorage.getItem(ACCOUNT_MIGRATION_FLAG)) return;
+    // eslint-disable-next-line unused-imports/no-unused-vars
+  } catch (_) {
+    /* localStorage unavailable */
+  }
+
+  let migrated = false;
+
+  for (const base of ACCOUNT_STORE_BASES) {
+    const realStoreName = accountStoreNameFor(base, 'real');
+    try {
+      // Check if the real store already has data (avoid overwriting)
+      const existingReal = await _readAllFromStore(unifiedDb, realStoreName);
+      if (existingReal.length > 0) continue;
+
+      // Read from the old flat store
+      const records = await _readAllFromStore(unifiedDb, base);
+      if (records.length === 0) continue;
+
+      // Write to the _real account store
+      await _writeAllToStore(unifiedDb, realStoreName, records);
+      migrated = true;
+      logger.data.info(`[UnifiedDB] Migrated ${records.length} records from '${base}' → '${realStoreName}'`);
+      // eslint-disable-next-line unused-imports/no-unused-vars
+    } catch (_) {
+      // Non-fatal — store may not exist in older DB versions
+    }
+  }
+
+  if (migrated) {
+    logger.data.info('[UnifiedDB] Account store migration complete');
+  }
+
+  // Set flag so migration doesn't re-run
+  try {
+    localStorage.setItem(ACCOUNT_MIGRATION_FLAG, Date.now().toString());
+    // eslint-disable-next-line unused-imports/no-unused-vars
+  } catch (_) {
+    /* ignore */
+  }
+}
+
 // Read all records including their keys (for out-of-line key stores)
 function _readAllFromStoreWithKeys(db, storeName) {
   return new Promise((resolve) => {
@@ -340,7 +441,7 @@ function _readAllFromStoreWithKeys(db, storeName) {
         }
       };
       req.onerror = () => resolve([]);
-    // eslint-disable-next-line unused-imports/no-unused-vars
+      // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       resolve([]);
     }
@@ -358,7 +459,7 @@ function _writeAllToStoreWithKeys(db, storeName, records) {
       }
       tx.oncomplete = () => resolve();
       tx.onerror = () => resolve();
-    // eslint-disable-next-line unused-imports/no-unused-vars
+      // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       resolve();
     }
@@ -373,7 +474,7 @@ function _openOldDB(name) {
       const req = indexedDB.open(name);
       req.onsuccess = (e) => resolve(e.target.result);
       req.onerror = () => resolve(null);
-    // eslint-disable-next-line unused-imports/no-unused-vars
+      // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       resolve(null);
     }
@@ -388,7 +489,7 @@ function _readAllFromStore(db, storeName) {
       const req = store.getAll();
       req.onsuccess = () => resolve(req.result || []);
       req.onerror = () => resolve([]);
-    // eslint-disable-next-line unused-imports/no-unused-vars
+      // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       resolve([]);
     }
@@ -405,7 +506,7 @@ function _writeAllToStore(db, storeName, records) {
       }
       tx.oncomplete = () => resolve();
       tx.onerror = () => resolve();
-    // eslint-disable-next-line unused-imports/no-unused-vars
+      // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       resolve();
     }
@@ -422,7 +523,7 @@ function _addAllToStore(db, storeName, records) {
       }
       tx.oncomplete = () => resolve();
       tx.onerror = () => resolve();
-    // eslint-disable-next-line unused-imports/no-unused-vars
+      // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       resolve();
     }
@@ -431,5 +532,5 @@ function _addAllToStore(db, storeName, records) {
 
 // ─── Exports ──────────────────────────────────────────────────
 
-export { openUnifiedDB, UNIFIED_DB_NAME };
+export { openUnifiedDB, UNIFIED_DB_NAME, ACCOUNT_IDS, ACCOUNT_STORE_BASES, accountStoreNameFor };
 export default openUnifiedDB;

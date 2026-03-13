@@ -2,37 +2,15 @@
 // charEdge — Sidebar P&L Widget
 // Always-visible today's P&L summary in the sidebar.
 // Shows colored dollar amount, win/loss count, and trade count.
+// Now uses shared useTodayStats hook (C3: single source of truth).
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { useMemo } from 'react';
 import { C, M } from '../../../constants.js';
-import { useJournalStore } from '../../../state/useJournalStore';
-
-/** Get start-of-day timestamp for comparison */
-function todayStart() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
-}
+import { useTodayStats } from '../../../hooks/useTodayStats';
 
 function SidebarPnL({ expanded = false }) {
-  const trades = useJournalStore((s) => s.trades);
-
-  const { totalPnl, wins, losses, count } = useMemo(() => {
-    const start = todayStart();
-    let total = 0, w = 0, l = 0, c = 0;
-    for (const t of trades) {
-      const ts = new Date(t.date).getTime();
-      if (ts >= start) {
-        total += t.pnl || 0;
-        if ((t.pnl || 0) > 0) w++;
-        else if ((t.pnl || 0) < 0) l++;
-        c++;
-      }
-    }
-    return { totalPnl: total, wins: w, losses: l, count: c };
-  }, [trades]);
+  const { pnl: totalPnl, wins, losses, count } = useTodayStats();
 
   const color = totalPnl > 0 ? C.g : totalPnl < 0 ? C.r : C.t3;
   const sign = totalPnl > 0 ? '+' : '';
@@ -131,11 +109,7 @@ function SidebarPnL({ expanded = false }) {
           <span style={{ color: C.t3 }}>{count} trades</span>
         </div>
       )}
-      {count === 0 && (
-        <span style={{ fontSize: 10, fontFamily: M, color: C.t3 }}>
-          No trades yet
-        </span>
-      )}
+      {count === 0 && <span style={{ fontSize: 10, fontFamily: M, color: C.t3 }}>No trades yet</span>}
     </div>
   );
 }

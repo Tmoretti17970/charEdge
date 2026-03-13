@@ -26,13 +26,29 @@ import { useTradeForm } from './trade-form/useTradeForm.js';
  */
 function TradeFormModal({ isOpen, onClose, editTrade = null }) {
   const {
-    form, errors, isDragging, isEdit,
-    showDetails, setShowDetails,
-    reviewTrade, reviewOpen, setReviewOpen, setReviewTrade,
-    activeTemplateId, checklistState, setChecklistState,
-    playbooks, tradeTemplates, symbolRef,
-    set, handleSubmit, autoCalcPnl,
-    handleDragOver, handleDragLeave, handleDrop,
+    form,
+    errors,
+    isDragging,
+    isEdit,
+    showDetails,
+    setShowDetails,
+    reviewTrade,
+    reviewOpen,
+    setReviewOpen,
+    setReviewTrade,
+    activeTemplateId,
+    checklistState,
+    setChecklistState,
+    playbooks,
+    tradeTemplates,
+    symbolRef,
+    set,
+    handleSubmit,
+    autoCalcPnl,
+    autoCalcR,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
     handleTemplateSelect,
   } = useTradeForm({ isOpen, onClose, editTrade });
 
@@ -67,7 +83,18 @@ function TradeFormModal({ isOpen, onClose, editTrade = null }) {
                 animation: 'pulse 2s infinite',
               }}
             >
-              <div style={{ fontSize: 16, fontWeight: 700, color: C.b, fontFamily: F, background: C.sf, padding: '10px 20px', borderRadius: 20, border: `1px solid ${C.b}` }}>
+              <div
+                style={{
+                  fontSize: 16,
+                  fontWeight: 700,
+                  color: C.b,
+                  fontFamily: F,
+                  background: C.sf,
+                  padding: '10px 20px',
+                  borderRadius: 20,
+                  border: `1px solid ${C.b}`,
+                }}
+              >
                 📥 Drop screenshot here
               </div>
             </div>
@@ -89,11 +116,7 @@ function TradeFormModal({ isOpen, onClose, editTrade = null }) {
 
           {/* Sprint 9: Template Picker */}
           {!isEdit && (
-            <TemplatePicker
-              templates={tradeTemplates}
-              activeId={activeTemplateId}
-              onSelect={handleTemplateSelect}
-            />
+            <TemplatePicker templates={tradeTemplates} activeId={activeTemplateId} onSelect={handleTemplateSelect} />
           )}
 
           {/* Row 1: Symbol + Side */}
@@ -187,10 +210,35 @@ function TradeFormModal({ isOpen, onClose, editTrade = null }) {
             {showDetails ? '▲ Less Details' : '▼ More Details'}
             {!showDetails && <span style={{ fontSize: 10, color: C.t3 }}>Qty, Entry/Exit, Emotion, Notes…</span>}
             {/* P2 3.5: Progressive fill indicator */}
-            {showDetails && (() => {
-              const filled = [form.qty, form.entry, form.exit, form.fees, form.emotion, form.playbook, form.tags, form.notes, form.closeDate].filter(Boolean).length;
-              return filled > 0 ? <span style={{ fontSize: 9, fontWeight: 700, color: C.b, background: `${C.b}15`, borderRadius: 8, padding: '1px 6px', marginLeft: 4 }}>{filled}/9</span> : null;
-            })()}
+            {showDetails &&
+              (() => {
+                const filled = [
+                  form.qty,
+                  form.entry,
+                  form.exit,
+                  form.fees,
+                  form.emotion,
+                  form.playbook,
+                  form.tags,
+                  form.notes,
+                  form.closeDate,
+                ].filter(Boolean).length;
+                return filled > 0 ? (
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      color: C.b,
+                      background: `${C.b}15`,
+                      borderRadius: 8,
+                      padding: '1px 6px',
+                      marginLeft: 4,
+                    }}
+                  >
+                    {filled}/9
+                  </span>
+                ) : null;
+              })()}
           </button>
 
           {/* Optional Fields (Sprint 11: collapsed by default) */}
@@ -199,6 +247,7 @@ function TradeFormModal({ isOpen, onClose, editTrade = null }) {
               form={form}
               set={set}
               autoCalcPnl={autoCalcPnl}
+              autoCalcR={autoCalcR}
               playbooks={playbooks}
               tradeTemplates={tradeTemplates}
               activeTemplateId={activeTemplateId}
@@ -221,7 +270,10 @@ function TradeFormModal({ isOpen, onClose, editTrade = null }) {
       {/* Sprint 3: Post-Trade Review Modal */}
       <PostTradeReviewModal
         isOpen={reviewOpen}
-        onClose={() => { setReviewOpen(false); setReviewTrade(null); }}
+        onClose={() => {
+          setReviewOpen(false);
+          setReviewTrade(null);
+        }}
         trade={reviewTrade}
       />
     </>

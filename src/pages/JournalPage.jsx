@@ -26,7 +26,6 @@ import { computeAndStore } from '../app/features/analytics/analyticsSingleton.js
 import { useCooldownEnforcer } from '../hooks/useCooldownEnforcer.js';
 
 // Modals
-// Wave 0: PublishTradeModal quarantined — social features removed from v1.0 scope
 
 // §4.12: Liquid Glass trailing inspector
 import { useAnalyticsStore } from '../state/useAnalyticsStore';
@@ -87,10 +86,16 @@ export default function JournalPage() {
   useEffect(() => {
     const onAddTrade = () => actions.openAddTrade();
     const onImportCSV = () => actions.setCsvModalOpen(true);
-    const onJournalTab = (e) => { if (e.detail) setJournalTab(e.detail); };
+    const onJournalTab = (e) => {
+      if (e.detail) setJournalTab(e.detail);
+    };
     // Keyboard handler dispatches these for edit/delete
-    const onEditTrade = (e) => { if (e.detail) actions.handleEdit(e.detail); };
-    const onDeleteConfirm = (e) => { if (e.detail) actions.setDeleteConfirm(e.detail); };
+    const onEditTrade = (e) => {
+      if (e.detail) actions.handleEdit(e.detail);
+    };
+    const onDeleteConfirm = (e) => {
+      if (e.detail) actions.setDeleteConfirm(e.detail);
+    };
     // §4.12: Open inspector from chart trade marker click
     const onInspectTrade = (e) => {
       if (e.detail) {
@@ -120,12 +125,20 @@ export default function JournalPage() {
     filteredTrades: filters.filteredTrades,
     storeActions: actions.storeActions,
     expandedId: null,
-    setExpandedId: () => { },
+    setExpandedId: () => {},
     focusedIdx: -1,
-    setFocusedIdx: () => { },
+    setFocusedIdx: () => {},
     bulkMode: false,
-    setBulkMode: () => { },
-    bulk: { selectNone: () => { }, toggle: () => { }, isSelected: () => false, selectAll: () => { }, invertSelection: () => { }, count: 0, allSelected: false },
+    setBulkMode: () => {},
+    bulk: {
+      selectNone: () => {},
+      toggle: () => {},
+      isSelected: () => false,
+      selectAll: () => {},
+      invertSelection: () => {},
+      count: 0,
+      allSelected: false,
+    },
     trades,
     openAddTrade: actions.openAddTrade,
     handleExportCSV: actions.handleExportCSV,
@@ -152,11 +165,7 @@ export default function JournalPage() {
           csvModalOpen={actions.csvModalOpen}
           setCsvModalOpen={actions.setCsvModalOpen}
         />
-        <TradingJournalInspector
-          trade={inspectedTrade}
-          isOpen={inspectorOpen}
-          onClose={closeInspector}
-        />
+        <TradingJournalInspector trade={inspectedTrade} isOpen={inspectorOpen} onClose={closeInspector} />
       </>
     );
   }
@@ -165,7 +174,12 @@ export default function JournalPage() {
   // DESKTOP RENDER — Full-height single pane (logbook in ⌘K)
   // ═══════════════════════════════════════════════════════════════
   return (
-    <div role="main" aria-label="Journal" data-container="journal" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+    <div
+      role="main"
+      aria-label="Journal"
+      data-container="journal"
+      style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}
+    >
       <JournalHeader
         journalTab={journalTab}
         setJournalTab={setJournalTab}
@@ -193,23 +207,12 @@ export default function JournalPage() {
       </div>
 
       {/* ─── Modals ──── */}
-      <TradeFormModal
-        isOpen={actions.tradeFormOpen}
-        onClose={actions.closeTradeForm}
-        editTrade={actions.editTrade}
-      />
+      <TradeFormModal isOpen={actions.tradeFormOpen} onClose={actions.closeTradeForm} editTrade={actions.editTrade} />
       <CSVImportModal isOpen={actions.csvModalOpen} onClose={() => actions.setCsvModalOpen(false)} />
       {/* Wave 0: PublishTradeModal quarantined — social features removed from v1.0 scope */}
 
       {/* §4.12: Liquid Glass Trailing Inspector */}
-      <TradingJournalInspector
-        trade={inspectedTrade}
-        isOpen={inspectorOpen}
-        onClose={closeInspector}
-      />
+      <TradingJournalInspector trade={inspectedTrade} isOpen={inspectorOpen} onClose={closeInspector} />
     </div>
   );
 }
-
-
-

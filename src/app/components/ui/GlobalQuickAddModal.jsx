@@ -1,11 +1,8 @@
-// ═══════════════════════════════════════════════════════════════════
-// charEdge v11.0 — Global Quick-Add Modal
-// Spotlight-style global Trade Entry overlay
-// ═══════════════════════════════════════════════════════════════════
-
 import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
+import { SymbolRegistry } from '../../../data/SymbolRegistry.js';
+import { captureChartScreenshot } from '../../../hooks/useAutoScreenshot.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import JournalQuickAdd from '../../features/journal/journal_ui/JournalQuickAdd.jsx';
 import { toast } from '../ui/Toast.jsx';
@@ -14,6 +11,50 @@ function GlobalQuickAddModal() {
   const [isOpen, setIsOpen] = useState(false);
   const addTrade = useJournalStore((s) => s.addTrade);
 
+  // ── Instant trade from chart BUY/SELL buttons ───────────────
+  useEffect(() => {
+    const handleInstantTrade = (e) => {
+      const { side, symbol, price, tf } = e.detail || {};
+      if (!symbol) return;
+
+      // Look up asset class from SymbolRegistry
+      const info = SymbolRegistry.lookup(symbol);
+      const assetClass = info?.assetClass || null;
+
+      // Format price for display
+      const fmtPrice =
+        typeof price === 'number'
+          ? price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 })
+          : '—';
+
+      // Capture chart screenshot before creating the trade
+      const screenshot = captureChartScreenshot(symbol, tf);
+
+      const trade = {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        date: new Date().toISOString(),
+        symbol: symbol.toUpperCase(),
+        side,
+        entry: typeof price === 'number' ? price : null,
+        pnl: 0,
+        assetClass,
+        source: 'chart-quick-trade',
+        notes: `Quick ${side} from chart @ ${fmtPrice} (${tf || '—'})`,
+        ...(screenshot ? { screenshots: [screenshot] } : {}),
+      };
+
+      addTrade(trade);
+
+      const label = side === 'long' ? 'BUY' : 'SELL';
+      const snap = screenshot ? ' 📸' : '';
+      toast.success(`⚡ ${label} ${symbol} @ ${fmtPrice} journaled!${snap}`);
+    };
+
+    window.addEventListener('charEdge:instant-trade', handleInstantTrade);
+    return () => window.removeEventListener('charEdge:instant-trade', handleInstantTrade);
+  }, [addTrade]);
+
+  // ── Manual quick-add modal (Command Palette, etc.) ──────────
   useEffect(() => {
     const handleOpen = () => setIsOpen(true);
     const _handleClose = () => setIsOpen(false);
@@ -51,9 +92,12 @@ function GlobalQuickAddModal() {
     }
   }, [isOpen]);
 
-  const handleTransitionEnd = useCallback((e) => {
-    if (!isOpen && e.target === e.currentTarget) setMounted(false);
-  }, [isOpen]);
+  const handleTransitionEnd = useCallback(
+    (e) => {
+      if (!isOpen && e.target === e.currentTarget) setMounted(false);
+    },
+    [isOpen],
+  );
 
   if (!mounted) return null;
 
@@ -99,7 +143,8 @@ function GlobalQuickAddModal() {
           style={{
             background: C.sf,
             borderRadius: 12,
-            boxShadow: '0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05)',
+            border: `1px solid ${C.bd}`,
+            boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
             overflow: 'hidden',
           }}
         >
@@ -109,14 +154,16 @@ function GlobalQuickAddModal() {
               borderBottom: `1px solid ${C.bd}`,
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center'
+              alignItems: 'center',
             }}
           >
-            <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F }}>
-              ⚡ Global Quick-Add
-            </div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F }}>⚡ Global Quick-Add</div>
             <div style={{ fontSize: 10, color: C.t3, fontFamily: M }}>
-              Press <kbd style={{ padding: '2px 6px', background: C.bg2, borderRadius: 4, border: `1px solid ${C.bd}` }}>ESC</kbd> to close
+              Press{' '}
+              <kbd style={{ padding: '2px 6px', background: C.bg2, borderRadius: 4, border: `1px solid ${C.bd}` }}>
+                ESC
+              </kbd>{' '}
+              to close
             </div>
           </div>
           <div style={{ padding: 20 }}>

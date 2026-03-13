@@ -37,8 +37,10 @@ const FocusOverlay = React.lazy(() => import('./app/components/ui/FocusOverlay.j
 const CookieConsent = React.lazy(() => import('./app/components/ui/CookieConsent.jsx'));
 const FeedbackWidget = React.lazy(() => import('./app/components/ui/FeedbackWidget.jsx'));
 const ReactionBarOverlay = React.lazy(() => import('./app/components/dialogs/ReactionBarOverlay.jsx'));
-const VercelAnalytics = React.lazy(() => import('@vercel/analytics/react').then(m => ({ default: m.Analytics })));
-const VercelSpeedInsights = React.lazy(() => import('@vercel/speed-insights/react').then(m => ({ default: m.SpeedInsights })));
+const VercelAnalytics = React.lazy(() => import('@vercel/analytics/react').then((m) => ({ default: m.Analytics })));
+const VercelSpeedInsights = React.lazy(() =>
+  import('@vercel/speed-insights/react').then((m) => ({ default: m.SpeedInsights })),
+);
 
 // ─── Chunk Load Error Boundary ──────────────────────────────────
 // Handles stale cache: when old cached HTML references JS chunks
@@ -76,11 +78,19 @@ class ChunkErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          height: '100vh', background: '#09090b', color: '#ececef',
-          fontFamily: "'Inter', sans-serif", textAlign: 'center', padding: '2rem',
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100vh',
+            background: '#09090b',
+            color: '#ececef',
+            fontFamily: "'Inter', sans-serif",
+            textAlign: 'center',
+            padding: '2rem',
+          }}
+        >
           <div>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🔄</div>
             <h2 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700 }}>Update Available</h2>
@@ -90,9 +100,14 @@ class ChunkErrorBoundary extends React.Component {
             <button
               onClick={() => window.location.reload()}
               style={{
-                padding: '12px 32px', borderRadius: 12, border: 'none',
+                padding: '12px 32px',
+                borderRadius: 12,
+                border: 'none',
                 background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
-                color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                color: '#fff',
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: 'pointer',
               }}
             >
               Reload
@@ -114,8 +129,10 @@ if (typeof window !== 'undefined') {
   setTimeout(() => {
     try {
       globalThis.__charEdge_notification_store__ = useNotificationLog;
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) { /* storage/API may be blocked */ }
+      // eslint-disable-next-line unused-imports/no-unused-vars
+    } catch (_) {
+      /* storage/API may be blocked */
+    }
   }, 0);
 }
 
@@ -149,10 +166,25 @@ export default function App() {
       { key: '3', handler: () => setPage(PAGE_KEYS[2]), description: 'Go to Discover' },
       { key: '4', handler: () => toggleSettings(), description: 'Toggle Settings' },
       // Sprint 15: Quick trade entry from anywhere
-      { key: 'ctrl+/', handler: () => window.dispatchEvent(new CustomEvent('tf:openTradeForm')), description: 'Quick add trade', allowInInput: true },
-      { key: 'ctrl+n', handler: () => window.dispatchEvent(new CustomEvent('tf:openTradeForm')), description: 'New trade', allowInInput: true },
+      {
+        key: 'ctrl+/',
+        handler: () => window.dispatchEvent(new CustomEvent('tf:openTradeForm')),
+        description: 'Quick add trade',
+        allowInInput: true,
+      },
+      {
+        key: 'ctrl+n',
+        handler: () => window.dispatchEvent(new CustomEvent('tf:openTradeForm')),
+        description: 'New trade',
+        allowInInput: true,
+      },
       // Sprint 20: Focus mode toggle
-      { key: 'ctrl+shift+f', handler: () => useFocusStore.getState().toggleFocus(), description: 'Toggle focus mode', allowInInput: true },
+      {
+        key: 'ctrl+shift+f',
+        handler: () => useFocusStore.getState().toggleFocus(),
+        description: 'Toggle focus mode',
+        allowInInput: true,
+      },
     ],
     { scope: 'global', enabled: true },
   );
@@ -165,13 +197,11 @@ export default function App() {
     <ChunkErrorBoundary>
       <AuthGate>
         <Suspense fallback={<LoadingScreen phase="loading" />}>
-          <div
-            key={theme}
-            data-container="app"
-            className={isMobile ? styles.appRootMobile : styles.appRoot}
-          >
+          <div key={theme} data-container="app" className={isMobile ? styles.appRootMobile : styles.appRoot}>
             {/* Sprint 23: Skip-to-content for keyboard/screen-reader users */}
-            <a href="#tf-main-content" className={styles.skipLink}>Skip to content</a>
+            <a href="#tf-main-content" className={styles.skipLink}>
+              Skip to content
+            </a>
             {!isMobile && <Sidebar />}
             <ErrorBoundary resetKey={page}>
               <div className={isMobile ? styles.mainAreaMobile : styles.mainArea}>
@@ -183,22 +213,51 @@ export default function App() {
             </ErrorBoundary>
             {isMobile && <MobileNav />}
             <ToastContainer />
-            <Suspense fallback={null}>{/* overlay modals — null fallback OK */}
+            {/* overlay modals — each in its own Suspense so triggering one doesn't suspend all */}
+            <Suspense fallback={null}>
               <LogbookBridge />
-              <GlobalQuickAddModal />
-              <NotificationPanel />
-              <OnboardingWizard />
-              <LevelUpModal />
-              <MilestoneModal />
-              <SettingsSlideOver />
-              <FocusOverlay />
-              <CookieConsent />
-              <FeedbackWidget />
-              <ReactionBarOverlay />
-              {/* Consent-gated: only load analytics when user opted in */}
-              {analyticsConsent === true && <VercelAnalytics />}
-              {analyticsConsent === true && <VercelSpeedInsights />}
             </Suspense>
+            <Suspense fallback={null}>
+              <GlobalQuickAddModal />
+            </Suspense>
+            <Suspense fallback={null}>
+              <NotificationPanel />
+            </Suspense>
+            <Suspense fallback={null}>
+              <OnboardingWizard />
+            </Suspense>
+            <Suspense fallback={null}>
+              <LevelUpModal />
+            </Suspense>
+            <Suspense fallback={null}>
+              <MilestoneModal />
+            </Suspense>
+            <Suspense fallback={null}>
+              <SettingsSlideOver />
+            </Suspense>
+            <Suspense fallback={null}>
+              <FocusOverlay />
+            </Suspense>
+            <Suspense fallback={null}>
+              <CookieConsent />
+            </Suspense>
+            <Suspense fallback={null}>
+              <FeedbackWidget />
+            </Suspense>
+            <Suspense fallback={null}>
+              <ReactionBarOverlay />
+            </Suspense>
+            {/* Consent-gated: only load analytics when user opted in */}
+            {analyticsConsent === true && (
+              <Suspense fallback={null}>
+                <VercelAnalytics />
+              </Suspense>
+            )}
+            {analyticsConsent === true && (
+              <Suspense fallback={null}>
+                <VercelSpeedInsights />
+              </Suspense>
+            )}
             <KeyboardShortcuts isOpen={shortcutsOpen} onClose={closeShortcuts} />
           </div>
         </Suspense>
@@ -223,7 +282,9 @@ function LoadingScreen({ phase = 'connecting' }) {
       {/* Brand icon with glow */}
       <div className={styles.loadingLogoWrap}>
         {/* ✦ Ember spark — rises and fades before logo appears */}
-        <div aria-hidden="true" className={styles.loadingSpark}>✦</div>
+        <div aria-hidden="true" className={styles.loadingSpark}>
+          ✦
+        </div>
         <div className={styles.loadingLogo}>CE</div>
         {/* Ambient glow */}
         <div className={styles.loadingGlow} />
@@ -238,4 +299,3 @@ function LoadingScreen({ phase = 'connecting' }) {
     </div>
   );
 }
-

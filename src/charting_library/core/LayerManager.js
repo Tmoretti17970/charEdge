@@ -33,20 +33,10 @@ export const LAYERS = {
   UI: 'UI',
 };
 
-const LAYER_ORDER = [
-  LAYERS.GRID,
-  LAYERS.DATA,
-  LAYERS.INDICATORS,
-  LAYERS.DRAWINGS,
-  LAYERS.UI,
-];
+const LAYER_ORDER = [LAYERS.GRID, LAYERS.DATA, LAYERS.INDICATORS, LAYERS.DRAWINGS, LAYERS.UI];
 
 /** Indicator panes only need 3 layers (no DATA or DRAWINGS) */
-const INDICATOR_LAYER_ORDER = [
-  LAYERS.GRID,
-  LAYERS.INDICATORS,
-  LAYERS.UI,
-];
+const INDICATOR_LAYER_ORDER = [LAYERS.GRID, LAYERS.INDICATORS, LAYERS.UI];
 
 export class LayerManager {
   /**
@@ -61,6 +51,8 @@ export class LayerManager {
     this._layers = new Map();
     this._dirty = new Map();
     this._disposed = false;
+    /** @type {number|null} Pending rAF for batched canvas resize */
+    this._pendingResizeRaf = null;
     /** @type {(() => void) | null} Callback invoked after resize to wake the render loop */
     this._onResizeCallback = options.onResize || null;
 
@@ -87,9 +79,7 @@ export class LayerManager {
       container.appendChild(canvas);
 
       // Context options: GRID is opaque (no alpha), others need transparency.
-      const ctxOptions = name === LAYERS.GRID
-        ? { alpha: false }
-        : { alpha: true };
+      const ctxOptions = name === LAYERS.GRID ? { alpha: false } : { alpha: true };
 
       const ctx = canvas.getContext('2d', {
         ...ctxOptions,
@@ -154,18 +144,31 @@ export class LayerManager {
       this.bitmapHeight = bh;
       this.pixelRatio = pr;
 
-      // Resize all canvas buffers
-      for (const [_name, layer] of this._layers) {
-        layer.canvas.width = bw;
-        layer.canvas.height = bh;
-        layer.canvas.style.width = mw + 'px';
-        layer.canvas.style.height = mh + 'px';
-      }
-
-      // All layers dirty after resize
-      this.markAllDirty();
-      // Notify engine to schedule a render frame (demand-driven loop wake-up)
-      if (this._onResizeCallback) this._onResizeCallback();
+      // Batch canvas buffer resize into the next rAF to prevent the
+      // black/white flash. Setting canvas.width instantly clears the
+      // buffer, but the render loop won't repaint until the next rAF.
+      // By deferring the resize, the old content stays visible until
+      // the render loop repaints with the new dimensions in the same
+      // frame. Cancel any pending resize to coalesce rapid calls.
+      if (this._pendingResizeRaf) cancelAnimationFrame(this._pendingResizeRaf);
+      const capturedBW = bw;
+      const capturedBH = bh;
+      const capturedMW = mw;
+      const capturedMH = mh;
+      this._pendingResizeRaf = requestAnimationFrame(() => {
+        if (this._disposed) return;
+        this._pendingResizeRaf = null;
+        for (const [_name, layer] of this._layers) {
+          layer.canvas.width = capturedBW;
+          layer.canvas.height = capturedBH;
+          layer.canvas.style.width = capturedMW + 'px';
+          layer.canvas.style.height = capturedMH + 'px';
+        }
+        // All layers dirty after resize
+        this.markAllDirty();
+        // Notify engine to schedule a render frame (demand-driven loop wake-up)
+        if (this._onResizeCallback) this._onResizeCallback();
+      });
     }
   }
 
@@ -285,6 +288,11 @@ export class LayerManager {
   dispose() {
     if (this._disposed) return;
     this._disposed = true;
+
+    if (this._pendingResizeRaf) {
+      cancelAnimationFrame(this._pendingResizeRaf);
+      this._pendingResizeRaf = null;
+    }
 
     this._ro.disconnect();
 

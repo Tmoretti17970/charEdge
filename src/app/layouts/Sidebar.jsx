@@ -14,19 +14,27 @@ import { C, F, M } from '../../constants.js';
 import { useUIStore } from '../../state/useUIStore';
 import { useUserStore } from '../../state/useUserStore';
 import Icon from '../components/design/Icon.jsx';
-import SidebarPersonaBadge from '../components/ui/SidebarPersonaBadge.jsx';
 import SidebarPnL from '../components/ui/SidebarPnL.jsx';
 import SidebarXPBadge from '../components/ui/SidebarXPBadge.jsx';
 import sb from './Sidebar.module.css';
 import { alpha } from '@/shared/colorUtils';
+// AccountSwitcher moved to JournalHeader (header bar)
 
 // ─── Icon Components (inline SVG — no deps) ────────────────────
 // Sized to 20×20, stroke-based for consistent weight
 
 function IconHome({ color }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color}
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
       <polyline points="9 22 9 12 15 12 15 22" />
     </svg>
@@ -35,41 +43,36 @@ function IconHome({ color }) {
 
 function IconChart({ color }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color}
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
       <polyline points="16 7 22 7 22 13" />
     </svg>
   );
 }
 
-function _IconDiscover({ color }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color}
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-    </svg>
-  );
-}
-
 function IconSettings({ color }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color}
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <circle cx="12" cy="12" r="3" />
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  );
-}
-
-function _IconCoach({ color }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color}
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z" />
-      <line x1="9" y1="21" x2="15" y2="21" />
-      <line x1="10" y1="23" x2="14" y2="23" />
     </svg>
   );
 }
@@ -193,10 +196,7 @@ function Sidebar() {
         aria-label="charEdge — go to Home"
         role="button"
       >
-        <div
-          className={sb.logoIcon}
-          style={{ background: `linear-gradient(135deg, ${C.b}, ${C.y})`, fontFamily: M }}
-        >
+        <div className={sb.logoIcon} style={{ background: `linear-gradient(135deg, ${C.b}, ${C.y})`, fontFamily: M }}>
           CE
         </div>
         {expanded && (
@@ -216,11 +216,19 @@ function Sidebar() {
           >
             charEdge
             {/* P2 3.1: Unified nav identity — persistent beta badge */}
-            <span style={{
-              fontSize: 8, fontWeight: 700, color: C.b,
-              background: alpha(C.b, 0.12), borderRadius: 4,
-              padding: '1px 4px', letterSpacing: '0.05em',
-            }}>β</span>
+            <span
+              style={{
+                fontSize: 8,
+                fontWeight: 700,
+                color: C.b,
+                background: alpha(C.b, 0.12),
+                borderRadius: 4,
+                padding: '1px 4px',
+                letterSpacing: '0.05em',
+              }}
+            >
+              β
+            </span>
           </span>
         )}
       </div>
@@ -235,12 +243,19 @@ function Sidebar() {
       )}
 
       {/* ─── Main Nav ────────────────────────────────────── */}
-      <div className={`${sb.navGroup} ${expanded ? sb.navGroupExpanded : sb.navGroupCollapsed}`} style={{ flex: 'none', marginBottom: 4 }}>
+      <div
+        className={`${sb.navGroup} ${expanded ? sb.navGroupExpanded : sb.navGroupCollapsed}`}
+        style={{ flex: 'none', marginBottom: 4 }}
+      >
         {NAV_ITEMS.filter((item) => !simpleMode || item.id !== 'coach').map((item) => (
           <NavButton
             key={item.id}
             item={item}
-            active={page === item.id || (item.id === 'journal' && page === 'dashboard') || (item.id === 'discover' && (page === 'social' || page === 'markets'))}
+            active={
+              page === item.id ||
+              (item.id === 'journal' && page === 'dashboard') ||
+              (item.id === 'discover' && (page === 'social' || page === 'markets'))
+            }
             hovered={hoveredId === item.id}
             expanded={expanded}
             onHover={setHoveredId}
@@ -254,36 +269,62 @@ function Sidebar() {
         <div className={`${sb.navGroupExpanded}`} style={{ flex: 'none', marginBottom: 4 }}>
           <div
             style={{
-              width: '100%', height: 1, background: C.bd,
-              margin: '6px 0 4px', borderRadius: 1, flexShrink: 0,
+              width: '100%',
+              height: 1,
+              background: C.bd,
+              margin: '6px 0 4px',
+              borderRadius: 1,
+              flexShrink: 0,
             }}
           />
-          <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, padding: '0 4px', marginBottom: 2, fontFamily: F }}>
+          <div
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              color: C.t3,
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+              padding: '0 4px',
+              marginBottom: 2,
+              fontFamily: F,
+            }}
+          >
             Recent
           </div>
           {recentSymbols.map((sym) => (
             <button
               key={sym}
               onClick={() => {
+                useUIStore.getState().setChartSymbol(sym);
                 setPage('charts');
               }}
               onMouseEnter={() => setHoveredId(`sym-${sym}`)}
               onMouseLeave={() => setHoveredId(null)}
               style={{
-                width: '100%', height: 28, borderRadius: 6, border: 'none',
+                width: '100%',
+                height: 28,
+                borderRadius: 6,
+                border: 'none',
                 background: hoveredId === `sym-${sym}` ? alpha(C.b, 0.08) : 'transparent',
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '0 6px', cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '0 6px',
+                cursor: 'pointer',
                 transition: 'background 0.15s',
               }}
             >
-              <span style={{ fontSize: 11, fontWeight: 700, color: hoveredId === `sym-${sym}` ? C.b : C.t2, fontFamily: F }}>
+              <span
+                style={{ fontSize: 11, fontWeight: 700, color: hoveredId === `sym-${sym}` ? C.b : C.t2, fontFamily: F }}
+              >
                 {sym}
               </span>
             </button>
           ))}
         </div>
       )}
+
+      {/* Account Switcher moved to JournalHeader */}
 
       {/* ─── Spacer ──────────────────────────────────────── */}
       <div style={{ flex: 1 }} />
@@ -334,7 +375,16 @@ function Sidebar() {
               transition: 'background 0.15s, color 0.15s, width 0.2s ease',
             }}
           >
-            <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20 }}>
+            <div
+              style={{
+                flexShrink: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 20,
+                height: 20,
+              }}
+            >
               <IconSettings color={settingsOpen ? C.b : hoveredId === '_settings' ? C.t1 : C.t3} />
             </div>
             {expanded && (
@@ -392,80 +442,51 @@ function Sidebar() {
         }}
         title="charEdge is not financial advice. Trade at your own risk."
       >
-        {/* What's New link */}
-        <span
-          role="button"
-          tabIndex={0}
-          aria-label="What's New — changelog"
-          onClick={() => setPage('changelog')}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPage('changelog'); } }}
-          style={{
-            fontSize: expanded ? 10 : 10,
-            display: 'block',
-            cursor: 'pointer',
-            color: page === 'changelog' ? C.b : C.t3,
-            opacity: page === 'changelog' ? 1 : 0.6,
-            transition: 'opacity 0.2s, color 0.2s',
-            marginBottom: 4,
-            fontFamily: F,
-            fontWeight: 500,
-          }}
-          title="What's New"
-          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
-          onMouseLeave={(e) => { if (page !== 'changelog') e.currentTarget.style.opacity = '0.6'; }}
-        >
-          {expanded ? <><Icon name="changelog" size={10} /> What's New</> : <Icon name="changelog" size={10} />}
-        </span>
-
-        {/* Privacy Policy link */}
-        <span
-          role="button"
-          tabIndex={0}
-          aria-label="Privacy Policy"
-          onClick={() => setPage('privacy')}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPage('privacy'); } }}
-          style={{
-            fontSize: expanded ? 10 : 10,
-            display: 'block',
-            cursor: 'pointer',
-            color: page === 'privacy' ? C.b : C.t3,
-            opacity: page === 'privacy' ? 1 : 0.6,
-            transition: 'opacity 0.2s, color 0.2s',
-            marginBottom: 4,
-            fontFamily: F,
-            fontWeight: 500,
-          }}
-          title="Privacy Policy"
-          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
-          onMouseLeave={(e) => { if (page !== 'privacy') e.currentTarget.style.opacity = '0.6'; }}
-        >
-          {expanded ? <><Icon name="lock" size={10} /> Privacy</> : <Icon name="lock" size={10} />}
-        </span>
-
-        {/* Terms of Service link */}
-        <span
-          role="button"
-          tabIndex={0}
-          aria-label="Terms of Service"
-          onClick={() => setPage('terms')}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPage('terms'); } }}
-          style={{
-            fontSize: expanded ? 10 : 10,
-            display: 'block',
-            cursor: 'pointer',
-            color: page === 'terms' ? C.b : C.t3,
-            opacity: page === 'terms' ? 1 : 0.6,
-            transition: 'opacity 0.2s, color 0.2s',
-            marginBottom: 4,
-            fontFamily: F,
-            fontWeight: 500,
-          }}
-          title="Terms of Service"
-          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
-          onMouseLeave={(e) => { if (page !== 'terms') e.currentTarget.style.opacity = '0.6'; }}
-        >
-          {expanded ? <><Icon name="journal" size={10} /> Terms</> : <Icon name="journal" size={10} />}
-        </span>
+        {[
+          { id: 'changelog', label: "What's New", icon: 'changelog' },
+          { id: 'privacy', label: 'Privacy', icon: 'lock' },
+          { id: 'terms', label: 'Terms', icon: 'journal' },
+        ].map((link) => (
+          <span
+            key={link.id}
+            role="button"
+            tabIndex={0}
+            aria-label={link.label}
+            onClick={() => setPage(link.id)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setPage(link.id);
+              }
+            }}
+            style={{
+              fontSize: 10,
+              display: 'block',
+              cursor: 'pointer',
+              color: page === link.id ? C.b : C.t3,
+              opacity: page === link.id ? 1 : 0.6,
+              transition: 'opacity 0.2s, color 0.2s',
+              marginBottom: 4,
+              fontFamily: F,
+              fontWeight: 500,
+            }}
+            title={link.label}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = '1';
+            }}
+            onMouseLeave={(e) => {
+              if (page !== link.id) e.currentTarget.style.opacity = '0.6';
+            }}
+          >
+            {expanded ? (
+              <>
+                <Icon name={link.icon} size={10} /> {link.label}
+              </>
+            ) : (
+              <Icon name={link.icon} size={10} />
+            )}
+          </span>
+        ))}
 
         <span
           style={{
@@ -494,16 +515,22 @@ function Sidebar() {
           }}
           title="For Charolette ✦"
           onClick={() => setPage('charolette')}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPage('charolette'); } }}
-          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
-          onMouseLeave={(e) => { if (page !== 'charolette') e.currentTarget.style.opacity = '0.6'; }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setPage('charolette');
+            }
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.opacity = '1';
+          }}
+          onMouseLeave={(e) => {
+            if (page !== 'charolette') e.currentTarget.style.opacity = '0.6';
+          }}
         >
           ✦
         </span>
       </div>
-
-
-
     </nav>
   );
 }
@@ -543,7 +570,16 @@ function NavButton({ item, active, hovered, expanded, onHover, onClick }) {
           position: 'relative',
         }}
       >
-        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20 }}>
+        <div
+          style={{
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 20,
+            height: 20,
+          }}
+        >
           <Icon color={color} />
         </div>
         {expanded && (

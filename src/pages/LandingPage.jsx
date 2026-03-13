@@ -41,7 +41,9 @@ function AnimatedStat({ label, value, suffix = '', prefix = '', duration = 1800 
   return (
     <div ref={ref} className={s.stat}>
       <div className={s.statValue}>
-        {prefix}{display.toLocaleString()}{suffix}
+        {prefix}
+        {display.toLocaleString()}
+        {suffix}
       </div>
       <div className={s.statLabel}>{label}</div>
     </div>
@@ -69,10 +71,7 @@ function TechPill({ label }) {
 // ─── CTA Button ──────────────────────────────────────────────────
 function CTAButton({ children, onClick, secondary = false }) {
   return (
-    <button
-      onClick={onClick}
-      className={secondary ? s.ctaBtnSecondary : s.ctaBtn}
-    >
+    <button onClick={onClick} className={secondary ? s.ctaBtnSecondary : s.ctaBtn}>
       {children}
     </button>
   );
@@ -84,14 +83,15 @@ function CTAButton({ children, onClick, secondary = false }) {
 export default function LandingPage() {
   const setPage = useUIStore((s) => s.setPage);
 
-  // Parallax glow animation
-  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
+  // Parallax glow animation — uses CSS custom properties to bypass React reconciliation
+  const glowRef = useRef(null);
   const handleMouseMove = (e) => {
+    if (!glowRef.current) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    setMousePos({
-      x: (e.clientX - rect.left) / rect.width,
-      y: (e.clientY - rect.top) / rect.height,
-    });
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    glowRef.current.style.left = `${x}%`;
+    glowRef.current.style.top = `${y}%`;
   };
 
   return (
@@ -100,11 +100,12 @@ export default function LandingPage() {
       <section id="landing-hero" className={s.hero}>
         {/* Ambient glow — follows mouse (needs inline style for dynamic position) */}
         <div
+          ref={glowRef}
           aria-hidden="true"
           className={s.heroGlow}
           style={{
-            left: `${mousePos.x * 100}%`,
-            top: `${mousePos.y * 100}%`,
+            left: '50%',
+            top: '50%',
           }}
         />
 
@@ -125,40 +126,34 @@ export default function LandingPage() {
 
         {/* Tagline */}
         <p id="landing-tagline" className={s.tagline}>
-          GPU-accelerated charts. Intelligent analysis. Trade journal
-          that actually makes you better. <strong className={s.taglineStrong}>Find Your Edge.</strong>
+          GPU-accelerated charts. Intelligent analysis. Trade journal that actually makes you better.{' '}
+          <strong className={s.taglineStrong}>Find Your Edge.</strong>
         </p>
 
         {/* CTA Buttons */}
         <div className={s.ctaGroup}>
-          <CTAButton onClick={() => setPage('journal')}>
-            Start Trading Smarter →
-          </CTAButton>
+          <CTAButton onClick={() => setPage('journal')}>Start Trading Smarter →</CTAButton>
           <CTAButton secondary onClick={() => setPage('charts')}>
             Open Charts
           </CTAButton>
         </div>
 
         {/* Trust line */}
-        <p className={s.trustLine}>
-          No account required · 100% client-side · Your data stays yours
-        </p>
+        <p className={s.trustLine}>No account required · 100% client-side · Your data stays yours</p>
       </section>
 
       {/* ═══ BENCHMARK STATS ════════════════════════════════════ */}
       <section id="landing-benchmarks" className={s.benchmarks}>
         <AnimatedStat prefix="<" value={5} suffix="ms" label="Frame Time" />
         <AnimatedStat value={100} suffix="K+" label="Bars Rendered" />
-        <AnimatedStat value={0} suffix="%" label="Idle GPU Usage" />
-        <AnimatedStat value={1} suffix="" label="WebSocket Per Exchange" />
+        <AnimatedStat value={0} suffix="" label="Zero Lag" />
+        <AnimatedStat value={1} suffix="" label="Live Price Feed" />
       </section>
 
       {/* ═══ FEATURES ═══════════════════════════════════════════ */}
       <section id="landing-features" className={s.features}>
         <h2 className={s.sectionTitle}>Built Different</h2>
-        <p className={s.sectionSubtitle}>
-          Every module hand-tuned for performance. No bloat, no framework tax.
-        </p>
+        <p className={s.sectionSubtitle}>Every module hand-tuned for performance. No bloat, no framework tax.</p>
 
         <div className={s.featureGrid}>
           <FeatureCard
@@ -190,27 +185,16 @@ export default function LandingPage() {
         </p>
 
         <div className={s.techPillGrid}>
-          <TechPill label="WebGL 2.0 Instanced" />
-          <TechPill label="WebGPU Compute" />
-          <TechPill label="GPU Instancing" />
-          <TechPill label="SharedWorker" />
-          <TechPill label="Compute Workers" />
-          <TechPill label="Binary WebSocket" />
-          <TechPill label="OPFS Storage" />
-          <TechPill label="Zero-Copy Transfer" />
-          <TechPill label="Render-on-Demand" />
-          <TechPill label="LOD Decimation" />
-          <TechPill label="Blit-Pan" />
-          <TechPill label="Scene Graph" />
+          <TechPill label="WebGL Engine" />
+          <TechPill label="Real-Time Data" />
+          <TechPill label="100% Client-Side" />
         </div>
       </section>
 
       {/* ═══ PRICING PREVIEW ═════════════════════════════════════ */}
       <section id="landing-pricing" className={s.pricing}>
         <h2 className={s.pricingTitle}>Simple Pricing</h2>
-        <p className={s.pricingSubtitle}>
-          Start free. Upgrade when you're ready.
-        </p>
+        <p className={s.pricingSubtitle}>Start free. Upgrade when you're ready.</p>
 
         <div className={s.pricingGrid}>
           {[
@@ -245,13 +229,9 @@ export default function LandingPage() {
         <div aria-hidden="true" className={s.ctaFooterGlow} />
 
         <h2 className={s.ctaFooterTitle}>Ready to Find Your Edge?</h2>
-        <p className={s.ctaFooterDesc}>
-          Free forever. No sign-up required. Your data never leaves your browser.
-        </p>
+        <p className={s.ctaFooterDesc}>Free forever. No sign-up required. Your data never leaves your browser.</p>
 
-        <CTAButton onClick={() => setPage('journal')}>
-          Start Trading Smarter →
-        </CTAButton>
+        <CTAButton onClick={() => setPage('journal')}>Start Trading Smarter →</CTAButton>
 
         {/* Footer links */}
         <div className={s.footerLinks}>

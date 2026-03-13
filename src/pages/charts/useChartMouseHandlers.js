@@ -19,30 +19,40 @@ import { useCallback } from 'react';
  * @param {Function} opts.handleContextMenu - from useChartDrawingHandler
  */
 export default function useChartMouseHandlers({
-  chartRef, data, isMobile, multiMode, tradeMode,
-  setHoverInfo, setRadialMenu, _setFocusMode, handleContextMenu,
+  chartRef,
+  data,
+  isMobile,
+  multiMode,
+  tradeMode,
+  setHoverInfo,
+  setRadialMenu,
+  _setFocusMode,
+  handleContextMenu,
 }) {
-  const onMouseMove = useCallback((e) => {
-    if (isMobile || multiMode || !data?.length) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const w = rect.width - 60;
-    const mouseY = e.clientY - rect.top;
-    const chartState = chartRef.current;
-    let barIdx = -1;
-    if (chartState?.getLayout) {
-      const layout = chartState.getLayout();
-      if (layout?.barSpacing && layout.startIdx != null) {
-        barIdx = layout.startIdx + Math.floor(x / layout.barSpacing);
-        barIdx = Math.max(0, Math.min(barIdx, data.length - 1));
+  const onMouseMove = useCallback(
+    (e) => {
+      if (isMobile || multiMode || !data?.length) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const w = rect.width - 60;
+      const mouseY = e.clientY - rect.top;
+      const chartState = chartRef.current;
+      let barIdx = -1;
+      if (chartState?.getLayout) {
+        const layout = chartState.getLayout();
+        if (layout?.barSpacing && layout.startIdx != null) {
+          barIdx = layout.startIdx + Math.floor(x / layout.barSpacing);
+          barIdx = Math.max(0, Math.min(barIdx, data.length - 1));
+        }
       }
-    }
-    if (barIdx < 0) {
-      const frac = Math.max(0, Math.min(x / w, 1));
-      barIdx = Math.round(frac * (data.length - 1));
-    }
-    setHoverInfo({ barIdx, mouseY });
-  }, [isMobile, multiMode, data, chartRef, setHoverInfo]);
+      if (barIdx < 0) {
+        const frac = Math.max(0, Math.min(x / w, 1));
+        barIdx = Math.round(frac * (data.length - 1));
+      }
+      setHoverInfo({ barIdx, mouseY });
+    },
+    [isMobile, multiMode, data, chartRef, setHoverInfo],
+  );
 
   const onMouseLeave = useCallback(() => {
     setHoverInfo({ barIdx: -1, mouseY: 0 });
@@ -53,21 +63,37 @@ export default function useChartMouseHandlers({
     // Double-click on the chart is used for drawing interactions.
   }, []);
 
-  const onChartContextMenu = useCallback((e) => {
-    if (isMobile || multiMode) return;
-    e.preventDefault();
-    e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const yFrac = (e.clientY - rect.top) / rect.height;
-    const chartState = chartRef.current;
-    let price = 0;
-    if (chartState?.getLayout) {
-      const layout = chartState.getLayout();
-      if (layout) price = layout.yMax - yFrac * (layout.yMax - layout.yMin);
-    }
-    if (!tradeMode) setRadialMenu({ x: e.clientX, y: e.clientY, price });
-    else handleContextMenu(e, price, 0, null);
-  }, [isMobile, multiMode, chartRef, tradeMode, setRadialMenu, handleContextMenu]);
+  const onChartContextMenu = useCallback(
+    (e) => {
+      if (isMobile || multiMode) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const rect = e.currentTarget.getBoundingClientRect();
+      const yFrac = (e.clientY - rect.top) / rect.height;
+      const chartState = chartRef.current;
+      let price = 0;
+      if (chartState?.getLayout) {
+        const layout = chartState.getLayout();
+        if (layout && layout.yMax && layout.yMin) {
+          price = layout.yMax - yFrac * (layout.yMax - layout.yMin);
+        }
+      }
+      // Fallback: estimate price from visible data range if layout didn't provide it
+      if (!price && data?.length) {
+        const visibleSlice = data.slice(-Math.min(data.length, 200));
+        const highs = visibleSlice.map((d) => d.high).filter(Boolean);
+        const lows = visibleSlice.map((d) => d.low).filter(Boolean);
+        if (highs.length && lows.length) {
+          const yMax = Math.max(...highs);
+          const yMin = Math.min(...lows);
+          price = yMax - yFrac * (yMax - yMin);
+        }
+      }
+      if (!tradeMode) setRadialMenu({ x: e.clientX, y: e.clientY, price });
+      else handleContextMenu(e, price, 0, null);
+    },
+    [isMobile, multiMode, chartRef, data, tradeMode, setRadialMenu, handleContextMenu],
+  );
 
   return { onMouseMove, onMouseLeave, onDoubleClick, onChartContextMenu };
 }

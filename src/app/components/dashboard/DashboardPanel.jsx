@@ -11,6 +11,7 @@
 
 import { useMemo, useState } from 'react';
 import { safeSum } from '../../../charting_library/model/Money.js';
+import { useTodayStats } from '../../../hooks/useTodayStats';
 import { useGamificationStore } from '../../../state/useGamificationStore';
 import { useLayoutStore } from '../../../state/useLayoutStore';
 import { useUIStore } from '../../../state/useUIStore';
@@ -22,7 +23,7 @@ import s from './DashboardPanel.module.css';
 import { DashHeader } from './DashboardPrimitives.jsx';
 import { useBreakpoints } from '@/hooks/useMediaQuery';
 
-export default function DashboardPanel({ trades, result, computing, onDashboardFilter }) {
+export default function DashboardPanel({ trades, result, computing, onDashboardFilter: _onDashboardFilter }) {
   const setPage = useUIStore((s) => s.setPage);
   const goals = useGamificationStore((s) => s.goals);
   const { isMobile, isTablet } = useBreakpoints();
@@ -39,34 +40,7 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
 
   // ─── Computed Stats ──────────────────────────────────────────
 
-  const todayStats = useMemo(() => {
-    const now = new Date();
-    const today = now.toISOString().slice(0, 10);
-    const todayTrades = trades.filter((t) => t.date && t.date.startsWith(today));
-    const pnl = safeSum(todayTrades.map((t) => t.pnl || 0));
-    const wins = todayTrades.filter((t) => (t.pnl || 0) > 0).length;
-
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().slice(0, 10);
-    const yesterdayTrades = trades.filter((t) => t.date && t.date.startsWith(yesterdayStr));
-    const yesterdayPnl = yesterdayTrades.length > 0 ? safeSum(yesterdayTrades.map((t) => t.pnl || 0)) : null;
-
-    const recentDailyPnl = [];
-    for (let d = 6; d >= 0; d--) {
-      const dt = new Date(now);
-      dt.setDate(dt.getDate() - d);
-      const dtStr = dt.toISOString().slice(0, 10);
-      const dayTrades = trades.filter((t) => t.date && t.date.startsWith(dtStr));
-      recentDailyPnl.push(dayTrades.length > 0 ? safeSum(dayTrades.map((t) => t.pnl || 0)) : 0);
-    }
-
-    return {
-      pnl, count: todayTrades.length, wins,
-      winRate: todayTrades.length > 0 ? Math.round((wins / todayTrades.length) * 100) : 0,
-      yesterdayPnl, recentDailyPnl,
-    };
-  }, [trades]);
+  const todayStats = useTodayStats();
 
   const ribbonStats = useMemo(() => {
     if (!trades.length) return null;
@@ -76,7 +50,11 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
     const weekStart = new Date(today);
     weekStart.setDate(weekStart.getDate() - weekStart.getDay());
     const weekPnl = safeSum(trades.filter((t) => t.date && new Date(t.date) >= weekStart).map((t) => t.pnl || 0));
-    const monthPnl = safeSum(trades.filter((t) => t.date && new Date(t.date) >= new Date(today.getFullYear(), today.getMonth(), 1)).map((t) => t.pnl || 0));
+    const monthPnl = safeSum(
+      trades
+        .filter((t) => t.date && new Date(t.date) >= new Date(today.getFullYear(), today.getMonth(), 1))
+        .map((t) => t.pnl || 0),
+    );
     const totalPnl = safeSum(trades.map((t) => t.pnl || 0));
     const wins = trades.filter((t) => (t.pnl || 0) > 0).length;
     const winRate = trades.length > 0 ? Math.round((wins / trades.length) * 100) : 0;
@@ -89,12 +67,15 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
       if (!dayMap.has(dayKey)) dayMap.set(dayKey, []);
       dayMap.get(dayKey).push(t);
     }
-    let streak = 0, streakType = null;
+    let streak = 0,
+      streakType = null;
     for (const dk of [...dayMap.keys()].sort((a, b) => b.localeCompare(a))) {
       const dayPnl = safeSum(dayMap.get(dk).map((t) => t.pnl || 0));
       const isWin = dayPnl > 0;
-      if (streakType === null) { streakType = isWin ? 'win' : 'loss'; streak = 1; }
-      else if ((isWin && streakType === 'win') || (!isWin && streakType === 'loss')) streak++;
+      if (streakType === null) {
+        streakType = isWin ? 'win' : 'loss';
+        streak = 1;
+      } else if ((isWin && streakType === 'win') || (!isWin && streakType === 'loss')) streak++;
       else break;
     }
 
@@ -112,11 +93,14 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
     return (
       <div data-container="dashboard" className={`${s.page} ${isMobile ? s.pageMobile : s.pageDesktop}`}>
         <DashHeader
-          trades={trades} computing={computing}
+          trades={trades}
+          computing={computing}
           layoutMode={layoutMode}
           onLayoutToggle={() => setLayoutMode((m) => (m === 'narrative' ? 'custom' : 'narrative'))}
-          editMode={editMode} onToggleEdit={toggleEditMode}
-          onCustomize={() => { }} activePreset={activePreset}
+          editMode={editMode}
+          onToggleEdit={toggleEditMode}
+          onCustomize={() => {}}
+          activePreset={activePreset}
         />
         {computing ? (
           <DashboardSkeleton isMobile={isMobile} />
@@ -134,11 +118,16 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
   if (layoutMode === 'narrative') {
     return (
       <DashboardNarrativeLayout
-        trades={trades} result={result} computing={computing}
-        todayStats={todayStats} ribbonStats={ribbonStats} recentTrades={recentTrades}
-        isMobile={isMobile} setPage={setPage}
-        activeWidgets={activeWidgets} activePreset={activePreset}
-        onDashboardFilter={onDashboardFilter}
+        trades={trades}
+        result={result}
+        computing={computing}
+        todayStats={todayStats}
+        ribbonStats={ribbonStats}
+        recentTrades={recentTrades}
+        isMobile={isMobile}
+        setPage={setPage}
+        activeWidgets={activeWidgets}
+        activePreset={activePreset}
         onLayoutToggle={() => setLayoutMode((m) => (m === 'narrative' ? 'custom' : 'narrative'))}
         editMode={editMode}
         onToggleEdit={toggleEditMode}
@@ -148,12 +137,21 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
 
   return (
     <DashboardCustomLayout
-      trades={trades} result={result} computing={computing}
-      todayStats={todayStats} recentTrades={recentTrades}
-      goals={goals} isMobile={isMobile} isTablet={isTablet}
-      setPage={setPage} activeWidgets={activeWidgets}
-      setActiveWidgets={setActiveWidgets} activePreset={activePreset}
-      editMode={editMode} toggleEditMode={toggleEditMode} applyPreset={applyPreset}
+      trades={trades}
+      result={result}
+      computing={computing}
+      todayStats={todayStats}
+      recentTrades={recentTrades}
+      goals={goals}
+      isMobile={isMobile}
+      isTablet={isTablet}
+      setPage={setPage}
+      activeWidgets={activeWidgets}
+      setActiveWidgets={setActiveWidgets}
+      activePreset={activePreset}
+      editMode={editMode}
+      toggleEditMode={toggleEditMode}
+      applyPreset={applyPreset}
       onLayoutToggle={() => setLayoutMode((m) => (m === 'narrative' ? 'custom' : 'narrative'))}
     />
   );

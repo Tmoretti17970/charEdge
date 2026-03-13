@@ -28,7 +28,7 @@ import { StorageService } from './data/StorageService';
 import { initTelemetry } from './observability/telemetry';
 import { useAnalyticsStore } from './state/useAnalyticsStore';
 import { useGamificationStore } from './state/useGamificationStore';
-import { useJournalStore } from './state/useJournalStore';
+import { useJournalStore, initAccountSwitchListener } from './state/useJournalStore';
 import { useScriptStore } from './state/useScriptStore.js';
 import { useUserStore } from './state/useUserStore';
 import { useWatchlistStore } from './state/useWatchlistStore.js';
@@ -62,8 +62,8 @@ export async function loadFromStorage() {
     watchlistResult,
     gamificationResult,
   ] = await Promise.all([
-    encryptedStore.init().catch(e => logger.boot.warn('EncryptedStore init failed (non-fatal):', e?.message)),
-    initApiKeys().catch(e => logger.boot.warn('ApiKeyStore init failed (non-fatal):', e?.message)),
+    encryptedStore.init().catch((e) => logger.boot.warn('EncryptedStore init failed (non-fatal):', e?.message)),
+    initApiKeys().catch((e) => logger.boot.warn('ApiKeyStore init failed (non-fatal):', e?.message)),
     StorageService.trades.getAll(),
     StorageService.playbooks.getAll(),
     StorageService.notes.getAll(),
@@ -181,7 +181,7 @@ export async function postBoot(trades) {
     // Product analytics (PostHog — consent-gated, lazy, env-gated)
     import('./observability/posthog')
       .then(({ trackEvent }) => trackEvent('app_booted', { tradeCount: trades?.length || 0 }))
-      .catch(() => { }); // non-fatal
+      .catch(() => {}); // non-fatal
   } else {
     logger.boot.info('Analytics consent not granted — telemetry skipped');
   }
@@ -191,6 +191,9 @@ export async function postBoot(trades) {
 
   // Auto-save subscriptions
   const unsubs = setupAutoSave();
+
+  // v5: Initialize account switch listener — auto-rehydrates journal on switch
+  initAccountSwitchListener();
 
   // Start TickerPlant (activates DataSharedWorker for cross-tab WS dedup,
   // connects multi-source price aggregation, predictive prefetch)

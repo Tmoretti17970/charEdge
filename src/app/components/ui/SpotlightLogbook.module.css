@@ -62,8 +62,7 @@
 }
 
 /* Light mode: true liquid glass */
-.theme-light .panel,
-:root.theme-light .panel {
+:global(.theme-light) .panel {
   --spotlight-glass-bg: rgba(255, 255, 255, 0.78);
   border-color: rgba(255, 255, 255, 0.6);
   box-shadow:
@@ -78,11 +77,10 @@
   align-items: center;
   gap: 12px;
   padding: 16px 20px;
-  border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.14);
 }
 
-.theme-light .searchBar,
-:root.theme-light .searchBar {
+:global(.theme-light) .searchBar {
   border-bottom-color: rgba(0, 0, 0, 0.08);
 }
 
@@ -90,16 +88,30 @@
   flex: 1;
   padding: 6px 0;
   border: none;
-  background: transparent;
+  background: transparent !important;
   font-size: 16px;
   font-weight: 500;
   outline: none;
   letter-spacing: -0.01em;
   color: inherit;
+  color-scheme: dark;
+}
+
+:global(.theme-light) .searchInput {
+  color-scheme: light;
 }
 
 .searchInput::placeholder {
   opacity: 0.4;
+}
+
+/* Prevent autofill from overriding the background */
+.searchInput:-webkit-autofill,
+.searchInput:-webkit-autofill:hover,
+.searchInput:-webkit-autofill:focus {
+  -webkit-text-fill-color: inherit;
+  -webkit-box-shadow: 0 0 0px 1000px transparent inset;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 .clearBtn {
@@ -124,7 +136,7 @@
   justify-content: space-between;
   gap: 8px;
   padding: 8px 16px;
-  border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.12);
   flex-shrink: 0;
 }
 
@@ -236,13 +248,13 @@
 
 .tableHeader {
   display: grid;
-  grid-template-columns: 70px 36px 1fr 60px 1fr 70px 90px;
+  grid-template-columns: 70px 36px 1fr 60px 1fr 24px 90px;
   gap: 6px;
   padding: 8px 20px;
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   opacity: 0.5;
   position: sticky;
   top: 0;
@@ -251,7 +263,7 @@
 }
 
 .tableHeader:has(.checkCol) {
-  grid-template-columns: 28px 70px 36px 1fr 60px 1fr 70px 90px;
+  grid-template-columns: 28px 70px 36px 1fr 60px 1fr 24px 90px;
 }
 
 .colHeader {
@@ -292,9 +304,9 @@
 
 .tradeRow {
   display: grid;
-  grid-template-columns: 70px 36px 1fr 60px 1fr 70px 90px;
+  grid-template-columns: 70px 36px 1fr 60px 1fr 24px 90px;
   gap: 6px;
-  padding: 10px 20px;
+  padding: 7px 20px;
   font-size: 12px;
   align-items: center;
   cursor: pointer;
@@ -302,6 +314,13 @@
   position: relative;
   border-radius: 8px;
   margin: 0 8px;
+}
+
+/* Compact density mode */
+.tradeRow[data-density='compact'] {
+  padding: 4px 20px;
+  font-size: 11px;
+  gap: 4px;
 }
 
 .tradeRow:hover {
@@ -312,8 +331,7 @@
   background: rgba(255, 255, 255, 0.03);
 }
 
-.theme-light .tradeRow:hover,
-:root.theme-light .tradeRow:hover {
+:global(.theme-light) .tradeRow:hover {
   background: rgba(0, 0, 0, 0.04);
 }
 
@@ -368,6 +386,19 @@
   opacity: 0.5;
 }
 
+.emotionDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin: 0 auto;
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+.emotionDot:hover {
+  transform: scale(1.5);
+}
+
 .tradePnl {
   font-weight: 700;
   font-size: 13px;
@@ -397,7 +428,7 @@
   gap: 4px;
   margin-top: 10px;
   padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .detailBtn {
@@ -435,8 +466,7 @@
   white-space: nowrap;
 }
 
-.theme-light .sparklineTooltip,
-:root.theme-light .sparklineTooltip {
+:global(.theme-light) .sparklineTooltip {
   background: rgba(255, 255, 255, 0.95);
   border-color: rgba(0, 0, 0, 0.1);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
@@ -458,12 +488,11 @@
   gap: 18px;
   padding: 10px 20px;
   font-size: 11px;
-  border-top: 0.5px solid rgba(255, 255, 255, 0.08);
+  border-top: 0.5px solid rgba(255, 255, 255, 0.14);
   flex-shrink: 0;
 }
 
-.theme-light .actionBar,
-:root.theme-light .actionBar {
+:global(.theme-light) .actionBar {
   border-top-color: rgba(0, 0, 0, 0.06);
 }
 
@@ -571,13 +600,13 @@
   }
 
   .tradeRow {
-    grid-template-columns: 60px 28px 1fr 50px 80px;
+    grid-template-columns: 60px 28px 1fr 50px 24px 80px;
     gap: 4px;
     padding: 8px 14px;
   }
 
   .tableHeader {
-    grid-template-columns: 60px 28px 1fr 50px 80px;
+    grid-template-columns: 60px 28px 1fr 50px 24px 80px;
   }
 
   .tradeStrategy,

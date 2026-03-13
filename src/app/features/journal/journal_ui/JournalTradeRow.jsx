@@ -22,6 +22,7 @@ function DesktopRow({ trade: t, isExpanded, onClick, bulkMode, isSelected, onTog
 
   return (
     <div
+      className={s.desktopRow}
       onClick={onClick}
       style={{
         display: 'grid',
@@ -31,22 +32,9 @@ function DesktopRow({ trade: t, isExpanded, onClick, bulkMode, isSelected, onTog
         fontSize: 12,
         color: C.t1,
         cursor: 'pointer',
-        transition: 'all 0.15s ease',
         background: isSelected ? C.b + '08' : isExpanded ? C.sf : 'transparent',
-        borderLeft: isExpanded ? `3px solid ${C.b}` : '3px solid transparent',
+        borderLeft: isExpanded ? `3px solid ${C.b}` : `3px solid ${pnlColor}20`,
         position: 'relative',
-      }}
-      onMouseEnter={(e) => {
-        if (!isExpanded && !isSelected) {
-          e.currentTarget.style.background = C.sf2;
-          e.currentTarget.style.borderLeftColor = pnlColor;
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isExpanded && !isSelected) {
-          e.currentTarget.style.background = 'transparent';
-          e.currentTarget.style.borderLeftColor = isExpanded ? C.b : 'transparent';
-        }
       }}
     >
       {bulkMode && (
@@ -69,35 +57,49 @@ function DesktopRow({ trade: t, isExpanded, onClick, bulkMode, isSelected, onTog
             alignSelf: 'center',
           }}
         >
-          {isSelected && <span className={s.s0}>✓</span>}
+          {isSelected && <span className={s.checkmark}>✓</span>}
         </div>
       )}
       <div style={{ fontFamily: M, fontSize: 11, color: C.t3, fontVariantNumeric: 'tabular-nums' }}>
         {t.date ? new Date(t.date).toLocaleDateString() : '—'}
       </div>
-      <div className={s.s1}>
+      <div className={s.symbolCell}>
         {t.symbol}
         {aiGrade && (
-          <div style={{
-            fontSize: 9, padding: '1px 5px', borderRadius: 4, fontFamily: M,
-            background: aiGrade.score >= 4 ? C.g+'15' : aiGrade.score >= 3 ? C.b+'15' : aiGrade.score >= 2 ? C.y+'15' : C.r+'15',
-            color: aiGrade.score >= 4 ? C.g : aiGrade.score >= 3 ? C.b : aiGrade.score >= 2 ? C.y : C.r
-          }}>
+          <div
+            style={{
+              fontSize: 9,
+              padding: '1px 5px',
+              borderRadius: 4,
+              fontFamily: M,
+              background:
+                aiGrade.score >= 4
+                  ? C.g + '15'
+                  : aiGrade.score >= 3
+                    ? C.b + '15'
+                    : aiGrade.score >= 2
+                      ? C.y + '15'
+                      : C.r + '15',
+              color: aiGrade.score >= 4 ? C.g : aiGrade.score >= 3 ? C.b : aiGrade.score >= 2 ? C.y : C.r,
+            }}
+          >
             {aiGrade.grade}
           </div>
         )}
       </div>
       <div>
-        <span style={{
-          color: t.side === 'long' ? C.g : C.r,
-          background: (t.side === 'long' ? C.g : C.r) + '12',
-          padding: '2px 6px',
-          borderRadius: 4,
-          fontWeight: 700,
-          fontSize: 9,
-          textTransform: 'uppercase',
-          letterSpacing: '0.03em',
-        }}>
+        <span
+          style={{
+            color: t.side === 'long' ? C.g : C.r,
+            background: (t.side === 'long' ? C.g : C.r) + '12',
+            padding: '2px 6px',
+            borderRadius: 4,
+            fontWeight: 700,
+            fontSize: 9,
+            textTransform: 'uppercase',
+            letterSpacing: '0.03em',
+          }}
+        >
           {t.side}
         </span>
       </div>
@@ -106,7 +108,16 @@ function DesktopRow({ trade: t, isExpanded, onClick, bulkMode, isSelected, onTog
         {t.context?.tags?.length > 0 && <ContextBadge context={t.context} />}
       </div>
       <div style={{ fontSize: 11, color: C.t2 }}>{t.emotion || '—'}</div>
-      <div style={{ textAlign: 'right', fontFamily: M, fontWeight: 700, color: pnlColor, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.3px' }}>
+      <div
+        style={{
+          textAlign: 'right',
+          fontFamily: M,
+          fontWeight: 700,
+          color: pnlColor,
+          fontVariantNumeric: 'tabular-nums',
+          letterSpacing: '-0.3px',
+        }}
+      >
         {fmtD(t.pnl)}
       </div>
     </div>
@@ -154,12 +165,12 @@ function MobileRow({ trade: t, isExpanded, onClick, bulkMode, isSelected, onTogg
             marginTop: 2,
           }}
         >
-          {isSelected && <span className={s.s2}>✓</span>}
+          {isSelected && <span className={s.mobileCheckmark}>✓</span>}
         </div>
       )}
       <div style={{ flex: 1 }}>
-        <div className={s.s3}>
-          <div className={s.s4}>
+        <div className={s.mobileHeader}>
+          <div className={s.mobileSymbolGroup}>
             <span style={{ fontWeight: 700, color: C.t1, fontSize: 13 }}>{t.symbol}</span>
             <span
               style={{
@@ -176,21 +187,43 @@ function MobileRow({ trade: t, isExpanded, onClick, bulkMode, isSelected, onTogg
               {t.side}
             </span>
             {aiGrade && (
-              <div style={{
-                fontSize: 9, padding: '1px 5px', borderRadius: 4, fontFamily: M,
-                background: aiGrade.score >= 4 ? C.g+'15' : aiGrade.score >= 3 ? C.b+'15' : aiGrade.score >= 2 ? C.y+'15' : C.r+'15',
-                color: aiGrade.score >= 4 ? C.g : aiGrade.score >= 3 ? C.b : aiGrade.score >= 2 ? C.y : C.r
-              }}>
+              <div
+                style={{
+                  fontSize: 9,
+                  padding: '1px 5px',
+                  borderRadius: 4,
+                  fontFamily: M,
+                  background:
+                    aiGrade.score >= 4
+                      ? C.g + '15'
+                      : aiGrade.score >= 3
+                        ? C.b + '15'
+                        : aiGrade.score >= 2
+                          ? C.y + '15'
+                          : C.r + '15',
+                  color: aiGrade.score >= 4 ? C.g : aiGrade.score >= 3 ? C.b : aiGrade.score >= 2 ? C.y : C.r,
+                }}
+              >
                 {aiGrade.grade}
               </div>
             )}
           </div>
-          <span style={{ fontFamily: M, fontWeight: 700, fontSize: 13, color: pnlColor, fontVariantNumeric: 'tabular-nums' }}>
+          <span
+            style={{
+              fontFamily: M,
+              fontWeight: 700,
+              fontSize: 13,
+              color: pnlColor,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
             {fmtD(t.pnl)}
           </span>
         </div>
         <div style={{ display: 'flex', gap: 8, fontSize: 10, color: C.t3, flexWrap: 'wrap', alignItems: 'center' }}>
-          <span style={{ fontFamily: M, fontVariantNumeric: 'tabular-nums' }}>{t.date ? new Date(t.date).toLocaleDateString() : '—'}</span>
+          <span style={{ fontFamily: M, fontVariantNumeric: 'tabular-nums' }}>
+            {t.date ? new Date(t.date).toLocaleDateString() : '—'}
+          </span>
           {t.playbook && <span>· {t.playbook}</span>}
           {t.emotion && <span>· {t.emotion}</span>}
           {t.context?.tags?.length > 0 && <ContextBadge context={t.context} />}
@@ -252,8 +285,20 @@ function ExpandedDetail({
       {/* Context from Intelligence Layer */}
       {t.context && (
         <div style={{ marginBottom: 10 }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, marginBottom: 4, fontFamily: M, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Context</div>
-          <div className={s.s5}>
+          <div
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              color: C.t3,
+              marginBottom: 4,
+              fontFamily: M,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+            }}
+          >
+            Context
+          </div>
+          <div className={s.contextTags}>
             <span
               style={{
                 fontSize: 9,
@@ -275,8 +320,20 @@ function ExpandedDetail({
       {/* Checklist results */}
       {t.checklist && Object.keys(t.checklist).length > 0 && (
         <div style={{ marginBottom: 10 }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, marginBottom: 4, fontFamily: M, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Checklist</div>
-          <div className={s.s6}>
+          <div
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              color: C.t3,
+              marginBottom: 4,
+              fontFamily: M,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+            }}
+          >
+            Checklist
+          </div>
+          <div className={s.checklistTags}>
             {Object.entries(t.checklist).map(([key, val]) => (
               <span
                 key={key}
@@ -299,8 +356,20 @@ function ExpandedDetail({
       {/* Tags */}
       {t.tags?.length > 0 && (
         <div style={{ marginBottom: 10 }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, marginBottom: 4, fontFamily: M, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Tags</div>
-          <div className={s.s7}>
+          <div
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              color: C.t3,
+              marginBottom: 4,
+              fontFamily: M,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+            }}
+          >
+            Tags
+          </div>
+          <div className={s.tagList}>
             {t.tags.map((tag, i) => (
               <span
                 key={i}
@@ -323,24 +392,60 @@ function ExpandedDetail({
       {/* Notes */}
       {t.notes && (
         <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, marginBottom: 4, fontFamily: M, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Notes</div>
-          <div style={{ fontSize: 12, color: C.t2, lineHeight: 1.6, whiteSpace: 'pre-wrap', padding: '8px 10px', background: C.bg2, borderRadius: 6, border: `1px solid ${C.bd}40` }}>{t.notes}</div>
+          <div
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              color: C.t3,
+              marginBottom: 4,
+              fontFamily: M,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+            }}
+          >
+            Notes
+          </div>
+          <div
+            style={{
+              fontSize: 12,
+              color: C.t2,
+              lineHeight: 1.6,
+              whiteSpace: 'pre-wrap',
+              padding: '8px 10px',
+              background: C.bg2,
+              borderRadius: 6,
+              border: `1px solid ${C.bd}40`,
+            }}
+          >
+            {t.notes}
+          </div>
         </div>
       )}
 
       {/* Screenshots */}
       {t.screenshots?.length > 0 && (
         <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, marginBottom: 4, fontFamily: M, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          <div
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              color: C.t3,
+              marginBottom: 4,
+              fontFamily: M,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+            }}
+          >
             Screenshots ({t.screenshots.length})
           </div>
-          <div className={s.s8}>
+          <div className={s.screenshotGrid}>
             {t.screenshots.map((shot, i) => (
               <a
                 key={i}
                 href={shot.data}
                 target="_blank"
                 rel="noopener noreferrer"
+                className={s.screenshotThumb}
                 style={{
                   display: 'block',
                   width: 120,
@@ -349,16 +454,9 @@ function ExpandedDetail({
                   overflow: 'hidden',
                   border: `1px solid ${C.bd}`,
                   cursor: 'zoom-in',
-                  transition: 'transform 0.15s, box-shadow 0.15s',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.03)'; e.currentTarget.style.boxShadow = `0 4px 12px ${C.bg}40`; }}
-                onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
               >
-                <img
-                  src={shot.data}
-                  alt={shot.name || `Screenshot ${i + 1}`}
-                  className={s.s9}
-                />
+                <img src={shot.data} alt={shot.name || `Screenshot ${i + 1}`} className={s.screenshotImg} />
               </a>
             ))}
           </div>
@@ -366,36 +464,45 @@ function ExpandedDetail({
       )}
 
       {/* Actions — refined bar */}
-      <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap', paddingTop: 8, borderTop: `1px solid ${C.bd}30` }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: 6,
+          justifyContent: 'flex-end',
+          flexWrap: 'wrap',
+          paddingTop: 8,
+          borderTop: `1px solid ${C.bd}30`,
+        }}
+      >
         {deleteConfirm === t.id ? (
           <>
             <span style={{ fontSize: 11, color: C.r, alignSelf: 'center', marginRight: 4 }}>Delete this trade?</span>
-            <Btn variant="ghost" onClick={onCancelDelete} className={s.s10}>
+            <Btn variant="ghost" onClick={onCancelDelete} className={s.cancelBtn}>
               Cancel
             </Btn>
-            <Btn variant="danger" onClick={() => onDelete(t.id)} className={s.s11}>
+            <Btn variant="danger" onClick={() => onDelete(t.id)} className={s.deleteBtn}>
               Confirm Delete
             </Btn>
           </>
         ) : (
           <>
             {onShare && (
-              <Btn variant="ghost" onClick={() => onShare(t)} className={s.s12}>
+              <Btn variant="ghost" onClick={() => onShare(t)} className={s.shareBtn}>
                 📤 Share
               </Btn>
             )}
             {onReplay && (
-              <Btn variant="ghost" onClick={() => onReplay(t)} className={s.s13}>
+              <Btn variant="ghost" onClick={() => onReplay(t)} className={s.replayBtn}>
                 ⏪ Replay
               </Btn>
             )}
-            <Btn variant="ghost" onClick={() => onViewChart(t)} className={s.s14}>
+            <Btn variant="ghost" onClick={() => onViewChart(t)} className={s.chartBtn}>
               📈 Chart
             </Btn>
-            <Btn variant="ghost" onClick={() => onDeleteConfirm(t.id)} className={s.s15}>
+            <Btn variant="ghost" onClick={() => onDeleteConfirm(t.id)} className={s.deleteTriggerBtn}>
               Delete
             </Btn>
-            <Btn onClick={() => onEdit(t)} className={s.s16}>
+            <Btn onClick={() => onEdit(t)} className={s.editBtn}>
               Edit
             </Btn>
           </>
@@ -410,8 +517,22 @@ function ExpandedDetail({
 function DetailItem({ label, value, color }) {
   return (
     <div style={{ padding: '6px 8px', background: C.bg2, borderRadius: 6, border: `1px solid ${C.bd}30` }}>
-      <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, marginBottom: 2, fontFamily: M, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
-      <div style={{ fontSize: 12, fontWeight: 600, color: color || C.t1, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+      <div
+        style={{
+          fontSize: 9,
+          fontWeight: 700,
+          color: C.t3,
+          marginBottom: 2,
+          fontFamily: M,
+          textTransform: 'uppercase',
+          letterSpacing: '0.04em',
+        }}
+      >
+        {label}
+      </div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: color || C.t1, fontVariantNumeric: 'tabular-nums' }}>
+        {value}
+      </div>
     </div>
   );
 }

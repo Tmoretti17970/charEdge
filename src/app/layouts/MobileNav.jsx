@@ -12,7 +12,16 @@ import { useUIStore } from '../../state/useUIStore';
 // Compact inline SVG icons (18×18 for bottom bar)
 const icons = {
   home: (c) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={c}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
       <polyline points="9 22 9 12 15 12 15 22" />
     </svg>
@@ -24,7 +33,16 @@ const icons = {
     </svg>
   ),
   discover: (c) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={c}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <circle cx="12" cy="12" r="10" />
       <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
     </svg>
@@ -36,7 +54,16 @@ const icons = {
     </svg>
   ),
   coach: (c) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={c}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z" />
       <line x1="9" y1="21" x2="15" y2="21" />
       <line x1="10" y1="23" x2="14" y2="23" />
@@ -48,7 +75,6 @@ const TABS = [
   { id: 'journal', label: 'Home', icon: 'home' },
   { id: 'charts', label: 'Charts', icon: 'charts' },
   { id: '_quickadd', label: 'Add', icon: null, isFab: true },
-  // Wave 0: Coach quarantined from v1.0 launch scope
   // { id: 'coach', label: 'Coach', icon: 'coach' },
   { id: '_settings', label: 'Settings', icon: 'settings', isSlideOver: true },
 ];
@@ -103,8 +129,15 @@ function MobileNav() {
                 position: 'relative',
               }}
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff"
-                strokeWidth="2.5" strokeLinecap="round">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#fff"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              >
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
@@ -152,7 +185,10 @@ function MobileNav() {
         }
 
         // Regular tab button
-        const active = page === tab.id || (tab.id === 'journal' && page === 'dashboard') || (tab.id === 'discover' && (page === 'social' || page === 'markets'));
+        const active =
+          page === tab.id ||
+          (tab.id === 'journal' && page === 'dashboard') ||
+          (tab.id === 'discover' && (page === 'social' || page === 'markets'));
         const iconFn = icons[tab.icon];
         return (
           <button

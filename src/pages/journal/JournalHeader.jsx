@@ -1,10 +1,125 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useLayoutEffect } from 'react';
 import AICopilotPopover from '../../app/components/dashboard/AICopilotPopover.jsx';
 import AIOrb from '../../app/components/design/AIOrb.jsx';
 import Coachmark from '../../app/components/ui/Coachmark.jsx';
 import { Btn } from '../../app/components/ui/UIKit.jsx';
 import { C, F } from '../../constants.js';
 import useHotkeys from '@/hooks/useHotkeys';
+import { alpha } from '@/shared/colorUtils';
+import { useAccountStore, ACCOUNTS } from '@/state/useAccountStore';
+
+// ─── ModePill — Apple-style Segmented Toggle (Real / Demo) ─────
+// Compact pill, always visible in header. Spring-physics slider,
+// colour-coded dot + text so the active mode is unmistakable.
+
+function ModePill() {
+  const activeAccountId = useAccountStore((s) => s.activeAccountId);
+  const switchAccount = useAccountStore((s) => s.switchAccount);
+  const activeAccount = ACCOUNTS.find((a) => a.id === activeAccountId) || ACCOUNTS[0];
+
+  const containerRef = useRef(null);
+  const optionRefs = useRef({});
+  const [sliderStyle, setSliderStyle] = useState({ left: 0, width: 0, ready: false });
+
+  const updateSlider = useCallback(() => {
+    const container = containerRef.current;
+    const activeEl = optionRefs.current[activeAccountId];
+    if (!container || !activeEl) return;
+    const cRect = container.getBoundingClientRect();
+    const aRect = activeEl.getBoundingClientRect();
+    setSliderStyle({ left: aRect.left - cRect.left, width: aRect.width, ready: true });
+  }, [activeAccountId]);
+
+  useLayoutEffect(() => {
+    updateSlider();
+  }, [updateSlider]);
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        position: 'relative',
+        display: 'inline-flex',
+        alignItems: 'center',
+        borderRadius: 20,
+        padding: 3,
+        gap: 2,
+        background: C.sf2,
+        border: `1px solid ${C.bd}`,
+        height: 32,
+        flexShrink: 0,
+      }}
+    >
+      {/* Animated slider */}
+      {sliderStyle.ready && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 3,
+            height: 'calc(100% - 6px)',
+            borderRadius: 16,
+            left: sliderStyle.left,
+            width: sliderStyle.width,
+            background: alpha(activeAccount.color, 0.15),
+            boxShadow: `0 0 8px ${alpha(activeAccount.color, 0.1)}, inset 0 1px 0 ${alpha(activeAccount.color, 0.08)}`,
+            transition:
+              'left 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease',
+            pointerEvents: 'none',
+            zIndex: 0,
+          }}
+        />
+      )}
+
+      {ACCOUNTS.map((account) => {
+        const isActive = activeAccountId === account.id;
+        return (
+          <button
+            key={account.id}
+            ref={(el) => {
+              optionRefs.current[account.id] = el;
+            }}
+            onClick={() => switchAccount(account.id)}
+            aria-label={`Switch to ${account.label} account`}
+            aria-pressed={isActive}
+            style={{
+              position: 'relative',
+              zIndex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 5,
+              border: 'none',
+              background: 'none',
+              cursor: 'pointer',
+              padding: '2px 10px',
+              borderRadius: 16,
+              fontSize: 11,
+              fontWeight: isActive ? 700 : 500,
+              fontFamily: F,
+              color: isActive ? account.color : C.t3,
+              whiteSpace: 'nowrap',
+              transition: 'color 0.2s ease',
+              lineHeight: 1,
+            }}
+          >
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: account.color,
+                flexShrink: 0,
+                opacity: isActive ? 1 : 0.35,
+                transition: 'opacity 0.2s ease',
+              }}
+            />
+            {account.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 const INSIGHT_SUB_TABS = [
   { id: 'strategies', label: 'Strategies', icon: '🎯' },
@@ -30,10 +145,7 @@ export default function JournalHeader({ journalTab, setJournalTab, openAddTrade,
   const closeCopilot = useCallback(() => setCopilotOpen(false), []);
 
   // ⌘K / Ctrl+K → toggle copilot (via useHotkeys — no duplicate listener)
-  useHotkeys(
-    [{ key: 'meta+k', handler: toggleCopilot, description: 'Toggle AI Copilot' }],
-    { scope: 'page' },
-  );
+  useHotkeys([{ key: 'meta+k', handler: toggleCopilot, description: 'Toggle AI Copilot' }], { scope: 'page' });
 
   return (
     <>
@@ -96,13 +208,15 @@ export default function JournalHeader({ journalTab, setJournalTab, openAddTrade,
           </button>
 
           {/* ─── Copilot Popover ──────────────────────────── */}
-          {copilotOpen && (
-            <AICopilotPopover anchorRef={pillRef} onClose={closeCopilot} />
-          )}
+          {copilotOpen && <AICopilotPopover anchorRef={pillRef} onClose={closeCopilot} />}
         </div>
 
-        {/* ─── Segmented CTA: Logbook | + Add Trade ──── */}
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        {/* ─── Right side: Mode Toggle + Logbook | + Add Trade ─── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* ─── Real / Demo Mode Pill ──────────────── */}
+          <ModePill />
+
+          {/* ─── Segmented CTA: Logbook | + Add Trade ──── */}
           <div
             style={{
               display: 'flex',

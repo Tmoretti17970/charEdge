@@ -190,5 +190,56 @@ export function setupAutoSave() {
     clearTimeout(telemetryTimer);
   });
 
+  // ─── Visibility flush guard ─────────────────────────────────────
+  // Immediately persist all dirty stores when the tab becomes hidden
+  // or the page is about to unload. Prevents data loss within the
+  // 1.5s debounce window.
+  const flushAll = async () => {
+    clearTimeout(tradeTimer);
+    clearTimeout(settingsTimer);
+    clearTimeout(onboardingTimer);
+    clearTimeout(scriptsTimer);
+    clearTimeout(workspacesTimer);
+    clearTimeout(watchlistTimer);
+    clearTimeout(gamificationTimer);
+    clearTimeout(telemetryTimer);
+    try {
+      const journalState = useJournalStore.getState();
+      if (journalState.loaded) {
+        await Promise.all([
+          storageAdapter.trades.replaceAll(journalState.trades),
+          storageAdapter.playbooks.replaceAll(journalState.playbooks),
+          storageAdapter.notes.replaceAll(journalState.notes),
+          storageAdapter.tradePlans.replaceAll(journalState.tradePlans),
+        ]);
+      }
+      const { _update, _hydrate, _reset, ...userData } = useUserStore.getState();
+      await StorageService.settings.set('settings', userData);
+
+      const scriptState = useScriptStore.getState();
+      if (scriptState.loaded) await StorageService.settings.set('scripts', scriptState.toJSON());
+
+      await StorageService.settings.set('workspaces', useWorkspaceStore.getState().workspaces);
+
+      const wlState = useWatchlistStore.getState();
+      if (wlState.loaded) await StorageService.settings.set('watchlist', wlState.items);
+
+      await StorageService.settings.set('gamification', useGamificationStore.getState().toJSON());
+    } catch (err) {
+      logger.ui.warn('[AutoSave] Visibility flush failed:', err);
+    }
+  };
+
+  const onVisibilityChange = () => {
+    if (document.visibilityState === 'hidden') flushAll();
+  };
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  window.addEventListener('beforeunload', flushAll);
+
+  unsubs.push(
+    () => document.removeEventListener('visibilitychange', onVisibilityChange),
+    () => window.removeEventListener('beforeunload', flushAll),
+  );
+
   return unsubs;
 }

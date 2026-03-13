@@ -39,9 +39,9 @@ function JournalQuickAdd({ onSave, onCancel }) {
 
   const inputStyle = {
     padding: '7px 10px',
-    borderRadius: 4,
-    border: `1px solid ${C.bd}`,
-    background: C.sf,
+    borderRadius: 6,
+    border: `1px solid ${C.bd2}`,
+    background: C.bg,
     color: C.t1,
     fontSize: 12,
     fontFamily: M,
@@ -54,15 +54,17 @@ function JournalQuickAdd({ onSave, onCancel }) {
         display: 'flex',
         gap: 8,
         marginBottom: 8,
-        padding: '10px 14px',
-        borderRadius: 8,
-        border: `1px solid ${C.b}30`,
-        background: C.b + '08',
+        padding: '12px 16px',
+        borderRadius: 10,
+        border: `1px solid ${C.bd}`,
+        background: C.sf2,
         alignItems: 'center',
         flexWrap: 'wrap',
       }}
     >
-      <span style={{ fontSize: 10, fontWeight: 700, color: C.b, fontFamily: M }}>QUICK ADD</span>
+      <span style={{ fontSize: 10, fontWeight: 700, color: C.t2, fontFamily: M, letterSpacing: '0.05em' }}>
+        QUICK ADD
+      </span>
       <input
         aria-label="Quick add trade"
         ref={symRef}
@@ -80,10 +82,10 @@ function JournalQuickAdd({ onSave, onCancel }) {
             onClick={() => setSide(s)}
             style={{
               padding: '6px 10px',
-              borderRadius: 4,
-              border: 'none',
-              background: side === s ? (s === 'long' ? C.g : C.r) + '25' : 'transparent',
-              color: side === s ? (s === 'long' ? C.g : C.r) : C.t3,
+              borderRadius: 6,
+              border: side === s ? `1px solid ${s === 'long' ? C.g : C.r}` : `1px solid ${C.bd}`,
+              background: side === s ? (s === 'long' ? C.g : C.r) + '20' : C.bg,
+              color: side === s ? (s === 'long' ? C.g : C.r) : C.t2,
               fontSize: 10,
               fontWeight: 700,
               cursor: 'pointer',
@@ -123,21 +125,21 @@ function JournalQuickAdd({ onSave, onCancel }) {
         <option value="options">Options</option>
         <option value="forex">Forex</option>
       </select>
-      <div style={{ display: 'flex', gap: 4, marginLeft: 'auto' }}>
+      <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
         <button
           className="tf-btn"
           onClick={handleSave}
           disabled={!sym.trim()}
           style={{
-            padding: '7px 14px',
-            borderRadius: 4,
+            padding: '7px 16px',
+            borderRadius: 6,
             border: 'none',
-            background: sym.trim() ? C.b : C.bd,
+            background: C.b,
             color: '#fff',
             fontSize: 11,
             fontWeight: 700,
             cursor: sym.trim() ? 'pointer' : 'default',
-            opacity: sym.trim() ? 1 : 0.4,
+            opacity: sym.trim() ? 1 : 0.35,
           }}
         >
           Save
@@ -147,11 +149,12 @@ function JournalQuickAdd({ onSave, onCancel }) {
           onClick={onCancel}
           style={{
             padding: '7px 10px',
-            borderRadius: 4,
-            border: `1px solid ${C.bd}`,
-            background: 'transparent',
-            color: C.t3,
+            borderRadius: 6,
+            border: `1px solid ${C.bd2}`,
+            background: C.bg,
+            color: C.t1,
             fontSize: 11,
+            fontWeight: 700,
             cursor: 'pointer',
           }}
         >

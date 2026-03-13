@@ -7,11 +7,12 @@
 import React, { Suspense } from 'react';
 import ChartContextMenu from '../../app/components/chart/chart_ui/ChartContextMenu.jsx';
 import { C } from '../../constants.js';
+import { useChartCoreStore } from '../../state/chart/useChartCoreStore';
+import { useChartFeaturesStore } from '../../state/chart/useChartFeaturesStore';
+import { useChartToolsStore } from '../../state/chart/useChartToolsStore';
 import { useBacktestStore } from '../../state/useBacktestStore.js';
 import { useStrategyBuilderStore } from '../../state/useStrategyBuilderStore';
 import { isEnabled, FEATURES } from '@/shared/featureFlags';
-import { useChartToolsStore } from '../../state/chart/useChartToolsStore';
-import { useChartFeaturesStore } from '../../state/chart/useChartFeaturesStore';
 
 // Lazy-loaded overlays
 const IndicatorLegendHeader = React.lazy(() => import('../../app/components/chart/core/IndicatorLegendHeader.jsx'));
@@ -19,6 +20,7 @@ const ChartInfoWindow = React.lazy(() => import('../../app/components/chart/pane
 const ChartHUD = React.lazy(() => import('../../app/components/chart/ui/ChartHUD.jsx'));
 const AlertLinesOverlay = React.lazy(() => import('../../app/components/chart/overlays/AlertLinesOverlay.jsx'));
 const TradePLPill = React.lazy(() => import('../../app/components/chart/overlays/TradePLPill.jsx'));
+const PositionLineOverlay = React.lazy(() => import('../../app/components/chart/overlays/PositionLineOverlay.jsx'));
 const RiskGuardOverlay = React.lazy(() => import('../../app/components/chart/overlays/RiskGuardOverlay.jsx'));
 const MobileDrawingSheet = React.lazy(() => import('../../app/components/mobile/MobileDrawingSheet.jsx'));
 const QuickStylePalette = React.lazy(() => import('../../app/components/chart/QuickStylePalette.jsx'));
@@ -33,7 +35,6 @@ const AIAnalysisPanel = React.lazy(() => import('../../app/components/panels/AIA
 const WalkForwardPanel = React.lazy(() => import('../../app/components/chart/panels/WalkForwardPanel.jsx'));
 const FuturesAnalytics = React.lazy(() => import('../../app/components/chart/panels/FuturesAnalytics.jsx'));
 const PaperTradeWidget = React.lazy(() => import('../../app/components/chart/panels/PaperTradeWidget.jsx'));
-// Wave 0: ContextualPoll quarantined — social features removed from v1.0 scope
 
 /** Mobile floating action button */
 function MobileFab({ icon, onClick, active }) {
@@ -74,8 +75,8 @@ export default function ChartOverlays({
   isMobile,
   multiMode,
   hoverInfo,
-  showTrades,
-  matchingTrades,
+  showTrades: _showTrades,
+  matchingTrades: _matchingTrades,
   // Drawing state
   contextMenu,
   closeContextMenu,
@@ -138,23 +139,14 @@ export default function ChartOverlays({
       {/* Chart Info Window — floating OHLCV data on hover (opt-in via ≡ menu) */}
       {showDataWindow && !multiMode && !isMobile && hoverInfo.barIdx >= 0 && (
         <Suspense fallback={null}>
-          <ChartInfoWindow
-            data={data}
-            barIdx={hoverInfo.barIdx}
-            mouseY={hoverInfo.mouseY}
-          />
+          <ChartInfoWindow data={data} barIdx={hoverInfo.barIdx} mouseY={hoverInfo.mouseY} />
         </Suspense>
       )}
 
       {/* Chart HUD — auto-fading overlay */}
       {!multiMode && !isMobile && (
         <Suspense fallback={null}>
-          <ChartHUD
-            symbol={symbol}
-            timeframe={tf}
-            lastPrice={data?.[data.length - 1]?.close}
-            data={data}
-          />
+          <ChartHUD symbol={symbol} timeframe={tf} lastPrice={data?.[data.length - 1]?.close} data={data} />
         </Suspense>
       )}
 
@@ -165,14 +157,17 @@ export default function ChartOverlays({
         </Suspense>
       )}
 
-      {/* Trade P/L Summary Pill */}
-      {!multiMode && !isMobile && showTrades && matchingTrades.length > 0 && (
+      {/* Live P/L Pill — shows only when user has open positions */}
+      {!multiMode && !isMobile && (
         <Suspense fallback={null}>
-          <TradePLPill
-            trades={matchingTrades}
-            showAutoFit={showAutoFit}
-            onAutoFit={onAutoFit}
-          />
+          <TradePLPill showAutoFit={showAutoFit} onAutoFit={onAutoFit} />
+        </Suspense>
+      )}
+
+      {/* Open Position Entry Lines + Price-Axis Tabs */}
+      {!multiMode && !isMobile && (
+        <Suspense fallback={null}>
+          <PositionLineOverlay symbol={symbol} />
         </Suspense>
       )}
 
@@ -212,60 +207,92 @@ export default function ChartOverlays({
       />
 
       {/* Radial Context Menu */}
-      {radialMenu && (
-        <Suspense fallback={null}>
-          <RadialMenu
-            x={radialMenu.x}
-            y={radialMenu.y}
-            price={radialMenu.price}
-            onClose={() => setRadialMenu(null)}
-            onAction={(segId, subItemId, actionPrice) => {
-              // Close radial menu immediately so it doesn't overlap with activated tools
-              setRadialMenu(null);
-              // ── Draw submenu ──
-              if (segId === 'draw') {
-                if (subItemId === 'more') { setDrawSidebarOpen(true); return; }
-                useChartToolsStore.getState().setActiveTool(subItemId); // trendline, hline, fib, channel, rect
-                return;
-              }
-              // ── Trade submenu ──
-              if (segId === 'trade') {
-                if (subItemId === 'more') { /* future: open full trade panel */ return; }
-                if (subItemId === 'long') { useChartFeaturesStore.getState().startTradeMode('long'); return; }
-                if (subItemId === 'short') { useChartFeaturesStore.getState().startTradeMode('short'); return; }
-                if (subItemId === 'close') { /* future: close position */ return; }
-                return;
-              }
-              // ── Alert submenu ──
-              if (segId === 'alert') {
-                if (subItemId === 'more') { /* future: open alerting panel */ return; }
-                contextMenuHandlers.onAddAlert?.(actionPrice);
-                return;
-              }
-              // ── Indicator submenu ──
-              if (segId === 'indicator') {
-                if (subItemId === 'more') { setShowIndicators(true); return; }
-                // Directly add indicator by id (rsi, ema, macd, bollinger, vwap)
-                // eslint-disable-next-line unused-imports/no-unused-vars
-                try { useChartToolsStore.getState().addIndicator({ indicatorId: subItemId }); } catch (_) { /* noop */ }
-                return;
-              }
-              // ── Measure submenu ──
-              if (segId === 'measure') {
-                if (subItemId === 'more') { /* future */ return; }
-                useChartToolsStore.getState().setActiveTool('measure');
-                return;
-              }
-              // ── Screenshot submenu ──
-              if (segId === 'screenshot') {
-                if (subItemId === 'more') { setShowSnapshotPublisher(true); return; }
-                setShowSnapshotPublisher(true);
-                return;
-              }
-            }}
-          />
-        </Suspense>
-      )}
+      {radialMenu &&
+        (() => {
+          // Compute price: if mouse handler provided 0, use aggregated price from TickerPlant
+          let rmPrice = radialMenu.price || 0;
+          if (!rmPrice) {
+            const aggPrice = useChartCoreStore.getState().aggregatedPrice;
+            if (aggPrice) rmPrice = aggPrice;
+          }
+          return (
+            <Suspense fallback={null}>
+              <RadialMenu
+                x={radialMenu.x}
+                y={radialMenu.y}
+                price={rmPrice}
+                onClose={() => setRadialMenu(null)}
+                onAction={(segId, subItemId, actionPrice) => {
+                  // Close radial menu immediately so it doesn't overlap with activated tools
+                  setRadialMenu(null);
+                  // ── Center hub: copy price ──
+                  if (segId === 'center') {
+                    contextMenuHandlers.onCopyPrice?.(actionPrice);
+                    return;
+                  }
+                  // ── Trade submenu ──
+                  if (segId === 'trade') {
+                    if (subItemId === 'long') {
+                      useChartFeaturesStore.getState().startTradeMode('long');
+                      return;
+                    }
+                    if (subItemId === 'short') {
+                      useChartFeaturesStore.getState().startTradeMode('short');
+                      return;
+                    }
+                    if (subItemId === 'close') {
+                      /* future: close position */ return;
+                    }
+                    return;
+                  }
+                  // ── Alert submenu ──
+                  if (segId === 'alert') {
+                    contextMenuHandlers.onAddAlert?.(actionPrice);
+                    return;
+                  }
+                  // ── Journal submenu (NEW) ──
+                  if (segId === 'journal') {
+                    if (subItemId === 'quickNote') {
+                      useChartFeaturesStore.getState().toggleQuickJournal();
+                      return;
+                    }
+                    if (subItemId === 'tagLevel') {
+                      window.dispatchEvent(new CustomEvent('charEdge:tag-level', { detail: { price: actionPrice } }));
+                      return;
+                    }
+                    if (subItemId === 'screenshotNote') {
+                      setShowSnapshotPublisher(true);
+                      return;
+                    }
+                    return;
+                  }
+                  // ── Draw submenu ──
+                  if (segId === 'draw') {
+                    if (subItemId === 'more') {
+                      setDrawSidebarOpen(true);
+                      return;
+                    }
+                    useChartToolsStore.getState().setActiveTool(subItemId);
+                    return;
+                  }
+                  // ── Indicator submenu ──
+                  if (segId === 'indicator') {
+                    if (subItemId === 'more') {
+                      setShowIndicators(true);
+                      return;
+                    }
+                    try {
+                      useChartToolsStore.getState().addIndicator({ indicatorId: subItemId });
+                    } catch {
+                      /* noop */
+                    }
+                    return;
+                  }
+                }}
+              />
+            </Suspense>
+          );
+        })()}
 
       {/* Drawing Property Editor */}
       {selectedDrawingId && !multiMode && (
@@ -277,9 +304,7 @@ export default function ChartOverlays({
       {/* Comparison Overlay Panel */}
       {showComparisonOverlay && !multiMode && !isMobile && (
         <Suspense fallback={null}>
-          <ComparisonOverlay
-            onClose={() => useChartFeaturesStore.getState().toggleComparisonOverlay()}
-          />
+          <ComparisonOverlay onClose={() => useChartFeaturesStore.getState().toggleComparisonOverlay()} />
         </Suspense>
       )}
 
@@ -318,49 +343,35 @@ export default function ChartOverlays({
       {/* Strategy Backtester Panel (gated: backtesting) */}
       {isEnabled(FEATURES.BACKTESTING) && backtestPanelOpen && !multiMode && !isMobile && (
         <Suspense fallback={null}>
-          <BacktestPanel
-            bars={data}
-            onClose={() => useBacktestStore.getState().closePanel()}
-          />
+          <BacktestPanel bars={data} onClose={() => useBacktestStore.getState().closePanel()} />
         </Suspense>
       )}
 
       {/* Strategy Backtester Results (gated: backtesting) */}
       {isEnabled(FEATURES.BACKTESTING) && backtestResultsOpen && !multiMode && !isMobile && (
         <Suspense fallback={null}>
-          <BacktestResults
-            onClose={() => useBacktestStore.getState().closeResults()}
-          />
+          <BacktestResults onClose={() => useBacktestStore.getState().closeResults()} />
         </Suspense>
       )}
 
       {/* Visual Strategy Builder (gated: backtesting) */}
       {isEnabled(FEATURES.BACKTESTING) && strategyBuilderOpen && !multiMode && !isMobile && (
         <Suspense fallback={null}>
-          <StrategyBuilder
-            bars={data}
-            onClose={() => useStrategyBuilderStore.getState().togglePanel()}
-          />
+          <StrategyBuilder bars={data} onClose={() => useStrategyBuilderStore.getState().togglePanel()} />
         </Suspense>
       )}
 
       {/* AI Analysis Palette — draggable floating panel */}
       {chartAnalysisOpen && !multiMode && !isMobile && (
         <Suspense fallback={null}>
-          <AIAnalysisPanel
-            isOpen={chartAnalysisOpen}
-            onClose={() => setChartAnalysisOpen(false)}
-          />
+          <AIAnalysisPanel isOpen={chartAnalysisOpen} onClose={() => setChartAnalysisOpen(false)} />
         </Suspense>
       )}
 
       {/* Walk-Forward & Monte Carlo Panel */}
       {walkForwardOpen && !multiMode && !isMobile && (
         <Suspense fallback={null}>
-          <WalkForwardPanel
-            bars={data}
-            onClose={() => setWalkForwardOpen(false)}
-          />
+          <WalkForwardPanel bars={data} onClose={() => setWalkForwardOpen(false)} />
         </Suspense>
       )}
 

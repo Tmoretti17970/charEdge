@@ -11,7 +11,6 @@
 
 import React from 'react';
 import { useState, useMemo, useEffect, useRef } from 'react';
-// Wave 0: usePropFirmStore quarantined — prop firm features removed from v1.0 scope
 const usePropFirmStore = () => null;
 const _selectPropFirm = () => ({ activeProfile: null, profiles: [] });
 import { useJournalStore } from '../../../../state/useJournalStore';
@@ -53,7 +52,7 @@ function RiskGuardOverlay() {
 
     const accountSize = profile.initialBalance || 100000;
     const maxDailyLoss = profile.maxDailyLoss || accountSize * 0.05;
-    const maxTotalDrawdown = profile.maxDrawdown || accountSize * 0.10;
+    const maxTotalDrawdown = profile.maxDrawdown || accountSize * 0.1;
 
     const dailyLossUsed = Math.max(0, -dailyPnl);
     const totalDrawdownUsed = Math.max(0, -totalPnl);
@@ -111,7 +110,10 @@ function RiskGuardOverlay() {
           <div className="tf-risk-gauge">
             <div className="tf-risk-gauge__header">
               <span className="tf-risk-gauge__label">Daily Loss</span>
-              <span className="tf-risk-gauge__value" style={{ color: status.dailyPct >= 80 ? '#EF5350' : status.dailyPct >= 50 ? '#FFA726' : '#26A69A' }}>
+              <span
+                className="tf-risk-gauge__value"
+                style={{ color: status.dailyPct >= 80 ? '#EF5350' : status.dailyPct >= 50 ? '#FFA726' : '#26A69A' }}
+              >
                 ${status.dailyLossUsed.toFixed(0)} / ${status.maxDailyLoss.toFixed(0)}
               </span>
             </div>
@@ -130,7 +132,10 @@ function RiskGuardOverlay() {
           <div className="tf-risk-gauge">
             <div className="tf-risk-gauge__header">
               <span className="tf-risk-gauge__label">Max Drawdown</span>
-              <span className="tf-risk-gauge__value" style={{ color: status.totalPct >= 80 ? '#EF5350' : status.totalPct >= 50 ? '#FFA726' : '#26A69A' }}>
+              <span
+                className="tf-risk-gauge__value"
+                style={{ color: status.totalPct >= 80 ? '#EF5350' : status.totalPct >= 50 ? '#FFA726' : '#26A69A' }}
+              >
                 ${status.totalDrawdownUsed.toFixed(0)} / ${status.maxTotalDrawdown.toFixed(0)}
               </span>
             </div>
@@ -147,15 +152,14 @@ function RiskGuardOverlay() {
 
           {/* Summary */}
           <div className={s.summary} style={{ color: 'var(--tf-t3)' }}>
-            Today: {status.tradeCount} trades · P&L: <span style={{ color: status.dailyPnl >= 0 ? '#26A69A' : '#EF5350', fontWeight: 600 }}>
+            Today: {status.tradeCount} trades · P&L:{' '}
+            <span style={{ color: status.dailyPnl >= 0 ? '#26A69A' : '#EF5350', fontWeight: 600 }}>
               {status.dailyPnl >= 0 ? '+' : ''}${status.dailyPnl.toFixed(2)}
             </span>
           </div>
 
           {status.level === 'locked' && (
-            <div className={s.lockedBanner}>
-              ⚠ Risk limit reached. Trading is blocked until the next session.
-            </div>
+            <div className={s.lockedBanner}>⚠ Risk limit reached. Trading is blocked until the next session.</div>
           )}
         </div>
       )}
