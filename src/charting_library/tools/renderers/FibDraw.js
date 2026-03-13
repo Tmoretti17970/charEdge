@@ -14,19 +14,26 @@ export function renderFibRetracement(ctx, pts, pricePoints, style, lw, pr, size,
   const left = Math.min(pts[0].x, pts[1].x);
   const right = size.bitmapWidth;
 
+  // Per-drawing custom levels or global defaults
+  const customLevels = style.fibLevels;
+  const levelEntries = customLevels && customLevels.length > 0
+    ? customLevels.filter(l => l.enabled !== false && l.visible !== false)
+    : FIB_LEVELS.map(v => ({ value: v, color: FIB_COLORS[v] || style.color, enabled: true }));
+
   const fontSize = Math.round(11 * pr);
   ctx.font = `${fontSize}px Arial`;
   ctx.textBaseline = 'middle';
 
-  for (let i = 0; i < FIB_LEVELS.length; i++) {
-    const level = FIB_LEVELS[i];
+  for (let i = 0; i < levelEntries.length; i++) {
+    const entry = levelEntries[i];
+    const level = entry.value;
     const price = startPrice + priceRange * (1 - level);
-    if (!isFinite(price)) continue; // BUG-01: guard against NaN/Infinity
+    if (!isFinite(price)) continue;
     const anchorForY = anchorToPixel({ price, time: pricePoints[0].time });
     if (!anchorForY) continue;
     const y = Math.round(anchorForY.y * pr);
 
-    const levelColor = FIB_COLORS[level] || style.color;
+    const levelColor = entry.color || FIB_COLORS[level] || style.color;
 
     ctx.strokeStyle = levelColor;
     ctx.lineWidth = lw;
@@ -38,10 +45,10 @@ export function renderFibRetracement(ctx, pts, pricePoints, style, lw, pr, size,
     ctx.stroke();
     ctx.setLineDash([]);
 
-    if (i < FIB_LEVELS.length - 1 && style.opacity) {
-      const nextLevel = FIB_LEVELS[i + 1];
-      const nextPrice = startPrice + priceRange * (1 - nextLevel);
-      if (!isFinite(nextPrice)) continue; // BUG-01: guard against NaN/Infinity
+    if (i < levelEntries.length - 1 && style.opacity) {
+      const nextEntry = levelEntries[i + 1];
+      const nextPrice = startPrice + priceRange * (1 - nextEntry.value);
+      if (!isFinite(nextPrice)) continue;
       const nextAnchor = anchorToPixel({ price: nextPrice, time: pricePoints[0].time });
       if (nextAnchor) {
         const nextY = Math.round(nextAnchor.y * pr);
@@ -72,6 +79,12 @@ export function renderFibExtension(ctx, pts, pricePoints, style, lw, pr, size, d
   const left = Math.min(...pts.map((p) => p.x));
   const right = size.bitmapWidth;
 
+  // Per-drawing custom levels or global defaults
+  const customLevels = style.fibLevels;
+  const levelEntries = customLevels && customLevels.length > 0
+    ? customLevels.filter(l => l.enabled !== false && l.visible !== false)
+    : FIB_LEVELS.map(v => ({ value: v, color: FIB_COLORS[v] || style.color, enabled: true }));
+
   const fontSize = Math.round(11 * pr);
   ctx.font = `${fontSize}px Arial`;
   ctx.textBaseline = 'middle';
@@ -87,15 +100,16 @@ export function renderFibExtension(ctx, pts, pricePoints, style, lw, pr, size, d
   ctx.stroke();
   ctx.setLineDash([]);
 
-  for (let i = 0; i < FIB_LEVELS.length; i++) {
-    const level = FIB_LEVELS[i];
+  for (let i = 0; i < levelEntries.length; i++) {
+    const entry = levelEntries[i];
+    const level = entry.value;
     const price = originPrice + trendRange * level;
-    if (!isFinite(price)) continue; // BUG-01: guard against NaN/Infinity
+    if (!isFinite(price)) continue;
     const anchorForY = anchorToPixel({ price, time: pricePoints[2].time });
     if (!anchorForY) continue;
     const y = Math.round(anchorForY.y * pr);
 
-    const levelColor = FIB_COLORS[level] || style.color;
+    const levelColor = entry.color || FIB_COLORS[level] || style.color;
 
     ctx.strokeStyle = levelColor;
     ctx.lineWidth = lw;

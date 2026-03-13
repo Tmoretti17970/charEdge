@@ -23,10 +23,9 @@ const TradePLPill = React.lazy(() => import('../../app/components/chart/overlays
 const PositionLineOverlay = React.lazy(() => import('../../app/components/chart/overlays/PositionLineOverlay.jsx'));
 const RiskGuardOverlay = React.lazy(() => import('../../app/components/chart/overlays/RiskGuardOverlay.jsx'));
 const MobileDrawingSheet = React.lazy(() => import('../../app/components/mobile/MobileDrawingSheet.jsx'));
-const QuickStylePalette = React.lazy(() => import('../../app/components/chart/QuickStylePalette.jsx'));
 const QuickJournalPanel = React.lazy(() => import('../../app/components/chart/chart_ui/QuickJournalPanel.jsx'));
 const RadialMenu = React.lazy(() => import('../../app/components/chart/RadialMenu.jsx'));
-const DrawingPropertyEditor = React.lazy(() => import('../../app/components/chart/tools/DrawingPropertyEditor.jsx'));
+// DrawingPropertyEditor removed — consolidated into DrawingEditPopup
 const ComparisonOverlay = React.lazy(() => import('../../app/components/chart/overlays/ComparisonOverlay.jsx'));
 const BacktestPanel = React.lazy(() => import('../../app/components/chart/panels/BacktestPanel.jsx'));
 const BacktestResults = React.lazy(() => import('../../app/components/chart/panels/BacktestResults.jsx'));
@@ -185,12 +184,7 @@ export default function ChartOverlays({
         </Suspense>
       )}
 
-      {/* F3.2: Quick Style Palette — only mount when a drawing is selected */}
-      {!isMobile && !multiMode && selectedDrawingId && (
-        <Suspense fallback={null}>
-          <QuickStylePalette />
-        </Suspense>
-      )}
+      {/* QuickStylePalette removed — consolidated into DrawingEditPopup */}
 
       {/* F3.1: PositionSizer — now routed through SlidePanel via ChartPanelManager */}
       {showQuickJournal && (
@@ -247,7 +241,8 @@ export default function ChartOverlays({
                   }
                   // ── Alert submenu ──
                   if (segId === 'alert') {
-                    contextMenuHandlers.onAddAlert?.(actionPrice);
+                    const condMap = { price: 'cross_above', above: 'above', below: 'below' };
+                    contextMenuHandlers.onAddAlert?.(actionPrice, condMap[subItemId] || 'cross_above');
                     return;
                   }
                   // ── Journal submenu (NEW) ──
@@ -294,12 +289,7 @@ export default function ChartOverlays({
           );
         })()}
 
-      {/* Drawing Property Editor */}
-      {selectedDrawingId && !multiMode && (
-        <Suspense fallback={null}>
-          <DrawingPropertyEditor />
-        </Suspense>
-      )}
+      {/* DrawingPropertyEditor removed — consolidated into DrawingEditPopup */}
 
       {/* Comparison Overlay Panel */}
       {showComparisonOverlay && !multiMode && !isMobile && (

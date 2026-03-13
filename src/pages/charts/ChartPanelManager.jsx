@@ -17,6 +17,8 @@ const IndicatorPanel = React.lazy(() => import('../../app/components/panels/Indi
 const ObjectTreePanel = React.lazy(() => import('../../app/components/panels/ObjectTreePanel.jsx'));
 const WatchlistPanel = React.lazy(() => import('../../app/components/panels/WatchlistPanel.jsx'));
 const AlertPanel = React.lazy(() => import('../../app/components/panels/AlertPanel.jsx'));
+const AlertHistoryPanel = React.lazy(() => import('../../app/components/panels/AlertHistoryPanel.jsx'));
+const AlertAnalytics = React.lazy(() => import('../../app/components/panels/AlertAnalytics.jsx'));
 const ChartInsightsPanel = React.lazy(() => import('../../app/components/panels/ChartInsightsPanel.jsx'));
 // const ScriptEditor = React.lazy(() => import('../../charting_library/scripting/ScriptEditor.jsx'));
 // const ScriptManager = React.lazy(() => import('../../charting_library/scripting/ScriptManager.jsx'));
@@ -216,6 +218,8 @@ export default function ChartPanelManager({
               {activePanel === 'institutional' && <InstitutionalPanel symbol={symbol} />}
               {activePanel === 'community' && <CommunitySignals />}
               {activePanel === 'positionSizer' && <PositionSizer />}
+              {activePanel === 'alertHistory' && <AlertHistoryPanel />}
+              {activePanel === 'alertAnalytics' && <AlertAnalytics />}
               {activePanel === 'quickJournal' && <QuickJournalPanel onClose={closePanel} />}
             </Suspense>
           </div>

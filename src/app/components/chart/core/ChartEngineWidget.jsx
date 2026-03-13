@@ -51,6 +51,8 @@ import IndicatorSettingsDialog from '../panels/IndicatorSettingsDialog.jsx';
 import ReplayToolbar from '../ReplayToolbar.jsx';
 import DrawingContextMenu from '../tools/DrawingContextMenu.jsx';
 import DrawingEditPopup from '../tools/DrawingEditPopup.jsx';
+import FloatingDrawingBar from '../tools/FloatingDrawingBar.jsx';
+import InlineTextEditor from '../tools/InlineTextEditor.jsx';
 import ChartDataTable from '../ui/ChartDataTable.jsx';
 import DataFallbackBanner from '../ui/DataFallbackBanner.jsx';
 import DataStalenessIndicator from '../ui/DataStalenessIndicator.jsx';
@@ -901,6 +903,24 @@ export default function ChartEngineWidget({
           onClose={closeContextMenu}
         />
       )}
+
+      {/* Floating quick-action bar for selected drawing */}
+      {(() => {
+        const de = engineRef.current?.drawingEngine;
+        const sel = de?.selectedDrawing;
+        if (!sel || ctxMenu) return null;
+        return (
+          <FloatingDrawingBar
+            engine={de}
+            drawing={sel}
+            canvasRect={containerRef.current?.getBoundingClientRect()}
+            onOpenSettings={(d) => setEditPopup(d)}
+          />
+        );
+      })()}
+
+      {/* Inline text editor overlay */}
+      <InlineTextEditor canvasRect={containerRef.current?.getBoundingClientRect()} />
 
       {editPopup && (
         <DrawingEditPopup

@@ -33,13 +33,41 @@ export function generateId() {
 
 /**
  * @typedef {Object} DrawingStyle
- * @property {string}  color       - Primary color
- * @property {number}  lineWidth   - Line width in CSS pixels
- * @property {number[]} [dash]     - Dash pattern (empty = solid)
- * @property {string}  [fillColor] - Fill color (for shapes)
- * @property {number}  [opacity]   - Fill opacity (0-1)
- * @property {boolean} [showLabel] - Show price/% labels
- * @property {string}  [font]      - Label font
+ * @property {string}  color           - Primary color
+ * @property {number}  lineWidth       - Line width in CSS pixels
+ * @property {number[]} [dash]         - Dash pattern (empty = solid)
+ * @property {string}  [fillColor]     - Fill color (for shapes)
+ * @property {number}  [opacity]       - Fill opacity (0-1)
+ * @property {boolean} [showLabel]     - Show price/% labels
+ * @property {string}  [font]          - Label font
+ * @property {string}  [extend]        - 'none' | 'left' | 'right' | 'both'
+ * @property {string}  [lineEndLeft]   - 'none' | 'arrow' | 'circle'
+ * @property {string}  [lineEndRight]  - 'none' | 'arrow' | 'circle'
+ * @property {boolean} [middlePoint]   - Show middle point on line
+ * @property {boolean} [priceLabels]   - Show price labels at anchors
+ * @property {string}  [stats]         - 'hidden' | 'values' | 'percent' | 'both'
+ * @property {string}  [statsPosition] - 'left' | 'right'
+ * @property {boolean} [alwaysShowStats] - Show stats even when not selected
+ * @property {boolean} [compactStats]  - Compact stats mode (position tools)
+ * @property {boolean} [middleLine]    - Show middle line (shapes)
+ * @property {string}  [middleLineColor] - Middle line color
+ * @property {number[]} [middleLineDash] - Middle line dash pattern
+ * @property {string}  [borderColor]   - Border color (shapes)
+ * @property {boolean} [showBackground] - Show background fill
+ * @property {string}  [text]          - Text content
+ * @property {string}  [textColor]     - Text color
+ * @property {number}  [fontSize]      - Text font size
+ * @property {boolean} [fontBold]      - Bold text
+ * @property {boolean} [fontItalic]    - Italic text
+ * @property {string}  [textAlignV]    - 'top' | 'center' | 'bottom'
+ * @property {string}  [textAlignH]    - 'left' | 'center' | 'right'
+ * @property {string}  [stopColor]     - Stop color (position tools)
+ * @property {string}  [targetColor]   - Target color (position tools)
+ * @property {number}  [accountSize]   - Account size (position tools)
+ * @property {number}  [lotSize]       - Lot size (position tools)
+ * @property {number}  [risk]          - Risk value (position tools)
+ * @property {string}  [riskUnit]      - '%' | '$' (position tools)
+ * @property {number}  [leverage]      - Leverage (position tools)
  */
 
 /**
@@ -61,6 +89,14 @@ export const DEFAULT_STYLES = {
     lineWidth: 2,
     dash: [],
     showLabel: false,
+    extend: 'none',
+    lineEndLeft: 'none',
+    lineEndRight: 'none',
+    middlePoint: false,
+    priceLabels: false,
+    stats: 'hidden',
+    statsPosition: 'right',
+    alwaysShowStats: false,
   },
   hray: {
     color: '#787B86',
@@ -117,19 +153,41 @@ export const DEFAULT_STYLES = {
     color: '#2962FF',
     lineWidth: 1,
     dash: [],
-    fillColor: '#089981', // Profit green
-    opacity: 0.2, // Loss red is hardcoded in renderer
+    fillColor: '#089981',
+    opacity: 0.2,
     font: '11px Arial',
     showLabel: true,
+    stopColor: '#F23645',
+    targetColor: '#089981',
+    priceLabels: true,
+    stats: 'hidden',
+    compactStats: true,
+    alwaysShowStats: false,
+    accountSize: 1000,
+    lotSize: 0.04,
+    risk: 1,
+    riskUnit: '%',
+    leverage: 10000,
   },
   shortposition: {
     color: '#2962FF',
     lineWidth: 1,
     dash: [],
-    fillColor: '#F23645', // Profit red
-    opacity: 0.2, // Loss green is hardcoded in renderer
+    fillColor: '#F23645',
+    opacity: 0.2,
     font: '11px Arial',
     showLabel: true,
+    stopColor: '#089981',
+    targetColor: '#F23645',
+    priceLabels: true,
+    stats: 'hidden',
+    compactStats: true,
+    alwaysShowStats: false,
+    accountSize: 1000,
+    lotSize: 0.04,
+    risk: 1,
+    riskUnit: '%',
+    leverage: 10000,
   },
   elliott: {
     color: '#2962FF',
@@ -144,6 +202,12 @@ export const DEFAULT_STYLES = {
     dash: [],
     fillColor: 'rgba(41, 98, 255, 0.1)',
     opacity: 0.1,
+    extend: 'none',
+    borderColor: '#2962FF',
+    middleLine: false,
+    middleLineColor: '#787B86',
+    middleLineDash: [4, 4],
+    showBackground: true,
   },
   channel: {
     color: '#2962FF',

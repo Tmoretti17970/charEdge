@@ -23,7 +23,7 @@ describe('Sprint 4 — InputManager inertia constants', () => {
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'charting_library/core/InputManager.ts'),
+      path.resolve(__dirname, '..', '..', 'charting_library/core/inputConstants.ts'),
       'utf-8'
     );
   });
@@ -91,7 +91,7 @@ describe('Sprint 4 — InputManager rubber-band overscroll', () => {
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'charting_library/core/InputManager.ts'),
+      path.resolve(__dirname, '..', '..', 'charting_library/core/inputConstants.ts'),
       'utf-8'
     );
   });

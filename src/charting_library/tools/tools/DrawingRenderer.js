@@ -15,6 +15,8 @@ import { renderGannFan, renderGannSquare, renderXABCD, renderHeadShoulders } fro
 import { renderRectangle, renderTriangle, renderEllipse, renderText, renderCallout, renderEmoji, renderNote, renderSignpost } from '../renderers/ShapeDraw.js';
 import { renderMeasure, renderLongPosition, renderShortPosition, renderAlertZone, renderInfoLine, renderFlatZone, renderPriceRange, renderDateRange } from '../renderers/TradeDraw.js';
 import { renderTrendline, renderRay, renderExtendedLine, renderArrow, renderPolyline } from '../renderers/TrendlineDraw.js';
+import { RESIZABLE_TOOLS, computeResizeHandles, renderResizeHandles } from '../engines/ResizeHandles.js';
+import { renderMeasureLabels } from '../renderers/MeasureLabels.js';
 
 const ANCHOR_RADIUS = 4;
 const ANCHOR_FILL = '#FFFFFF';
@@ -74,15 +76,66 @@ export function createDrawingRenderer(drawingEngine) {
       if (pts && pts.length > 0 && _isOffScreen(pts, size)) continue;
 
       const isHovered = d.id === hoveredId;
-      if (isHovered) {
+      const isMultiSelected = drawingEngine.selectedDrawingIds && drawingEngine.selectedDrawingIds.has(d.id);
+
+      if (isHovered || isMultiSelected) {
         ctx.save();
-        ctx.shadowColor = d.style?.color || '#2962FF';
-        ctx.shadowBlur = 8 * pr;
+        ctx.shadowColor = isMultiSelected ? '#2962FF' : (d.style?.color || '#2962FF');
+        ctx.shadowBlur = (isMultiSelected ? 10 : 8) * pr;
       }
 
       renderDrawing(ctx, d, pr, size);
 
-      if (isHovered) {
+      // Multi-select blue tint outline
+      if (isMultiSelected && pts && pts.length >= 2) {
+        ctx.save();
+        ctx.setLineDash([Math.round(4 * pr), Math.round(3 * pr)]);
+        ctx.strokeStyle = 'rgba(41, 98, 255, 0.4)';
+        ctx.lineWidth = Math.round(1.5 * pr);
+        const bpts = pts.map(p => ({ x: Math.round(p.x * pr), y: Math.round(p.y * pr) }));
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const p of bpts) { minX = Math.min(minX, p.x); minY = Math.min(minY, p.y); maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y); }
+        const pad = Math.round(6 * pr);
+        ctx.strokeRect(minX - pad, minY - pad, (maxX - minX) + pad * 2, (maxY - minY) + pad * 2);
+        ctx.restore();
+      }
+
+      // Measurement info labels for idle drawings
+      const mpts = d.points?.map(p => drawingEngine.anchorToPixel(p)).filter(Boolean);
+      if (mpts && mpts.length >= 2) {
+        const bitmapPts = mpts.map(p => ({ x: Math.round(p.x * pr), y: Math.round(p.y * pr) }));
+        renderMeasureLabels(ctx, d, bitmapPts, pr, drawingEngine.pixelToPrice, drawingEngine.pixelToTime);
+      }
+
+      // 🔔 Alert icon for drawings with active alerts
+      if (drawingEngine.hasAlert && drawingEngine.hasAlert(d.id)) {
+        const firstPt = d.points?.[0];
+        const px = firstPt ? drawingEngine.anchorToPixel(firstPt) : null;
+        if (px) {
+          const bx = Math.round(px.x * pr);
+          const by = Math.round(px.y * pr) - Math.round(18 * pr);
+          const radius = Math.round(10 * pr);
+          // Pulsing glow
+          const pulsePhase = (Date.now() % 2000) / 2000;
+          const pulseAlpha = 0.6 + Math.sin(pulsePhase * Math.PI * 2) * 0.3;
+
+          ctx.save();
+          // Background circle
+          ctx.beginPath();
+          ctx.arc(bx, by, radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(41, 98, 255, ${pulseAlpha})`;
+          ctx.fill();
+          // Bell text
+          ctx.font = `${Math.round(10 * pr)}px Arial`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillText('🔔', bx, by);
+          ctx.restore();
+        }
+      }
+
+      if (isHovered || isMultiSelected) {
         ctx.restore();
       }
     }
@@ -112,6 +165,13 @@ export function createDrawingRenderer(drawingEngine) {
         ctx.restore();
       } else {
         renderDrawing(ctx, d, pr, size);
+      }
+
+      // Measurement labels for selected/creating drawings
+      const mpts = d.points?.map(p => drawingEngine.anchorToPixel(p)).filter(Boolean);
+      if (mpts && mpts.length >= 2) {
+        const bitmapPts = mpts.map(p => ({ x: Math.round(p.x * pr), y: Math.round(p.y * pr) }));
+        renderMeasureLabels(ctx, d, bitmapPts, pr, drawingEngine.pixelToPrice, drawingEngine.pixelToTime);
       }
 
       // Draw anchor points for selected/creating drawings
@@ -296,6 +356,16 @@ export function createDrawingRenderer(drawingEngine) {
             ctx.textBaseline = 'top';
             ctx.fillText(deltaText, mx, my + padding);
           }
+        }
+      }
+
+      // ─── 8-handle resize overlay for shapes ──────────────────
+      if (d.state === 'selected' && RESIZABLE_TOOLS.has(d.type)) {
+        const pts = d.points.map(p => drawingEngine.anchorToPixel(p)).filter(Boolean);
+        if (pts.length >= 2) {
+          const handles = computeResizeHandles(pts);
+          const hoveredHandle = drawingEngine._hoveredResizeHandle || null;
+          renderResizeHandles(ctx, handles, pr, hoveredHandle);
         }
       }
     }

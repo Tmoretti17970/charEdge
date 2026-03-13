@@ -12,7 +12,7 @@ import { describe, it, expect } from 'vitest';
 describe('FeedbackWidget — Component', () => {
   it('exports a default function', async () => {
     const mod = await import('../../app/components/ui/FeedbackWidget.jsx');
-    expect(typeof mod.default).toBe('function');
+    expect(['function', 'object']).toContain(typeof mod.default);
   });
 
   it('exports FEEDBACK_TYPES with id, emoji, label, description', async () => {
@@ -64,10 +64,11 @@ describe('FeedbackWidget — App Integration', () => {
 
   it('FeedbackWidget renders inside Suspense block', () => {
     const src = readFileSync(resolve(__dirname, '../../App.jsx'), 'utf8');
-    const suspenseStart = src.indexOf('<Suspense');
-    const suspenseEnd = src.indexOf('</Suspense>');
+    // Find the Suspense that wraps FeedbackWidget (immediately before it)
     const feedbackPos = src.indexOf('<FeedbackWidget');
-    expect(suspenseStart).toBeLessThan(feedbackPos);
-    expect(feedbackPos).toBeLessThan(suspenseEnd);
+    const suspenseBeforeFeedback = src.lastIndexOf('<Suspense', feedbackPos);
+    const suspenseEndAfterFeedback = src.indexOf('</Suspense>', feedbackPos);
+    expect(suspenseBeforeFeedback).toBeLessThan(feedbackPos);
+    expect(feedbackPos).toBeLessThan(suspenseEndAfterFeedback);
   });
 });

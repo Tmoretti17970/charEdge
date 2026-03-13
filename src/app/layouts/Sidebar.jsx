@@ -59,6 +59,27 @@ function IconChart({ color }) {
   );
 }
 
+function IconWatchlist({ color }) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+      <line x1="2" y1="20" x2="6" y2="20" strokeWidth="1.5" opacity="0.5" />
+      <line x1="9" y1="20" x2="15" y2="20" strokeWidth="1.5" opacity="0.5" />
+      <line x1="18" y1="20" x2="22" y2="20" strokeWidth="1.5" opacity="0.5" />
+    </svg>
+  );
+}
+
 function IconSettings({ color }) {
   return (
     <svg
@@ -259,7 +280,17 @@ function Sidebar() {
             hovered={hoveredId === item.id}
             expanded={expanded}
             onHover={setHoveredId}
-            onClick={() => setPage(item.id)}
+            onClick={() => {
+              if (item.id === 'watchlist') {
+                setPage('charts');
+                // Small delay so ChartsPage mounts and registers its event listener
+                setTimeout(() => {
+                  window.dispatchEvent(new CustomEvent('charEdge:open-watchlist-panel'));
+                }, 150);
+              } else {
+                setPage(item.id);
+              }
+            }}
           />
         ))}
       </div>

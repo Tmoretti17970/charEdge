@@ -98,10 +98,12 @@ export function useChartTradeHandler() {
       a.setEntry(price, barIdx);
       toast.info(`Short entry set @ $${price.toFixed(2)} — click to set SL`);
     },
-    onAddAlert: (price) => {
+    onAddAlert: (price, condition) => {
       if (addAlert) {
-        addAlert({ symbol, condition: 'cross_above', price });
-        toast.success(`Alert set @ $${price.toFixed(2)}`);
+        const cond = condition || 'cross_above';
+        const labels = { above: '↑ Above', below: '↓ Below', cross_above: '↗ Cross Above', cross_below: '↘ Cross Below' };
+        addAlert({ symbol, condition: cond, price });
+        toast.success(`Alert ${labels[cond] || cond} @ $${price.toFixed(2)}`);
       }
     },
     onQuickJournal: () => {

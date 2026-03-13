@@ -31,6 +31,8 @@ import useChartDataLoader from './charts/useChartDataLoader.js';
 import useChartDrawingHandler from './charts/useChartDrawingHandler.js';
 import useChartLocalState from './charts/useChartLocalState.js';
 import useChartMouseHandlers from './charts/useChartMouseHandlers.js';
+import { smartAlertBridge } from '../data/SmartAlertBridge';
+import { useAlertOutcomeTracker } from '../hooks/useAlertOutcomeTracker';
 
 const ChartMinimap = React.lazy(() => import('../app/components/chart/ui/ChartMinimap.jsx'));
 const UnifiedStatusBar = React.lazy(() => import('../app/components/chart/ui/UnifiedStatusBar.jsx'));
@@ -48,6 +50,7 @@ const WorkspaceLayout = React.lazy(() => import('../app/layouts/WorkspaceLoader.
 const FocusMode = React.lazy(() => import('../app/components/chart/overlays/FocusMode.jsx'));
 const _AICopilotBar = React.lazy(() => import('../app/components/chart/AICopilotBar.jsx'));
 const ActionSidebar = React.lazy(() => import('../app/components/chart/ActionSidebar.jsx'));
+const WatchlistQuickPanel = React.lazy(() => import('../app/components/chart/WatchlistQuickPanel.jsx'));
 const TradeEntryBar = React.lazy(() => import('../app/components/chart/chart_ui/TradeEntryBar.jsx'));
 const SwipeChartNav = React.lazy(() => import('../app/components/mobile/SwipeChartNav.jsx'));
 const GuidedTour = React.lazy(() => import('../app/components/ui/GuidedTour.jsx'));
@@ -158,6 +161,8 @@ function ChartsPageInner({ _mountTime }) {
     setWalkForwardOpen,
     futuresOpen,
     setFuturesOpen,
+    showWatchlistPanel,
+    setShowWatchlistPanel,
     workspaceMode,
     chartRef,
     editorRef,
@@ -186,6 +191,20 @@ function ChartsPageInner({ _mountTime }) {
     priceSources,
     watchlistSymbols,
   } = useChartDataLoader();
+
+  // F3: Start SmartAlertBridge — feeds WS klines into smart detectors
+  useEffect(() => {
+    smartAlertBridge.start([symbol]);
+    return () => smartAlertBridge.stop();
+  }, []);
+
+  // F3: Track current symbol
+  useEffect(() => {
+    smartAlertBridge.addSymbol(symbol);
+  }, [symbol]);
+
+  // F4: Auto-backfill alert outcomes using WS prices
+  useAlertOutcomeTracker((sym) => smartAlertBridge.getPrice(sym));
 
   // ─── Keyboard shortcuts (migrated from useChartKeyboardHandler → useHotkeys) ──
   useHotkeys(
@@ -228,6 +247,8 @@ function ChartsPageInner({ _mountTime }) {
       })),
       // D → toggle drawing sidebar
       { key: 'd', handler: () => setDrawSidebarOpen((prev) => !prev), description: 'Toggle drawing sidebar' },
+      // W → toggle watchlist quick panel
+      { key: 'w', handler: () => setShowWatchlistPanel((prev) => !prev), description: 'Toggle watchlist panel' },
       // F → toggle focus mode
       { key: 'f', handler: () => setFocusMode((prev) => !prev), description: 'Toggle focus mode' },
       // + / = → zoom in, - → zoom out
@@ -603,6 +624,21 @@ function ChartsPageInner({ _mountTime }) {
               </Suspense>
             )}
           </div>
+
+          {/* ─── Watchlist Quick Panel (right side, drag to reveal) ─── */}
+          {!isMobile && !multiMode && !focusMode && (
+            <Suspense fallback={null}>
+              <WatchlistQuickPanel
+                isOpen={showWatchlistPanel}
+                onToggle={() => setShowWatchlistPanel((v) => !v)}
+                onClose={() => setShowWatchlistPanel(false)}
+                onSymbolSelect={(sym) => {
+                  setSymbol(sym);
+                  setSymbolInput(sym);
+                }}
+              />
+            </Suspense>
+          )}
         </div>
       )}
 

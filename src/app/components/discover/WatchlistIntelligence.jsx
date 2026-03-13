@@ -6,66 +6,12 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { alpha } from '@/shared/colorUtils';
 
-// Generate intelligent data per symbol
-function generateIntel(symbol) {
-  const seed = symbol.split('').reduce((s, c) => s + c.charCodeAt(0), 0);
-  const r = (n) => ((Math.sin(seed * n) * 10000) % 1);
-  const price = 50 + r(1) * 900;
-  const change = (r(2) - 0.45) * 8;
-  const support = price * (0.95 + r(3) * 0.02);
-  const resistance = price * (1.03 + r(4) * 0.04);
 
-  const sentimentVal = r(5);
-  const sentiment = sentimentVal > 0.65 ? 'bullish' : sentimentVal < 0.35 ? 'bearish' : 'neutral';
-
-  const patterns = [
-    'Consolidation near support', 'Bull flag forming', 'Testing resistance',
-    'Bearish divergence on RSI', 'Breakout imminent', 'Range-bound',
-    'Higher lows pattern', 'Double bottom forming',
-  ];
-
-  const newsItems = [
-    `${symbol} beats Q4 expectations by 12%`,
-    `Analyst upgrades ${symbol} to Overweight`,
-    `${symbol} announces $2B buyback program`,
-    `Sector headwinds may pressure ${symbol}`,
-    `${symbol} insider buys 50K shares`,
-    `New product launch lifts ${symbol} outlook`,
-  ];
-
-  const events = [
-    { type: 'earnings', label: `Earnings ${r(9) > 0.5 ? 'in 3 days' : 'in 12 days'}` },
-    { type: 'dividend', label: `Ex-div ${r(10) > 0.6 ? 'tomorrow' : 'in 8 days'}` },
-  ];
-
-  // Priority score: higher = more actionable
-  const priority = Math.round(
-    (Math.abs(change) * 8) +
-    (sentimentVal > 0.65 || sentimentVal < 0.35 ? 20 : 0) +
-    (r(7) > 0.6 ? 15 : 0) + // pattern alert
-    r(8) * 30
-  );
-
-  return {
-    symbol,
-    price: +price.toFixed(2),
-    change: +change.toFixed(2),
-    support: +support.toFixed(2),
-    resistance: +resistance.toFixed(2),
-    sentiment,
-    pattern: patterns[Math.floor(r(6) * patterns.length)],
-    news: newsItems[Math.floor(r(7) * newsItems.length)],
-    events: r(10) > 0.4 ? [events[Math.floor(r(11) * events.length)]] : [],
-    analystChange: r(12) > 0.65 ? { firm: ['MS', 'GS', 'JPM', 'UBS'][Math.floor(r(13) * 4)], action: r(14) > 0.5 ? 'Upgrade' : 'Downgrade' } : null,
-    sparkline: Array.from({ length: 20 }, (_, i) => price + (r(i + 15) - 0.5) * price * 0.06),
-    priority,
-  };
-}
 
 const SENTIMENT_META = {
   bullish: { icon: '🟢', color: C.g, label: 'Bullish' },
@@ -78,14 +24,42 @@ const DEFAULT_SYMBOLS = ['ES', 'NQ', 'BTC', 'ETH', 'AAPL', 'SPY'];
 function WatchlistIntelligence() {
   const [collapsed, setCollapsed] = useState(false);
   const [expandedSym, setExpandedSym] = useState(null);
+  const [intel, setIntel] = useState([]);
+  const [loading, setLoading] = useState(true);
   const watchlist = useWatchlistStore((s) => s.items);
 
   const symbols = useMemo(() => {
     return watchlist.length > 0 ? watchlist.map((w) => w.symbol) : DEFAULT_SYMBOLS;
   }, [watchlist]);
 
-  const intel = useMemo(() => {
-    return symbols.map(generateIntel).sort((a, b) => b.priority - a.priority);
+  // Fetch bars and compute real indicators
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+
+    import('../../../data/engine/computeWatchlistIntel.js').then(async ({ batchComputeIntel }) => {
+      // Also fetch tickers for live price data
+      let tickerMap = {};
+      try {
+        const { fetch24hTicker } = await import('../../../data/FetchService');
+        const tickers = await fetch24hTicker(symbols);
+        for (const t of tickers) {
+          if (t?.symbol) {
+            const sym = t.symbol.replace('USDT', '').replace('USD', '');
+            tickerMap[sym] = t;
+            tickerMap[t.symbol] = t;
+          }
+        }
+      } catch { /* ticker fetch is best-effort */ }
+
+      const results = await batchComputeIntel(symbols, tickerMap, '1h');
+      if (mounted) {
+        setIntel(results);
+        setLoading(false);
+      }
+    });
+
+    return () => { mounted = false; };
   }, [symbols]);
 
   const actionableCount = intel.filter((i) => i.priority > 40).length;
@@ -106,15 +80,32 @@ function WatchlistIntelligence() {
 
       {!collapsed && (
         <div style={{ padding: '0 20px 20px' }}>
-          {intel.length === 0 ? (
+          {loading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {[1, 2, 3].map(i => (
+                <div key={i} style={{
+                  padding: '14px', background: alpha(C.sf, 0.5),
+                  borderRadius: 10, animation: 'pulse 1.5s infinite',
+                }}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <div style={{ width: 60, height: 16, background: alpha(C.t3, 0.1), borderRadius: 4 }} />
+                    <div style={{ width: 50, height: 16, background: alpha(C.t3, 0.1), borderRadius: 4 }} />
+                    <div style={{ flex: 1, height: 24, background: alpha(C.t3, 0.05), borderRadius: 4 }} />
+                    <div style={{ width: 70, height: 16, background: alpha(C.t3, 0.1), borderRadius: 4 }} />
+                  </div>
+                </div>
+              ))}
+              <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }`}</style>
+            </div>
+          ) : intel.length === 0 ? (
             <div style={{ padding: 24, textAlign: 'center', color: C.t3, fontSize: 12, fontFamily: F }}>
               Add symbols to your watchlist to see personalized intelligence here.
             </div>
-          ) : (
+            ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {intel.map((item) => {
-                const sm = SENTIMENT_META[item.sentiment];
                 const isExpanded = expandedSym === item.symbol;
+                const sm = SENTIMENT_META[item.sentiment] || SENTIMENT_META.neutral;
 
                 return (
                   <div key={item.symbol} onClick={() => setExpandedSym(isExpanded ? null : item.symbol)}
@@ -124,23 +115,23 @@ function WatchlistIntelligence() {
                       {/* Symbol + Price */}
                       <div style={{ minWidth: 80 }}>
                         <div style={{ fontSize: 15, fontWeight: 700, color: C.t1, fontFamily: F }}>{item.symbol}</div>
-                        <div style={{ fontSize: 12, color: C.t2, fontFamily: M }}>${item.price.toFixed(2)}</div>
+                        <div style={{ fontSize: 12, color: C.t2, fontFamily: M }}>${item.price ? item.price.toFixed(2) : '—'}</div>
                       </div>
 
                       {/* Change */}
                       <div style={{ minWidth: 65, textAlign: 'center' }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: item.change >= 0 ? C.g : C.r, fontFamily: M, background: alpha(item.change >= 0 ? C.g : C.r, 0.08), padding: '3px 8px', borderRadius: 5 }}>
-                          {item.change >= 0 ? '+' : ''}{item.change.toFixed(2)}%
+                        <span style={{ fontSize: 13, fontWeight: 700, color: item.changePercent >= 0 ? C.g : C.r, fontFamily: M, background: alpha(item.changePercent >= 0 ? C.g : C.r, 0.08), padding: '3px 8px', borderRadius: 5 }}>
+                          {item.changePercent >= 0 ? '+' : ''}{(item.changePercent || 0).toFixed(2)}%
                         </span>
                       </div>
 
                       {/* Sparkline */}
                       <div style={{ flex: 1, height: 24, display: 'flex', alignItems: 'flex-end', gap: 1 }}>
-                        {item.sparkline.map((v, i) => {
-                          const min = Math.min(...item.sparkline);
-                          const max = Math.max(...item.sparkline);
+                        {(item.sparkline || []).slice(-20).map((v, i, arr) => {
+                          const min = Math.min(...arr);
+                          const max = Math.max(...arr);
                           const pct = max === min ? 50 : ((v - min) / (max - min)) * 100;
-                          return <div key={i} style={{ flex: 1, height: `${Math.max(pct, 5)}%`, background: alpha(item.change >= 0 ? C.g : C.r, 0.5), borderRadius: 1 }} />;
+                          return <div key={i} style={{ flex: 1, height: `${Math.max(pct, 5)}%`, background: alpha(item.changePercent >= 0 ? C.g : C.r, 0.5), borderRadius: 1 }} />;
                         })}
                       </div>
 
@@ -157,45 +148,55 @@ function WatchlistIntelligence() {
                       <span style={{ color: C.t3, fontSize: 10, transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }}>▾</span>
                     </div>
 
-                    {/* Expanded Detail */}
+                    {/* Expanded Detail — Real Indicator Data */}
                     {isExpanded && (
                       <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${C.bd}`, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
                         {/* Key Levels */}
                         <div>
                           <div style={{ fontSize: 10, fontWeight: 600, color: C.t3, fontFamily: F, marginBottom: 4 }}>Key Levels</div>
                           <div style={{ fontSize: 11, fontFamily: M }}>
-                            <span style={{ color: C.g }}>S: ${item.support.toFixed(2)}</span>
+                            <span style={{ color: C.g }}>S: ${item.support ? item.support.toFixed(2) : '—'}</span>
                             <span style={{ color: C.t3, margin: '0 6px' }}>|</span>
-                            <span style={{ color: C.r }}>R: ${item.resistance.toFixed(2)}</span>
+                            <span style={{ color: C.r }}>R: ${item.resistance ? item.resistance.toFixed(2) : '—'}</span>
                           </div>
                         </div>
 
-                        {/* News */}
+                        {/* Indicators */}
                         <div>
-                          <div style={{ fontSize: 10, fontWeight: 600, color: C.t3, fontFamily: F, marginBottom: 4 }}>Latest News</div>
-                          <div style={{ fontSize: 10, color: C.t2, fontFamily: F, lineHeight: 1.4 }}>{item.news}</div>
+                          <div style={{ fontSize: 10, fontWeight: 600, color: C.t3, fontFamily: F, marginBottom: 4 }}>Indicators</div>
+                          <div style={{ fontSize: 10, fontFamily: M, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <span style={{ color: item.rsi14 > 70 ? C.r : item.rsi14 < 30 ? C.g : C.t2 }}>
+                              RSI: {item.rsi14 ?? '—'}
+                            </span>
+                            <span style={{ color: C.t2 }}>ATR: {item.atr14 ? item.atr14.toFixed(2) : '—'}</span>
+                            {item.bbWidth && (
+                              <span style={{ color: C.t2 }}>BB Width: {item.bbWidth}%</span>
+                            )}
+                          </div>
                         </div>
 
-                        {/* Events + Analyst */}
+                        {/* Trend + Volatility */}
                         <div>
-                          {item.events.length > 0 && (
-                            <div style={{ marginBottom: 6 }}>
-                              <div style={{ fontSize: 10, fontWeight: 600, color: C.t3, fontFamily: F, marginBottom: 2 }}>Upcoming</div>
-                              {item.events.map((ev, i) => (
-                                <div key={i} style={{ fontSize: 10, color: C.y, fontFamily: F }}>📅 {ev.label}</div>
-                              ))}
-                            </div>
-                          )}
-                          {item.analystChange && (
-                            <div>
-                              <div style={{ fontSize: 10, fontWeight: 600, color: C.t3, fontFamily: F, marginBottom: 2 }}>Analyst</div>
-                              <div style={{ fontSize: 10, fontFamily: F }}>
-                                <span style={{ fontWeight: 600, color: C.t1 }}>{item.analystChange.firm}</span>
-                                {' '}
-                                <span style={{ color: item.analystChange.action === 'Upgrade' ? C.g : C.r, fontWeight: 600 }}>{item.analystChange.action}</span>
-                              </div>
-                            </div>
-                          )}
+                          <div style={{ fontSize: 10, fontWeight: 600, color: C.t3, fontFamily: F, marginBottom: 4 }}>Trend</div>
+                          <div style={{ fontSize: 10, fontFamily: M, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <span style={{ 
+                              color: item.trendDirection === 'up' ? C.g : item.trendDirection === 'down' ? C.r : C.t3,
+                              fontWeight: 600
+                            }}>
+                              {item.trendDirection === 'up' ? '↑ Uptrend' : item.trendDirection === 'down' ? '↓ Downtrend' : '→ Ranging'}
+                            </span>
+                            <span style={{
+                              fontSize: 9, fontWeight: 600,
+                              color: item.volatilityRank === 'high' ? C.r : item.volatilityRank === 'low' ? C.g : C.t3,
+                              background: alpha(item.volatilityRank === 'high' ? C.r : item.volatilityRank === 'low' ? C.g : C.t3, 0.1),
+                              padding: '1px 5px', borderRadius: 3, display: 'inline-block',
+                            }}>
+                              Vol: {item.volatilityRank?.toUpperCase()}
+                            </span>
+                            <span style={{ fontSize: 9, color: C.t3 }}>
+                              Confidence: {item.sentimentConfidence}%
+                            </span>
+                          </div>
                         </div>
                       </div>
                     )}

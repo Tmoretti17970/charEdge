@@ -5,7 +5,7 @@
 // keyboard nav, scrollable body, footer (Cancel/Ok + extras).
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { C, F, GLASS, DEPTH } from '../../../constants.js';
 
 /**
@@ -35,6 +35,34 @@ function SettingsTabShell({
 }) {
     const dialogRef = useRef(null);
     const tabBarRef = useRef(null);
+
+    // ─── Drag state ──────────────────────────────────────────────
+    const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
+    const dragRef = useRef(null);
+
+    const handleDragStart = useCallback((e) => {
+        e.preventDefault();
+        dragRef.current = {
+            startX: e.clientX, startY: e.clientY,
+            origX: dragPos.x, origY: dragPos.y,
+        };
+        const onMove = (me) => {
+            if (!dragRef.current) return;
+            const dx = me.clientX - dragRef.current.startX;
+            const dy = me.clientY - dragRef.current.startY;
+            setDragPos({
+                x: dragRef.current.origX + dx,
+                y: dragRef.current.origY + dy,
+            });
+        };
+        const onUp = () => {
+            dragRef.current = null;
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+    }, [dragPos.x, dragPos.y]);
 
     // ─── Close on Escape ──────────────────────────────────────────
     useEffect(() => {
@@ -95,11 +123,12 @@ function SettingsTabShell({
                     background: GLASS.solid,
                     borderRadius: 14,
                     border: `1px solid ${C.bd}`,
-                    boxShadow: DEPTH[3],
+                    boxShadow: `${DEPTH[3]}, inset 0 0.5px 0 rgba(255,255,255,0.06)`,
                     display: 'flex',
                     flexDirection: 'column',
                     overflow: 'hidden',
-                    animation: 'settingsShellFadeIn 0.18s ease-out',
+                    animation: 'settingsShellSpring 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    transform: `translate(${dragPos.x}px, ${dragPos.y}px)`,
                 }}
             >
                 {/* ─── Header ────────────────────────────────────────── */}
@@ -109,7 +138,10 @@ function SettingsTabShell({
                         alignItems: 'center',
                         gap: 10,
                         padding: '14px 16px 0',
+                        cursor: 'grab',
+                        userSelect: 'none',
                     }}
+                    onMouseDown={handleDragStart}
                 >
                     {iconColor && (
                         <div
@@ -133,6 +165,28 @@ function SettingsTabShell({
                     >
                         {title}
                     </span>
+                    <button
+                        onClick={() => {
+                            const name = prompt('Rename drawing:', title);
+                            if (name) {
+                                window.dispatchEvent(new CustomEvent('charEdge:rename-drawing', { detail: { name } }));
+                            }
+                        }}
+                        title="Rename"
+                        style={{
+                            width: 24, height: 24, borderRadius: 6,
+                            border: 'none', background: 'transparent',
+                            color: C.t3, cursor: 'pointer', display: 'flex',
+                            alignItems: 'center', justifyContent: 'center',
+                            transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = C.t1; e.currentTarget.style.transform = 'scale(1.1)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = C.t3; e.currentTarget.style.transform = 'scale(1)'; }}
+                    >
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M11.13 1.47a1.62 1.62 0 0 1 2.29 0l1.11 1.11a1.62 1.62 0 0 1 0 2.29L5.91 13.49l-3.7.82a.54.54 0 0 1-.63-.63l.82-3.7L11.13 1.47z"/>
+                        </svg>
+                    </button>
                     <button
                         onClick={onClose}
                         aria-label="Close"
@@ -296,11 +350,16 @@ function SettingsTabShell({
                 </div>
             </div>
 
-            {/* ─── Keyframes ───────────────────────────────────────── */}
+            {/* ─── Keyframes ─────────────────────────────────────── */}
             <style>{`
-        @keyframes settingsShellFadeIn {
-          from { opacity: 0; transform: scale(0.96) translateY(8px); }
-          to   { opacity: 1; transform: scale(1) translateY(0); }
+        @keyframes settingsShellSpring {
+          0%   { opacity: 0; transform: scale(0.92) translateY(12px); }
+          50%  { opacity: 1; transform: scale(1.02) translateY(-2px); }
+          75%  { transform: scale(0.99) translateY(1px); }
+          100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .settings-tab-shell button:active {
+          transform: scale(0.96) !important;
         }
       `}</style>
         </div>

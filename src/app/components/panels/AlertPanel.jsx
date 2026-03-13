@@ -14,6 +14,12 @@ import React from 'react';
 import { useState, useCallback, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useAlertStore } from '../../../state/useAlertStore';
+import { playAlertSound } from '../../../app/misc/alertSounds';
+import { useAlertPreferences } from '../../../state/useAlertPreferences';
+import CompoundAlertBuilder from './CompoundAlertBuilder.jsx';
+
+const AlertHistoryPanel = React.lazy(() => import('./AlertHistoryPanel.jsx'));
+const AlertAnalytics = React.lazy(() => import('./AlertAnalytics.jsx'));
 
 const CONDITIONS = [
   { id: 'above', label: '↑ Above', desc: 'Price goes above target' },
@@ -38,6 +44,9 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
   const addAlert = useAlertStore((s) => s.addAlert);
   const removeAlert = useAlertStore((s) => s.removeAlert);
   const toggleAlert = useAlertStore((s) => s.toggleAlert);
+
+  // E3: Tab sub-navigation
+  const [activeTab, setActiveTab] = useState('manage');
   const clearTriggered = useAlertStore((s) => s.clearTriggered);
 
   const [symbol, setSymbol] = useState(currentSymbol.toUpperCase());
@@ -45,6 +54,10 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
   const [price, setPrice] = useState('');
   const [note, setNote] = useState('');
   const [repeating, setRepeating] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [expiresAt, setExpiresAt] = useState('');
+  const [cooldownMs, setCooldownMs] = useState(0);
+  const [soundType, setSoundType] = useState('');
 
   const activeAlerts = useMemo(() => alerts.filter((a) => a.active), [alerts]);
   const triggeredAlerts = useMemo(() => alerts.filter((a) => !a.active && a.triggeredAt), [alerts]);
@@ -59,11 +72,17 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
       price: p,
       note,
       repeating,
+      expiresAt: expiresAt || null,
+      cooldownMs: cooldownMs || null,
+      soundType: soundType || null,
     });
 
     setPrice('');
     setNote('');
-  }, [symbol, condition, price, note, repeating, addAlert]);
+    setExpiresAt('');
+    setCooldownMs(0);
+    setSoundType('');
+  }, [symbol, condition, price, note, repeating, expiresAt, cooldownMs, soundType, addAlert]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') handleAdd();
@@ -101,8 +120,63 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
         }}
       >
         <span style={{ fontSize: 13, fontWeight: 600, color: C.t1 }}>🔔 Price Alerts</span>
-        <span style={{ fontSize: 10, color: C.t3, fontFamily: M }}>{activeAlerts.length} active</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button
+            onClick={() => useAlertPreferences.getState().toggleMute()}
+            title={useAlertPreferences.getState().globalMute ? 'Unmute alerts' : 'Mute all alerts'}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: 12,
+              padding: '2px 4px',
+              opacity: useAlertPreferences.getState().globalMute ? 1 : 0.4,
+              transition: 'opacity 0.15s',
+            }}
+          >{useAlertPreferences.getState().globalMute ? '🔇' : '🔊'}</button>
+          <span style={{ fontSize: 10, color: C.t3, fontFamily: M }}>{activeAlerts.length} active</span>
+        </div>
       </div>
+
+      {/* E3: Tab bar */}
+      <div style={{ display: 'flex', gap: 0, marginBottom: 10, borderRadius: 6, overflow: 'hidden', border: `1px solid ${C.bd}` }}>
+        {[{ id: 'manage', label: '🔔 Manage' }, { id: 'history', label: '📜 History' }, { id: 'analytics', label: '📈 Analytics' }].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              flex: 1,
+              padding: '5px 0',
+              fontSize: 10,
+              fontWeight: 600,
+              fontFamily: F,
+              cursor: 'pointer',
+              border: 'none',
+              background: activeTab === tab.id ? C.b + '20' : 'transparent',
+              color: activeTab === tab.id ? C.b : C.t3,
+              borderBottom: activeTab === tab.id ? `2px solid ${C.b}` : '2px solid transparent',
+              transition: 'all 0.15s',
+            }}
+          >{tab.label}</button>
+        ))}
+      </div>
+
+      {/* E3: History tab */}
+      {activeTab === 'history' && (
+        <React.Suspense fallback={<div style={{ padding: 12, color: C.t3, fontSize: 11 }}>Loading...</div>}>
+          <AlertHistoryPanel />
+        </React.Suspense>
+      )}
+
+      {/* E3: Analytics tab */}
+      {activeTab === 'analytics' && (
+        <React.Suspense fallback={<div style={{ padding: 12, color: C.t3, fontSize: 11 }}>Loading...</div>}>
+          <AlertAnalytics />
+        </React.Suspense>
+      )}
+
+      {/* Manage tab — existing form + alert list */}
+      {activeTab === 'manage' && (<>
 
       {/* ─── Add Alert Form ───────────────────────────── */}
       <div
@@ -182,6 +256,26 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
             />
             Repeat
           </label>
+          {/* C4: Sound type selector + preview */}
+          <select
+            value={soundType}
+            onChange={(e) => setSoundType(e.target.value)}
+            style={{ ...inputStyle, width: 58, cursor: 'pointer', appearance: 'none', fontSize: 10 }}
+            title="Alert sound"
+          >
+            <option value="">🔔 Auto</option>
+            <option value="price">🔔 Price</option>
+            <option value="urgent">🚨 Urgent</option>
+            <option value="info">ℹ️ Info</option>
+            <option value="success">✅ Win</option>
+            <option value="error">❌ Err</option>
+          </select>
+          <button
+            className="tf-btn"
+            onClick={() => { try { playAlertSound(soundType || 'price'); } catch {} }}
+            title="Preview sound"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: C.t3, padding: '2px 2px' }}
+          >▶</button>
           <button
             className="tf-btn"
             onClick={handleAdd}
@@ -203,6 +297,31 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
           </button>
         </div>
       </div>
+
+      {/* ─── Advanced Toggle ──────────────────────────── */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+        <button
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          style={{
+            background: 'none',
+            border: `1px solid ${C.bd}`,
+            borderRadius: 4,
+            color: showAdvanced ? C.b : C.t3,
+            fontSize: 10,
+            fontWeight: 600,
+            padding: '3px 10px',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+        >
+          {showAdvanced ? '✕ Simple' : '⚙ Advanced'}
+        </button>
+      </div>
+
+      {/* ─── Compound Alert Builder (B1) ──────────────── */}
+      {showAdvanced && (
+        <CompoundAlertBuilder symbol={symbol || currentSymbol} onClose={() => setShowAdvanced(false)} />
+      )}
 
       {/* ─── Active Alerts ────────────────────────────── */}
       {activeAlerts.length > 0 && (
@@ -286,6 +405,86 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
           </div>
         </div>
       )}
+      {/* E6: DND Preferences Section */}
+      <details style={{ marginTop: 12, borderRadius: 6, border: `1px solid ${C.bd}`, background: C.sf }}>
+        <summary style={{
+          padding: '6px 10px', fontSize: 11, fontWeight: 600, color: C.t2, cursor: 'pointer',
+          listStyle: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        }}>
+          <span>⚙ Alert Preferences</span>
+          <span style={{ fontSize: 9, color: C.t3 }}>
+            {useAlertPreferences.getState().dndEnabled ? '🌙 DND On' : ''}
+          </span>
+        </summary>
+        <div style={{ padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 8, fontSize: 10 }}>
+          {/* DND Schedule */}
+          <div>
+            <label style={{ color: C.t3, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <input
+                type="checkbox"
+                checked={useAlertPreferences.getState().dndEnabled}
+                onChange={(e) => useAlertPreferences.setState({ dndEnabled: e.target.checked })}
+                style={{ accentColor: C.b }}
+              />
+              Do Not Disturb Schedule
+            </label>
+            {useAlertPreferences.getState().dndEnabled && (
+              <div style={{ display: 'flex', gap: 6, marginTop: 4, marginLeft: 20 }}>
+                <label style={{ color: C.t3 }}>Start:
+                  <input
+                    type="time"
+                    value={useAlertPreferences.getState().dndStart || '22:00'}
+                    onChange={(e) => useAlertPreferences.setState({ dndStart: e.target.value })}
+                    style={{
+                      marginLeft: 4, background: C.bg, border: `1px solid ${C.bd}`,
+                      borderRadius: 4, color: C.t1, padding: '2px 4px', fontSize: 10,
+                    }}
+                  />
+                </label>
+                <label style={{ color: C.t3 }}>End:
+                  <input
+                    type="time"
+                    value={useAlertPreferences.getState().dndEnd || '07:00'}
+                    onChange={(e) => useAlertPreferences.setState({ dndEnd: e.target.value })}
+                    style={{
+                      marginLeft: 4, background: C.bg, border: `1px solid ${C.bd}`,
+                      borderRadius: 4, color: C.t1, padding: '2px 4px', fontSize: 10,
+                    }}
+                  />
+                </label>
+              </div>
+            )}
+          </div>
+
+          {/* Master Volume */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ color: C.t3, minWidth: 50 }}>🔊 Volume</span>
+            <input
+              type="range" min="0" max="100" step="5"
+              value={Math.round((useAlertPreferences.getState().globalVolume ?? 0.7) * 100)}
+              onChange={(e) => useAlertPreferences.setState({ globalVolume: parseInt(e.target.value) / 100 })}
+              style={{ flex: 1, accentColor: C.b }}
+            />
+            <span style={{ fontSize: 9, color: C.t2, fontFamily: M, minWidth: 24, textAlign: 'right' }}>
+              {Math.round((useAlertPreferences.getState().globalVolume ?? 0.7) * 100)}%
+            </span>
+          </div>
+
+          {/* Global Mute */}
+          <label style={{ color: C.t3, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <input
+              type="checkbox"
+              checked={useAlertPreferences.getState().globalMute}
+              onChange={() => useAlertPreferences.getState().toggleMute()}
+              style={{ accentColor: C.r }}
+            />
+            Mute all alerts
+          </label>
+        </div>
+      </details>
+
+      {/* End Manage tab */}
+      </>)}
     </div>
   );
 }
@@ -346,6 +545,36 @@ function AlertRow({ alert, onToggle, onRemove, triggered = false }) {
               style={{ fontSize: 9, color: C.t3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
             >
               {alert.note}
+            </span>
+          )}
+          {/* B1: Compound condition badges */}
+          {alert.conditions && alert.conditions.length > 0 && (
+            <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', marginTop: 2 }}>
+              {alert.conditions.map((sub, i) => (
+                <span
+                  key={i}
+                  style={{
+                    fontSize: 8,
+                    color: sub.type === 'indicator' ? '#FF9800' : C.b,
+                    background: (sub.type === 'indicator' ? '#FF9800' : C.b) + '15',
+                    padding: '1px 4px',
+                    borderRadius: 3,
+                    fontFamily: M,
+                    fontWeight: 600,
+                  }}
+                >
+                  {sub.type === 'indicator' ? sub.indicator : 'Price'}
+                  {' '}{sub.condition?.replace('_', ' ')}
+                  {' '}{sub.price != null ? `$${sub.price}` : ''}
+                  {i < alert.conditions.length - 1 ? ` ${alert.compoundLogic || 'AND'}` : ''}
+                </span>
+              ))}
+            </div>
+          )}
+          {/* B5: Expiration badge */}
+          {alert.expiresAt && (
+            <span style={{ fontSize: 7, color: C.t3, background: C.bd + '40', padding: '1px 4px', borderRadius: 2 }}>
+              ⏰ Expires {new Date(alert.expiresAt).toLocaleDateString()}
             </span>
           )}
         </div>

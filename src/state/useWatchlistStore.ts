@@ -1,39 +1,60 @@
 // @ts-check
 // ═══════════════════════════════════════════════════════════════════
-// charEdge v10 — Watchlist Store
+// charEdge v11 — Watchlist Store (A++ Tier)
 //
-// Manages user's symbol watchlist:
-//   - Add/remove symbols
-//   - Group by asset class
-//   - Sort by name, change, P&L
-//   - Persist to IndexedDB alongside trade data
+// Phase 2 upgrade:
+//   - Folder hierarchy (Sprint 2A)
+//   - Removed 50-item cap (Sprint 2B)
+//   - Reorder stays (Sprint 2C will wire UI)
+//   - Backward compatible with existing hydrate/persist
+//
+// Data model:
+//   items: [{ symbol, name, assetClass, folderId?, addedAt }]
+//   folders: [{ id, name, parentId, collapsed, sortOrder, color? }]
 //
 // Usage:
-//   watchlist.add({ symbol: 'ES', assetClass: 'futures' })
-//   watchlist.remove('ES')
-//   watchlist.list()
+//   watchlist.add({ symbol: 'ES', folderId: 'tech' })
+//   watchlist.addFolder('Tech Stocks')
+//   watchlist.moveToFolder('ES', 'tech')
 // ═══════════════════════════════════════════════════════════════════
 
 import { create } from 'zustand';
 
-const MAX_WATCHLIST = 50;
+// ─── Soft limits (no hard cap) ──────────────────────────────────
+
+const SOFT_LIMIT = 200; // UX warning threshold, no enforcement
+const MAX_WATCHLIST = 999; // Exported for backward compat, but not enforced
+
+// ─── ID generator ───────────────────────────────────────────────
+
+let _idCounter = 0;
+function genId() {
+  return `wf_${Date.now().toString(36)}_${(++_idCounter).toString(36)}`;
+}
+
+// ─── Defaults ───────────────────────────────────────────────────
 
 const DEFAULT_WATCHLIST = [
-  { symbol: 'ES', name: 'E-mini S&P 500', assetClass: 'futures' },
-  { symbol: 'NQ', name: 'E-mini Nasdaq', assetClass: 'futures' },
-  { symbol: 'BTC', name: 'Bitcoin', assetClass: 'crypto' },
-  { symbol: 'ETH', name: 'Ethereum', assetClass: 'crypto' },
-  { symbol: 'AAPL', name: 'Apple Inc.', assetClass: 'stocks' },
-  { symbol: 'SPY', name: 'SPDR S&P 500 ETF', assetClass: 'etf' },
+  { symbol: 'ES', name: 'E-mini S&P 500', assetClass: 'futures', folderId: null },
+  { symbol: 'NQ', name: 'E-mini Nasdaq', assetClass: 'futures', folderId: null },
+  { symbol: 'BTC', name: 'Bitcoin', assetClass: 'crypto', folderId: null },
+  { symbol: 'ETH', name: 'Ethereum', assetClass: 'crypto', folderId: null },
+  { symbol: 'AAPL', name: 'Apple Inc.', assetClass: 'stocks', folderId: null },
+  { symbol: 'SPY', name: 'SPDR S&P 500 ETF', assetClass: 'etf', folderId: null },
 ];
+
+// ─── Store ──────────────────────────────────────────────────────
 
 const useWatchlistStore = create((set, get) => ({
   items: [],
+  folders: [],
   loaded: false,
+
+  // ─── Symbol Actions ─────────────────────────────────────────
 
   /**
    * Add a symbol to the watchlist.
-   * @param {Object} item - { symbol, name?, assetClass? }
+   * @param {Object} item - { symbol, name?, assetClass?, folderId? }
    * @returns {boolean} true if added
    */
   add: (item) => {
@@ -41,7 +62,6 @@ const useWatchlistStore = create((set, get) => ({
     const symbol = (item.symbol || '').toUpperCase().trim();
     if (!symbol) return false;
     if (s.items.some((i) => i.symbol === symbol)) return false;
-    if (s.items.length >= MAX_WATCHLIST) return false;
 
     set({
       items: [
@@ -50,6 +70,7 @@ const useWatchlistStore = create((set, get) => ({
           symbol,
           name: item.name || symbol,
           assetClass: item.assetClass || 'other',
+          folderId: item.folderId || null,
           addedAt: Date.now(),
         },
       ],
@@ -85,7 +106,7 @@ const useWatchlistStore = create((set, get) => ({
   /**
    * Update metadata for a symbol.
    * @param {string} symbol
-   * @param {Object} updates - { name?, assetClass? }
+   * @param {Object} updates - { name?, assetClass?, folderId? }
    */
   update: (symbol, updates) => {
     const upper = (symbol || '').toUpperCase();
@@ -104,24 +125,200 @@ const useWatchlistStore = create((set, get) => ({
   },
 
   /**
-   * Clear the watchlist.
+   * Move a symbol to a folder (or root if null).
+   * @param {string} symbol
+   * @param {string|null} folderId
    */
-  clear: () => set({ items: [] }),
+  moveToFolder: (symbol, folderId) => {
+    const upper = (symbol || '').toUpperCase();
+    set((s) => ({
+      items: s.items.map((i) => (i.symbol === upper ? { ...i, folderId } : i)),
+    }));
+  },
+
+  // ─── Folder Actions ─────────────────────────────────────────
 
   /**
-   * Reset to default watchlist.
+   * Add a new folder.
+   * @param {string} name
+   * @param {string|null} parentId - null = root level
+   * @param {string} [color] - optional accent color
+   * @returns {string} folder ID
    */
-  resetDefaults: () => set({ items: [...DEFAULT_WATCHLIST] }),
+  addFolder: (name, parentId = null, color = null) => {
+    const id = genId();
+    set((s) => ({
+      folders: [
+        ...s.folders,
+        {
+          id,
+          name: name || 'New Folder',
+          parentId,
+          collapsed: false,
+          sortOrder: s.folders.length,
+          color,
+        },
+      ],
+    }));
+    return id;
+  },
+
+  /**
+   * Remove a folder and move its items to root.
+   * @param {string} folderId
+   */
+  removeFolder: (folderId) => {
+    set((s) => {
+      // Get all descendant folder IDs (recursive)
+      const allFolderIds = new Set([folderId]);
+      let changed = true;
+      while (changed) {
+        changed = false;
+        for (const f of s.folders) {
+          if (f.parentId && allFolderIds.has(f.parentId) && !allFolderIds.has(f.id)) {
+            allFolderIds.add(f.id);
+            changed = true;
+          }
+        }
+      }
+
+      return {
+        folders: s.folders.filter((f) => !allFolderIds.has(f.id)),
+        items: s.items.map((i) =>
+          i.folderId && allFolderIds.has(i.folderId) ? { ...i, folderId: null } : i,
+        ),
+      };
+    });
+  },
+
+  /**
+   * Rename a folder.
+   * @param {string} folderId
+   * @param {string} newName
+   */
+  renameFolder: (folderId, newName) => {
+    set((s) => ({
+      folders: s.folders.map((f) => (f.id === folderId ? { ...f, name: newName } : f)),
+    }));
+  },
+
+  /**
+   * Toggle folder collapsed state.
+   * @param {string} folderId
+   */
+  toggleFolderCollapse: (folderId) => {
+    set((s) => ({
+      folders: s.folders.map((f) =>
+        f.id === folderId ? { ...f, collapsed: !f.collapsed } : f,
+      ),
+    }));
+  },
+
+  /**
+   * Move a folder to a new parent (or root).
+   * @param {string} folderId
+   * @param {string|null} newParentId
+   */
+  moveFolder: (folderId, newParentId) => {
+    // Prevent circular references
+    if (folderId === newParentId) return;
+    const s = get();
+    // Check if newParentId is a descendant of folderId
+    let current = newParentId;
+    while (current) {
+      if (current === folderId) return; // circular!
+      const parent = s.folders.find((f) => f.id === current);
+      current = parent?.parentId || null;
+    }
+    set((s) => ({
+      folders: s.folders.map((f) =>
+        f.id === folderId ? { ...f, parentId: newParentId } : f,
+      ),
+    }));
+  },
+
+  /**
+   * Reorder folders within the same parent.
+   * @param {number} fromIdx
+   * @param {number} toIdx
+   */
+  reorderFolders: (fromIdx, toIdx) => {
+    set((s) => {
+      const folders = [...s.folders];
+      const [moved] = folders.splice(fromIdx, 1);
+      folders.splice(toIdx, 0, moved);
+      return { folders: folders.map((f, i) => ({ ...f, sortOrder: i })) };
+    });
+  },
+
+  /**
+   * Get folder by ID.
+   * @param {string} folderId
+   * @returns {Object|null}
+   */
+  getFolder: (folderId) => {
+    return get().folders.find((f) => f.id === folderId) || null;
+  },
+
+  /**
+   * Get items in a specific folder (or root if null).
+   * @param {string|null} folderId
+   * @returns {Array}
+   */
+  getItemsInFolder: (folderId) => {
+    return get().items.filter((i) => (i.folderId || null) === folderId);
+  },
+
+  /**
+   * Get child folders of a parent (or root if null).
+   * @param {string|null} parentId
+   * @returns {Array}
+   */
+  getChildFolders: (parentId) => {
+    return get()
+      .folders.filter((f) => (f.parentId || null) === parentId)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  },
+
+  // ─── Bulk / Utility Actions ────────────────────────────────
+
+  /** Clear the watchlist. */
+  clear: () => set({ items: [], folders: [] }),
+
+  /** Reset to default watchlist. */
+  resetDefaults: () => set({ items: [...DEFAULT_WATCHLIST], folders: [] }),
+
+  /**
+   * How many more items can be added before soft limit.
+   * @returns {number}
+   */
+  remainingCapacity: () => Math.max(0, SOFT_LIMIT - get().items.length),
 
   /**
    * Hydrate from IndexedDB.
-   * @param {Array} data
+   * Backward compatible: accepts either { items, folders } or just items[].
+   * @param {Array|Object} data
    */
   hydrate: (data) => {
-    set({
-      items: Array.isArray(data) && data.length > 0 ? data : [...DEFAULT_WATCHLIST],
-      loaded: true,
-    });
+    if (data && typeof data === 'object' && !Array.isArray(data) && data.items) {
+      // New format: { items, folders }
+      set({
+        items: Array.isArray(data.items) && data.items.length > 0
+          ? data.items.map((i) => ({ ...i, folderId: i.folderId || null }))
+          : [...DEFAULT_WATCHLIST],
+        folders: Array.isArray(data.folders) ? data.folders : [],
+        loaded: true,
+      });
+    } else {
+      // Legacy format: just items array
+      set({
+        items: Array.isArray(data) && data.length > 0
+          ? data.map((i) => ({ ...i, folderId: i.folderId || null }))
+          : [...DEFAULT_WATCHLIST],
+        folders: [],
+        loaded: true,
+      });
+    }
   },
 }));
 
@@ -149,6 +346,35 @@ function groupByAssetClass(items) {
   }
 
   return groups;
+}
+
+/**
+ * Build a folder tree structure for rendering.
+ * Returns array of { folder, items, children: [ { folder, items, children } ] }
+ * @param {Array} items - all watchlist items
+ * @param {Array} folders - all folders
+ * @param {string|null} parentId - root parent
+ * @returns {Array}
+ */
+function buildFolderTree(items, folders, parentId = null) {
+  const childFolders = folders
+    .filter((f) => (f.parentId || null) === parentId)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  return childFolders.map((folder) => ({
+    folder,
+    items: items.filter((i) => i.folderId === folder.id),
+    children: buildFolderTree(items, folders, folder.id),
+  }));
+}
+
+/**
+ * Get items not in any folder (root level).
+ * @param {Array} items
+ * @returns {Array}
+ */
+function getRootItems(items) {
+  return items.filter((i) => !i.folderId);
 }
 
 /**
@@ -184,9 +410,22 @@ const watchlist = {
   has: (sym) => useWatchlistStore.getState().has(sym),
   list: () => useWatchlistStore.getState().items,
   clear: () => useWatchlistStore.getState().clear(),
+  addFolder: (name, parentId) => useWatchlistStore.getState().addFolder(name, parentId),
+  removeFolder: (id) => useWatchlistStore.getState().removeFolder(id),
+  moveToFolder: (sym, folderId) => useWatchlistStore.getState().moveToFolder(sym, folderId),
 };
 
 // ─── Exports ────────────────────────────────────────────────────
 
-export { useWatchlistStore, watchlist, groupByAssetClass, enrichWithTradeStats, DEFAULT_WATCHLIST, MAX_WATCHLIST };
+export {
+  useWatchlistStore,
+  watchlist,
+  groupByAssetClass,
+  buildFolderTree,
+  getRootItems,
+  enrichWithTradeStats,
+  DEFAULT_WATCHLIST,
+  MAX_WATCHLIST,
+  SOFT_LIMIT,
+};
 export default watchlist;

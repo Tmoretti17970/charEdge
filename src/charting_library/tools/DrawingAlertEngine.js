@@ -26,6 +26,12 @@ export function createDrawingAlert(drawing, triggerType = 'cross', options = {})
     points: drawing.points.map(p => ({ ...p })),
   };
 
+  // A1: Dispatch event for store integration — allows useDrawingAlerts hook
+  // to persist drawing alerts in useAlertStore so they survive page reload
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('charEdge:drawing-alert-created', { detail: alert }));
+  }
+
   return alert;
 }
 

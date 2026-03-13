@@ -4,11 +4,13 @@
 // Shows duplicate, delete, lock, visibility, and layer controls.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
+import { createDrawingAlert } from '../../../../charting_library/tools/DrawingAlertEngine.js';
 
 const MENU_ITEMS = [
   { id: 'duplicate', label: 'Duplicate', icon: '⊕', shortcut: 'Ctrl+D' },
   { id: 'addLabel', label: 'Add Label', icon: '🏷' },
+  { id: 'addAlert', label: 'Add Alert', icon: '🔔', hasSubmenu: true },
   { id: 'divider1' },
   { id: 'lock', label: 'Lock', icon: '🔒' },
   { id: 'hide', label: 'Hide', icon: '👁' },
@@ -16,12 +18,22 @@ const MENU_ITEMS = [
   { id: 'divider2' },
   { id: 'bringToFront', label: 'Bring to Front', icon: '↑' },
   { id: 'sendToBack', label: 'Send to Back', icon: '↓' },
+  { id: 'groupSelected', label: 'Group', icon: '📎' },
+  { id: 'ungroupSelected', label: 'Ungroup', icon: '📌' },
+  { id: 'selectAll', label: 'Select All', icon: '⬜', shortcut: '⌘A' },
   { id: 'divider3' },
   { id: 'delete', label: 'Delete', icon: '🗑', shortcut: 'Del', danger: true },
 ];
 
+const ALERT_SUBMENU = [
+  { id: 'alert_cross', label: 'Cross (touch)', icon: '↗' },
+  { id: 'alert_enter', label: 'Enter (break in)', icon: '→' },
+  { id: 'alert_exit', label: 'Exit (break out)', icon: '←' },
+];
+
 export default function DrawingContextMenu({ x, y, drawing, engine, onClose }) {
   const menuRef = useRef(null);
+  const [alertSubmenuOpen, setAlertSubmenuOpen] = useState(false);
 
   // Close on click outside or Escape
   useEffect(() => {
@@ -63,6 +75,24 @@ export default function DrawingContextMenu({ x, y, drawing, engine, onClose }) {
       }
       case 'syncTimeframes':
         engine.toggleSyncAcrossTimeframes(drawing.id);
+        break;
+      // B3: Drawing alert trigger types
+      case 'alert_cross':
+      case 'alert_enter':
+      case 'alert_exit': {
+        const triggerMap = { alert_cross: 'cross', alert_enter: 'enter', alert_exit: 'exit' };
+        createDrawingAlert(drawing, triggerMap[id]);
+        if (engine.enableAlert) engine.enableAlert(drawing.id, { trigger: triggerMap[id] });
+        break;
+      }
+      case 'groupSelected':
+        if (engine.groupSelected) engine.groupSelected();
+        break;
+      case 'ungroupSelected':
+        if (engine.ungroupSelected) engine.ungroupSelected();
+        break;
+      case 'selectAll':
+        if (engine.selectAll) engine.selectAll();
         break;
       case 'delete':
         engine.removeDrawing(drawing.id);
@@ -126,40 +156,101 @@ export default function DrawingContextMenu({ x, y, drawing, engine, onClose }) {
           );
         }
 
-        return (
-          <button
-            key={item.id}
-            onClick={() => handleAction(item.id)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              width: '100%',
-              padding: '7px 12px',
-              background: 'transparent',
-              border: 'none',
-              color: item.danger ? '#EF5350' : '#D1D4DC',
-              cursor: 'pointer',
-              textAlign: 'left',
-              fontSize: 13,
-              borderRadius: 6,
-              margin: '0 4px',
-              boxSizing: 'border-box',
-              transition: 'background 0.1s',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(41, 98, 255, 0.2)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-          >
-            <span style={{ width: 24, textAlign: 'center', marginRight: 8, fontSize: 14 }}>
-              {item.icon}
-            </span>
-            <span style={{ flex: 1 }}>{item.label}</span>
-            {item.shortcut && (
-              <span style={{ fontSize: 11, color: '#787B86', marginLeft: 16 }}>
-                {item.shortcut}
+          return (
+            <div
+              key={item.id}
+              style={{ position: 'relative' }}
+              onMouseEnter={() => item.hasSubmenu && setAlertSubmenuOpen(true)}
+              onMouseLeave={() => item.hasSubmenu && setAlertSubmenuOpen(false)}
+            >
+            <button
+              key={item.id}
+              onClick={() => !item.hasSubmenu && handleAction(item.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%',
+                padding: '7px 12px',
+                background: 'transparent',
+                border: 'none',
+                color: item.danger ? '#EF5350' : '#D1D4DC',
+                cursor: 'pointer',
+                textAlign: 'left',
+                fontSize: 13,
+                borderRadius: 6,
+                margin: '0 4px',
+                boxSizing: 'border-box',
+                transition: 'background 0.1s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(41, 98, 255, 0.2)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            >
+              <span style={{ width: 24, textAlign: 'center', marginRight: 8, fontSize: 14 }}>
+                {item.icon}
               </span>
+              <span style={{ flex: 1 }}>{item.label}</span>
+              {item.shortcut && (
+                <span style={{ fontSize: 11, color: '#787B86', marginLeft: 16 }}>
+                  {item.shortcut}
+                </span>
+              )}
+              {item.hasSubmenu && (
+                <span style={{ fontSize: 10, color: '#787B86', marginLeft: 8 }}>▸</span>
+              )}
+            </button>
+
+            {/* B3: Alert trigger type sub-menu */}
+            {item.hasSubmenu && alertSubmenuOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: '100%',
+                  top: -4,
+                  minWidth: 170,
+                  background: 'rgba(24, 26, 32, 0.95)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: 10,
+                  padding: '4px 0',
+                  boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
+                  zIndex: 10000,
+                  animation: 'scaleInSm 0.12s ease-out',
+                }}
+              >
+                {ALERT_SUBMENU.map((sub) => (
+                  <button
+                    key={sub.id}
+                    onClick={() => handleAction(sub.id)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      width: '100%',
+                      padding: '7px 12px',
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#D1D4DC',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      fontSize: 13,
+                      borderRadius: 6,
+                      margin: '0 4px',
+                      boxSizing: 'border-box',
+                      transition: 'background 0.1s',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(41, 98, 255, 0.2)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    <span style={{ width: 24, textAlign: 'center', marginRight: 8, fontSize: 14 }}>
+                      {sub.icon}
+                    </span>
+                    <span>{sub.label}</span>
+                  </button>
+                ))}
+              </div>
             )}
-          </button>
-        );
+            </div>
+          );
       })}
 
     </div>

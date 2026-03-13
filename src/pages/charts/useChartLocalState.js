@@ -74,10 +74,18 @@ export default function useChartLocalState() {
   const [paperTradeOpen, setPaperTradeOpen] = useState(false);
   const [walkForwardOpen, setWalkForwardOpen] = useState(false);
   const [futuresOpen, setFuturesOpen] = useState(false);
+  const [showWatchlistPanel, setShowWatchlistPanel] = useState(false);
   const [workspaceMode, setWorkspaceMode] = useState(() => {
     // eslint-disable-next-line unused-imports/no-unused-vars
     try { return localStorage.getItem('charEdge-workspace-mode') === 'true'; } catch (_) { return false; }
   });
+
+  // Listen for sidebar nav event to auto-open watchlist panel
+  useEffect(() => {
+    const handler = () => setShowWatchlistPanel(true);
+    window.addEventListener('charEdge:open-watchlist-panel', handler);
+    return () => window.removeEventListener('charEdge:open-watchlist-panel', handler);
+  }, []);
 
   const chartRef = useRef(null);
   const editorRef = useRef(null);
@@ -140,6 +148,7 @@ export default function useChartLocalState() {
     paperTradeOpen, setPaperTradeOpen,
     walkForwardOpen, setWalkForwardOpen,
     futuresOpen, setFuturesOpen,
+    showWatchlistPanel, setShowWatchlistPanel,
     workspaceMode, setWorkspaceMode,
 
     // Refs

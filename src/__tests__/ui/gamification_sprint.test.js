@@ -81,32 +81,35 @@ describe('Sprint 3: GPU-Translated Panning', () => {
   });
 
   describe('DataStage GPU Pan Fast Path', () => {
+    // GPU pan fast path was extracted to data/gpuPan.ts
+    const gpuPanSrc = readSrc('charting_library/core/stages/data/gpuPan.ts');
+
     it('has GPU PAN FAST PATH section', () => {
-      expect(dataStageSrc).toContain('GPU PAN FAST PATH');
+      expect(gpuPanSrc).toContain('GPU PAN FAST PATH');
     });
 
     it('checks for viewport-only changes', () => {
-      expect(dataStageSrc).toContain('isGpuPanCandidate');
+      expect(gpuPanSrc).toContain('isGpuPanCandidate');
     });
 
     it('checks same zoom level (visibleBars)', () => {
-      expect(dataStageSrc).toContain('fs.visibleBars === prevFs.visibleBars');
+      expect(gpuPanSrc).toContain('fs.visibleBars === prevFs.visibleBars');
     });
 
     it('checks same bar count (no new data)', () => {
-      expect(dataStageSrc).toContain('fs.barCount === prevFs.barCount');
+      expect(gpuPanSrc).toContain('fs.barCount === prevFs.barCount');
     });
 
     it('calculates scroll delta for pan offset', () => {
-      expect(dataStageSrc).toContain('scrollDelta = fs.scrollOffset - prevFs.scrollOffset');
+      expect(gpuPanSrc).toContain('scrollDelta = fs.scrollOffset - prevFs.scrollOffset');
     });
 
     it('calls webgl.redrawWithPanOffset', () => {
-      expect(dataStageSrc).toContain('webgl.redrawWithPanOffset(');
+      expect(gpuPanSrc).toContain('webgl.redrawWithPanOffset(');
     });
 
     it('still redraws Canvas 2D price line on GPU pan path', () => {
-      expect(dataStageSrc).toContain('renderPriceLine(mCtx, bars, p2y');
+      expect(gpuPanSrc).toContain('renderPriceLine(mCtx, bars, p2y');
     });
   });
 });

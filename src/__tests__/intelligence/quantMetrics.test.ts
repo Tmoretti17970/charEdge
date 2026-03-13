@@ -66,11 +66,11 @@ describe('QuantMetrics — Sharpe Ratio', () => {
         expect(sharpe).toBeLessThan(0);
     });
 
-    it('zero variance returns → Infinity', () => {
+    it('zero variance returns → capped at 99.99', () => {
         const returns = [0.005, 0.005, 0.005, 0.005, 0.005];
-        // After subtracting rf, all values identical → σ = 0
+        // After subtracting rf, all values identical → σ = 0 → capped at 99.99
         const sharpe = sharpeRatio(returns, 0, 252);
-        expect(sharpe).toBe(Infinity);
+        expect(sharpe).toBe(99.99);
     });
 });
 
@@ -81,10 +81,10 @@ describe('QuantMetrics — Sortino Ratio', () => {
         expect(sortinoRatio([])).toBe(0);
     });
 
-    it('all positive returns → Infinity (no downside risk)', () => {
+    it('all positive returns → capped at 99.99 (no downside risk)', () => {
         const returns = [0.01, 0.02, 0.015, 0.01, 0.02];
         const sortino = sortinoRatio(returns, 0, 252);
-        expect(sortino).toBe(Infinity);
+        expect(sortino).toBe(99.99);
     });
 
     it('Sortino >= Sharpe when there is upside volatility (normal series)', () => {

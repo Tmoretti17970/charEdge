@@ -18,9 +18,11 @@ const PANEL_REGISTRY = {
   options:       { title: 'Options Intel',       defaultWidth: 400, minWidth: 320 },
   community:     { title: 'Community Signals',   defaultWidth: 360, minWidth: 300 },
   positionSizer: { title: 'Position Sizer',      defaultWidth: 300, minWidth: 260 },
-  quickJournal:  { title: 'Quick Journal',        defaultWidth: 300, minWidth: 260 },
-  indicators:    { title: 'Indicators',          defaultWidth: 360, minWidth: 300 },
-  objectTree:    { title: 'Object Tree',         defaultWidth: 300, minWidth: 240 },
+  quickJournal:    { title: 'Quick Journal',        defaultWidth: 300, minWidth: 260 },
+  indicators:      { title: 'Indicators',          defaultWidth: 360, minWidth: 300 },
+  objectTree:      { title: 'Object Tree',         defaultWidth: 300, minWidth: 240 },
+  alertHistory:    { title: 'Alert History',       defaultWidth: 380, minWidth: 300 },
+  alertAnalytics:  { title: 'Alert Analytics',     defaultWidth: 400, minWidth: 320 },
 };
 
 export const createPanelSlice = (set, get) => ({

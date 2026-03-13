@@ -28,7 +28,7 @@ import { StorageService } from './data/StorageService';
 import { initTelemetry } from './observability/telemetry';
 import { useAnalyticsStore } from './state/useAnalyticsStore';
 import { useGamificationStore } from './state/useGamificationStore';
-import { useJournalStore, initAccountSwitchListener } from './state/useJournalStore';
+import { useJournalStore, initAccountSwitchListener, prewarmAccountCache } from './state/useJournalStore';
 import { useScriptStore } from './state/useScriptStore.js';
 import { useUserStore } from './state/useUserStore';
 import { useWatchlistStore } from './state/useWatchlistStore.js';
@@ -194,6 +194,14 @@ export async function postBoot(trades) {
 
   // v5: Initialize account switch listener — auto-rehydrates journal on switch
   initAccountSwitchListener();
+
+  // v6: Pre-warm the opposite account's cache so first switch is instant
+  {
+    const { getActiveAccountId } = await import('./state/useAccountStore');
+    const current = getActiveAccountId();
+    const opposite = current === 'real' ? 'demo' : 'real';
+    prewarmAccountCache(opposite); // fire-and-forget — never blocks boot
+  }
 
   // Start TickerPlant (activates DataSharedWorker for cross-tab WS dedup,
   // connects multi-source price aggregation, predictive prefetch)

@@ -223,9 +223,88 @@ const server = app.listen(PORT, HOST, () => {
   }
 });
 
+// ─── A4: Server-Side Alert Evaluation Loop ───────────────────────
+// Scaffolded adapters for the AlertEvaluationLoop. The loop runs at
+// 5-second intervals. To activate, populate alertPriceCache from a
+// real-time data source (e.g., WebSocket price feed handler).
+// ─────────────────────────────────────────────────────────────────
+let alertLoop = null;
+try {
+  const { startAlertLoop } = await import('./server/services/AlertEvaluationLoop.ts');
+  const { PushNotificationService } = await import('./server/services/PushNotificationService.ts');
+  const { WebhookDelivery } = await import('./server/services/WebhookDelivery.ts');
+  const { VolumeSpikeDetector } = await import('./server/services/VolumeSpikeDetector.ts');
+  const { CandlePatternDetector } = await import('./server/services/CandlePatternDetector.ts');
+  const { MultiTimeframeEvaluator } = await import('./server/services/MultiTimeframeEvaluator.ts');
+
+  // In-memory price cache — update this from your WebSocket feed
+  const alertPriceCache = {};
+
+  // In-memory server alert store — sync from client via API in Phase C
+  const serverAlerts = [];
+
+  // C1: Webhook configs — users register via POST /api/alerts/webhook
+  const webhookConfigs = [];
+
+  const pushService = new PushNotificationService();
+  const webhookService = new WebhookDelivery();
+
+  // D1/D2/D3: Smart alert services
+  const volumeDetector = new VolumeSpikeDetector();
+  const patternDetector = new CandlePatternDetector();
+  const mtfEvaluator = new MultiTimeframeEvaluator();
+
+  // D1: Log volume spikes
+  volumeDetector.on('volume:spike', (spike) => {
+    log(`  \x1b[33m⚡ Volume spike: ${spike.symbol} ${spike.ratio}x avg\x1b[0m`);
+  });
+
+  // D2: Log multi-TF triggers
+  mtfEvaluator.on('mtf:triggered', (evt) => {
+    log(`  \x1b[33m⚡ MTF alert: ${evt.symbol} (${evt.alertId})\x1b[0m`);
+  });
+
+  alertLoop = startAlertLoop(
+    // Price provider adapter
+    { getLatestPrices: () => ({ ...alertPriceCache }) },
+    // Alert store adapter
+    {
+      getActiveAlerts: () => serverAlerts.filter((a) => a.active),
+      triggerAlert: (id) => {
+        const alert = serverAlerts.find((a) => a.id === id);
+        if (alert) {
+          alert.active = alert.repeating || false;
+          alert.triggeredAt = new Date().toISOString();
+          // C1: Fire webhooks for triggered alert
+          const price = alertPriceCache[alert.symbol] || 0;
+          for (const config of webhookConfigs) {
+            webhookService.deliver(config, alert, price).catch(() => {});
+          }
+        }
+      },
+      updateLastPrice: (id, price) => {
+        const alert = serverAlerts.find((a) => a.id === id);
+        if (alert) alert._lastPrice = price;
+      },
+    },
+    // Push service adapter
+    {
+      sendAlertNotification: async (userId, alert, price) => {
+        await pushService.sendAlertNotification(userId, alert, price);
+      },
+    },
+  );
+
+  log('  \x1b[32m✓ Alert evaluation loop started (5s cadence)\x1b[0m');
+  log(`  \x1b[32m✓ Smart services: VolumeSpikeDetector, CandlePatternDetector (${patternDetector ? '10 patterns' : '0'}), MultiTimeframeEvaluator\x1b[0m`);
+} catch (err) {
+  log(`  \x1b[33m⚠ Alert evaluation loop not started: ${err.message}\x1b[0m`);
+}
+
 // ─── Graceful Shutdown ───────────────────────────────────────────
 function shutdown(signal) {
   log(`\n\x1b[33m${signal} received. Shutting down gracefully...\x1b[0m`);
+  if (alertLoop) alertLoop.stop();
   server.close(() => {
     closeDb();
     log('\x1b[32m✓ Server closed\x1b[0m');

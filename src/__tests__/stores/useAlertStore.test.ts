@@ -6,13 +6,47 @@
 // correctly reads from the transient Map.
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+// Hoisted mock function (available to vi.mock factories)
+const { mockPlayAlertSound, mockPush } = vi.hoisted(() => ({
+    mockPlayAlertSound: vi.fn(),
+    mockPush: vi.fn(),
+}));
+
+// Mock alertSounds (A3) — avoid AudioContext + logger dependency in tests
+vi.mock('../../app/misc/alertSounds', () => ({
+    playAlertSound: mockPlayAlertSound,
+}));
+
+// Mock notificationLog (A5) — avoid full store chain in tests
+vi.mock('../../state/useNotificationLog', () => ({
+    default: { push: mockPush, clear: vi.fn(), toggle: vi.fn() },
+    useNotificationLog: { getState: () => ({ push: mockPush }) },
+    notificationLog: { push: mockPush, clear: vi.fn(), toggle: vi.fn() },
+}));
+
+// Mock alertPreferences (C5) — DND always off, volume=1 for tests
+vi.mock('../../state/useAlertPreferences', () => ({
+    isInQuietHours: () => false,
+    getAlertVolume: () => 1,
+    useAlertPreferences: { getState: () => ({ globalMute: false, dndEnabled: false, globalVolume: 1 }) },
+}));
+
+// Mock alertHistory (C2) — avoid persistence in tests
+vi.mock('../../state/useAlertHistory', () => ({
+    default: { getState: () => ({ pushEntry: vi.fn() }) },
+    useAlertHistory: { getState: () => ({ pushEntry: vi.fn() }) },
+}));
+
 import { useAlertStore, checkAlerts, checkSymbolAlerts } from '../../state/useAlertStore.ts';
+import { playAlertSound } from '../../app/misc/alertSounds';
 
 describe('useAlertStore', () => {
     beforeEach(() => {
         // Reset store to clean state
         useAlertStore.setState({ alerts: [], pushSubscribed: false });
+        vi.clearAllMocks();
     });
 
     // ─── Basic CRUD ────────────────────────────────────────────
@@ -174,5 +208,118 @@ describe('useAlertStore', () => {
         checkSymbolAlerts('sol', 150);
         const alert = useAlertStore.getState().alerts[0];
         expect(alert.triggeredAt).not.toBeNull();
+    });
+
+    // ─── A3: Sound Integration ────────────────────────────────
+
+    it('A3: plays alert sound when alert triggers', () => {
+        useAlertStore.getState().addAlert({
+            symbol: 'AAPL',
+            condition: 'above',
+            price: 200,
+            style: 'price',
+        });
+        checkAlerts({ AAPL: 210 });
+        expect(playAlertSound).toHaveBeenCalledWith('price', expect.any(Number));
+    });
+
+    it('A3: maps system style to urgent sound', () => {
+        useAlertStore.getState().addAlert({
+            symbol: 'TSLA',
+            condition: 'above',
+            price: 300,
+        });
+        // Manually set the style to 'system' by updating the store
+        useAlertStore.setState((s) => ({
+            alerts: s.alerts.map((a) => ({ ...a, style: 'system' as const })),
+        }));
+        checkAlerts({ TSLA: 310 });
+        expect(playAlertSound).toHaveBeenCalledWith('urgent', expect.any(Number));
+    });
+
+    // ─── A5: Notification Log Integration ─────────────────────
+
+    it('A5: pushes to notification log when alert triggers', () => {
+        useAlertStore.getState().addAlert({
+            symbol: 'GOOG',
+            condition: 'below',
+            price: 150,
+        });
+        checkAlerts({ GOOG: 140 });
+        expect(mockPush).toHaveBeenCalledWith(
+            expect.objectContaining({
+                type: 'info',
+                category: 'alert',
+                meta: expect.objectContaining({
+                    symbol: 'GOOG',
+                    price: 140,
+                    condition: 'below',
+                }),
+            }),
+        );
+    });
+
+    // ─── B5: Expiration + Cooldown ────────────────────────────
+
+    it('B5: auto-deactivates expired alerts', () => {
+        const pastDate = new Date(Date.now() - 60_000).toISOString();
+        useAlertStore.getState().addAlert({
+            symbol: 'MSFT',
+            condition: 'above',
+            price: 400,
+            expiresAt: pastDate,
+        });
+        const before = useAlertStore.getState().alerts[0];
+        expect(before.active).toBe(true);
+
+        checkAlerts({ MSFT: 450 });
+
+        const after = useAlertStore.getState().alerts[0];
+        // Should be deactivated via triggerAlert due to expiration
+        expect(after.active).toBe(false);
+        expect(after.triggeredAt).not.toBeNull();
+    });
+
+    it('B5: does not trigger alert during cooldown', () => {
+        const recentTrigger = new Date().toISOString();
+        useAlertStore.getState().addAlert({
+            symbol: 'AMZN',
+            condition: 'above',
+            price: 180,
+            repeating: true,
+            cooldownMs: 60_000, // 1 minute cooldown
+        });
+        // Simulate a recent trigger by manually setting triggeredAt
+        useAlertStore.setState((s) => ({
+            alerts: s.alerts.map((a) => ({ ...a, triggeredAt: recentTrigger })),
+        }));
+
+        vi.clearAllMocks();
+        checkAlerts({ AMZN: 200 });
+
+        // Should NOT trigger again because we're within cooldown
+        expect(mockPlayAlertSound).not.toHaveBeenCalled();
+        expect(mockPush).not.toHaveBeenCalled();
+    });
+
+    it('B5: triggers alert after cooldown expires', () => {
+        const oldTrigger = new Date(Date.now() - 120_000).toISOString(); // 2 min ago
+        useAlertStore.getState().addAlert({
+            symbol: 'META',
+            condition: 'above',
+            price: 500,
+            repeating: true,
+            cooldownMs: 60_000, // 1 minute cooldown
+        });
+        // Simulate an old trigger
+        useAlertStore.setState((s) => ({
+            alerts: s.alerts.map((a) => ({ ...a, triggeredAt: oldTrigger })),
+        }));
+
+        vi.clearAllMocks();
+        checkAlerts({ META: 550 });
+
+        // Should trigger because cooldown has expired
+        expect(mockPlayAlertSound).toHaveBeenCalled();
     });
 });

@@ -3,6 +3,13 @@
 //   text, callout, emoji, note, signpost)
 // ═══════════════════════════════════════════════════════════════════
 
+/** Build a CSS font string respecting bold/italic style flags. */
+function buildFont(fontSize, style) {
+  const bold = style.textBold ? 'bold ' : '';
+  const italic = style.textItalic ? 'italic ' : '';
+  return `${italic}${bold}${fontSize}px -apple-system, Arial`;
+}
+
 export function renderRectangle(ctx, pts, style, lw, pr) {
   if (pts.length < 2) return;
 
@@ -76,11 +83,19 @@ export function renderText(ctx, pts, drawing, style, pr) {
   if (pts.length < 1) return;
   const text = drawing.meta?.text || 'Text';
   const fontSize = Math.round(parseInt(style.font || '14') * pr);
-  ctx.font = `${fontSize}px Arial`;
-  ctx.fillStyle = style.color;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillText(text, pts[0].x, pts[0].y);
+  ctx.font = buildFont(fontSize, style);
+  ctx.fillStyle = style.textColor || style.color;
+
+  // Alignment
+  ctx.textAlign = style.textHAlign || 'left';
+  ctx.textBaseline = style.textVAlign === 'bottom' ? 'bottom' : style.textVAlign === 'center' ? 'middle' : 'top';
+
+  // Multiline support
+  const lines = text.split('\n');
+  const lineH = fontSize * 1.3;
+  for (let i = 0; i < lines.length; i++) {
+    ctx.fillText(lines[i], pts[0].x, pts[0].y + i * lineH);
+  }
 }
 
 export function renderCallout(ctx, pts, drawing, style, lw, pr) {
@@ -90,7 +105,7 @@ export function renderCallout(ctx, pts, drawing, style, lw, pr) {
   const padding = Math.round(6 * pr);
   const pointerSize = Math.round(8 * pr);
 
-  ctx.font = `${fontSize}px Arial`;
+  ctx.font = buildFont(fontSize, style);
   const tw = ctx.measureText(text).width;
   const th = fontSize;
   const boxW = tw + padding * 2;
@@ -141,7 +156,7 @@ export function renderNote(ctx, pts, drawing, style, pr) {
   const padding = Math.round(6 * pr);
   const maxW = Math.round(140 * pr);
 
-  ctx.font = `${fontSize}px -apple-system, Arial`;
+  ctx.font = buildFont(fontSize, style);
   const lines = [];
   const words = text.split(' ');
   let currentLine = '';
@@ -188,7 +203,7 @@ export function renderNote(ctx, pts, drawing, style, pr) {
   ctx.fill();
   ctx.globalAlpha = 1;
 
-  ctx.fillStyle = style.color;
+  ctx.fillStyle = style.textColor || style.color;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   for (let i = 0; i < lines.length; i++) {
@@ -204,7 +219,7 @@ export function renderSignpost(ctx, pts, drawing, style, pr) {
   const padding = Math.round(5 * pr);
   const arrowH = Math.round(14 * pr);
 
-  ctx.font = `bold ${fontSize}px -apple-system, Arial`;
+  ctx.font = buildFont(fontSize, style);
   const tw = ctx.measureText(text).width;
   const tagW = tw + padding * 2;
   const tagH = fontSize + padding * 2;

@@ -40,21 +40,25 @@ describe('SwipeDots', () => {
   });
 
   it('exports default component', () => {
-    expect(typeof SwipeDots).toBe('function');
+    // React.memo wraps as object; accept both function and object
+    expect(['function', 'object']).toContain(typeof SwipeDots);
   });
 
-  it('named export matches default', async () => {
+  it('named export matches default or is the unwrapped function', async () => {
     const mod = await import('../../app/components/ui/SwipeDots.jsx');
-    expect(mod.SwipeDots).toBe(mod.default);
+    // Named export may be the unwrapped fn while default is React.memo(fn)
+    expect(mod.SwipeDots === mod.default || mod.default?.type === mod.SwipeDots).toBe(true);
   });
 
   it('returns null for count <= 1', () => {
-    const result = SwipeDots({ count: 1, active: 0 });
+    const fn = typeof SwipeDots === 'function' ? SwipeDots : SwipeDots.type;
+    const result = fn({ count: 1, active: 0 });
     expect(result).toBeNull();
   });
 
   it('returns null for count 0', () => {
-    const result = SwipeDots({ count: 0, active: 0 });
+    const fn = typeof SwipeDots === 'function' ? SwipeDots : SwipeDots.type;
+    const result = fn({ count: 0, active: 0 });
     expect(result).toBeNull();
   });
 });
@@ -71,7 +75,7 @@ describe('BottomSheet', () => {
   });
 
   it('exports default component', () => {
-    expect(typeof BottomSheet).toBe('function');
+    expect(['function', 'object']).toContain(typeof BottomSheet);
   });
 
   it('exports SNAP_POINTS constants', () => {
@@ -90,7 +94,7 @@ describe('EmptyState system', () => {
   it('exports core EmptyState component', async () => {
     const mod = await import('../../app/components/ui/EmptyState.jsx');
     expect(mod.default).toBeDefined();
-    expect(typeof mod.default).toBe('function');
+    expect(['function', 'object']).toContain(typeof mod.default);
   });
 
   it('exports DashboardEmptyState', async () => {

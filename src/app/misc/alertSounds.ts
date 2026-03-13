@@ -1,4 +1,4 @@
-import { logger } from './logger';
+import { logger } from '@/observability/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Alert Sound Notifications (TypeScript)

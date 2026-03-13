@@ -8,17 +8,27 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { playAlertSound } from '../app/misc/alertSounds';
+import notificationLog from './useNotificationLog';
+import { isInQuietHours, getAlertVolume } from './useAlertPreferences';
+import alertHistory from './useAlertHistory';
 
 // ─── Transient Price Tracking ───────────────────────────────────
 // Stored outside Zustand to avoid triggering set()/persist on every tick.
 // This map is never persisted — it's ephemeral runtime state.
 const _lastPrices = new Map<string, number>();
 
+// D5: Transient per-sub-condition satisfaction timestamps for temporal windows
+// Key: "alertId:conditionIndex" → timestamp when condition was last satisfied
+const _conditionSatisfiedAt: Map<string, number> = new Map();
+
 // ─── Types ──────────────────────────────────────────────────────
 
 export type AlertCondition = 'above' | 'below' | 'cross_above' | 'cross_below';
 
 export type AlertVisualStyle = 'price' | 'system' | 'indicator';
+
+export type AlertSoundType = 'price' | 'urgent' | 'info' | 'success' | 'error';
 
 export type CompoundAlertLogic = 'AND' | 'OR';
 
@@ -30,6 +40,8 @@ export interface AlertSubCondition {
     price?: number;
     indicator?: AlertIndicator;
     indicatorValue?: number;
+    // D5: Temporal window — condition must happen within N candles
+    windowBars?: number;
 }
 
 export interface Alert {
@@ -46,6 +58,11 @@ export interface Alert {
     // Multi-condition fields (optional, backward-compatible)
     compoundLogic?: CompoundAlertLogic;
     conditions?: AlertSubCondition[];
+    // B5: Expiration + cooldown
+    expiresAt?: string | null;
+    cooldownMs?: number | null;
+    // C4: Per-alert sound selection
+    soundType?: AlertSoundType | null;
 }
 
 interface AddAlertParams {
@@ -55,6 +72,9 @@ interface AddAlertParams {
     note?: string;
     repeating?: boolean;
     style?: AlertVisualStyle;
+    expiresAt?: string | null;
+    cooldownMs?: number | null;
+    soundType?: AlertSoundType | null;
 }
 
 interface AddCompoundAlertParams {
@@ -64,6 +84,9 @@ interface AddCompoundAlertParams {
     note?: string;
     repeating?: boolean;
     style?: AlertVisualStyle;
+    expiresAt?: string | null;
+    cooldownMs?: number | null;
+    soundType?: AlertSoundType | null;
 }
 
 export interface AlertState {
@@ -93,7 +116,7 @@ const useAlertStore = create<AlertState & AlertActions>()(
             alerts: [],
             pushSubscribed: false,
 
-            addAlert: ({ symbol, condition, price, note = '', repeating = false, style = 'price' }: AddAlertParams): string => {
+            addAlert: ({ symbol, condition, price, note = '', repeating = false, style = 'price', expiresAt = null, cooldownMs = null, soundType = null }: AddAlertParams): string => {
                 const alert: Alert = {
                     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
                     symbol: (symbol || '').toUpperCase(),
@@ -105,12 +128,15 @@ const useAlertStore = create<AlertState & AlertActions>()(
                     createdAt: new Date().toISOString(),
                     note,
                     style,
+                    expiresAt,
+                    cooldownMs,
+                    soundType,
                 };
                 set((s) => ({ alerts: [...s.alerts, alert] }));
                 return alert.id;
             },
 
-            addCompoundAlert: ({ symbol, logic, conditions, note = '', repeating = false, style = 'price' }: AddCompoundAlertParams): string => {
+            addCompoundAlert: ({ symbol, logic, conditions, note = '', repeating = false, style = 'price', expiresAt = null, cooldownMs = null, soundType = null }: AddCompoundAlertParams): string => {
                 const alert: Alert = {
                     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
                     symbol: (symbol || '').toUpperCase(),
@@ -124,6 +150,9 @@ const useAlertStore = create<AlertState & AlertActions>()(
                     style,
                     compoundLogic: logic,
                     conditions,
+                    expiresAt,
+                    cooldownMs,
+                    soundType,
                 };
                 set((s) => ({ alerts: [...s.alerts, alert] }));
                 return alert.id;
@@ -284,6 +313,21 @@ export function checkAlerts(prices: Record<string, number>): void {
         const price = prices[alert.symbol];
         if (price == null) continue;
 
+        // B5: Skip expired alerts — auto-deactivate
+        if (alert.expiresAt && new Date(alert.expiresAt) < new Date()) {
+            store.triggerAlert(alert.id);
+            continue;
+        }
+
+        // B5: Skip alerts in cooldown period
+        if (alert.cooldownMs && alert.triggeredAt) {
+            const lastTriggeredMs = new Date(alert.triggeredAt).getTime();
+            if (Date.now() - lastTriggeredMs < alert.cooldownMs) {
+                store.updateLastPrice(alert.symbol, price);
+                continue;
+            }
+        }
+
         let triggered = false;
 
         // Read last price from transient Map (not from alert state)
@@ -291,12 +335,49 @@ export function checkAlerts(prices: Record<string, number>): void {
 
         // Compound alert: evaluate all sub-conditions with AND/OR logic
         if (alert.conditions && alert.conditions.length > 0 && alert.compoundLogic) {
-            const results = alert.conditions.map((sub) =>
-                evaluateSubCondition(sub, price, lastPrice),
-            );
-            triggered = alert.compoundLogic === 'AND'
-                ? results.every(Boolean)
-                : results.some(Boolean);
+            const results = alert.conditions.map((sub, idx) => {
+                const met = evaluateSubCondition(sub, price, lastPrice);
+                const key = `${alert.id}:${idx}`;
+                if (met) {
+                    _conditionSatisfiedAt.set(key, Date.now());
+                }
+                return met;
+            });
+
+            if (alert.compoundLogic === 'AND') {
+                // D5: Check if any condition has a windowBars constraint
+                const hasWindow = alert.conditions.some((s) => s.windowBars && s.windowBars > 0);
+                if (hasWindow) {
+                    // All conditions must have been satisfied, and all within the window
+                    const allSatisfied = alert.conditions.every((_, idx) =>
+                        _conditionSatisfiedAt.has(`${alert.id}:${idx}`),
+                    );
+                    if (allSatisfied) {
+                        const timestamps = alert.conditions.map((_, idx) =>
+                            _conditionSatisfiedAt.get(`${alert.id}:${idx}`) || 0,
+                        );
+                        const oldest = Math.min(...timestamps);
+                        const newest = Math.max(...timestamps);
+                        // Use the max windowBars across conditions × 5s eval interval as window
+                        const maxWindow = Math.max(...alert.conditions.map((s) => s.windowBars || Infinity));
+                        const windowMs = maxWindow * 5000; // 5s per "bar" eval cycle
+                        triggered = (newest - oldest) <= windowMs;
+                        // Clear stale satisfactions if window expired
+                        if (!triggered) {
+                            alert.conditions.forEach((_, idx) => {
+                                const ts = _conditionSatisfiedAt.get(`${alert.id}:${idx}`);
+                                if (ts && Date.now() - ts > windowMs) {
+                                    _conditionSatisfiedAt.delete(`${alert.id}:${idx}`);
+                                }
+                            });
+                        }
+                    }
+                } else {
+                    triggered = results.every(Boolean);
+                }
+            } else {
+                triggered = results.some(Boolean);
+            }
         } else {
             // Simple single-condition alert (backward compatible)
             triggered = evaluateSingleCondition(
@@ -309,9 +390,31 @@ export function checkAlerts(prices: Record<string, number>): void {
 
         if (triggered) {
             store.triggerAlert(alert.id);
+
+            // C5: Suppress audio/visual during quiet hours (alert still triggers)
+            const quiet = isInQuietHours();
+
+            if (!quiet) {
+                // C4: Per-alert sound — prefer soundType, fall back to style mapping
+                const styleFallback: Record<string, AlertSoundType> = { price: 'price', system: 'urgent', indicator: 'info' };
+                const soundToPlay: AlertSoundType = alert.soundType || styleFallback[alert.style] || 'price';
+                try { playAlertSound(soundToPlay, getAlertVolume()); } catch { /* audio may be blocked */ }
+            }
+
             const msg = `${alert.symbol} hit $${price.toFixed(2)} (alert: ${alert.condition} $${alert.price.toFixed(2)})`;
-            sendNotification(`🔔 ${alert.symbol} Price Alert`, msg);
+            if (!quiet) sendNotification(`🔔 ${alert.symbol} Price Alert`, msg);
             dispatchAlertToast(alert, price);
+
+            // A5: Bridge to notification activity log
+            notificationLog.push({
+                type: 'info',
+                message: `🔔 ${msg}`,
+                category: 'alert',
+                meta: { alertId: alert.id, symbol: alert.symbol, price, condition: alert.condition },
+            });
+
+            // C2: Record in alert history for outcome tracking
+            alertHistory.getState().pushEntry(alert, price);
         }
 
         store.updateLastPrice(alert.symbol, price);

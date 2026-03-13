@@ -288,3 +288,78 @@ export default function DrawingGroup({ group, activeTool, setActiveTool }) {
     </div>
   );
 }
+
+// ─── Magnet Snap Toggle ───────────────────────────────────────────
+export function MagnetSnapToggle({ enabled, strength, onToggle, onStrengthChange }) {
+  const [showPopover, setShowPopover] = useState(false);
+  const timerRef = useRef(null);
+  const btnRef = useRef(null);
+
+  const handleMouseDown = () => {
+    timerRef.current = setTimeout(() => setShowPopover(true), 500);
+  };
+  const handleMouseUp = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+  };
+
+  useEffect(() => {
+    if (!showPopover) return;
+    const close = (e) => { if (btnRef.current && !btnRef.current.contains(e.target)) setShowPopover(false); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [showPopover]);
+
+  return (
+    <div ref={btnRef} style={{ position: 'relative' }}>
+      <ToolbarBtn
+        active={enabled}
+        onClick={onToggle}
+        title={enabled ? 'Magnet Snap: ON' : 'Magnet Snap: OFF'}
+        style={{ padding: '4px 6px' }}
+      >
+        <span
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          style={{
+            display: 'block', fontSize: 14,
+            filter: enabled ? 'drop-shadow(0 0 4px rgba(41,98,255,0.5))' : 'none',
+            transition: 'all 0.2s',
+          }}
+        >
+          🧲
+        </span>
+      </ToolbarBtn>
+
+      {showPopover && (
+        <div style={{
+          position: 'absolute', left: '100%', top: -4, marginLeft: 6,
+          background: 'rgba(24,26,32,0.97)', backdropFilter: 'blur(16px)',
+          border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10,
+          padding: '6px 0', zIndex: 9999, minWidth: 140,
+          boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
+          animation: 'scaleInSm 0.12s ease-out',
+        }}>
+          {['weak', 'strong'].map(level => (
+            <button
+              key={level}
+              onClick={() => { onStrengthChange(level); setShowPopover(false); }}
+              style={{
+                display: 'flex', alignItems: 'center', width: '100%',
+                padding: '7px 14px', background: 'transparent', border: 'none',
+                color: strength === level ? '#2962FF' : '#D1D4DC',
+                cursor: 'pointer', fontSize: 12, textAlign: 'left',
+                fontWeight: strength === level ? 600 : 400,
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(41,98,255,0.12)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <span style={{ marginRight: 8 }}>{strength === level ? '✓' : ' '}</span>
+              {level === 'weak' ? 'Weak (10px)' : 'Strong (25px)'}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

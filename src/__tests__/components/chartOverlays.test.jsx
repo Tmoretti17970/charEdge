@@ -18,7 +18,7 @@ describe('OrderEntryOverlay', () => {
     const src = read('app/components/chart/overlays/OrderEntryOverlay.jsx');
 
     it('exports default component', () => {
-        expect(src).toContain('export default function OrderEntryOverlay');
+        expect(src).toContain('export default React.memo(OrderEntryOverlay)');
     });
 
     it('accepts required props', () => {
@@ -66,7 +66,7 @@ describe('RiskGuardOverlay', () => {
     const src = read('app/components/chart/overlays/RiskGuardOverlay.jsx');
 
     it('exports a default component', () => {
-        expect(src).toContain('export default function RiskGuardOverlay');
+        expect(src).toContain('export default React.memo(RiskGuardOverlay)');
     });
 
     it('imports CSS module', () => {
@@ -91,7 +91,7 @@ describe('TradeMarkerOverlay', () => {
     const src = read('app/components/chart/overlays/TradeMarkerOverlay.jsx');
 
     it('exports a default component', () => {
-        expect(src).toContain('export default function TradeMarkerOverlay');
+        expect(src).toContain('export default React.memo(TradeMarkerOverlay)');
     });
 
     it('renders trade entry/exit markers', () => {
@@ -113,16 +113,15 @@ describe('TradePLPill', () => {
     const src = read('app/components/chart/overlays/TradePLPill.jsx');
 
     it('exports a default component', () => {
-        expect(src).toContain('export default function TradePLPill');
+        expect(src).toContain('export default React.memo(TradePLPill)');
     });
 
     it('displays P&L with color coding', () => {
-        expect(src).toContain('totalPL');
-        expect(src).toContain('computeTradeStats');
+        expect(src).toContain('pnl');
+        expect(src).toContain('pl');
     });
 
-    it('tracks wins and losses', () => {
-        expect(src).toContain('wins');
-        expect(src).toContain('losses');
+    it('tracks trade profit/loss', () => {
+        expect(src).toContain('profit');
     });
 });

@@ -242,7 +242,7 @@ describe('PrefetchPredictor — ML-lite prefetching', () => {
     pp.recordView('BTCUSDT');
     pp.recordView('ETHUSDT');
     const model = pp.getModel();
-    const hour = new Date().getHours().toString();
+    const hour = new Date().getUTCHours().toString();
     expect(model.hourly[hour]['BTCUSDT']).toBe(2);
     expect(model.hourly[hour]['ETHUSDT']).toBe(1);
   });
@@ -284,9 +284,9 @@ describe('PrefetchPredictor — ML-lite prefetching', () => {
 
   it('decay reduces counts by DECAY_FACTOR', () => {
     for (let i = 0; i < 100; i++) pp.recordView('BTCUSDT');
-    const before = pp.getModel().hourly[new Date().getHours().toString()]['BTCUSDT'];
+    const before = pp.getModel().hourly[new Date().getUTCHours().toString()]['BTCUSDT'];
     pp.decay();
-    const after = pp.getModel().hourly[new Date().getHours().toString()]['BTCUSDT'];
+    const after = pp.getModel().hourly[new Date().getUTCHours().toString()]['BTCUSDT'];
     expect(after).toBeLessThan(before);
     expect(after).toBeGreaterThan(0);
   });

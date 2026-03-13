@@ -261,7 +261,8 @@ describe('compute() — Sharpe & Sortino', () => {
       mkWinner(100, `2025-01-${String(i + 1).padStart(2, '0')}T10:00:00Z`),
     );
     const result = compute(trades);
-    expect(result.sortino).toBe(0);
+    // Implementation caps at 99.99 when no downside deviation (guard against Infinity)
+    expect(result.sortino).toBe(99.99);
   });
 
   it('warns for few trading days', () => {

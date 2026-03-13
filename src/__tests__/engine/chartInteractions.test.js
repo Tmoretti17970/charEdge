@@ -288,7 +288,7 @@ describe('5.2 — Mouse Interactions', () => {
     im.onMouseDown(e);
 
     expect(engine.state.dragging).toBe('time');
-    expect(canvas.style.cursor).toBe('grab');
+    expect(canvas.style.cursor).toBe('ew-resize');
   });
 
   it('onMouseDown in price axis area starts price drag', () => {
@@ -527,9 +527,10 @@ describe('5.2 — Touch Gesture Interactions', () => {
       touches: [{ clientX: 400, clientY: 300 }],
     });
 
-    // Set up some velocity
+    // Set up some velocity and confirm pan mode
     im._velocityX = 5;
     im._touchMode = 'pan';
+    im._touchConfirmedPan = true; // Sprint 11 B4: Required for inertia to trigger
 
     im.onTouchEnd({ preventDefault: vi.fn() });
 

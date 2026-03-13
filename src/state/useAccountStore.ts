@@ -24,6 +24,7 @@ interface Account {
 
 interface AccountState {
   activeAccountId: AccountId;
+  switching: boolean;
   accounts: Account[];
   switchAccount: (id: AccountId) => void;
   toggleAccount: () => void;
@@ -44,16 +45,17 @@ const useAccountStore = create<AccountState>()(
   persist(
     (set, get) => ({
       activeAccountId: 'real' as AccountId,
+      switching: false,
       accounts: ACCOUNTS,
 
       switchAccount(id: AccountId) {
         if (id === get().activeAccountId) return;
-        set({ activeAccountId: id });
+        set({ activeAccountId: id, switching: true });
       },
 
       toggleAccount() {
         const current = get().activeAccountId;
-        set({ activeAccountId: current === 'real' ? 'demo' : 'real' });
+        set({ activeAccountId: current === 'real' ? 'demo' : 'real', switching: true });
       },
 
       getActiveAccount(): Account {
@@ -74,6 +76,11 @@ const useAccountStore = create<AccountState>()(
     },
   ),
 );
+
+/** Mark switching as complete — called by rehydration after data is ready */
+export function setSwitchingDone(): void {
+  useAccountStore.setState({ switching: false });
+}
 
 // ─── Selector Helpers ───────────────────────────────────────────
 

@@ -31,6 +31,7 @@ import { useCooldownEnforcer } from '../hooks/useCooldownEnforcer.js';
 import { useAnalyticsStore } from '../state/useAnalyticsStore';
 // eslint-disable-next-line import/order
 import { useJournalStore } from '../state/useJournalStore';
+import { useAccountStore } from '../state/useAccountStore';
 
 // Extracted hooks + components
 // eslint-disable-next-line import/order
@@ -48,6 +49,7 @@ import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 export default function JournalPage() {
   const trades = useJournalStore((s) => s.trades);
+  const switching = useAccountStore((s) => s.switching);
   const { isMobile } = useBreakpoints();
 
   // ─── Journal tab state ──────────────────────────────────────
@@ -195,8 +197,15 @@ export default function JournalPage() {
         onOverride={cooldown.override}
       />
 
-      {/* ─── Full-Height Work Area ──── */}
-      <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+      {/* ─── Full-Height Work Area (crossfade during account switch) ──── */}
+      <div style={{
+        flex: 1,
+        minHeight: 0,
+        overflow: 'auto',
+        opacity: switching ? 0.6 : 1,
+        transition: 'opacity 0.15s ease-out',
+        willChange: switching ? 'opacity' : 'auto',
+      }}>
         <JournalTopPane
           journalTab={journalTab}
           result={result}

@@ -1,13 +1,9 @@
-// ═══════════════════════════════════════════════════════════════════
-// charEdge — Smart Alerts & Notification Engine
-//
-// Sprint 16: Intelligent, contextual alert management center.
-// ═══════════════════════════════════════════════════════════════════
-
 import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
+import { useSmartAlertFeed } from '../../../state/useSmartAlertFeed';
+import { useAlertPreferences } from '../../../state/useAlertPreferences';
 
 const ALERT_TYPES = {
   price: { icon: '💰', label: 'Price Level', color: C.g },
@@ -38,16 +34,36 @@ const MOCK_ALERTS = [
   { id: 10, type: 'volume', symbol: 'AMD', priority: 'fyi', message: 'Dark pool activity spike — 2.8M shares block traded', time: '6h ago', outcome: '-0.8% since alert' },
 ];
 
+function formatTimeAgo(iso) {
+  const d = new Date(iso);
+  const ms = Date.now() - d.getTime();
+  if (ms < 60_000) return 'just now';
+  if (ms < 3_600_000) return `${Math.floor(ms / 60_000)}m ago`;
+  if (ms < 86_400_000) return `${Math.floor(ms / 3_600_000)}h ago`;
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
 function SmartAlerts() {
   const [collapsed, setCollapsed] = useState(false);
   const [filter, setFilter] = useState('all');
-  const [quietMode, setQuietMode] = useState(false);
+  const quietMode = useAlertPreferences((s) => s.globalMute);
+  const toggleMute = useAlertPreferences((s) => s.toggleMute);
+
+  // E5: Use live feed when available, fall back to mock
+  const liveEvents = useSmartAlertFeed((s) => s.events);
+  const isLive = useSmartAlertFeed((s) => s.isLive);
+  const hasLiveData = liveEvents.length > 0 || isLive;
+
+  const source = hasLiveData ? liveEvents.map((e) => ({
+    ...e,
+    time: formatTimeAgo(e.time),
+  })) : MOCK_ALERTS;
 
   const alerts = useMemo(() => {
-    if (filter === 'critical') return MOCK_ALERTS.filter((a) => a.priority === 'critical');
-    if (filter === 'unresolved') return MOCK_ALERTS.filter((a) => !a.outcome);
-    if (filter === 'resolved') return MOCK_ALERTS.filter((a) => a.outcome);
-    return MOCK_ALERTS;
+    if (filter === 'critical') return source.filter((a) => a.priority === 'critical');
+    if (filter === 'unresolved') return source.filter((a) => !a.outcome);
+    if (filter === 'resolved') return source.filter((a) => a.outcome);
+    return source;
   }, [filter]);
 
   const criticalCount = MOCK_ALERTS.filter((a) => a.priority === 'critical').length;
@@ -83,7 +99,7 @@ function SmartAlerts() {
                 </button>
               ))}
             </div>
-            <button onClick={() => setQuietMode(!quietMode)} className="tf-btn"
+            <button onClick={() => toggleMute()} className="tf-btn"
               style={{ padding: '4px 10px', borderRadius: 6, border: `1px solid ${quietMode ? C.y : 'transparent'}`, background: quietMode ? alpha(C.y, 0.08) : 'transparent', color: quietMode ? C.y : C.t3, cursor: 'pointer', fontSize: 10, fontWeight: 600, fontFamily: F }}>
               {quietMode ? '🔇 Quiet On' : '🔔 Alerts On'}
             </button>

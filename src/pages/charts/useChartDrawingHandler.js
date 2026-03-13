@@ -6,6 +6,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useChartTradeHandler } from '../../app/components/chart/hooks/useChartTradeHandler.js';
+import { useDrawingAlerts } from '../../app/components/chart/hooks/useDrawingAlerts.js';
 import { parseChartCommand } from '../../charting_library/ai/AICopilotEngine.js';
 import { TOOL_CONFIG, magnetSnap } from '../../charting_library/tools/drawingTools.js';
 import { useChartCoreStore } from '../../state/chart/useChartCoreStore';
@@ -37,6 +38,9 @@ export default function useChartDrawingHandler(chartRef) {
   const tradeMode = useChartFeaturesStore((s) => s.tradeMode);
 
   const { handleChartClick: handleTradeClick, handleContextMenu, contextMenuHandlers } = useChartTradeHandler();
+
+  // A1: Bridge drawing alerts → useAlertStore for persistence
+  useDrawingAlerts();
 
   const [copyFeedback, setCopyFeedback] = useState(false);
 

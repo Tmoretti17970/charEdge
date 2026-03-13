@@ -106,7 +106,7 @@ describe('CloudBackup', () => {
 
   it('restoreCloudConnection returns false when nothing saved', async () => {
     const { restoreCloudConnection } = await import('../../data/CloudBackup.js');
-    expect(restoreCloudConnection()).toBe(false);
+    expect(await restoreCloudConnection()).toBe(false);
   });
 
   it('restoreCloudConnection restores valid saved token', async () => {

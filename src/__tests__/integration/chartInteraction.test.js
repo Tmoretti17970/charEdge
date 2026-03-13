@@ -75,14 +75,5 @@ describe('Chart Interaction — Alert Store', () => {
     });
 });
 
-describe('Chart Interaction — Drawing Annotations', () => {
-    const annotationSrc = read('state/useAnnotationStore.ts');
-
-    it('useAnnotationStore exists', () => {
-        expect(annotationSrc).toContain('useAnnotationStore');
-    });
-
-    it('stores drawing annotations', () => {
-        expect(annotationSrc).toContain('annotation') || expect(annotationSrc).toContain('drawing');
-    });
-});
+// NOTE: Drawing Annotations tests removed — useAnnotationStore.ts was deleted.
+// Drawing annotations are now managed through useChartStore.drawings.

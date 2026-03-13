@@ -235,7 +235,7 @@ describe('4.6.4 — Focus trap for modals/dialogs', () => {
 describe('4.6.5 — aria-live for price updates', () => {
     it('ariaLivePrice module exists', async () => {
         const fs = await import('fs');
-        const source = await fs.promises.readFile('src/utils/ariaLivePrice.ts', 'utf8');
+        const source = await fs.promises.readFile('src/a11y/ariaLivePrice.ts', 'utf8');
         expect(source).toContain('aria-live');
     });
 

@@ -1,10 +1,13 @@
 // ═══════════════════════════════════════════════════════════════════
-// Batch 15 — Drawing Settings Upgrade (Source Verification)
+// Drawing Settings Upgrade — Source Verification Tests
 //
-// Validates:
-//   1. DrawingSettingsDialog: 3-tab dialog (Style/Coordinates/Visibility)
-//   2. DrawingEditPopup: gear icon bridge for complex tools
+// Validates the TradingView-grade overhaul:
+//   1. DrawingSettingsDialog: 4-tab dialog (Style/Text/Coordinates/Visibility)
+//      + tool-config-driven architecture + Inputs tab for Position tools
+//   2. DrawingEditPopup: gear icon bridge for ALL tools
 //   3. drawingSlice: drawingDefaults store extension
+//   4. SettingsControls: new shared control components
+//   5. DrawingModel: extended style properties
 // ═══════════════════════════════════════════════════════════════════
 
 import { readFileSync } from 'fs';
@@ -15,7 +18,7 @@ const ROOT = resolve(__dirname, '..', '..');
 const read = (rel) => readFileSync(resolve(ROOT, rel), 'utf-8');
 
 // ─── 1. DrawingSettingsDialog ────────────────────────────────────
-describe('Batch 15 · DrawingSettingsDialog — Full Settings', () => {
+describe('DrawingSettingsDialog — TradingView-Grade Overhaul', () => {
     const src = read('app/components/chart/panels/DrawingSettingsDialog.jsx');
 
     it('exports default DrawingSettingsDialog', () => {
@@ -26,41 +29,68 @@ describe('Batch 15 · DrawingSettingsDialog — Full Settings', () => {
         expect(src).toContain('SettingsTabShell');
     });
 
-    it('imports SettingsControls', () => {
-        expect(src).toContain('SettingsControls');
+    it('imports new TradingView-grade controls', () => {
+        expect(src).toContain('CheckboxRow');
+        expect(src).toContain('LineCompound');
+        expect(src).toContain('LineEndPicker');
+        expect(src).toContain('FontToolbar');
+        expect(src).toContain('StyledTextArea');
+        expect(src).toContain('TextAlignmentPicker');
+        expect(src).toContain('StepperInput');
+        expect(src).toContain('TimeframeVisibilityRow');
     });
 
-    it('defines 3 tabs: style, coordinates, visibility', () => {
-        expect(src).toContain("id: 'style'");
-        expect(src).toContain("id: 'coordinates'");
-        expect(src).toContain("id: 'visibility'");
+    // ─── Tool Config ─────────────────
+    it('has tool-config-driven architecture', () => {
+        expect(src).toContain('getToolConfig');
+        expect(src).toContain('LINE_TOOLS');
+        expect(src).toContain('SHAPE_TOOLS');
+        expect(src).toContain('FIB_TOOLS');
+        expect(src).toContain('TRADE_TOOLS');
     });
 
     // ─── Style Tab ───────────────────
-    it('Style tab has color and line controls', () => {
-        expect(src).toContain('ColorSwatch');
-        expect(src).toContain('LineStylePicker');
+    it('Style tab has Extend dropdown', () => {
+        expect(src).toContain('EXTEND_OPTIONS');
+        expect(src).toContain("Don't extend");
+        expect(src).toContain('Extend left');
+        expect(src).toContain('Extend right');
+        expect(src).toContain('Extend both');
     });
 
-    it('Style tab has fill controls', () => {
-        expect(src).toContain('Show Fill');
-        expect(src).toContain('fillColor');
+    it('Style tab has line end picker', () => {
+        expect(src).toContain('LineEndPicker');
+        expect(src).toContain('lineEndLeft');
+        expect(src).toContain('lineEndRight');
     });
 
-    it('Style tab has Fib level controls', () => {
+    it('Style tab has Middle point and Price labels checkboxes', () => {
+        expect(src).toContain('Middle point');
+        expect(src).toContain('Price labels');
+    });
+
+    it('Style tab has Stats section with dropdown and position', () => {
+        expect(src).toContain('STATS_OPTIONS');
+        expect(src).toContain('Stats position');
+        expect(src).toContain('Always show stats');
+    });
+
+    it('Style tab has Middle line and Background for shapes', () => {
+        expect(src).toContain('Middle line');
+        expect(src).toContain('Background');
+        expect(src).toContain('showBackground');
+    });
+
+    it('Style tab has Stop/Target colors for position tools', () => {
+        expect(src).toContain('Stop color');
+        expect(src).toContain('Target color');
+        expect(src).toContain('Compact stats mode');
+    });
+
+    it('Style tab has Fib level controls with editable grid', () => {
         expect(src).toContain('Fib Levels');
         expect(src).toContain('DEFAULT_FIB_LEVELS');
-    });
-
-    it('Style tab has label controls (prices, percentages, position)', () => {
-        expect(src).toContain('Show Prices');
-        expect(src).toContain('Show Percentages');
-        expect(src).toContain('Label Position');
-    });
-
-    it('Style tab has log scale toggle', () => {
-        expect(src).toContain('Log Scale');
-        expect(src).toContain('logScale');
+        expect(src).toContain('gridTemplateColumns');
     });
 
     it('has save-as-default functionality', () => {
@@ -68,29 +98,64 @@ describe('Batch 15 · DrawingSettingsDialog — Full Settings', () => {
         expect(src).toContain('setDrawingDefault');
     });
 
+    // ─── Text Tab ────────────────────
+    it('Text tab has font toolbar and text area', () => {
+        expect(src).toContain('FontToolbar');
+        expect(src).toContain('StyledTextArea');
+        expect(src).toContain('Add text');
+    });
+
+    it('Text tab has text alignment picker', () => {
+        expect(src).toContain('TextAlignmentPicker');
+        expect(src).toContain('textAlignV');
+        expect(src).toContain('textAlignH');
+    });
+
     // ─── Coordinates Tab ─────────────
-    it('Coordinates tab has per-anchor point editing', () => {
-        expect(src).toContain('Anchor Points');
-        expect(src).toContain('Point');
-        expect(src).toContain('Price');
-        expect(src).toContain('Date/Time');
+    it('Coordinates tab has TradingView-style point format', () => {
+        expect(src).toContain('(price, bar)');
+        expect(src).toContain('StepperInput');
     });
 
     // ─── Visibility Tab ──────────────
-    it('Visibility tab has timeframe matrix', () => {
-        expect(src).toContain('TIMEFRAMES');
-        expect(src).toContain('Show on all timeframes');
+    it('Visibility tab has per-timeframe rows', () => {
+        expect(src).toContain('TIMEFRAME_ROWS');
+        expect(src).toContain('TimeframeVisibilityRow');
+        expect(src).toContain('Seconds');
+        expect(src).toContain('Minutes');
+        expect(src).toContain('Hours');
+        expect(src).toContain('Days');
+        expect(src).toContain('Weeks');
+        expect(src).toContain('Months');
     });
 
-    // ─── Complex tool checker ────────
-    it('exports isComplexTool static method', () => {
+    it('Visibility tab has Ticks and Ranges checkboxes', () => {
+        expect(src).toContain('visibilityTicks');
+        expect(src).toContain('visibilityRanges');
+        expect(src).toContain('"Ticks"');
+        expect(src).toContain('"Ranges"');
+    });
+
+    // ─── Inputs Tab (Position tools) ─
+    it('Inputs tab has position tool fields', () => {
+        expect(src).toContain('Account size');
+        expect(src).toContain('Lot size');
+        expect(src).toContain('Entry price');
+        expect(src).toContain('Leverage');
+        expect(src).toContain('Profit Level');
+        expect(src).toContain('Stop Level');
+        expect(src).toContain('QTY precision');
+    });
+
+    // ─── isComplexTool ───────────────
+    it('isComplexTool returns true for ALL tools', () => {
         expect(src).toContain('isComplexTool');
-        expect(src).toContain('COMPLEX_TOOLS');
+        expect(src).toContain('() => true');
     });
 });
 
 // ─── 2. DrawingEditPopup — Gear Icon Bridge ──────────────────────
-describe('Batch 15 · DrawingEditPopup — Gear Icon Bridge', () => {
+describe('DrawingEditPopup — Gear Icon Bridge', () => {
     const src = read('app/components/chart/tools/DrawingEditPopup.jsx');
 
     it('imports DrawingSettingsDialog', () => {
@@ -102,13 +167,9 @@ describe('Batch 15 · DrawingEditPopup — Gear Icon Bridge', () => {
         expect(src).toContain('setShowFullSettings');
     });
 
-    it('listens for charEdge:open-drawing-settings event', () => {
-        expect(src).toContain('charEdge:open-drawing-settings');
-    });
-
-    it('has gear icon button for complex tools', () => {
-        expect(src).toContain('isComplexTool');
-        expect(src).toContain('Open full settings');
+    it('has gear icon button', () => {
+        expect(src).toContain('Settings');
+        expect(src).toContain('setShowFullSettings');
     });
 
     it('renders DrawingSettingsDialog when showFullSettings is true', () => {
@@ -117,7 +178,7 @@ describe('Batch 15 · DrawingEditPopup — Gear Icon Bridge', () => {
 });
 
 // ─── 3. drawingSlice — Defaults Store ────────────────────────────
-describe('Batch 15 · drawingSlice — Drawing Defaults Extension', () => {
+describe('drawingSlice — Drawing Defaults Extension', () => {
     const src = read('state/chart/drawingSlice.ts');
 
     it('has drawingDefaults state', () => {
@@ -134,5 +195,77 @@ describe('Batch 15 · drawingSlice — Drawing Defaults Extension', () => {
 
     it('has resetDrawingDefaults action', () => {
         expect(src).toContain('resetDrawingDefaults');
+    });
+});
+
+// ─── 4. SettingsControls — New Components ────────────────────────
+describe('SettingsControls — New TradingView-Grade Components', () => {
+    const src = read('app/components/settings/SettingsControls.jsx');
+
+    it('exports CheckboxRow', () => {
+        expect(src).toContain('export function CheckboxRow');
+    });
+
+    it('exports LineCompound', () => {
+        expect(src).toContain('export function LineCompound');
+    });
+
+    it('exports LineEndPicker', () => {
+        expect(src).toContain('export function LineEndPicker');
+    });
+
+    it('exports FontToolbar', () => {
+        expect(src).toContain('export function FontToolbar');
+    });
+
+    it('exports StyledTextArea', () => {
+        expect(src).toContain('export function StyledTextArea');
+    });
+
+    it('exports TextAlignmentPicker', () => {
+        expect(src).toContain('export function TextAlignmentPicker');
+    });
+
+    it('exports StepperInput', () => {
+        expect(src).toContain('export function StepperInput');
+    });
+
+    it('exports TimeframeVisibilityRow', () => {
+        expect(src).toContain('export function TimeframeVisibilityRow');
+    });
+});
+
+// ─── 5. DrawingModel — Extended Style Properties ─────────────────
+describe('DrawingModel — Extended Style Properties', () => {
+    const src = read('charting_library/tools/tools/DrawingModel.js');
+
+    it('has new TradingView-grade style properties in typedef', () => {
+        expect(src).toContain('@property {string}  [extend]');
+        expect(src).toContain('@property {string}  [lineEndLeft]');
+        expect(src).toContain('@property {boolean} [middlePoint]');
+        expect(src).toContain('@property {boolean} [priceLabels]');
+        expect(src).toContain('@property {string}  [stats]');
+        expect(src).toContain('@property {boolean} [middleLine]');
+    });
+
+    it('trendline has new default properties', () => {
+        expect(src).toContain("extend: 'none'");
+        expect(src).toContain("lineEndLeft: 'none'");
+        expect(src).toContain("middlePoint: false");
+        expect(src).toContain("stats: 'hidden'");
+    });
+
+    it('longposition has stop/target colors and position fields', () => {
+        expect(src).toContain("stopColor: '#F23645'");
+        expect(src).toContain("targetColor: '#089981'");
+        expect(src).toContain('accountSize: 1000');
+        expect(src).toContain('leverage: 10000');
+    });
+
+    it('rect has border and middle line defaults', () => {
+        expect(src).toContain("borderColor: '#2962FF'");
+        expect(src).toContain('middleLine: false');
+        expect(src).toContain("middleLineColor: '#787B86'");
+        expect(src).toContain('showBackground: true');
     });
 });
