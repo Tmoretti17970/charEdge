@@ -10,7 +10,11 @@
 //
 // Data model:
 //   items: [{ symbol, name, assetClass, folderId?, addedAt }]
-//   folders: [{ id, name, parentId, collapsed, sortOrder, color? }]
+//   folders: [{ id, name, parentId, collapsed, sortOrder, color?, smart?, rules? }]
+//
+// Smart folder rules format:
+//   rules: [{ field: 'changePercent'|'volume'|'assetClass'|'rsi', op: '>='|'<='|'=='|'!=', value: number|string }]
+//   Logic: ALL rules must match (AND). Items matching auto-assign to the smart folder.
 //
 // Usage:
 //   watchlist.add({ symbol: 'ES', folderId: 'tech' })
@@ -157,6 +161,33 @@ const useWatchlistStore = create((set, get) => ({
           collapsed: false,
           sortOrder: s.folders.length,
           color,
+        },
+      ],
+    }));
+    return id;
+  },
+
+  /**
+   * Add a smart folder with rules for auto-population.
+   * @param {string} name
+   * @param {Array} rules - [{ field, op, value }]
+   * @param {string} [color]
+   * @returns {string} folder ID
+   */
+  addSmartFolder: (name, rules = [], color = null) => {
+    const id = genId();
+    set((s) => ({
+      folders: [
+        ...s.folders,
+        {
+          id,
+          name: name || 'Smart Folder',
+          parentId: null,
+          collapsed: false,
+          sortOrder: s.folders.length,
+          color,
+          smart: true,
+          rules: rules || [],
         },
       ],
     }));
@@ -402,6 +433,71 @@ function enrichWithTradeStats(watchlistItems, trades) {
   }));
 }
 
+/**
+ * Evaluate smart folder rules and auto-assign matching items.
+ * This is a pure function — call it whenever ticker data updates.
+ * @param {Array} items - watchlist items
+ * @param {Array} folders - all folders
+ * @param {Object} tickerMap - { [symbol]: { lastPrice, priceChangePercent, volume, ... } }
+ * @param {Object} [indicatorMap] - { [symbol]: { rsi, atr, bbWidth, ... } }
+ * @returns {Array} Updated items with smart folder assignments
+ */
+function evaluateSmartFolders(items, folders, tickerMap = {}, indicatorMap = {}) {
+  const smartFolders = folders.filter((f) => f.smart && f.rules?.length > 0);
+  if (smartFolders.length === 0) return items;
+
+  return items.map((item) => {
+    // Check each smart folder
+    for (const sf of smartFolders) {
+      const matches = sf.rules.every((rule) => {
+        const val = _resolveField(item, rule.field, tickerMap, indicatorMap);
+        if (val === null || val === undefined) return false;
+        return _evalOp(val, rule.op, rule.value);
+      });
+      if (matches) return { ...item, folderId: sf.id };
+    }
+    // Not matched by any smart folder — keep original (or root)
+    const isInSmartFolder = smartFolders.some((sf) => sf.id === item.folderId);
+    return isInSmartFolder ? { ...item, folderId: null } : item;
+  });
+}
+
+/**
+ * Resolve a field value from item, ticker, or indicator data.
+ */
+function _resolveField(item, field, tickerMap, indicatorMap) {
+  const ticker = tickerMap[item.symbol] || {};
+  const indicators = indicatorMap[item.symbol] || {};
+
+  switch (field) {
+    case 'assetClass': return item.assetClass;
+    case 'symbol': return item.symbol;
+    case 'changePercent': return ticker.priceChangePercent ? parseFloat(ticker.priceChangePercent) : null;
+    case 'volume': return ticker.volume ? parseFloat(ticker.volume) : null;
+    case 'price': return ticker.lastPrice ? parseFloat(ticker.lastPrice) : null;
+    case 'rsi': return indicators.rsi ?? null;
+    case 'atr': return indicators.atr ?? null;
+    case 'bbWidth': return indicators.bbWidth ?? null;
+    case 'sentiment': return indicators.sentiment ?? null;
+    default: return null;
+  }
+}
+
+/**
+ * Evaluate a single rule operation.
+ */
+function _evalOp(val, op, target) {
+  switch (op) {
+    case '>=': return Number(val) >= Number(target);
+    case '<=': return Number(val) <= Number(target);
+    case '>': return Number(val) > Number(target);
+    case '<': return Number(val) < Number(target);
+    case '==': return String(val).toLowerCase() === String(target).toLowerCase();
+    case '!=': return String(val).toLowerCase() !== String(target).toLowerCase();
+    default: return false;
+  }
+}
+
 // ─── Public API ─────────────────────────────────────────────────
 
 const watchlist = {
@@ -424,6 +520,7 @@ export {
   buildFolderTree,
   getRootItems,
   enrichWithTradeStats,
+  evaluateSmartFolders,
   DEFAULT_WATCHLIST,
   MAX_WATCHLIST,
   SOFT_LIMIT,

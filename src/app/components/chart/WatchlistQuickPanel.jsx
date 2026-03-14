@@ -113,18 +113,21 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
   const [sparklines, setSparklines] = useState({});
   const [addInput, setAddInput] = useState('');
   const [showAddInput, setShowAddInput] = useState(false);
+  const [viewMode, setViewMode] = useState('standard'); // 'compact' | 'standard' | 'table'
   const [handleHovered, setHandleHovered] = useState(false);
-  const [viewMode, setViewMode] = useState('folders'); // 'folders' | 'asset'
+  const [groupMode, setGroupMode] = useState('folders'); // 'folders' | 'asset'
   const filterRef = useRef(null);
 
   // Folder state
   const folders = useWatchlistStore((s) => s.folders);
   const addFolder = useWatchlistStore((s) => s.addFolder);
+  const addSmartFolder = useWatchlistStore((s) => s.addSmartFolder);
   const removeFolder = useWatchlistStore((s) => s.removeFolder);
   const renameFolder = useWatchlistStore((s) => s.renameFolder);
   const toggleFolderCollapse = useWatchlistStore((s) => s.toggleFolderCollapse);
   const moveToFolder = useWatchlistStore((s) => s.moveToFolder);
   const reorderStore = useWatchlistStore((s) => s.reorder);
+  const [showSmartPresets, setShowSmartPresets] = useState(false);
   const [renamingFolder, setRenamingFolder] = useState(null);
   const [renameValue, setRenameValue] = useState('');
   const [dragItem, setDragItem] = useState(null);
@@ -259,8 +262,8 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
   const folderTree = useMemo(() => buildFolderTree(filteredItems, folders), [filteredItems, folders]);
   const rootItems = useMemo(() => {
     const ri = getRootItems(filteredItems);
-    return viewMode === 'asset' ? ri : ri;
-  }, [filteredItems, viewMode]);
+    return groupMode === 'asset' ? ri : ri;
+  }, [filteredItems, groupMode]);
   const rootGrouped = useMemo(() => groupByAssetClass(rootItems), [rootItems]);
 
   const handleSymbolClick = useCallback(
@@ -362,6 +365,15 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
     const changeColor = changePercent !== null ? (isPositive ? C.g : C.r) : C.t3;
     const lastPrice = ticker ? parseFloat(ticker.lastPrice) : null;
 
+    // ─── View-mode-specific layout ───
+    const isCompact = viewMode === 'compact';
+    const isTable = viewMode === 'table';
+    const rowPadding = isCompact ? '4px 12px' : '7px 12px';
+    const symbolFont = isCompact ? 11 : 12;
+    const priceFont = isCompact ? 10 : 11;
+    const showSparkline = !isCompact; // No sparkline in compact
+    const showName = !isCompact && !isTable;
+
     return (
       <div
         key={item.symbol}
@@ -374,8 +386,8 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
         onMouseEnter={() => setHoveredSymbol(item.symbol)}
         onMouseLeave={() => setHoveredSymbol(null)}
         style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          padding: '7px 12px', cursor: 'grab',
+          display: 'flex', alignItems: 'center', gap: isTable ? 4 : 8,
+          padding: rowPadding, cursor: 'grab',
           background: isActive
             ? alpha(C.b, 0.08)
             : isHovered ? alpha(C.sf2, 0.6) : 'transparent',
@@ -383,6 +395,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
           transition: 'all 0.12s ease',
           position: 'relative',
           opacity: dragItem?.symbol === item.symbol ? 0.4 : 1,
+          borderBottom: isTable ? `1px solid ${alpha(C.bd, 0.15)}` : 'none',
         }}
       >
         {/* Price flash overlay */}
@@ -396,28 +409,30 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
             pointerEvents: 'none',
           }} />
         )}
-        {/* Drag grip */}
-        <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 1.5, opacity: 0.3, cursor: 'grab' }}>
-          {[0, 1].map(i => (
-            <div key={i} style={{ display: 'flex', gap: 1.5 }}>
-              <div style={{ width: 2, height: 2, borderRadius: 1, background: C.t3 }} />
-              <div style={{ width: 2, height: 2, borderRadius: 1, background: C.t3 }} />
-            </div>
-          ))}
-        </div>
+        {/* Drag grip (hidden in compact) */}
+        {!isCompact && (
+          <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 1.5, opacity: 0.3, cursor: 'grab' }}>
+            {[0, 1].map(i => (
+              <div key={i} style={{ display: 'flex', gap: 1.5 }}>
+                <div style={{ width: 2, height: 2, borderRadius: 1, background: C.t3 }} />
+                <div style={{ width: 2, height: 2, borderRadius: 1, background: C.t3 }} />
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Symbol + Name */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: isTable ? 'none' : 1, minWidth: isTable ? 60 : 0, width: isTable ? 60 : 'auto' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
             <span
               style={{
-                fontSize: 12, fontWeight: isActive ? 800 : 700,
+                fontSize: symbolFont, fontWeight: isActive ? 800 : 700,
                 color: isActive ? C.b : C.t1, fontFamily: M,
               }}
             >
               {item.symbol}
             </span>
-            {item.tradeCount > 0 && (
+            {item.tradeCount > 0 && !isCompact && (
               <span
                 style={{
                   fontSize: 8, color: item.totalPnl >= 0 ? C.g : C.r,
@@ -428,7 +443,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
               </span>
             )}
           </div>
-          {item.name && item.name !== item.symbol && (
+          {showName && item.name && item.name !== item.symbol && (
             <div
               style={{
                 fontSize: 9, color: C.t3, overflow: 'hidden',
@@ -441,32 +456,49 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
           )}
         </div>
 
-        {/* Sparkline */}
-        {sparkline && sparkline.length > 0 && (
-          <div style={{ flexShrink: 0, opacity: 0.85 }}>
-            <MiniSparkline data={sparkline} color={changeColor} width={48} height={20} />
+        {/* Sparkline (standard + table only) */}
+        {showSparkline && sparkline && sparkline.length > 0 && (
+          <div style={{ flexShrink: 0, opacity: 0.85, flex: isTable ? 1 : 'none' }}>
+            <MiniSparkline data={sparkline} color={changeColor} width={isTable ? 64 : 48} height={isTable ? 18 : 20} />
           </div>
         )}
 
         {/* Price + Change */}
-        <div style={{ textAlign: 'right', flexShrink: 0, minWidth: 56 }}>
+        <div style={{ textAlign: 'right', flexShrink: 0, minWidth: isTable ? 65 : 56 }}>
           {lastPrice !== null && (
-            <div style={{ fontSize: 11, fontWeight: 700, fontFamily: M, color: C.t1 }}>
+            <div style={{ fontSize: priceFont, fontWeight: 700, fontFamily: M, color: C.t1 }}>
               {lastPrice < 1 ? lastPrice.toFixed(4) : lastPrice < 100 ? lastPrice.toFixed(2) : lastPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </div>
           )}
           {changePercent !== null && (
             <div
               style={{
-                fontSize: 9, fontWeight: 600, fontFamily: M, color: changeColor,
+                fontSize: isCompact ? 8 : 9, fontWeight: 600, fontFamily: M, color: changeColor,
                 background: alpha(changeColor, 0.08), padding: '1px 5px',
-                borderRadius: 4, marginTop: 1, display: 'inline-block',
+                borderRadius: 4, marginTop: isCompact ? 0 : 1, display: 'inline-block',
               }}
             >
               {isPositive ? '+' : ''}{changePercent.toFixed(2)}%
             </div>
           )}
         </div>
+
+        {/* Volume column (table only) */}
+        {isTable && (
+          <div style={{ textAlign: 'right', flexShrink: 0, minWidth: 50 }}>
+            {ticker?.volume ? (
+              <span style={{ fontSize: 9, fontFamily: M, color: C.t3 }}>
+                {parseFloat(ticker.volume) >= 1e6
+                  ? `${(parseFloat(ticker.volume) / 1e6).toFixed(1)}M`
+                  : parseFloat(ticker.volume) >= 1e3
+                    ? `${(parseFloat(ticker.volume) / 1e3).toFixed(0)}K`
+                    : parseFloat(ticker.volume).toFixed(0)}
+              </span>
+            ) : (
+              <span style={{ fontSize: 9, fontFamily: M, color: alpha(C.t3, 0.4) }}>—</span>
+            )}
+          </div>
+        )}
 
         {/* Remove button (hover only) */}
         {isHovered && !isActive && (
@@ -476,7 +508,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
               removeSymbol(item.symbol);
             }}
             style={{
-              position: 'absolute', right: 4, top: 4,
+              position: 'absolute', right: 4, top: isCompact ? 2 : 4,
               width: 16, height: 16, borderRadius: 4, border: 'none',
               background: alpha(C.r, 0.1), color: C.r, fontSize: 9,
               cursor: 'pointer', display: 'flex',
@@ -490,7 +522,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
         )}
       </div>
     );
-  }, [mergedTickers, sparklines, currentSymbol, hoveredSymbol, dragItem, flashSymbols, handleRowDragStart, handleRowDragOver, handleRowDrop, handleRowDragEnd, handleSymbolClick, removeSymbol]);
+  }, [mergedTickers, sparklines, currentSymbol, hoveredSymbol, dragItem, flashSymbols, viewMode, handleRowDragStart, handleRowDragOver, handleRowDrop, handleRowDragEnd, handleSymbolClick, removeSymbol]);
 
   // ─── Compute transform ────────────────────────────────────────
   // Panel is in the normal flow of the flex container.
@@ -652,6 +684,30 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
               {items.length}
             </span>
           </div>
+          {/* View mode toggle */}
+          <div style={{
+            display: 'flex', gap: 1, background: alpha(C.sf, 0.5),
+            borderRadius: 5, padding: 1.5, marginLeft: 4,
+          }}>
+            {[['compact', '☰'], ['standard', '≡'], ['table', '▤']].map(([mode, icon]) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                title={`${mode.charAt(0).toUpperCase() + mode.slice(1)} view`}
+                style={{
+                  width: 20, height: 18, borderRadius: 3, border: 'none',
+                  background: viewMode === mode ? alpha(C.b, 0.15) : 'transparent',
+                  color: viewMode === mode ? C.b : C.t3,
+                  fontSize: 10, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.12s',
+                  fontWeight: viewMode === mode ? 700 : 400,
+                }}
+              >
+                {icon}
+              </button>
+            ))}
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <button
               onClick={() => setShowAddInput(!showAddInput)}
@@ -680,6 +736,63 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
             >
               📁
             </button>
+            {/* Smart folder button */}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowSmartPresets(!showSmartPresets)}
+                title="Create smart folder"
+                style={{
+                  width: 24, height: 24, borderRadius: 6, border: 'none',
+                  background: showSmartPresets ? alpha(C.b, 0.12) : 'transparent',
+                  color: showSmartPresets ? C.b : C.t3, fontSize: 12, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.15s',
+                }}
+              >
+                ⚡
+              </button>
+              {/* Smart folder preset dropdown */}
+              {showSmartPresets && (
+                <div
+                  style={{
+                    position: 'absolute', top: '100%', right: 0, marginTop: 4,
+                    width: 180, background: GLASS.standard,
+                    backdropFilter: GLASS.blurMd, WebkitBackdropFilter: GLASS.blurMd,
+                    border: GLASS.border, borderRadius: 8, overflow: 'hidden',
+                    boxShadow: DEPTH[2], zIndex: 100,
+                  }}
+                >
+                  <div style={{ padding: '6px 10px', fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: F }}>
+                    Smart Folders
+                  </div>
+                  {[
+                    { name: '🔥 Movers > 3%', rules: [{ field: 'changePercent', op: '>=', value: 3 }] },
+                    { name: '📉 Oversold', rules: [{ field: 'rsi', op: '<=', value: 30 }] },
+                    { name: '₿ Crypto Only', rules: [{ field: 'assetClass', op: '==', value: 'crypto' }] },
+                    { name: '📊 High Volume', rules: [{ field: 'volume', op: '>=', value: 1000000 }] },
+                    { name: '🔻 Losers > -2%', rules: [{ field: 'changePercent', op: '<=', value: -2 }] },
+                  ].map((preset) => (
+                    <button
+                      key={preset.name}
+                      onClick={() => {
+                        addSmartFolder(preset.name, preset.rules);
+                        setShowSmartPresets(false);
+                      }}
+                      style={{
+                        display: 'block', width: '100%', textAlign: 'left',
+                        padding: '7px 10px', background: 'transparent', border: 'none',
+                        color: C.t1, fontSize: 11, fontFamily: F, fontWeight: 500,
+                        cursor: 'pointer', transition: 'background 0.12s',
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = alpha(C.sf2, 0.6); }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      {preset.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <button
               onClick={() => onClose?.()}
               title="Slide away (W)"
@@ -745,6 +858,19 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
             onBlur={(e) => { e.target.style.borderColor = alpha(C.bd, 0.5); }}
           />
         </div>
+
+        {/* ─── Table Header (table mode only) ──────────── */}
+        {viewMode === 'table' && filteredItems.length > 0 && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 4, padding: '4px 12px',
+            borderBottom: `1px solid ${alpha(C.bd, 0.3)}`, flexShrink: 0,
+          }}>
+            <div style={{ width: 60, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.t3, fontFamily: F }}>Symbol</div>
+            <div style={{ flex: 1, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.t3, fontFamily: F, textAlign: 'center' }}>Chart</div>
+            <div style={{ minWidth: 65, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.t3, fontFamily: F, textAlign: 'right' }}>Price</div>
+            <div style={{ minWidth: 50, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.t3, fontFamily: F, textAlign: 'right' }}>Volume</div>
+          </div>
+        )}
 
         {/* ─── Symbol List ────────────────────────────────── */}
         <div
