@@ -84,7 +84,7 @@ export default function AIInsightCard() {
     <div
       className="tf-container tf-ai-insight-card"
       style={{
-        padding: isMobile ? '14px 16px' : '16px 20px',
+        padding: '4px 12px',
         borderRadius: radii.md,
         background: colors.bg(C),
         border: `1px solid ${colors.border(C)}`,
@@ -93,51 +93,94 @@ export default function AIInsightCard() {
         overflow: 'hidden',
       }}
     >
-      {/* Header row */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 10,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {/* AI badge */}
-          <div
+      {/* Single row: badge + icon + content + dismiss */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {/* AI badge */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 3,
+            padding: '1px 6px',
+            borderRadius: radii.pill,
+            background: colors.iconBg(C),
+            border: `1px solid ${colors.accent(C)}30`,
+            flexShrink: 0,
+          }}
+        >
+          <AIOrb size={10} />
+          <span
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              padding: '2px 8px',
-              borderRadius: radii.pill,
-              background: colors.iconBg(C),
-              border: `1px solid ${colors.accent(C)}30`,
+              fontSize: 8,
+              fontWeight: 800,
+              fontFamily: M,
+              color: colors.accent(C),
+              letterSpacing: '0.05em',
             }}
           >
-            <AIOrb size={12} />
-            <span
-              style={{
-                fontSize: 9,
-                fontWeight: 800,
-                fontFamily: M,
-                color: colors.accent(C),
-                letterSpacing: '0.05em',
-              }}
-            >
-              AI {typeLabel}
-            </span>
-          </div>
-
-          {/* Counter */}
-          {insights.length > 1 && (
-            <span style={{ fontSize: 9, color: C.t3, fontFamily: M }}>
-              {activeIdx + 1}/{insights.length}
-            </span>
-          )}
+            AI {typeLabel}
+          </span>
         </div>
 
-        {/* Dismiss button */}
+        {insights.length > 1 && (
+          <span style={{ fontSize: 8, color: C.t3, fontFamily: M, flexShrink: 0 }}>
+            {activeIdx + 1}/{insights.length}
+          </span>
+        )}
+
+        {/* Icon */}
+        <span style={{ fontSize: 14, lineHeight: 1, flexShrink: 0 }}>{insight.icon}</span>
+
+        {/* Content */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <span
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: C.t1,
+              fontFamily: F,
+              lineHeight: 1.2,
+            }}
+          >
+            {insight.title}
+          </span>
+          <span style={{ fontSize: 11, color: C.t2, fontFamily: M, marginLeft: 6, lineHeight: 1.4 }}>
+            {insight.body}
+          </span>
+        </div>
+
+        {/* Carousel dots inline */}
+        {insights.length > 1 && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <NavArrow direction="left" onClick={handlePrev} />
+              {insights.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveIdx(i)}
+                  style={{
+                    width: i === activeIdx ? 28 : 16,
+                    height: 16,
+                    minWidth: 0,
+                    minHeight: 0,
+                    borderRadius: radii.pill,
+                    border: 'none',
+                    background: i === activeIdx ? colors.accent(C) : C.t3 + '40',
+                    cursor: 'pointer',
+                    padding: 0,
+                    transition: 'all 0.2s ease',
+                  }}
+                />
+              ))}
+              <NavArrow direction="right" onClick={handleNext} />
+            </div>
+            <span style={{ fontSize: 7, color: C.t3, fontFamily: F, opacity: 0.5 }}>
+              Not financial advice
+            </span>
+          </div>
+        )}
+
+        {/* Dismiss */}
         <button
           onClick={() => handleDismiss(insight.id)}
           className="tf-btn tf-hover-opacity"
@@ -145,95 +188,18 @@ export default function AIInsightCard() {
             background: 'none',
             border: 'none',
             color: C.t3,
-            fontSize: 14,
+            fontSize: 12,
             cursor: 'pointer',
-            padding: '2px 4px',
+            padding: '0 2px',
             borderRadius: radii.xs,
             lineHeight: 1,
+            flexShrink: 0,
           }}
           title="Dismiss this insight"
         >
           ×
         </button>
       </div>
-
-      {/* Insight content */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-        {/* Icon */}
-        <div
-          style={{
-            fontSize: 24,
-            lineHeight: 1,
-            flexShrink: 0,
-            marginTop: 2,
-          }}
-        >
-          {insight.icon}
-        </div>
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              fontSize: 14,
-              fontWeight: 700,
-              color: C.t1,
-              fontFamily: F,
-              marginBottom: 4,
-              lineHeight: 1.3,
-            }}
-          >
-            {insight.title}
-          </div>
-          <div
-            style={{
-              fontSize: 12,
-              color: C.t2,
-              fontFamily: M,
-              lineHeight: 1.5,
-            }}
-          >
-            {insight.body}
-          </div>
-        </div>
-      </div>
-
-      {/* Financial disclaimer */}
-      <div style={{ fontSize: 9, color: C.t3, fontFamily: F, marginTop: 10, opacity: 0.7 }}>
-        ⚖️ For educational purposes only — not financial advice.
-      </div>
-
-      {/* Dot indicators + navigation */}
-      {insights.length > 1 && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 4,
-            marginTop: 12,
-          }}
-        >
-          <NavArrow direction="left" onClick={handlePrev} />
-          {insights.map((_, i) => (
-            <button
-              key={i}
-              className="tf-btn"
-              onClick={() => setActiveIdx(i)}
-              style={{
-                width: i === activeIdx ? 16 : 6,
-                height: 6,
-                borderRadius: radii.xs,
-                border: 'none',
-                background: i === activeIdx ? colors.accent(C) : C.t3 + '40',
-                cursor: 'pointer',
-                padding: 0,
-                transition: 'all 0.2s ease',
-              }}
-            />
-          ))}
-          <NavArrow direction="right" onClick={handleNext} />
-        </div>
-      )}
     </div>
   );
 }

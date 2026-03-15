@@ -7,10 +7,10 @@
 //
 // Usage in ChartsPage:
 //   import React from 'react';
-import WorkspaceLayout from './WorkspaceLoader.jsx';
+//   import WorkspaceLayout from './WorkspaceLoader.jsx';
 // ═══════════════════════════════════════════════════════════════════
 
-import { Suspense, lazy } from 'react';
+import React, { Suspense, lazy } from 'react';
 import { C, F, M } from '../../constants.js';
 import s from './WorkspaceLoader.module.css';
 
@@ -57,3 +57,4 @@ function WorkspaceLoader(props) {
 }
 
 export default React.memo(WorkspaceLoader);
+

@@ -3,12 +3,13 @@
 // Added: selection checkbox, context badge, replay button
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
+import React, { useState } from 'react';
 import { C, M } from '../../../../constants.js';
 import { fmtD } from '../../../../utils.js';
 import { Btn } from '../../../components/ui/UIKit.jsx';
 import { gradeTrade } from '../../analytics/analyticsFast.js';
 import { ContextBadge } from './JournalEvolution.jsx';
+import ScreenshotLightbox from './ScreenshotLightbox.jsx';
 import s from './JournalTradeRow.module.css';
 
 const GRID_COLS = '28px 100px 80px 55px 1fr 80px 100px';
@@ -248,266 +249,233 @@ function ExpandedDetail({
   onShare,
 }) {
   const pnlColor = (t.pnl || 0) >= 0 ? C.g : C.r;
+  const [lightboxIdx, setLightboxIdx] = useState(null);
+
+  // Collect all screenshots into one array for the lightbox
+  const allScreenshots = [
+    ...(t.screenshots || []),
+    ...(t.chartScreenshot ? [{ data: t.chartScreenshot, name: 'Trade Close' }] : []),
+  ];
+  const hasScreenshots = allScreenshots.length > 0;
+
+  // Label helper
+  const shotLabel = (shot, i) => {
+    const n = (shot.name || '').toLowerCase();
+    if (n.includes('close')) return 'Close';
+    if (i === 0 && allScreenshots.length > 1) return 'Entry';
+    if (i === 0) return 'Snapshot';
+    return `Snapshot ${i + 1}`;
+  };
+
+  // Format price helper
+  const fmtPrice = (v) => v != null ? `$${Number(v).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : '—';
+
+  // Format duration helper
+  const fmtDuration = () => {
+    const d = t.holdDuration || (t.entryTime && t.exitTime ? t.exitTime - t.entryTime : null);
+    if (!d) return '—';
+    if (d < 60000) return `${Math.round(d / 1000)}s`;
+    if (d < 3600000) return `${Math.round(d / 60000)}m`;
+    return `${Math.floor(d / 3600000)}h ${Math.round((d % 3600000) / 60000)}m`;
+  };
+
+  // Format time helper
+  const fmtTime = (ts) => ts ? new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—';
 
   return (
     <div
-      className="tf-expand-enter"
+      className={`tf-expand-enter ${s.expandedPanel}`}
       style={{
-        padding: '14px 16px 16px',
-        background: `linear-gradient(180deg, ${C.sf}, ${C.bg2})`,
-        borderBottom: `1px solid ${C.bd}`,
         borderTop: `2px solid ${pnlColor}30`,
-        position: 'relative',
+        background: `linear-gradient(180deg, ${C.sf}, ${C.bg2})`,
       }}
     >
-      {/* Detail grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: isTablet ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
-          gap: 10,
-          marginBottom: 12,
-        }}
-      >
-        <DetailItem label="Entry" value={t.entry != null ? `$${t.entry}` : '—'} />
-        <DetailItem label="Exit" value={t.exit != null ? `$${t.exit}` : '—'} />
-        <DetailItem label="Qty" value={t.qty ?? '—'} />
-        <DetailItem label="Fees" value={t.fees != null ? `$${t.fees}` : '—'} />
-        <DetailItem label="R-Multiple" value={t.rMultiple != null ? `${t.rMultiple}R` : '—'} />
-        <DetailItem label="Asset Class" value={t.assetClass || '—'} />
-        <DetailItem label="Rule Break" value={t.ruleBreak ? '⚠ Yes' : 'No'} color={t.ruleBreak ? C.r : C.t3} />
-        <DetailItem
-          label="Time"
-          value={t.date ? new Date(t.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
-        />
+      {/* ═══ Two-Column Layout ═══ */}
+      <div className={s.twoColumnLayout}>
+        {/* ── LEFT: Trade Data ── */}
+        <div className={s.leftColumn}>
+          {/* iOS-style grouped detail grid */}
+          <div className={s.detailGrid}>
+            <div className={s.detailCell}>
+              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>Entry</div>
+              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>{fmtPrice(t.entry)}</div>
+            </div>
+            <div className={s.detailCell}>
+              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>Exit</div>
+              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>{fmtPrice(t.exit)}</div>
+            </div>
+            <div className={s.detailCell}>
+              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>Stop Loss</div>
+              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>{fmtPrice(t.stopLoss)}</div>
+            </div>
+            <div className={s.detailCell}>
+              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>Size</div>
+              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>
+                {t.qty != null
+                  ? (t.dollarAmount != null
+                      ? `${t.qty} ($${t.dollarAmount >= 1000 ? t.dollarAmount.toLocaleString(undefined, { maximumFractionDigits: 0 }) : t.dollarAmount})`
+                      : t.qty)
+                  : '—'}
+              </div>
+            </div>
+            <div className={s.detailCell}>
+              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>R-Multiple</div>
+              <div className={s.detailValue} style={{ color: t.rMultiple != null ? (t.rMultiple >= 0 ? C.g : C.r) : C.t1, fontFamily: M }}>
+                {t.rMultiple != null ? `${t.rMultiple > 0 ? '+' : ''}${t.rMultiple}R` : '—'}
+              </div>
+            </div>
+            <div className={s.detailCell}>
+              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>Duration</div>
+              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>{fmtDuration()}</div>
+            </div>
+            <div className={s.detailCell}>
+              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>Entry Time</div>
+              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>
+                {fmtTime(t.entryTime || t.date)}
+              </div>
+            </div>
+            <div className={s.detailCell}>
+              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>Exit Time</div>
+              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>{fmtTime(t.exitTime)}</div>
+            </div>
+            <div className={s.detailCell}>
+              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>Fees</div>
+              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>{t.fees != null ? `$${t.fees}` : '—'}</div>
+            </div>
+          </div>
+
+          {/* Exit Reason */}
+          {t.exitReason && (
+            <div style={{ marginBottom: 10, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              <span
+                className={s.exitPill}
+                style={{
+                  background: t.exitReason === 'take_profit' ? C.g + '18' : t.exitReason === 'stop_loss' ? C.r + '18' : C.b + '18',
+                  color: t.exitReason === 'take_profit' ? C.g : t.exitReason === 'stop_loss' ? C.r : C.b,
+                  fontFamily: M,
+                }}
+              >
+                {t.exitReason === 'take_profit' ? '🎯 Take Profit' : t.exitReason === 'stop_loss' ? '🛑 Stop Loss' : '✋ Manual Close'}
+              </span>
+              {t.emotion && (
+                <span style={{ fontSize: 10, color: C.t2, fontFamily: M, padding: '2px 8px', borderRadius: 6, background: C.b + '10', border: `1px solid ${C.b}15` }}>
+                  {t.emotion}
+                </span>
+              )}
+              {t.assetClass && (
+                <span style={{ fontSize: 10, color: C.t3, fontFamily: M }}>
+                  {t.assetClass}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Context */}
+          {t.context && (
+            <div style={{ marginBottom: 10 }}>
+              <div className={s.sectionLabel} style={{ color: C.t3, fontFamily: M }}>Context</div>
+              <div className={s.contextTags}>
+                <span style={{ fontSize: 9, fontWeight: 700, fontFamily: M, padding: '2px 6px', borderRadius: 4, background: (t.context.confluenceScore ?? 0) >= 60 ? C.g + '15' : C.y + '15', color: (t.context.confluenceScore ?? 0) >= 60 ? C.g : C.y }}>
+                  Confluence: {t.context.confluenceScore ?? 0}
+                </span>
+                {t.context.summary && <span style={{ fontSize: 9, color: C.t3 }}>{t.context.summary}</span>}
+              </div>
+            </div>
+          )}
+
+          {/* Checklist */}
+          {t.checklist && Object.keys(t.checklist).length > 0 && (
+            <div style={{ marginBottom: 10 }}>
+              <div className={s.sectionLabel} style={{ color: C.t3, fontFamily: M }}>Checklist</div>
+              <div className={s.checklistTags}>
+                {Object.entries(t.checklist).map(([key, val]) => (
+                  <span key={key} style={{ fontSize: 8, fontFamily: M, padding: '2px 6px', borderRadius: 4, background: val ? C.g + '10' : C.r + '10', color: val ? C.g : C.r }}>
+                    {val ? '✓' : '✗'} {key}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Tags */}
+          {t.tags?.length > 0 && (
+            <div style={{ marginBottom: 10 }}>
+              <div className={s.sectionLabel} style={{ color: C.t3, fontFamily: M }}>Tags</div>
+              <div className={s.tagList}>
+                {t.tags.map((tag, i) => (
+                  <span key={i} style={{ padding: '2px 8px', borderRadius: 6, background: C.b + '12', color: C.b, fontSize: 10, fontWeight: 600 }}>{tag}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Notes */}
+          {t.notes && (
+            <div className={s.notesBlock} style={{ color: C.t2, border: `1px solid ${C.bd}20`, background: `${C.bg2}` }}>
+              {t.notes}
+            </div>
+          )}
+        </div>
+
+        {/* ── RIGHT: Chart Snapshots ── */}
+        <div className={s.rightColumn}>
+          <div className={s.snapshotHeader} style={{ color: C.t3, fontFamily: M }}>
+            📸 Chart Snapshots {hasScreenshots && `(${allScreenshots.length})`}
+          </div>
+
+          {hasScreenshots ? (
+            allScreenshots.map((shot, i) => (
+              <div
+                key={i}
+                className={s.snapshotCard}
+                onClick={() => setLightboxIdx(i)}
+              >
+                <img
+                  src={shot.data}
+                  alt={shotLabel(shot, i)}
+                  draggable={false}
+                />
+                <div className={s.snapshotLabel}>
+                  {shotLabel(shot, i)}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className={s.noScreenshots} style={{ color: C.t3 }}>
+              <span>📷</span>
+              <span>No snapshots captured</span>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Context from Intelligence Layer */}
-      {t.context && (
-        <div style={{ marginBottom: 10 }}>
-          <div
-            style={{
-              fontSize: 9,
-              fontWeight: 700,
-              color: C.t3,
-              marginBottom: 4,
-              fontFamily: M,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-            }}
-          >
-            Context
-          </div>
-          <div className={s.contextTags}>
-            <span
-              style={{
-                fontSize: 9,
-                fontWeight: 700,
-                fontFamily: M,
-                padding: '2px 6px',
-                borderRadius: 4,
-                background: (t.context.confluenceScore ?? 0) >= 60 ? C.g + '15' : C.y + '15',
-                color: (t.context.confluenceScore ?? 0) >= 60 ? C.g : C.y,
-              }}
-            >
-              Confluence: {t.context.confluenceScore ?? 0}
-            </span>
-            {t.context.summary && <span style={{ fontSize: 9, color: C.t3 }}>{t.context.summary}</span>}
-          </div>
-        </div>
-      )}
-
-      {/* Checklist results */}
-      {t.checklist && Object.keys(t.checklist).length > 0 && (
-        <div style={{ marginBottom: 10 }}>
-          <div
-            style={{
-              fontSize: 9,
-              fontWeight: 700,
-              color: C.t3,
-              marginBottom: 4,
-              fontFamily: M,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-            }}
-          >
-            Checklist
-          </div>
-          <div className={s.checklistTags}>
-            {Object.entries(t.checklist).map(([key, val]) => (
-              <span
-                key={key}
-                style={{
-                  fontSize: 8,
-                  fontFamily: M,
-                  padding: '2px 6px',
-                  borderRadius: 4,
-                  background: val ? C.g + '10' : C.r + '10',
-                  color: val ? C.g : C.r,
-                }}
-              >
-                {val ? '✓' : '✗'} {key}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Tags */}
-      {t.tags?.length > 0 && (
-        <div style={{ marginBottom: 10 }}>
-          <div
-            style={{
-              fontSize: 9,
-              fontWeight: 700,
-              color: C.t3,
-              marginBottom: 4,
-              fontFamily: M,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-            }}
-          >
-            Tags
-          </div>
-          <div className={s.tagList}>
-            {t.tags.map((tag, i) => (
-              <span
-                key={i}
-                style={{
-                  padding: '2px 8px',
-                  borderRadius: 4,
-                  background: C.b + '15',
-                  color: C.b,
-                  fontSize: 10,
-                  fontWeight: 600,
-                }}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Notes */}
-      {t.notes && (
-        <div style={{ marginBottom: 12 }}>
-          <div
-            style={{
-              fontSize: 9,
-              fontWeight: 700,
-              color: C.t3,
-              marginBottom: 4,
-              fontFamily: M,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-            }}
-          >
-            Notes
-          </div>
-          <div
-            style={{
-              fontSize: 12,
-              color: C.t2,
-              lineHeight: 1.6,
-              whiteSpace: 'pre-wrap',
-              padding: '8px 10px',
-              background: C.bg2,
-              borderRadius: 6,
-              border: `1px solid ${C.bd}40`,
-            }}
-          >
-            {t.notes}
-          </div>
-        </div>
-      )}
-
-      {/* Screenshots */}
-      {t.screenshots?.length > 0 && (
-        <div style={{ marginBottom: 12 }}>
-          <div
-            style={{
-              fontSize: 9,
-              fontWeight: 700,
-              color: C.t3,
-              marginBottom: 4,
-              fontFamily: M,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-            }}
-          >
-            Screenshots ({t.screenshots.length})
-          </div>
-          <div className={s.screenshotGrid}>
-            {t.screenshots.map((shot, i) => (
-              <a
-                key={i}
-                href={shot.data}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={s.screenshotThumb}
-                style={{
-                  display: 'block',
-                  width: 120,
-                  height: 80,
-                  borderRadius: 6,
-                  overflow: 'hidden',
-                  border: `1px solid ${C.bd}`,
-                  cursor: 'zoom-in',
-                }}
-              >
-                <img src={shot.data} alt={shot.name || `Screenshot ${i + 1}`} className={s.screenshotImg} />
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Actions — refined bar */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 6,
-          justifyContent: 'flex-end',
-          flexWrap: 'wrap',
-          paddingTop: 8,
-          borderTop: `1px solid ${C.bd}30`,
-        }}
-      >
+      <div className={s.actionBar}>
         {deleteConfirm === t.id ? (
           <>
             <span style={{ fontSize: 11, color: C.r, alignSelf: 'center', marginRight: 4 }}>Delete this trade?</span>
-            <Btn variant="ghost" onClick={onCancelDelete} className={s.cancelBtn}>
-              Cancel
-            </Btn>
-            <Btn variant="danger" onClick={() => onDelete(t.id)} className={s.deleteBtn}>
-              Confirm Delete
-            </Btn>
+            <Btn variant="ghost" onClick={onCancelDelete} className={s.cancelBtn}>Cancel</Btn>
+            <Btn variant="danger" onClick={() => onDelete(t.id)} className={s.deleteBtn}>Confirm Delete</Btn>
           </>
         ) : (
           <>
-            {onShare && (
-              <Btn variant="ghost" onClick={() => onShare(t)} className={s.shareBtn}>
-                📤 Share
-              </Btn>
-            )}
-            {onReplay && (
-              <Btn variant="ghost" onClick={() => onReplay(t)} className={s.replayBtn}>
-                ⏪ Replay
-              </Btn>
-            )}
-            <Btn variant="ghost" onClick={() => onViewChart(t)} className={s.chartBtn}>
-              📈 Chart
-            </Btn>
-            <Btn variant="ghost" onClick={() => onDeleteConfirm(t.id)} className={s.deleteTriggerBtn}>
-              Delete
-            </Btn>
-            <Btn onClick={() => onEdit(t)} className={s.editBtn}>
-              Edit
-            </Btn>
+            {onShare && <Btn variant="ghost" onClick={() => onShare(t)} className={s.shareBtn}>📤 Share</Btn>}
+            {onReplay && <Btn variant="ghost" onClick={() => onReplay(t)} className={s.replayBtn}>⏪ Replay</Btn>}
+            <Btn variant="ghost" onClick={() => onViewChart(t)} className={s.chartBtn}>📈 Chart</Btn>
+            <Btn variant="ghost" onClick={() => onDeleteConfirm(t.id)} className={s.deleteTriggerBtn}>Delete</Btn>
+            <Btn onClick={() => onEdit(t)} className={s.editBtn}>Edit</Btn>
           </>
         )}
       </div>
+
+      {/* Lightbox */}
+      {lightboxIdx !== null && (
+        <ScreenshotLightbox
+          screenshots={allScreenshots}
+          initialIndex={lightboxIdx}
+          onClose={() => setLightboxIdx(null)}
+        />
+      )}
     </div>
   );
 }

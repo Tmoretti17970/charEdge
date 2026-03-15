@@ -18,7 +18,7 @@ import { useRef, useCallback, useEffect, useState } from 'react';
 import 'flexlayout-react/style/dark.css';
 import { C, F, M } from '../../constants.js';
 import ChartPane from '../components/chart/core/ChartPane.jsx';
-import AlertPanel from '../components/panels/AlertPanel.jsx';
+import { useNotificationLog } from '../../state/useNotificationLog.js';
 import IndicatorPanel from '../components/panels/IndicatorPanel.jsx';
 // eslint-disable-next-line import/order
 import WatchlistPanel from '../components/panels/WatchlistPanel.jsx';
@@ -65,8 +65,32 @@ function WorkspaceLayout({ preset = null }) {
         );
       case 'watchlist':
         return <WatchlistPanel compact />;
-      case 'alerts':
-        return <AlertPanel compact />;
+      case 'alerts': {
+        // Option B: workspace alerts slot opens the unified Notification Center (Alerts tab)
+        const openAlerts = () => {
+          const store = useNotificationLog.getState();
+          if (!store.panelOpen) store.togglePanel();
+        };
+        return (
+          <div
+            style={{ padding: 16, textAlign: 'center', color: C.t3, fontFamily: F, cursor: 'pointer' }}
+            onClick={openAlerts}
+          >
+            <div style={{ fontSize: 28, marginBottom: 8, opacity: 0.6 }}>🔔</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: C.t1, marginBottom: 4 }}>Price Alerts</div>
+            <div style={{ fontSize: 11, lineHeight: 1.5 }}>Click to open the Notification Center</div>
+            <button
+              className="tf-btn"
+              onClick={(e) => { e.stopPropagation(); openAlerts(); }}
+              style={{
+                marginTop: 10, padding: '6px 16px', borderRadius: 6,
+                background: C.b, color: '#fff', border: 'none',
+                fontSize: 11, fontWeight: 600, cursor: 'pointer',
+              }}
+            >Open Alerts</button>
+          </div>
+        );
+      }
       case 'indicators':
         return <IndicatorPanel />;
       case 'insights':

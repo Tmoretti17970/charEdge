@@ -15,8 +15,9 @@ import { wsService, WebSocketService } from './WebSocketService';
 import { VolumeSpikeDetector } from '../../server/services/VolumeSpikeDetector';
 import { CandlePatternDetector } from '../../server/services/CandlePatternDetector';
 import { MultiTimeframeEvaluator } from '../../server/services/MultiTimeframeEvaluator';
-import { checkAlerts } from '../state/useAlertStore';
+import { checkAlerts, useAlertStore } from '../state/useAlertStore';
 import { useSmartAlertFeed } from '../state/useSmartAlertFeed';
+import { usePriceTracker, checkMarketAlerts } from '../state/usePriceTracker';
 
 import type { Bar } from '../../server/services/VolumeSpikeDetector';
 import type { PatternMatch } from '../../server/services/CandlePatternDetector';
@@ -143,6 +144,18 @@ class SmartAlertBridge {
 
         // 3. Multi-timeframe evaluation (pushes 1m bars, aggregation happens internally)
         this.mtfEvaluator.pushBar(symbol, bar);
+
+        // 4. Price tracker — feed 52-week high/low + %-change reference prices
+        usePriceTracker.getState().pushPrice(symbol, candle.close, candle.time);
+
+        // 5. Evaluate market-condition alerts (52w, %-change)
+        const alertStore = useAlertStore.getState();
+        const marketAlerts = alertStore.alerts.filter(
+            (a) => a.active && ['52w_high', '52w_low', 'percent_above', 'percent_below'].includes(a.condition),
+        );
+        if (marketAlerts.length > 0) {
+            checkMarketAlerts(marketAlerts, (id) => alertStore.triggerAlert(id));
+        }
     }
 
     /**

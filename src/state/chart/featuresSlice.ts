@@ -59,6 +59,10 @@ export const createFeaturesSlice = (set) => ({
   showDataWindow: false,
   toggleDataWindow: () => set((s) => ({ showDataWindow: !s.showDataWindow })),
 
+  // Floating Crosshair Tooltip (OHLCV box following cursor) — off by default
+  showCrosshairTooltip: false,
+  toggleCrosshairTooltip: () => set((s) => ({ showCrosshairTooltip: !s.showCrosshairTooltip })),
+
   // Depth Chart (Webull-style)
   showDepthChart: false,
   toggleDepthChart: () => set((s) => ({ showDepthChart: !s.showDepthChart })),

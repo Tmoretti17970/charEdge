@@ -948,7 +948,38 @@ export class ChartEngine {
     const S = this.state;
     const bars = this.bars;
 
-    if (!bars.length) { this.fb.endFrame(); return; }
+    // Pre-fill the GRID canvas background with the correct theme color
+    // whenever the layer is dirty. The GRID layer uses { alpha: false },
+    // so unpainted pixels are opaque black. This prevents a black flash
+    // on initial load (especially in light mode) when ResizeObserver
+    // clears canvas buffers between frames by setting canvas.width.
+    // The GridStage will paint over this with the full grid (including
+    // grid lines and watermark) when data is present.
+    if (this.layers.isDirty(LAYERS.GRID)) {
+      let isLight = this.props.theme === 'light';
+      if (!isLight && this.props.theme === 'system' && typeof window !== 'undefined') {
+        isLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+      }
+      if (!isLight && typeof document !== 'undefined' &&
+          document.documentElement.classList.contains('theme-light')) {
+        isLight = true;
+      }
+      const bgColor = isLight ? '#FFFFFF' : '#131722';
+      const gCtx = this.gridCtx;
+      const bw = this.layers.bitmapWidth || 1;
+      const bh = this.layers.bitmapHeight || 1;
+      gCtx.fillStyle = bgColor;
+      gCtx.fillRect(0, 0, bw, bh);
+    }
+
+    if (!bars.length) {
+      // No data — background is already filled above,
+      // just clear the dirty flag and bail.
+      this.layers.clearDirty(LAYERS.GRID);
+      this.fb.endFrame();
+      microJankDetector.endFrame();
+      return;
+    }
 
     // ─── P3-2: Memory Pressure Render Throttle ───────────────────
     // Level 0 = normal, Level 1 = warning (cap bars), Level 2 = critical (30fps)

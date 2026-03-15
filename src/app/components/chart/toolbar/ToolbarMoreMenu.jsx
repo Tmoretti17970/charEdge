@@ -10,7 +10,7 @@ import { C } from '../../../../constants.js';
 import { useBacktestStore } from '../../../../state/useBacktestStore.js';
 import { useStrategyBuilderStore } from '../../../../state/useStrategyBuilderStore';
 import AIOrb from '../../design/AIOrb.jsx';
-import ChartTradeToolbar from '../chart_ui/ChartTradeToolbar.jsx';
+
 import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 
 function MenuItem({ children, onClick }) {
@@ -48,6 +48,8 @@ export default function ToolbarMoreMenu({
   const toggleMinimap = useChartFeaturesStore((s) => s.toggleMinimap);
   const showDataWindow = useChartFeaturesStore((s) => s.showDataWindow);
   const toggleDataWindow = useChartFeaturesStore((s) => s.toggleDataWindow);
+  const showCrosshairTooltip = useChartFeaturesStore((s) => s.showCrosshairTooltip);
+  const toggleCrosshairTooltip = useChartFeaturesStore((s) => s.toggleCrosshairTooltip);
   const showStatusBar = useChartFeaturesStore((s) => s.showStatusBar);
   const toggleStatusBar = useChartFeaturesStore((s) => s.toggleStatusBar);
   const showDepthChart = useChartFeaturesStore((s) => s.showDepthChart);
@@ -89,11 +91,6 @@ export default function ToolbarMoreMenu({
 
           <div className="tf-chart-dropdown-label">TRADING</div>
 
-          {!isMobile && (
-            <div style={{ padding: '4px 8px' }}>
-              <ChartTradeToolbar />
-            </div>
-          )}
           <MenuItem onClick={() => { onOpenPanel('positionSizer'); setMoreMenuOpen(false); }}>⚖️ Position Sizer</MenuItem>
           <MenuItem onClick={() => { onOpenPanel('quickJournal'); setMoreMenuOpen(false); }}>📝 Quick Journal</MenuItem>
 
@@ -116,8 +113,6 @@ export default function ToolbarMoreMenu({
           <div className="tf-chart-dropdown-sep" />
           <div className="tf-chart-dropdown-label">TOOLS</div>
 
-          <MenuItem onClick={() => { onOpenPanel('watchlist'); setMoreMenuOpen(false); }}>★ Watchlist</MenuItem>
-          <MenuItem onClick={() => { onOpenPanel('alerts'); setMoreMenuOpen(false); }}>🔔 Alerts</MenuItem>
           <MenuItem onClick={() => { setShowObjectTree(!showObjectTree); setMoreMenuOpen(false); }}>🌳 Object Tree</MenuItem>
           <MenuItem onClick={() => { toggleReplay(); setMoreMenuOpen(false); }}>{replayMode ? '⏹ Exit Replay' : '⏪ Bar Replay'}</MenuItem>
           <MenuItem onClick={() => { onOpenPanel('scripts'); setMoreMenuOpen(false); }}>⌨️ Script Editor</MenuItem>
@@ -197,6 +192,9 @@ export default function ToolbarMoreMenu({
           </MenuItem>
           <MenuItem onClick={() => { toggleDataWindow(); setMoreMenuOpen(false); }}>
             {showDataWindow ? '📋 Hide Data Window' : '📋 Data Window'}
+          </MenuItem>
+          <MenuItem onClick={() => { toggleCrosshairTooltip(); setMoreMenuOpen(false); }}>
+            {showCrosshairTooltip ? '💬 Hide Crosshair Tooltip' : '💬 Crosshair Tooltip'}
           </MenuItem>
           <MenuItem onClick={() => { onOpenPanel('orderflow'); setMoreMenuOpen(false); }}>⚡ Order Flow</MenuItem>
           <MenuItem onClick={() => { onOpenPanel('derivatives'); setMoreMenuOpen(false); }}>📊 Derivatives</MenuItem>

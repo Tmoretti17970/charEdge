@@ -14,7 +14,7 @@ function GlobalQuickAddModal() {
   // ── Instant trade from chart BUY/SELL buttons ───────────────
   useEffect(() => {
     const handleInstantTrade = (e) => {
-      const { side, symbol, price, tf } = e.detail || {};
+      const { side, symbol, price, tf, qty, dollarAmount } = e.detail || {};
       if (!symbol) return;
 
       // Look up asset class from SymbolRegistry
@@ -27,19 +27,37 @@ function GlobalQuickAddModal() {
           ? price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 })
           : '—';
 
+      // Format qty and dollar for display
+      const qtyVal = typeof qty === 'number' && qty > 0 ? qty : null;
+      const dollarVal = typeof dollarAmount === 'number' && dollarAmount > 0 ? dollarAmount : null;
+
+      // Build human-readable size string
+      let sizeStr = '';
+      if (qtyVal != null && dollarVal != null) {
+        const dollarFmt = dollarVal >= 1000
+          ? '$' + dollarVal.toLocaleString(undefined, { maximumFractionDigits: 0 })
+          : '$' + dollarVal.toFixed(2);
+        sizeStr = ` ${dollarFmt} (x${qtyVal})`;
+      } else if (qtyVal != null) {
+        sizeStr = ` x${qtyVal}`;
+      }
+
       // Capture chart screenshot before creating the trade
       const screenshot = captureChartScreenshot(symbol, tf);
 
       const trade = {
         id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
         date: new Date().toISOString(),
+        entryTime: Date.now(),
         symbol: symbol.toUpperCase(),
         side,
         entry: typeof price === 'number' ? price : null,
+        qty: qtyVal,
+        dollarAmount: dollarVal,
         pnl: 0,
         assetClass,
         source: 'chart-quick-trade',
-        notes: `Quick ${side} from chart @ ${fmtPrice} (${tf || '—'})`,
+        notes: `Quick ${side} from chart @ ${fmtPrice}${sizeStr} (${tf || '—'})`,
         ...(screenshot ? { screenshots: [screenshot] } : {}),
       };
 
@@ -47,7 +65,7 @@ function GlobalQuickAddModal() {
 
       const label = side === 'long' ? 'BUY' : 'SELL';
       const snap = screenshot ? ' 📸' : '';
-      toast.success(`⚡ ${label} ${symbol} @ ${fmtPrice} journaled!${snap}`);
+      toast.success(`⚡ ${label} ${symbol}${sizeStr} @ ${fmtPrice} journaled!${snap}`);
     };
 
     window.addEventListener('charEdge:instant-trade', handleInstantTrade);

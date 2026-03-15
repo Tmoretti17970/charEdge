@@ -127,16 +127,37 @@ export function resolveTheme(fs: unknown): ResolvedTheme {
     }
   }
 
-  // Apply user-configured chart colors on top (highest priority)
+  // Apply user-configured chart colors on top (highest priority).
+  // Skip background/grid/crosshair if they match the *opposite* theme's
+  // defaults — those are not user customizations, they're just leftovers
+  // from localStorage that would override the correct theme colors.
   if (fs.storeChartColors) {
     const cc = fs.storeChartColors;
-    if (cc.background) _resolved.bg = cc.background;
+    const isLight = fs.themeName === 'light';
+    // Only apply stored background if it's a genuine user customization,
+    // not a default dark/light value that conflicts with the current theme.
+    const DARK_BG = '#131722';
+    const LIGHT_BG = '#FFFFFF';
+    if (cc.background && !(isLight && cc.background === DARK_BG) && !(!isLight && cc.background === LIGHT_BG)) {
+      _resolved.bg = cc.background;
+    }
     if (cc.candleUp) _resolved.bullCandle = cc.candleUp;
     if (cc.candleDown) _resolved.bearCandle = cc.candleDown;
     if (cc.volumeUp) _resolved.bullVolume = cc.volumeUp;
     if (cc.volumeDown) _resolved.bearVolume = cc.volumeDown;
-    if (cc.gridColor) _resolved.gridLine = cc.gridColor;
-    if (cc.crosshair) _resolved.crosshairColor = cc.crosshair;
+    if (cc.gridColor) {
+      // Skip dark-default grid on light theme
+      const DARK_GRID = 'rgba(54, 58, 69, 0.3)';
+      if (!(isLight && cc.gridColor === DARK_GRID)) {
+        _resolved.gridLine = cc.gridColor;
+      }
+    }
+    if (cc.crosshair) {
+      const DARK_CROSSHAIR = 'rgba(149, 152, 161, 0.5)';
+      if (!(isLight && cc.crosshair === DARK_CROSSHAIR)) {
+        _resolved.crosshairColor = cc.crosshair;
+      }
+    }
   }
 
   return _resolved;

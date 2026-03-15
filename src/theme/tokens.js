@@ -192,12 +192,21 @@ export const layout = {
 
 // ─── Component Style Presets (theme-reactive) ─────────────────
 export const preset = reactiveStyles({
-  // Card base
+  // Card base (Sprint 29: matured from xl → lg radius)
   card: () => ({
     background: C.sf,
     border: `1px solid ${C.bd}`,
-    borderRadius: radii.xl,
-    padding: space[4],
+    borderRadius: radii.lg,
+    padding: space[5],
+  }),
+
+  // Card — light theme variant (Sprint 29: shadows instead of borders)
+  cardLight: () => ({
+    background: C.sf,
+    border: 'none',
+    borderRadius: radii.lg,
+    padding: space[5],
+    boxShadow: shadows.light.md,
   }),
 
   // Input base

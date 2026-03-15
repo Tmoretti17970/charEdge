@@ -27,6 +27,7 @@ import DataPrivacySection from '../app/components/settings/DataPrivacySection.js
 import DataSection from '../app/components/settings/DataSection.jsx';
 import FeatureLabPanel from '../app/components/settings/FeatureLabPanel.jsx';
 import IntegrationsSection from '../app/components/settings/IntegrationsSection.jsx';
+import NotificationsSection from '../app/components/settings/NotificationsSection.jsx';
 import PlaybooksSection from '../app/components/settings/PlaybooksSection.jsx';
 import ProfileSection from '../app/components/settings/ProfileSection.jsx';
 import TradingSetupSection from '../app/components/settings/TradingSetupSection.jsx';
@@ -43,6 +44,7 @@ const SECTIONS = [
   { id: 'trading', label: 'Trading Setup', icon: 'settings' },
   { id: 'playbooks', label: 'Playbooks', icon: 'book' },
   { id: 'appearance', label: 'Appearance', icon: 'palette' },
+  { id: 'notifications', label: 'Notifications', icon: 'bell' },
   { id: 'data', label: 'Data', icon: 'folder' },
   { id: 'integrations', label: 'Integrations', icon: 'plug' },
   { id: 'profile', label: 'Profile', icon: 'user' },
@@ -80,6 +82,7 @@ function DesktopSettings({ searchFilter = '' }) {
     trading: 'account risk stop loss position size kelly chart symbol timeframe default',
     playbooks: 'strategy playbook rules template',
     appearance: 'density layout spacing comfortable compact standard font size ui',
+    notifications: 'notification alert push email sound mute dnd quiet pause security price custom insights transactions announcements',
     data: 'import export csv json report backup download',
     integrations: 'api key broker sync cloud polygon alpha vantage tradovate schwab ibkr',
     profile: 'avatar name community identity display',
@@ -112,6 +115,7 @@ function DesktopSettings({ searchFilter = '' }) {
     trading: <TradingSetupSection />,
     playbooks: <PlaybooksSection />,
     appearance: <AppearanceSection />,
+    notifications: <NotificationsSection />,
     data: <DataSection />,
     integrations: <IntegrationsSection />,
     profile: <ProfileSection />,
@@ -132,6 +136,7 @@ function DesktopSettings({ searchFilter = '' }) {
     trading: 'Account, risk, chart defaults',
     playbooks: 'Strategy management',
     appearance: 'Density, font size, layout',
+    notifications: 'Alerts, push, sound, DND',
     data: 'Import, export, reports',
     integrations: 'API keys, broker sync',
     profile: 'Identity & community',

@@ -32,6 +32,7 @@ export default function PaperTradeWidget({ symbol, currentPrice, onClose }) {
       price: limitPrice ? parseFloat(limitPrice) : undefined,
       stopLoss: stopLoss ? parseFloat(stopLoss) : undefined,
       takeProfit: takeProfit ? parseFloat(takeProfit) : undefined,
+      exactFill: orderType === 'market', // Fill at exact price, no slippage
     }, currentPrice);
   };
 

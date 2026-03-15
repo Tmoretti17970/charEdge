@@ -18,9 +18,8 @@ import { isEnabled, FEATURES } from '@/shared/featureFlags';
 const IndicatorLegendHeader = React.lazy(() => import('../../app/components/chart/core/IndicatorLegendHeader.jsx'));
 const ChartInfoWindow = React.lazy(() => import('../../app/components/chart/panels/ChartInfoWindow.jsx'));
 const ChartHUD = React.lazy(() => import('../../app/components/chart/ui/ChartHUD.jsx'));
-const AlertLinesOverlay = React.lazy(() => import('../../app/components/chart/overlays/AlertLinesOverlay.jsx'));
 const TradePLPill = React.lazy(() => import('../../app/components/chart/overlays/TradePLPill.jsx'));
-const PositionLineOverlay = React.lazy(() => import('../../app/components/chart/overlays/PositionLineOverlay.jsx'));
+
 const RiskGuardOverlay = React.lazy(() => import('../../app/components/chart/overlays/RiskGuardOverlay.jsx'));
 const MobileDrawingSheet = React.lazy(() => import('../../app/components/mobile/MobileDrawingSheet.jsx'));
 const QuickJournalPanel = React.lazy(() => import('../../app/components/chart/chart_ui/QuickJournalPanel.jsx'));
@@ -149,12 +148,7 @@ export default function ChartOverlays({
         </Suspense>
       )}
 
-      {/* Price Alert Lines Overlay */}
-      {!multiMode && !isMobile && (
-        <Suspense fallback={null}>
-          <AlertLinesOverlay symbol={symbol} />
-        </Suspense>
-      )}
+
 
       {/* Live P/L Pill — shows only when user has open positions */}
       {!multiMode && !isMobile && (
@@ -163,12 +157,7 @@ export default function ChartOverlays({
         </Suspense>
       )}
 
-      {/* Open Position Entry Lines + Price-Axis Tabs */}
-      {!multiMode && !isMobile && (
-        <Suspense fallback={null}>
-          <PositionLineOverlay symbol={symbol} />
-        </Suspense>
-      )}
+
 
       {/* F3.3: Prop Firm Risk Guard Overlay — only mount when trade mode active */}
       {!multiMode && !isMobile && tradeMode && (
@@ -226,12 +215,73 @@ export default function ChartOverlays({
                   }
                   // ── Trade submenu ──
                   if (segId === 'trade') {
-                    if (subItemId === 'long') {
-                      useChartFeaturesStore.getState().startTradeMode('long');
-                      return;
-                    }
-                    if (subItemId === 'short') {
-                      useChartFeaturesStore.getState().startTradeMode('short');
+                    if (subItemId === 'long' || subItemId === 'short') {
+                      const side = subItemId === 'long' ? 'long' : 'short';
+                      // Immediately place a market order at the LIVE price (like toolbar buttons)
+                      import('../../state/usePaperTradeStore').then(({ usePaperTradeStore }) => {
+                        import('../../state/chart/useChartCoreStore').then(({ useChartCoreStore }) => {
+                          const coreState = useChartCoreStore.getState();
+                          const sym = coreState.symbol || 'UNKNOWN';
+                          // Use real-time aggregated price, fall back to crosshair price
+                          const livePrice = coreState.aggregatedPrice || actionPrice;
+                          const result = usePaperTradeStore.getState().placeOrder(
+                            {
+                              symbol: sym,
+                              side,
+                              type: 'market',
+                              quantity: 1,
+                              exactFill: true,
+                            },
+                            livePrice,
+                          );
+
+                          // Show toast
+                          import('../../app/components/ui/Toast.jsx').then(({ default: toast }) => {
+                            const label = side === 'long' ? 'BUY' : 'SELL';
+                            toast.success(`${label} ${sym} @ $${livePrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+                          }).catch(() => {});
+
+                          // Screenshot + journal entry after chart settles
+                          if (result?.filled && result.position) {
+                            setTimeout(() => {
+                              try {
+                                import('../../hooks/useAutoScreenshot.js').then(({ captureChartScreenshot }) => {
+                                  const shot = captureChartScreenshot(sym, '');
+                                  const screenshotData = shot?.data || null;
+
+                                  import('../../state/useJournalStore').then(({ useJournalStore }) => {
+                                    const store = useJournalStore.getState();
+                                    if (store.addTrade) {
+                                      const screenshotArr = screenshotData
+                                        ? [{ data: screenshotData, name: `${sym}_entry_${Date.now()}.png` }]
+                                        : [];
+                                      store.addTrade({
+                                        id: `rm_${Date.now()}`,
+                                        date: new Date().toISOString(),
+                                        symbol: sym,
+                                        side,
+                                        entry: livePrice,
+                                        exit: null,
+                                        qty: 1,
+                                        stopLoss: null,
+                                        takeProfit: null,
+                                        pnl: 0,
+                                        fees: result.position.commission || 0,
+                                        rMultiple: null,
+                                        notes: `${side === 'long' ? '📈 BUY' : '📉 SELL'} ${sym} @ $${livePrice.toFixed(2)} — placed via radial menu`,
+                                        tags: [sym, side, 'radial-menu', 'entry'],
+                                        chartScreenshot: screenshotData,
+                                        screenshots: screenshotArr.length > 0 ? screenshotArr : undefined,
+                                        source: 'radial-menu',
+                                      });
+                                    }
+                                  }).catch(() => {});
+                                }).catch(() => {});
+                              } catch { /* non-fatal */ }
+                            }, 500);
+                          }
+                        });
+                      });
                       return;
                     }
                     if (subItemId === 'close') {

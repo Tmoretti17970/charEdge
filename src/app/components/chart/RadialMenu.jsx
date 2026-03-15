@@ -106,8 +106,8 @@ const SEGMENTS = [
 // ─── Submenu items per segment ─────────────────────────────────
 const SUBMENU_ITEMS = {
   trade: [
-    { id: 'long', label: 'Long', icon: '📈' },
-    { id: 'short', label: 'Short', icon: '📉' },
+    { id: 'long', label: 'Buy', icon: '📈' },
+    { id: 'short', label: 'Sell', icon: '📉' },
     { id: 'close', label: 'Close', icon: '✕' },
   ],
   alert: [

@@ -211,7 +211,7 @@ export default function JournalLogbook({
               items={filteredTrades}
               rowHeight={isTablet ? 54 : 44}
               expandedId={expandedId}
-              expandedHeight={320}
+              expandedHeight={520}
               containerHeight={containerH}
               overscan={8}
               header={

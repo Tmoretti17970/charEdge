@@ -7,8 +7,9 @@
 .tf-chart-toolbar {
   display: flex;
   align-items: center;
-  padding: 0 8px;
+  padding: 0 10px;
   height: 44px;
+  gap: 8px;
   background: var(--tf-glass-2);
   backdrop-filter: var(--tf-blur-lg);
   -webkit-backdrop-filter: var(--tf-blur-lg);
@@ -123,16 +124,167 @@ html.theme-light .tf-chart-toolbar-btn[data-active='true'] {
   display: flex;
   gap: 1px;
   padding: 2px;
-  background: rgba(21, 22, 25, 0.5);
-  border-radius: 9px;
-  border: 1px solid rgba(35, 38, 48, 0.4);
+  background: transparent;
+  border-radius: 8px;
+  border: none;
   flex-shrink: 0;
   align-items: center;
 }
 
 html.theme-light .tf-chart-tf-group {
-  background: rgba(238, 240, 244, 0.6);
-  border-color: rgba(212, 215, 224, 0.5);
+  background: transparent;
+  border-color: transparent;
+}
+
+/* ─── Navigation Capsule (Ticker + Timeframes) ───────────────── */
+
+.tf-nav-capsule {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 3px 5px;
+  background: rgba(18, 20, 26, 0.75);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.25),
+    0 0 0 0.5px rgba(255, 255, 255, 0.04) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+  transition: border-color 0.2s ease, box-shadow 0.25s ease;
+}
+
+.tf-nav-capsule:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html.theme-light .tf-nav-capsule {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 1px 8px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+html.theme-light .tf-nav-capsule:hover {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+/* ─── Nav Capsule: Ticker Button ─────────────────────────────── */
+
+.tf-nav-capsule__ticker {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--tf-t1);
+  font-family: var(--tf-font);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.12s ease;
+  user-select: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tf-nav-capsule__ticker:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tf-nav-capsule__ticker:active {
+  transform: scale(0.97);
+}
+
+html.theme-light .tf-nav-capsule__ticker:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* ─── Nav Capsule: Internal Divider ──────────────────────────── */
+
+.tf-nav-capsule__divider {
+  width: 1px;
+  height: 16px;
+  margin: 0 2px;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 30%,
+    rgba(255, 255, 255, 0.1) 70%,
+    transparent 100%);
+  flex-shrink: 0;
+}
+
+html.theme-light .tf-nav-capsule__divider {
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.1) 30%,
+    rgba(0, 0, 0, 0.1) 70%,
+    transparent 100%);
+}
+
+/* ─── Chart Tools Capsule ────────────────────────────────────── */
+
+.tf-tools-capsule {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 3px 5px;
+  background: rgba(18, 20, 26, 0.65);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.2),
+    0 0 0 0.5px rgba(255, 255, 255, 0.03) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  flex-shrink: 0;
+  transition: border-color 0.2s ease;
+}
+
+.tf-tools-capsule:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.theme-light .tf-tools-capsule {
+  background: rgba(255, 255, 255, 0.65);
+  border-color: rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 6px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+html.theme-light .tf-tools-capsule:hover {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* ─── Tools Capsule: Internal Divider ────────────────────────── */
+
+.tf-tools-capsule__divider {
+  width: 1px;
+  height: 14px;
+  margin: 0 1px;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.07) 30%,
+    rgba(255, 255, 255, 0.07) 70%,
+    transparent 100%);
+  flex-shrink: 0;
+}
+
+html.theme-light .tf-tools-capsule__divider {
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.07) 30%,
+    rgba(0, 0, 0, 0.07) 70%,
+    transparent 100%);
 }
 
 .tf-chart-tf-pill {
@@ -889,6 +1041,324 @@ html.theme-light .tf-drawing-edit-actions {
 
 .tf-drawing-edit-delete:hover {
   background: color-mix(in srgb, var(--tf-bearish) 12%, transparent);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * Trade Capsule — Apple-Style Unified Controls
+ * Frosted glass container for BUY/SELL/sizer/presets/menu.
+ * ═══════════════════════════════════════════════════════════════ */
+
+.tf-trade-capsule {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 5px;
+  background: rgba(18, 20, 26, 0.75);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow:
+    0 2px 16px rgba(0, 0, 0, 0.3),
+    0 0 0 0.5px rgba(255, 255, 255, 0.04) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+  transition: border-color 0.2s ease, box-shadow 0.25s ease;
+}
+
+.tf-trade-capsule:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.35),
+    0 0 0 0.5px rgba(255, 255, 255, 0.06) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+html.theme-light .tf-trade-capsule {
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 2px 16px rgba(0, 0, 0, 0.08),
+    0 0 0 0.5px rgba(0, 0, 0, 0.03) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+html.theme-light .tf-trade-capsule:hover {
+  border-color: rgba(0, 0, 0, 0.14);
+}
+
+/* ─── Account Status (dot + label) ─────────────────────────────── */
+
+.tf-trade-capsule__account {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px 0 6px;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--tf-font);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  height: 28px;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.tf-trade-capsule__account:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+html.theme-light .tf-trade-capsule__account:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.tf-trade-capsule__account-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* ─── Buy / Sell Buttons ───────────────────────────────────────── */
+
+.tf-trade-capsule__buy,
+.tf-trade-capsule__sell {
+  padding: 0 12px;
+  height: 28px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--tf-font);
+  letter-spacing: 0.03em;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.18s ease;
+  user-select: none;
+  line-height: 1;
+}
+
+.tf-trade-capsule__buy {
+  background: color-mix(in srgb, var(--tf-bullish) 14%, transparent);
+  color: var(--tf-bullish);
+}
+
+.tf-trade-capsule__buy:hover {
+  background: color-mix(in srgb, var(--tf-bullish) 22%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--tf-bullish) 15%, transparent);
+  transform: scale(1.03);
+}
+
+.tf-trade-capsule__buy:active {
+  transform: scale(0.97);
+}
+
+.tf-trade-capsule__sell {
+  background: color-mix(in srgb, var(--tf-bearish) 14%, transparent);
+  color: var(--tf-bearish);
+}
+
+.tf-trade-capsule__sell:hover {
+  background: color-mix(in srgb, var(--tf-bearish) 22%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--tf-bearish) 15%, transparent);
+  transform: scale(1.03);
+}
+
+.tf-trade-capsule__sell:active {
+  transform: scale(0.97);
+}
+
+/* ─── Position Sizer ───────────────────────────────────────────── */
+
+.tf-trade-capsule__sizer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.tf-trade-capsule__sizer-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  height: 28px;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.tf-trade-capsule__sizer-row:focus-within {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html.theme-light .tf-trade-capsule__sizer-row {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+html.theme-light .tf-trade-capsule__sizer-row:focus-within {
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.tf-trade-capsule__stepper {
+  padding: 0 7px;
+  font-size: 14px;
+  font-weight: 400;
+  background: transparent;
+  color: var(--tf-t2);
+  border: none;
+  cursor: pointer;
+  height: 100%;
+  line-height: 1;
+  transition: color 0.15s ease, background 0.12s ease;
+  display: flex;
+  align-items: center;
+}
+
+.tf-trade-capsule__stepper:hover {
+  color: var(--tf-t1);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+html.theme-light .tf-trade-capsule__stepper:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.tf-trade-capsule__stepper:active {
+  transform: scale(0.92);
+}
+
+.tf-trade-capsule__sizer-divider {
+  width: 1px;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+html.theme-light .tf-trade-capsule__sizer-divider {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.tf-trade-capsule__mode-toggle {
+  padding: 0 4px 0 6px;
+  font-size: 9px;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  height: 100%;
+  font-family: var(--tf-font);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.tf-trade-capsule__sizer-input {
+  width: 48px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--tf-font);
+  font-variant-numeric: tabular-nums;
+  color: var(--tf-t1);
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0 1px;
+  height: 100%;
+}
+
+.tf-trade-capsule__hint {
+  font-size: 8px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  cursor: pointer;
+  opacity: 0.55;
+  white-space: nowrap;
+  line-height: 1;
+  margin-top: 1px;
+  letter-spacing: 0.01em;
+  transition: opacity 0.15s ease;
+}
+
+.tf-trade-capsule__hint:hover {
+  opacity: 0.8;
+}
+
+/* ─── Capsule Separator ────────────────────────────────────────── */
+
+.tf-trade-capsule__sep {
+  width: 1px;
+  height: 20px;
+  margin: 0 2px;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 30%,
+    rgba(255, 255, 255, 0.1) 70%,
+    transparent 100%);
+  flex-shrink: 0;
+}
+
+html.theme-light .tf-trade-capsule__sep {
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.1) 30%,
+    rgba(0, 0, 0, 0.1) 70%,
+    transparent 100%);
+}
+
+/* ─── Utility Buttons (inside capsule) ─────────────────────────── */
+
+.tf-trade-capsule__util-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--tf-t2);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+}
+
+.tf-trade-capsule__util-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--tf-t1);
+  transform: scale(1.06);
+}
+
+.tf-trade-capsule__util-btn:active {
+  transform: scale(0.95);
+}
+
+.tf-trade-capsule__util-btn[data-active='true'] {
+  background: rgba(232, 100, 44, 0.12);
+  color: var(--tf-accent);
+}
+
+html.theme-light .tf-trade-capsule__util-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+html.theme-light .tf-trade-capsule__util-btn[data-active='true'] {
+  background: rgba(212, 85, 30, 0.1);
 }
 
 /* ═══════════════════════════════════════════════════════════════

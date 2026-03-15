@@ -9,7 +9,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useBacktestStore } from '../../../../state/useBacktestStore.js';
 import { useStrategyBuilderStore } from '../../../../state/useStrategyBuilderStore';
-import ChartTradeToolbar from '../chart_ui/ChartTradeToolbar.jsx';
+
 import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 
@@ -119,6 +119,8 @@ export default function CommandCenterMenu({
     const toggleMinimap = useChartFeaturesStore((s) => s.toggleMinimap);
     const showDataWindow = useChartFeaturesStore((s) => s.showDataWindow);
     const toggleDataWindow = useChartFeaturesStore((s) => s.toggleDataWindow);
+    const showCrosshairTooltip = useChartFeaturesStore((s) => s.showCrosshairTooltip);
+    const toggleCrosshairTooltip = useChartFeaturesStore((s) => s.toggleCrosshairTooltip);
     const showStatusBar = useChartFeaturesStore((s) => s.showStatusBar);
     const toggleStatusBar = useChartFeaturesStore((s) => s.toggleStatusBar);
     const showDepthChart = useChartFeaturesStore((s) => s.showDepthChart);
@@ -175,11 +177,6 @@ export default function CommandCenterMenu({
 
     const renderTrading = () => (
         <>
-            {!isMobile && (
-                <div style={{ padding: '4px 4px 8px' }}>
-                    <ChartTradeToolbar />
-                </div>
-            )}
             <ActionItem label="Position Sizer" onClick={() => { onOpenPanel('positionSizer'); close(); }} />
             <ActionItem label="Quick Journal" onClick={() => { onOpenPanel('quickJournal'); close(); }} />
             {!isMobile && (
@@ -202,8 +199,6 @@ export default function CommandCenterMenu({
 
     const renderTools = () => (
         <>
-            <ActionItem label="Watchlist" onClick={() => { onOpenPanel('watchlist'); close(); }} />
-            <ActionItem label="Alerts" onClick={() => { onOpenPanel('alerts'); close(); }} />
             <ToggleItem label="Object Tree" active={showObjectTree} onClick={() => { setShowObjectTree(!showObjectTree); close(); }} />
             <ActionItem label={replayMode ? 'Exit Replay' : 'Bar Replay'} onClick={() => { toggleReplay(); close(); }} />
             <ActionItem label="Script Editor" onClick={() => { onOpenPanel('scripts'); close(); }} />
@@ -239,6 +234,7 @@ export default function CommandCenterMenu({
             <ToggleItem label="Minimap" active={showMinimap} onClick={toggleMinimap} />
             <ToggleItem label="Status Bar" active={showStatusBar} onClick={toggleStatusBar} />
             <ToggleItem label="Data Window" active={showDataWindow} onClick={toggleDataWindow} />
+            <ToggleItem label="Crosshair Tooltip" active={showCrosshairTooltip} onClick={toggleCrosshairTooltip} />
             <ActionItem label="Order Flow" onClick={() => { onOpenPanel('orderflow'); close(); }} />
             <ActionItem label="Derivatives" onClick={() => { onOpenPanel('derivatives'); close(); }} />
             <ActionItem label="Order Book" onClick={() => { onOpenPanel('depth'); close(); }} />
@@ -258,7 +254,7 @@ export default function CommandCenterMenu({
     return (
         <div ref={menuRef} style={{ position: 'relative', flexShrink: 0 }}>
             <button
-                className="tf-chart-toolbar-btn"
+                className="tf-trade-capsule__util-btn"
                 data-active={menuOpen || undefined}
                 onClick={() => setMenuOpen(!menuOpen)}
                 title="Command Center"

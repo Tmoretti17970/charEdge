@@ -4,7 +4,7 @@
 // Slim orchestrator: state hooks, computed memos, layout routing.
 // Layout rendering delegated to:
 //   - DashboardNarrativeLayout  (story-driven UI)
-//   - DashboardCustomLayout     (drag-and-drop widget grid)
+//   - (CustomLayout removed — Sprint 24)
 //
 // Sub-components live in DashboardPrimitives.jsx.
 // ═══════════════════════════════════════════════════════════════════
@@ -17,7 +17,6 @@ import { useLayoutStore } from '../../../state/useLayoutStore';
 import { useUIStore } from '../../../state/useUIStore';
 import { DashboardEmptyState } from '../ui/EmptyState.jsx';
 import { DashboardSkeleton } from '../ui/WidgetSkeleton.jsx';
-import DashboardCustomLayout from './DashboardCustomLayout.jsx';
 import DashboardNarrativeLayout from './DashboardNarrativeLayout.jsx';
 import s from './DashboardPanel.module.css';
 import { DashHeader } from './DashboardPrimitives.jsx';
@@ -36,7 +35,6 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
   const applyPreset = useLayoutStore((s) => s.applyPreset);
   const toggleEditMode = useLayoutStore((s) => s.toggleEditMode);
 
-  const [layoutMode, setLayoutMode] = useState('narrative');
 
   // ─── Computed Stats ──────────────────────────────────────────
 
@@ -94,13 +92,6 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
       <div data-container="dashboard" className={`${s.page} ${isMobile ? s.pageMobile : s.pageDesktop}`}>
         <DashHeader
           trades={trades}
-          computing={computing}
-          layoutMode={layoutMode}
-          onLayoutToggle={() => setLayoutMode((m) => (m === 'narrative' ? 'custom' : 'narrative'))}
-          editMode={editMode}
-          onToggleEdit={toggleEditMode}
-          onCustomize={() => {}}
-          activePreset={activePreset}
         />
         {computing ? (
           <DashboardSkeleton isMobile={isMobile} />
@@ -115,44 +106,18 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
 
   // ─── Layout Routing ─────────────────────────────────────────
 
-  if (layoutMode === 'narrative') {
-    return (
-      <DashboardNarrativeLayout
-        trades={trades}
-        result={result}
-        computing={computing}
-        todayStats={todayStats}
-        ribbonStats={ribbonStats}
-        recentTrades={recentTrades}
-        isMobile={isMobile}
-        setPage={setPage}
-        activeWidgets={activeWidgets}
-        activePreset={activePreset}
-        onLayoutToggle={() => setLayoutMode((m) => (m === 'narrative' ? 'custom' : 'narrative'))}
-        editMode={editMode}
-        onToggleEdit={toggleEditMode}
-      />
-    );
-  }
-
   return (
-    <DashboardCustomLayout
+    <DashboardNarrativeLayout
       trades={trades}
       result={result}
       computing={computing}
       todayStats={todayStats}
+      ribbonStats={ribbonStats}
       recentTrades={recentTrades}
-      goals={goals}
       isMobile={isMobile}
-      isTablet={isTablet}
       setPage={setPage}
       activeWidgets={activeWidgets}
-      setActiveWidgets={setActiveWidgets}
       activePreset={activePreset}
-      editMode={editMode}
-      toggleEditMode={toggleEditMode}
-      applyPreset={applyPreset}
-      onLayoutToggle={() => setLayoutMode((m) => (m === 'narrative' ? 'custom' : 'narrative'))}
     />
   );
 }

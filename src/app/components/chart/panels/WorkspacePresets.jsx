@@ -105,11 +105,10 @@ export default function WorkspacePresets() {
     <div ref={ref} style={{ position: 'relative', display: 'flex', flexShrink: 0 }}>
       {/* Trigger button */}
       <button
-        className="tf-chart-toolbar-btn"
+        className="tf-trade-capsule__util-btn"
         data-active={open || undefined}
         onClick={() => setOpen(!open)}
         title="Workspace Presets"
-        style={{ gap: 4, fontSize: 11 }}
       >
         <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.6 }}>
           <rect x="1" y="1" width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.2" fill="none" />
@@ -117,11 +116,6 @@ export default function WorkspacePresets() {
           <rect x="1" y="8" width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.2" fill="none" />
           <rect x="8" y="8" width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.2" fill="none" />
         </svg>
-        {activeLabel && (
-          <span style={{ maxWidth: 70, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {activeLabel}
-          </span>
-        )}
       </button>
 
       {/* Dropdown */}

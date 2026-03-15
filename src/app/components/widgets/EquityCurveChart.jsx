@@ -277,13 +277,15 @@ function EquityCurveChart({ eq = [], height = 280, showBenchmark = false, showDr
   });
 
   return (
-    <div>
-      <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', marginBottom: '4px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', marginBottom: '4px', flexShrink: 0 }}>
         <button style={pillStyle('raw')} onClick={() => setSmoothMode('raw')}>Raw</button>
         <button style={pillStyle('gaussian')} onClick={() => setSmoothMode('gaussian')}>Gaussian</button>
         <button style={pillStyle('wma')} onClick={() => setSmoothMode('wma')}>WMA</button>
       </div>
-      <ChartWrapper config={config} height={height} />
+      <div style={{ flex: 1, minHeight: 0 }}>
+        <ChartWrapper config={config} height={height} />
+      </div>
     </div>
   );
 }

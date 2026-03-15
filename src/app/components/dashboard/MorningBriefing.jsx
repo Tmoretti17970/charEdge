@@ -263,26 +263,7 @@ export default function MorningBriefing() {
               {greeting.sub}
             </div>
           </div>
-
-          {/* Session P&L Badge + sparkline */}
-          <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <div style={{ fontSize: 10, color: C.t3, fontFamily: M, marginBottom: 2, fontWeight: 600, textTransform: 'uppercase' }}>
-              {stats.todayCount > 0 ? 'Today' : 'This Week'}
-            </div>
-            <div style={{
-              fontSize: stats.todayCount > 0 ? 28 : 20, fontWeight: 800, fontFamily: M,
-              color: (stats.todayCount > 0 ? stats.todayPnl : stats.weekPnl) >= 0 ? C.g : C.r,
-              fontVariantNumeric: 'tabular-nums', letterSpacing: '-1px', lineHeight: 1,
-            }}>
-              {fmtPnl(stats.todayCount > 0 ? stats.todayPnl : stats.weekPnl)}
-            </div>
-            {stats.todayCount > 0 && (
-              <div style={{ fontSize: 10, color: C.t3, fontFamily: M, marginTop: 2 }}>
-                {stats.todayCount} trade{stats.todayCount !== 1 ? 's' : ''} · {stats.todayWinRate}% WR
-              </div>
-            )}
-            {sparklinePoints.length > 1 && <MiniSparkline points={sparklinePoints} />}
-          </div>
+          {/* Sprint 18: P&L badge + sparkline removed — now in SessionSummaryBar */}
         </div>
       </div>
 

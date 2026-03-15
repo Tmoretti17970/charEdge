@@ -15,35 +15,11 @@ import s from './DashboardPanel.module.css';
 
 // ─── DashHeader ────────────────────────────────────────────────
 
-export function DashHeader({
-  trades,
-  _computing,
-  layoutMode,
-  onLayoutToggle,
-  editMode,
-  onToggleEdit,
-  onCustomize,
-  _activePreset,
-}) {
+export function DashHeader({ trades }) {
   return (
     <div className={s.dashHeader}>
       <div className={s.dashHeaderLeft}>
-        {trades.length > 0 && (
-          <span className={s.tradeCount} style={text.monoXs}>
-            {trades.length} trades
-          </span>
-        )}
         <UnitToggle />
-      </div>
-
-      <div className={s.dashHeaderRight}>
-        <HeaderBtn label={layoutMode === 'narrative' ? '⊞ Custom' : '☰ Story'} onClick={onLayoutToggle} />
-        {layoutMode === 'custom' && (
-          <>
-            <HeaderBtn label={editMode ? '✓ Done' : 'Edit'} active={editMode} onClick={onToggleEdit} />
-            <HeaderBtn label="⚙ Widgets" onClick={onCustomize} />
-          </>
-        )}
       </div>
     </div>
   );

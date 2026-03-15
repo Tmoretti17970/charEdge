@@ -46,6 +46,11 @@ export default function AuthGate({ children }) {
     const [submitting, setSubmitting] = useState(false);
     const [signUpSuccess, setSignUpSuccess] = useState(false);
 
+    // Dev-mode auth bypass for testing
+    if (import.meta.env.VITE_DEV_BYPASS_AUTH === 'true') {
+        return <>{children}</>;
+    }
+
     // If Supabase isn't configured, pass through (demo mode)
     const supabaseConfigured = Boolean(
         import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY

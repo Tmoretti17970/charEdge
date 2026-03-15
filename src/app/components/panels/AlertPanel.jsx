@@ -17,6 +17,7 @@ import { useAlertStore } from '../../../state/useAlertStore';
 import { playAlertSound } from '../../../app/misc/alertSounds';
 import { useAlertPreferences } from '../../../state/useAlertPreferences';
 import CompoundAlertBuilder from './CompoundAlertBuilder.jsx';
+import { usePriceTracker } from '../../../state/usePriceTracker';
 
 const AlertHistoryPanel = React.lazy(() => import('./AlertHistoryPanel.jsx'));
 const AlertAnalytics = React.lazy(() => import('./AlertAnalytics.jsx'));
@@ -99,6 +100,37 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
     outline: 'none',
   };
 
+  // ─── Coinbase-Style Presets ──────────────────────────────────
+  const PRESETS = [
+    { id: '52w_high', label: '📈 52W High', desc: 'Alert at 52-week high', color: '#10b981' },
+    { id: '52w_low', label: '📉 52W Low', desc: 'Alert at 52-week low', color: '#ef4444' },
+    { id: 'percent_5_up', label: '📊 +5%', desc: 'Price rises 5% in 24h', color: '#3b82f6' },
+    { id: 'percent_5_down', label: '📊 -5%', desc: 'Price drops 5% in 24h', color: '#f59e0b' },
+    { id: 'percent_10_up', label: '🚀 +10%', desc: 'Price rises 10% in 24h', color: '#8b5cf6' },
+    { id: 'percent_10_down', label: '💥 -10%', desc: 'Price drops 10% in 24h', color: '#ec4899' },
+  ];
+
+  const addMarketAlert = useAlertStore((s) => s.addMarketAlert);
+  const alertFrequency = useAlertPreferences((s) => s.alertFrequency);
+  const watchlistAutoAlerts = useAlertPreferences((s) => s.watchlistAutoAlerts);
+
+  const handlePresetClick = useCallback((presetId) => {
+    if (!symbol.trim()) return;
+    addMarketAlert({ symbol: symbol.trim().toUpperCase(), preset: presetId });
+  }, [symbol, addMarketAlert]);
+
+  // 52w proximity data for current symbol
+  const highProximity = usePriceTracker((s) => {
+    const stat = s.stats[symbol.toUpperCase()];
+    if (!stat || stat.high52w === 0) return null;
+    return ((stat.lastPrice - stat.high52w) / stat.high52w * 100);
+  });
+  const lowProximity = usePriceTracker((s) => {
+    const stat = s.stats[symbol.toUpperCase()];
+    if (!stat || stat.low52w === 0) return null;
+    return ((stat.lastPrice - stat.low52w) / stat.low52w * 100);
+  });
+
   return (
     <div
       style={{
@@ -177,6 +209,66 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
 
       {/* Manage tab — existing form + alert list */}
       {activeTab === 'manage' && (<>
+
+      {/* ─── Coinbase-Style Quick Presets ──────────────── */}
+      {symbol.trim() && (
+        <div
+          style={{
+            marginBottom: 10,
+            padding: 8,
+            background: C.sf,
+            borderRadius: 8,
+            border: `1px solid ${C.bd}`,
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              ⚡ Quick Alerts for {symbol.toUpperCase()}
+            </span>
+            {highProximity != null && (
+              <span style={{
+                fontSize: 9, fontFamily: M, padding: '1px 6px', borderRadius: 4,
+                background: Math.abs(highProximity) < 3 ? '#10b98120' : 'transparent',
+                color: Math.abs(highProximity) < 3 ? '#10b981' : C.t3,
+              }}>
+                {Math.abs(highProximity) < 3 ? `🌟 ${Math.abs(highProximity).toFixed(1)}% from 52W High` : ''}
+              </span>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+            {PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                onClick={() => handlePresetClick(preset.id)}
+                title={preset.desc}
+                style={{
+                  flex: '1 1 calc(33% - 4px)',
+                  padding: '5px 6px',
+                  fontSize: 9,
+                  fontWeight: 700,
+                  fontFamily: F,
+                  cursor: 'pointer',
+                  border: `1px solid ${preset.color}30`,
+                  borderRadius: 6,
+                  background: `${preset.color}10`,
+                  color: preset.color,
+                  transition: 'all 0.15s',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = `${preset.color}25`; e.currentTarget.style.borderColor = `${preset.color}60`; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = `${preset.color}10`; e.currentTarget.style.borderColor = `${preset.color}30`; }}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+          {lowProximity != null && Math.abs(lowProximity) < 5 && (
+            <div style={{ marginTop: 4, fontSize: 9, color: '#ef4444', fontFamily: M }}>
+              ⚠️ Within {lowProximity.toFixed(1)}% of 52-Week Low
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ─── Add Alert Form ───────────────────────────── */}
       <div
@@ -414,9 +506,50 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
           <span>⚙ Alert Preferences</span>
           <span style={{ fontSize: 9, color: C.t3 }}>
             {useAlertPreferences.getState().dndEnabled ? '🌙 DND On' : ''}
+            {watchlistAutoAlerts ? ' · 🔔 Auto' : ''}
           </span>
         </summary>
         <div style={{ padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 8, fontSize: 10 }}>
+
+          {/* Alert Frequency */}
+          <div>
+            <label style={{ color: C.t3, display: 'block', marginBottom: 4, fontWeight: 600, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              📬 Alert Frequency
+            </label>
+            <div style={{ display: 'flex', gap: 0, borderRadius: 4, overflow: 'hidden', border: `1px solid ${C.bd}` }}>
+              {[{ id: 'instant', label: '⚡ Instant' }, { id: 'hourly_digest', label: '📋 Hourly' }, { id: 'daily_digest', label: '📰 Daily' }].map((freq) => (
+                <button
+                  key={freq.id}
+                  onClick={() => useAlertPreferences.getState().setFrequency(freq.id)}
+                  style={{
+                    flex: 1, padding: '4px 0', fontSize: 9, fontWeight: 600,
+                    border: 'none', cursor: 'pointer', fontFamily: F,
+                    background: alertFrequency === freq.id ? C.b + '20' : 'transparent',
+                    color: alertFrequency === freq.id ? C.b : C.t3,
+                    borderBottom: alertFrequency === freq.id ? `2px solid ${C.b}` : '2px solid transparent',
+                    transition: 'all 0.15s',
+                  }}
+                >{freq.label}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Watchlist Auto-Alerts */}
+          <div>
+            <label style={{ color: C.t3, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <input
+                type="checkbox"
+                checked={watchlistAutoAlerts}
+                onChange={(e) => useAlertPreferences.getState().setWatchlistAutoAlerts(e.target.checked)}
+                style={{ accentColor: C.b }}
+              />
+              🔔 Auto-alert all watchlist assets
+            </label>
+            <div style={{ fontSize: 8, color: C.t3, marginLeft: 20, marginTop: 2, opacity: 0.7 }}>
+              Automatically creates 52W High/Low alerts for new watchlist additions
+            </div>
+          </div>
+
           {/* DND Schedule */}
           <div>
             <label style={{ color: C.t3, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -426,7 +559,7 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
                 onChange={(e) => useAlertPreferences.setState({ dndEnabled: e.target.checked })}
                 style={{ accentColor: C.b }}
               />
-              Do Not Disturb Schedule
+              🌙 Do Not Disturb Schedule
             </label>
             {useAlertPreferences.getState().dndEnabled && (
               <div style={{ display: 'flex', gap: 6, marginTop: 4, marginLeft: 20 }}>
@@ -478,7 +611,7 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
               onChange={() => useAlertPreferences.getState().toggleMute()}
               style={{ accentColor: C.r }}
             />
-            Mute all alerts
+            🔇 Mute all alerts
           </label>
         </div>
       </details>

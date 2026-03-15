@@ -1,44 +1,97 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Position Line Overlay
+// charEdge — Position Line Overlay (GPU-smooth)
 //
 // Renders horizontal dotted entry lines + price-axis tabs for open
-// positions. Follows the AlertLinesOverlay pattern (CSS-positioned
-// React overlay on top of the chart canvas).
+// positions. Uses direct DOM mutation in the RAF loop for zero-React-
+// overhead position updates (no setState during pan/zoom).
+//
+// Re-renders through React only when positions are added/removed.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
-import { useMemo } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { F } from '../../../../constants.js';
 import { useOpenPositions } from '../../../../hooks/useOpenPositions.js';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
-import { useChartBars } from '../../../hooks/useChartBars.js';
 
-function PositionLineOverlay({ symbol }) {
-  const data = useChartBars();
+function PositionLineOverlay({ symbol, engineRef }) {
   const openPositions = useOpenPositions(symbol);
-  const aggregatedPrice = useChartCoreStore((s) => s.aggregatedPrice);
+  const containerRef = useRef(null);
+  // Store refs to each line's root div keyed by position id
+  const lineRefsMap = useRef(new Map());
 
-  // Compute visible price range from bar data
-  const priceRange = useMemo(() => {
-    if (!data?.length) return null;
-    let min = Infinity,
-      max = -Infinity;
-    for (const bar of data) {
-      if (bar.high > max) max = bar.high;
-      if (bar.low < min) min = bar.low;
+  // Memoize position IDs so React only re-renders when positions change
+  const positionIds = useMemo(
+    () => openPositions.map((p) => p.id).join(','),
+    [openPositions],
+  );
+
+  // RAF loop: mutate DOM directly — no React state updates
+  const rafRef = useRef(null);
+
+  const tick = useCallback(() => {
+    const eng = engineRef?.current;
+    const R = eng?.state?.lastRender;
+    if (!R || !R.mainH || !R.p2y) {
+      rafRef.current = requestAnimationFrame(tick);
+      return;
     }
-    const padding = (max - min) * 0.05;
-    return { min: min - padding, max: max + padding };
-  }, [data]);
 
-  if (!openPositions.length || !priceRange) return null;
+    const p2y = R.p2y;
+    const aggregatedPrice = useChartCoreStore.getState().aggregatedPrice || 0;
 
-  const { min, max } = priceRange;
-  const range = max - min;
-  const currentPrice = aggregatedPrice || data?.[data.length - 1]?.close || 0;
+    for (const pos of openPositions) {
+      const el = lineRefsMap.current.get(pos.id);
+      if (!el) continue;
+
+      const entryPrice = pos.entry;
+      if (!entryPrice || isNaN(entryPrice)) {
+        el.style.display = 'none';
+        continue;
+      }
+
+      const y = p2y(entryPrice);
+      if (y < -30 || y > R.mainH + 30) {
+        el.style.display = 'none';
+        continue;
+      }
+
+      el.style.display = '';
+      el.style.top = y + 'px';
+
+      // Update P&L label
+      const plEl = el.querySelector('[data-pl]');
+      if (plEl && aggregatedPrice > 0) {
+        const isLong = pos.side !== 'short';
+        const priceDiff = aggregatedPrice - entryPrice;
+        const unrealizedPL = priceDiff * (isLong ? 1 : -1);
+        const isProfit = unrealizedPL >= 0;
+        const fmtPL =
+          (isProfit ? '+' : '') +
+          unrealizedPL.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+        plEl.textContent = fmtPL;
+        plEl.style.color = isProfit ? '#d4ffee' : '#ffe0de';
+      }
+    }
+
+    rafRef.current = requestAnimationFrame(tick);
+  }, [engineRef, openPositions]);
+
+  useEffect(() => {
+    if (!openPositions.length) return;
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [openPositions, tick]);
+
+  if (!openPositions.length) return null;
 
   return (
     <div
+      ref={containerRef}
       style={{
         position: 'absolute',
         top: 0,
@@ -46,46 +99,35 @@ function PositionLineOverlay({ symbol }) {
         right: 0,
         bottom: 0,
         pointerEvents: 'none',
-        zIndex: 55, // above alert lines (50), below trade pills (80)
+        zIndex: 55,
       }}
     >
       {openPositions.map((pos) => {
-        const entryPrice = pos.entry;
-        if (!entryPrice || entryPrice < min || entryPrice > max) return null;
-
-        const yPercent = ((max - entryPrice) / range) * 100;
         const isLong = pos.side !== 'short';
         const lineColor = isLong ? '#26A69A' : '#EF5350';
-
-        // Compute unrealized P&L
-        const priceDiff = currentPrice - entryPrice;
-        const unrealizedPL = priceDiff * (isLong ? 1 : -1);
-        const isProfit = unrealizedPL >= 0;
-        const _plColor = isProfit ? '#26A69A' : '#EF5350';
-
-        const fmtEntry = entryPrice.toLocaleString(undefined, {
+        const sideLabel = isLong ? 'LONG' : 'SHORT';
+        const fmtEntry = (pos.entry || 0).toLocaleString(undefined, {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         });
-        const fmtPL =
-          (isProfit ? '+' : '') +
-          unrealizedPL.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
-        const sideLabel = isLong ? 'LONG' : 'SHORT';
 
         return (
           <div
             key={pos.id}
+            ref={(el) => {
+              if (el) lineRefsMap.current.set(pos.id, el);
+              else lineRefsMap.current.delete(pos.id);
+            }}
             style={{
               position: 'absolute',
-              top: `${yPercent}%`,
+              top: -9999, // off-screen until RAF positions it
               left: 0,
               right: 0,
+              height: 0,
+              willChange: 'top',
             }}
           >
-            {/* ── Dotted entry line ── */}
+            {/* Dotted entry line */}
             <div
               style={{
                 width: '100%',
@@ -94,7 +136,7 @@ function PositionLineOverlay({ symbol }) {
               }}
             />
 
-            {/* ── Left label: LONG/SHORT @ price ── */}
+            {/* Left label */}
             <div
               style={{
                 position: 'absolute',
@@ -129,7 +171,7 @@ function PositionLineOverlay({ symbol }) {
               {sideLabel} @ {fmtEntry}
             </div>
 
-            {/* ── Right price-axis tab: entry price + live P&L ── */}
+            {/* Right price-axis tab */}
             <div
               style={{
                 position: 'absolute',
@@ -141,7 +183,6 @@ function PositionLineOverlay({ symbol }) {
                 pointerEvents: 'auto',
               }}
             >
-              {/* Notch arrow pointing left */}
               <div
                 style={{
                   width: 0,
@@ -152,7 +193,6 @@ function PositionLineOverlay({ symbol }) {
                   opacity: 0.9,
                 }}
               />
-              {/* Tab body */}
               <div
                 style={{
                   display: 'flex',
@@ -173,16 +213,17 @@ function PositionLineOverlay({ symbol }) {
               >
                 <span>{fmtEntry}</span>
                 <span
+                  data-pl="1"
                   style={{
                     padding: '0 4px',
                     borderRadius: 3,
                     background: 'rgba(255,255,255,0.2)',
-                    color: isProfit ? '#d4ffee' : '#ffe0de',
+                    color: '#d4ffee',
                     fontSize: 8,
                     fontWeight: 800,
                   }}
                 >
-                  {fmtPL}
+                  +0.00
                 </span>
               </div>
             </div>

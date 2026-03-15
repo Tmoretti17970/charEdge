@@ -5,7 +5,7 @@
 
 const PANEL_REGISTRY = {
   watchlist:     { title: 'Watchlist',           defaultWidth: 340, minWidth: 280 },
-  alerts:        { title: 'Manage Alerts',       defaultWidth: 340, minWidth: 280 },
+  alerts:        { title: 'Notifications',       defaultWidth: 340, minWidth: 280 },
   scripts:       { title: 'Script Editor',       defaultWidth: 600, minWidth: 400 },
   insights:      { title: 'AI Insights',         defaultWidth: 340, minWidth: 280 },
   settings:      { title: 'Chart Settings',      defaultWidth: 340, minWidth: 280 },

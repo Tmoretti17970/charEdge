@@ -192,6 +192,16 @@ export async function postBoot(trades) {
   // Auto-save subscriptions
   const unsubs = setupAutoSave();
 
+  // Trade close capture — auto-screenshots + journal entries on trade close
+  try {
+    const { initTradeCloseCapture } = await import('./trading/TradeCloseCapture');
+    const unsubCapture = initTradeCloseCapture();
+    unsubs.push(unsubCapture);
+    logger.boot.info('TradeCloseCapture service initialized');
+  } catch (err) {
+    logger.boot.warn('TradeCloseCapture init failed (non-fatal): ' + err?.message);
+  }
+
   // v5: Initialize account switch listener — auto-rehydrates journal on switch
   initAccountSwitchListener();
 

@@ -51,6 +51,8 @@ export default function ChartSettingsPanel({ _onClose }) {
   const chartTypeConfig = useChartFeaturesStore((s) => s.chartTypeConfig) || {};
   const setChartTypeConfig = useChartFeaturesStore((s) => s.setChartTypeConfig);
   const resetChartTypeConfig = useChartFeaturesStore((s) => s.resetChartTypeConfig);
+  const showCrosshairTooltip = useChartFeaturesStore((s) => s.showCrosshairTooltip);
+  const toggleCrosshairTooltip = useChartFeaturesStore((s) => s.toggleCrosshairTooltip);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -322,6 +324,12 @@ export default function ChartSettingsPanel({ _onClose }) {
               step={0.05}
               onChange={(v) => setAppearance('crosshairOpacity', v)}
               display={`${Math.round((appearance.crosshairOpacity ?? 1) * 100)}%`}
+            />
+
+            <Toggle
+              label="Show Floating Tooltip"
+              checked={showCrosshairTooltip}
+              onChange={toggleCrosshairTooltip}
             />
 
             <div

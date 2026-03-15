@@ -238,9 +238,10 @@ export function executeUIStage(fs, ctx, engine) {
       }
     }
 
-    // ─── Floating Tooltip ────────────────────────────────────
+    // ─── Floating Tooltip (gated by feature flag) ───────────
+    const showTooltip = engine._showCrosshairTooltip ?? false;
     const hoverBar = hoverIdx != null ? bars[hoverIdx] : null;
-    if (hoverBar && S.mouseX >= 0 && S.mouseX <= R.cW) {
+    if (showTooltip && hoverBar && S.mouseX >= 0 && S.mouseX <= R.cW) {
       drawTooltip(tCtx, hoverBar, bx, by, pr, R, thm, topCanvas, engine);
     }
   }

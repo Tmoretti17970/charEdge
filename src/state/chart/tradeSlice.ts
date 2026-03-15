@@ -122,7 +122,28 @@ export const createTradeSlice = (set, get) => ({
     get()._recalcTrade();
   },
 
+  // activeLevelDrag: { type: 'sl'|'tp'|'entry', positionId?: string, startPrice: number } | null
   setActiveLevelDrag: (level) => set({ activeLevelDrag: level }),
+
+  /**
+   * Finalize a drag operation — update the position in the paper trade store.
+   * Called on pointerUp after dragging a level line.
+   */
+  commitLevelDrag: (newPrice) => {
+    const drag = get().activeLevelDrag;
+    if (!drag || !drag.positionId) {
+      set({ activeLevelDrag: null });
+      return;
+    }
+    // Lazy import to avoid circular dependency
+    import('../usePaperTradeStore').then(({ usePaperTradeStore }) => {
+      const levels: Record<string, number> = {};
+      if (drag.type === 'sl') levels.stopLoss = newPrice;
+      if (drag.type === 'tp') levels.takeProfit = newPrice;
+      usePaperTradeStore.getState().updatePositionLevels(drag.positionId, levels);
+    });
+    set({ activeLevelDrag: null });
+  },
 
   // ─── Risk Parameters ──────────────────────────────────────────
   setRiskPercent: (pct) => {

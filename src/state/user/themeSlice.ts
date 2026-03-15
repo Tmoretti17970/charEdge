@@ -8,6 +8,8 @@
 
 import { refreshThemeCache } from '../../constants.js';
 import { notifyThemeChange } from '../../hooks/useThemeVars.js';
+import { invalidateCSSColors } from '../../charting_library/core/ThemeColors';
+import { invalidateGridCache } from '../../charting_library/core/stages/GridStage.js';
 
 // ─── Accent Color Presets ────────────────────────────────────────
 export const ACCENT_PRESETS = [
@@ -105,13 +107,22 @@ export const createThemeSlice = (set, get) => ({
     set({ theme });
     applyTheme(resolved);
     applyAppearance(get());
+    // Flush stale cached colors so the chart engine picks up the new theme
+    // immediately on the next render frame (CSS color cache has 1s TTL,
+    // grid cache persists until the cache key changes).
+    invalidateCSSColors();
+    invalidateGridCache();
     refreshThemeCache();
     notifyThemeChange();
   },
 
   toggleTheme() {
     const cur = get().theme;
-    const next = cur === 'dark' ? 'light' : cur === 'light' ? 'system' : 'dark';
+    // Resolve 'system' to its actual appearance, then toggle to the opposite.
+    // This avoids the confusing 3-way cycle (dark→light→system→dark) that
+    // required double-clicking to switch themes.
+    const resolved = resolveTheme(cur);
+    const next = resolved === 'dark' ? 'light' : 'dark';
     get().setTheme(next);
   },
 

@@ -19,8 +19,8 @@ export const DARK_COLORS = {
   t3: '#4e5266',
   b: '#e8642c',
   bH: '#d4551e',
-  g: '#31D158',
-  r: '#FF453A',
+  g: '#34C759',       // Sprint 30: Apple system green
+  r: '#FF3B30',       // Sprint 30: Apple system red
   y: '#f0b64e',
   p: '#c084fc',
   cyan: '#22d3ee',
@@ -29,9 +29,9 @@ export const DARK_COLORS = {
   rose: '#e8a0b0',     // Charolette's Light — warm rose memorial accent
   lime: '#a3e635',
   info: '#5c9cf5',
-  bullish: '#31D158',
-  bearish: '#FF453A',
-  rS: '#FF453A20',
+  bullish: '#34C759',
+  bearish: '#FF3B30',
+  rS: '#FF3B3020',
 };
 
 export const LIGHT_COLORS = {

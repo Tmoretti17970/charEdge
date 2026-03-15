@@ -31,6 +31,28 @@ export const POSITION_SIDE = {
   SHORT: 'short',
 };
 
+// ─── Trade Close Listeners ───────────────────────────────────────
+// External consumers (screenshot capture, journal) subscribe to trade
+// close events via onTradeClose / offTradeClose.
+
+type TradeCloseListener = (closedTrade: ReturnType<typeof createClosedTrade>, exitReason: string) => void;
+const _onTradeCloseListeners: Set<TradeCloseListener> = new Set();
+
+export function onTradeClose(fn: TradeCloseListener) {
+  _onTradeCloseListeners.add(fn);
+  return () => _onTradeCloseListeners.delete(fn);
+}
+
+export function offTradeClose(fn: TradeCloseListener) {
+  _onTradeCloseListeners.delete(fn);
+}
+
+function _emitTradeClose(trade: ReturnType<typeof createClosedTrade>, reason: string) {
+  for (const fn of _onTradeCloseListeners) {
+    try { fn(trade, reason); } catch { /* listener errors are non-fatal */ }
+  }
+}
+
 // ─── Store ───────────────────────────────────────────────────────
 
 const usePaperTradeStore = create(
@@ -48,7 +70,7 @@ const usePaperTradeStore = create(
       equityCurve: [10000],
 
       // ─── Settings ──────────────────────────────────────
-      slippageBps: 5,     // 0.05% slippage
+      slippageBps: 1,     // 0.01% slippage (realistic for crypto exchanges)
       commissionPerTrade: 1.00,
       enabled: false,
 
@@ -78,11 +100,17 @@ const usePaperTradeStore = create(
         const { slippageBps, commissionPerTrade } = get();
 
         if (order.type === ORDER_TYPES.MARKET) {
-          // Fill immediately with slippage
-          const slippage = currentPrice * (slippageBps / 10000);
-          const fillPrice = order.side === POSITION_SIDE.LONG
-            ? currentPrice + slippage
-            : currentPrice - slippage;
+          // Fill immediately — apply slippage unless exactFill is set
+          // (chart-click entries use exactFill since user picked the exact price)
+          let fillPrice;
+          if (order.exactFill) {
+            fillPrice = currentPrice; // Use exact price (no slippage)
+          } else {
+            const slippage = currentPrice * (slippageBps / 10000);
+            fillPrice = order.side === POSITION_SIDE.LONG
+              ? currentPrice + slippage
+              : currentPrice - slippage;
+          }
 
           const _cost = fillPrice * order.quantity;
           const commission = commissionPerTrade;
@@ -104,6 +132,19 @@ const usePaperTradeStore = create(
             balance: s.balance - commission,
             positions: [...s.positions, position],
           }));
+
+          // Auto-create SL/TP alerts for the new position
+          if (position.stopLoss || position.takeProfit) {
+            import('./useAlertStore').then(({ addPositionAlerts }) => {
+              addPositionAlerts(
+                position.id,
+                position.symbol,
+                position.side,
+                position.stopLoss,
+                position.takeProfit,
+              );
+            }).catch(() => {}); // non-fatal
+          }
 
           return { filled: true, position };
         }
@@ -149,7 +190,9 @@ const usePaperTradeStore = create(
                 ? (pos.stopLoss - pos.entryPrice) * pos.quantity
                 : (pos.entryPrice - pos.stopLoss) * pos.quantity;
               newBalance += exitPnl - commissionPerTrade;
-              closedTrades.push(createClosedTrade(pos, pos.stopLoss, exitPnl, 'stop_loss'));
+              const slTrade = createClosedTrade(pos, pos.stopLoss, exitPnl, 'stop_loss');
+              closedTrades.push(slTrade);
+              queueMicrotask(() => _emitTradeClose(slTrade, 'stop_loss'));
               return false;
             }
           }
@@ -162,7 +205,9 @@ const usePaperTradeStore = create(
                 ? (pos.takeProfit - pos.entryPrice) * pos.quantity
                 : (pos.entryPrice - pos.takeProfit) * pos.quantity;
               newBalance += exitPnl - commissionPerTrade;
-              closedTrades.push(createClosedTrade(pos, pos.takeProfit, exitPnl, 'take_profit'));
+              const tpTrade = createClosedTrade(pos, pos.takeProfit, exitPnl, 'take_profit');
+              closedTrades.push(tpTrade);
+              queueMicrotask(() => _emitTradeClose(tpTrade, 'take_profit'));
               return false;
             }
           }
@@ -256,6 +301,25 @@ const usePaperTradeStore = create(
           positions: s.positions.filter(p => p.id !== positionId),
           balance: s.balance + pnl - commissionPerTrade,
           tradeHistory: [trade, ...s.tradeHistory].slice(0, 500),
+        }));
+
+        queueMicrotask(() => _emitTradeClose(trade, 'manual'));
+      },
+
+      /**
+       * Update SL/TP levels on an open position (e.g., from dragging lines).
+       */
+      updatePositionLevels(positionId: string, levels: { stopLoss?: number | null; takeProfit?: number | null }) {
+        set(s => ({
+          positions: s.positions.map(p =>
+            p.id === positionId
+              ? {
+                  ...p,
+                  ...(levels.stopLoss !== undefined ? { stopLoss: levels.stopLoss } : {}),
+                  ...(levels.takeProfit !== undefined ? { takeProfit: levels.takeProfit } : {}),
+                }
+              : p
+          ),
         }));
       },
 

@@ -77,6 +77,7 @@ function OrderEntryOverlay({
           price: orderType !== 'market' ? lp : undefined,
           stopLoss: stopLoss ? parseFloat(stopLoss) : undefined,
           takeProfit: takeProfit ? parseFloat(takeProfit) : undefined,
+          exactFill: true, // Chart-click = exact price, no slippage
         }, currentPrice);
       }
 

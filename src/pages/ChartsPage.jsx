@@ -51,7 +51,7 @@ const FocusMode = React.lazy(() => import('../app/components/chart/overlays/Focu
 const _AICopilotBar = React.lazy(() => import('../app/components/chart/AICopilotBar.jsx'));
 const ActionSidebar = React.lazy(() => import('../app/components/chart/ActionSidebar.jsx'));
 const WatchlistQuickPanel = React.lazy(() => import('../app/components/chart/WatchlistQuickPanel.jsx'));
-const TradeEntryBar = React.lazy(() => import('../app/components/chart/chart_ui/TradeEntryBar.jsx'));
+// TradeEntryBar removed — radial menu now places trades instantly
 const SwipeChartNav = React.lazy(() => import('../app/components/mobile/SwipeChartNav.jsx'));
 const GuidedTour = React.lazy(() => import('../app/components/ui/GuidedTour.jsx'));
 
@@ -446,12 +446,7 @@ function ChartsPageInner({ _mountTime }) {
         </div>
       )}
 
-      {/* Trade Entry / Replay / Tour */}
-      {!workspaceMode && tradeMode && (
-        <Suspense fallback={null}>
-          <TradeEntryBar />
-        </Suspense>
-      )}
+      {/* Replay / Tour */}
       {!workspaceMode && replayMode && (
         <Suspense fallback={null}>
           <ReplayBar />

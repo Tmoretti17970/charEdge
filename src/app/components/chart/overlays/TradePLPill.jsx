@@ -156,14 +156,87 @@ function TradePLPill({ showAutoFit, onAutoFit }) {
       const pos = activePositions.find((p) => p.id === posId);
       if (!pos) return;
       const detail = positionDetails.find((p) => p.id === posId);
+      const exitPrice = detail?.currentPrice ?? pos.entry;
+      const pnl = detail?.pl ?? 0;
+      const exitTime = Date.now();
+      const entryTime = pos.entryTime || new Date(pos.date).getTime();
+      const holdDuration = exitTime - entryTime;
+
+      // Compute R-Multiple: PnL / risk-per-unit
+      let rMultiple = null;
+      const sl = pos.stopLoss || pos.context?.stopLoss;
+      if (sl && pos.entry) {
+        const riskPerUnit = Math.abs(pos.entry - sl);
+        if (riskPerUnit > 0) {
+          rMultiple = Math.round((pnl / riskPerUnit) * 100) / 100;
+        }
+      }
+
+      // Capture close screenshot using the working composite capture
+      let closeScreenshot = null;
+      try {
+        // Dynamic import to avoid adding to TradePLPill's bundle
+        const sym = (pos.symbol || symbol || '').toUpperCase();
+        const area = document.querySelector('.tf-chart-area');
+        if (area) {
+          const canvases = area.querySelectorAll('canvas');
+          if (canvases.length) {
+            const refCanvas = canvases[0];
+            if (refCanvas && refCanvas.width > 0 && refCanvas.height > 0) {
+              const w = refCanvas.width;
+              const h = refCanvas.height;
+              const offscreen = document.createElement('canvas');
+              offscreen.width = w;
+              offscreen.height = h;
+              const ctx = offscreen.getContext('2d');
+              if (ctx) {
+                for (const canvas of canvases) {
+                  if (canvas.width > 0 && canvas.height > 0) {
+                    ctx.drawImage(canvas, 0, 0);
+                  }
+                }
+                // Add "CLOSED" watermark
+                const scale = window.devicePixelRatio || 1;
+                const fs = Math.round(12 * scale);
+                ctx.font = `bold ${fs}px Arial`;
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'bottom';
+                const pnlStr = pnl >= 0 ? `+$${pnl.toFixed(2)}` : `-$${Math.abs(pnl).toFixed(2)}`;
+                ctx.fillText(
+                  `CLOSED ${pnlStr} · ${sym} · charEdge`,
+                  w - Math.round(10 * scale),
+                  h - Math.round(6 * scale),
+                );
+                const dataUrl = offscreen.toDataURL('image/png');
+                closeScreenshot = { data: dataUrl, name: `${sym}_close_${Date.now()}.png` };
+              }
+            }
+          }
+        }
+      } catch { /* non-fatal */ }
+
+      // Build screenshots array: keep existing entry screenshots + add close screenshot
+      const existingScreenshots = pos.screenshots || [];
+      const newScreenshots = closeScreenshot
+        ? [...existingScreenshots, closeScreenshot]
+        : existingScreenshots;
+
       updateTrade(posId, {
-        pnl: detail?.pl ?? 0,
-        exit: detail?.currentPrice ?? pos.entry,
-        exitPrice: detail?.currentPrice ?? pos.entry,
+        pnl,
+        exit: exitPrice,
+        exitPrice,
         closeDate: new Date().toISOString(),
+        entryTime,
+        exitTime,
+        holdDuration,
+        rMultiple,
+        exitReason: 'manual',
+        fees: pos.commission || 1.00,
+        screenshots: newScreenshots.length > 0 ? newScreenshots : undefined,
       });
     },
-    [activePositions, positionDetails, updateTrade],
+    [activePositions, positionDetails, updateTrade, symbol],
   );
 
   // ── Only render when positions exist ───────────────────────

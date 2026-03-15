@@ -12,6 +12,7 @@ import { playAlertSound } from '../app/misc/alertSounds';
 import notificationLog from './useNotificationLog';
 import { isInQuietHours, getAlertVolume } from './useAlertPreferences';
 import alertHistory from './useAlertHistory';
+import { throttledNotify } from './alertThrottler';
 
 // ─── Transient Price Tracking ───────────────────────────────────
 // Stored outside Zustand to avoid triggering set()/persist on every tick.
@@ -24,11 +25,13 @@ const _conditionSatisfiedAt: Map<string, number> = new Map();
 
 // ─── Types ──────────────────────────────────────────────────────
 
-export type AlertCondition = 'above' | 'below' | 'cross_above' | 'cross_below';
+export type AlertCondition = 'above' | 'below' | 'cross_above' | 'cross_below' | 'percent_above' | 'percent_below' | '52w_high' | '52w_low';
 
 export type AlertVisualStyle = 'price' | 'system' | 'indicator';
 
 export type AlertSoundType = 'price' | 'urgent' | 'info' | 'success' | 'error';
+
+export type PercentTimeWindow = '1h' | '4h' | '24h' | '7d';
 
 export type CompoundAlertLogic = 'AND' | 'OR';
 
@@ -63,6 +66,13 @@ export interface Alert {
     cooldownMs?: number | null;
     // C4: Per-alert sound selection
     soundType?: AlertSoundType | null;
+    // Position-bound alert fields
+    linkedPositionId?: string | null;
+    linkedLevelType?: 'sl' | 'tp' | null;
+    // Coinbase-style market condition fields
+    percentThreshold?: number | null;       // For percent_above/below: e.g. 5 = ±5%
+    timeWindow?: PercentTimeWindow | null;  // For percent alerts: measurement window
+    alertCategory?: 'price_target' | 'percent_change' | '52w_range' | 'custom';  // UI display category
 }
 
 interface AddAlertParams {
@@ -89,6 +99,14 @@ interface AddCompoundAlertParams {
     soundType?: AlertSoundType | null;
 }
 
+export interface MarketAlertParams {
+    symbol: string;
+    preset: '52w_high' | '52w_low' | 'percent_5_up' | 'percent_5_down' | 'percent_10_up' | 'percent_10_down';
+    note?: string;
+    repeating?: boolean;
+    soundType?: AlertSoundType | null;
+}
+
 export interface AlertState {
     alerts: Alert[];
     pushSubscribed: boolean;
@@ -97,12 +115,15 @@ export interface AlertState {
 export interface AlertActions {
     addAlert: (params: AddAlertParams) => string;
     addCompoundAlert: (params: AddCompoundAlertParams) => string;
+    addMarketAlert: (params: MarketAlertParams) => string;
     removeAlert: (id: string) => void;
     toggleAlert: (id: string) => void;
     triggerAlert: (id: string) => void;
+    updateAlertPrice: (id: string, newPrice: number) => void;
     updateLastPrice: (symbol: string, price: number) => void;
     clearTriggered: () => void;
     clearAll: () => void;
+    getAlertsForSymbol: (symbol: string) => Alert[];
     subscribeToPush: () => Promise<void>;
 }
 
@@ -158,8 +179,50 @@ const useAlertStore = create<AlertState & AlertActions>()(
                 return alert.id;
             },
 
+            addMarketAlert: ({ symbol, preset, note = '', repeating = true, soundType = null }: MarketAlertParams): string => {
+                type PresetConfig = { condition: AlertCondition; percentThreshold?: number; timeWindow?: PercentTimeWindow; alertCategory: 'price_target' | 'percent_change' | '52w_range' | 'custom'; defaultNote: string };
+                const PRESET_MAP: Record<string, PresetConfig> = {
+                    '52w_high': { condition: '52w_high', alertCategory: '52w_range', defaultNote: '📈 52-Week High Alert' },
+                    '52w_low': { condition: '52w_low', alertCategory: '52w_range', defaultNote: '📉 52-Week Low Alert' },
+                    'percent_5_up': { condition: 'percent_above', percentThreshold: 5, timeWindow: '24h', alertCategory: 'percent_change', defaultNote: '📊 +5% in 24h' },
+                    'percent_5_down': { condition: 'percent_below', percentThreshold: 5, timeWindow: '24h', alertCategory: 'percent_change', defaultNote: '📊 -5% in 24h' },
+                    'percent_10_up': { condition: 'percent_above', percentThreshold: 10, timeWindow: '24h', alertCategory: 'percent_change', defaultNote: '📊 +10% in 24h' },
+                    'percent_10_down': { condition: 'percent_below', percentThreshold: 10, timeWindow: '24h', alertCategory: 'percent_change', defaultNote: '📊 -10% in 24h' },
+                };
+
+                const config = PRESET_MAP[preset];
+                if (!config) return '';
+
+                const alert: Alert = {
+                    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+                    symbol: (symbol || '').toUpperCase(),
+                    condition: config.condition,
+                    price: 0, // Not used for market alerts — price tracker handles evaluation
+                    active: true,
+                    repeating,
+                    triggeredAt: null,
+                    createdAt: new Date().toISOString(),
+                    note: note || config.defaultNote,
+                    style: 'system',
+                    soundType,
+                    percentThreshold: config.percentThreshold ?? null,
+                    timeWindow: config.timeWindow ?? null,
+                    alertCategory: config.alertCategory,
+                };
+                set((s) => ({ alerts: [...s.alerts, alert] }));
+                return alert.id;
+            },
+
             removeAlert: (id: string) => {
                 set((s) => ({ alerts: s.alerts.filter((a) => a.id !== id) }));
+            },
+
+            updateAlertPrice: (id: string, newPrice: number) => {
+                set((s) => ({
+                    alerts: s.alerts.map((a) =>
+                        a.id === id ? { ...a, price: newPrice } : a,
+                    ),
+                }));
             },
 
             toggleAlert: (id: string) => {
@@ -195,6 +258,10 @@ const useAlertStore = create<AlertState & AlertActions>()(
             },
 
             clearAll: () => set({ alerts: [] }),
+
+            getAlertsForSymbol: (symbol: string) => {
+                return _get().alerts.filter((a) => a.symbol === symbol.toUpperCase());
+            },
 
             subscribeToPush: async () => {
                 if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
@@ -251,18 +318,22 @@ function sendNotification(title: string, body: string): void {
 
 function dispatchAlertToast(alert: Alert, currentPrice: number): void {
     if (typeof window === 'undefined') return;
-    const condLabel: Record<AlertCondition, string> = {
+    const condLabel: Partial<Record<AlertCondition, string>> = {
         above: '↑ above',
         below: '↓ below',
         cross_above: '↗ crossed above',
         cross_below: '↘ crossed below',
+        percent_above: '📈 percent above',
+        percent_below: '📉 percent below',
+        '52w_high': '🌟 52-week high',
+        '52w_low': '⚠️ 52-week low',
     };
     window.dispatchEvent(
         new CustomEvent('charEdge:alert-triggered', {
             detail: {
                 alert,
                 currentPrice,
-                message: `${alert.symbol} ${condLabel[alert.condition] || alert.condition} $${alert.price.toFixed(2)}`,
+                message: `${alert.symbol} ${condLabel[alert.condition] || alert.condition} ${alert.price > 0 ? '$' + alert.price.toFixed(2) : ''}`,
             },
         }),
     );
@@ -391,26 +462,26 @@ export function checkAlerts(prices: Record<string, number>): void {
         if (triggered) {
             store.triggerAlert(alert.id);
 
-            // C5: Suppress audio/visual during quiet hours (alert still triggers)
-            const quiet = isInQuietHours();
-
-            if (!quiet) {
-                // C4: Per-alert sound — prefer soundType, fall back to style mapping
-                const styleFallback: Record<string, AlertSoundType> = { price: 'price', system: 'urgent', indicator: 'info' };
-                const soundToPlay: AlertSoundType = alert.soundType || styleFallback[alert.style] || 'price';
-                try { playAlertSound(soundToPlay, getAlertVolume()); } catch { /* audio may be blocked */ }
-            }
-
-            const msg = `${alert.symbol} hit $${price.toFixed(2)} (alert: ${alert.condition} $${alert.price.toFixed(2)})`;
-            if (!quiet) sendNotification(`🔔 ${alert.symbol} Price Alert`, msg);
-            dispatchAlertToast(alert, price);
-
-            // A5: Bridge to notification activity log
-            notificationLog.push({
-                type: 'info',
-                message: `🔔 ${msg}`,
-                category: 'alert',
-                meta: { alertId: alert.id, symbol: alert.symbol, price, condition: alert.condition },
+            // ── Sprint 8: Route through frequency-aware throttler ──
+            // The throttler respects Instant/Balanced/Quiet modes,
+            // batches alerts per symbol, and overrides for urgent moves.
+            const condLabel: Partial<Record<AlertCondition, string>> = {
+                above: '↑ above', below: '↓ below',
+                cross_above: '↗ crossed above', cross_below: '↘ crossed below',
+                percent_above: '📈 percent above', percent_below: '📉 percent below',
+                '52w_high': '🌟 52-week high', '52w_low': '⚠️ 52-week low',
+            };
+            const condStr = condLabel[alert.condition] || alert.condition;
+            throttledNotify({
+                category: 'priceAlerts',
+                title: `🔔 ${alert.symbol} Price Alert`,
+                body: `${alert.symbol} hit $${price.toFixed(2)} (${condStr})`,
+                icon: '📈',
+                variant: 'success',
+                soundType: 'price',
+                meta: { symbol: alert.symbol, price, condition: alert.condition, alertId: alert.id, alert },
+                customEvent: 'charEdge:alert-triggered',
+                customEventDetail: { symbol: alert.symbol, price, condition: alert.condition, alert },
             });
 
             // C2: Record in alert history for outcome tracking
@@ -423,6 +494,94 @@ export function checkAlerts(prices: Record<string, number>): void {
 
 export function checkSymbolAlerts(symbol: string, price: number): void {
     checkAlerts({ [symbol.toUpperCase()]: price });
+}
+
+// ─── Position-Bound Alert Helpers ───────────────────────────────
+
+/**
+ * Auto-create alerts for a position's SL and TP levels.
+ * Called when a position opens with SL/TP set.
+ */
+export function addPositionAlerts(
+    positionId: string,
+    symbol: string,
+    side: 'long' | 'short',
+    stopLoss?: number | null,
+    takeProfit?: number | null,
+): string[] {
+    const store = useAlertStore.getState();
+    const ids: string[] = [];
+
+    if (stopLoss != null) {
+        const condition: AlertCondition = side === 'long' ? 'cross_below' : 'cross_above';
+        const id = store.addAlert({
+            symbol,
+            condition,
+            price: stopLoss,
+            note: `[Auto] Stop Loss for ${side} position`,
+            repeating: false,
+            style: 'system',
+            soundType: 'urgent',
+        });
+        // Patch with linkedPositionId
+        useAlertStore.setState((s) => ({
+            alerts: s.alerts.map((a) =>
+                a.id === id ? { ...a, linkedPositionId: positionId, linkedLevelType: 'sl' as const } : a,
+            ),
+        }));
+        ids.push(id);
+    }
+
+    if (takeProfit != null) {
+        const condition: AlertCondition = side === 'long' ? 'cross_above' : 'cross_below';
+        const id = store.addAlert({
+            symbol,
+            condition,
+            price: takeProfit,
+            note: `[Auto] Take Profit for ${side} position`,
+            repeating: false,
+            style: 'system',
+            soundType: 'success',
+        });
+        useAlertStore.setState((s) => ({
+            alerts: s.alerts.map((a) =>
+                a.id === id ? { ...a, linkedPositionId: positionId, linkedLevelType: 'tp' as const } : a,
+            ),
+        }));
+        ids.push(id);
+    }
+
+    return ids;
+}
+
+/**
+ * Update alert prices when SL/TP lines are dragged.
+ */
+export function updatePositionAlerts(
+    positionId: string,
+    levels: { stopLoss?: number; takeProfit?: number },
+): void {
+    useAlertStore.setState((s) => ({
+        alerts: s.alerts.map((a) => {
+            if (a.linkedPositionId !== positionId) return a;
+            if (a.linkedLevelType === 'sl' && levels.stopLoss != null) {
+                return { ...a, price: levels.stopLoss };
+            }
+            if (a.linkedLevelType === 'tp' && levels.takeProfit != null) {
+                return { ...a, price: levels.takeProfit };
+            }
+            return a;
+        }),
+    }));
+}
+
+/**
+ * Dismiss all alerts linked to a closed position.
+ */
+export function dismissPositionAlerts(positionId: string): void {
+    useAlertStore.setState((s) => ({
+        alerts: s.alerts.filter((a) => a.linkedPositionId !== positionId),
+    }));
 }
 
 export { useAlertStore };

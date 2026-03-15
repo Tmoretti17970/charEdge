@@ -45,6 +45,8 @@ import ChartKeyboardNav from '../ChartKeyboardNav.jsx';
 import ChartLoadingNarrative from '../overlays/ChartLoadingNarrative.jsx';
 import TradeMarkerOverlay from '../overlays/TradeMarkerOverlay.jsx';
 import TradeLevelOverlay from '../overlays/TradeLevelOverlay.jsx';
+import PositionLineOverlay from '../overlays/PositionLineOverlay.jsx';
+import AlertLinesOverlay from '../overlays/AlertLinesOverlay.jsx';
 import ZoomLoupe from '../overlays/ZoomLoupe.jsx';
 import ChartAnalysisPanel from '../panels/ChartAnalysisPanel.jsx';
 import IndicatorSettingsDialog from '../panels/IndicatorSettingsDialog.jsx';
@@ -110,7 +112,7 @@ export default function ChartEngineWidget({
     showVolumeSpikes, showPatternOverlays, showExtendedHours, showArbitrageSpread,
     intelligence, replayMode, replayIdx, replayPlaying,
     toggleReplay, setReplayIdx, setReplayPlaying,
-    chartColors: storeChartColors,
+    chartColors: storeChartColors, showCrosshairTooltip,
   } = useChartFeaturesStore(useShallow((s) => ({
     showHeatmap: s.showHeatmap, heatmapIntensity: s.heatmapIntensity,
     showSessions: s.showSessions, paneHeights: s.paneHeights,
@@ -121,7 +123,7 @@ export default function ChartEngineWidget({
     intelligence: s.intelligence,
     replayMode: s.replayMode, replayIdx: s.replayIdx, replayPlaying: s.replayPlaying,
     toggleReplay: s.toggleReplay, setReplayIdx: s.setReplayIdx, setReplayPlaying: s.setReplayPlaying,
-    chartColors: s.chartColors,
+    chartColors: s.chartColors, showCrosshairTooltip: s.showCrosshairTooltip,
   })));
 
   // Tools (changes on draw/indicator edit — isolated from tick path)
@@ -574,6 +576,13 @@ export default function ChartEngineWidget({
     if (historyLoading) engineRef.current.markDirty();
   }, [historyLoading]);
 
+  // Sync crosshair tooltip visibility to engine for UIStage
+  useEffect(() => {
+    if (!engineRef.current) return;
+    engineRef.current._showCrosshairTooltip = showCrosshairTooltip;
+    engineRef.current.markDirty();
+  }, [showCrosshairTooltip]);
+
   // Sprint 8: Preserve viewport when older bars are prepended
   // Uses queueMicrotask to ensure offset applies before next rAF frame (prevents white flash)
   // FIX: Moved setState reset into queueMicrotask to avoid synchronous setState-during-render.
@@ -893,6 +902,12 @@ export default function ChartEngineWidget({
 
       {/* Trade level dotted lines (entry, SL, TP) */}
       <TradeLevelOverlay engineRef={engineRef} />
+
+      {/* Position entry lines — anchored via engine p2y() */}
+      <PositionLineOverlay symbol={symbol} engineRef={engineRef} />
+
+      {/* Price alert lines — anchored via engine p2y() */}
+      <AlertLinesOverlay symbol={symbol} engineRef={engineRef} />
 
       {ctxMenu && (
         <DrawingContextMenu

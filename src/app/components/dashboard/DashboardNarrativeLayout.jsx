@@ -1,63 +1,41 @@
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Dashboard Narrative Layout
 //
-// Extracted from DashboardPanel.jsx (Sprint 3 decomposition).
-// The story-driven layout: Hero → Trend → Insights → Activity.
+// Redesigned: Session Summary Bar → Equity Curve → Metrics Row →
+// Watchlist + Recent Trades → Insights → Show More
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, Suspense, lazy } from 'react';
-import { C, F, M, GLASS } from '../../../constants.js';
-import { useUserStore } from '../../../state/useUserStore';
-import { text, radii } from '../../../theme/tokens.js';
+import { C, F, M } from '../../../constants.js';
+import { text, radii, space } from '../../../theme/tokens.js';
 import { fmtD, timeAgo, METRIC_TIPS } from '../../../utils.js';
-import { MilestoneBar } from '../ui/EmptyState.jsx';
 import { Card } from '../ui/UIKit.jsx';
 import WidgetBoundary from '../ui/WidgetBoundary.jsx';
-import DailyChallengeCard from '../widgets/DailyChallengeCard.jsx';
 import EquityCurveChart from '../widgets/EquityCurveChart.jsx';
 import TradeHeatmap from '../widgets/TradeHeatmap.jsx';
-import WeeklyChallengeCard from '../widgets/WeeklyChallengeCard.jsx';
-import WidgetCustomizer from '../widgets/WidgetCustomizer.jsx';
-import WidgetSuggestionBanner from '../widgets/WidgetSuggestionBanner.jsx';
-import XPActivityFeed from '../widgets/XPActivityFeed.jsx';
-// #35: AccountabilityWidget is now lazy-loaded below
-// #35: AIInsightCard is now lazy-loaded below
-import BentoCustomizer from './BentoCustomizer.jsx';
-// #35: ContextualInjector is now lazy-loaded below
-import DashboardHero from './DashboardHero.jsx';
 import s from './DashboardPanel.module.css';
-import { DashHeader, NarrativeSectionHeader, NarrativeDivider, BentoMetricCard } from './DashboardPrimitives.jsx';
-// #35: HeroTradeSpotlight is now lazy-loaded below
-// HUDBar removed — Hero tile is the authoritative P&L display
+import { DashHeader } from './DashboardPrimitives.jsx';
+import SessionSummaryBar from './SessionSummaryBar.jsx';
+import HomeWatchlist from './HomeWatchlist.jsx';
 import MorningBriefing from './MorningBriefing.jsx';
-// #35: NLQueryBar is now lazy-loaded below
-import { PersonaTierBanner } from './PersonaLayoutController.jsx';
-import PreMarketChecklist from './PreMarketChecklist.jsx';
-// #35: ProgressArc is now lazy-loaded below
 import RiskDashboard from './RiskDashboard.jsx';
-// #35: SessionTimeline, SimilarTrades, StreakCelebration are now lazy-loaded below
-// #35: TradeReplayPanel is now lazy-loaded below
-// #35: WeeklyDigest is now lazy-loaded below
 import WeeklyReport from './WeeklyReport.jsx';
-// #35: WhatIfPanel is now lazy-loaded below
 
-// #35: Lazy-loaded advanced widgets with per-widget skeleton loading
+// Lazy-loaded widgets (Sprint 22: trimmed to 4 useful ones)
 const AIInsightCard = lazy(() => import('./AIInsightCard.jsx'));
 const SessionTimeline = lazy(() => import('./SessionTimeline.jsx'));
-const HeroTradeSpotlight = lazy(() => import('./HeroTradeSpotlight.jsx'));
-const ProgressArc = lazy(() => import('./ProgressArc.jsx'));
-const AchievementShowcase = lazy(() => import('./AchievementShowcase.jsx'));
-const StreakCelebration = lazy(() => import('./StreakCelebration.jsx'));
-const AccountabilityWidget = lazy(() => import('./AccountabilityWidget.jsx'));
-const ContextualInjector = lazy(() => import('./ContextualInjector.jsx'));
-const NLQueryBar = lazy(() => import('./NLQueryBar.jsx'));
-const WeeklyDigest = lazy(() => import('./WeeklyDigest.jsx'));
 const SimilarTrades = lazy(() => import('./SimilarTrades.jsx'));
 const TradeReplayPanel = lazy(() => import('./TradeReplayPanel.jsx'));
 const WhatIfPanel_Lazy = lazy(() => import('./WhatIfPanel.jsx'));
+
+// Phase 6 new features
+const IntradayChart = lazy(() => import('./IntradayChart.jsx'));
+const StrategyBreakdown = lazy(() => import('./StrategyBreakdown.jsx'));
+const AssetBreakdown = lazy(() => import('./AssetBreakdown.jsx'));
+const QuickActions = lazy(() => import('./QuickActions.jsx'));
 const SessionJournalPrompt = lazy(() => import('./SessionJournalPrompt.jsx'));
 
-// #35: Widget skeleton fallback
+// Widget skeleton fallback
 function WidgetSkeleton({ height = 120 }) {
   return (
     <div
@@ -72,6 +50,135 @@ function WidgetSkeleton({ height = 120 }) {
   );
 }
 
+// ─── Sprint 17: Compact Metrics Row ─────────────────────────────
+function MetricsRow({ result, trades }) {
+  const metrics = [
+    {
+      label: 'Profit Factor',
+      value: result.pf === Infinity ? '∞' : result.pf.toFixed(2),
+      color: result.pf >= 1.5 ? C.g : result.pf >= 1 ? C.y : C.r,
+      tip: METRIC_TIPS['Profit Factor'],
+    },
+    {
+      label: 'Win/Loss',
+      value: result.rr === Infinity ? '∞' : result.rr.toFixed(2),
+      color: result.rr >= 1.5 ? C.g : result.rr >= 1 ? C.info : C.r,
+      tip: METRIC_TIPS['Win/Loss Ratio'],
+    },
+    {
+      label: 'Max DD',
+      value: `${result.maxDd.toFixed(1)}%`,
+      color: result.maxDd < 10 ? C.g : C.r,
+      tip: METRIC_TIPS['Max DD'],
+    },
+    {
+      label: 'Expectancy',
+      value: fmtD(result.expectancy),
+      color: result.expectancy >= 0 ? C.g : C.r,
+      tip: METRIC_TIPS['Expectancy'],
+    },
+  ];
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 0,
+        padding: '12px 20px',
+        background: C.sf,
+        border: `1px solid ${C.bd}40`,
+        borderRadius: radii.lg,
+        marginBottom: 20,
+        overflow: 'hidden',
+      }}
+    >
+      {metrics.map((m, i) => (
+        <div
+          key={m.label}
+          title={m.tip}
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '0 12px',
+            borderRight: i < metrics.length - 1 ? `1px solid ${C.bd}30` : 'none',
+            cursor: m.tip ? 'help' : 'default',
+            minWidth: 0,
+          }}
+        >
+          <span
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              color: C.t3,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {m.label}
+          </span>
+          <span
+            style={{
+              fontFamily: 'var(--font-mono, monospace)',
+              fontSize: 13,
+              fontWeight: 700,
+              color: m.color,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {m.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Sprint 48: Smart Session Tip ──────────────────────────────
+function SessionTip({ todayStats, result, sectionGap }) {
+  let message = null;
+  let emoji = null;
+
+  const riskUsed = result?.riskUsedPct ?? 0;
+  const todayWR = todayStats.count > 0 ? (todayStats.wins / todayStats.count) * 100 : 0;
+  const consLosses = todayStats.consecutiveLosses ?? 0;
+
+  if (riskUsed > 60) {
+    emoji = '⚠️';
+    message = `${Math.round(riskUsed)}% of daily risk used — consider taking a break.`;
+  } else if (consLosses >= 3) {
+    emoji = '🧊';
+    message = `${consLosses} consecutive losses — step away and reset.`;
+  } else if (todayWR >= 70 && todayStats.count >= 3) {
+    emoji = '🔥';
+    message = `Strong session (${Math.round(todayWR)}% WR) — lock in profits?`;
+  }
+
+  if (!message) return null;
+
+  return (
+    <div style={{
+      padding: '10px 16px',
+      background: `${C.y}08`,
+      border: `1px solid ${C.y}20`,
+      borderRadius: radii.md,
+      fontSize: 12,
+      color: C.t2,
+      fontWeight: 500,
+      marginBottom: sectionGap,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+    }}>
+      <span style={{ fontSize: 16 }}>{emoji}</span>
+      {message}
+    </div>
+  );
+}
+
 export default function DashboardNarrativeLayout({
   trades,
   result,
@@ -83,21 +190,16 @@ export default function DashboardNarrativeLayout({
   setPage,
   activeWidgets,
   activePreset,
-  onLayoutToggle,
-  editMode,
-  onToggleEdit,
 }) {
-  const [showCustomizer, setShowCustomizer] = useState(false);
   const [showAllWidgets, setShowAllWidgets] = useState(false);
-  const simpleMode = useUserStore((s) => s.simpleMode);
-  const sectionGap = isMobile ? 20 : 28;
+  const sectionGap = isMobile ? space[5] : space[9]; // Sprint 28: 20 mobile, 36 desktop
 
-  // Task 4.9.1.1: AmbientBorder — compute aura color from overall risk (dark mode only)
+  // AmbientBorder — compute aura color from overall P&L (dark mode only)
   const isDark = typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)')?.matches;
   const ambientColor = isDark
     ? (result?.totalPnl ?? 0) >= 0
-      ? 'rgba(45,212,160,0.08)'
-      : 'rgba(242,92,92,0.08)'
+      ? 'rgba(52,199,89,0.04)'   // Sprint 33: reduced from 0.08
+      : 'rgba(255,59,48,0.04)'
     : 'transparent';
 
   return (
@@ -109,63 +211,71 @@ export default function DashboardNarrativeLayout({
         transition: 'box-shadow 1s ease',
       }}
     >
-      <DashHeader
-        trades={trades}
-        computing={computing}
-        layoutMode="narrative"
-        onLayoutToggle={onLayoutToggle}
-        editMode={editMode || false}
-        onToggleEdit={onToggleEdit || (() => {})}
-        onCustomize={() => setShowCustomizer(true)}
-        activePreset={activePreset}
+      <DashHeader trades={trades} />
+
+      {/* ═══ SESSION SUMMARY BAR ═══ */}
+      <SessionSummaryBar
+        todayPnl={todayStats.pnl}
+        todayCount={todayStats.count}
+        winRate={todayStats.winRate}
+        yesterdayPnl={todayStats.yesterdayPnl}
+        recentDailyPnl={todayStats.recentDailyPnl}
+        ribbonStats={ribbonStats}
+        isMobile={isMobile}
       />
 
-      {/* ═══ PERFORMANCE RIBBON ═══ */}
-      {ribbonStats && (
-        <div className={s.ribbon}>
-          {[
-            { label: 'Week', value: fmtD(ribbonStats.weekPnl), color: ribbonStats.weekPnl >= 0 ? C.g : C.r },
-            { label: 'Month', value: fmtD(ribbonStats.monthPnl), color: ribbonStats.monthPnl >= 0 ? C.g : C.r },
-            { label: 'Total', value: fmtD(ribbonStats.totalPnl), color: ribbonStats.totalPnl >= 0 ? C.g : C.r },
-            { label: 'Win Rate', value: `${ribbonStats.winRate}%`, color: ribbonStats.winRate >= 50 ? C.g : C.r },
-            {
-              label: 'Streak',
-              value: `${ribbonStats.streak}d ${ribbonStats.streakType === 'win' ? '🔥' : '📉'}`,
-              color: ribbonStats.streakType === 'win' ? C.g : C.r,
-            },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className={s.ribbonItem}
-              style={{
-                background: GLASS.subtle,
-                backdropFilter: GLASS.blurSm,
-                WebkitBackdropFilter: GLASS.blurSm,
-                border: GLASS.border,
-              }}
-            >
-              <span className={s.ribbonLabel} style={text.captionSm}>
-                {item.label}
-              </span>
-              <span className={s.ribbonValue} style={{ ...text.dataSm, color: item.color }}>
-                {item.value}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Getting Started onboarding */}
+      {/* Sprint 23: Simplified Getting Started — single-line banner */}
       {trades.length < 5 && !localStorage.getItem('tf_onboard_dismissed') && (
-        <Card
+        <div
           style={{
-            marginBottom: sectionGap,
-            padding: '24px 28px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            padding: '12px 20px',
             background: `linear-gradient(135deg, ${C.sf}, ${C.b}08)`,
-            border: `1px solid ${C.b}30`,
-            position: 'relative',
+            border: `1px solid ${C.b}20`,
+            borderRadius: radii.lg,
+            marginBottom: sectionGap,
           }}
         >
+          <span style={{ fontSize: 14 }}>🚀</span>
+          <span style={{ fontSize: 12, color: C.t2, flex: 1 }}>
+            Welcome to charEdge — Add a trade or Import from CSV to get started
+          </span>
+          <button
+            className="tf-btn"
+            onClick={() => window.dispatchEvent(new CustomEvent('tf:openTradeForm'))}
+            style={{
+              padding: '5px 12px',
+              borderRadius: radii.sm,
+              fontSize: 11,
+              fontWeight: 700,
+              background: C.b,
+              color: '#fff',
+              border: 'none',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            + Add Trade
+          </button>
+          <button
+            className="tf-btn"
+            onClick={() => window.dispatchEvent(new CustomEvent('tf:openCSVImport'))}
+            style={{
+              padding: '5px 12px',
+              borderRadius: radii.sm,
+              fontSize: 11,
+              fontWeight: 700,
+              background: 'transparent',
+              color: C.b,
+              border: `1px solid ${C.b}40`,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Import CSV
+          </button>
           <button
             className="tf-btn"
             onClick={() => {
@@ -173,190 +283,101 @@ export default function DashboardNarrativeLayout({
               window.dispatchEvent(new Event('storage'));
             }}
             style={{
-              position: 'absolute',
-              top: 12,
-              right: 12,
               background: 'none',
               border: 'none',
               color: C.t3,
-              fontSize: 14,
+              fontSize: 12,
               cursor: 'pointer',
-              padding: '2px 6px',
+              padding: '2px 4px',
+              flexShrink: 0,
             }}
           >
             ✕
           </button>
-          <div style={{ ...text.h3, fontSize: 15, fontWeight: 800, marginBottom: 4 }}>🚀 Getting Started</div>
-          <div style={{ ...text.bodyXs, marginBottom: 16 }}>Build your trading edge in 3 steps</div>
-          <div className={s.onboardGridResponsive}>
-            {[
-              {
-                icon: '✏️',
-                label: 'Add your first trade',
-                desc: 'Log a trade to start tracking',
-                action: () => window.dispatchEvent(new CustomEvent('tf:openTradeForm')),
-              },
-              {
-                icon: '📥',
-                label: 'Import from CSV',
-                desc: 'Bulk import your history',
-                action: () => window.dispatchEvent(new CustomEvent('tf:openCSVImport')),
-              },
-              {
-                icon: '📊',
-                label: 'Explore the chart',
-                desc: 'Technical analysis tools',
-                action: () => setPage('charts'),
-              },
-            ].map((step, i) => (
-              <button
-                key={i}
-                className="tf-btn"
-                onClick={step.action}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: '14px 16px',
-                  background: C.bg2,
-                  border: `1px solid ${C.bd}`,
-                  borderRadius: radii.md,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = C.b;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = C.bd;
-                }}
-              >
-                <span style={{ fontSize: 22 }}>{step.icon}</span>
-                <div>
-                  <div style={{ ...text.bodyXs, fontWeight: 700, color: C.t1 }}>{step.label}</div>
-                  <div style={{ ...text.captionSm, marginTop: 1 }}>{step.desc}</div>
-                </div>
-                <span style={{ marginLeft: 'auto', color: C.t3, fontSize: 14 }}>›</span>
-              </button>
-            ))}
-          </div>
-        </Card>
+        </div>
       )}
 
-      {/* ═══ SECTION 01: TODAY'S SESSION ═══ */}
-      <NarrativeSectionHeader label="Today's Session" description="Your current trading day at a glance" />
-      <DashboardHero
-        todayPnl={todayStats.pnl}
-        todayCount={todayStats.count}
-        winRate={todayStats.winRate}
-        yesterdayPnl={todayStats.yesterdayPnl}
-        recentDailyPnl={todayStats.recentDailyPnl}
-        isMobile={isMobile}
-      />
-
-      {/* B2: Promoted AI Insight Card — appears after 20+ trades */}
+      {/* AI Insight Card — appears after 20+ trades */}
       {trades.length >= 20 && (
         <Suspense fallback={<WidgetSkeleton height={160} />}>
           <AIInsightCard />
         </Suspense>
       )}
 
-      <NarrativeDivider />
-
-      {/* ═══ SECTION 02: YOUR TREND ═══ */}
-      <NarrativeSectionHeader label="Your Trend" description="How your equity has grown over time" />
-
-      <div className={`tf-bento tf-section-enter ${s.bentoGridResponsive} ${s.sectionGap}`}>
-        {/* Equity Curve */}
-        <Card
-          className={`tf-card-hover ${s.equitySpan}`}
+      {/* ═══ EQUITY CURVE ═══ */}
+      <Card
+        className={`tf-card-hover ${s.equitySpan}`}
+        style={{
+          padding: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          backdropFilter: 'blur(16px)',
+          marginBottom: sectionGap,
+        }}
+      >
+        <div
           style={{
-            padding: 0,
+            padding: '12px 20px 0 20px',
             display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-            backdropFilter: 'blur(16px)',
+            justifyContent: 'space-between',
+            alignItems: 'center',
           }}
         >
-          <div
-            style={{
-              padding: '20px 24px 0 24px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <div className="tf-section-accent" style={{ marginBottom: 0 }}>
-              Equity Curve
-            </div>
-            <div style={{ ...text.dataLg, fontSize: 24, fontWeight: 800, color: result.totalPnl >= 0 ? C.g : C.r }}>
-              {fmtD(result.totalPnl)}
-            </div>
+          <div className="tf-section-accent" style={{ marginBottom: 0 }}>
+            Equity Curve
           </div>
-          <div className={s.equityChartWrapResponsive}>
+          <div style={{ ...text.dataLg, fontSize: 24, fontWeight: 800, color: result.totalPnl >= 0 ? C.g : C.r }}>
+            {fmtD(result.totalPnl)}
+          </div>
+        </div>
+        <div className={s.equityChartWrapResponsive}>
+          <div style={{ position: 'absolute', inset: 0 }}>
             <WidgetBoundary name="Equity Curve" height="100%">
               <EquityCurveChart eq={result.eq} height="100%" />
             </WidgetBoundary>
           </div>
-        </Card>
+        </div>
+      </Card>
 
-        {/* Milestone for early-stage users — below the equity curve, not above the fold */}
-        {trades.length > 0 && trades.length < 100 && (
-          <div style={{ gridColumn: '1 / -1', marginBottom: 0 }}>
-            <MilestoneBar tradeCount={trades.length} />
-          </div>
-        )}
 
-        {/* Bento metric tiles */}
-        <BentoMetricCard
-          label="Profit Factor"
-          value={result.pf === Infinity ? '∞' : result.pf.toFixed(2)}
-          color={result.pf >= 1.5 ? C.g : result.pf >= 1 ? C.y : C.r}
-          data={result.eq.map((d) => d.val || d.pnl)}
-          tip={METRIC_TIPS['Profit Factor']}
-        />
-        <BentoMetricCard
-          label="Win/Loss Ratio"
-          value={result.rr === Infinity ? '∞' : result.rr.toFixed(2)}
-          color={result.rr >= 1.5 ? C.g : result.rr >= 1 ? C.info : C.r}
-          data={trades.map((t) => t.pnl || 0)}
-          tip={METRIC_TIPS['Win/Loss Ratio']}
-        />
-        <BentoMetricCard
-          label="Max Drawdown"
-          value={`${result.maxDd.toFixed(1)}%`}
-          color={result.maxDd < 10 ? C.g : C.r}
-          data={result.eq.map((d) => Math.abs(d.dd || 0))}
-          inverse
-          tip={METRIC_TIPS['Max DD']}
-        />
-        <BentoMetricCard
-          label="Expectancy"
-          value={fmtD(result.expectancy)}
-          color={result.expectancy >= 0 ? C.g : C.r}
-          tip={METRIC_TIPS['Expectancy']}
-        />
+      {/* ═══ Sprint 17: COMPACT METRICS ROW ═══ */}
+      <MetricsRow result={result} trades={trades} />
 
-        {/* Calendar & Activity */}
-        <Card className={`tf-card-hover tf-section-enter ${s.wideSpan}`} style={{ padding: 20, overflow: 'hidden' }}>
-          <div className="tf-section-accent" style={{ marginBottom: 12 }}>
-            Activity Heatmap
-          </div>
-          <WidgetBoundary name="Calendar" height={340}>
-            <TradeHeatmap
-              trades={trades}
-              onDayClick={(date) => {
-                const dStr = date.toISOString().slice(0, 10);
-                window.dispatchEvent(new CustomEvent('charEdge:open-logbook', { detail: { date: dStr } }));
-              }}
-            />
-          </WidgetBoundary>
-        </Card>
+      {/* ═══ Sprint 43: INTRADAY P&L CHART ═══ */}
+      {trades.length >= 2 && (
+        <div style={{ marginBottom: sectionGap }}>
+          <Suspense fallback={null}>
+            <IntradayChart trades={trades} isMobile={isMobile} />
+          </Suspense>
+        </div>
+      )}
+
+      {/* ═══ Sprint 44-45: STRATEGY + ASSET BREAKDOWN ═══ */}
+      {trades.length >= 5 && (
+        <div style={{ marginBottom: sectionGap }}>
+          <Suspense fallback={null}>
+            <StrategyBreakdown trades={trades} />
+            <AssetBreakdown trades={trades} />
+          </Suspense>
+        </div>
+      )}
+
+      {/* ═══ Sprint 48: SMART SESSION RECOMMENDATIONS ═══ */}
+      {todayStats && todayStats.count >= 3 && (
+        <SessionTip todayStats={todayStats} result={result} sectionGap={sectionGap} />
+      )}
+
+      {/* ═══ Sprint 13: WATCHLIST + RECENT TRADES (two-column) ═══ */}
+      <div
+        className={s.twoColGridResponsive}
+        style={{ marginBottom: sectionGap }}
+      >
+        <HomeWatchlist isMobile={isMobile} />
 
         <Card
-          className={`tf-card-hover tf-section-enter ${s.wideSpan}`}
-          style={{ padding: 0, display: 'flex', flexDirection: 'column' }}
+          className="tf-card-hover"
+          style={{ padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
         >
           <div
             style={{
@@ -367,116 +388,29 @@ export default function DashboardNarrativeLayout({
             }}
           >
             <span className="tf-section-accent" style={{ marginBottom: 0 }}>
-              Recent Trades
+              Trade Heatmap
             </span>
-            <button
-              onClick={() => {
-                setPage('journal');
-                window.dispatchEvent(new CustomEvent('tf:openLogbook'));
-              }}
-              className="tf-link"
-              style={{
-                background: 'none',
-                border: 'none',
-                fontSize: 11,
-                fontWeight: 600,
-                fontFamily: F,
-                cursor: 'pointer',
-                color: C.b,
-              }}
-            >
-              View All →
-            </button>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }}>
-            {recentTrades.map((t) => (
-              <div
-                key={t.id}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: isMobile ? '60px 1fr auto' : '70px 1fr auto',
-                  gap: 8,
-                  padding: '10px 20px',
-                  borderBottom: `1px solid ${C.bd}40`,
-                  fontSize: 12,
-                  alignItems: 'center',
-                }}
-              >
-                <div style={{ fontFamily: M, fontSize: 11, color: C.t3 }} title={t.date}>
-                  {timeAgo(t.date)}
-                </div>
-                <div
-                  style={{ fontWeight: 700, color: C.t1, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}
-                >
-                  {t.symbol}
-                  <span
-                    style={{
-                      color: t.side === 'long' ? C.g : C.r,
-                      background: (t.side === 'long' ? C.g : C.r) + '15',
-                      padding: '2px 6px',
-                      borderRadius: radii.xs,
-                      fontSize: 9,
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    {t.side}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    fontFamily: M,
-                    fontWeight: 700,
-                    fontSize: 13,
-                    color: (t.pnl || 0) >= 0 ? C.g : C.r,
-                    textAlign: 'right',
-                    fontVariantNumeric: 'tabular-nums',
-                  }}
-                >
-                  {fmtD(t.pnl)}
-                </div>
-              </div>
-            ))}
-            {recentTrades.length === 0 && (
-              <div style={{ padding: 24, textAlign: 'center', fontSize: 12, color: C.t3 }}>No trades yet</div>
-            )}
+          <div style={{ flex: 1, padding: '10px 16px 16px 16px', minHeight: 220 }}>
+            <WidgetBoundary name="Trade Heatmap" height="100%">
+              <TradeHeatmap trades={trades} />
+            </WidgetBoundary>
           </div>
         </Card>
-
-        {/* B4: Quick Journal prompt — appears after 3+ trades */}
-        <Suspense fallback={null}>
-          <SessionJournalPrompt tradeCount={todayStats.count} />
-        </Suspense>
-
-        {/* Gamification Widgets — gated by simpleMode (B3) */}
-        {!simpleMode && (
-          <>
-            <DailyChallengeCard />
-            <WeeklyChallengeCard />
-            <XPActivityFeed />
-          </>
-        )}
       </div>
 
-      <NarrativeDivider />
+      {/* Quick Journal prompt — appears after 3+ trades */}
+      <Suspense fallback={null}>
+        <SessionJournalPrompt tradeCount={todayStats.count} />
+      </Suspense>
 
-      {/* ═══ SECTION 03: INSIGHTS & ACTIONS ═══ */}
-      <NarrativeSectionHeader
-        label="Insights & Actions"
-        description="Briefings, suggestions, and your daily checklist"
-      />
-
+      {/* ═══ INSIGHTS ═══ */}
       <MorningBriefing />
-      <WidgetSuggestionBanner />
-      <PersonaTierBanner />
 
-      <PreMarketChecklist />
-      <BentoCustomizer />
-
-      {/* Task 4.9.1.3: RiskDashboard always-visible — promoted from showAllWidgets gate */}
+      {/* RiskDashboard always-visible */}
       <RiskDashboard />
 
-      {/* Advanced widgets progressive disclosure */}
+      {/* ═══ Sprint 22: Show More — trimmed to 4 useful widgets ═══ */}
       {!showAllWidgets ? (
         <button
           onClick={() => setShowAllWidgets(true)}
@@ -495,47 +429,33 @@ export default function DashboardNarrativeLayout({
             marginBottom: sectionGap,
           }}
         >
-          ↓ Show All Widgets
+          ↓ Show More
           <span
             style={{ fontSize: 10, padding: '2px 8px', background: `${C.b}15`, borderRadius: radii.md, color: C.b }}
           >
-            +5 more
+            +5
           </span>
         </button>
       ) : (
         <>
-          {/* AIInsightCard removed from here — promoted to Section 01 (B2) */}
+          {/* Sprint 14: Heatmap moved to Show More */}
+          <Card className="tf-card-hover" style={{ padding: 20, overflow: 'hidden', marginBottom: sectionGap }}>
+            <div className="tf-section-accent" style={{ marginBottom: 12 }}>
+              Activity Heatmap
+            </div>
+            <WidgetBoundary name="Calendar" height={340}>
+              <TradeHeatmap
+                trades={trades}
+                onDayClick={(date) => {
+                  const dStr = date.toISOString().slice(0, 10);
+                  window.dispatchEvent(new CustomEvent('charEdge:open-logbook', { detail: { date: dStr } }));
+                }}
+              />
+            </WidgetBoundary>
+          </Card>
+
           <Suspense fallback={<WidgetSkeleton height={200} />}>
             <SessionTimeline />
-          </Suspense>
-          <Suspense fallback={<WidgetSkeleton height={140} />}>
-            <HeroTradeSpotlight />
-          </Suspense>
-          <Suspense fallback={<WidgetSkeleton height={140} />}>
-            <ProgressArc />
-          </Suspense>
-          {/* AchievementShowcase + StreakCelebration gated by simpleMode (B3) */}
-          {!simpleMode && (
-            <>
-              <Suspense fallback={<WidgetSkeleton height={140} />}>
-                <AchievementShowcase />
-              </Suspense>
-              <Suspense fallback={<WidgetSkeleton height={100} />}>
-                <StreakCelebration />
-              </Suspense>
-            </>
-          )}
-          <Suspense fallback={<WidgetSkeleton height={140} />}>
-            <AccountabilityWidget />
-          </Suspense>
-          <Suspense fallback={<WidgetSkeleton height={100} />}>
-            <ContextualInjector />
-          </Suspense>
-          <Suspense fallback={<WidgetSkeleton height={100} />}>
-            <NLQueryBar />
-          </Suspense>
-          <Suspense fallback={<WidgetSkeleton height={140} />}>
-            <WeeklyDigest />
           </Suspense>
 
           <div
@@ -595,13 +515,14 @@ export default function DashboardNarrativeLayout({
         </>
       )}
 
-      <WidgetCustomizer
-        isOpen={showCustomizer}
-        onClose={() => setShowCustomizer(false)}
-        activeWidgets={activeWidgets}
-        onUpdateWidgets={undefined}
-        onApplyPreset={undefined}
-      />
+      {/* ═══ Sprint 46: QUICK ACTIONS ═══ */}
+      {!isMobile && (
+        <div style={{ marginTop: sectionGap }}>
+          <Suspense fallback={null}>
+            <QuickActions isActive />
+          </Suspense>
+        </div>
+      )}
     </div>
   );
 }

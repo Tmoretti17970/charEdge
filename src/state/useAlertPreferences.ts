@@ -1,90 +1,53 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Alert Preferences Store (Phase C5)
+// charEdge — Alert Preferences (Backward-Compatible Wrapper)
 //
-// Global alert settings: DND schedule, instant mute, master volume.
-// Persisted to localStorage.
+// DEPRECATED: This file now delegates to useNotificationPreferences.
+// All new code should import from useNotificationPreferences directly.
+//
+// Kept for backward compatibility with existing consumers:
+//   - useAlertStore.ts (imports isInQuietHours, getAlertVolume)
+//   - AlertPanel.jsx (direct store subscriptions)
+//   - SmartAlerts.jsx (globalMute, toggleMute)
 // ═══════════════════════════════════════════════════════════════════
 
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import useNotificationPreferences, {
+    isInQuietHours,
+    getAlertVolume,
+    isAlertTypeEnabled,
+    DEFAULT_ASSET_CLASS_PREFS,
+} from './useNotificationPreferences';
 
-// ─── Types ──────────────────────────────────────────────────────
+import type { AssetClassAlertPrefs } from './useNotificationPreferences';
+export type { AssetClassAlertPrefs };
 
-interface AlertPreferences {
-    dndEnabled: boolean;
-    dndStart: string;       // "22:00" — 24h format
-    dndEnd: string;         // "08:00"
-    globalMute: boolean;    // Instant mute toggle
-    globalVolume: number;   // 0–1 master volume scale
-}
+// Re-export legacy types under old names
+export type AlertFrequency = 'instant' | 'hourly_digest' | 'daily_digest';
+export type AlertPresetId = '52w_high' | '52w_low' | 'percent_5_up' | 'percent_5_down' | 'percent_10_up' | 'percent_10_down';
 
-interface AlertPreferencesActions {
-    toggleMute: () => void;
-    setDnd: (enabled: boolean, start?: string, end?: string) => void;
-    setVolume: (volume: number) => void;
-}
+// ─── Thin Wrapper Store ─────────────────────────────────────────
+// This creates a Zustand-compatible selector interface that reads
+// from the new unified store, so all existing `useAlertPreferences(s => s.xxx)`
+// calls continue to work without any changes.
 
-// ─── Store ──────────────────────────────────────────────────────
-
-const useAlertPreferences = create<AlertPreferences & AlertPreferencesActions>()(
-    persist(
-        (set) => ({
-            dndEnabled: false,
-            dndStart: '22:00',
-            dndEnd: '08:00',
-            globalMute: false,
-            globalVolume: 1,
-
-            toggleMute: () => set((s) => ({ globalMute: !s.globalMute })),
-
-            setDnd: (enabled, start, end) =>
-                set((s) => ({
-                    dndEnabled: enabled,
-                    dndStart: start ?? s.dndStart,
-                    dndEnd: end ?? s.dndEnd,
-                })),
-
-            setVolume: (volume) => set({ globalVolume: Math.max(0, Math.min(1, volume)) }),
-        }),
-        { name: 'charEdge-alert-prefs' },
-    ),
+const useAlertPreferences = Object.assign(
+    // The hook function: delegates all selector calls to the unified store
+    function useAlertPreferencesHook<T>(selector?: (state: any) => T): T {
+        if (selector) {
+            return useNotificationPreferences(selector);
+        }
+        return useNotificationPreferences() as T;
+    },
+    {
+        // Static .getState() — most common usage pattern in AlertPanel
+        getState: () => useNotificationPreferences.getState(),
+        // Static .setState() — used directly in AlertPanel for DND, volume, etc.
+        setState: (partial: any) => useNotificationPreferences.setState(partial),
+        // Subscribe for external listeners
+        subscribe: (listener: any) => useNotificationPreferences.subscribe(listener),
+    },
 );
 
-// ─── Utilities ──────────────────────────────────────────────────
+// ─── Re-exports ─────────────────────────────────────────────────
 
-/**
- * Check if current time falls within the user's DND window.
- * Returns true if sounds/notifications should be suppressed.
- */
-export function isInQuietHours(): boolean {
-    const prefs = useAlertPreferences.getState();
-
-    // Instant mute overrides everything
-    if (prefs.globalMute) return true;
-
-    // DND schedule
-    if (!prefs.dndEnabled) return false;
-
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const [startH, startM] = prefs.dndStart.split(':').map(Number);
-    const [endH, endM] = prefs.dndEnd.split(':').map(Number);
-    const startMinutes = (startH || 0) * 60 + (startM || 0);
-    const endMinutes = (endH || 0) * 60 + (endM || 0);
-
-    // Handle overnight ranges (e.g., 22:00 → 08:00)
-    if (startMinutes > endMinutes) {
-        return currentMinutes >= startMinutes || currentMinutes < endMinutes;
-    }
-    return currentMinutes >= startMinutes && currentMinutes < endMinutes;
-}
-
-/**
- * Get the current master volume scale (0–1).
- */
-export function getAlertVolume(): number {
-    return useAlertPreferences.getState().globalVolume;
-}
-
-export { useAlertPreferences };
+export { useAlertPreferences, DEFAULT_ASSET_CLASS_PREFS, isInQuietHours, getAlertVolume, isAlertTypeEnabled };
 export default useAlertPreferences;
