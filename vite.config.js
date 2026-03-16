@@ -208,7 +208,7 @@ export default defineConfig({
           if (id.includes('src/pages/CommunityPage')) {
             return 'community';
           }
-          if (id.includes('src/charting_library/') || id.includes('src/engine/')) {
+          if (id.includes('src/engine/')) {
             return 'data-engines';
           }
           if (id.includes('src/data/') && !id.includes('__tests__')) {
@@ -220,7 +220,8 @@ export default defineConfig({
           if (id.includes('src/pages/InsightsPage') || id.includes('src/pages/TelemetryDashboard')) {
             return 'analytics';
           }
-          if (id.includes('src/pages/ChartsPage') || id.includes('src/pages/MarketsPage')
+          // charting_library + chart UI components in same chunk to avoid circular deps
+          if (id.includes('src/charting_library/') || id.includes('src/pages/ChartsPage') || id.includes('src/pages/MarketsPage')
             || id.includes('src/app/features/chart') || id.includes('src/app/components/chart')) {
             return 'chart-tools';
           }
