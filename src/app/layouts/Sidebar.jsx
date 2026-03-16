@@ -102,6 +102,7 @@ function IconSettings({ color }) {
 
 const NAV_ITEMS = [
   { id: 'journal', label: 'Home', Icon: IconHome },
+  { id: 'markets', label: 'Markets', Icon: IconWatchlist },
   { id: 'charts', label: 'Charts', Icon: IconChart },
   // Wave 0: Quarantined — coach + discover removed from v1.0 launch scope
   // { id: 'coach', label: 'Char', Icon: IconCoach },

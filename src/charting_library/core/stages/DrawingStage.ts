@@ -58,6 +58,48 @@ export function executeDrawingStage(fs, ctx, engine) {
 
   // E3.1: Clear shadow state
   dCtx.restore();
+
+  // Sprint 9: Visual snap indicator (blue dot + label)
+  const snapInfo = engine.drawingEngine?.lastSnapInfo;
+  if (snapInfo && snapInfo.px != null && snapInfo.py != null) {
+    const sx = Math.round(snapInfo.px * pr);
+    const sy = Math.round(snapInfo.py * pr);
+    const dotR = Math.round(4.5 * pr);
+
+    // Outer glow
+    dCtx.save();
+    dCtx.globalAlpha = 0.25;
+    dCtx.fillStyle = '#2962FF';
+    dCtx.beginPath();
+    dCtx.arc(sx, sy, dotR * 2.2, 0, Math.PI * 2);
+    dCtx.fill();
+
+    // Inner dot
+    dCtx.globalAlpha = 0.85;
+    dCtx.fillStyle = '#2962FF';
+    dCtx.beginPath();
+    dCtx.arc(sx, sy, dotR, 0, Math.PI * 2);
+    dCtx.fill();
+
+    // White center
+    dCtx.globalAlpha = 0.9;
+    dCtx.fillStyle = '#fff';
+    dCtx.beginPath();
+    dCtx.arc(sx, sy, Math.round(1.5 * pr), 0, Math.PI * 2);
+    dCtx.fill();
+
+    // Label
+    if (snapInfo.label) {
+      const fs = Math.round(9 * pr);
+      dCtx.font = `600 ${fs}px -apple-system, BlinkMacSystemFont, 'Inter', sans-serif`;
+      dCtx.fillStyle = '#2962FF';
+      dCtx.globalAlpha = 0.8;
+      dCtx.textBaseline = 'middle';
+      dCtx.textAlign = 'left';
+      dCtx.fillText(snapInfo.label, sx + dotR + Math.round(4 * pr), sy);
+    }
+    dCtx.restore();
+  }
 }
 
 /**

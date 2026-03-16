@@ -31,8 +31,18 @@ const SHORTCUT_GROUPS = [
   {
     title: 'Drawing Tools',
     shortcuts: [
-      { keys: ['Esc'], desc: 'Deselect tool / cancel' },
-      { keys: ['Del'], desc: 'Delete selected drawing' },
+      { keys: ['T'], desc: 'Trend Line' },
+      { keys: ['H'], desc: 'Horizontal Line' },
+      { keys: ['V'], desc: 'Vertical Line' },
+      { keys: ['R'], desc: 'Rectangle' },
+      { keys: ['F'], desc: 'Fibonacci' },
+      { keys: ['M'], desc: 'Measure' },
+      { keys: ['Esc'], desc: 'Cancel / Deselect' },
+      { keys: ['Del'], desc: 'Delete selected' },
+      { keys: ['Ctrl', 'Z'], desc: 'Undo' },
+      { keys: ['Ctrl', '⇧', 'Z'], desc: 'Redo' },
+      { keys: ['Ctrl', 'D'], desc: 'Duplicate' },
+      { keys: ['Tab'], desc: 'Cycle drawings' },
     ],
   },
   {

@@ -37,7 +37,7 @@ import { useAlertOutcomeTracker } from '../hooks/useAlertOutcomeTracker';
 const ChartMinimap = React.lazy(() => import('../app/components/chart/ui/ChartMinimap.jsx'));
 const UnifiedStatusBar = React.lazy(() => import('../app/components/chart/ui/UnifiedStatusBar.jsx'));
 const DepthChart = React.lazy(() => import('../app/components/chart/DepthChart.jsx'));
-const DrawingSidebar = React.lazy(() => import('../app/components/chart/tools/DrawingSidebar.jsx'));
+
 const LiveTicker = React.lazy(() => import('../app/misc/components/LiveTicker.jsx'));
 const DataQualityIndicator = React.lazy(() =>
   import('../app/components/chart/ui/DataQualityIndicator.jsx').then((m) => ({ default: m.DataQualityIndicator })),
@@ -145,8 +145,7 @@ function ChartsPageInner({ _mountTime }) {
     setShowShortcuts,
     snapshotModalOpen,
     setSnapshotModalOpen,
-    drawSidebarOpen,
-    setDrawSidebarOpen,
+
     focusMode,
     setFocusMode,
     hoverInfo,
@@ -245,8 +244,7 @@ function ChartsPageInner({ _mountTime }) {
         },
         description: `Drawing: ${toolId}`,
       })),
-      // D → toggle drawing sidebar
-      { key: 'd', handler: () => setDrawSidebarOpen((prev) => !prev), description: 'Toggle drawing sidebar' },
+
       // W → toggle watchlist quick panel
       { key: 'w', handler: () => setShowWatchlistPanel((prev) => !prev), description: 'Toggle watchlist panel' },
       // F → toggle focus mode
@@ -364,8 +362,7 @@ function ChartsPageInner({ _mountTime }) {
           layoutMode={layoutMode}
           setLayoutMode={setLayoutMode}
           onToggleAnalysis={() => setChartAnalysisOpen((v) => !v)}
-          drawSidebarOpen={drawSidebarOpen}
-          onToggleDrawSidebar={() => setDrawSidebarOpen((v) => !v)}
+
         />
       )}
 
@@ -465,11 +462,7 @@ function ChartsPageInner({ _mountTime }) {
         </div>
       ) : (
         <div style={{ flex: 1, display: 'flex', minHeight: 0, position: 'relative' }}>
-          {!isMobile && !multiMode && !focusMode && (
-            <Suspense fallback={null}>
-              <DrawingSidebar isOpen={drawSidebarOpen} onClose={() => setDrawSidebarOpen(false)} />
-            </Suspense>
-          )}
+
           {!isMobile && (
             <Suspense fallback={null}>
               <FocusMode
@@ -574,7 +567,7 @@ function ChartsPageInner({ _mountTime }) {
                 toggleQuickJournal={toggleQuickJournal}
                 radialMenu={radialMenu}
                 setRadialMenu={setRadialMenu}
-                setDrawSidebarOpen={setDrawSidebarOpen}
+
                 setShowIndicators={setShowIndicators}
                 setShowSnapshotPublisher={setShowSnapshotPublisher}
                 chartAnalysisOpen={chartAnalysisOpen}

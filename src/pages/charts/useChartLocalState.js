@@ -65,7 +65,7 @@ export default function useChartLocalState() {
   const [showCopilot, setShowCopilot] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [snapshotModalOpen, setSnapshotModalOpen] = useState(false);
-  const [drawSidebarOpen, setDrawSidebarOpen] = useState(false);
+
   const [focusMode, setFocusMode] = useState(false);
   const [hoverInfo, setHoverInfo] = useState({ barIdx: -1, mouseY: 0 });
   const [radialMenu, setRadialMenu] = useState(null);
@@ -90,10 +90,7 @@ export default function useChartLocalState() {
   const chartRef = useRef(null);
   const editorRef = useRef(null);
 
-  // Auto-open sidebar when a drawing tool is activated
-  useEffect(() => {
-    if (activeTool && !drawSidebarOpen) setDrawSidebarOpen(true);
-  }, [activeTool]); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   // ─── Derived data ─────────────────────────────────────────────
   const analysis = useMemo(() => {
@@ -139,7 +136,7 @@ export default function useChartLocalState() {
     showCopilot, setShowCopilot,
     showShortcuts, setShowShortcuts,
     snapshotModalOpen, setSnapshotModalOpen,
-    drawSidebarOpen, setDrawSidebarOpen,
+
     focusMode, setFocusMode,
     hoverInfo, setHoverInfo,
     radialMenu, setRadialMenu,

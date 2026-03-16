@@ -71,7 +71,20 @@ export function renderFibRetracement(ctx, pts, pricePoints, style, lw, pr, size,
 }
 
 export function renderFibExtension(ctx, pts, pricePoints, style, lw, pr, size, deps) {
-  if (pts.length < 3 || pricePoints.length < 3) return;
+  if (pts.length < 2) return;
+
+  // Progressive preview: with only 2 points, show the trend leg baseline
+  if (pts.length < 3 || pricePoints.length < 3) {
+    ctx.strokeStyle = style.color;
+    ctx.lineWidth = lw;
+    ctx.setLineDash([Math.round(4 * pr), Math.round(4 * pr)]);
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    ctx.lineTo(pts[1].x, pts[1].y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    return;
+  }
 
   const { anchorToPixel } = deps;
   const trendRange = pricePoints[1].price - pricePoints[0].price;
@@ -271,7 +284,20 @@ export function renderFibFan(ctx, pts, pricePoints, style, lw, pr, size) {
 }
 
 export function renderFibChannel(ctx, pts, pricePoints, style, lw, pr, _size) {
-  if (pts.length < 3) return;
+  if (pts.length < 2) return;
+
+  // Progressive preview: with only 2 points, show the baseline
+  if (pts.length < 3) {
+    ctx.strokeStyle = style.color;
+    ctx.lineWidth = lw;
+    ctx.setLineDash([Math.round(4 * pr), Math.round(4 * pr)]);
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    ctx.lineTo(pts[1].x, pts[1].y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    return;
+  }
 
   const levels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
   const _dx = pts[1].x - pts[0].x;

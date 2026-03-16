@@ -53,6 +53,24 @@ const useWatchlistStore = create((set, get) => ({
   items: [],
   folders: [],
   loaded: false,
+  notes: {},  // Sprint 37: Record<symbol, { text: string, updatedAt: string }>
+
+  // ─── Notes Actions (Sprint 37) ─────────────────────────────────
+
+  setNote: (symbol, text) => {
+    const upper = (symbol || '').toUpperCase();
+    set((s) => ({
+      notes: {
+        ...s.notes,
+        [upper]: { text, updatedAt: new Date().toISOString() },
+      },
+    }));
+  },
+
+  getNote: (symbol) => {
+    const upper = (symbol || '').toUpperCase();
+    return get().notes[upper] || null;
+  },
 
   // ─── Symbol Actions ─────────────────────────────────────────
 

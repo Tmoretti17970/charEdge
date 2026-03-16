@@ -157,12 +157,42 @@ export function createDrawingRenderer(drawingEngine) {
         ctx.save();
         ctx.globalAlpha = 0.45;
         ctx.setLineDash([Math.round(6 * pr), Math.round(4 * pr)]);
+        // Marching-ant animation — dashes crawl along the line
+        ctx.lineDashOffset = -(Date.now() % 1000) / 1000 * 16 * pr;
         const pulsePhase = (Date.now() % 1500) / 1500;
         const pulseGlow = 4 + Math.sin(pulsePhase * Math.PI * 2) * 3;
         ctx.shadowColor = d.style?.color || '#2962FF';
         ctx.shadowBlur = pulseGlow * pr;
         renderDrawing(ctx, d, pr, size);
         ctx.restore();
+
+        // Cursor crosshair at last ghost point — pulsing placement indicator
+        const lastPt = d.points[d.points.length - 1];
+        if (lastPt) {
+          const px = drawingEngine.anchorToPixel(lastPt);
+          if (px) {
+            const bx = Math.round(px.x * pr), by = Math.round(px.y * pr);
+            const crossSize = Math.round(8 * pr);
+            const ringPhase = (Date.now() % 1200) / 1200;
+            const ringRadius = (6 + Math.sin(ringPhase * Math.PI * 2) * 3) * pr;
+            ctx.save();
+            ctx.globalAlpha = 0.5;
+            ctx.strokeStyle = d.style?.color || '#2962FF';
+            ctx.lineWidth = Math.round(1.5 * pr);
+            ctx.setLineDash([]);
+            // Crosshair lines
+            ctx.beginPath();
+            ctx.moveTo(bx - crossSize, by); ctx.lineTo(bx + crossSize, by);
+            ctx.moveTo(bx, by - crossSize); ctx.lineTo(bx, by + crossSize);
+            ctx.stroke();
+            // Pulsing ring
+            ctx.globalAlpha = 0.3;
+            ctx.beginPath();
+            ctx.arc(bx, by, ringRadius, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+          }
+        }
       } else {
         renderDrawing(ctx, d, pr, size);
       }

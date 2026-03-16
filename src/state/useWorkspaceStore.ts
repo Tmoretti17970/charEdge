@@ -30,7 +30,6 @@ export interface PanelSettings {
     showDOM: boolean;
     showMinimap: boolean;
     showStatusBar: boolean;
-    drawSidebarOpen: boolean;
     focusMode: boolean;
 }
 
@@ -104,7 +103,7 @@ export const BUILT_IN_PRESETS: WorkspacePreset[] = [
                     { type: 'vwap', params: {}, color: '#a855f7' },
                 ],
             },
-            panels: { showDOM: true, showMinimap: false, showStatusBar: true, drawSidebarOpen: false, focusMode: false },
+            panels: { showDOM: true, showMinimap: false, showStatusBar: true, focusMode: false },
             zen: false,
         },
     },
@@ -125,7 +124,7 @@ export const BUILT_IN_PRESETS: WorkspacePreset[] = [
                     { type: 'macd', params: { fast: 12, slow: 26, signal: 9 }, color: '#a855f7' },
                 ],
             },
-            panels: { showDOM: false, showMinimap: true, showStatusBar: true, drawSidebarOpen: false, focusMode: false },
+            panels: { showDOM: false, showMinimap: true, showStatusBar: true, focusMode: false },
             zen: false,
         },
     },
@@ -147,7 +146,7 @@ export const BUILT_IN_PRESETS: WorkspacePreset[] = [
                     { type: 'bbands', params: { period: 20, stdDev: 2 }, color: '#6366f1' },
                 ],
             },
-            panels: { showDOM: false, showMinimap: true, showStatusBar: true, drawSidebarOpen: true, focusMode: false },
+            panels: { showDOM: false, showMinimap: true, showStatusBar: true, focusMode: false },
             zen: false,
         },
     },
@@ -163,7 +162,7 @@ export const BUILT_IN_PRESETS: WorkspacePreset[] = [
                 symbol: 'ES', tf: '15m', chartType: 'candles', logScale: false, orderFlow: false,
                 indicators: [],
             },
-            panels: { showDOM: false, showMinimap: false, showStatusBar: false, drawSidebarOpen: false, focusMode: true },
+            panels: { showDOM: false, showMinimap: false, showStatusBar: false, focusMode: true },
             zen: false,
         },
     },

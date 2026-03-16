@@ -71,6 +71,14 @@ export function parseChartCommand(input) {
   if (text.includes('what') && text.includes('macd')) return { action: 'query_indicator', payload: 'MACD' };
   if (text.includes('what') && text.includes('volume')) return { action: 'query_indicator', payload: 'Volume' };
 
+  // ── 0b. PATTERN & ANOMALY QUERIES (Sprint 7) ───────────────
+  if (text.includes('pattern') && (text.includes('scan') || text.includes('detect') || text.includes('find'))) return { action: 'analyze', payload: 'patterns' };
+  if (text.includes('anomal') || text.includes('unusual')) return { action: 'analyze', payload: 'anomalies' };
+  if (text.includes('regime') || text.includes('market type')) return { action: 'analyze', payload: 'regime' };
+  if (text.includes('divergence') || text.includes('diverging')) return { action: 'analyze', payload: 'divergence' };
+  if (text.includes('multi') && text.includes('timeframe') || text.includes('mtf')) return { action: 'analyze', payload: 'multi_tf' };
+  if (text.includes('psychology') || text.includes('behavioral') || text.includes('tilt')) return { action: 'analyze', payload: 'psychology' };
+
   // ── 1. ADD INDICATOR ────────────────────────────────────────
   if (text.includes('add') || text.includes('show') || text.includes('put') || text.includes('overlay')) {
     // Exact match first
@@ -133,6 +141,11 @@ export function parseChartCommand(input) {
     if (text.includes('measure') || text.includes('ruler')) return { action: 'activate_tool', payload: 'measure' };
   }
 
+  // ── 4b. DRAWING CONTEXT ACTIONS (Sprint 7) ─────────────────
+  if (text.includes('fib') && text.includes('swing')) return { action: 'smart_draw', payload: 'fib_last_swing' };
+  if (text.includes('mirror') && text.includes('trend')) return { action: 'smart_draw', payload: 'mirror_trendline' };
+  if (text.includes('measure') && (text.includes('move') || text.includes('this'))) return { action: 'smart_draw', payload: 'measure_move' };
+
   // ── 5. ZOOM CONTROLS ──────────────────────────────────────
   if (text.includes('zoom in') || text.includes('closer')) return { action: 'zoom', payload: 'in' };
   if (text.includes('zoom out') || text.includes('wider') || text.includes('further')) return { action: 'zoom', payload: 'out' };
@@ -142,7 +155,107 @@ export function parseChartCommand(input) {
   if (text.includes('dark mode') || text.includes('dark theme')) return { action: 'theme', payload: 'dark' };
   if (text.includes('light mode') || text.includes('light theme')) return { action: 'theme', payload: 'light' };
 
+  // ── 7. ALERT COMMANDS (Sprint 7) ───────────────────────────
+  if (text.includes('alert') || text.includes('notify')) {
+    if (text.includes('rsi') && text.includes('over')) return { action: 'smart_alert', payload: 'rsi_overbought' };
+    if (text.includes('rsi') && text.includes('under')) return { action: 'smart_alert', payload: 'rsi_oversold' };
+    if (text.includes('squeeze') || text.includes('bollinger')) return { action: 'smart_alert', payload: 'bb_squeeze' };
+    if (text.includes('volume') && text.includes('spike')) return { action: 'smart_alert', payload: 'volume_spike' };
+    if (text.includes('breakout')) return { action: 'smart_alert', payload: 'key_level_breakout' };
+    if (text.includes('cross')) return { action: 'smart_alert', payload: 'macd_bullish_cross' };
+    return { action: 'open_alerts' };
+  }
+
+  // ── 8. TRADE COMMANDS (Sprint 7) ───────────────────────────
+  if (text.includes('r:r') || text.includes('risk reward') || text.includes('reward ratio')) return { action: 'trade_query', payload: 'risk_reward' };
+  if (text.includes('trail') && text.includes('stop')) return { action: 'trade_action', payload: 'trail_stop' };
+  if (text.includes('grade') && (text.includes('entry') || text.includes('trade'))) return { action: 'analyze', payload: 'grade' };
+  if (text.includes('should') && text.includes('exit')) return { action: 'trade_query', payload: 'exit_advice' };
+
+  // ── 9. JOURNAL & SCREENSHOT (Sprint 7) ─────────────────────
+  if (text.includes('journal') && (text.includes('add') || text.includes('log') || text.includes('note'))) return { action: 'journal_add' };
+  if (text.includes('screenshot') || text.includes('capture') || text.includes('snap')) return { action: 'screenshot' };
+  if (text.includes('compare') && text.includes('trade')) return { action: 'journal_compare' };
+  if (text.includes('what went wrong') || text.includes('review') && text.includes('trade')) return { action: 'trade_review' };
+
+  // ── 10. STRATEGY COMMANDS (Sprint 7) ───────────────────────
+  if (text.includes('backtest') || text.includes('back test')) return { action: 'open_backtest' };
+  if (text.includes('strategy') && (text.includes('build') || text.includes('create'))) return { action: 'open_strategy' };
+  if (text.includes('optimize') && text.includes('strategy')) return { action: 'strategy_optimize' };
+
   // Unhandled
   return null;
+}
+
+// ─── Contextual Suggestions Engine (Sprint 7) ──────────────────
+
+/**
+ * Contextual quick-action banks keyed by user mode / state.
+ * Each entry: { label, icon, command }
+ */
+const CONTEXTUAL_BANKS = {
+  idle: [
+    { label: "What's happening?", icon: '🔍', command: "what's happening" },
+    { label: 'Full Analysis', icon: '📊', command: 'full analysis' },
+    { label: 'Key Levels', icon: '📐', command: 'key levels' },
+    { label: 'Pattern Scan', icon: '🔎', command: 'pattern scan' },
+    { label: 'Grade Setup', icon: '⭐', command: 'grade this setup' },
+  ],
+  drawing: [
+    { label: 'Fib from Swing', icon: '🌀', command: 'draw fib from last swing' },
+    { label: 'Mirror Trendline', icon: '🪞', command: 'mirror trendline' },
+    { label: 'Measure Move', icon: '📏', command: 'measure this move' },
+    { label: 'Clear Drawings', icon: '🧹', command: 'clear drawings' },
+    { label: 'Add Horizontal', icon: '➖', command: 'draw horizontal' },
+  ],
+  trade_active: [
+    { label: "What's my R:R?", icon: '⚖️', command: 'risk reward ratio' },
+    { label: 'Trail Stop', icon: '🎯', command: 'trail stop' },
+    { label: 'Grade Entry', icon: '⭐', command: 'grade this entry' },
+    { label: 'Exit Advice', icon: '🚪', command: 'should I exit' },
+    { label: 'Journal Trade', icon: '📓', command: 'journal add trade' },
+  ],
+  post_trade: [
+    { label: 'Journal This', icon: '📓', command: 'journal add trade' },
+    { label: 'Compare Similar', icon: '🔄', command: 'compare trades' },
+    { label: 'What Went Wrong?', icon: '🔍', command: 'what went wrong' },
+    { label: 'Screenshot', icon: '📸', command: 'screenshot' },
+    { label: 'Full Analysis', icon: '📊', command: 'full analysis' },
+  ],
+  alert_creating: [
+    { label: 'RSI Overbought', icon: '🔥', command: 'alert rsi overbought' },
+    { label: 'BB Squeeze', icon: '🔋', command: 'alert bollinger squeeze' },
+    { label: 'Volume Spike', icon: '📊', command: 'alert volume spike' },
+    { label: 'Breakout', icon: '🚀', command: 'alert breakout' },
+    { label: 'MACD Cross', icon: '📈', command: 'alert macd cross' },
+  ],
+  strategy: [
+    { label: 'Run Backtest', icon: '▶️', command: 'backtest' },
+    { label: 'Optimize', icon: '⚡', command: 'optimize strategy' },
+    { label: 'Grade Setup', icon: '⭐', command: 'grade this setup' },
+    { label: 'Regime Check', icon: '🌊', command: 'market regime' },
+    { label: 'Full Analysis', icon: '📊', command: 'full analysis' },
+  ],
+};
+
+/**
+ * Get contextual quick-action suggestions based on the user's current mode.
+ *
+ * @param {string} mode - Current UI mode: 'idle' | 'drawing' | 'trade_active' | 'post_trade' | 'alert_creating' | 'strategy'
+ * @param {Object} [chartState] - Optional current chart state for further refinement
+ * @returns {Array<{label: string, icon: string, command: string}>} Top 5 suggestions
+ */
+export function getContextualSuggestions(mode = 'idle', chartState = {}) {
+  const bank = CONTEXTUAL_BANKS[mode] || CONTEXTUAL_BANKS.idle;
+
+  // If we have chart state, we can refine further
+  if (chartState.hasActiveAlert && mode === 'idle') {
+    return CONTEXTUAL_BANKS.alert_creating;
+  }
+  if (chartState.hasActivePosition && mode === 'idle') {
+    return CONTEXTUAL_BANKS.trade_active;
+  }
+
+  return bank;
 }
 

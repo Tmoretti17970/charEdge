@@ -31,23 +31,32 @@ export function renderRectangle(ctx, pts, style, lw, pr) {
 }
 
 export function renderTriangle(ctx, pts, style, lw, pr) {
-  if (pts.length < 3) return;
-
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, pts[0].y);
-  ctx.lineTo(pts[1].x, pts[1].y);
-  ctx.lineTo(pts[2].x, pts[2].y);
-  ctx.closePath();
-
-  if (style.fillColor) {
-    ctx.fillStyle = style.fillColor;
-    ctx.fill();
-  }
+  if (pts.length < 2) return;
 
   ctx.strokeStyle = style.color;
   ctx.lineWidth = lw;
   ctx.setLineDash(style.dash ? style.dash.map((d) => Math.round(d * pr)) : []);
-  ctx.stroke();
+
+  if (pts.length === 2) {
+    // Progressive preview: show line from pt0→pt1 (ghost point) during creation
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    ctx.lineTo(pts[1].x, pts[1].y);
+    ctx.stroke();
+  } else {
+    // Full triangle with 3+ points
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    ctx.lineTo(pts[1].x, pts[1].y);
+    ctx.lineTo(pts[2].x, pts[2].y);
+    ctx.closePath();
+
+    if (style.fillColor) {
+      ctx.fillStyle = style.fillColor;
+      ctx.fill();
+    }
+    ctx.stroke();
+  }
   ctx.setLineDash([]);
 }
 

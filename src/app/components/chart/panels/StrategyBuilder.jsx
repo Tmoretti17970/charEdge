@@ -12,6 +12,7 @@ import {
   COMPARISONS,
   EXIT_TYPES,
 } from '../../../../state/useStrategyBuilderStore';
+import StrategyAISuggestions from '../../strategy/StrategyAISuggestions.jsx';
 
 export default function StrategyBuilder({ bars, onClose }) {
   const store = useStrategyBuilderStore();
@@ -149,6 +150,12 @@ export default function StrategyBuilder({ bars, onClose }) {
       <div className="tf-sb-data-info">
         📊 {bars?.length || 0} bars loaded
       </div>
+
+      {/* Sprint 25: AI Strategy Suggestions */}
+      <StrategyAISuggestions
+        strategyConfig={{ name, entryLong, entryShort, exitRules, logicMode }}
+        backtestResults={useBacktestStore.getState().results}
+      />
     </div>
   );
 }

@@ -241,23 +241,8 @@ const DEFAULT_FIB_LEVELS = [
     { value: 4.236, color: '#FF5722', visible: false },
 ];
 
-const TOOL_LABELS = {
-    trendline: 'Trend Line', hline: 'Horizontal Line', vline: 'Vertical Line',
-    ray: 'Ray', arrow: 'Arrow', fib: 'Fib Retracement', fibext: 'Fib Extension',
-    rect: 'Rectangle', ellipse: 'Ellipse', triangle: 'Triangle',
-    alertzone: 'Alert Zone', text: 'Text', callout: 'Callout',
-    measure: 'Measure', channel: 'Channel', crossline: 'Crossline',
-    hray: 'Horizontal Ray', extendedline: 'Extended Line',
-    pitchfork: 'Pitchfork', elliott: 'Elliott Wave',
-    gannfan: 'Gann Fan', fibtimezone: 'Fib Time Zone',
-    longposition: 'Long Position', shortposition: 'Short Position',
-    fibfan: 'Fib Fan', fibarc: 'Fib Arc', fibchannel: 'Fib Channel',
-    parallelchannel: 'Parallel Channel', regressionchannel: 'Regression Channel',
-    polyline: 'Polyline', infoline: 'Info Line', note: 'Note', signpost: 'Signpost',
-    emoji: 'Emoji', pricerange: 'Price Range', daterange: 'Date Range',
-    gannsquare: 'Gann Square', xabcd: 'XABCD', headshoulders: 'Head & Shoulders',
-    flattop: 'Flat Top', flatbottom: 'Flat Bottom',
-};
+import { TOOL_LABELS } from '../../../../shared/drawingToolRegistry';
+
 
 const TIMEFRAME_ROWS = [
     { id: 'seconds', label: 'Seconds', min: 1, max: 59 },

@@ -87,7 +87,6 @@ export default function ChartOverlays({
   radialMenu,
   setRadialMenu,
   // Panel openers
-  setDrawSidebarOpen,
   setShowIndicators,
   setShowSnapshotPublisher,
   setShowComparisonOverlay: _setShowComparisonOverlay,
@@ -313,10 +312,6 @@ export default function ChartOverlays({
                   }
                   // ── Draw submenu ──
                   if (segId === 'draw') {
-                    if (subItemId === 'more') {
-                      setDrawSidebarOpen(true);
-                      return;
-                    }
                     useChartToolsStore.getState().setActiveTool(subItemId);
                     return;
                   }

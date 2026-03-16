@@ -193,13 +193,25 @@ export function createDrawingEngine(options = {}) {
 
   // ── Snap wrappers ──
   function doMagnetSnap(x, y, price, time) {
-    if (!snapEnabled) return { price, time };
+    // Sprint 9: Alt key temporarily disables magnet snap
+    if (!snapEnabled || (_lastMouseEvent && _lastMouseEvent.altKey)) {
+      lastSnapInfo = null;
+      return { price, time };
+    }
     const result = doMagnetSnapImpl({
       x, y, price, time, snapStrength, magnetSnap,
       drawings, activeDrawing, anchorToPixel, priceToPixel,
       indicatorData: _indicatorData, hoverBarIdx: _hoverBarIdx, gridTicks: _gridTicks,
       visibleBars: _visibleBars,
     });
+    // Enrich snapInfo with pixel coordinates for visual indicator
+    if (result.snapInfo && priceToPixel && timeToPixel) {
+      result.snapInfo.px = timeToPixel(result.time) || x;
+      result.snapInfo.py = priceToPixel(result.price) || y;
+    } else if (result.snapInfo) {
+      result.snapInfo.px = x;
+      result.snapInfo.py = y;
+    }
     lastSnapInfo = result.snapInfo;
     return { price: result.price, time: result.time };
   }
@@ -280,9 +292,13 @@ export function createDrawingEngine(options = {}) {
           drawings.push(activeDrawing);
           setState(STATE.CREATING);
         } else {
+          // Sprint 6: auto-select completed drawing so QuickEditor shows
+          const completedId = activeDrawing.id;
           activeDrawing = null;
           activeTool = null;
-          setState(STATE.IDLE);
+          selectedDrawingId = completedId;
+          drawings.forEach(d => (d.state = d.id === completedId ? 'selected' : 'idle'));
+          setState(STATE.SELECTED);
         }
       }
       emit();
@@ -413,13 +429,18 @@ export function createDrawingEngine(options = {}) {
   function onMouseMove(x, y) {
     if (interactionState === STATE.CREATING && activeDrawing) {
       const neededPoints = TOOL_POINT_COUNT[activeDrawing.type] || 2;
+      // 1-point tools finalize on click — no ghost preview needed
+      if (neededPoints === 1) return true;
       const rawAnchor = pixelToAnchor(x, y);
       const anchor = doMagnetSnap(x, y, rawAnchor.price, rawAnchor.time);
-      if (activeDrawing.points.length > 0 && activeDrawing.points.length < neededPoints) {
+      // Use _confirmedPoints (not points.length) — the ghost point makes
+      // points.length === neededPoints, but we still need to update it
+      // until the user clicks to confirm.
+      if (activeDrawing._confirmedPoints > 0 && activeDrawing._confirmedPoints < neededPoints) {
         if (activeDrawing.points.length === activeDrawing._confirmedPoints) {
           activeDrawing.points.push(anchor);
         } else {
-          activeDrawing.points[activeDrawing.points.length - 1] = anchor;
+          activeDrawing.points[activeDrawing._confirmedPoints] = anchor;
         }
         emit();
       }
@@ -547,9 +568,13 @@ export function createDrawingEngine(options = {}) {
               drawings.push(activeDrawing);
               setState(STATE.CREATING);
             } else {
+              // Sprint 6: auto-select completed drawing
+              const completedId = activeDrawing.id;
               activeDrawing = null;
               activeTool = null;
-              setState(STATE.IDLE);
+              selectedDrawingId = completedId;
+              drawings.forEach(d => (d.state = d.id === completedId ? 'selected' : 'idle'));
+              setState(STATE.SELECTED);
             }
           }
           emit();
@@ -609,10 +634,13 @@ export function createDrawingEngine(options = {}) {
       if (needed === Infinity && activeDrawing._confirmedPoints >= 2) {
         activeDrawing.points.length = activeDrawing._confirmedPoints;
         if (activeDrawing.type && activeDrawing.style) toolStyleMemory[activeDrawing.type] = { ...activeDrawing.style };
-        activeDrawing.state = 'idle';
+        activeDrawing.state = 'selected';
+        // Sprint 6: auto-select completed polyline
+        const completedId = activeDrawing.id;
+        selectedDrawingId = completedId;
         activeDrawing = null;
         activeTool = null;
-        setState(STATE.IDLE);
+        setState(STATE.SELECTED);
         emit();
         return true;
       }
@@ -678,10 +706,13 @@ export function createDrawingEngine(options = {}) {
       if (needed === Infinity && activeDrawing._confirmedPoints >= 2) {
         activeDrawing.points.length = activeDrawing._confirmedPoints;
         if (activeDrawing.type && activeDrawing.style) toolStyleMemory[activeDrawing.type] = { ...activeDrawing.style };
-        activeDrawing.state = 'idle';
+        activeDrawing.state = 'selected';
+        // Sprint 6: auto-select completed polyline
+        const completedId = activeDrawing.id;
+        selectedDrawingId = completedId;
         activeDrawing = null;
         activeTool = null;
-        setState(STATE.IDLE);
+        setState(STATE.SELECTED);
         emit();
         return true;
       }

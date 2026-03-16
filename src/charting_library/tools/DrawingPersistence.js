@@ -13,6 +13,8 @@ import { openCacheDB } from '../../data/DataCache';
 import { logger } from '@/observability/logger';
 
 const STORE_NAME = 'drawings';
+const MAX_VERSIONS = 5;
+let _sessionSnapshot = null; // Sprint 10: initial load snapshot
 
 /**
  * Build the storage key for a symbol+timeframe combination.
@@ -82,9 +84,29 @@ export async function saveDrawings(symbol, timeframe, drawings) {
       store.put({ key: syncKey, drawings: syncedDrawings, updatedAt: Date.now() });
     }
 
+    // Sprint 10: Version ring buffer — save a versioned snapshot
+    const versionKey = `${key}_versions`;
+    const vReq = store.get(versionKey);
+    const versionData = await new Promise((resolve) => {
+      vReq.onsuccess = () => resolve(vReq.result || { key: versionKey, versions: [] });
+      vReq.onerror = () => resolve({ key: versionKey, versions: [] });
+    });
+    const allDrawings = [...localDrawings, ...syncedDrawings];
+    versionData.versions.push({
+      timestamp: Date.now(),
+      count: allDrawings.length,
+      drawings: allDrawings,
+    });
+    // Keep only last MAX_VERSIONS
+    if (versionData.versions.length > MAX_VERSIONS) {
+      versionData.versions = versionData.versions.slice(-MAX_VERSIONS);
+    }
+    const tx2 = db.transaction(STORE_NAME, 'readwrite');
+    tx2.objectStore(STORE_NAME).put(versionData);
+
     await new Promise((resolve, reject) => {
-      tx.oncomplete = resolve;
-      tx.onerror = () => reject(tx.error);
+      tx2.oncomplete = resolve;
+      tx2.onerror = () => reject(tx2.error);
     });
   } catch (err) {
     logger.engine.warn('[DrawingPersistence] Save failed:', err);
@@ -228,4 +250,86 @@ export function debouncedSave(symbol, timeframe, drawings) {
       _pendingSave = null;
     }
   }, 500);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Sprint 10: Version History & Session Recovery
+// ═══════════════════════════════════════════════════════════════════
+
+/**
+ * List available saved versions for a symbol+timeframe.
+ * @param {string} symbol
+ * @param {string} timeframe
+ * @returns {Promise<Array<{timestamp: number, count: number}>>}
+ */
+export async function listVersions(symbol, timeframe) {
+  try {
+    const db = await openCacheDB();
+    const key = `${buildKey(symbol, timeframe)}_versions`;
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    return new Promise((resolve) => {
+      const req = store.get(key);
+      req.onsuccess = () => {
+        const versions = req.result?.versions || [];
+        resolve(versions.map((v, i) => ({ index: i, timestamp: v.timestamp, count: v.count })));
+      };
+      req.onerror = () => resolve([]);
+    });
+  } catch (_) {
+    return [];
+  }
+}
+
+/**
+ * Recover drawings from a specific version.
+ * @param {string} symbol
+ * @param {string} timeframe
+ * @param {number} versionIndex - Index into the version ring buffer
+ * @returns {Promise<Object[]>}
+ */
+export async function recoverDrawings(symbol, timeframe, versionIndex) {
+  try {
+    const db = await openCacheDB();
+    const key = `${buildKey(symbol, timeframe)}_versions`;
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    return new Promise((resolve) => {
+      const req = store.get(key);
+      req.onsuccess = () => {
+        const versions = req.result?.versions || [];
+        const target = versions[versionIndex];
+        if (!target) { resolve([]); return; }
+        resolve(target.drawings.map(d => ({ ...d, state: 'idle' })));
+      };
+      req.onerror = () => resolve([]);
+    });
+  } catch (_) {
+    return [];
+  }
+}
+
+/**
+ * Capture initial drawing state for session-level undo.
+ * Called once after the first load for a symbol+timeframe.
+ * @param {Object[]} drawings
+ */
+export function captureSessionSnapshot(drawings) {
+  _sessionSnapshot = drawings.map(d => ({
+    id: d.id, type: d.type,
+    points: d.points.map(p => ({ price: p.price, time: p.time })),
+    style: { ...d.style },
+    locked: d.locked || false,
+    visible: d.visible !== false,
+    meta: d.meta ? { ...d.meta } : {},
+    syncAcrossTimeframes: d.syncAcrossTimeframes || false,
+  }));
+}
+
+/**
+ * Get the session snapshot (initial load state).
+ * @returns {Object[]|null}
+ */
+export function getSessionSnapshot() {
+  return _sessionSnapshot ? _sessionSnapshot.map(d => ({ ...d, state: 'idle' })) : null;
 }

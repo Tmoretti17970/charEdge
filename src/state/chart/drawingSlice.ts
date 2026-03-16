@@ -38,6 +38,14 @@ try {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 } catch (_) { /* ignored */ }
 
+// Sprint 16: Load persisted fib presets
+let _savedFibPresets = null;
+try {
+  const raw = localStorage.getItem('charEdge-fib-presets');
+  if (raw) _savedFibPresets = JSON.parse(raw);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+} catch (_) { /* ignored */ }
+
 export const createDrawingSlice = (set, get) => ({
   activeTool: null,
   drawingColor: '#2962FF',
@@ -180,4 +188,96 @@ export const createDrawingSlice = (set, get) => ({
     try { localStorage.setItem('charEdge-drawing-defaults', JSON.stringify(drawingDefaults)); } catch (_) { /* ignored */ }
     return { drawingDefaults };
   }),
+
+  // Sprint 11: Auto S/R detection
+  autoSREnabled: true,
+  autoSRSensitivity: 'standard' as 'tight' | 'standard' | 'loose',
+  dismissedSRLevels: new Set<string>(),
+
+  setAutoSREnabled: (enabled) => set({ autoSREnabled: enabled }),
+  setAutoSRSensitivity: (sensitivity) => set({ autoSRSensitivity: sensitivity }),
+  dismissSRLevel: (id) => set((s) => {
+    const dismissed = new Set(s.dismissedSRLevels);
+    dismissed.add(id);
+    return { dismissedSRLevels: dismissed };
+  }),
+  resetDismissedSR: () => set({ dismissedSRLevels: new Set() }),
+
+  // Sprint 12: Auto trendline detection
+  autoTrendlinesEnabled: true,
+  dismissedTrendlines: new Set<string>(),
+
+  setAutoTrendlinesEnabled: (enabled) => set({ autoTrendlinesEnabled: enabled }),
+  dismissTrendline: (id) => set((s) => {
+    const dismissed = new Set(s.dismissedTrendlines);
+    dismissed.add(id);
+    return { dismissedTrendlines: dismissed };
+  }),
+  resetDismissedTrendlines: () => set({ dismissedTrendlines: new Set() }),
+
+  // Sprint 14: Drawing groups for multi-select
+  drawingGroups: {} as Record<string, string[]>, // groupId -> drawingId[]
+
+  createGroup: (drawingIds) => set((s) => {
+    const groupId = `grp_${Date.now()}_${Math.random().toString(36).slice(2, 5)}`;
+    const groups = { ...s.drawingGroups, [groupId]: [...drawingIds] };
+    // Tag each drawing with groupId
+    const drawings = s.drawings.map(d =>
+      drawingIds.includes(d.id) ? { ...d, _groupId: groupId } : d
+    );
+    return { drawingGroups: groups, drawings };
+  }),
+
+  ungroup: (groupId) => set((s) => {
+    const groups = { ...s.drawingGroups };
+    const memberIds = groups[groupId] || [];
+    delete groups[groupId];
+    const drawings = s.drawings.map(d =>
+      memberIds.includes(d.id) ? { ...d, _groupId: null } : d
+    );
+    return { drawingGroups: groups, drawings };
+  }),
+
+  getGroupMembers: (groupId) => {
+    const s = get();
+    return s.drawingGroups[groupId] || [];
+  },
+
+  // Sprint 16: Fibonacci level presets
+  fibPresets: _savedFibPresets || {},
+
+  saveFibPreset: (name, levels) => set((s) => {
+    const presets = { ...s.fibPresets, [name]: levels };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    try { localStorage.setItem('charEdge-fib-presets', JSON.stringify(presets)); } catch (_) { /* ignored */ }
+    return { fibPresets: presets };
+  }),
+
+  deleteFibPreset: (name) => set((s) => {
+    const presets = { ...s.fibPresets };
+    delete presets[name];
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    try { localStorage.setItem('charEdge-fib-presets', JSON.stringify(presets)); } catch (_) { /* ignored */ }
+    return { fibPresets: presets };
+  }),
+
+  // Sprint 19: Drawing sync across timeframes
+  toggleDrawingSync: (drawingId) => {
+    const s = get();
+    const drawings = s.drawings || [];
+    const drawing = drawings.find((d) => d.id === drawingId);
+    if (drawing) {
+      drawing.syncAcrossTimeframes = !drawing.syncAcrossTimeframes;
+    }
+  },
+
+  syncAllDrawings: () => {
+    const s = get();
+    (s.drawings || []).forEach((d) => { d.syncAcrossTimeframes = true; });
+  },
+
+  unsyncAllDrawings: () => {
+    const s = get();
+    (s.drawings || []).forEach((d) => { d.syncAcrossTimeframes = false; });
+  },
 });

@@ -15,3 +15,14 @@ export { default as Tooltip } from './Tooltip.jsx';
 export { default as Dialog } from './Dialog.jsx';
 export { useToast, ToastContainer } from './Toast.jsx';
 export { default as Icon, ICON_NAMES } from './Icon.jsx';
+
+// Sprint 0 — AI Design Kit
+export { default as AIOrb } from './AIOrb.jsx';
+export { default as AIStreamText } from './AIStreamText.jsx';
+export { default as AICard } from './AICard.jsx';
+export { default as AILoadingSkeleton } from './AILoadingSkeleton.jsx';
+export { default as AIConfidenceMeter } from './AIConfidenceMeter.jsx';
+
+// Sprint 5 — AI Behavioral Alert
+export { default as AIBehavioralAlert } from './AIBehavioralAlert.jsx';
+

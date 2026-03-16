@@ -230,6 +230,137 @@ class _AnomalyDetector {
 
         return results;
     }
+
+    /** @private — Detect clusters of indecisive doji candles (Sprint 4) */
+    _detectDojiClusters(candles: CandleInput[], window: number): Anomaly[] {
+        const results: Anomaly[] = [];
+        if (candles.length < window + 3) return results;
+
+        for (let i = window; i < candles.length; i++) {
+            // Check last 3 candles for doji cluster
+            let dojiCount = 0;
+            for (let j = i; j > Math.max(i - 3, 0); j--) {
+                const c = candles[j];
+                const bodyRatio = Math.abs(c.close - c.open) / ((c.high - c.low) || 1);
+                if (bodyRatio < 0.15) dojiCount++;
+            }
+            if (dojiCount >= 3) {
+                results.push({
+                    index: i,
+                    time: candles[i].time,
+                    type: 'doji_cluster',
+                    zScore: dojiCount,
+                    severity: 'medium',
+                    value: candles[i].close,
+                    mean: candles.slice(Math.max(0, i - window), i).reduce((s, c) => s + c.close, 0) / window,
+                    description: `Doji cluster: ${dojiCount} consecutive indecisive candles — breakout imminent`,
+                });
+            }
+        }
+
+        return results;
+    }
+
+    /**
+     * Sprint 4: Compute historical outcomes for similar anomalies.
+     * Scans past candles for events matching the anomaly type/threshold
+     * and calculates forward returns (1, 5, 20 bars after each event).
+     *
+     * @param anomaly - The anomaly to find historical matches for
+     * @param candles - Full OHLCV array
+     * @param opts - Options
+     * @returns Historical context for the anomaly
+     */
+    historicalOutcomes(
+        anomaly: Anomaly,
+        candles: CandleInput[],
+        opts: { lookback?: number } = {},
+    ): { similar: number; avgForwardReturn1: number; avgForwardReturn5: number; avgForwardReturn20: number; narrative: string } {
+        const lookback = opts.lookback || 200;
+        const window = candles.slice(Math.max(0, candles.length - lookback));
+        const threshold = anomaly.zScore * 0.7; // Similar = 70% of original z-score
+
+        const matches: number[] = [];
+
+        for (let i = 20; i < window.length - 20; i++) {
+            let isMatch = false;
+
+            switch (anomaly.type) {
+                case 'price_spike': {
+                    const ret = Math.abs(window[i].close - window[i - 1].close) / (window[i - 1].close || 1);
+                    const z = this.zScore(ret, window.slice(Math.max(0, i - 20), i).map(c => Math.abs(c.close - window[Math.max(0, window.indexOf(c) - 1)]?.close || 0) / (c.close || 1)));
+                    if (Math.abs(z) >= threshold) isMatch = true;
+                    break;
+                }
+                case 'volume_spike': {
+                    const avgVol = window.slice(Math.max(0, i - 20), i).reduce((s, c) => s + c.volume, 0) / 20;
+                    const ratio = avgVol > 0 ? window[i].volume / avgVol : 1;
+                    if (ratio >= anomaly.value / anomaly.mean * 0.7) isMatch = true;
+                    break;
+                }
+                case 'range_expansion': {
+                    const range = (window[i].high - window[i].low) / (window[i].close || 1);
+                    const avgRange = window.slice(Math.max(0, i - 20), i).reduce((s, c) => s + (c.high - c.low) / (c.close || 1), 0) / 20;
+                    if (avgRange > 0 && range / avgRange >= 1.5) isMatch = true;
+                    break;
+                }
+                case 'price_gap': {
+                    const gap = Math.abs(window[i].open - window[i - 1].close) / (window[i - 1].close || 1);
+                    if (gap >= 0.02) isMatch = true;
+                    break;
+                }
+                case 'doji_cluster': {
+                    let dojis = 0;
+                    for (let j = i; j > Math.max(i - 3, 0); j--) {
+                        const c = window[j];
+                        if (Math.abs(c.close - c.open) / ((c.high - c.low) || 1) < 0.15) dojis++;
+                    }
+                    if (dojis >= 3) isMatch = true;
+                    break;
+                }
+            }
+
+            if (isMatch && i !== anomaly.index) {
+                matches.push(i);
+            }
+        }
+
+        // Calculate forward returns from matches
+        const forwardReturns = { r1: [] as number[], r5: [] as number[], r20: [] as number[] };
+        for (const idx of matches) {
+            if (idx + 1 < window.length) forwardReturns.r1.push((window[idx + 1].close - window[idx].close) / (window[idx].close || 1));
+            if (idx + 5 < window.length) forwardReturns.r5.push((window[idx + 5].close - window[idx].close) / (window[idx].close || 1));
+            if (idx + 20 < window.length) forwardReturns.r20.push((window[idx + 20].close - window[idx].close) / (window[idx].close || 1));
+        }
+
+        const avg = (arr: number[]) => arr.length > 0 ? arr.reduce((s, v) => s + v, 0) / arr.length : 0;
+        const avgForwardReturn1 = avg(forwardReturns.r1);
+        const avgForwardReturn5 = avg(forwardReturns.r5);
+        const avgForwardReturn20 = avg(forwardReturns.r20);
+
+        // Build narrative
+        let narrative = '';
+        if (matches.length === 0) {
+            narrative = 'No similar events found in recent history.';
+        } else {
+            const direction = avgForwardReturn5 > 0 ? 'higher' : 'lower';
+            narrative = `${matches.length} similar ${anomaly.type.replace('_', ' ')}s in last ${lookback} bars → avg ${direction} by ${Math.abs(avgForwardReturn5 * 100).toFixed(1)}% in 5 bars`;
+        }
+
+        return { similar: matches.length, avgForwardReturn1, avgForwardReturn5, avgForwardReturn20, narrative };
+    }
+
+    /**
+     * Sprint 4: Detect anomalies with historical context.
+     * Enhanced version of detect() that also computes historicalOutcomes.
+     */
+    detectWithContext(candles: CandleInput[], opts: { window?: number; threshold?: number } = {}): (Anomaly & { historicalContext?: ReturnType<_AnomalyDetector['historicalOutcomes']> })[] {
+        const anomalies = this.detect(candles, opts);
+        return anomalies.map(a => ({
+            ...a,
+            historicalContext: this.historicalOutcomes(a, candles),
+        }));
+    }
 }
 
 // ─── Singleton + Exports ──────────────────────────────────────

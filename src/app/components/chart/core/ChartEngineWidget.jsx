@@ -52,12 +52,14 @@ import ChartAnalysisPanel from '../panels/ChartAnalysisPanel.jsx';
 import IndicatorSettingsDialog from '../panels/IndicatorSettingsDialog.jsx';
 import ReplayToolbar from '../ReplayToolbar.jsx';
 import DrawingContextMenu from '../tools/DrawingContextMenu.jsx';
-import DrawingEditPopup from '../tools/DrawingEditPopup.jsx';
-import FloatingDrawingBar from '../tools/FloatingDrawingBar.jsx';
+import DrawingQuickEditor from '../tools/DrawingQuickEditor.jsx';
 import InlineTextEditor from '../tools/InlineTextEditor.jsx';
+import ObjectTreePanel from '../panels/ObjectTreePanel.jsx';
 import ChartDataTable from '../ui/ChartDataTable.jsx';
 import DataFallbackBanner from '../ui/DataFallbackBanner.jsx';
 import DataStalenessIndicator from '../ui/DataStalenessIndicator.jsx';
+import usePsychologyAlerts from '../../../../hooks/usePsychologyAlerts.js';
+import AIBehavioralAlert from '../../design/AIBehavioralAlert.jsx';
 import { useCrosshairSync } from './hooks/useCrosshairSync';
 import { useScrollSync } from './hooks/useScrollSync';
 import { useTradeNavigation } from './hooks/useTradeNavigation';
@@ -186,8 +188,9 @@ export default function ChartEngineWidget({
   const [barCount, setBarCount] = useState(0);
   const [dataSource, setDataSource] = useState(null); // track source for fallback banner
   const [ctxMenu, setCtxMenu] = useState(null); // { x, y, drawing }
-  const [editPopup, setEditPopup] = useState(null); // { drawing data from event }
+  // editPopup state removed — DrawingQuickEditor handles its own expansion
   const [editingIndicatorIdx, setEditingIndicatorIdx] = useState(null); // Sprint 13: indicator settings dialog
+  const [showObjectTree, setShowObjectTree] = useState(false); // Sprint 18: Object Tree Panel
   const paneIdRef = useRef(`widget-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`);
 
   // P2: Staggered entrance — fires once on first data load
@@ -248,12 +251,15 @@ export default function ChartEngineWidget({
   }, [replayMode]);
 
   const closeContextMenu = useCallback(() => setCtxMenu(null), []);
-  const closeEditPopup = useCallback(() => setEditPopup(null), []);
+  // closeEditPopup removed — DrawingQuickEditor handles close internally
 
   // Sprint 6: Extracted sub-effects into custom hooks
   const { highlightedTrade, dismissTradeOverlay } = useTradeNavigation(engineRef, barsRef);
   useCrosshairSync(engineRef, paneIdRef.current);
   useScrollSync(engineRef, paneIdRef.current, barCount);
+
+  // Sprint 16: Psychology Engine — behavioral alerts for live trading
+  const { topAlert, dismissAlert } = usePsychologyAlerts(barsRef.current);
 
   const handleViewJournal = useCallback(() => {
     dismissTradeOverlay();
@@ -337,15 +343,56 @@ export default function ChartEngineWidget({
     const onToggleLock = (e) => engineRef.current.drawingEngine?.toggleLock(e.detail);
     const onDeleteSpecific = (e) => engineRef.current.drawingEngine?.removeDrawing(e.detail);
     const handleKeyDown = (e) => {
-      // Pass all keys to drawing engine first (handles Escape, Delete, Backspace, Ctrl+C/V/D)
-      if (engineRef.current.drawingEngine?.onKeyDown(e.key)) {
+      // Don't fire shortcuts when typing in inputs
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+      // Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y: undo/redo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
+        engineRef.current.drawingEngine?.undo();
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'Z' || (e.key === 'z' && e.shiftKey) || e.key === 'y')) {
+        e.preventDefault();
+        engineRef.current.drawingEngine?.redo();
         return;
       }
 
-      // Don't fire tool shortcuts when typing in inputs
-      const tag = document.activeElement?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      // Ctrl+D: duplicate selected drawing
+      if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+        e.preventDefault();
+        const selId = engineRef.current.drawingEngine?.selectedDrawing?.id;
+        if (selId) engineRef.current.drawingEngine?.duplicateDrawing(selId);
+        return;
+      }
+
+      // Tab: cycle through drawings
+      if (e.key === 'Tab' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        const de = engineRef.current.drawingEngine;
+        if (de) {
+          const drawings = de.drawings.filter(d => d.visible && d.state !== 'creating');
+          if (drawings.length > 0) {
+            const currentId = de.selectedDrawing?.id;
+            const currentIdx = drawings.findIndex(d => d.id === currentId);
+            const nextIdx = (currentIdx + 1) % drawings.length;
+            const nextDrawing = drawings[nextIdx];
+            // Simulate click-selection
+            drawings.forEach(d => (d.state = d.id === nextDrawing.id ? 'selected' : 'idle'));
+            window.dispatchEvent(new CustomEvent('charEdge:edit-drawing', {
+              detail: { id: nextDrawing.id, type: nextDrawing.type, points: nextDrawing.points, style: nextDrawing.style, meta: nextDrawing.meta || {}, locked: nextDrawing.locked, visible: nextDrawing.visible },
+            }));
+          }
+        }
+        return;
+      }
+
+      // Pass all keys to drawing engine first (handles Escape, Delete, Backspace, Ctrl+C/V/D, arrows)
+      if (engineRef.current.drawingEngine?.onKeyDown(e.key, e)) {
+        e.preventDefault();
+        return;
+      }
 
       // Single-key drawing tool shortcuts
       const TOOL_SHORTCUTS = {
@@ -425,7 +472,10 @@ export default function ChartEngineWidget({
     // Listen for edit-drawing event from DrawingEngine
     const handleEditDrawing = (e) => {
       setCtxMenu(null); // Close context menu if open
-      setEditPopup(e.detail);
+      // DrawingQuickEditor auto-shows for selected drawing — just select it
+      if (engineRef.current?.drawingEngine && e.detail?.id) {
+        engineRef.current.drawingEngine.selectDrawing(e.detail.id);
+      }
     };
     window.addEventListener('charEdge:edit-drawing', handleEditDrawing);
 
@@ -919,17 +969,16 @@ export default function ChartEngineWidget({
         />
       )}
 
-      {/* Floating quick-action bar for selected drawing */}
+      {/* Unified drawing editor — compact bar + expandable panels */}
       {(() => {
         const de = engineRef.current?.drawingEngine;
         const sel = de?.selectedDrawing;
         if (!sel || ctxMenu) return null;
         return (
-          <FloatingDrawingBar
+          <DrawingQuickEditor
             engine={de}
             drawing={sel}
             canvasRect={containerRef.current?.getBoundingClientRect()}
-            onOpenSettings={(d) => setEditPopup(d)}
           />
         );
       })()}
@@ -937,19 +986,26 @@ export default function ChartEngineWidget({
       {/* Inline text editor overlay */}
       <InlineTextEditor canvasRect={containerRef.current?.getBoundingClientRect()} />
 
-      {editPopup && (
-        <DrawingEditPopup
-          drawing={editPopup}
-          containerRect={containerRef.current?.getBoundingClientRect()}
-          engine={engineRef.current?.drawingEngine}
-          onClose={closeEditPopup}
-        />
-      )}
+      {/* Sprint 18: Object Tree Panel */}
+      <ObjectTreePanel
+        engine={engineRef.current?.drawingEngine}
+        visible={showObjectTree}
+        onClose={() => setShowObjectTree(false)}
+      />
 
       {editingIndicatorIdx != null && (
         <IndicatorSettingsDialog
           indicatorIdx={editingIndicatorIdx}
           onClose={() => setEditingIndicatorIdx(null)}
+        />
+      )}
+
+      {/* Sprint 16: AI Behavioral Alert — floating bottom-right card */}
+      {topAlert && (
+        <AIBehavioralAlert
+          alert={topAlert}
+          onDismiss={dismissAlert}
+          autoDismissMs={15000}
         />
       )}
 

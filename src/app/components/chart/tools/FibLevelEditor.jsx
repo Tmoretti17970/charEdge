@@ -5,7 +5,8 @@
 // "Add Level" button for custom levels.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 
 const DEFAULT_FIB_LEVELS = [
   { value: 0, color: '#787B86', enabled: true },
@@ -26,11 +27,16 @@ export function getDefaultFibLevels() {
 export default function FibLevelEditor({ levels, onChange }) {
   const [addingLevel, setAddingLevel] = useState(false);
   const [newValue, setNewValue] = useState('');
+  const [savingPreset, setSavingPreset] = useState(false);
+  const [presetName, setPresetName] = useState('');
+  const { fibPresets, saveFibPreset, deleteFibPreset } = useChartToolsStore();
 
   // Ensure we have levels
   const currentLevels = levels && levels.length > 0
     ? levels
     : getDefaultFibLevels();
+
+  const presetNames = useMemo(() => Object.keys(fibPresets || {}), [fibPresets]);
 
   const updateLevel = useCallback((idx, patch) => {
     const updated = currentLevels.map((l, i) =>
@@ -57,14 +63,63 @@ export default function FibLevelEditor({ levels, onChange }) {
     setAddingLevel(false);
   }, [currentLevels, newValue, onChange]);
 
+  const handleSavePreset = useCallback(() => {
+    if (!presetName.trim()) return;
+    saveFibPreset(presetName.trim(), currentLevels);
+    setPresetName('');
+    setSavingPreset(false);
+  }, [presetName, currentLevels, saveFibPreset]);
+
+  const handleLoadPreset = useCallback((name) => {
+    const preset = fibPresets?.[name];
+    if (preset) onChange(preset.map(l => ({ ...l })));
+  }, [fibPresets, onChange]);
+
+  const handleResetDefaults = useCallback(() => {
+    onChange(getDefaultFibLevels());
+  }, [onChange]);
+
+  const btnStyle = {
+    padding: '4px 10px',
+    background: 'rgba(255,255,255,0.04)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: '6px', color: '#787B86',
+    fontSize: '11px', cursor: 'pointer',
+    fontFamily: '-apple-system, sans-serif',
+  };
+
   return (
     <div style={{ marginTop: 8 }}>
       <div style={{
-        fontSize: '11px', fontWeight: 600, color: '#787B86',
-        textTransform: 'uppercase', letterSpacing: '0.5px',
-        marginBottom: 8, fontFamily: '-apple-system, sans-serif',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        marginBottom: 8,
       }}>
-        Fibonacci Levels
+        <div style={{
+          fontSize: '11px', fontWeight: 600, color: '#787B86',
+          textTransform: 'uppercase', letterSpacing: '0.5px',
+          fontFamily: '-apple-system, sans-serif',
+        }}>
+          Fibonacci Levels
+        </div>
+
+        {/* Preset dropdown */}
+        {presetNames.length > 0 && (
+          <select
+            onChange={(e) => { if (e.target.value) handleLoadPreset(e.target.value); e.target.value = ''; }}
+            style={{
+              padding: '2px 6px', fontSize: '10px',
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '4px', color: '#D1D4DC',
+              cursor: 'pointer', outline: 'none',
+            }}
+          >
+            <option value="">Load preset…</option>
+            {presetNames.map(name => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* Level rows */}
@@ -152,48 +207,39 @@ export default function FibLevelEditor({ levels, onChange }) {
               fontFamily: 'SF Mono, monospace',
             }}
           />
-          <button
-            onClick={addLevel}
-            style={{
-              padding: '4px 10px',
-              background: 'rgba(41, 98, 255, 0.2)',
-              border: '1px solid rgba(41, 98, 255, 0.3)',
-              borderRadius: '6px', color: '#2962FF',
-              fontSize: '11px', fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            Add
-          </button>
-          <button
-            onClick={() => setAddingLevel(false)}
-            style={{
-              padding: '4px 8px',
-              background: 'transparent', border: 'none',
-              color: '#787B86', fontSize: '11px',
-              cursor: 'pointer',
-            }}
-          >
-            Cancel
-          </button>
+          <button onClick={addLevel} style={{ ...btnStyle, color: '#2962FF', background: 'rgba(41,98,255,0.2)', border: '1px solid rgba(41,98,255,0.3)', fontWeight: 600 }}>Add</button>
+          <button onClick={() => setAddingLevel(false)} style={{ ...btnStyle, border: 'none' }}>Cancel</button>
         </div>
       ) : (
-        <button
-          onClick={() => setAddingLevel(true)}
-          style={{
-            marginTop: 8, padding: '6px 12px',
-            background: 'rgba(255, 255, 255, 0.04)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: '8px', color: '#787B86',
-            fontSize: '12px', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: 4,
-            transition: 'background 0.12s ease',
-            fontFamily: '-apple-system, sans-serif',
-          }}
-        >
-          + Add Level
-        </button>
+        <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+          <button onClick={() => setAddingLevel(true)} style={btnStyle}>+ Add Level</button>
+          <button onClick={handleResetDefaults} style={btnStyle}>↺ Reset</button>
+          <button onClick={() => setSavingPreset(true)} style={btnStyle}>💾 Save</button>
+        </div>
+      )}
+
+      {/* Save preset */}
+      {savingPreset && (
+        <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'center' }}>
+          <input
+            value={presetName}
+            onChange={(e) => setPresetName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleSavePreset(); if (e.key === 'Escape') setSavingPreset(false); }}
+            placeholder="Preset name…"
+            autoFocus
+            style={{
+              width: 120, padding: '4px 8px',
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '6px', color: '#D1D4DC',
+              fontSize: '11px', outline: 'none',
+            }}
+          />
+          <button onClick={handleSavePreset} style={{ ...btnStyle, color: '#2962FF', background: 'rgba(41,98,255,0.2)', border: '1px solid rgba(41,98,255,0.3)', fontWeight: 600 }}>Save</button>
+          <button onClick={() => setSavingPreset(false)} style={{ ...btnStyle, border: 'none' }}>Cancel</button>
+        </div>
       )}
     </div>
   );
 }
+

@@ -15,6 +15,7 @@ const PrivacyPage = React.lazy(() => import('../../pages/PrivacyPage.jsx'));
 const TermsPage = React.lazy(() => import('../../pages/TermsPage.jsx'));
 const LandingPage = React.lazy(() => import('../../pages/LandingPage.jsx'));
 const SpeedtestPage = React.lazy(() => import('../../pages/SpeedtestPage.jsx'));
+const MarketsPage = React.lazy(() => import('../../pages/MarketsPage.jsx'));
 
 // Prefetch Journal immediately (it's the default page) so it loads in background
 if (typeof window !== 'undefined') {
@@ -26,6 +27,7 @@ const PAGES = {
   dashboard: JournalPage,
   journal: JournalPage,
   charts: ChartsPage,
+  markets: MarketsPage,
   charolette: CharolettePage,
   changelog: ChangelogPage,
   privacy: PrivacyPage,
@@ -121,6 +123,7 @@ function PageRouter() {
     journal: 'Command Center',
     dashboard: 'Dashboard',
     charts: 'Charts',
+    markets: 'Markets',
     charolette: "Charolette\u2019s Light",
     settings: 'Settings',
     telemetry: 'Telemetry',

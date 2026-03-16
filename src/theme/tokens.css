@@ -167,6 +167,20 @@
   --tf-inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   --tf-inner-glow-strong: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
 
+  /* ─── AI Design Tokens (Sprint 0) ──────────────────────────── */
+  --ai-glow-1: #FF8C42;  /* warm orange */
+  --ai-glow-2: #8B5CF6;  /* purple */
+  --ai-glow-3: #3B82F6;  /* blue */
+  --ai-surface: rgba(232, 100, 44, 0.04);
+  --ai-surface-hover: rgba(232, 100, 44, 0.08);
+  --ai-border: rgba(232, 100, 44, 0.12);
+  --ai-anim-pulse: 2s;
+  --ai-anim-think: 0.8s;
+  --ai-anim-stream: 1.2s;
+  --ai-confidence-high: var(--tf-green);
+  --ai-confidence-mid: var(--tf-yellow);
+  --ai-confidence-low: var(--tf-red);
+
   /* ─── Houdini Theme Interpolation (Task 2.1.2) ─────────────── *
    * @property in properties.css registers these as <color>, so the
    * browser can interpolate them smoothly on theme switch instead
@@ -352,6 +366,61 @@
     opacity: 0.85;
     box-shadow: 0 0 12px 2px rgba(255, 176, 32, 0.15);
   }
+}
+
+/* ─── AI Keyframes (Sprint 0) ────────────────────────────────── */
+@keyframes ai-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.06); opacity: 0.85; }
+}
+
+@keyframes ai-think {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  25% { transform: scale(1.1) rotate(5deg); opacity: 0.9; }
+  50% { transform: scale(0.95) rotate(-3deg); opacity: 0.8; }
+  75% { transform: scale(1.08) rotate(2deg); opacity: 0.95; }
+}
+
+@keyframes ai-stream-rotate {
+  0% { filter: hue-rotate(0deg) drop-shadow(0 0 4px rgba(232,100,44,0.35)); }
+  50% { filter: hue-rotate(40deg) drop-shadow(0 0 8px rgba(139,92,246,0.4)); }
+  100% { filter: hue-rotate(0deg) drop-shadow(0 0 4px rgba(232,100,44,0.35)); }
+}
+
+@keyframes ai-success {
+  0% { filter: brightness(1); }
+  30% { filter: brightness(1.4) drop-shadow(0 0 8px rgba(52,199,89,0.5)); }
+  100% { filter: brightness(1); }
+}
+
+@keyframes ai-error-shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-3px); }
+  30% { transform: translateX(3px); }
+  45% { transform: translateX(-2px); }
+  60% { transform: translateX(2px); }
+  75% { transform: translateX(-1px); }
+  90% { transform: translateX(1px); }
+}
+
+@keyframes ai-cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes ai-confidence-fill {
+  from { stroke-dashoffset: var(--ai-dash-total, 75); }
+  to { stroke-dashoffset: var(--ai-dash-offset, 0); }
+}
+
+@keyframes aiAlertCountdown {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+@keyframes aiPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 4px currentColor; }
+  50% { opacity: 0.5; box-shadow: 0 0 12px currentColor; }
 }
 
 /* ─── Density Mode Overrides ───────────────────────────────── */

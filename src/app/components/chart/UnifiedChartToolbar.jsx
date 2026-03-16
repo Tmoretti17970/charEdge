@@ -5,14 +5,16 @@
 //   - ToolbarMoreMenu (≡ menu with all categorized items)
 //   - TimeframeCapsule (animated TF pills)
 //   - WorkspacePresets (lazy-loaded)
-// Drawing tools are handled by DrawingSidebar toggle.
+// Drawing tools are handled by DrawingToolSelector dropdown.
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useRef, useEffect, useCallback, useLayoutEffect, useMemo, Suspense } from 'react';
 import { C, TFS } from '../../../constants.js';
 import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
 import { useChartFeaturesStore } from '../../../state/chart/useChartFeaturesStore';
+import { useChartToolsStore } from '../../../state/chart/useChartToolsStore';
 import ChartTypeSelector from './toolbar/ChartTypeSelector.jsx';
+import DrawingToolSelector from './toolbar/DrawingToolSelector.jsx';
 import { useHotkeys } from '@/hooks/useHotkeys';
 import { useBreakpoints } from '@/hooks/useMediaQuery';
 import { useAccountStore, ACCOUNTS } from '@/state/useAccountStore';
@@ -177,12 +179,14 @@ export default function UnifiedChartToolbar({
   setLayoutMode,
   // Batch 2: AI Analysis
   onToggleAnalysis,
-  // Sprint 12: Drawing sidebar
-  drawSidebarOpen,
-  onToggleDrawSidebar,
+
 }) {
   const { isMobile } = useBreakpoints();
   const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [drawSelectorOpen, setDrawSelectorOpen] = useState(false);
+  const drawBtnRef = useRef(null);
+  const storeActiveTool = useChartToolsStore((s) => s.activeTool);
+  const setActiveTool = useChartToolsStore((s) => s.setActiveTool);
 
   // ── Smart Position Sizer State ──────────────────────────────
   const [sizeMode, setSizeMode] = useState('qty'); // 'qty' or 'usd'
@@ -337,19 +341,32 @@ export default function UnifiedChartToolbar({
             ƒx
           </ToolbarBtn>
           <div className="tf-tools-capsule__divider" />
-          <ToolbarBtn active={drawSidebarOpen} onClick={onToggleDrawSidebar} title="Drawing Tools">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path
-                d="M10.5 1.5l2 2-8 8H2.5v-2l8-8z"
-                stroke="currentColor"
-                strokeWidth="1.3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
-              />
-              <line x1="8.5" y1="3.5" x2="10.5" y2="5.5" stroke="currentColor" strokeWidth="1" opacity="0.4" />
-            </svg>
-          </ToolbarBtn>
+          <div style={{ position: 'relative' }} ref={drawBtnRef}>
+            <ToolbarBtn
+              active={!!storeActiveTool}
+              onClick={() => setDrawSelectorOpen(!drawSelectorOpen)}
+              title="Drawing Tools"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path
+                  d="M10.5 1.5l2 2-8 8H2.5v-2l8-8z"
+                  stroke="currentColor"
+                  strokeWidth="1.3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+                <line x1="8.5" y1="3.5" x2="10.5" y2="5.5" stroke="currentColor" strokeWidth="1" opacity="0.4" />
+              </svg>
+            </ToolbarBtn>
+            <DrawingToolSelector
+              open={drawSelectorOpen}
+              onClose={() => setDrawSelectorOpen(false)}
+              activeTool={storeActiveTool}
+              setActiveTool={setActiveTool}
+              anchorRef={drawBtnRef}
+            />
+          </div>
           <div className="tf-tools-capsule__divider" />
           <ToolbarBtn
             active={false}

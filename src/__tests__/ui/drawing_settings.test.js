@@ -154,9 +154,9 @@ describe('DrawingSettingsDialog — TradingView-Grade Overhaul', () => {
     });
 });
 
-// ─── 2. DrawingEditPopup — Gear Icon Bridge ──────────────────────
-describe('DrawingEditPopup — Gear Icon Bridge', () => {
-    const src = read('app/components/chart/tools/DrawingEditPopup.jsx');
+// ─── 2. DrawingQuickEditor — Gear Icon Bridge ──────────────────────
+describe('DrawingQuickEditor — Gear Icon Bridge', () => {
+    const src = read('app/components/chart/tools/DrawingQuickEditor.jsx');
 
     it('imports DrawingSettingsDialog', () => {
         expect(src).toContain('DrawingSettingsDialog');

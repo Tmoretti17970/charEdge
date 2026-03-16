@@ -181,6 +181,8 @@ export default function ChartPanelManager({
                   data={data}
                   isOpen={true}
                   onClose={closePanel}
+                  symbol={symbol}
+                  tf={tf}
                   onApplyAutoFib={(fib) => {
                     useChartToolsStore.getState().addDrawing(fib);
                     useChartFeaturesStore.getState().setIntelligence('showAutoFib', true);

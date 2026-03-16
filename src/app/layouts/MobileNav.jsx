@@ -69,10 +69,17 @@ const icons = {
       <line x1="10" y1="23" x2="14" y2="23" />
     </svg>
   ),
+  markets: (c) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  ),
 };
 
 const TABS = [
   { id: 'journal', label: 'Home', icon: 'home' },
+  { id: 'markets', label: 'Markets', icon: 'markets' },
   { id: 'charts', label: 'Charts', icon: 'charts' },
   { id: '_quickadd', label: 'Add', icon: null, isFab: true },
   // { id: 'coach', label: 'Coach', icon: 'coach' },

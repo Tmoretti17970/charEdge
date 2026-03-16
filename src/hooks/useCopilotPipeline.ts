@@ -150,17 +150,14 @@ export function useCopilotPipeline(): CopilotInsight & {
             const bars = state.data || [];
 
             if (!llmService.isAvailable || bars.length < MIN_BARS_FOR_ANALYSIS) {
-                // Use LocalInsightEngine for rich template-based analysis
+                // Use LocalInsightEngine v2 for rich narrative-based analysis
                 const features = insight.features;
                 if (features) {
                     const { localInsightEngine } = await import('../charting_library/ai/LocalInsightEngine.js');
-                    const result = localInsightEngine.generateFullAnalysis(
+                    const result = localInsightEngine.generateDetailedNarrative(
                         features, state.symbol || 'Chart', state.tf || '—', bars,
                     );
-                    const narrative = result.sections.map((s: unknown) =>
-                        `**${s.title}:** ${s.content}${s.detail ? `\n${s.detail}` : ''}`,
-                    ).join('\n\n');
-                    setInsight((prev) => ({ ...prev, narrative, loading: false }));
+                    setInsight((prev) => ({ ...prev, narrative: result.narrative, loading: false }));
                 } else {
                     setInsight((prev) => ({
                         ...prev,
@@ -215,7 +212,44 @@ export function useCopilotPipeline(): CopilotInsight & {
         return localInsightEngine.gradeSetup(features);
     }, [insight.features]);
 
-    return { ...insight, requestNarrative, requestPulse, requestKeyLevels, requestSetupGrade };
+    // v2: Candlestick pattern detection
+    const requestPatterns = useCallback(async () => {
+        const state = useChartCoreStore.getState() as unknown;
+        const bars = (state as any).data || [];
+        if (bars.length < 5) return [];
+        const { localInsightEngine } = await import('../charting_library/ai/LocalInsightEngine.js');
+        return localInsightEngine.detectPatterns(bars);
+    }, []);
+
+    // v2: Divergence detection
+    const requestDivergences = useCallback(async () => {
+        const features = insight.features;
+        if (!features) return [];
+        const state = useChartCoreStore.getState() as unknown;
+        const bars = (state as any).data || [];
+        if (bars.length < 20) return [];
+        const { localInsightEngine } = await import('../charting_library/ai/LocalInsightEngine.js');
+        return localInsightEngine.detectDivergences(bars, features);
+    }, [insight.features]);
+
+    // v2: Risk assessment
+    const requestRisk = useCallback(async () => {
+        const features = insight.features;
+        if (!features) return { score: 0, level: 'LOW', emoji: '🟢', risks: [] };
+        const { localInsightEngine } = await import('../charting_library/ai/LocalInsightEngine.js');
+        return localInsightEngine.assessRisk(features);
+    }, [insight.features]);
+
+    return {
+        ...insight,
+        requestNarrative,
+        requestPulse,
+        requestKeyLevels,
+        requestSetupGrade,
+        requestPatterns,
+        requestDivergences,
+        requestRisk,
+    };
 }
 
 export default useCopilotPipeline;

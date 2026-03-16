@@ -19,22 +19,29 @@ export function renderChannel(ctx, pts, style, lw, _pr, _size) {
 }
 
 export function renderPitchfork(ctx, pts, drawing, style, lw, pr, size) {
-  if (pts.length < 3) return;
+  if (pts.length < 2) return;
   ctx.strokeStyle = style.color; ctx.lineWidth = lw;
   ctx.setLineDash(style.dash ? style.dash.map(d => Math.round(d * pr)) : []);
-  ctx.beginPath(); ctx.moveTo(pts[1].x, pts[1].y); ctx.lineTo(pts[2].x, pts[2].y); ctx.stroke();
-  const midX = (pts[1].x + pts[2].x) / 2, midY = (pts[1].y + pts[2].y) / 2;
-  const dx = midX - pts[0].x, dy = midY - pts[0].y, len = Math.sqrt(dx * dx + dy * dy);
-  if (len > 0) {
-    const scale = (Math.max(size.bitmapWidth, size.bitmapHeight) * 2) / len;
-    ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y); ctx.lineTo(pts[0].x + dx * scale, pts[0].y + dy * scale); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(pts[1].x, pts[1].y); ctx.lineTo(pts[1].x + dx * scale, pts[1].y + dy * scale); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(pts[2].x, pts[2].y); ctx.lineTo(pts[2].x + dx * scale, pts[2].y + dy * scale); ctx.stroke();
-    if (style.fillColor) {
-      ctx.fillStyle = style.fillColor; ctx.beginPath();
-      ctx.moveTo(pts[1].x, pts[1].y); ctx.lineTo(pts[2].x, pts[2].y);
-      ctx.lineTo(pts[2].x + dx * scale, pts[2].y + dy * scale); ctx.lineTo(pts[1].x + dx * scale, pts[1].y + dy * scale);
-      ctx.closePath(); ctx.fill();
+
+  if (pts.length === 2) {
+    // Progressive preview: show baseline from pt0→pt1 during creation
+    ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y); ctx.lineTo(pts[1].x, pts[1].y); ctx.stroke();
+  } else {
+    // Full pitchfork with 3 points
+    ctx.beginPath(); ctx.moveTo(pts[1].x, pts[1].y); ctx.lineTo(pts[2].x, pts[2].y); ctx.stroke();
+    const midX = (pts[1].x + pts[2].x) / 2, midY = (pts[1].y + pts[2].y) / 2;
+    const dx = midX - pts[0].x, dy = midY - pts[0].y, len = Math.sqrt(dx * dx + dy * dy);
+    if (len > 0) {
+      const scale = (Math.max(size.bitmapWidth, size.bitmapHeight) * 2) / len;
+      ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y); ctx.lineTo(pts[0].x + dx * scale, pts[0].y + dy * scale); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pts[1].x, pts[1].y); ctx.lineTo(pts[1].x + dx * scale, pts[1].y + dy * scale); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pts[2].x, pts[2].y); ctx.lineTo(pts[2].x + dx * scale, pts[2].y + dy * scale); ctx.stroke();
+      if (style.fillColor) {
+        ctx.fillStyle = style.fillColor; ctx.beginPath();
+        ctx.moveTo(pts[1].x, pts[1].y); ctx.lineTo(pts[2].x, pts[2].y);
+        ctx.lineTo(pts[2].x + dx * scale, pts[2].y + dy * scale); ctx.lineTo(pts[1].x + dx * scale, pts[1].y + dy * scale);
+        ctx.closePath(); ctx.fill();
+      }
     }
   }
   ctx.setLineDash([]);
