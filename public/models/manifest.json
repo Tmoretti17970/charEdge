@@ -1,0 +1,71 @@
+{
+  "version": "1.0.0",
+  "models": {
+    "regime-classifier": {
+      "name": "Regime Classifier",
+      "file": "regime_classifier_v1.onnx",
+      "version": "1.0.0",
+      "sizeKB": 52,
+      "inputShape": [1, 36],
+      "outputShape": [1, 8],
+      "description": "8-class market regime classification from 36-feature vector",
+      "labels": [
+        "Strong Uptrend",
+        "Mild Uptrend",
+        "Consolidation",
+        "Mild Downtrend",
+        "Strong Downtrend",
+        "Breakout",
+        "Potential Reversal",
+        "High Volatility"
+      ],
+      "featureSource": "FeatureExtractor.extract().vector"
+    },
+    "pattern-detector": {
+      "name": "Pattern Detector",
+      "file": "pattern_detector_v1.onnx",
+      "version": "1.0.0",
+      "sizeKB": 198,
+      "inputShape": [1, 50, 6],
+      "outputShape": [1, 12],
+      "description": "1D CNN on 50-bar OHLCV sequences → 12 pattern types + confidence",
+      "labels": [
+        "Doji",
+        "Hammer",
+        "Shooting Star",
+        "Engulfing Bull",
+        "Engulfing Bear",
+        "Inside Bar",
+        "Double Top",
+        "Double Bottom",
+        "Triangle",
+        "Flag",
+        "Head & Shoulders",
+        "Cup & Handle"
+      ],
+      "featureSource": "Raw OHLCV candles (50-bar window)"
+    },
+    "setup-quality": {
+      "name": "Setup Quality Predictor",
+      "file": "setup_quality_v1.onnx",
+      "version": "1.0.0",
+      "sizeKB": 284,
+      "inputShape": [1, 20, 36],
+      "outputShape": [1, 1],
+      "description": "LSTM on 20-bar feature sequences → win probability (0-1)",
+      "labels": ["win_probability"],
+      "featureSource": "FeatureExtractor.extract().vector over 20 bars"
+    },
+    "anomaly-autoencoder": {
+      "name": "Anomaly Autoencoder",
+      "file": "anomaly_autoencoder_v1.onnx",
+      "version": "1.0.0",
+      "sizeKB": 96,
+      "inputShape": [1, 36],
+      "outputShape": [1, 36],
+      "description": "Reconstruction error scoring — anomaly = high error",
+      "labels": ["reconstruction"],
+      "featureSource": "FeatureExtractor.extract().vector"
+    }
+  }
+}
