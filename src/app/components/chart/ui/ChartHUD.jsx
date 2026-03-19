@@ -5,7 +5,7 @@
 
 import React, { useMemo } from 'react';
 import { useEffect, useRef } from 'react';
-import { C } from '../../../../constants.js';
+import { C } from '@/constants.js';
 import h from './ChartHUD.module.css';
 import { updateFaviconBadge, resetFavicon } from '@/app/misc/faviconBadge';
 import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';

@@ -4,7 +4,7 @@
 
 import { useState, useMemo } from 'react';
 import { roundMoney } from '../../../../charting_library/model/Money.js';
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 import { fmtD } from '../../../../utils.js';
 import { StatCard, AutoGrid, inputStyle } from '../../../components/ui/UIKit.jsx';
 import { Label, SideBtn, Warning } from './SharedComponents.jsx';

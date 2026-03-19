@@ -9,7 +9,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect } from 'react';
-import { C, F } from '../../../../constants.js';
+import { C, F } from '@/constants.js';
 import { futuresDerivedAdapter } from '../../../../data/adapters/FuturesDerivedAdapter.js';
 
 // ─── Constants ──────────────────────────────────────────────────

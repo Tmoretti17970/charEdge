@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { useRef, useEffect, useCallback, useState } from 'react';
-import { C } from '../../../../constants.js';
+import { C } from '@/constants.js';
 import { useChartBars } from '../../../hooks/useChartBars.js';
 import { alpha } from '@/shared/colorUtils';
 

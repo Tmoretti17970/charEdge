@@ -10,7 +10,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useRef, useEffect, memo } from 'react';
-import { C, GLASS, M } from '../../../../constants.js';
+import { C, GLASS, M } from '@/constants.js';
 
 const TIMEFRAMES = ['1m', '5m', '15m', '1H', '4H', '1D', '1W', '1M'];
 const RADIUS = 70; // px from center

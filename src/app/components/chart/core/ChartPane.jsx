@@ -18,7 +18,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { C, M, TFS, CHART_TYPES } from '../../../../constants.js';
+import { C, M, TFS, CHART_TYPES } from '@/constants.js';
 import { fetchOHLC, warmCache } from '../../../../data/FetchService';
 import { checkSymbolAlerts } from '../../../../state/useAlertStore';
 import { useChartLinkStore, LINK_GROUP_COLORS, LINK_GROUPS } from '../../../../state/useChartLinkStore';

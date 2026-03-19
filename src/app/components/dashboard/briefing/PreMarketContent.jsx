@@ -3,7 +3,7 @@
 // Yesterday recap, trade plans, risk budget, streak.
 // ═══════════════════════════════════════════════════════════════════
 
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 import { fmtD } from '../../../../utils.js';
 import { BriefingTile } from './BriefingPrimitives.jsx';
 

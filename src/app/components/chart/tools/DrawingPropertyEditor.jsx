@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { C } from '../../../../constants.js';
+import { C } from '@/constants.js';
 import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 
 const PRESET_COLORS = [

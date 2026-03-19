@@ -1,6 +1,6 @@
 // Checklist Tab for InsightsPanel
 import { useState, useCallback } from 'react';
-import { C, F } from '../../../../constants.js';
+import { C, F } from '@/constants.js';
 import { useChecklistStore } from '../../../../state/useChecklistStore.js';
 
 const miniBtn = {

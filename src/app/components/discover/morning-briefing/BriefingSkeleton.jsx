@@ -1,5 +1,5 @@
 // Skeleton Loader for Morning Briefing
-import { C } from '../../../../constants.js';
+import { C } from '@/constants.js';
 import { alpha } from '@/shared/colorUtils';
 
 export default function BriefingSkeleton() {

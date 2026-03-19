@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { C } from '../../../../constants.js';
+import { C } from '@/constants.js';
 import AIOrb from '../design/AIOrb.jsx';
 
 export default function TypingDots() {

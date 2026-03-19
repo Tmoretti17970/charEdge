@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useRef, useMemo } from 'react';
-import { C, F } from '../../../../constants.js';
+import { C, F } from '@/constants.js';
 import { useChartStore } from '../../../../state/useChartStore';
 import { useChartBars } from '../../../hooks/useChartBars.js';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';

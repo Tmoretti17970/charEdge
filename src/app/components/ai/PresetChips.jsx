@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useCallback } from 'react';
-import { C, F } from '../../../../constants.js';
+import { C, F } from '@/constants.js';
 
 const PRESETS = [
   { id: 'best', label: 'Best trade this week', emoji: '🏆' },

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { C, F, M } from '../../../../constants.js';
+import { C, F, M } from '@/constants.js';
 import { calcRiskReward, calcPositionSize } from '../../../../state/chart/tradeSlice';
 import { useLayoutStore } from '../../../../state/useLayoutStore';
 import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';

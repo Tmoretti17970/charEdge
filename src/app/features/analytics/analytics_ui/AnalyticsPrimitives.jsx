@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useMemo } from 'react';
-import { C, F, M } from '../../../../constants.js';
+import { C, F, M } from '@/constants.js';
 import ChartWrapperInline from '../../../components/chart/core/ChartWrapper.jsx';
 
 // ─── Section Label ──────────────────────────────────────────────

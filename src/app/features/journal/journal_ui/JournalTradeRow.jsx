@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState } from 'react';
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 import { fmtD } from '../../../../utils.js';
 import { Btn } from '../../../components/ui/UIKit.jsx';
 import { gradeTrade } from '../../analytics/analyticsFast.js';

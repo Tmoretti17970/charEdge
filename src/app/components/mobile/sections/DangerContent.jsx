@@ -3,7 +3,7 @@
 // Reset data, replay onboarding.
 // ═══════════════════════════════════════════════════════════════════
 
-import { C } from '../../../../constants.js';
+import { C } from '@/constants.js';
 import { genDemoData } from '../../../../data/demoData.js';
 import { useJournalStore } from '../../../../state/useJournalStore';
 import { useUserStore } from '../../../../state/useUserStore';

@@ -10,7 +10,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useCallback } from 'react';
-import { C, F, M } from '../../../../constants.js';
+import { C, F, M } from '@/constants.js';
 import {
     ColorSwatch,
     Toggle,

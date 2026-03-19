@@ -1,5 +1,5 @@
 // Section 3: Events Today for Morning Briefing
-import { C, F, M } from '../../../../constants.js';
+import { C, F, M } from '@/constants.js';
 import { alpha } from '@/shared/colorUtils';
 
 export default function EventsToday({ events }) {

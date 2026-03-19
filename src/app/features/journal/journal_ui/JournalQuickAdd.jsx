@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { useState, useEffect, useRef } from 'react';
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 
 function JournalQuickAdd({ onSave, onCancel }) {
   const [sym, setSym] = useState('');

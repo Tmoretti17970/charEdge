@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useRef, useEffect, Suspense } from 'react';
-import { C, CHART_TYPES } from '../../../../constants.js';
+import { C, CHART_TYPES } from '@/constants.js';
 
 const ChartTypePreview = React.lazy(() => import('../ui/ChartTypePreview.jsx'));
 

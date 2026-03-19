@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState } from 'react';
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 import { fmtD } from '../../../../utils.js';
 import { Card, StatCard, AutoGrid } from '../../../components/ui/UIKit.jsx';
 import BreakdownBarChart from '../../../components/widgets/BreakdownBarChart.jsx';

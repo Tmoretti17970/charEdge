@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { C, F, M } from '../../../../constants.js';
+import { C, F, M } from '@/constants.js';
 
 export default function SlashAutocomplete({ suggestions, selectedIdx, onSelect }) {
   if (suggestions.length === 0) return null;

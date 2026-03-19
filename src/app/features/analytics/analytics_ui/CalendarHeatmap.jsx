@@ -10,7 +10,7 @@
 
 import React from 'react';
 import { useState, useMemo } from 'react';
-import { C, F, M } from '../../../../constants.js';
+import { C, F, M } from '@/constants.js';
 
 const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

@@ -4,7 +4,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { roundMoney } from '../../../../charting_library/model/Money.js';
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 import { useAnalyticsStore } from '../../../../state/useAnalyticsStore';
 import { useUserStore } from '../../../../state/useUserStore';
 import { fmtD } from '../../../../utils.js';

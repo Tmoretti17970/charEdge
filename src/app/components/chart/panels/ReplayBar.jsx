@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useRef, useMemo, useCallback, useState } from 'react';
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 import { useJournalStore } from '../../../../state/useJournalStore';
 import { fmtD } from '../../../../utils.js';
 import { useChartBars } from '../../../hooks/useChartBars.js';

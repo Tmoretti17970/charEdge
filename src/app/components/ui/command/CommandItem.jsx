@@ -3,7 +3,7 @@
 // Extracted from CommandPalette (Phase 0.1): individual command row.
 // ═══════════════════════════════════════════════════════════════════
 
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 
 export default function CommandItem({ cmd, isSelected, onSelect, onExecute }) {
   return (

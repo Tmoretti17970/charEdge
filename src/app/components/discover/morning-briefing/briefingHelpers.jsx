@@ -1,5 +1,5 @@
 // Shared helper components for Morning Briefing
-import { C } from '../../../../constants.js';
+import { C } from '@/constants.js';
 import { alpha } from '@/shared/colorUtils';
 
 export function SignalDot({ signal }) {

@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { useRef, useCallback, useEffect } from 'react';
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 import { radii } from '../../../../theme/tokens.js';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 

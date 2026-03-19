@@ -3,7 +3,7 @@
 // Live session stats, risk gauge, consecutive loss warning, best trade.
 // ═══════════════════════════════════════════════════════════════════
 
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 import { fmtD } from '../../../../utils.js';
 import { BriefingTile, MiniStat } from './BriefingPrimitives.jsx';
 

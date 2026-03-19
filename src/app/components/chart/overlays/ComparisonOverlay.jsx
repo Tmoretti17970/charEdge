@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { useState, useCallback } from 'react';
-import { C, F } from '../../../../constants.js';
+import { C, F } from '@/constants.js';
 import SymbolSearch from '../../ui/SymbolSearch.jsx';
 import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 

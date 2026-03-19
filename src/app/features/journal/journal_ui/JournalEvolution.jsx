@@ -11,7 +11,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useMemo } from 'react';
-import { C, F, M } from '../../../../constants.js';
+import { C, F, M } from '@/constants.js';
 import { fmtD } from '../../../../utils.js';
 
 // ═══════════════════════════════════════════════════════════════════

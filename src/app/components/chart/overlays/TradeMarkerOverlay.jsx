@@ -7,7 +7,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { C, F, M } from '../../../../constants.js';
+import { C, F, M } from '@/constants.js';
 
 const SIDE_COLORS = { long: '#26A69A', short: '#EF5350' };
 

@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useMemo } from 'react';
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 import { Card, AutoGrid } from '../../../components/ui/UIKit.jsx';
 import { SectionLabel } from './AnalyticsPrimitives.jsx';
 import { groupTradesBy } from '@/trading/groupTradesBy';

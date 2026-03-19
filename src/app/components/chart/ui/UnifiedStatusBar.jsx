@@ -12,7 +12,7 @@ import React from 'react';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { tfToMs, formatCountdown } from '../../../../charting_library/core/barCountdown.js';
 import { formatPrice } from '../../../../charting_library/core/CoordinateSystem.js';
-import { C, M, getAssetClass } from '../../../../constants.js';
+import { C, M, getAssetClass } from '@/constants.js';
 import { pipelineLogger } from '../../../../data/engine/infra/DataPipelineLogger.js';
 import { pipelineHealth } from '../../../../data/engine/infra/PipelineHealthMonitor.js';
 import { useChartBars } from '../../../hooks/useChartBars.js';

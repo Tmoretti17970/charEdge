@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CHART_TYPES, getChartTypeDefaults } from '../../../../charting_library/renderers/renderers/ChartTypes.js';
-import { C, F } from '../../../../constants.js';
+import { C, F } from '@/constants.js';
 import { ColorSwatch, Toggle, RangeSlider, RadioGroup } from '../../settings/SettingsControls.jsx';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';

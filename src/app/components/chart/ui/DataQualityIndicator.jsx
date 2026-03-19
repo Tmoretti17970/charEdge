@@ -8,7 +8,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { C, F } from '../../../../constants.js';
+import { C, F } from '@/constants.js';
 import { CONFIDENCE } from '../../../../data/engine/streaming/PriceAggregator.js';
 
 let _confidenceConfig = null;

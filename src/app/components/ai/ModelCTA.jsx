@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { C, F, M } from '../../../../constants.js';
+import { C, F, M } from '@/constants.js';
 
 export default function ModelCTA({ onDownload, onDismiss, loading, progress }) {
   return (

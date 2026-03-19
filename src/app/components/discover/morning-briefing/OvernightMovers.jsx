@@ -1,5 +1,5 @@
 // Section 2: Overnight Movers for Morning Briefing
-import { C, F, M } from '../../../../constants.js';
+import { C, F, M } from '@/constants.js';
 import { formatDisplayPrice as formatPrice } from '../../../../shared/formatting';
 import { alpha } from '@/shared/colorUtils';
 

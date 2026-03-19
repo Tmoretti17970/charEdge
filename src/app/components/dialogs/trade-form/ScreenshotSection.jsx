@@ -3,7 +3,7 @@
 // Extracted from TradeFormModal.jsx for single-responsibility.
 // ═══════════════════════════════════════════════════════════════════
 
-import { C } from '../../../../constants.js';
+import { C } from '@/constants.js';
 import { inputStyle } from '../../ui/UIKit.jsx';
 import Field from './Field.jsx';
 import { processScreenshot, MAX_SCREENSHOTS } from './ScreenshotProcessor.js';

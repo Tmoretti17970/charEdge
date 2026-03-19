@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback } from 'react';
-import { C, F } from '../../../../constants.js';
+import { C, F } from '@/constants.js';
 import { logger } from '@/observability/logger';
 
 const STORAGE_KEY = 'charEdge-hotkeys';

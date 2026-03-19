@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { C, F } from '../../../../constants.js';
+import { C, F } from '@/constants.js';
 import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';

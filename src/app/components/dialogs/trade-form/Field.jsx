@@ -2,7 +2,7 @@
 // Field — Labeled form field wrapper with error display
 // ═══════════════════════════════════════════════════════════════════
 
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 
 /**
  * Reusable field wrapper: renders a label with optional error badge

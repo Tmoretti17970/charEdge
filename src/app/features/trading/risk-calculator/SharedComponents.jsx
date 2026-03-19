@@ -3,7 +3,7 @@
 // RiskGauge, Label, SideBtn, Warning, InfoBox, SectionLabel
 // ═══════════════════════════════════════════════════════════════════
 
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 
 export function RiskGauge({ level, color }) {
     const segments = 10;

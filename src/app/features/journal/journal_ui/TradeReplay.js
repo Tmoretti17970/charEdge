@@ -6,7 +6,7 @@
 // Integrates with: useChartStore, navigateToTrade, ReplayBar
 // ═══════════════════════════════════════════════════════════════════
 
-import { C } from '../../../../constants.js';
+import { C } from '@/constants.js';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 import { useUIStore } from '../../../../state/useUIStore';
 

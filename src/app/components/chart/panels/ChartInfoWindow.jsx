@@ -6,7 +6,7 @@
 
 import { useMemo } from 'react';
 import { INDICATORS } from '../../../../charting_library/studies/indicators/registry.js';
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 import { logger } from '@/observability/logger';
 import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 

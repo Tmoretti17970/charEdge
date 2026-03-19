@@ -1,5 +1,5 @@
 // Collapsible Section Wrapper for Morning Briefing
-import { C, F, M } from '../../../../constants.js';
+import { C, F, M } from '@/constants.js';
 import { alpha } from '@/shared/colorUtils';
 
 export default function BriefingSection({ title, icon, count, expanded, onToggle, accent, children }) {

@@ -3,7 +3,7 @@
 // Session phase detection, greetings, and phase-specific styling.
 // ═══════════════════════════════════════════════════════════════════
 
-import { GLASS } from '../../../../constants.js';
+import { GLASS } from '@/constants.js';
 
 // ─── Session Phase Detection ─────────────────────────────────────
 

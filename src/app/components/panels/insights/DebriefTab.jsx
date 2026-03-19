@@ -1,6 +1,6 @@
 // Debrief Tab for InsightsPanel
 import { useState, useMemo } from 'react';
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 import { generateDebrief, generateWeeklyDebrief } from '../../../features/journal/DailyDebrief.js';
 
 export default function DebriefTab({ trades }) {

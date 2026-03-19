@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { useRef, useEffect, useState } from 'react';
-import { C, F, CHART_TYPES } from '../../../../constants.js';
+import { C, F, CHART_TYPES } from '@/constants.js';
 
 // Draw a small preview chart on a mini canvas
 function drawMiniChart(canvas, typeId, colors) {

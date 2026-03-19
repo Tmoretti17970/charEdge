@@ -3,7 +3,7 @@
 // BriefingTile, MiniStat, MiniSparkline, PhaseIndicator
 // ═══════════════════════════════════════════════════════════════════
 
-import { C, M, GLASS } from '../../../../constants.js';
+import { C, M, GLASS } from '@/constants.js';
 
 // ─── Button Style ────────────────────────────────────────────────
 

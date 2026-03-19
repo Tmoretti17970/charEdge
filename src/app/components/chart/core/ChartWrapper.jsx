@@ -6,7 +6,7 @@
 
 import Chart from 'chart.js/auto';
 import { useRef, useEffect, useState } from 'react';
-import { C } from '../../../../constants.js';
+import { C } from '@/constants.js';
 
 // ─── Lazy plugin registration (once only) ───────────────────────
 let _pluginRegistered = false;

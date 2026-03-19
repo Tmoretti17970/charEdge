@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useRef } from 'react';
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 import { exportCSV, exportJSON, downloadFile, importFile } from '../../../../data/ImportExport.js';
 import { useJournalStore } from '../../../../state/useJournalStore';
 import { radii } from '../../../../theme/tokens.js';

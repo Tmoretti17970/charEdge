@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { useState, useMemo, useCallback } from 'react';
-import { C, F } from '../../../../constants.js';
+import { C, F } from '@/constants.js';
 import { useAllOpenPositions } from '../../../../hooks/useAllOpenPositions.js';
 import { useOpenPositions } from '../../../../hooks/useOpenPositions.js';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';

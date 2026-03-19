@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { C, F } from '../../../../constants.js';
+import { C, F } from '@/constants.js';
 import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 export default function ToolbarSlidePanel({ isOpen, onClose, title, children, width = 280 }) {

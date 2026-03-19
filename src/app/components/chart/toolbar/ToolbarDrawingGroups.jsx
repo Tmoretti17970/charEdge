@@ -6,7 +6,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useRef, useEffect } from 'react';
-import { C } from '../../../../constants.js';
+import { C } from '@/constants.js';
 import s from './ToolbarDrawingGroups.module.css';
 import { TOOL_ICONS, TIcon, ALL_TOOLS, DRAWING_GROUPS } from '../../../../shared/drawingToolRegistry';
 

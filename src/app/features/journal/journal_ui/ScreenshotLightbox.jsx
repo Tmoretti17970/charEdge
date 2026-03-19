@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { M } from '../../../../constants.js';
+import { M } from '@/constants.js';
 
 const SPRING_IN = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 const EASE_OUT = 'cubic-bezier(0.16, 1, 0.3, 1)';

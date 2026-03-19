@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { useState, useRef, useEffect } from 'react';
-import { C, F } from '../../../../constants.js';
+import { C, F } from '@/constants.js';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 
 const _VALID_SUFFIXES = ['m', 'h', 'D', 'd', 'W', 'w', 'M'];

@@ -7,7 +7,7 @@
 import { useMemo, useCallback, useState } from 'react';
 import { formatPrice } from '../../../../charting_library/core/CoordinateSystem.js';
 import { INDICATORS } from '../../../../charting_library/studies/indicators/registry.js';
-import { C, F } from '../../../../constants.js';
+import { C, F } from '@/constants.js';
 import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 import Icon from '../../design/Icon.jsx';
 

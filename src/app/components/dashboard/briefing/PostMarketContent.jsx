@@ -3,7 +3,7 @@
 // Session grade, summary, best/worst trades, streak.
 // ═══════════════════════════════════════════════════════════════════
 
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 import { fmtD } from '../../../../utils.js';
 import { BriefingTile, MiniStat } from './BriefingPrimitives.jsx';
 

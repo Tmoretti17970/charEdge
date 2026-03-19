@@ -4,7 +4,7 @@
 // Long/Short entry — compact TradingView-style colored badge pills.
 // ═══════════════════════════════════════════════════════════════════
 
-import { C } from '../../../../constants.js';
+import { C } from '@/constants.js';
 import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 import { useChartTradeStore } from '../../../../state/chart/useChartTradeStore';
 

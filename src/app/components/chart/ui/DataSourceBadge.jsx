@@ -11,7 +11,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 
 function DataSourceBadge({ isLive, wsSupported, wsStatus, dataSource, dataLoading }) {
   let label, color, pulse;

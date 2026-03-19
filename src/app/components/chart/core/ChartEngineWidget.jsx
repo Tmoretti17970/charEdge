@@ -35,7 +35,7 @@ export const SYMBOL_MAP = {
   DOT: 'DOTUSDT', MATIC: 'MATICUSDT', LINK: 'LINKUSDT', UNI: 'UNIUSDT',
 };
 
-import { isCrypto } from '../../../../constants.js';
+import { isCrypto } from '@/constants.js';
 import { indicatorBridge } from '../../../../data/engine/indicators/IndicatorWorkerBridge.js';
 import { useOrderFlowConnection } from '../../../../data/engine/orderflow/useOrderFlowConnection.js';
 import { useAlertStore } from '../../../../state/useAlertStore';

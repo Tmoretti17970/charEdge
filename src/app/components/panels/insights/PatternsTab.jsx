@@ -1,7 +1,7 @@
 // Patterns Tab for InsightsPanel
 import { useMemo } from 'react';
 import { detectPatterns, gradePatterns } from '../../../../charting_library/studies/PatternDetector.js';
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 
 const SEV_COLORS = { danger: C.r, warning: C.y || C.y, positive: C.g, info: C.b };
 const SEV_EMOJI = { danger: '🔴', warning: '🟡', positive: '🟢', info: '🔵' };

@@ -6,7 +6,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useRef, useEffect } from 'react';
-import { C } from '../../../../constants.js';
+import { C } from '@/constants.js';
 import { useBacktestStore } from '../../../../state/useBacktestStore.js';
 import { useStrategyBuilderStore } from '../../../../state/useStrategyBuilderStore';
 import AIOrb from '../../design/AIOrb.jsx';

@@ -1,5 +1,5 @@
 // Section 1: Watchlist Digest for Morning Briefing
-import { C, F, M } from '../../../../constants.js';
+import { C, F, M } from '@/constants.js';
 import { formatDisplayPrice as formatPrice } from '../../../../shared/formatting';
 import { SignalDot, NewsSentimentDot } from './briefingHelpers.jsx';
 import { alpha } from '@/shared/colorUtils';

@@ -13,7 +13,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
-import { F, M, GLASS } from '../../../../constants.js';
+import { F, M, GLASS } from '@/constants.js';
 import { useAlertStore } from '../../../../state/useAlertStore';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 import Icon from '../../design/Icon.jsx';

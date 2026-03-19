@@ -1,5 +1,5 @@
 // Section 5: Edge Insights for Morning Briefing
-import { C, F } from '../../../../constants.js';
+import { C, F } from '@/constants.js';
 import { alpha } from '@/shared/colorUtils';
 
 export default function EdgeInsights({ insights }) {

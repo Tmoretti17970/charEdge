@@ -1,5 +1,5 @@
 // Section 4: Sentiment Snapshot for Morning Briefing
-import { C, F, M } from '../../../../constants.js';
+import { C, F, M } from '@/constants.js';
 import { alpha } from '@/shared/colorUtils';
 
 export default function SentimentSnapshot({ data }) {

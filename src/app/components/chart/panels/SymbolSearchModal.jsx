@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { C, F, GLASS, DEPTH } from '../../../../constants.js';
+import { C, F, GLASS, DEPTH } from '@/constants.js';
 
 const RECENT_KEY = 'tf_recent_symbols';
 const MAX_RECENT = 8;

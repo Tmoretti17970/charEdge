@@ -6,7 +6,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { C, F, M } from '../../../../constants.js';
+import { C, F, M } from '@/constants.js';
 import useCopilotChat from '../../../../hooks/useCopilotChat';
 import AIOrb from '../design/AIOrb.jsx';
 

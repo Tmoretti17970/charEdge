@@ -9,7 +9,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
-import { F } from '../../../../constants.js';
+import { F } from '@/constants.js';
 import { useOpenPositions } from '../../../../hooks/useOpenPositions.js';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 

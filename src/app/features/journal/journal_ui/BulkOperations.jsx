@@ -12,7 +12,7 @@
 
 import React from 'react';
 import { useState, useCallback, useMemo } from 'react';
-import { C, F, M } from '../../../../constants.js';
+import { C, F, M } from '@/constants.js';
 
 /**
  * Hook for managing bulk selection state.

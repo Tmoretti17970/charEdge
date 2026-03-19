@@ -7,7 +7,7 @@
 import { useState, useMemo } from 'react';
 import { captureChartState } from '../../../../charting_library/tools/ChartJournalPipeline.js';
 import { captureChartScreenshot } from '../../../../hooks/useAutoScreenshot.js';
-import { C, F, M, EMOJIS } from '../../../../constants.js';
+import { C, F, M, EMOJIS } from '@/constants.js';
 import { useJournalStore } from '../../../../state/useJournalStore';
 import { uid } from '../../../../utils.js';
 import toast from '../../ui/Toast.jsx';

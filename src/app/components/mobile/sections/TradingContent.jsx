@@ -2,7 +2,7 @@
 // Mobile Settings — Trading Setup Section
 // ═══════════════════════════════════════════════════════════════════
 
-import { C, F } from '../../../../constants.js';
+import { C, F } from '@/constants.js';
 import { useUserStore } from '../../../../state/useUserStore';
 import { radii } from '../../../../theme/tokens.js';
 import RiskCalculator from '../../../features/trading/RiskCalculator.jsx';

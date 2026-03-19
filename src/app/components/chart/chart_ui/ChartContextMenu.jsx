@@ -7,7 +7,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useRef } from 'react';
-import { C, F, M } from '../../../../constants.js';
+import { C, F, M } from '@/constants.js';
 import Icon from '../../design/Icon.jsx';
 import s from './ChartContextMenu.module.css';
 

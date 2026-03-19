@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useMemo } from 'react';
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 import { calcRiskReward, calcPositionSize } from '../../../../state/chart/tradeSlice';
 import Icon from '../../design/Icon.jsx';
 import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';

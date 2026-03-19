@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState } from 'react';
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 import { getApiKey, setApiKey, getProviderStatus } from '../../../../data/DataProvider.js';
 import {
     configureSupabase,

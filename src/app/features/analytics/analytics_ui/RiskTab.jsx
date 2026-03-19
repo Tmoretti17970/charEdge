@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 import { Card, StatCard, AutoGrid } from '../../../components/ui/UIKit.jsx';
 import RDistributionChart from '../../../components/widgets/RDistributionChart.jsx';
 import RiskSimulator from '../../../components/widgets/RiskSimulator.jsx';

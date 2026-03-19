@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useMemo } from 'react';
-import { C, M } from '../../../../constants.js';
+import { C, M } from '@/constants.js';
 import { useAnalyticsStore } from '../../../../state/useAnalyticsStore';
 import { inputStyle } from '../../../components/ui/UIKit.jsx';
 import { Label, SectionLabel, InfoBox } from './SharedComponents.jsx';

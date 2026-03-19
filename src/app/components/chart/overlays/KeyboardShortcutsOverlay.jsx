@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useEffect, useCallback, useMemo } from 'react';
-import { C, F, M } from '../../../../constants.js';
+import { C, F, M } from '@/constants.js';
 
 const SHORTCUT_GROUPS = [
   {
