@@ -187,7 +187,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 600,
     // CDN Strategy (Task 3.2.7): Content-hashed filenames for immutable caching
     rollupOptions: {
-      external: ['@tensorflow/tfjs'],
+      external: ['@tensorflow/tfjs', 'xlsx'],
       output: {
         // Content-hash all output for cache-busting
         entryFileNames: 'assets/[name]-[hash].js',
