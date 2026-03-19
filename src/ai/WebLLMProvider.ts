@@ -11,7 +11,7 @@
 //
 // Usage:
 //   import { webLLMProvider } from './WebLLMProvider';
-//   await webLLMProvider.loadModel('SmolLM2-135M-Instruct-q4f16_1-MLC');
+//   await webLLMProvider.loadModel('SmolLM2-135M-Instruct-q0f16-MLC');
 //   const reply = await webLLMProvider.chat([{ role: 'user', content: 'hi' }]);
 // ═══════════════════════════════════════════════════════════════════
 
@@ -29,7 +29,7 @@ export interface WebLLMStatus {
   loaded: boolean;
   loading: boolean;
   modelId: string | null;
-  progress: number;        // 0–100
+  progress: number; // 0–100
   progressText: string;
   error: string | null;
   tokensPerSecond: number;
@@ -41,7 +41,7 @@ export type ProgressCallback = (status: WebLLMStatus) => void;
 
 export const MODEL_CATALOG = {
   small: {
-    id: 'SmolLM2-135M-Instruct-q4f16_1-MLC',
+    id: 'SmolLM2-135M-Instruct-q0f16-MLC',
     label: 'SmolLM2 135M',
     size: '~80 MB',
     sizeBytes: 80_000_000,
@@ -109,7 +109,11 @@ class WebLLMProvider {
   private _notify(): void {
     const snap = this.status;
     for (const cb of this._listeners) {
-      try { cb(snap); } catch { /* ignore */ }
+      try {
+        cb(snap);
+      } catch {
+        /* ignore */
+      }
     }
   }
 
@@ -199,7 +203,11 @@ class WebLLMProvider {
   /**
    * Chat completion (non-streaming).
    */
-  async chat(messages: WebLLMMessage[], maxTokens = 512, temperature = 0.3): Promise<{
+  async chat(
+    messages: WebLLMMessage[],
+    maxTokens = 512,
+    temperature = 0.3,
+  ): Promise<{
     content: string;
     tokensUsed: number;
     tokensPerSecond: number;
@@ -254,7 +262,9 @@ class WebLLMProvider {
     if (this._engine) {
       try {
         await this._engine.unload();
-      } catch { /* best-effort */ }
+      } catch {
+        /* best-effort */
+      }
       this._engine = null;
     }
     this._status = {
@@ -275,8 +285,13 @@ class WebLLMProvider {
    * Get all available models with their current status.
    */
   getAvailableModels(): Array<{
-    tier: string; id: string; label: string; size: string;
-    speed: string; description: string; loaded: boolean;
+    tier: string;
+    id: string;
+    label: string;
+    size: string;
+    speed: string;
+    description: string;
+    loaded: boolean;
     contextWindow: number;
   }> {
     return Object.entries(MODEL_CATALOG).map(([tier, info]) => ({
@@ -323,7 +338,9 @@ class WebLLMProvider {
   setPreferredModel(modelId: string): void {
     try {
       localStorage.setItem(WebLLMProvider.PREF_KEY, modelId);
-    } catch { /* storage unavailable */ }
+    } catch {
+      /* storage unavailable */
+    }
   }
 
   /**
@@ -343,7 +360,9 @@ class WebLLMProvider {
   clearPreferredModel(): void {
     try {
       localStorage.removeItem(WebLLMProvider.PREF_KEY);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   /**
@@ -391,13 +410,13 @@ class WebLLMProvider {
    */
   private _checkNetwork(modelId: string): string | null {
     if (typeof navigator === 'undefined') return null;
-    const conn = (navigator as any).connection;
+    const conn = (navigator as Navigator & { connection?: { effectiveType?: string } }).connection;
     if (!conn) return null;
 
     const effectiveType = conn.effectiveType; // '4g', '3g', '2g', 'slow-2g'
     const modelSize = this._getModelSize(modelId);
 
-    if (['2g', 'slow-2g'].includes(effectiveType) && modelSize > 100_000_000) {
+    if (effectiveType && ['2g', 'slow-2g'].includes(effectiveType) && modelSize > 100_000_000) {
       return `Slow network detected (${effectiveType}). Downloading ${(modelSize / 1e9).toFixed(1)}GB model may take a long time.`;
     }
     if (effectiveType === '3g' && modelSize > 500_000_000) {
@@ -414,7 +433,7 @@ class WebLLMProvider {
    */
   private _checkMemory(modelId: string): string | null {
     if (typeof navigator === 'undefined') return null;
-    const deviceMemory = (navigator as any).deviceMemory; // GB (Chrome only)
+    const deviceMemory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory; // GB (Chrome only)
     if (!deviceMemory) return null;
 
     const modelSize = this._getModelSize(modelId);
