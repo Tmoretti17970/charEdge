@@ -304,6 +304,37 @@ export default function JournalLogbook({
               )}
             />
           </div>
+
+          {/* Phase 3 Task #53: Running filtered total footer */}
+          {isFiltered && filteredTrades.length > 0 && (() => {
+            const totalPnl = filteredTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+            const wins = filteredTrades.filter(t => (t.pnl || 0) > 0).length;
+            const wr = filteredTrades.length > 0 ? Math.round((wins / filteredTrades.length) * 100) : 0;
+            const avgPnl = totalPnl / filteredTrades.length;
+            const pnlColor = totalPnl >= 0 ? C.g : C.r;
+            return (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '8px 16px',
+                  background: C.bg2,
+                  borderTop: `1px solid ${C.bd}60`,
+                  flexShrink: 0,
+                }}
+              >
+                <span style={{ fontSize: 11, color: C.t2, fontFamily: M }}>
+                  {filteredTrades.length} trade{filteredTrades.length !== 1 ? 's' : ''}
+                  {' · '}
+                  <span style={{ color: wr >= 50 ? C.g : C.r, fontWeight: 700 }}>{wr}%</span> win rate
+                </span>
+                <span style={{ fontSize: 11, fontFamily: M, fontWeight: 700, color: pnlColor, fontVariantNumeric: 'tabular-nums' }}>
+                  Σ {totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(2)} · avg {avgPnl >= 0 ? '+' : ''}{avgPnl.toFixed(2)}
+                </span>
+              </div>
+            );
+          })()}
         </Card>
       ) : trades.length === 0 ? (
         <JournalEmptyState onAddTrade={openAddTrade} onImportCSV={() => setCsvModalOpen(true)} />

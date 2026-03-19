@@ -68,6 +68,15 @@ export const createTradeSlice = (set, get) => ({
 
   deleteTrade: (id) => set((s) => ({ trades: s.trades.filter((t) => t.id !== id) })),
 
+  // Sprint 6.2: Remove all trades from a specific import batch (for rollback)
+  deleteBatch: (batchId) => {
+    const before = get().trades.length;
+    set((s) => ({ trades: s.trades.filter((t) => t._batchId !== batchId) }));
+    const removed = before - get().trades.length;
+    console.info(`[Journal] Rolled back batch ${batchId}: removed ${removed} trades`);
+    return removed;
+  },
+
   updateTrade: (id, updates) =>
     set((s) => ({
       trades: s.trades.map((t) => (t.id === id ? { ...t, ...updates } : t)),

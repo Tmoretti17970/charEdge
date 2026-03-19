@@ -13,7 +13,7 @@
 //   - Click result → adds to watchlist
 // ═══════════════════════════════════════════════════════════════════
 
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useState, useEffect, useRef, useCallback, memo, forwardRef, useImperativeHandle } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { radii, transition, zIndex } from '../../../theme/tokens.js';
@@ -32,10 +32,10 @@ const ASSET_COLORS = {
 };
 
 // ═══════════════════════════════════════════════════════════════════
-// MarketsSearchBar — Main Component
+// MarketsSearchBar — Main Component (forwardRef for keyboard nav)
 // ═══════════════════════════════════════════════════════════════════
 
-function MarketsSearchBar() {
+const MarketsSearchBar = forwardRef(function MarketsSearchBar(_props, ref) {
   const addSymbol = useWatchlistStore((s) => s.add);
   const hasSymbol = useWatchlistStore((s) => s.has);
 
@@ -48,6 +48,9 @@ function MarketsSearchBar() {
   const inputRef = useRef(null);
   const containerRef = useRef(null);
   const debounceRef = useRef(null);
+
+  // Expose input ref to parent via forwardRef
+  useImperativeHandle(ref, () => inputRef.current, []);
 
   // ─── Debounced search ───────────────────────────────────────
   useEffect(() => {
@@ -389,6 +392,7 @@ function MarketsSearchBar() {
       `}</style>
     </div>
   );
-}
+});
 
+export { MarketsSearchBar };
 export default memo(MarketsSearchBar);

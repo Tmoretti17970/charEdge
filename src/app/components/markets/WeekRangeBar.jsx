@@ -7,7 +7,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo, useState } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C, M } from '../../../constants.js';
 import { transition } from '../../../theme/tokens.js';
 
 function fmtPrice(val) {

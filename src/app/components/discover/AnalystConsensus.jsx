@@ -68,8 +68,8 @@ function AnalystConsensus() {
 
   return (
     <div style={{ background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 16, overflow: 'hidden' }}>
-      <button onClick={() => setCollapsed(!collapsed)} className="tf-btn"
-        className={s.s0}>
+      <button onClick={() => setCollapsed(!collapsed)}
+        className={`tf-btn ${s.s0}`}>
         <div className={s.s1}>
           <span style={{ fontSize: 18 }}>⭐</span>
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>Analyst Consensus</h3>

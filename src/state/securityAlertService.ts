@@ -13,7 +13,7 @@
 // All security channels are REQUIRED (push, inApp, email locked on).
 // ═══════════════════════════════════════════════════════════════════
 
-import { notifySecurity } from './notificationRouter';
+import { notifySecurity } from './notificationEngine';
 
 // ─── Device Fingerprinting ──────────────────────────────────────
 
@@ -139,7 +139,7 @@ export function initSecurityAlerts(): void {
       default:
         break;
     }
-  }) as EventListener);
+  }) as ((e: Event) => void));
 }
 
 export default { initSecurityAlerts, onNewSignIn, onPasswordChanged, onOAuthLinked, onOAuthUnlinked, onSessionExpired, onFailedSignIn };

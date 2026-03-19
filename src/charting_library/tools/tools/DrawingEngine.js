@@ -107,7 +107,7 @@ export function createDrawingEngine(options = {}) {
     getDrawings: () => drawings,
     anchorToPixel,
     onAlert: (event) => {
-      window.dispatchEvent(new CustomEvent('charEdge:drawing-alert', { detail: event }));
+      if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('charEdge:drawing-alert', { detail: event }));
     },
   });
 
@@ -402,17 +402,19 @@ export function createDrawingEngine(options = {}) {
       }
       emit();
       // Open the consolidated edit popup on single-click selection
-      window.dispatchEvent(new CustomEvent('charEdge:edit-drawing', {
-        detail: {
-          id: hit.drawing.id, type: hit.drawing.type,
-          points: hit.drawing.points.map(p => ({ ...p })),
-          style: { ...hit.drawing.style },
-          meta: hit.drawing.meta ? { ...hit.drawing.meta } : {},
-          locked: hit.drawing.locked, visible: hit.drawing.visible,
-          syncAcrossTimeframes: hit.drawing.syncAcrossTimeframes,
-          pixelX: x, pixelY: y,
-        },
-      }));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('charEdge:edit-drawing', {
+          detail: {
+            id: hit.drawing.id, type: hit.drawing.type,
+            points: hit.drawing.points.map(p => ({ ...p })),
+            style: { ...hit.drawing.style },
+            meta: hit.drawing.meta ? { ...hit.drawing.meta } : {},
+            locked: hit.drawing.locked, visible: hit.drawing.visible,
+            syncAcrossTimeframes: hit.drawing.syncAcrossTimeframes,
+            pixelX: x, pixelY: y,
+          },
+        }));
+      }
       return true;
     }
 
@@ -650,7 +652,7 @@ export function createDrawingEngine(options = {}) {
     const drawing = hit.drawing;
     if (drawing.type === 'text' || drawing.type === 'callout' || drawing.type === 'note' || drawing.type === 'signpost') {
       const px = anchorToPixel(drawing.points[0]);
-      if (px) {
+      if (px && typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('charEdge:edit-drawing-text', {
           detail: { id: drawing.id, text: drawing.meta?.text || (drawing.type === 'callout' ? 'Price Note' : 'Text'), x: px.x, y: px.y, type: drawing.type },
         }));
@@ -662,9 +664,11 @@ export function createDrawingEngine(options = {}) {
       drawings.forEach(d => (d.state = d.id === selectedDrawingId ? 'selected' : 'idle'));
       setState(STATE.SELECTED);
       emit();
-      window.dispatchEvent(new CustomEvent('charEdge:edit-drawing', {
-        detail: { id: drawing.id, type: drawing.type, points: drawing.points.map(p => ({ ...p })), style: { ...drawing.style }, meta: drawing.meta ? { ...drawing.meta } : {}, locked: drawing.locked, visible: drawing.visible, pixelX: x, pixelY: y },
-      }));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('charEdge:edit-drawing', {
+          detail: { id: drawing.id, type: drawing.type, points: drawing.points.map(p => ({ ...p })), style: { ...drawing.style }, meta: drawing.meta ? { ...drawing.meta } : {}, locked: drawing.locked, visible: drawing.visible, pixelX: x, pixelY: y },
+        }));
+      }
     }
     return true;
   }

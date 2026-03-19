@@ -199,7 +199,7 @@ export const useFocusMode = create<FocusModeState>()(
       toggle: () => set((s) => ({ enabled: !s.enabled })),
       setThreshold: (t) => set({ threshold: Math.max(0, Math.min(100, t)) }),
     }),
-    { name: 'charEdge-focus-mode' },
+    { name: 'charEdge-focus-mode', version: 1 },
   ),
 );
 

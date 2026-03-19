@@ -132,21 +132,27 @@ export default function AIInsightCard() {
         <span style={{ fontSize: 14, lineHeight: 1, flexShrink: 0 }}>{insight.icon}</span>
 
         {/* Content */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
           <span
             style={{
-              fontSize: 12,
+              fontSize: isMobile ? 11 : 12,
               fontWeight: 700,
               color: C.t1,
               fontFamily: F,
               lineHeight: 1.2,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              display: 'block',
             }}
           >
             {insight.title}
           </span>
-          <span style={{ fontSize: 11, color: C.t2, fontFamily: M, marginLeft: 6, lineHeight: 1.4 }}>
-            {insight.body}
-          </span>
+          {!isMobile && (
+            <span style={{ fontSize: 11, color: C.t2, fontFamily: M, marginLeft: 6, lineHeight: 1.4 }}>
+              {insight.body}
+            </span>
+          )}
         </div>
 
         {/* Carousel dots inline */}

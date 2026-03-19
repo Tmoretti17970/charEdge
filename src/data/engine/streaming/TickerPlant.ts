@@ -26,6 +26,7 @@ import { BinaryCodec } from '../infra/BinaryCodec.js';
 import { adaptivePoller } from '../infra/AdaptivePoller.js';
 import { registerBuiltInSources } from './builtInSources.js';
 import { AdapterHealthTracker } from './adapterHealth.js';
+import { pipelineLogger } from '../infra/DataPipelineLogger.js';
 import type {
   PriceUpdate, PriceCallback, SourceAdapter, QuoteResult, WatchEntry,
   BandwidthCounters, BandwidthMetrics, SourceHealthStatus, SourceStatus,
@@ -51,6 +52,7 @@ class _TickerPlant {
   private _prefetchTTL: number;
   private _bandwidth: BandwidthCounters;
   private _healthTracker: AdapterHealthTracker;
+  private _staleCheckInterval: ReturnType<typeof setInterval> | null;
 
   /** Correlation maps for predictive prefetch. */
   static _CORRELATIONS: Record<string, string[]> = {
@@ -81,6 +83,9 @@ class _TickerPlant {
     VIX: ['SPY', 'QQQ'],
   };
 
+  // Sprint 1 Task 1.2.2: Track which sources are connected to each symbol
+  private _symbolSources: Map<string, Set<string>> = new Map();
+
   constructor() {
     this._sources = new Map();
     this._watched = new Map();
@@ -101,6 +106,7 @@ class _TickerPlant {
     };
 
     this._healthTracker = new AdapterHealthTracker();
+    this._staleCheckInterval = null;
 
     registerBuiltInSources(this._sources);
     this._initSharedWorker();
@@ -122,6 +128,9 @@ class _TickerPlant {
       this._connectSymbol(symbol);
     }
 
+    // Wire stale-symbol detection — checks every 30s for sources that stopped sending data
+    this._staleCheckInterval = setInterval(() => this._checkStaleSymbols(), 30_000);
+
     logger.data.info(`[TickerPlant] Started with ${this._sources.size} sources, watching ${this._watched.size} symbols`);
   }
 
@@ -132,6 +141,10 @@ class _TickerPlant {
   stop(): void {
     this._running = false;
     priceAggregator.stop();
+
+    // Clear stale-symbol failover timer
+    if (this._staleCheckInterval) clearInterval(this._staleCheckInterval);
+    this._staleCheckInterval = null;
 
     for (const [symbol, entry] of this._watched) {
       this._disconnectSymbol(symbol);
@@ -352,7 +365,13 @@ class _TickerPlant {
     const selectedExchanges = exchangeSources.slice(0, MAX_EXCHANGES);
     const selected = [...otherSources, ...selectedExchanges];
 
+    // Sprint 1 Task 1.2.2: Track sources connected to this symbol
+    if (!this._symbolSources.has(symbol)) this._symbolSources.set(symbol, new Set());
+    const symSources = this._symbolSources.get(symbol)!;
+
     for (const source of selected) {
+      symSources.add(source.id);
+
       if (source.subscribe) {
         try {
           const unsub = source.subscribe(symbol, (data: PriceUpdate) => {
@@ -367,6 +386,9 @@ class _TickerPlant {
               data.timestamp || Date.now(),
               data.confidence || 0
             );
+
+            // Sprint 1 Task 1.2.1: Reset reconnect counter on successful data receipt
+            this._resetReconnect(symbol);
           });
           if (unsub) entry.unsubs.push(unsub);
         } catch (err) {
@@ -595,11 +617,17 @@ class _TickerPlant {
     for (const [symbol, entry] of this._watched) {
       if (!entry.active) continue;
 
-      // Check if ANY source has recently provided data
+      // Sprint 1 Task 1.2.2: Only check sources connected to THIS symbol
+      const connectedSources = this._symbolSources.get(symbol);
+      if (!connectedSources || connectedSources.size === 0) continue;
+
       let freshestUpdate = 0;
       let stalestSource = '';
 
-      for (const [sourceId, health] of this._healthTracker.entries()) {
+      for (const sourceId of connectedSources) {
+        const health = this._healthTracker.get(sourceId);
+        if (!health) continue;
+
         if (health.lastUpdate > freshestUpdate) {
           freshestUpdate = health.lastUpdate;
         }
@@ -610,7 +638,13 @@ class _TickerPlant {
 
       // If the freshest update is too old, trigger reconnect
       if (freshestUpdate > 0 && (now - freshestUpdate) > STALE_THRESHOLD_MS) {
-        logger.data.info(`[TickerPlant] ${symbol} data stale (${Math.round((now - freshestUpdate) / 1000)}s), triggering failover`);
+        // Sprint 1 Task 1.2.3: Structured failover logging
+        const stalenessMs = now - freshestUpdate;
+        pipelineLogger.warn('TickerPlant', `Failover triggered for ${symbol} — stale for ${Math.round(stalenessMs / 1000)}s`, {
+          sourceId: stalestSource || 'unknown',
+          stalenessMs,
+          symbol,
+        } as unknown as Error);
         this._handleSourceFailure(symbol, stalestSource || 'unknown');
       }
     }

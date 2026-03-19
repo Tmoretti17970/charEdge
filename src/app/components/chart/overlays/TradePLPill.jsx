@@ -132,7 +132,7 @@ function TradePLPill({ showAutoFit, onAutoFit }) {
       monthCount = 0;
     for (const t of allTrades) {
       const pl = t.pnl ?? t.pl ?? t.profit ?? 0;
-      if (pl === 0 && t.source === 'chart-quick-trade' && !t.exit && !t.exitPrice) continue;
+      if (pl === 0 && ['chart-quick-trade', 'radial-menu'].includes(t.source) && !t.exit && !t.exitPrice) continue;
       if (isThisWeek(t.date)) {
         week += pl;
         weekCount++;

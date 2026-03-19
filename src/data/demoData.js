@@ -228,10 +228,102 @@ function genDemoData() {
     },
   ];
 
-  // ─── Add ~30 more generated trades for a meaningful demo ────
-  const extraSymbols = ['ES', 'NQ', 'BTC', 'ETH', 'CL', 'SOL', 'AAPL', 'SPY'];
-  const extraEmotions = ['Calm', 'Confident', 'Neutral', 'Uncertain', 'Focused', 'Anxious'];
-  const extraPlaybooks = ['Trend Following', 'Mean Reversion', 'Breakout', 'Scalp'];
+  // ─── Generate ~240 more trades spanning Jan 2025 – Mar 2026 ────
+  // Total ~250 with the hand-crafted trades above.
+
+  const allSymbols = [
+    // Crypto
+    'BTC', 'ETH', 'SOL', 'AVAX', 'DOGE', 'LINK', 'ARB',
+    // Futures
+    'ES', 'NQ', 'CL', 'GC', 'YM', 'RTY',
+    // Stocks
+    'AAPL', 'TSLA', 'NVDA', 'MSFT', 'AMZN', 'META', 'SPY', 'QQQ', 'AMD', 'GOOG',
+  ];
+
+  const symbolMeta = {
+    BTC:  { asset: 'crypto',  basePrice: 62000, vol: 8000 },
+    ETH:  { asset: 'crypto',  basePrice: 3200,  vol: 600 },
+    SOL:  { asset: 'crypto',  basePrice: 145,   vol: 40 },
+    AVAX: { asset: 'crypto',  basePrice: 35,    vol: 12 },
+    DOGE: { asset: 'crypto',  basePrice: 0.14,  vol: 0.06 },
+    LINK: { asset: 'crypto',  basePrice: 18,    vol: 6 },
+    ARB:  { asset: 'crypto',  basePrice: 1.20,  vol: 0.4 },
+    ES:   { asset: 'futures', basePrice: 5800,  vol: 200 },
+    NQ:   { asset: 'futures', basePrice: 20500, vol: 800 },
+    CL:   { asset: 'futures', basePrice: 72,    vol: 8 },
+    GC:   { asset: 'futures', basePrice: 2050,  vol: 100 },
+    YM:   { asset: 'futures', basePrice: 38500, vol: 1000 },
+    RTY:  { asset: 'futures', basePrice: 2050,  vol: 80 },
+    AAPL: { asset: 'stocks',  basePrice: 195,   vol: 20 },
+    TSLA: { asset: 'stocks',  basePrice: 245,   vol: 50 },
+    NVDA: { asset: 'stocks',  basePrice: 780,   vol: 120 },
+    MSFT: { asset: 'stocks',  basePrice: 420,   vol: 30 },
+    AMZN: { asset: 'stocks',  basePrice: 185,   vol: 25 },
+    META: { asset: 'stocks',  basePrice: 510,   vol: 60 },
+    SPY:  { asset: 'stocks',  basePrice: 580,   vol: 25 },
+    QQQ:  { asset: 'stocks',  basePrice: 500,   vol: 30 },
+    AMD:  { asset: 'stocks',  basePrice: 165,   vol: 30 },
+    GOOG: { asset: 'stocks',  basePrice: 165,   vol: 20 },
+  };
+
+  const allEmotions = [
+    'Calm', 'Confident', 'Neutral', 'Uncertain', 'Focused',
+    'Anxious', 'Frustrated', 'Patient', 'Greedy', 'Disciplined',
+  ];
+
+  const allPlaybooks = [
+    'Trend Following', 'Mean Reversion', 'Breakout', 'Scalp',
+    'Gap & Go', 'VWAP Bounce', 'Momentum Fade', 'Support Bounce',
+    'Range Breakout', 'Pull-back Entry', 'Earnings Play', 'Swing Hold',
+  ];
+
+  const allTags = [
+    'A+setup', 'trendday', 'reversal', 'breakout', 'scalp',
+    'momentum', 'FOMC', 'CPI', 'earnings', 'overtrading',
+    'revenge', 'patience', 'volume', 'gapandgo', 'rangebound',
+    'premarket', 'afterhours', 'swinghold', 'hedged', 'thesis-driven',
+  ];
+
+  // Trade type determines holding period & P/L magnitude
+  const tradeTypes = [
+    { name: 'Scalp',      weight: 0.25, minHoldH: 0.1,  maxHoldH: 1,    pnlScale: 0.4 },
+    { name: 'Day Trade',  weight: 0.35, minHoldH: 0.5,  maxHoldH: 6,    pnlScale: 1.0 },
+    { name: 'Swing',      weight: 0.25, minHoldH: 24,   maxHoldH: 168,  pnlScale: 2.0 },  // 1-7 days
+    { name: 'Position',   weight: 0.15, minHoldH: 168,  maxHoldH: 1440, pnlScale: 4.0 },  // 1-8 weeks
+  ];
+
+  const tradeNotes = [
+    'Clean setup, followed the plan.',
+    'Entry was late, chased a bit.',
+    'Held through a scary drawdown but thesis played out.',
+    'Stopped out on a wick, re-entered later.',
+    'Took profit too early, left 2R on the table.',
+    'FOMO entry. Need to be more patient.',
+    'Textbook breakout with volume confirmation.',
+    'News catalyst drove the move. Lucky timing.',
+    'Pre-market gap filled perfectly.',
+    'Scaled in on pullback, great average.',
+    'Revenge trade after a loss. Bad discipline.',
+    'Held overnight, gap up next morning.',
+    'Cut the loser fast, good risk management.',
+    'VWAP rejection trade, quick scalp.',
+    'Overtraded today, too many setups.',
+    'Caught the trend early, trailed stop well.',
+    'False breakout trapped shorts, rode the squeeze.',
+    'Late day reversal caught me off guard.',
+    'Perfect plan execution, A+ trade.',
+    'Choppy day, took too many mediocre setups.',
+    'Earnings surprise, held through gap.',
+    'Waited for confirmation, paid off.',
+    'Should have sized up on conviction play.',
+    'Tight range all day, barely any opportunity.',
+    'Market structure shift, adapted well.',
+    '',
+    '',
+    '',
+  ];
+
+  // Deterministic seeded RNG
   const seed = 42;
   let s = seed;
   const rand = () => {
@@ -239,38 +331,105 @@ function genDemoData() {
     return s / 2147483647;
   };
 
-  for (let i = 0; i < 30; i++) {
-    const daysAgo = 7 + Math.floor(rand() * 25); // spread days 7-32 ago
-    const hour = 8 + Math.floor(rand() * 8);
-    const minute = Math.floor(rand() * 60);
-    const sym = extraSymbols[Math.floor(rand() * extraSymbols.length)];
-    const side = rand() > 0.5 ? 'long' : 'short';
-    const pb = extraPlaybooks[Math.floor(rand() * extraPlaybooks.length)];
-    const emo = extraEmotions[Math.floor(rand() * extraEmotions.length)];
-    // Slight positive bias: 55% win rate
-    const isWin = rand() < 0.55;
-    const pnl = isWin ? Math.round((50 + rand() * 600) * 100) / 100 : -Math.round((30 + rand() * 400) * 100) / 100;
-    const fees = Math.round(rand() * 8 * 100) / 100;
+  // Pick a random trade type using weighted selection
+  function pickTradeType() {
+    const r = rand();
+    let cumulative = 0;
+    for (const tt of tradeTypes) {
+      cumulative += tt.weight;
+      if (r < cumulative) return tt;
+    }
+    return tradeTypes[1]; // fallback: Day Trade
+  }
+
+  // Generate a date between Jan 1, 2025 and Mar 16, 2026
+  const startDate = new Date('2025-01-01T00:00:00Z');
+  const endDate   = new Date('2026-03-16T00:00:00Z');
+  const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+
+  const TARGET_TRADES = 240;
+
+  for (let i = 0; i < TARGET_TRADES; i++) {
+    const daysOffset = Math.floor(rand() * totalDays);
+    const entryHour = 6 + Math.floor(rand() * 12); // 6am – 6pm
+    const entryMinute = Math.floor(rand() * 60);
+
+    const entryDate = new Date(startDate);
+    entryDate.setDate(entryDate.getDate() + daysOffset);
+    entryDate.setHours(entryHour, entryMinute, 0, 0);
+
+    const sym = allSymbols[Math.floor(rand() * allSymbols.length)];
+    const meta = symbolMeta[sym];
+    const side = rand() > 0.45 ? 'long' : 'short'; // slight long bias
+    const tt = pickTradeType();
+    const pb = allPlaybooks[Math.floor(rand() * allPlaybooks.length)];
+    const emo = allEmotions[Math.floor(rand() * allEmotions.length)];
+
+    // Realistic entry price with drift
+    const priceNoise = (rand() - 0.5) * meta.vol * 2;
+    const entry = Math.round((meta.basePrice + priceNoise) * 100) / 100;
+
+    // Holding period in hours
+    const holdHours = tt.minHoldH + rand() * (tt.maxHoldH - tt.minHoldH);
+    const exitDate = new Date(entryDate.getTime() + holdHours * 3600000);
+
+    // P/L: 58% win rate, scaled by trade type
+    const isWin = rand() < 0.58;
+    const basePnl = (50 + rand() * 500) * tt.pnlScale;
+    const pnl = isWin
+      ? Math.round(basePnl * 100) / 100
+      : -Math.round((basePnl * (0.4 + rand() * 0.6)) * 100) / 100;
+
+    const fees = Math.round((1 + rand() * 12) * 100) / 100;
+    const rMultiple = Math.round((pnl / (basePnl * 0.3)) * 100) / 100;
+
+    // Qty based on asset class
+    let qty;
+    if (meta.asset === 'crypto') {
+      qty = sym === 'BTC' ? Math.round(rand() * 5 * 100) / 100 || 0.01
+        : sym === 'ETH' ? Math.round(rand() * 20 * 100) / 100 || 0.1
+        : Math.ceil(rand() * 200);
+    } else if (meta.asset === 'futures') {
+      qty = Math.ceil(rand() * 5);
+    } else {
+      qty = Math.ceil(rand() * 100) * 5; // stocks in lots of 5
+    }
+
+    // Rating 1-5, skewed toward 3
+    const rating = Math.min(5, Math.max(1, Math.round(3 + (rand() - 0.5) * 4)));
+
+    // Pick 0-3 random tags
+    const tagCount = Math.floor(rand() * 4);
+    const tradeTags = [];
+    for (let t = 0; t < tagCount; t++) {
+      const tag = allTags[Math.floor(rand() * allTags.length)];
+      if (!tradeTags.includes(tag)) tradeTags.push(tag);
+    }
+
+    // ~60% of trades get a note
+    const note = rand() < 0.6
+      ? tradeNotes[Math.floor(rand() * tradeNotes.length)]
+      : undefined;
 
     trades.push({
       id: uid(),
-      date: isoAt(daysAgo, hour, minute),
+      date: entryDate.toISOString(),
+      exitDate: exitDate.toISOString(),
       symbol: sym,
-      assetClass: ['BTC', 'ETH', 'SOL'].includes(sym)
-        ? 'crypto'
-        : sym === 'AAPL' || sym === 'SPY'
-          ? 'stocks'
-          : 'futures',
+      assetClass: meta.asset,
       side,
-      qty: Math.ceil(rand() * 10),
-      entry: Math.round((100 + rand() * 4900) * 100) / 100,
-      exit: 0,
+      qty,
+      entry,
+      exit: Math.round((entry + (isWin ? 1 : -1) * (side === 'long' ? 1 : -1) * (pnl / (qty || 1))) * 100) / 100,
       pnl,
       fees,
       emotion: emo,
       playbook: pb,
-      rMultiple: Math.round((pnl / 200) * 100) / 100,
-      tags: [],
+      rMultiple,
+      rating,
+      notes: note,
+      tags: tradeTags,
+      tradeType: tt.name,
     });
   }
 

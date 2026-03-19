@@ -67,6 +67,14 @@ class _ApiMeter {
     constructor() {
         /** @type {Map<string, RollingCounter>} provider → counter */
         this._counters = new Map();
+        // Sprint 1 Task 1.3.2: Rate limit configuration per provider
+        /** @type {Map<string, number>} provider → max calls per minute */
+        this._rateLimits = new Map();
+        // Pre-configure known provider limits
+        this._rateLimits.set('coingecko', 30);
+        this._rateLimits.set('binance', 1200);
+        this._rateLimits.set('polygon', 200);
+        this._rateLimits.set('alpaca', 200);
     }
 
     /**
@@ -135,6 +143,40 @@ class _ApiMeter {
     /** Reset all counters. */
     reset() {
         this._counters.clear();
+    }
+
+    // Sprint 1 Task 1.3.2: Rate limit tracking
+
+    /**
+     * Set the rate limit for a provider.
+     * @param {string} provider
+     * @param {number} maxPerMin - max calls per minute
+     */
+    setRateLimit(provider, maxPerMin) {
+        this._rateLimits.set(provider.toLowerCase(), maxPerMin);
+    }
+
+    /**
+     * Get rate limit usage percentage for a provider.
+     * @param {string} provider
+     * @returns {number} 0-100 (can exceed 100 if over limit)
+     */
+    getRateLimitPercent(provider) {
+        const key = provider.toLowerCase();
+        const limit = this._rateLimits.get(key);
+        if (!limit) return 0;
+        const counter = this._counters.get(key);
+        if (!counter) return 0;
+        return Math.round((counter.getCallsPerMin() / limit) * 100);
+    }
+
+    /**
+     * Check if a provider can safely make another call.
+     * @param {string} provider
+     * @returns {boolean} true if under 80% of rate limit (or no limit set)
+     */
+    canCall(provider) {
+        return this.getRateLimitPercent(provider) < 80;
     }
 }
 

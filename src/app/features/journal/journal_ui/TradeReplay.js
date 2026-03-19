@@ -8,7 +8,6 @@
 
 import { C } from '../../../../constants.js';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
-import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 import { useUIStore } from '../../../../state/useUIStore';
 
 /**

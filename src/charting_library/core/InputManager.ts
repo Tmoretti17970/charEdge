@@ -213,7 +213,7 @@ export class InputManager {
     // Spring-back when overscrolled past edges
     const rightMargin = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
     const minScroll = -rightMargin;
-    const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
+    const maxScroll = this._maxPanScroll();
     if (S.scrollOffset < minScroll) {
       S.scrollOffset = minScroll + (S.scrollOffset - minScroll) * OVERSCROLL_SPRING;
       if (Math.abs(S.scrollOffset - minScroll) < 0.5) S.scrollOffset = minScroll;
@@ -273,7 +273,9 @@ export class InputManager {
 
     // Calculate how many bars from the left edge we are
     const startIdx = Math.max(0, eng.bars.length - S.scrollOffset - S.visibleBars);
-    if (startIdx <= PREFETCH_THRESHOLD) {
+    // Adaptive threshold: 40% of loaded data or static threshold, whichever is larger
+    const adaptiveThreshold = Math.max(PREFETCH_THRESHOLD, Math.floor(eng.bars.length * 0.4));
+    if (startIdx <= adaptiveThreshold) {
       this._prefetchDispatched = true;
       window.dispatchEvent(new CustomEvent('charEdge:prefetch-history'));
     }
@@ -282,6 +284,30 @@ export class InputManager {
   private _stopInertia(): void {
     this._velocityX = 0;
     this._inertiaActive = false;
+  }
+
+  // ─── Zoom-out fix: DRY helpers for maxBars / maxScroll ─────
+  // maxBars: cap based on chart width so candles are never < 1.5px.
+  // At max zoom-out, visibleBars = bars.length so candles fill edge-to-edge.
+  private _maxBars(): number {
+    const R = this.engine.state.lastRender;
+    const chartWidth = R ? R.cW : (this.tc.clientWidth || 1300);
+    const minBarSpacing = 2; // px — keeps candles clearly visible at max zoom-out
+    const widthCap = Math.floor(chartWidth / minBarSpacing);
+    return Math.max(80, Math.min(widthCap, this.engine.bars.length));
+  }
+
+  // maxScroll: base formula for zoom handlers. At full zoom (vis >= barCount),
+  // returns 0 so proportional scaling converges scrollOffset to 0 (edge-to-edge).
+  private _maxScroll(): number {
+    return Math.max(0, this.engine.bars.length - this.engine.state.visibleBars);
+  }
+
+  // maxPanScroll: extended range for pan handlers. Adds 30% overscroll
+  // so newest candles can slide past the price panel (behind it).
+  private _maxPanScroll(): number {
+    const vis = this.engine.state.visibleBars;
+    return Math.max(0, this.engine.bars.length - vis + Math.floor(vis * 0.3));
   }
 
   // ─── Smooth Zoom Animation ─────────────────────────────────
@@ -322,14 +348,25 @@ export class InputManager {
     // Anchor zoom around cursor position to keep price under cursor stable
     const barDelta = S.visibleBars - oldBars;
     const rightMarginZoom = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
-    const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
-    S.scrollOffset = Math.max(-rightMarginZoom, Math.min(maxScroll,
-      S.scrollOffset - barDelta * (1 - this._zoomAnchorFrac)
-    ));
+    const oldMaxScroll = Math.max(1, eng.bars.length - oldBars);
+    const maxScroll = this._maxScroll();
+
+    if (barDelta > 0 && oldMaxScroll > 0) {
+      // Zooming OUT: proportionally scale scrollOffset for smooth convergence
+      // This prevents the hard-clamp snap that pushes the chart right
+      S.scrollOffset = S.scrollOffset * (maxScroll / oldMaxScroll);
+    } else {
+      // Zooming IN: anchor-based offset keeps cursor position stable
+      S.scrollOffset -= barDelta * (1 - this._zoomAnchorFrac);
+    }
+    S.scrollOffset = Math.max(-rightMarginZoom, Math.min(maxScroll, S.scrollOffset));
+    // Safety: when at max zoom-out, no scroll drift → flush right edge
+    if (S.visibleBars >= this._maxBars() && S.scrollOffset > 0) S.scrollOffset = 0;
 
     S.mainDirty = true;
     S.topDirty = true;
     if (eng.layers) eng.layers.markAllDirty();
+    this._checkPrefetch(eng);
     return true;
   }
 
@@ -404,21 +441,29 @@ export class InputManager {
       return false;
     }
 
-    const maxBars = Math.max(80, eng.bars.length + 20);
+    const maxBars = this._maxBars();
     const oldBars = S.visibleBars;
     S.visibleBars = Math.max(10, Math.min(maxBars, S.visibleBars * (1 + this._zoomVelocity * 0.001)));
 
-    // Anchor zoom
+    // Anchor zoom — proportional for zoom-out, anchor for zoom-in
     const barDelta = S.visibleBars - oldBars;
     const rightMarginZ = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
-    const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
-    S.scrollOffset = Math.max(-rightMarginZ, Math.min(maxScroll,
-      S.scrollOffset - barDelta * (1 - this._zoomAnchorFrac)
-    ));
+    const oldMaxScroll = Math.max(1, eng.bars.length - oldBars);
+    const maxScroll = this._maxScroll();
+
+    if (barDelta > 0 && oldMaxScroll > 0) {
+      S.scrollOffset = S.scrollOffset * (maxScroll / oldMaxScroll);
+    } else {
+      S.scrollOffset -= barDelta * (1 - this._zoomAnchorFrac);
+    }
+    S.scrollOffset = Math.max(-rightMarginZ, Math.min(maxScroll, S.scrollOffset));
+    // Safety: when at max zoom-out, no scroll drift → flush right edge
+    if (S.visibleBars >= this._maxBars() && S.scrollOffset > 0) S.scrollOffset = 0;
 
     S.mainDirty = true;
     S.topDirty = true;
     if (eng.layers) eng.layers.markAllDirty();
+    this._checkPrefetch(eng);
     return true;
   }
 
@@ -478,13 +523,21 @@ export class InputManager {
     if (S.dragging === 'time' && !consumed) {
       // TradingView-style: time axis drag always zooms horizontally
       const dx = S.dragStartX - e.clientX;
-      const maxBars = Math.max(80, eng.bars.length + 20);
+      const maxBars = this._maxBars();
+      const oldVisBars = S.visibleBars;
       S.visibleBars = Math.max(10, Math.min(maxBars, S.dragStartVisibleBars * Math.exp(dx * 0.005)));
-      // Anchor zoom to keep the right edge stable
-      const barDelta = S.visibleBars - S.dragStartVisibleBars;
+      // Proportional scroll for zoom-out, anchor for zoom-in
+      const barDelta = S.visibleBars - oldVisBars;
       const rightMarginDrag = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
-      const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
-      S.scrollOffset = Math.max(-rightMarginDrag, Math.min(maxScroll, S.dragStartOffset - barDelta));
+      const oldMaxScroll = Math.max(1, eng.bars.length - oldVisBars);
+      const maxScroll = this._maxScroll();
+      if (barDelta > 0 && oldMaxScroll > 0) {
+        S.scrollOffset = S.scrollOffset * (maxScroll / oldMaxScroll);
+      } else {
+        S.scrollOffset = Math.max(-rightMarginDrag, Math.min(maxScroll, S.dragStartOffset - barDelta));
+      }
+      // Safety: when at max zoom-out, no scroll drift → flush right edge
+      if (S.visibleBars >= this._maxBars() && S.scrollOffset > 0) S.scrollOffset = 0;
       S.mainDirty = true;
       if (eng.layers) {
         eng.layers.markDirty(LAYERS.DATA);
@@ -520,7 +573,7 @@ export class InputManager {
       this._lastPriceMoveTime = nowPrice;
       this._lastPriceMoveY = e.clientY;
     } else if (S.dragging === 'chart' && !consumed) {
-      const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
+      const maxScroll = this._maxPanScroll();
       const rightMarginChart = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
       S.scrollOffset = Math.max(-rightMarginChart, Math.min(maxScroll, S.dragStartOffset + (e.clientX - S.dragStartX) / R.bSp));
       const dy = e.clientY - S.dragStartY;
@@ -952,7 +1005,7 @@ export class InputManager {
       this._lastPinchTime = now;
 
       const d = Math.sign(this._smoothedPinchDelta);
-      const maxBars = Math.max(80, eng.bars.length + 20);
+      const maxBars = this._maxBars();
       const currentTarget = this._targetVisibleBars || S.visibleBars;
       // P1-A #1: Use configurable sensitivity (default 0.04, was hardcoded 0.08)
       // Sprint 5: No Math.round() — keep fractional during animation, snap at settle
@@ -970,7 +1023,7 @@ export class InputManager {
       // Use deltaX for horizontal, deltaY for vertical trackpad scrolling
       const panDelta = (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? -e.deltaX : -e.deltaY);
       const barsDelta = panDelta / (R.bSp || 10);
-      const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
+      const maxScroll = this._maxPanScroll();
       const rightMarginPan = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
       S.scrollOffset = Math.max(-rightMarginPan, Math.min(maxScroll, S.scrollOffset + barsDelta));
       S.mainDirty = true;
@@ -987,7 +1040,7 @@ export class InputManager {
     } else {
       // ── Discrete mouse wheel: zoom (original behavior + Task 1.4.13 momentum) ──
       const d = Math.sign(e.deltaY);
-      const maxBars = Math.max(80, eng.bars.length + 20);
+      const maxBars = this._maxBars();
       const currentTarget = this._targetVisibleBars || S.visibleBars;
       // Sprint 5: No Math.round() — keep fractional during animation, snap at settle
       const newTarget = Math.max(10, Math.min(maxBars, currentTarget * (1 + d * 0.15)));
@@ -1206,7 +1259,7 @@ export class InputManager {
       }
 
       e.preventDefault();
-      const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
+      const maxScroll = this._maxScroll();
       const rightMarginTouch = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
       S.scrollOffset = Math.max(-rightMarginTouch, Math.min(maxScroll, S.dragStartOffset + dx / R.bSp));
       S.mainDirty = true;
@@ -1245,7 +1298,7 @@ export class InputManager {
           // Horizontal pinch → bar count zoom (existing behavior)
           // B2.3: Allow elastic overstretch beyond min/max with resistance
           const scale = this._pinchStartDist / dist;
-          const maxBars = Math.max(80, eng.bars.length + 20);
+          const maxBars = this._maxBars();
           const minBars = 10;
           const rawBars = this._pinchStartBars * scale;
           let newBars: number;
@@ -1266,14 +1319,19 @@ export class InputManager {
           }
 
           const barDelta = newBars - S.visibleBars;
+          const oldVisBars = S.visibleBars;
           S.visibleBars = newBars;
 
-          // Anchor around pinch center
-          const maxScroll = Math.max(0, eng.bars.length - S.visibleBars);
+          // Proportional scroll for zoom-out, anchor for zoom-in
+          const oldMaxScroll = Math.max(1, eng.bars.length - oldVisBars);
+          const maxScroll = this._maxScroll();
           const rightMarginPinch = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
-          S.scrollOffset = Math.max(-rightMarginPinch, Math.min(maxScroll,
-            S.scrollOffset - barDelta * (1 - this._pinchAnchorFrac)
-          ));
+          if (barDelta > 0 && oldMaxScroll > 0) {
+            S.scrollOffset = S.scrollOffset * (maxScroll / oldMaxScroll);
+          } else {
+            S.scrollOffset -= barDelta * (1 - this._pinchAnchorFrac);
+          }
+          S.scrollOffset = Math.max(-rightMarginPinch, Math.min(maxScroll, S.scrollOffset));
           S.mainDirty = true;
           S.topDirty = true;
         }
@@ -1303,7 +1361,7 @@ export class InputManager {
     if (this._touchMode === 'pinch' && this._pinchOverstretched) {
       const eng = this.engine;
       const S = eng.state;
-      const maxBars = Math.max(80, eng.bars.length + 20);
+      const maxBars = this._maxBars();
       const minBars = 10;
       this._pinchSpringStart = S.visibleBars;
       this._pinchSpringTarget = S.visibleBars < minBars ? minBars : maxBars;

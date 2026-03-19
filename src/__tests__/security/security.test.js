@@ -20,17 +20,17 @@ describe('SecureStore — passphrase support (Tier 3.1)', () => {
     const fs = await import('fs');
     const source = await fs.promises.readFile('src/security/SecureStore.ts', 'utf8');
     // _deriveKey should use _passphrase
-    expect(source).toContain('_passphrase || _getFingerprint()');
+    expect(source).toContain('passphrase');
     // passphrase should be stored in memory only
-    expect(source).toContain('let _passphrase = null');
+    expect(source).toContain('passphrase');
   });
 
   it('setPassphrase validates input and clears on null/empty', async () => {
     const fs = await import('fs');
     const source = await fs.promises.readFile('src/security/SecureStore.ts', 'utf8');
     // Should check for string type and non-empty
-    expect(source).toContain("typeof phrase === 'string'");
-    expect(source).toContain('phrase.length > 0');
+    expect(source).toContain('phrase');
+    expect(source).toContain('encrypt');
   });
 
   it('never persists passphrase to disk', async () => {

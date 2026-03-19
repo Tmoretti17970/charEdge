@@ -187,6 +187,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 600,
     // CDN Strategy (Task 3.2.7): Content-hashed filenames for immutable caching
     rollupOptions: {
+      external: ['@tensorflow/tfjs'],
       output: {
         // Content-hash all output for cache-busting
         entryFileNames: 'assets/[name]-[hash].js',
@@ -217,6 +218,9 @@ export default defineConfig({
           if (id.includes('src/pages/CoachPage') || id.includes('src/services/ai')) {
             return 'ai-coach';
           }
+          // Sprint 5 Task 5.1: Separate heavy AI modules into own lazy chunks
+          if (id.includes('src/ai/TradingKnowledgeBase')) return 'ai-knowledge';
+          if (id.includes('src/ai/MonteCarloEngine') || id.includes('src/ai/PatternCNN')) return 'ai-models';
           if (id.includes('src/pages/InsightsPage') || id.includes('src/pages/TelemetryDashboard')) {
             return 'analytics';
           }

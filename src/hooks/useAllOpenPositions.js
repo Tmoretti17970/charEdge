@@ -19,7 +19,8 @@ export function useAllOpenPositions() {
     if (!trades?.length) return [];
 
     return trades.filter((t) => {
-      if (t.source !== 'chart-quick-trade') return false;
+      const validSources = ['chart-quick-trade', 'radial-menu'];
+      if (!validSources.includes(t.source)) return false;
       if (t.pnl !== 0) return false;
       if (t.exit || t.exitPrice || t.closePrice) return false;
       if (typeof t.entry !== 'number') return false;

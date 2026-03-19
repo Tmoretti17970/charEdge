@@ -16,7 +16,6 @@
 
 import { memo, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { radii, transition } from '../../../theme/tokens.js';
 
 const GREEN  = '#22c55e';
 const RED    = '#ef4444';

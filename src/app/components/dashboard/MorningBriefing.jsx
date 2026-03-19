@@ -21,7 +21,7 @@ import { fmtD } from '../../../utils.js';
 
 // Decomposed sub-modules
 import ActiveSessionContent from './briefing/ActiveSessionContent.jsx';
-import { PhaseIndicator, MiniSparkline, btnStyle } from './briefing/BriefingPrimitives.jsx';
+import { PhaseIndicator, btnStyle } from './briefing/BriefingPrimitives.jsx';
 import { getSessionPhase, getGreeting, PHASE_CONFIG, startOfDay } from './briefing/phaseConfig.js';
 import PostMarketContent from './briefing/PostMarketContent.jsx';
 import PreMarketContent from './briefing/PreMarketContent.jsx';
@@ -198,7 +198,7 @@ export default function MorningBriefing() {
       }}>
         <PhaseIndicator config={config} />
         <div style={{ fontSize: 20, fontWeight: 700, color: C.t1, fontFamily: F, marginTop: 8 }}>
-          {greeting.emoji} {greeting.text}, {nameLabel}
+          {greeting.emoji} {greeting.text}
         </div>
         <div style={{ fontSize: 13, color: C.t3, marginTop: 6, fontFamily: F }}>
           Log your first trade to unlock your Morning Briefing.
@@ -257,7 +257,7 @@ export default function MorningBriefing() {
               <button onClick={() => setDismissed(true)} title="Dismiss briefing" style={btnStyle}>×</button>
             </div>
             <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: C.t1, fontFamily: F, marginTop: 8, letterSpacing: '-0.3px' }}>
-              {greeting.emoji} {greeting.text}, {nameLabel}
+              {greeting.emoji} {greeting.text}
             </div>
             <div style={{ fontSize: 12, color: C.t3, fontFamily: M, marginTop: 4, lineHeight: 1.5 }}>
               {greeting.sub}

@@ -14,6 +14,11 @@
 import { TickRingBuffer } from './engine/streaming/TickRingBuffer.ts';
 import { logger } from '@/observability/logger';
 
+// Lazy ref to PriceAggregator — avoids circular dep at module parse time
+let _priceAgg: any = null;
+// Sprint 1 Task 1.1: Lazy ref to PriceBus — unified price distribution
+let _priceBus: any = null;
+
 // Sprint 9 #69: Import from extracted ws/ modules
 import {
   WS_STATUS, streamKey, tradeStreamKey,
@@ -109,6 +114,21 @@ class _WebSocketService {
     /** @type {Map<string, number>} */
     this._lastKnownPrice = new Map();
 
+    // Sprint 5 Task 5.4: Bandwidth tracking metrics
+    this._bytesReceived = 0;
+    this._binaryFrames = 0;
+    this._textFrames = 0;
+    this._bandwidthStart = Date.now();
+
+    // Phase 3 Task #45: Deferred init flag — listener moved out of constructor
+    this._initialized = false;
+  }
+
+  // Phase 3 Task #45: Move event listeners to init() — called lazily on first subscribe
+  _init() {
+    if (this._initialized) return;
+    this._initialized = true;
+
     // ── P1 Task R5: Drop stale queue on tab return ──
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', () => {
@@ -141,6 +161,7 @@ class _WebSocketService {
    * @returns {number} subscriptionId
    */
   subscribe(symbol, tf, callbacks = {}) {
+    this._init(); // Phase 3 Task #45: Lazy init
     const key = streamKey(symbol, tf);
     const subId = _nextSubId++;
 
@@ -416,8 +437,16 @@ class _WebSocketService {
         try {
           let wrapper;
 
+          // Sprint 5 Task 5.4: Track bandwidth
+          const dataSize = evt.data instanceof ArrayBuffer ? evt.data.byteLength
+            : evt.data instanceof Blob ? evt.data.size
+            : typeof evt.data === 'string' ? evt.data.length
+            : 0;
+          this._bytesReceived += dataSize;
+
           // ── Binary-first decode (Task 1.3.2) ──
           if (evt.data instanceof ArrayBuffer || evt.data instanceof Blob) {
+            this._binaryFrames++;
             const codec = _getBinaryCodec();
             if (codec) {
               const decoded = codec.decodeAuto
@@ -432,6 +461,7 @@ class _WebSocketService {
               return;
             }
           } else {
+            this._textFrames++;
             wrapper = JSON.parse(evt.data);
           }
 
@@ -545,6 +575,20 @@ class _WebSocketService {
         return;
       }
       this._lastKnownPrice.set(sym, bar.close);
+
+      // Feed tick into PriceAggregator to unify chart + badge price buses
+      if (!_priceAgg) {
+        import('./engine/streaming/PriceAggregator.js').then(m => { _priceAgg = m.priceAggregator; }).catch(() => {});
+      } else {
+        try { _priceAgg.ingest(sym, 'binance-ws', bar.close, Date.now(), 0); } catch (err) { logger.data.warn('[WS] PriceAggregator ingest failed:', (err as Error)?.message); }
+      }
+
+      // Sprint 1 Task 1.1: Publish to PriceBus for unified distribution
+      if (!_priceBus) {
+        import('./engine/streaming/PriceBus.ts').then(m => { _priceBus = m.priceBus; }).catch(() => {});
+      } else {
+        try { _priceBus.publish(sym, bar.close, 'binance-ws', Date.now()); } catch (err) { logger.data.warn('[WS] PriceBus publish failed:', (err as Error)?.message); }
+      }
 
       // P1 Task P2: O(1) lookup via stream index
       const klineSubIds = this._klineSubsByStream.get(msgStream);
@@ -736,6 +780,21 @@ class _WebSocketService {
       status: this._status,
       streamCount: this._getActiveStreams().length,
       isStale: lastMessageAge > 5000,
+    };
+  }
+
+  /**
+   * Sprint 5 Task 5.4: Bandwidth tracking metrics.
+   * @returns {{ bytesReceived, binaryFrames, textFrames, kbPerSec, uptimeMs }}
+   */
+  getBandwidthStats() {
+    const uptimeMs = Date.now() - this._bandwidthStart;
+    return {
+      bytesReceived: this._bytesReceived,
+      binaryFrames: this._binaryFrames,
+      textFrames: this._textFrames,
+      kbPerSec: uptimeMs > 0 ? (this._bytesReceived / 1024) / (uptimeMs / 1000) : 0,
+      uptimeMs,
     };
   }
 

@@ -29,7 +29,7 @@ const ComparisonOverlay = React.lazy(() => import('../../app/components/chart/ov
 const BacktestPanel = React.lazy(() => import('../../app/components/chart/panels/BacktestPanel.jsx'));
 const BacktestResults = React.lazy(() => import('../../app/components/chart/panels/BacktestResults.jsx'));
 const StrategyBuilder = React.lazy(() => import('../../app/components/chart/panels/StrategyBuilder.jsx'));
-const AIAnalysisPanel = React.lazy(() => import('../../app/components/panels/AIAnalysisPanel.jsx'));
+// AIAnalysisPanel removed — copilot consolidated into watchlist side panel
 const WalkForwardPanel = React.lazy(() => import('../../app/components/chart/panels/WalkForwardPanel.jsx'));
 const FuturesAnalytics = React.lazy(() => import('../../app/components/chart/panels/FuturesAnalytics.jsx'));
 const PaperTradeWidget = React.lazy(() => import('../../app/components/chart/panels/PaperTradeWidget.jsx'));
@@ -90,9 +90,9 @@ export default function ChartOverlays({
   setShowIndicators,
   setShowSnapshotPublisher,
   setShowComparisonOverlay: _setShowComparisonOverlay,
-  // Analysis panels
-  chartAnalysisOpen,
-  setChartAnalysisOpen,
+  // Analysis panels (AI Analysis removed — consolidated into watchlist side panel)
+  _chartAnalysisOpen,
+  _setChartAnalysisOpen,
   paperTradeOpen,
   setPaperTradeOpen,
   walkForwardOpen,
@@ -105,7 +105,6 @@ export default function ChartOverlays({
   setShowMobileSettings,
   setShowMobileShare,
   isLive: _isLive,
-  setShowIndicators: _setShowIndicators2,
   // AI palette callbacks
   _setShowCopilot,
   _openPanel,
@@ -221,8 +220,9 @@ export default function ChartOverlays({
                         import('../../state/chart/useChartCoreStore').then(({ useChartCoreStore }) => {
                           const coreState = useChartCoreStore.getState();
                           const sym = coreState.symbol || 'UNKNOWN';
-                          // Use real-time aggregated price, fall back to crosshair price
-                          const livePrice = coreState.aggregatedPrice || actionPrice;
+                          // Use real-time aggregated price, fall back to last candle close, then crosshair price
+                          const lastCandle = data?.[data.length - 1];
+                          const livePrice = coreState.aggregatedPrice || lastCandle?.close || actionPrice;
                           const result = usePaperTradeStore.getState().placeOrder(
                             {
                               symbol: sym,
@@ -396,12 +396,7 @@ export default function ChartOverlays({
         </Suspense>
       )}
 
-      {/* AI Analysis Palette — draggable floating panel */}
-      {chartAnalysisOpen && !multiMode && !isMobile && (
-        <Suspense fallback={null}>
-          <AIAnalysisPanel isOpen={chartAnalysisOpen} onClose={() => setChartAnalysisOpen(false)} />
-        </Suspense>
-      )}
+      {/* AI Analysis Palette — REMOVED: consolidated into watchlist side panel copilot tab */}
 
       {/* Walk-Forward & Monte Carlo Panel */}
       {walkForwardOpen && !multiMode && !isMobile && (

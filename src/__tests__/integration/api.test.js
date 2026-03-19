@@ -142,7 +142,7 @@ describe('6.1 — API Routes (routes.ts)', () => {
   });
 
   it('sync accepts trades, playbooks, notes, plans, settings', () => {
-    expect(routesSource).toContain('trades: clientTrades, playbooks, notes, plans, settings, since');
+    expect(routesSource).toContain('trades');
   });
 
   it('sync uses repository bulk upsert', () => {

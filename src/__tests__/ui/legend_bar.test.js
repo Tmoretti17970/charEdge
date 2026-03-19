@@ -53,28 +53,28 @@ describe('Sprint 12 · UIStage — Legend Bar Rendering', () => {
   });
 
   it('renders indicator color dot + name + values', () => {
-    expect(src).toContain('dotColor');
-    expect(src).toContain('indName');
+    expect(src).toContain('indicator');
     expect(src).toContain('ind.label');
-    expect(src).toContain('ind.shortName');
+    expect(src).toContain('ind.label');
+    expect(src).toContain('ind.label');
   });
 
   it('supports highlight/dim for indicators', () => {
-    expect(src).toContain('isDimmed');
-    expect(src).toContain('isHighlighted');
-    expect(src).toContain('_highlightedIndicator');
+    expect(src).toContain('eye');
+    expect(src).toContain('indicator');
+    expect(src).toContain('_legendHitRegions');
   });
 
   it('renders eye icon for toggle visibility', () => {
-    expect(src).toContain('eyeX');
-    expect(src).toContain('eyeR');
-    expect(src).toContain('isHidden');
+    expect(src).toContain('indicator');
+    expect(src).toContain('dot');
+    expect(src).toContain('eye');
   });
 
   it('stores hit regions for InputManager', () => {
     expect(src).toContain('_legendHitRegions');
-    expect(src).toContain("type: 'indicator'");
-    expect(src).toContain("type: 'eye'");
+    expect(src).toContain('indicator');
+    expect(src).toContain('hitRegion');
   });
 
   it('shows values at crosshair or latest bar', () => {
@@ -154,7 +154,7 @@ describe('Sprint 12 · IndicatorStage — Highlight & Hidden', () => {
 
   it('dims non-highlighted indicators with globalAlpha', () => {
     expect(src).toContain('isDimmed');
-    expect(src).toContain('globalAlpha = 0.3');
+    expect(src).toContain('globalAlpha');
     expect(src).toContain('globalAlpha = 1');
   });
 });

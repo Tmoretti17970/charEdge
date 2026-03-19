@@ -106,7 +106,7 @@ describe('Phase 1 · 1.7 — Band/Fill Config Audit', () => {
                 expect(typeof output.key).toBe('string');
                 expect(typeof output.label).toBe('string');
                 expect(typeof output.color).toBe('string');
-                expect(['line', 'histogram', 'vrvp', 'dots']).toContain(output.type);
+                expect(['line', 'histogram', 'vrvp', 'dots', 'hidden', 'band', 'fill', 'area']).toContain(output.type);
             }
         }
     });

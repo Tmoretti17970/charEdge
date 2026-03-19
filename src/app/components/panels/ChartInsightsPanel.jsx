@@ -18,11 +18,12 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import { analyzeAll, checkDrawingProximity } from '../../../charting_library/studies/PriceActionEngine.js';
 import { localInsightEngine } from '../../../charting_library/ai/LocalInsightEngine.js';
 import { featureExtractor } from '../../../charting_library/ai/FeatureExtractor.js';
 import { anomalyDetector } from '../../../charting_library/ai/AnomalyDetector.js';
+import { entryQualityScorer } from '../../../charting_library/ai/EntryQualityScorer.js';
 import { C, F, M } from '../../../constants.js';
 import { useChartToolsStore } from '../../../state/chart/useChartToolsStore';
 import { useChartFeaturesStore } from '../../../state/chart/useChartFeaturesStore';
@@ -86,6 +87,21 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
       return [];
     }
   }, [data]);
+
+  // ML Entry Quality Score (Sprint 45)
+  const [mlGrade, setMlGrade] = useState(null);
+  useEffect(() => {
+    if (!aiAnalysis || !data?.length || data.length < 25) { setMlGrade(null); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const features = featureExtractor.extract(data);
+        const result = await entryQualityScorer.score(features.vector);
+        if (!cancelled) setMlGrade(result);
+      } catch { /* graceful degradation */ }
+    })();
+    return () => { cancelled = true; };
+  }, [data, aiAnalysis]);
 
   // Section collapse state
   const [collapsed, setCollapsed] = useState({
@@ -172,6 +188,23 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
               }}
             >
               {grade.letter}
+            </span>
+          )}
+          {/* ML grade badge (Sprint 45) */}
+          {mlGrade && mlGrade.source === 'ml' && (
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 800,
+                fontFamily: M,
+                padding: '2px 6px',
+                borderRadius: 4,
+                background: '#6e5ce620',
+                color: '#6e5ce6',
+              }}
+              title={`ML Grade: ${mlGrade.grade} (${mlGrade.score * 100}%) — ${mlGrade.desc}`}
+            >
+              ML:{mlGrade.grade}
             </span>
           )}
           {/* Risk badge */}

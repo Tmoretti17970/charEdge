@@ -7,7 +7,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useAlertHistory } from '../../../state/useAlertHistory';
+import { useAlertStore } from '../../../state/useAlertStore';
 
 function OutcomeBadge({ value, label }) {
   if (value == null) return <span style={{ fontSize: 8, color: C.t3 + '50', fontFamily: M }}>{label}: —</span>;
@@ -30,8 +30,8 @@ function OutcomeBadge({ value, label }) {
 }
 
 function AlertHistoryPanel() {
-  const entries = useAlertHistory((s) => s.entries);
-  const clearHistory = useAlertHistory((s) => s.clear);
+  const entries = useAlertStore((s) => s.historyEntries);
+  const clearHistory = useAlertStore((s) => s.clearHistory);
   const [symbolFilter, setSymbolFilter] = useState('');
   const [outcomeFilter, setOutcomeFilter] = useState('all'); // 'all' | 'winners' | 'losers'
 

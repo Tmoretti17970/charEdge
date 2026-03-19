@@ -151,7 +151,7 @@ function PipelineDevTools() {
 
       // Pipeline Logger
       try {
-        const { pipelineLogger } = await import('../../data/engine/DataPipelineLogger.js');
+        const { pipelineLogger } = await import('../../../data/engine/infra/DataPipelineLogger.js');
         snap.logger = pipelineLogger.getStats();
         snap.recentErrors = pipelineLogger.getRecentErrors(5);
       // eslint-disable-next-line unused-imports/no-unused-vars
@@ -159,21 +159,21 @@ function PipelineDevTools() {
 
       // Pipeline Health Monitor
       try {
-        const { pipelineHealthMonitor } = await import('../../data/engine/PipelineHealthMonitor.js');
+        const { pipelineHealthMonitor } = await import('../../../data/engine/infra/PipelineHealthMonitor.js');
         snap.health = pipelineHealthMonitor.getHealthSnapshot();
       // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { snap.health = null; }
 
       // Compute Worker Pool
       try {
-        const { computePool } = await import('../../data/engine/ComputeWorkerPool.js');
+        const { computePool } = await import('../../../data/engine/infra/ComputeWorkerPool.js');
         snap.workerPool = computePool.getStats();
       // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { snap.workerPool = null; }
 
       // Ticker Plant
       try {
-        const { tickerPlant } = await import('../../data/engine/streaming/TickerPlant.js');
+        const { tickerPlant } = await import('../../../data/engine/streaming/TickerPlant.ts');
         snap.tickerPlant = tickerPlant.getHealth();
         snap.adapterHealth = tickerPlant.getAdapterHealth?.() || {};
       // eslint-disable-next-line unused-imports/no-unused-vars
@@ -181,21 +181,21 @@ function PipelineDevTools() {
 
       // Tick Persistence
       try {
-        const { tickPersistence } = await import('../../data/engine/streaming/TickPersistence.js');
+        const { tickPersistence } = await import('../../../data/engine/streaming/TickPersistence.js');
         snap.persistence = tickPersistence.getStats();
       // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { snap.persistence = null; }
 
       // Memory Budget
       try {
-        const { memoryBudget } = await import('../../data/engine/MemoryBudget.js');
+        const { memoryBudget } = await import('../../../data/engine/infra/MemoryBudget.js');
         snap.memory = memoryBudget.getSnapshot();
       // eslint-disable-next-line unused-imports/no-unused-vars
       } catch (_) { snap.memory = null; }
 
       // Streaming Indicator Bridge
       try {
-        const { streamingIndicatorBridge } = await import('../../data/engine/indicators/StreamingIndicatorBridge.js');
+        const { streamingIndicatorBridge } = await import('../../../data/engine/indicators/StreamingIndicatorBridge.js');
         snap.indicators = {
           workerActive: streamingIndicatorBridge.isWorkerActive?.() || false,
           activeSymbols: streamingIndicatorBridge.getActiveSymbols(),
@@ -223,7 +223,7 @@ function PipelineDevTools() {
 
   const handleExportTelemetry = useCallback(async () => {
     try {
-      const { pipelineLogger } = await import('../../data/engine/DataPipelineLogger.js');
+      const { pipelineLogger } = await import('../../../data/engine/infra/DataPipelineLogger.js');
       pipelineLogger.exportTelemetry({ download: true });
     } catch (e) { logger.ui.warn('Operation failed', e); }
   }, []);

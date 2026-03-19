@@ -151,7 +151,7 @@ function MarketsHeatMap() {
   const assetClassFilters = useMarketsPrefsStore((s) => s.assetClassFilters);
 
   const symbols = useMemo(() => items.map((i) => i.symbol), [items]);
-  useWatchlistStreaming(symbols, symbols.length > 0);
+  const { prices } = useWatchlistStreaming(symbols, symbols.length > 0);
   const enriched = enrichWithTradeStats(items, trades);
   const filtered = useMemo(() => {
     if (assetClassFilters.length === 0) return enriched;
@@ -173,25 +173,32 @@ function MarketsHeatMap() {
   // ─── Compute treemap layout ──────────────────────────────
   const rects = useMemo(() => {
     const data = filtered
-      .map((item) => ({
-        symbol: item.symbol?.replace('USDT', '') || '?',
-        fullSymbol: item.symbol,
-        change: item.change24h ?? item.change ?? 0,
-        price: item.price ?? 0,
-        volume: item.volume ?? 1,
-        marketCap: item.marketCap ?? item.volume ?? 1,
-        weight: Math.max(
-          heatmapSizeBy === 'marketCap'
-            ? (item.marketCap ?? item.volume ?? 1)
-            : (item.volume ?? 1),
-          0.01,
-        ),
-      }))
+      .map((item) => {
+        // Merge live streaming data with static watchlist item
+        const live = prices[item.symbol] || prices[item.symbol + 'USDT'] || {};
+        const change = live.changePercent ?? live.change ?? item.change24h ?? item.change ?? 0;
+        const price = live.price ?? item.price ?? 0;
+        const volume = live.volume ?? item.volume ?? 1;
+        return {
+          symbol: item.symbol?.replace('USDT', '') || '?',
+          fullSymbol: item.symbol,
+          change,
+          price,
+          volume,
+          marketCap: item.marketCap ?? volume,
+          weight: Math.max(
+            heatmapSizeBy === 'marketCap'
+              ? (item.marketCap ?? volume)
+              : volume,
+            0.01,
+          ),
+        };
+      })
       .sort((a, b) => b.weight - a.weight);
 
     const PAD = 2;
     return squarify(data, PAD, PAD, dims.w - PAD * 2, dims.h - PAD * 2);
-  }, [filtered, dims, heatmapSizeBy]);
+  }, [filtered, dims, heatmapSizeBy, prices]);
 
   rectsRef.current = rects;
 

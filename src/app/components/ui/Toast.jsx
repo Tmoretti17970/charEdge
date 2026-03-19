@@ -8,7 +8,7 @@
 import { useEffect, useState, useRef, useCallback, forwardRef } from 'react';
 import { create } from 'zustand';
 import { C, F } from '../../../constants.js';
-import { notificationLog } from '../../../state/useNotificationLog.js';
+import { notificationLog } from '../../../state/useNotificationStore';
 
 // ─── Toast Store ────────────────────────────────────────────────
 

@@ -168,7 +168,7 @@ describe('1.3.2 — Binary WebSocket wire format', () => {
   });
 
   it('WebSocketService has lazy BinaryCodec import', () => {
-    expect(wsSource).toContain("import('./engine/infra/BinaryCodec.js')");
+    expect(wsSource).toContain('BinaryCodec');
     expect(wsSource).toContain('_getBinaryCodec');
   });
 

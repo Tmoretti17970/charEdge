@@ -55,6 +55,8 @@ export class CoinGeckoAdapter extends BaseAdapter {
   constructor(apiKey = '') {
     super('coingecko');
     this._apiKey = apiKey;
+    // Sprint 1 Task 1.3.3: In-flight request deduplication
+    this._inflight = new Map(); // url → Promise
   }
 
   supports(symbol) {

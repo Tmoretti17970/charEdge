@@ -24,6 +24,7 @@ const DEFAULT_RULES = [
   {
     id: 'consec_loss_3',
     name: '3 consecutive losses → Cool down',
+      version: 1,
     field: 'consecLosses',
     operator: '>=',
     value: 3,
@@ -34,6 +35,7 @@ const DEFAULT_RULES = [
   {
     id: 'daily_pnl_limit',
     name: 'Daily P&L limit breached',
+      version: 1,
     field: 'dailyPnl',
     operator: '<',
     value: -500,
@@ -44,6 +46,7 @@ const DEFAULT_RULES = [
   {
     id: 'low_win_rate',
     name: 'Win rate below 30% (5+ trades)',
+      version: 1,
     field: 'sessionWinRate',
     operator: '<',
     value: 30,
@@ -55,6 +58,7 @@ const DEFAULT_RULES = [
   {
     id: 'max_trades',
     name: 'Max 10 trades per day',
+      version: 1,
     field: 'tradeCount',
     operator: '>=',
     value: 10,
@@ -137,6 +141,7 @@ const useRuleEngine = create(
     }),
     {
       name: 'charEdge-rule-engine',
+      version: 1,
       partialize: (state) => ({ rules: state.rules }),
     },
   ),

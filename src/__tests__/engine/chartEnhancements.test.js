@@ -1955,10 +1955,10 @@ describe('DrawingEngine — 2-Point Tool Completion (trendline)', () => {
 
     // Second click completes
     engine.onMouseDown(150, 250);
-    expect(engine.state).toBe('idle');
+    expect(engine.state).toBe('selected');
     expect(engine.activeTool).toBeNull();
     expect(engine.drawings).toHaveLength(1);
-    expect(engine.drawings[0].state).toBe('idle');
+    expect(engine.drawings[0].state).toBe('selected');
     expect(engine.drawings[0].points).toHaveLength(2);
     expect(engine.drawings[0].points[0].price).toBe(200);
     expect(engine.drawings[0].points[0].time).toBe(100);
@@ -1970,7 +1970,7 @@ describe('DrawingEngine — 1-Point Tool (hline)', () => {
     const engine = makeTestEngine();
     engine.activateTool('hline');
     engine.onMouseDown(50, 100);
-    expect(engine.state).toBe('idle');
+    expect(engine.state).toBe('selected');
     expect(engine.drawings).toHaveLength(1);
     expect(engine.drawings[0].points).toHaveLength(1);
     expect(engine.drawings[0].points[0].price).toBe(100);
@@ -1986,7 +1986,7 @@ describe('DrawingEngine — 3-Point Tool (channel)', () => {
     engine.onMouseDown(30, 40);
     engine.onMouseMove(50, 60);
     engine.onMouseDown(50, 60);
-    expect(engine.state).toBe('idle');
+    expect(engine.state).toBe('selected');
     expect(engine.drawings[0].points).toHaveLength(3);
   });
 });
@@ -2001,7 +2001,7 @@ describe('DrawingEngine — 5-Point Tool (elliott)', () => {
         engine.onMouseMove((i + 1) * 20, (i + 1) * 10);
       }
     }
-    expect(engine.state).toBe('idle');
+    expect(engine.state).toBe('selected');
     expect(engine.drawings[0].type).toBe('elliott');
     expect(engine.drawings[0].points).toHaveLength(5);
   });

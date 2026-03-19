@@ -99,9 +99,11 @@ export const FOREX_PAIRS = new Set([
 export function getAssetClass(sym) {
   const s = (sym || '').toUpperCase();
   if (isCrypto(s)) return 'crypto';
+  // Strip Yahoo-style suffixes first: GC=F → GC, EURUSD=X → EURUSD
+  const stripped = s.replace(/=F$|=X$/, '');
   // Strip futures contract month/year suffix: ESH5 → ES, ESH25 → ES, MES03-25 → MES
-  const root = s.replace(/[FGHJKMNQUVXZ]\d{1,2}$/, '').replace(/\d{2}-\d{2}$/, '');
-  if (FUTURES_ROOTS.has(root)) return 'futures';
-  if (FOREX_PAIRS.has(s)) return 'forex';
+  const root = stripped.replace(/[FGHJKMNQUVXZ]\d{1,2}$/, '').replace(/\d{2}-\d{2}$/, '');
+  if (FUTURES_ROOTS.has(root) || FUTURES_ROOTS.has(stripped)) return 'futures';
+  if (FOREX_PAIRS.has(s) || FOREX_PAIRS.has(stripped)) return 'forex';
   return 'stock';
 }

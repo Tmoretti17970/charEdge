@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { C, GLASS } from '../../../constants.js';
-import { text, radii, transition } from '../../../theme/tokens.js';
+import { text, radii } from '../../../theme/tokens.js';
 import { fmtD } from '../../../utils.js';
 import { useCountUp } from '@/hooks/useCountUp';
 import { useAccountStore } from '@/state/useAccountStore';

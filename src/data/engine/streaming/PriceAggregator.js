@@ -1,5 +1,8 @@
 import { logger } from '@/observability/logger';
 
+// Sprint 1 Task 1.1: Lazy ref to PriceBus — avoids circular dep
+let _priceBus = null;
+import('./PriceBus.ts').then(m => { _priceBus = m.priceBus; }).catch(() => {});
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v11 — Price Aggregator Engine
 //
@@ -20,6 +23,8 @@ import { logger } from '@/observability/logger';
 //   const result = agg.aggregate('BTCUSDT');
 //   // → { price: 97000.85, confidence: 'high', sources: 2, ... }
 // ═══════════════════════════════════════════════════════════════════
+
+import { getStalenessThreshold } from './AssetClassConfig.ts';
 
 // ─── Configuration ──────────────────────────────────────────────
 
@@ -68,8 +73,9 @@ function stddev(arr, avg = null) {
 // Tracks the latest price and history for a single source+symbol pair.
 
 class SourceBuffer {
-  constructor(sourceId) {
+  constructor(sourceId, symbol = '') {
     this.sourceId = sourceId;
+    this.symbol = symbol;  // Sprint 5 Task 5.3: for asset-class-aware staleness
     this.price = 0;
     this.timestamp = 0;
     this.confidence = 0;       // Source-level confidence (from Pyth, etc.)
@@ -92,11 +98,13 @@ class SourceBuffer {
   }
 
   get isFresh() {
-    return (performance.now() - this.timestamp) < CONFIG.STALENESS_THRESHOLD_MS;
+    // Sprint 5 Task 5.3.2: Dynamic staleness per asset class
+    const threshold = this.symbol ? getStalenessThreshold(this.symbol) : CONFIG.STALENESS_THRESHOLD_MS;
+    return (Date.now() - this.timestamp) < threshold;
   }
 
   get age() {
-    return performance.now() - this.timestamp;
+    return Date.now() - this.timestamp;
   }
 
   get rollingMean() {
@@ -122,7 +130,7 @@ class SymbolState {
   getOrCreateSource(sourceId) {
     let buf = this.sources.get(sourceId);
     if (!buf) {
-      buf = new SourceBuffer(sourceId);
+      buf = new SourceBuffer(sourceId, this.symbol);
       this.sources.set(sourceId, buf);
     }
     return buf;
@@ -136,7 +144,8 @@ class SymbolState {
    *   4. Score confidence
    */
   aggregate() {
-    const now = performance.now();
+    // Sprint 1 Task 1.4.1: Use Date.now() — same domain as ingest() timestamps
+    const now = Date.now();
     const freshSources = [];
     const staleSources = [];
 
@@ -204,6 +213,11 @@ class SymbolState {
     // Notify subscribers
     for (const cb of this.subscribers) {
       try { cb(aggregation); } catch (e) { logger.data.warn('Operation failed', e); }
+    }
+
+    // Sprint 1 Task 1.1: Publish aggregated price to PriceBus
+    if (_priceBus) {
+      try { _priceBus.publish(this.symbol, aggregation.price, 'aggregator', Date.now()); } catch {}
     }
 
     return aggregation;
@@ -357,7 +371,8 @@ export class PriceAggregator {
     for (const [id, stats] of this._sourceHealth) {
       health[id] = {
         ...stats,
-        isHealthy: (performance.now() - stats.lastSeen) < this._config.STALENESS_THRESHOLD_MS * 2,
+        // Sprint 1 Task 1.4.1: Use Date.now() — consistent with ingest timestamps
+        isHealthy: (Date.now() - stats.lastSeen) < this._config.STALENESS_THRESHOLD_MS * 2,
       };
     }
     return health;
@@ -407,11 +422,12 @@ export class PriceAggregator {
   _trackSourceHealth(sourceId) {
     let health = this._sourceHealth.get(sourceId);
     if (!health) {
-      health = { updates: 0, errors: 0, lastSeen: 0, firstSeen: performance.now() };
+      // Sprint 1 Task 1.4.1: Use Date.now() — same domain as SourceBuffer.timestamp
+      health = { updates: 0, errors: 0, lastSeen: 0, firstSeen: Date.now() };
       this._sourceHealth.set(sourceId, health);
     }
     health.updates++;
-    health.lastSeen = performance.now();
+    health.lastSeen = Date.now();
   }
 }
 

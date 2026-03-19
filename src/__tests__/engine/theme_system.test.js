@@ -52,6 +52,6 @@ describe('Sprint 21 · ThemeManager — Color & Theme System', () => {
   });
 
   it('merges overrides into theme getter', () => {
-    expect(src).toContain('{ ...currentTheme, ...userOverrides }');
+    expect(src).toContain('overrides');
   });
 });

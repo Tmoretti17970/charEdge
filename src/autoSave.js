@@ -32,7 +32,7 @@ export function setupAutoSave() {
   let tradeTimer = null;
   let settingsTimer = null;
 
-  // Auto-save trades/playbooks/notes/tradePlans
+  // Auto-save trades/playbooks/notes/tradePlans (Phase 3 Task #42: delta writes)
   unsubs.push(
     useJournalStore.subscribe((state, prevState) => {
       // Skip the initial hydration write-back
@@ -41,13 +41,37 @@ export function setupAutoSave() {
       clearTimeout(tradeTimer);
       tradeTimer = setTimeout(async () => {
         try {
-          // Clear + rewrite ensures deletes persist correctly
-          await Promise.all([
-            storageAdapter.trades.replaceAll(state.trades),
-            storageAdapter.playbooks.replaceAll(state.playbooks),
-            storageAdapter.notes.replaceAll(state.notes),
-            storageAdapter.tradePlans.replaceAll(state.tradePlans),
-          ]);
+          // Delta writes for trades — compare by reference to find changes
+          if (state.trades !== prevState.trades) {
+            const prevIds = new Set(prevState.trades.map(t => t.id));
+            const currIds = new Set(state.trades.map(t => t.id));
+
+            // Upsert new/changed trades
+            const toWrite = state.trades.filter(
+              t => !prevIds.has(t.id) || prevState.trades.find(p => p.id === t.id) !== t
+            );
+            if (toWrite.length > 0) {
+              await Promise.all(toWrite.map(t => storageAdapter.trades.put(t)));
+            }
+
+            // Delete removed trades
+            for (const prev of prevState.trades) {
+              if (!currIds.has(prev.id)) {
+                await storageAdapter.trades.delete(prev.id);
+              }
+            }
+          }
+
+          // Playbooks/notes/tradePlans are small — replaceAll is fine
+          if (state.playbooks !== prevState.playbooks) {
+            await storageAdapter.playbooks.replaceAll(state.playbooks);
+          }
+          if (state.notes !== prevState.notes) {
+            await storageAdapter.notes.replaceAll(state.notes);
+          }
+          if (state.tradePlans !== prevState.tradePlans) {
+            await storageAdapter.tradePlans.replaceAll(state.tradePlans);
+          }
         } catch (err) {
           logger.ui.warn('[AutoSave] Trades auto-save failed:', err);
         }

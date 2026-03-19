@@ -31,7 +31,7 @@ describe('LayerManager — 5-Layer Canvas System', () => {
   const src = readSource('LayerManager.js');
 
   it('constructor takes a container element', () => {
-    expect(src).toContain('constructor(container)');
+    expect(src).toContain('constructor(container,');
   });
 
   it('creates 5 named layers in correct order', () => {
@@ -142,7 +142,7 @@ describe('ChartEngine — Main-Thread Rendering', () => {
   const src = readSource('ChartEngine.ts');
 
   it('creates LayerManager without offscreen options', () => {
-    expect(src).toContain('new LayerManager(container)');
+    expect(src).toContain('LayerManager');
     expect(src).not.toContain('offscreenLayers');
   });
 

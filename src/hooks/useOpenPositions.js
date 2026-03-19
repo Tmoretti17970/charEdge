@@ -21,8 +21,9 @@ export function useOpenPositions(symbol) {
     const symUpper = symbol.toUpperCase();
 
     return trades.filter((t) => {
-      // Must be a chart quick trade with no realized P&L
-      if (t.source !== 'chart-quick-trade') return false;
+      // Must be a chart quick trade or radial menu trade with no realized P&L
+      const validSources = ['chart-quick-trade', 'radial-menu'];
+      if (!validSources.includes(t.source)) return false;
       if (t.pnl !== 0) return false;
       if (t.exit || t.exitPrice || t.closePrice) return false;
       if (typeof t.entry !== 'number') return false;

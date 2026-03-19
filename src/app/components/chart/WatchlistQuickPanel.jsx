@@ -13,7 +13,7 @@
 //   - Dismiss: drag right past threshold, or press Escape / W
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { C, F, M, GLASS, DEPTH } from '../../../constants.js';
 import { useWatchlistStore, groupByAssetClass, buildFolderTree, getRootItems, enrichWithTradeStats } from '../../../state/useWatchlistStore.js';
@@ -21,6 +21,9 @@ import { useJournalStore } from '../../../state/useJournalStore';
 import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
 import { alpha } from '@/shared/colorUtils';
 import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming.js';
+
+// Lazy-load AI Copilot for the AI tab
+const CopilotChatInline = React.lazy(() => import('../ai/CopilotChatInline.jsx'));
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -100,7 +103,7 @@ function MiniSparkline({ data, color, width = 60, height = 24 }) {
 
 // ─── Watchlist Quick Panel ──────────────────────────────────────
 
-function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
+function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initialTab }) {
   const items = useWatchlistStore((s) => s.items);
   const addSymbol = useWatchlistStore((s) => s.add);
   const removeSymbol = useWatchlistStore((s) => s.remove);
@@ -117,6 +120,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
   const [handleHovered, setHandleHovered] = useState(false);
   const [groupMode, setGroupMode] = useState('folders'); // 'folders' | 'asset'
   const filterRef = useRef(null);
+  const [activeTab, setActiveTab] = useState(initialTab || 'watchlist'); // 'watchlist' | 'copilot'
 
   // Folder state
   const folders = useWatchlistStore((s) => s.folders);
@@ -239,12 +243,26 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, items]);
 
-  // Focus search on open
+  // Focus search on open (only for watchlist tab)
   useEffect(() => {
-    if (isOpen && filterRef.current) {
+    if (isOpen && activeTab === 'watchlist' && filterRef.current) {
       setTimeout(() => filterRef.current?.focus(), 250);
     }
-  }, [isOpen]);
+  }, [isOpen, activeTab]);
+
+  // Sync initialTab prop
+  useEffect(() => {
+    if (initialTab) setActiveTab(initialTab);
+  }, [initialTab]);
+
+  // Listen for external event to switch to AI tab (Cmd+K)
+  useEffect(() => {
+    const handler = () => {
+      setActiveTab('copilot');
+    };
+    window.addEventListener('charEdge:open-copilot-tab', handler);
+    return () => window.removeEventListener('charEdge:open-copilot-tab', handler);
+  }, []);
 
   // Enrich with trade stats
   const processedItems = useMemo(() => enrichWithTradeStats(items, trades), [items, trades]);
@@ -578,7 +596,9 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
               : alpha(C.b, 0.08),
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
-          border: `1.5px solid ${alpha(C.b, handleHovered || isDragging ? 0.5 : 0.2)}`,
+          borderTop: `1.5px solid ${alpha(C.b, handleHovered || isDragging ? 0.5 : 0.2)}`,
+          borderBottom: `1.5px solid ${alpha(C.b, handleHovered || isDragging ? 0.5 : 0.2)}`,
+          borderLeft: `1.5px solid ${alpha(C.b, handleHovered || isDragging ? 0.5 : 0.2)}`,
           borderRight: 'none',
           cursor: 'grab',
           display: 'flex',
@@ -605,19 +625,33 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
             }} />
           ))}
         </div>
-        {/* Watchlist icon below dots */}
-        <svg
-          width="12" height="12" viewBox="0 0 24 24"
-          fill="none"
-          stroke={handleHovered || isDragging ? C.b : alpha(C.b, 0.4)}
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{ marginTop: 3, transition: 'stroke 0.15s' }}
-        >
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-          <circle cx="12" cy="12" r="3" />
-        </svg>
+        {/* Tab icon below dots — switches based on active tab */}
+        {activeTab === 'copilot' ? (
+          <svg
+            width="12" height="12" viewBox="0 0 24 24"
+            fill="none"
+            stroke={handleHovered || isDragging ? C.b : alpha(C.b, 0.4)}
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ marginTop: 3, transition: 'stroke 0.15s' }}
+          >
+            <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" />
+          </svg>
+        ) : (
+          <svg
+            width="12" height="12" viewBox="0 0 24 24"
+            fill="none"
+            stroke={handleHovered || isDragging ? C.b : alpha(C.b, 0.4)}
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ marginTop: 3, transition: 'stroke 0.15s' }}
+          >
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        )}
         {/* Chevron arrow hint */}
         <svg
           width="10" height="10" viewBox="0 0 24 24"
@@ -653,62 +687,120 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
           pointerEvents: panelTranslateX >= PANEL_WIDTH ? 'none' : 'auto',
         }}
       >
-        {/* ─── Header ──────────────────────────────────────── */}
+        {/* ─── Tab Bar ──────────────────────────────────────── */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '10px 12px',
+            padding: '0 12px',
             borderBottom: GLASS.border,
             flexShrink: 0,
+            gap: 0,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.b} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-            <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F }}>Watchlist</span>
-            <span
-              style={{
-                fontSize: 9,
-                fontWeight: 700,
-                color: C.b,
-                background: alpha(C.b, 0.1),
-                padding: '1px 6px',
-                borderRadius: 4,
-                fontFamily: M,
-              }}
-            >
-              {items.length}
-            </span>
+          {/* Tab buttons */}
+          <div style={{ display: 'flex', flex: 1, gap: 0 }}>
+            {[
+              { id: 'watchlist', label: 'Watchlist', icon: (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              ), badge: items.length },
+              { id: 'copilot', label: 'AI Copilot', icon: (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+                  <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" fill="currentColor" fillOpacity="0.15" />
+                </svg>
+              ) },
+            ].map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 5,
+                    padding: '10px 12px', background: 'transparent',
+                    border: 'none', borderBottom: `2px solid ${isActive ? C.b : 'transparent'}`,
+                    color: isActive ? C.t1 : C.t3, fontSize: 11,
+                    fontWeight: isActive ? 700 : 500, fontFamily: F,
+                    cursor: 'pointer', transition: 'all 0.15s ease',
+                    marginBottom: -1,
+                  }}
+                  onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = C.t2; }}
+                  onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = C.t3; }}
+                >
+                  <span style={{ display: 'flex', color: isActive ? C.b : 'inherit' }}>{tab.icon}</span>
+                  {tab.label}
+                  {tab.badge != null && (
+                    <span style={{
+                      fontSize: 8, fontWeight: 700, fontFamily: M,
+                      color: isActive ? C.b : C.t3,
+                      background: isActive ? alpha(C.b, 0.1) : alpha(C.t3, 0.08),
+                      padding: '1px 5px', borderRadius: 4,
+                    }}>
+                      {tab.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
-          {/* View mode toggle */}
-          <div style={{
-            display: 'flex', gap: 1, background: alpha(C.sf, 0.5),
-            borderRadius: 5, padding: 1.5, marginLeft: 4,
-          }}>
-            {[['compact', '☰'], ['standard', '≡'], ['table', '▤']].map(([mode, icon]) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                title={`${mode.charAt(0).toUpperCase() + mode.slice(1)} view`}
-                style={{
-                  width: 20, height: 18, borderRadius: 3, border: 'none',
-                  background: viewMode === mode ? alpha(C.b, 0.15) : 'transparent',
-                  color: viewMode === mode ? C.b : C.t3,
-                  fontSize: 10, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'all 0.12s',
-                  fontWeight: viewMode === mode ? 700 : 400,
-                }}
-              >
-                {icon}
-              </button>
-            ))}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+
+          {/* Close button */}
+          <button
+            onClick={() => onClose?.()}
+            title="Slide away (W)"
+            style={{
+              width: 24, height: 24, borderRadius: 6, border: 'none',
+              background: 'transparent', color: C.t3, fontSize: 12, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.15s', flexShrink: 0,
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = alpha(C.t3, 0.1); }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* ─── Watchlist Header Controls (only visible on watchlist tab) ── */}
+        {activeTab === 'watchlist' && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              padding: '6px 12px',
+              borderBottom: GLASS.border,
+              flexShrink: 0,
+              gap: 4,
+            }}
+          >
+            {/* View mode toggle */}
+            <div style={{
+              display: 'flex', gap: 1, background: alpha(C.sf, 0.5),
+              borderRadius: 5, padding: 1.5,
+            }}>
+              {[['compact', '☰'], ['standard', '≡'], ['table', '▤']].map(([mode, icon]) => (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  title={`${mode.charAt(0).toUpperCase() + mode.slice(1)} view`}
+                  style={{
+                    width: 20, height: 18, borderRadius: 3, border: 'none',
+                    background: viewMode === mode ? alpha(C.b, 0.15) : 'transparent',
+                    color: viewMode === mode ? C.b : C.t3,
+                    fontSize: 10, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'all 0.12s',
+                    fontWeight: viewMode === mode ? 700 : 400,
+                  }}
+                >
+                  {icon}
+                </button>
+              ))}
+            </div>
             <button
               onClick={() => setShowAddInput(!showAddInput)}
               title="Add symbol"
@@ -793,210 +885,214 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect }) {
                 </div>
               )}
             </div>
-            <button
-              onClick={() => onClose?.()}
-              title="Slide away (W)"
-              style={{
-                width: 24, height: 24, borderRadius: 6, border: 'none',
-                background: 'transparent', color: C.t3, fontSize: 12, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'all 0.15s',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = alpha(C.t3, 0.1); }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-
-        {/* ─── Add Symbol Input (toggled) ──────────────────── */}
-        {showAddInput && (
-          <div style={{ display: 'flex', gap: 4, padding: '6px 12px', borderBottom: GLASS.border, flexShrink: 0 }}>
-            <input
-              value={addInput}
-              onChange={(e) => setAddInput(e.target.value.toUpperCase())}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddSymbol()}
-              placeholder="Add ticker..."
-              autoFocus
-              style={{
-                flex: 1, background: alpha(C.sf, 0.6), border: `1px solid ${C.bd}`,
-                borderRadius: 6, padding: '5px 10px', fontSize: 12, fontFamily: M,
-                fontWeight: 600, color: C.t1, outline: 'none',
-              }}
-            />
-            <button
-              onClick={handleAddSymbol}
-              disabled={!addInput.trim()}
-              style={{
-                background: C.b, border: 'none', borderRadius: 6, color: '#fff',
-                fontSize: 11, fontWeight: 700, padding: '5px 12px',
-                cursor: addInput.trim() ? 'pointer' : 'default',
-                opacity: addInput.trim() ? 1 : 0.4,
-                transition: 'opacity 0.15s',
-              }}
-            >
-              Add
-            </button>
           </div>
         )}
 
-        {/* ─── Search Filter ──────────────────────────────── */}
-        <div style={{ padding: '6px 12px', flexShrink: 0 }}>
-          <input
-            ref={filterRef}
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            placeholder="🔍 Filter symbols..."
-            style={{
-              width: '100%', background: alpha(C.sf, 0.4),
-              border: `1px solid ${alpha(C.bd, 0.5)}`, borderRadius: 8,
-              padding: '6px 10px', fontSize: 11, fontFamily: F, color: C.t1, outline: 'none',
-              transition: 'border-color 0.15s',
-            }}
-            onFocus={(e) => { e.target.style.borderColor = alpha(C.b, 0.4); }}
-            onBlur={(e) => { e.target.style.borderColor = alpha(C.bd, 0.5); }}
-          />
-        </div>
-
-        {/* ─── Table Header (table mode only) ──────────── */}
-        {viewMode === 'table' && filteredItems.length > 0 && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 4, padding: '4px 12px',
-            borderBottom: `1px solid ${alpha(C.bd, 0.3)}`, flexShrink: 0,
-          }}>
-            <div style={{ width: 60, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.t3, fontFamily: F }}>Symbol</div>
-            <div style={{ flex: 1, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.t3, fontFamily: F, textAlign: 'center' }}>Chart</div>
-            <div style={{ minWidth: 65, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.t3, fontFamily: F, textAlign: 'right' }}>Price</div>
-            <div style={{ minWidth: 50, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.t3, fontFamily: F, textAlign: 'right' }}>Volume</div>
-          </div>
-        )}
-
-        {/* ─── Symbol List ────────────────────────────────── */}
-        <div
-          style={{
-            flex: 1, overflowY: 'auto', overflowX: 'hidden',
-            scrollbarWidth: 'thin', scrollbarColor: `${C.bd} transparent`,
-          }}
-        >
-          {filteredItems.length === 0 ? (
-            <div style={{ padding: 20, textAlign: 'center', color: C.t3, fontSize: 11, fontFamily: F }}>
-              {filter ? 'No matching symbols' : 'Watchlist is empty'}
-            </div>
-          ) : (
-            <>
-              {/* ─── Folders ─── */}
-              {folderTree.map(({ folder, items: folderItems, children }) => (
-                <div
-                  key={folder.id}
-                  onDragOver={handleRowDragOver}
-                  onDrop={(e) => handleRowDrop(e, null, folder.id)}
+        {/* ─── WATCHLIST TAB CONTENT ─── */}
+        {activeTab === 'watchlist' && (
+          <>
+            {/* ─── Add Symbol Input (toggled) ──────────────────── */}
+            {showAddInput && (
+              <div style={{ display: 'flex', gap: 4, padding: '6px 12px', borderBottom: GLASS.border, flexShrink: 0 }}>
+                <input
+                  value={addInput}
+                  onChange={(e) => setAddInput(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddSymbol()}
+                  placeholder="Add ticker..."
+                  autoFocus
+                  style={{
+                    flex: 1, background: alpha(C.sf, 0.6), border: `1px solid ${C.bd}`,
+                    borderRadius: 6, padding: '5px 10px', fontSize: 12, fontFamily: M,
+                    fontWeight: 600, color: C.t1, outline: 'none',
+                  }}
+                />
+                <button
+                  onClick={handleAddSymbol}
+                  disabled={!addInput.trim()}
+                  style={{
+                    background: C.b, border: 'none', borderRadius: 6, color: '#fff',
+                    fontSize: 11, fontWeight: 700, padding: '5px 12px',
+                    cursor: addInput.trim() ? 'pointer' : 'default',
+                    opacity: addInput.trim() ? 1 : 0.4,
+                    transition: 'opacity 0.15s',
+                  }}
                 >
-                  {/* Folder header */}
-                  <div
-                    style={{
-                      padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 6,
-                      cursor: 'pointer', userSelect: 'none',
-                      background: alpha(C.sf2, 0.3),
-                      borderBottom: `1px solid ${alpha(C.bd, 0.2)}`,
-                    }}
-                    onClick={() => toggleFolderCollapse(folder.id)}
-                  >
-                    <span style={{ fontSize: 8, color: C.t3, transition: 'transform 0.15s', transform: folder.collapsed ? 'rotate(-90deg)' : 'rotate(0)' }}>▼</span>
-                    <span style={{ fontSize: 12 }}>{folder.color ? '' : '📁'}</span>
-                    {renamingFolder === folder.id ? (
-                      <input
-                        value={renameValue}
-                        onChange={(e) => setRenameValue(e.target.value)}
-                        onBlur={() => { renameFolder(folder.id, renameValue || 'Folder'); setRenamingFolder(null); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { renameFolder(folder.id, renameValue || 'Folder'); setRenamingFolder(null); } }}
-                        autoFocus
-                        onClick={(e) => e.stopPropagation()}
+                  Add
+                </button>
+              </div>
+            )}
+
+            {/* ─── Search Filter ──────────────────────────────── */}
+            <div style={{ padding: '6px 12px', flexShrink: 0 }}>
+              <input
+                ref={filterRef}
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                placeholder="🔍 Filter symbols..."
+                style={{
+                  width: '100%', background: alpha(C.sf, 0.4),
+                  border: `1px solid ${alpha(C.bd, 0.5)}`, borderRadius: 8,
+                  padding: '6px 10px', fontSize: 11, fontFamily: F, color: C.t1, outline: 'none',
+                  transition: 'border-color 0.15s',
+                }}
+                onFocus={(e) => { e.target.style.borderColor = alpha(C.b, 0.4); }}
+                onBlur={(e) => { e.target.style.borderColor = alpha(C.bd, 0.5); }}
+              />
+            </div>
+
+            {/* ─── Table Header (table mode only) ──────────── */}
+            {viewMode === 'table' && filteredItems.length > 0 && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 4, padding: '4px 12px',
+                borderBottom: `1px solid ${alpha(C.bd, 0.3)}`, flexShrink: 0,
+              }}>
+                <div style={{ width: 60, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.t3, fontFamily: F }}>Symbol</div>
+                <div style={{ flex: 1, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.t3, fontFamily: F, textAlign: 'center' }}>Chart</div>
+                <div style={{ minWidth: 65, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.t3, fontFamily: F, textAlign: 'right' }}>Price</div>
+                <div style={{ minWidth: 50, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.t3, fontFamily: F, textAlign: 'right' }}>Volume</div>
+              </div>
+            )}
+
+            {/* ─── Symbol List ────────────────────────────────── */}
+            <div
+              style={{
+                flex: 1, overflowY: 'auto', overflowX: 'hidden',
+                scrollbarWidth: 'thin', scrollbarColor: `${C.bd} transparent`,
+              }}
+            >
+              {filteredItems.length === 0 ? (
+                <div style={{ padding: 20, textAlign: 'center', color: C.t3, fontSize: 11, fontFamily: F }}>
+                  {filter ? 'No matching symbols' : 'Watchlist is empty'}
+                </div>
+              ) : (
+                <>
+                  {/* ─── Folders ─── */}
+                  {folderTree.map(({ folder, items: folderItems, children }) => (
+                    <div
+                      key={folder.id}
+                      onDragOver={handleRowDragOver}
+                      onDrop={(e) => handleRowDrop(e, null, folder.id)}
+                    >
+                      {/* Folder header */}
+                      <div
                         style={{
-                          fontSize: 11, fontWeight: 700, fontFamily: F, color: C.t1,
-                          background: alpha(C.sf, 0.6), border: `1px solid ${C.b}`,
-                          borderRadius: 4, padding: '1px 6px', outline: 'none', width: 100,
+                          padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 6,
+                          cursor: 'pointer', userSelect: 'none',
+                          background: alpha(C.sf2, 0.3),
+                          borderBottom: `1px solid ${alpha(C.bd, 0.2)}`,
                         }}
-                      />
-                    ) : (
-                      <span style={{ fontSize: 11, fontWeight: 700, fontFamily: F, color: C.t1, flex: 1 }}>
-                        {folder.name}
-                      </span>
-                    )}
-                    <span style={{ fontSize: 8, fontFamily: M, color: C.t3 }}>({folderItems.length})</span>
-                    {/* Folder actions */}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setRenamingFolder(folder.id); setRenameValue(folder.name); }}
-                      title="Rename"
-                      style={{ background: 'none', border: 'none', color: C.t3, fontSize: 9, cursor: 'pointer', padding: '0 2px', opacity: 0.5 }}
-                      onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.5'; }}
-                    >✏️</button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); removeFolder(folder.id); }}
-                      title="Delete folder"
-                      style={{ background: 'none', border: 'none', color: C.t3, fontSize: 9, cursor: 'pointer', padding: '0 2px', opacity: 0.5 }}
-                      onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.5'; }}
-                    >🗑️</button>
-                  </div>
-                  {/* Folder items */}
-                  {!folder.collapsed && folderItems.map((item, idx) => renderSymbolRow(item, idx))}
-                </div>
-              ))}
+                        onClick={() => toggleFolderCollapse(folder.id)}
+                      >
+                        <span style={{ fontSize: 8, color: C.t3, transition: 'transform 0.15s', transform: folder.collapsed ? 'rotate(-90deg)' : 'rotate(0)' }}>▼</span>
+                        <span style={{ fontSize: 12 }}>{folder.color ? '' : '📁'}</span>
+                        {renamingFolder === folder.id ? (
+                          <input
+                            value={renameValue}
+                            onChange={(e) => setRenameValue(e.target.value)}
+                            onBlur={() => { renameFolder(folder.id, renameValue || 'Folder'); setRenamingFolder(null); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') { renameFolder(folder.id, renameValue || 'Folder'); setRenamingFolder(null); } }}
+                            autoFocus
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              fontSize: 11, fontWeight: 700, fontFamily: F, color: C.t1,
+                              background: alpha(C.sf, 0.6), border: `1px solid ${C.b}`,
+                              borderRadius: 4, padding: '1px 6px', outline: 'none', width: 100,
+                            }}
+                          />
+                        ) : (
+                          <span style={{ fontSize: 11, fontWeight: 700, fontFamily: F, color: C.t1, flex: 1 }}>
+                            {folder.name}
+                          </span>
+                        )}
+                        <span style={{ fontSize: 8, fontFamily: M, color: C.t3 }}>({folderItems.length})</span>
+                        {/* Folder actions */}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setRenamingFolder(folder.id); setRenameValue(folder.name); }}
+                          title="Rename"
+                          style={{ background: 'none', border: 'none', color: C.t3, fontSize: 9, cursor: 'pointer', padding: '0 2px', opacity: 0.5 }}
+                          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.5'; }}
+                        >✏️</button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); removeFolder(folder.id); }}
+                          title="Delete folder"
+                          style={{ background: 'none', border: 'none', color: C.t3, fontSize: 9, cursor: 'pointer', padding: '0 2px', opacity: 0.5 }}
+                          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.5'; }}
+                        >🗑️</button>
+                      </div>
+                      {/* Folder items */}
+                      {!folder.collapsed && folderItems.map((item, idx) => renderSymbolRow(item, idx))}
+                    </div>
+                  ))}
 
-              {/* ─── Root items (no folder) grouped by asset class ─── */}
-              {Array.from(rootGrouped.entries()).map(([assetClass, groupItems]) => (
-                <div key={assetClass}>
-                  {/* Group header */}
-                  <div
-                    style={{
-                      padding: '8px 12px 3px', fontSize: 9, fontWeight: 700,
-                      textTransform: 'uppercase', letterSpacing: '0.06em',
-                      color: C.t3, fontFamily: F, display: 'flex',
-                      alignItems: 'center', gap: 4,
-                    }}
-                  >
-                    <span>{ASSET_ICONS[assetClass] || '📋'}</span>
-                    <span>{assetClass}</span>
-                    <span style={{ fontFamily: M, fontSize: 8, color: alpha(C.t3, 0.6) }}>
-                      ({groupItems.length})
-                    </span>
-                  </div>
-                  {/* Symbols */}
-                  {groupItems.map((item, idx) => renderSymbolRow(item, idx))}
-                </div>
-              ))}
-            </>
-          )}
-        </div>
+                  {/* ─── Root items (no folder) grouped by asset class ─── */}
+                  {Array.from(rootGrouped.entries()).map(([assetClass, groupItems]) => (
+                    <div key={assetClass}>
+                      {/* Group header */}
+                      <div
+                        style={{
+                          padding: '8px 12px 3px', fontSize: 9, fontWeight: 700,
+                          textTransform: 'uppercase', letterSpacing: '0.06em',
+                          color: C.t3, fontFamily: F, display: 'flex',
+                          alignItems: 'center', gap: 4,
+                        }}
+                      >
+                        <span>{ASSET_ICONS[assetClass] || '📋'}</span>
+                        <span>{assetClass}</span>
+                        <span style={{ fontFamily: M, fontSize: 8, color: alpha(C.t3, 0.6) }}>
+                          ({groupItems.length})
+                        </span>
+                      </div>
+                      {/* Symbols */}
+                      {groupItems.map((item, idx) => renderSymbolRow(item, idx))}
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
 
-        {/* ─── Footer ────────────────────────────────────── */}
-        <div
-          style={{
-            padding: '6px 12px', borderTop: GLASS.border,
-            display: 'flex', justifyContent: 'space-between',
-            alignItems: 'center', flexShrink: 0,
-          }}
-        >
-          <span style={{ fontSize: 9, color: C.t3, fontFamily: F, display: 'flex', alignItems: 'center', gap: 5 }}>
-            {/* WS status dot */}
-            <span style={{
-              width: 6, height: 6, borderRadius: 3,
-              background: wsStatus === 'connected' ? C.g : wsStatus === 'connecting' || wsStatus === 'reconnecting' ? '#f0b64e' : C.r,
-              display: 'inline-block',
-              animation: wsStatus === 'connecting' || wsStatus === 'reconnecting' ? 'pulse 1s infinite' : 'none',
-            }} />
-            Press <kbd style={{
-              fontSize: 8, fontFamily: M,
-              background: alpha(C.sf2, 0.8), padding: '1px 4px',
-              borderRadius: 3, border: `1px solid ${alpha(C.bd, 0.5)}`,
-            }}>W</kbd> to toggle · {wsStatus === 'connected' ? 'live' : wsStatus}
-          </span>
-          <span style={{ fontSize: 9, color: C.t3, fontFamily: M }}>
-            {filteredItems.length} symbols
-          </span>
-        </div>
+            {/* ─── Footer ────────────────────────────────────── */}
+            <div
+              style={{
+                padding: '6px 12px', borderTop: GLASS.border,
+                display: 'flex', justifyContent: 'space-between',
+                alignItems: 'center', flexShrink: 0,
+              }}
+            >
+              <span style={{ fontSize: 9, color: C.t3, fontFamily: F, display: 'flex', alignItems: 'center', gap: 5 }}>
+                {/* WS status dot */}
+                <span style={{
+                  width: 6, height: 6, borderRadius: 3,
+                  background: wsStatus === 'connected' ? C.g : wsStatus === 'connecting' || wsStatus === 'reconnecting' ? '#f0b64e' : C.r,
+                  display: 'inline-block',
+                  animation: wsStatus === 'connecting' || wsStatus === 'reconnecting' ? 'pulse 1s infinite' : 'none',
+                }} />
+                Press <kbd style={{
+                  fontSize: 8, fontFamily: M,
+                  background: alpha(C.sf2, 0.8), padding: '1px 4px',
+                  borderRadius: 3, border: `1px solid ${alpha(C.bd, 0.5)}`,
+                }}>W</kbd> to toggle · {wsStatus === 'connected' ? 'live' : wsStatus}
+              </span>
+              <span style={{ fontSize: 9, color: C.t3, fontFamily: M }}>
+                {filteredItems.length} symbols
+              </span>
+            </div>
+          </>
+        )}
+
+        {/* ─── AI COPILOT TAB CONTENT ─── */}
+        {activeTab === 'copilot' && (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <Suspense fallback={
+              <div style={{ padding: 20, textAlign: 'center', color: C.t3, fontSize: 11, fontFamily: F }}>
+                Loading AI Copilot…
+              </div>
+            }>
+              <CopilotChatInline />
+            </Suspense>
+          </div>
+        )}
 
         {/* CSS keyframes for flash + pulse */}
         <style>{`

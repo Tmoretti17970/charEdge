@@ -162,6 +162,22 @@ export async function fetchSymbolSearch(query) {
     if (!seen.has(r.name)) {
       seen.add(r.name);
       merged.push(r);
+      // Auto-register discovered Binance symbols into SymbolRegistry
+      try {
+        const { SymbolRegistry } = await import('./SymbolRegistry.js');
+        if (!SymbolRegistry.lookup(r.pair)) {
+          SymbolRegistry.register({
+            symbol: r.pair,
+            displayName: r.description,
+            assetClass: 'crypto',
+            provider: 'binance',
+            exchange: 'Binance',
+            currency: 'USDT',
+            realtime: true,
+          });
+        }
+      // eslint-disable-next-line unused-imports/no-unused-vars
+      } catch (_e) { /* ignore registration errors */ }
     }
   }
 

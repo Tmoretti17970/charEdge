@@ -116,6 +116,7 @@ const useChecklistStore = create(
     }),
     {
       name: 'charEdge-checklist',
+      version: 1,
       partialize: (state) => ({
         items: state.items,
         enabled: state.enabled,

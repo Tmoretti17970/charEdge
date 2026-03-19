@@ -5,6 +5,12 @@
 // history on longer timeframes. Extracted from FetchService.js.
 // ═══════════════════════════════════════════════════════════════════
 
+/** Negative cache: symbols that returned 400 (invalid pair). TTL = 5 min. */
+const _badSymbolCache = new Map();
+/** In-flight requests for pairs — prevents duplicate concurrent fetches */
+const _pendingPairs = new Set();
+const BAD_SYMBOL_TTL = 5 * 60 * 1000;
+
 /** Map charEdge timeframe IDs to Binance interval strings. */
 export const BINANCE_INTERVALS = {
   '1m': '1m',
@@ -63,6 +69,16 @@ export function toBinancePair(sym) {
  * @returns {Promise<Array|null>}
  */
 export async function fetchBinanceBatch(pair, interval, limit, endTime, startTime) {
+  // Skip known-bad symbols (400 cache)
+  const cacheKey = pair;
+  const cached = _badSymbolCache.get(cacheKey);
+  if (cached && Date.now() - cached < BAD_SYMBOL_TTL) return null;
+
+  // Prevent concurrent duplicate requests for the same pair
+  const inflightKey = `${pair}:${interval}:${endTime || ''}`;
+  if (_pendingPairs.has(inflightKey)) return null;
+  _pendingPairs.add(inflightKey);
+
   try {
     const base = typeof window === 'undefined' ? `http://localhost:${globalThis.__TF_PORT || 3000}` : '';
     let url = `${base}/api/binance/v3/klines?symbol=${pair}&interval=${interval}&limit=${limit}`;
@@ -80,12 +96,16 @@ export async function fetchBinanceBatch(pair, interval, limit, endTime, startTim
         err.retryAfterMs = retryAfter;
         throw err;
       }
+      // Cache 400 responses — symbol is invalid on Binance
+      if (res.status === 400) {
+        _badSymbolCache.set(cacheKey, Date.now());
+      }
       return null;
     }
     const raw = await res.json();
     if (!Array.isArray(raw) || raw.length < 2) return null;
     return raw.map((k) => ({
-      time: new Date(k[0]).toISOString(),
+      time: k[0],
       _openMs: k[0],
       open: parseFloat(k[1]),
       high: parseFloat(k[2]),
@@ -96,6 +116,8 @@ export async function fetchBinanceBatch(pair, interval, limit, endTime, startTim
   // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return null;
+  } finally {
+    _pendingPairs.delete(inflightKey);
   }
 }
 

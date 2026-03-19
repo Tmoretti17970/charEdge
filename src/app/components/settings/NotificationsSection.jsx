@@ -22,7 +22,10 @@ import {
   CHANNEL_META,
   FREQUENCY_META,
   PAUSE_DURATIONS,
-} from '../../../state/useNotificationPreferences.js';
+} from '../../../state/useNotificationStore';
+import DNDScheduleBuilder from './DNDScheduleBuilder.jsx';
+import AlertSoundPicker from './AlertSoundPicker.jsx';
+import { useGamificationStore } from '../../../state/useGamificationStore';
 
 // ─── Main Component ─────────────────────────────────────────────
 
@@ -37,6 +40,9 @@ function NotificationsSection() {
       ) : (
         <NotificationHub onSelectCategory={setActiveCat} />
       )}
+      <DNDScheduleBuilder />
+      <AlertSoundPicker />
+      <GamificationNotifPrefs />
     </section>
   );
 }
@@ -199,6 +205,9 @@ function NotificationHub({ onSelectCategory }) {
         {NOTIFICATION_CATEGORIES.map((catId, i) => {
           const meta = CATEGORY_META[catId];
           const summary = getActiveChannelSummary(catId);
+          const channels = useNotificationPreferences.getState().categories[catId];
+          const enabledCount = channels ? [channels.push, channels.inApp, channels.email, channels.sound].filter(Boolean).length : 0;
+          const isAllOff = enabledCount === 0;
           return (
             <button
               key={catId}
@@ -218,10 +227,24 @@ function NotificationHub({ onSelectCategory }) {
                 transition: 'background 0.15s ease',
               }}
             >
-              <span style={{ fontSize: 10, color: C.g, width: 14, textAlign: 'center', opacity: 0.7 }}>✓</span>
+              <span style={{
+                fontSize: 10, width: 14, textAlign: 'center',
+                color: isAllOff ? C.t3 : C.g,
+                opacity: isAllOff ? 0.4 : 0.7,
+              }}>{isAllOff ? '○' : '✓'}</span>
               <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>{meta.icon}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: C.t1, fontFamily: F }}>{meta.label}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: C.t1, fontFamily: F }}>{meta.label}</span>
+                  <span style={{
+                    fontSize: 9, fontWeight: 700, fontFamily: M,
+                    padding: '1px 5px', borderRadius: 99,
+                    background: isAllOff ? `${C.r}12` : `${C.g}12`,
+                    color: isAllOff ? C.r : C.g,
+                  }}>
+                    {enabledCount}/4
+                  </span>
+                </div>
                 <div style={{
                   fontSize: 11, color: C.t3, fontFamily: M, marginTop: 1,
                   opacity: pauseAll ? 0.5 : 1,
@@ -751,6 +774,48 @@ function ToggleSwitch({ checked, onChange, disabled = false }) {
         }}
       />
     </button>
+  );
+}
+
+// ─── Gamification Notification Preferences ──────────────────────
+
+function GamificationNotifPrefs() {
+  const notificationPrefs = useGamificationStore((s) => s.notificationPrefs);
+  const setNotificationPref = useGamificationStore((s) => s.setNotificationPref);
+  const enabled = useGamificationStore((s) => s.enabled);
+
+  if (!enabled) return null;
+
+  const PREFS = [
+    { key: 'levelUp', label: 'Level-Up Celebration', desc: 'Full-screen modal when you rank up', icon: '🎉' },
+    { key: 'achievements', label: 'Achievement Toasts', desc: 'Pop-up notification when you unlock a badge', icon: '🏆' },
+  ];
+
+  return (
+    <Card style={{ padding: 16, marginTop: 12 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: C.t3, textTransform: 'uppercase', fontFamily: M, letterSpacing: 0.5, marginBottom: 8 }}>
+        🎮 Gamification
+      </div>
+      {PREFS.map(({ key, label, desc, icon }) => (
+        <div key={key} style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '10px 0',
+          borderBottom: key !== 'achievements' ? `1px solid ${C.bd}15` : 'none',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 14 }}>{icon}</span>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: C.t1, fontFamily: F }}>{label}</div>
+              <div style={{ fontSize: 10, color: C.t3, fontFamily: M }}>{desc}</div>
+            </div>
+          </div>
+          <ToggleSwitch
+            checked={!!notificationPrefs[key]}
+            onChange={(val) => setNotificationPref(key, val)}
+          />
+        </div>
+      ))}
+    </Card>
   );
 }
 

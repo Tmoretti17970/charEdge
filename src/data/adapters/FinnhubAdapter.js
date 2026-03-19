@@ -229,7 +229,17 @@ class _FinnhubAdapter {
    * @param {Function} callback - ({ price, volume, timestamp }) => void
    * @returns {Function} unsubscribe
    */
-  subscribe(symbol, callback) {
+  async subscribe(symbol, callback) {
+    // Phase 1d: auto-fetch WS token from server if not set
+    if (!this._wsToken) {
+      try {
+        const res = await fetch('/api/proxy/finnhub-ws-token');
+        const json = await res.json();
+        if (json?.ok && json.token) {
+          this._wsToken = json.token;
+        }
+      } catch { /* token fetch failed — WS will be unavailable */ }
+    }
     if (!this._wsToken) return () => { };
 
     const upper = symbol.toUpperCase();

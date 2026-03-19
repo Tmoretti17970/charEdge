@@ -37,6 +37,9 @@ export default function AIConfidenceMeter({
 
   const pct = Math.round(clamped * 100);
 
+  // Ring variant helpers — must be called before any early return (Rules of Hooks)
+  const id = React.useMemo(() => `ai-conf-${++METER_ID.n}`, []);
+
   if (variant === 'bar') {
     return (
       <div
@@ -85,7 +88,6 @@ export default function AIConfidenceMeter({
   }
 
   // Ring variant (SVG circle)
-  const id = React.useMemo(() => `ai-conf-${++METER_ID.n}`, []);
   const strokeWidth = Math.max(2, size * 0.12);
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;

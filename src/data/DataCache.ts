@@ -202,9 +202,12 @@ class _DataCache {
    * @returns {Promise<number|null>} Unix timestamp or null
    */
   async getLastCandleTime(symbol, interval) {
-    const candles = await this.getCandles(symbol, interval);
-    if (!candles?.length) return null;
-    return candles[candles.length - 1].time;
+    // Sprint 5 Task 5.2.3: Read raw record directly, bypass TTL check.
+    // We still want the timestamp for delta-fetching even if data is "stale" by TTL.
+    const key = `${symbol}:${interval}`;
+    const record = await dbGet('candles', key);
+    if (!record?.data?.length) return null;
+    return record.data[record.data.length - 1].time;
   }
 
   // ─── Quotes ──────────────────────────────────────────────────
@@ -394,17 +397,29 @@ class _DataCache {
         const db = await openDB();
         const now = Date.now();
         const ttl = STORES[storeName]?.ttl || 300000;
+        const cutoff = now - ttl;
 
         await new Promise((resolve) => {
           const tx = db.transaction(storeName, 'readwrite');
           const store = tx.objectStore(storeName);
-          const req = store.openCursor();
+
+          // Sprint 5 Task 5.2.2: Use IDBKeyRange on timestamp index if available
+          let req;
+          if (store.indexNames.contains('timestamp')) {
+            const index = store.index('timestamp');
+            const range = IDBKeyRange.upperBound(cutoff);
+            req = index.openCursor(range);
+          } else {
+            req = store.openCursor();
+          }
 
           req.onsuccess = (event) => {
             const cursor = event.target.result;
             if (cursor) {
               const record = cursor.value;
-              if (record.timestamp && (now - record.timestamp > ttl)) {
+              // With index: all records in range are stale → delete unconditionally
+              // Without index: check timestamp manually
+              if (store.indexNames.contains('timestamp') || (record.timestamp && (now - record.timestamp > ttl))) {
                 cursor.delete();
                 total++;
               }
@@ -561,17 +576,27 @@ class _DataCache {
 
       for (const [storeName, config] of Object.entries(STORES)) {
         if (config.ttl === Infinity) continue;
+        const cutoff = now - config.ttl * 2;
 
         await new Promise((resolve) => {
           const tx = db.transaction(storeName, 'readwrite');
           const store = tx.objectStore(storeName);
-          const req = store.openCursor();
+
+          // Sprint 5 Task 5.2.2: Use IDBKeyRange on timestamp index if available
+          let req;
+          if (store.indexNames.contains('timestamp')) {
+            const index = store.index('timestamp');
+            const range = IDBKeyRange.upperBound(cutoff);
+            req = index.openCursor(range);
+          } else {
+            req = store.openCursor();
+          }
 
           req.onsuccess = (event) => {
             const cursor = event.target.result;
             if (cursor) {
-              if (now - cursor.value.timestamp > config.ttl * 2) {
-                cursor.delete(); // Delete entries 2x past TTL
+              if (store.indexNames.contains('timestamp') || (now - cursor.value.timestamp > config.ttl * 2)) {
+                cursor.delete();
               }
               cursor.continue();
             }

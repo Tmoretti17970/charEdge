@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32" />
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -28,6 +28,33 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="charEdge" />
   <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+
+  <!-- Sprint 2 Task 2.2: CSP connect-src whitelist -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    connect-src 'self'
+      wss://data-stream.binance.vision wss://stream.binance.com
+      https://api.binance.com https://data-api.binance.vision
+      https://api.coingecko.com https://pro-api.coingecko.com
+      https://min-api.cryptocompare.com
+      https://query1.finance.yahoo.com https://query2.finance.yahoo.com
+      https://api.polygon.io https://financialmodelingprep.com
+      https://hermes.pyth.network https://benchmarks.pyth.network
+      https://api.coincap.io wss://ws.coincap.io
+      https://api.llama.fi https://coins.llama.fi
+      https://paper-api.alpaca.markets https://data.alpaca.markets
+      wss://stream.data.alpaca.markets
+      https://api.groq.com https://generativelanguage.googleapis.com
+      https://*.supabase.co wss://*.supabase.co
+      https://*.sentry.io
+      wss://ws.kraken.com
+      ws://localhost:* http://localhost:*;
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src 'self' https://fonts.gstatic.com data:;
+    img-src 'self' data: blob: https:;
+    worker-src 'self' blob:;
+  ">
 
   <!-- Preconnect: reduce latency for critical API origins -->
   <link rel="preconnect" href="https://api.binance.com" crossorigin />

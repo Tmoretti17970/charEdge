@@ -22,6 +22,7 @@ import { pipelineLogger } from './engine/infra/DataPipelineLogger.js';
 import { fetchBinance } from './BinanceClient.js';
 import { fetch24hTicker, fetchSparkline } from './SparklineService.js';
 import { fetchOHLCPage } from './HistoryPaginator.js';
+import { batchGetQuotes } from './QuoteService.js';
 
 // ─── Singleton adapter instances (avoid re-instantiation per fetch) ──
 const _coinGeckoAdapter = new CoinGeckoAdapter();
@@ -153,46 +154,54 @@ async function _doFetch(sym, tfId, _tf, _key) {
     if (data) source = 'cryptocompare';
   }
 
-  // ── Step 2: Equities → Premium providers (Polygon, FMP, Alpha Vantage)
+  // ── Step 2: Equities → Race providers (first success wins) ─────
   if (!data && !isCrypto(sym)) {
-    data = await withCircuitBreaker('equity-premium', async () => {
-      // Dynamic import to avoid circular dependency (DataProvider imports from FetchService consumers)
-      const { fetchEquityPremium } = await import('./DataProvider.js');
-      const result = await fetchEquityPremium(sym, tfId);
-      if (result && result.data) {
-        source = result.source || 'polygon';
-        return result.data;
+    const equityProviders = [
+      // Premium providers (Polygon, FMP, Alpaca, Tiingo)
+      withCircuitBreaker('equity-premium', async () => {
+        const { fetchEquityPremium } = await import('./DataProvider.js');
+        const result = await fetchEquityPremium(sym, tfId);
+        if (result && result.data) {
+          return { data: result.data, source: result.source || 'polygon' };
+        }
+        return Promise.reject('no premium data');
+      }),
+      // Yahoo Finance (free, no key required)
+      withCircuitBreaker('yahoo', async () => {
+        const yahoo = _yahooAdapter;
+        const YAHOO_TF_MAP: Record<string, { interval: string; range: string }> = {
+          '1m': { interval: '1m', range: '1d' },
+          '5m': { interval: '5m', range: '5d' },
+          '15m': { interval: '15m', range: '5d' },
+          '30m': { interval: '15m', range: '5d' },
+          '1h': { interval: '60m', range: '1mo' },
+          '4h': { interval: '1d', range: '3mo' },
+          '1D': { interval: '1d', range: '1y' },
+          '1w': { interval: '1wk', range: '5y' },
+        };
+        const yahooTf = YAHOO_TF_MAP[tfId] || { interval: '1d', range: '1y' };
+        const candles = await yahoo.fetchOHLCV(sym, yahooTf.interval, { range: yahooTf.range });
+        if (candles && candles.length > 1) {
+          return {
+            data: candles.map((c: any) => ({
+              time: typeof c.time === 'number' ? new Date(c.time).toISOString() : c.time,
+              open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume,
+            })),
+            source: 'yahoo',
+          };
+        }
+        return Promise.reject('no yahoo data');
+      }),
+    ];
+    try {
+      const winner = await Promise.any(equityProviders);
+      if (winner) {
+        data = winner.data;
+        source = winner.source;
       }
-      return null;
-    });
-    if (data && source === 'no_data') source = 'polygon';
-  }
-
-  // ── Step 3: Equities → Yahoo Finance (free, no key required) ──
-  if (!data && !isCrypto(sym)) {
-    data = await withCircuitBreaker('yahoo', async () => {
-      const yahoo = new YahooAdapter();
-      const YAHOO_TF_MAP = {
-        '1m': { interval: '1m', range: '1d' },
-        '5m': { interval: '5m', range: '5d' },
-        '15m': { interval: '15m', range: '5d' },
-        '30m': { interval: '15m', range: '5d' },
-        '1h': { interval: '60m', range: '1mo' },
-        '4h': { interval: '1d', range: '3mo' },
-        '1D': { interval: '1d', range: '1y' },
-        '1w': { interval: '1wk', range: '5y' },
-      };
-      const yahooTf = YAHOO_TF_MAP[tfId] || { interval: '1d', range: '1y' };
-      const candles = await yahoo.fetchOHLCV(sym, yahooTf.interval, { range: yahooTf.range });
-      if (candles && candles.length > 1) {
-        return candles.map(c => ({
-          time: typeof c.time === 'number' ? new Date(c.time).toISOString() : c.time,
-          open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume,
-        }));
-      }
-      return null;
-    });
-    if (data) source = 'yahoo';
+    } catch {
+      // All equity providers failed — falls through to OPFS
+    }
   }
 
   // ── Step 4: Offline fallback → OPFS cache ─────────────────────
@@ -321,7 +330,6 @@ export {
   warmCache,
   fetch24hTicker,
   fetchSparkline,
-  // eslint-disable-next-line no-undef
   batchGetQuotes,
 };
 export default fetchOHLC;

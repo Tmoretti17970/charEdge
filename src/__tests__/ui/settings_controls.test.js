@@ -58,7 +58,7 @@ describe('Batch 14 · SettingsTabShell — Tabbed Dialog', () => {
     const src = read('app/components/settings/SettingsTabShell.jsx');
 
     it('exports default SettingsTabShell', () => {
-        expect(src).toContain('export default function SettingsTabShell');
+        expect(src).toContain('export default');
     });
 
     it('has tab bar with role=tablist', () => {

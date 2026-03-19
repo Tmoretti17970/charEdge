@@ -270,6 +270,102 @@ class _MLPipeline {
   }
 
   /**
+   * Get estimated memory usage for loaded models.
+   * @returns {{ totalKB: number, models: { id: string, sizeKB: number }[] }}
+   */
+  getMemoryUsage() {
+    const onnx = getONNXService();
+    const loaded = onnx.loadedModels;
+    const models = this._manifest?.models || {};
+
+    const result = loaded.map((id) => ({
+      id,
+      sizeKB: models[id]?.sizeKB || 0,
+    }));
+
+    return {
+      totalKB: result.reduce((s, m) => s + m.sizeKB, 0),
+      models: result,
+    };
+  }
+
+  /**
+   * Get per-model inference statistics.
+   * @returns {Record<string, { count: number, lastMs: number, avgMs: number }>}
+   */
+  getInferenceStats() {
+    const stats = {};
+    for (const [id, data] of this._inferenceStats || []) {
+      stats[id] = {
+        count: data.count,
+        lastMs: data.lastMs,
+        avgMs: data.count > 0 ? data.totalMs / data.count : 0,
+      };
+    }
+    return stats;
+  }
+
+  /**
+   * Run all enabled models in parallel on a feature vector + candles.
+   * Enforces a latency budget — skips lower-priority models if over budget.
+   *
+   * @param {Float32Array} featureVector - 36-element feature vector
+   * @param {Array} candles - OHLCV data
+   * @param {Object} [opts] - Options
+   * @param {number} [opts.budgetMs=100] - Maximum latency budget
+   * @param {Function} [opts.isModelEnabled] - Filter: (modelId) => boolean
+   * @returns {Promise<{ regime: Object|null, patterns: Array, quality: Object|null, anomaly: Object|null }>}
+   */
+  async runAll(featureVector, candles, opts = {}) {
+    const { budgetMs = 100, isModelEnabled } = opts;
+    const start = performance.now();
+
+    // Priority order: regime (highest) > anomaly > patterns > quality (lowest)
+    const tasks = [
+      { id: 'regime-classifier', key: 'regime', fn: () => this.classifyRegime(featureVector) },
+      { id: 'anomaly-autoencoder', key: 'anomaly', fn: () => this.scoreAnomaly(featureVector) },
+      { id: 'pattern-detector', key: 'patterns', fn: () => this.detectPatterns(candles) },
+    ];
+
+    const result = { regime: null, patterns: [], quality: null, anomaly: null };
+    const enabledTasks = tasks.filter((t) => !isModelEnabled || isModelEnabled(t.id));
+
+    // Run enabled models in parallel
+    const settled = await Promise.allSettled(enabledTasks.map((t) => t.fn()));
+    for (let i = 0; i < settled.length; i++) {
+      if (settled[i].status === 'fulfilled') {
+        result[enabledTasks[i].key] = settled[i].value;
+      }
+    }
+
+    // Check budget — run quality only if under budget
+    const elapsed = performance.now() - start;
+    if (elapsed < budgetMs && (!isModelEnabled || isModelEnabled('setup-quality'))) {
+      try {
+        // Quality needs feature history — skip if only single vector
+        if (featureVector) {
+          result.quality = await this.predictSetupQuality(
+            Array.from({ length: 20 }, () => featureVector)
+          );
+        }
+      } catch {
+        // Over budget or error — skip
+      }
+    }
+
+    // Record total timing
+    const totalMs = performance.now() - start;
+    if (!this._inferenceStats) this._inferenceStats = new Map();
+    this._inferenceStats.set('_runAll', {
+      count: (this._inferenceStats.get('_runAll')?.count || 0) + 1,
+      lastMs: totalMs,
+      totalMs: (this._inferenceStats.get('_runAll')?.totalMs || 0) + totalMs,
+    });
+
+    return result;
+  }
+
+  /**
    * Preload all models (call on app startup or when user enables ML).
    */
   async preloadAll() {
@@ -330,7 +426,19 @@ class _MLPipeline {
     const modelInfo = manifest.models[modelId];
     const inputName = modelInfo?._inputName || 'input';
 
+    const inferStart = performance.now();
     const results = await onnx.run(modelId, { [inputName]: tensor });
+    const inferMs = performance.now() - inferStart;
+
+    // Track per-model inference stats
+    if (!this._inferenceStats) this._inferenceStats = new Map();
+    const prev = this._inferenceStats.get(modelId) || { count: 0, lastMs: 0, totalMs: 0 };
+    this._inferenceStats.set(modelId, {
+      count: prev.count + 1,
+      lastMs: inferMs,
+      totalMs: prev.totalMs + inferMs,
+    });
+
     const outputKey = Object.keys(results)[0];
     return results[outputKey].data;
   }
@@ -385,3 +493,4 @@ class _MLPipeline {
 export const mlPipeline = new _MLPipeline();
 export { _MLPipeline as MLPipeline };
 export default mlPipeline;
+

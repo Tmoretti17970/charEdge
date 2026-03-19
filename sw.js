@@ -37,8 +37,8 @@ self.addEventListener('activate', (event) => {
     caches.keys().then(keys =>
       Promise.all(
         keys
-          // Only delete charEdge caches — other apps on same origin may have their own
-          .filter(key => (key.startsWith('charEdge-') || key.startsWith('ce-')) && key !== STATIC_CACHE && key !== DYNAMIC_CACHE)
+          // Delete old charEdge caches — matches all known prefixes (tf-v*, charEdge-*, ce-*)
+          .filter(key => (key.startsWith('tf-v') || key.startsWith('charEdge-') || key.startsWith('ce-')) && key !== STATIC_CACHE && key !== DYNAMIC_CACHE)
           .map(key => caches.delete(key))
       )
     ).then(() => self.clients.claim())

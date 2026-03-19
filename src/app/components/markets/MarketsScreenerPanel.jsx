@@ -156,7 +156,7 @@ function MarketsScreenerPanel({ open, onClose }) {
   const [loading, setLoading] = useState(false);
   const [addedSymbols, setAddedSymbols] = useState(new Set());
 
-  const addItem = useWatchlistStore((s) => s.addItem);
+  const addItem = useWatchlistStore((s) => s.add);
   const watchlistItems = useWatchlistStore((s) => s.items);
   const existingSymbols = useMemo(() => new Set((watchlistItems || []).map(i => i.symbol)), [watchlistItems]);
 

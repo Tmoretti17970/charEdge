@@ -490,3 +490,64 @@ function createDefaultGrade(reason) {
 }
 
 export { GRADE_COLORS, scoreToGrade };
+
+// ─── Sprint 60: LLM-Powered Trade Grading ────────────────────────
+
+/**
+ * Enhanced trade grading with LLM narrative.
+ * Uses rule-based grade as foundation + AIRouter for natural language.
+ *
+ * @param {Object} trade - Trade data
+ * @param {Object[]} bars - Historical OHLCV context
+ * @returns {Promise<{ grade: Object, narrative: string, streaming: boolean }>}
+ */
+export async function gradeTradeWithLLM(trade, bars) {
+  // Always compute the rule-based grade first
+  const grade = gradeTrade(trade, bars);
+
+  try {
+    const { aiRouter } = await import('../../ai/AIRouter.ts');
+
+    // Build context prompt from rule-based grade
+    const feedbackSummary = Object.entries(grade.categories)
+      .map(([cat, data]) => `${cat}: ${data.grade} — ${data.feedback.map(f => f.text).join('; ')}`)
+      .join('\n');
+
+    const prompt = `Grade this ${trade.side} trade on ${trade.symbol || 'unknown'}:
+Entry: $${trade.entryPrice} → Exit: $${trade.exitPrice}
+P&L: $${trade.pnl?.toFixed(2) || 'N/A'}
+${trade.stopLoss ? `Stop: $${trade.stopLoss}` : 'No stop loss set'}
+${trade.takeProfit ? `Target: $${trade.takeProfit}` : ''}
+
+Rule-based analysis:
+Overall: ${grade.overallGrade} (${grade.overallScore}/100)
+${feedbackSummary}
+
+Provide a 2-3 sentence coaching summary: what they did well, what to improve, and one specific action item for next time. Be direct and encouraging.`;
+
+    const result = await aiRouter.route({
+      type: 'grade',
+      messages: [
+        { role: 'system', content: 'You are charEdge AI Coach. Give concise, actionable trade feedback in 2-3 sentences.' },
+        { role: 'user', content: prompt },
+      ],
+      maxTokens: 200,
+      temperature: 0.4,
+    });
+
+    return {
+      grade,
+      narrative: result.content,
+      tier: result.tier,
+      streaming: false,
+    };
+  } catch {
+    // LLM unavailable — return grade without narrative
+    return {
+      grade,
+      narrative: null,
+      tier: 'L1',
+      streaming: false,
+    };
+  }
+}

@@ -553,6 +553,16 @@ export class ChartEngine {
         }
       }
     }
+    // ─── Coerce string timestamps to numbers (defensive) ────────────
+    // Some data sources (Yahoo, Alpaca) return ISO date strings for `time`.
+    // The chart engine requires numeric ms timestamps.
+    if (bars.length > 0 && typeof bars[0].time === 'string') {
+      for (let i = 0; i < bars.length; i++) {
+        if (typeof bars[i].time === 'string') {
+          (bars[i] as any).time = new Date(bars[i].time as any).getTime();
+        }
+      }
+    }
     // ─── Phase 1.1.2: Track tick vs new-bar updates ─────────────────
     this._tickUpdate = (bars.length > 0 && this.bars.length === bars.length);
 

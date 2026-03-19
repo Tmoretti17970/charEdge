@@ -73,23 +73,15 @@ export default function useChartMouseHandlers({
       const chartState = chartRef.current;
       let price = 0;
 
-      // DEBUG: log all available paths
-      console.log('[ContextMenu] mouseY:', mouseY, 'rect.height:', rect.height);
-      console.log('[ContextMenu] chartState:', !!chartState);
-      console.log('[ContextMenu] _lastPriceTransform:', chartState?._lastPriceTransform);
-      console.log('[ContextMenu] lastRender:', chartState?.state?.lastRender ? { yMin: chartState.state.lastRender.yMin, yMax: chartState.state.lastRender.yMax, mainH: chartState.state.lastRender.mainH } : null);
-
       // Primary: use the engine's price transform for pixel-perfect conversion
       if (chartState?._lastPriceTransform?.yToPrice) {
         price = chartState._lastPriceTransform.yToPrice(mouseY);
-        console.log('[ContextMenu] price from _lastPriceTransform:', price);
       }
       // Fallback: use lastRender yMin/yMax/mainH for manual computation
       if (!price && chartState?.state?.lastRender) {
         const R = chartState.state.lastRender;
         if (R.yMin != null && R.yMax != null && R.mainH) {
           price = R.yMin + ((R.mainH - mouseY) / R.mainH) * (R.yMax - R.yMin);
-          console.log('[ContextMenu] price from lastRender fallback:', price);
         }
       }
       // Last resort: estimate from visible data range
@@ -102,10 +94,8 @@ export default function useChartMouseHandlers({
           const yMax = Math.max(...highs);
           const yMin = Math.min(...lows);
           price = yMax - yFrac * (yMax - yMin);
-          console.log('[ContextMenu] price from data fallback:', price);
         }
       }
-      console.log('[ContextMenu] FINAL price:', price);
       if (!tradeMode) setRadialMenu({ x: e.clientX, y: e.clientY, price });
       else handleContextMenu(e, price, 0, null);
     },

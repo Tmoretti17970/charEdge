@@ -8,7 +8,7 @@
 
 import React, { useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useAlertHistory } from '../../../state/useAlertHistory';
+import { useAlertStore } from '../../../state/useAlertStore';
 
 // ─── Helpers ────────────────────────────────────────────────────
 
@@ -67,7 +67,7 @@ function MiniHistogram({ data, label }) {
 // ─── Component ──────────────────────────────────────────────────
 
 function AlertAnalytics() {
-  const entries = useAlertHistory((s) => s.entries);
+  const entries = useAlertStore((s) => s.historyEntries);
 
   // Hero stats
   const stats = useMemo(() => {

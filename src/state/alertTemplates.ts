@@ -173,7 +173,7 @@ export const useAlertTemplates = create<TemplateState>()(
       getAllTemplates: () => [...BUILT_IN_TEMPLATES, ...get().templates],
     }),
     {
-      name: 'charEdge-alert-templates',
+      name: 'charEdge-alert-templates', version: 1,
     },
   ),
 );

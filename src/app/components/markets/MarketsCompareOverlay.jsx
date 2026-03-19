@@ -7,11 +7,11 @@
 // Uses canvas for the multi-line chart.
 // ═══════════════════════════════════════════════════════════════════
 
-import { memo, useRef, useEffect, useCallback, useMemo, useState } from 'react';
+import { memo, useRef, useEffect, useMemo, useState } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
-import { radii, transition } from '../../../theme/tokens.js';
+import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
+import { radii } from '../../../theme/tokens.js';
 
 const COMPARE_COLORS = ['#6e5ce6', '#10B981', '#F59E0B', '#EC4899'];
 const TIME_RANGES = ['1D', '1W', '1M', '3M', '1Y'];

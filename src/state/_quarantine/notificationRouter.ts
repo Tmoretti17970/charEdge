@@ -13,7 +13,8 @@
 import { shouldDeliver } from './useNotificationPreferences';
 import { getAlertVolume } from './useNotificationPreferences';
 import { playAlertSound } from '../app/misc/alertSounds';
-import { notificationLog } from './useNotificationLog';
+import { logger } from '@/observability/logger';
+import { notificationLog } from './useNotificationStore';
 import type { NotificationCategoryId, ChannelKey } from './useNotificationPreferences';
 
 // ─── Types ──────────────────────────────────────────────────────
@@ -119,7 +120,7 @@ function flushPushGroup(): void {
                 // @ts-expect-error renotify is valid for grouped notifications
                 renotify: true,
             });
-        } catch { /* push may fail */ }
+        } catch (err) { logger.data.warn('[NotificationRouter] Push group delivery failed:', (err as Error)?.message); }
     }
 
     _pushGroupCount += _pushGroupBuffer.length;
@@ -153,8 +154,8 @@ function _deliverSinglePush(payload: NotificationPayload): void {
         }
 
         new Notification(payload.title, options);
-    } catch {
-        /* push may fail in some contexts */
+    } catch (err) {
+        logger.data.warn('[NotificationRouter] Single push failed:', (err as Error)?.message);
     }
 }
 
@@ -181,7 +182,7 @@ function _updateBadge(): void {
         if ('setAppBadge' in navigator) {
             (navigator as any).setAppBadge(_pushGroupCount);
         }
-    } catch { /* badge API may not be available */ }
+    } catch (err) { logger.data.warn('[NotificationRouter] Badge update failed:', (err as Error)?.message); }
 }
 
 /** Reset badge count */
@@ -191,7 +192,7 @@ export function clearBadge(): void {
         if ('clearAppBadge' in navigator) {
             (navigator as any).clearAppBadge();
         }
-    } catch { /* ignore */ }
+    } catch (err) { logger.data.warn('[NotificationRouter] Badge clear failed:', (err as Error)?.message); }
 }
 
 // ─── Sprint 13: Enhanced In-App Toast ───────────────────────────

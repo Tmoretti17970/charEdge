@@ -14,9 +14,10 @@
 //   WatchlistPanel → (via SparklineService functions)
 // ═══════════════════════════════════════════════════════════════════
 
-import { isCrypto } from '../constants.js';
+import { isCrypto, getAssetClass } from '../constants.js';
 import { YahooAdapter } from './adapters/YahooAdapter.js';
 import { toBinancePair } from './BinanceClient.js';
+import { pythAdapter } from './adapters/PythAdapter.js';
 import { apiMeter } from './engine/infra/ApiMeter.js';
 import { logger } from '@/observability/logger';
 
@@ -57,7 +58,19 @@ async function _fetchTicker(symbol) {
     if (isCrypto(sym)) {
         return _fetchCryptoTicker(sym);
     }
-    return _fetchEquityTicker(sym);
+
+    // Route by asset class — futures and forex go through Pyth
+    const assetClass = getAssetClass(sym);
+    if (assetClass === 'futures') {
+        return _fetchPythTicker(sym, 'futures');
+    }
+    if (assetClass === 'forex') {
+        return _fetchPythTicker(sym, 'forex');
+    }
+    // Stocks/ETFs: try Yahoo first, fall back to Pyth
+    const equity = await _fetchEquityTicker(sym);
+    if (equity) return equity;
+    return _fetchPythTicker(sym, 'equity');
 }
 
 async function _fetchCryptoTicker(sym) {
@@ -133,6 +146,41 @@ async function _fetchEquityTicker(sym) {
 }
 
 /**
+ * Fetch ticker data via Pyth Network for futures, forex, and equity fallback.
+ * Pyth provides real-time price + EMA-based change — no volume or H/L.
+ * @private
+ */
+async function _fetchPythTicker(sym, assetClass) {
+    try {
+        const quote = await pythAdapter.fetchQuote(sym);
+        if (!quote || !quote.price) return null;
+
+        return {
+            symbol: sym,
+            price: quote.price,
+            high24h: quote.high || quote.price,
+            low24h: quote.low || quote.price,
+            change24h: quote.change || 0,
+            changePct: quote.changePct || 0,
+            volume24h: quote.volume || 0,
+            source: 'pyth',
+            _raw: {
+                symbol: sym,
+                lastPrice: String(quote.price),
+                priceChange: String((quote.change || 0).toFixed(4)),
+                priceChangePercent: (quote.changePct || 0).toFixed(2),
+                highPrice: String(quote.high || quote.price),
+                lowPrice: String(quote.low || quote.price),
+                volume: '0',
+            },
+        };
+    } catch (e) {
+        logger.data.warn(`[QuoteService] Pyth ${assetClass} ticker failed for ${sym}`, e.message);
+        return null;
+    }
+}
+
+/**
  * Fetch sparkline data (recent closes) for a symbol.
  * Crypto: Binance 24 × 1h klines.
  * Equities: Yahoo Finance 1d chart with 15m candles.
@@ -141,7 +189,14 @@ async function _fetchEquityTicker(sym) {
 async function _fetchSparkline(symbol) {
     const sym = symbol.toUpperCase();
 
-    if (!isCrypto(sym)) {
+    if (isCrypto(sym)) {
+        // Crypto: Binance — handled below
+    } else {
+        // Non-crypto: futures/forex have no sparkline source, stocks try Yahoo
+        const assetClass = getAssetClass(sym);
+        if (assetClass === 'futures' || assetClass === 'forex') {
+            return []; // Pyth doesn't provide historical sparkline data
+        }
         try {
             const yahoo = new YahooAdapter();
             const candles = await yahoo.fetchOHLCV(sym, '15m', { range: '1d' });

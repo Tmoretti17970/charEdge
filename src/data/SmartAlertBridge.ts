@@ -16,7 +16,6 @@ import { VolumeSpikeDetector } from '../../server/services/VolumeSpikeDetector';
 import { CandlePatternDetector } from '../../server/services/CandlePatternDetector';
 import { MultiTimeframeEvaluator } from '../../server/services/MultiTimeframeEvaluator';
 import { checkAlerts, useAlertStore } from '../state/useAlertStore';
-import { useSmartAlertFeed } from '../state/useSmartAlertFeed';
 import { usePriceTracker, checkMarketAlerts } from '../state/usePriceTracker';
 
 import type { Bar } from '../../server/services/VolumeSpikeDetector';
@@ -44,7 +43,7 @@ class SmartAlertBridge {
 
         // Wire volume spike events → SmartAlertFeed
         this.volumeDetector.on('volume:spike', (spike: { symbol: string; ratio: number; avgVolume: number; currentVolume: number }) => {
-            useSmartAlertFeed.getState().pushEvent({
+            useAlertStore.getState().pushSmartEvent({
                 type: 'volume',
                 symbol: spike.symbol,
                 priority: spike.ratio >= 3 ? 'critical' : 'important',
@@ -55,7 +54,7 @@ class SmartAlertBridge {
 
         // Wire MTF triggers → SmartAlertFeed
         this.mtfEvaluator.on('mtf:triggered', (evt: { alertId: string; symbol: string }) => {
-            useSmartAlertFeed.getState().pushEvent({
+            useAlertStore.getState().pushSmartEvent({
                 type: 'price',
                 symbol: evt.symbol,
                 priority: 'important',
@@ -133,7 +132,7 @@ class SmartAlertBridge {
 
         const patterns: PatternMatch[] = this.patternDetector.detectLatest(buffer);
         for (const match of patterns) {
-            useSmartAlertFeed.getState().pushEvent({
+            useAlertStore.getState().pushSmartEvent({
                 type: 'pattern',
                 symbol,
                 priority: match.confidence >= 0.8 ? 'critical' : match.confidence >= 0.6 ? 'important' : 'fyi',
@@ -164,7 +163,7 @@ class SmartAlertBridge {
     start(symbols: string[] = []): void {
         if (this.running) return;
         this.running = true;
-        useSmartAlertFeed.getState().setLive(true);
+        useAlertStore.getState().setSmartLive(true);
 
         for (const sym of symbols) {
             this.addSymbol(sym);
@@ -176,7 +175,7 @@ class SmartAlertBridge {
      */
     stop(): void {
         this.running = false;
-        useSmartAlertFeed.getState().setLive(false);
+        useAlertStore.getState().setSmartLive(false);
 
         for (const [sym, subId] of this.subscriptions) {
             wsService.unsubscribe(subId);

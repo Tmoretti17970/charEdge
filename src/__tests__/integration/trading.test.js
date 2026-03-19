@@ -235,7 +235,7 @@ describe('6.3 — OrderEntryOverlay', () => {
   });
 
   it('exports a default React component', () => {
-    expect(overlaySource).toContain('export default function OrderEntryOverlay');
+    expect(overlaySource).toContain('export default React.memo(OrderEntryOverlay)');
   });
 
   it('accepts symbol, price, currentPrice, position, onClose props', () => {

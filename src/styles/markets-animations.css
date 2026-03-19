@@ -1,0 +1,248 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — Markets Micro-Animations (Sprint 51)
+
+   Premium row-level animations for the Markets watchlist grid:
+   • Price change flash (green pulse for up, red for down)
+   • New symbol slide-in
+   • Remove slide-out
+   • Hover glow effect
+   • Focused row highlight ring
+   • Keyboard navigation focus indicator
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Price Flash ──────────────────────────────────────────────── */
+
+@keyframes markets-flash-up {
+  0% { background-color: rgba(49, 209, 88, 0.00); }
+  20% { background-color: rgba(49, 209, 88, 0.18); }
+  100% { background-color: rgba(49, 209, 88, 0.00); }
+}
+
+@keyframes markets-flash-down {
+  0% { background-color: rgba(255, 69, 58, 0.00); }
+  20% { background-color: rgba(255, 69, 58, 0.18); }
+  100% { background-color: rgba(255, 69, 58, 0.00); }
+}
+
+.markets-row-flash-up {
+  animation: markets-flash-up 0.6s ease-out;
+}
+
+.markets-row-flash-down {
+  animation: markets-flash-down 0.6s ease-out;
+}
+
+/* ─── Row Slide-In (new symbol added) ──────────────────────────── */
+
+@keyframes markets-row-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+    max-height: 80px;
+  }
+}
+
+.markets-row-enter {
+  animation: markets-row-slide-in 0.35s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+
+/* ─── Row Slide-Out (symbol removed) ───────────────────────────── */
+
+@keyframes markets-row-slide-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+    max-height: 80px;
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
+.markets-row-exit {
+  animation: markets-row-slide-out 0.3s ease-in forwards;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* ─── Hover Glow ───────────────────────────────────────────────── */
+
+.markets-row-glow:hover {
+  box-shadow:
+    inset 0 0 0 1px rgba(110, 92, 230, 0.08),
+    0 2px 12px rgba(110, 92, 230, 0.04);
+}
+
+/* ─── Keyboard Focus Indicator ─────────────────────────────────── */
+
+.markets-row-focused {
+  box-shadow:
+    inset 0 0 0 1.5px rgba(110, 92, 230, 0.35),
+    0 0 0 3px rgba(110, 92, 230, 0.08);
+  background-color: rgba(110, 92, 230, 0.04) !important;
+  z-index: 1;
+  position: relative;
+}
+
+.markets-row-focused::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #6e5ce6;
+  border-radius: 0 2px 2px 0;
+}
+
+/* ─── Staggered Mount Animation ────────────────────────────────── */
+
+@keyframes markets-stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.markets-row-stagger {
+  animation: markets-stagger-in 0.3s ease-out forwards;
+  opacity: 0;
+}
+
+/* ─── Price Cell Pulse ─────────────────────────────────────────── */
+
+@keyframes markets-price-pulse-up {
+  0% { color: inherit; }
+  30% { color: #31d158; text-shadow: 0 0 6px rgba(49, 209, 88, 0.3); }
+  100% { color: inherit; text-shadow: none; }
+}
+
+@keyframes markets-price-pulse-down {
+  0% { color: inherit; }
+  30% { color: #ff453a; text-shadow: 0 0 6px rgba(255, 69, 58, 0.3); }
+  100% { color: inherit; text-shadow: none; }
+}
+
+.markets-price-tick-up {
+  animation: markets-price-pulse-up 0.8s ease-out;
+}
+
+.markets-price-tick-down {
+  animation: markets-price-pulse-down 0.8s ease-out;
+}
+
+/* ─── Sparkline Transition ─────────────────────────────────────── */
+
+.markets-sparkline-transition svg path {
+  transition: d 0.4s ease-in-out;
+}
+
+/* ─── Selection Transition ─────────────────────────────────────── */
+
+.markets-row-transition {
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease,
+    border-left-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+/* ─── Mobile Bottom Sheet Slide-Up (Sprint 52) ─────────────────── */
+
+@keyframes tf-slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0.5;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ─── Skeleton Shimmer (Sprint 53) ─────────────────────────────── */
+
+@keyframes markets-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.markets-skeleton-row {
+  height: 42px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(110, 92, 230, 0.04) 25%,
+    rgba(110, 92, 230, 0.10) 50%,
+    rgba(110, 92, 230, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: markets-shimmer 1.5s ease-in-out infinite;
+  margin-bottom: 4px;
+}
+
+.markets-skeleton-row:nth-child(even) {
+  animation-delay: 0.15s;
+}
+
+.markets-skeleton-row:nth-child(3n) {
+  animation-delay: 0.3s;
+}
+
+/* ─── Drag-and-Drop Spring (Sprint 49) ─────────────────────────── */
+
+.markets-row-dragging {
+  z-index: 10;
+  position: relative;
+  transform: scale(1.02);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.18),
+    0 2px 8px rgba(110, 92, 230, 0.12);
+  background-color: rgba(110, 92, 230, 0.06) !important;
+  border-radius: 8px;
+  transition:
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.2s ease;
+}
+
+.markets-row-drop-target {
+  border-top: 2px solid #6e5ce6 !important;
+  transition: border-top 0.15s ease;
+}
+
+.markets-row-drop-target::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -2px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #6e5ce6, transparent);
+  border-radius: 1px;
+}
+
+.markets-folder-drop-active {
+  background-color: rgba(110, 92, 230, 0.08) !important;
+  box-shadow: inset 0 0 0 1.5px rgba(110, 92, 230, 0.3);
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+

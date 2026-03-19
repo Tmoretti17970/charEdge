@@ -279,11 +279,11 @@ export class FrameState {
     }
 
     // Visible range
-    const end = bars.length - 1 - S.scrollOffset + 5;
+    const end = bars.length - 1 - S.scrollOffset;
     const exactStart = end - S.visibleBars + 1;
     const startIdx = Math.max(0, Math.floor(exactStart));
     const endIdx = Math.floor(end);
-    const visBarsEnd = Math.min(bars.length, endIdx + 2);
+    const visBarsEnd = Math.min(bars.length, endIdx + 8);
     const barSpacing = chartWidth / S.visibleBars;
 
     // ─── Tick-Only Fast Path ─────────────────────────────────────

@@ -2,8 +2,8 @@ import React from 'react';
 import { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
-import { useSmartAlertFeed } from '../../../state/useSmartAlertFeed';
-import { useAlertPreferences } from '../../../state/useAlertPreferences';
+import { useAlertStore } from '../../../state/useAlertStore';
+import { useNotificationPreferences } from '../../../state/useNotificationStore';
 
 const ALERT_TYPES = {
   price: { icon: '💰', label: 'Price Level', color: C.g },
@@ -46,12 +46,12 @@ function formatTimeAgo(iso) {
 function SmartAlerts() {
   const [collapsed, setCollapsed] = useState(false);
   const [filter, setFilter] = useState('all');
-  const quietMode = useAlertPreferences((s) => s.globalMute);
-  const toggleMute = useAlertPreferences((s) => s.toggleMute);
+  const quietMode = useNotificationPreferences((s) => s.globalMute);
+  const toggleMute = useNotificationPreferences((s) => s.toggleMute);
 
   // E5: Use live feed when available, fall back to mock
-  const liveEvents = useSmartAlertFeed((s) => s.events);
-  const isLive = useSmartAlertFeed((s) => s.isLive);
+  const liveEvents = useAlertStore((s) => s.smartEvents);
+  const isLive = useAlertStore((s) => s.smartIsLive);
   const hasLiveData = liveEvents.length > 0 || isLive;
 
   const source = hasLiveData ? liveEvents.map((e) => ({

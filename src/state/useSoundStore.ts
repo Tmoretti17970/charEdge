@@ -13,7 +13,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { NotificationCategoryId } from './useNotificationPreferences';
+import type { NotificationCategoryId } from './useNotificationStore';
 
 // ─── Sound Profiles ─────────────────────────────────────────────
 
@@ -173,7 +173,7 @@ export const useSoundDesign = create<SoundDesignState>()(
 
       reset: () => set({ categorySounds: { ...DEFAULT_CATEGORY_SOUNDS } }),
     }),
-    { name: 'charEdge-sound-design' },
+    { name: 'charEdge-sound-design', version: 1 },
   ),
 );
 

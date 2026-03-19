@@ -18,7 +18,7 @@ import { useRef, useCallback, useEffect, useState } from 'react';
 import 'flexlayout-react/style/dark.css';
 import { C, F, M } from '../../constants.js';
 import ChartPane from '../components/chart/core/ChartPane.jsx';
-import { useNotificationLog } from '../../state/useNotificationLog.js';
+import { useNotificationStore } from '../../state/useNotificationStore';
 import IndicatorPanel from '../components/panels/IndicatorPanel.jsx';
 // eslint-disable-next-line import/order
 import WatchlistPanel from '../components/panels/WatchlistPanel.jsx';
@@ -68,8 +68,8 @@ function WorkspaceLayout({ preset = null }) {
       case 'alerts': {
         // Option B: workspace alerts slot opens the unified Notification Center (Alerts tab)
         const openAlerts = () => {
-          const store = useNotificationLog.getState();
-          if (!store.panelOpen) store.togglePanel();
+          const store = useNotificationStore.getState();
+          if (!store.logPanelOpen) store.toggleLogPanel();
         };
         return (
           <div

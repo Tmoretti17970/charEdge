@@ -25,6 +25,7 @@ import { useHotkeys } from '../hooks/useHotkeys';
 import { DRAWING_TOOL_SHORTCUTS, TIMEFRAME_SHORTCUTS } from '../shared/drawingToolIds';
 import { useChartFeaturesStore } from '../state/chart/useChartFeaturesStore';
 import { useChartToolsStore } from '../state/chart/useChartToolsStore';
+import { useLayoutStore } from '../state/useLayoutStore';
 import ChartOverlays from './charts/ChartOverlays.jsx';
 import ChartPanelManager from './charts/ChartPanelManager.jsx';
 import useChartDataLoader from './charts/useChartDataLoader.js';
@@ -48,8 +49,8 @@ const ReplayBar = React.lazy(() => import('../app/components/chart/panels/Replay
 const QuadChart = React.lazy(() => import('../app/components/widgets/QuadChart.jsx'));
 const WorkspaceLayout = React.lazy(() => import('../app/layouts/WorkspaceLoader.jsx'));
 const FocusMode = React.lazy(() => import('../app/components/chart/overlays/FocusMode.jsx'));
-const _AICopilotBar = React.lazy(() => import('../app/components/chart/AICopilotBar.jsx'));
-const ActionSidebar = React.lazy(() => import('../app/components/chart/ActionSidebar.jsx'));
+const _AICopilotBar = null; // Removed — copilot now in SlidePanel
+const _ActionSidebar = null; // Removed — copilot now in SlidePanel
 const WatchlistQuickPanel = React.lazy(() => import('../app/components/chart/WatchlistQuickPanel.jsx'));
 // TradeEntryBar removed — radial menu now places trades instantly
 const SwipeChartNav = React.lazy(() => import('../app/components/mobile/SwipeChartNav.jsx'));
@@ -221,8 +222,14 @@ function ChartsPageInner({ _mountTime }) {
       },
       // Ctrl+S → open snapshot publisher
       { key: 'ctrl+s', handler: () => setShowSnapshotPublisher(true), description: 'Save snapshot' },
-      // Cmd+K / Ctrl+K → toggle AI Copilot
-      { key: 'ctrl+k', handler: () => setShowCopilot((prev) => !prev), description: 'Toggle AI Copilot' },
+      // Cmd+K / Ctrl+K → toggle AI Copilot (opens in side panel copilot tab)
+      // Skip if user is typing in an input/textarea (e.g., copilot chat)
+      { key: 'ctrl+k', handler: (e) => {
+        const tag = document?.activeElement?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        setShowWatchlistPanel(true);
+        window.dispatchEvent(new CustomEvent('charEdge:open-copilot-tab'));
+      }, description: 'Toggle AI Copilot' },
       // ? → keyboard shortcuts overlay
       { key: 'shift+/', handler: () => setShowShortcuts((prev) => !prev), description: 'Show shortcuts' },
       // Timeframe shortcuts: 1-6
@@ -352,7 +359,7 @@ function ChartsPageInner({ _mountTime }) {
           matchingTradesCount={matchingTrades.length}
           fetchSymbolSearch={fetchSymbolSearch}
           onOpenPanel={(view) => openPanel(view)}
-          onOpenCopilot={() => setShowCopilot(true)}
+          onOpenCopilot={() => useLayoutStore.getState().togglePanel('copilot')}
           onSnapshot={() => setSnapshotModalOpen(true)}
           isLive={isLive}
           wsSupported={wsSupported}
@@ -361,7 +368,7 @@ function ChartsPageInner({ _mountTime }) {
           dataLoading={dataLoading}
           layoutMode={layoutMode}
           setLayoutMode={setLayoutMode}
-          onToggleAnalysis={() => setChartAnalysisOpen((v) => !v)}
+
 
         />
       )}
@@ -386,10 +393,7 @@ function ChartsPageInner({ _mountTime }) {
         />
       )}
 
-      {/* AI Co-Pilot — Action Sidebar */}
-      <Suspense fallback={null}>
-        <ActionSidebar isOpen={showCopilot} onClose={() => setShowCopilot(false)} activePanel="copilot" />
-      </Suspense>
+      {/* AI Co-Pilot — now rendered via ChartPanelManager SlidePanel */}
 
       {/* Data Warning Toast */}
       {!workspaceMode && dataWarning && (
@@ -582,7 +586,7 @@ function ChartsPageInner({ _mountTime }) {
                 setIsLandscapeFullscreen={setIsLandscapeFullscreen}
                 setShowMobileSettings={setShowMobileSettings}
                 setShowMobileShare={setShowMobileShare}
-                setShowCopilot={setShowCopilot}
+                setShowCopilot={() => useLayoutStore.getState().togglePanel('copilot')}
                 openPanel={(view) => openPanel(view)}
                 showAutoFit={true}
                 onAutoFit={() => window.dispatchEvent(new CustomEvent('charEdge:autoFit'))}

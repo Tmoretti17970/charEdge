@@ -143,6 +143,40 @@ export function trackWorkflow(workflow) {
   track('workflow_complete', { workflow });
 }
 
+/**
+ * Track an error in a specific subsystem for error budget monitoring.
+ * @param {string} category - 'fetch' | 'ws' | 'cache' | 'ai'
+ * @param {Object} [meta={}] - Additional context (symbol, provider, etc.)
+ */
+export function trackError(category, meta = {}) {
+  track(`error:${category}`, meta);
+  // Lazy import to avoid circular deps and keep bundle small
+  import('./ErrorBudget').then(({ errorBudget }) => {
+    errorBudget.record(category, true);
+  }).catch(() => {}); // non-fatal
+}
+
+/**
+ * Record a success for error budget tracking.
+ * @param {string} category - 'fetch' | 'ws' | 'cache' | 'ai'
+ */
+export function trackSuccess(category) {
+  import('./ErrorBudget').then(({ errorBudget }) => {
+    errorBudget.record(category, false);
+  }).catch(() => {}); // non-fatal
+}
+
+/**
+ * Get error budget status for all categories.
+ */
+export async function getErrorBudgetStatus() {
+  try {
+    const { errorBudget } = await import('./ErrorBudget');
+    return errorBudget.getStatus();
+  } catch (_) {
+    return {};
+  }
+}
 // ─── Session Lifecycle ─────────────────────────────────────────────
 
 /**

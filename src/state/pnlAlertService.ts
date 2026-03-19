@@ -16,7 +16,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { notify } from './notificationRouter';
+import { notify } from './notificationEngine';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -75,7 +75,7 @@ export const usePnLAlertStore = create<PnLAlertState>()(
         alerts: s.alerts.map((a) => a.id === id ? { ...a, threshold } : a),
       })),
     }),
-    { name: 'charEdge-pnl-alerts' },
+    { name: 'charEdge-pnl-alerts', version: 1 },
   ),
 );
 

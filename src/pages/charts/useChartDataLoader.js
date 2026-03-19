@@ -17,6 +17,8 @@ import { useChartFeaturesStore } from '../../state/chart/useChartFeaturesStore';
 import { useWatchlistStore } from '../../state/useWatchlistStore.js';
 import { parseShareURL } from '@/charting_library/utils/chartExport';
 import { logger } from '@/observability/logger';
+import { symbolSwitchTracker } from '@/observability/SymbolSwitchTracker';
+import { track } from '@/observability/telemetry';
 import { reportError } from '@/shared/globalErrorHandler';
 
 /**
@@ -133,7 +135,20 @@ export default function useChartDataLoader() {
         .then(({ data: newData, source }) => {
           if (cancelled) return;
           performance.mark(`${markId}-end`);
-          try { performance.measure(`tf-chart-load`, `${markId}-start`, `${markId}-end`); } catch (e) { logger.ui.warn('Operation failed', e); }
+          let durationMs = 0;
+          try {
+            const entry = performance.measure(`tf-chart-load`, `${markId}-start`, `${markId}-end`);
+            durationMs = Math.round(entry.duration);
+          } catch (e) {
+            logger.ui.warn('Operation failed', e);
+          }
+          // Sprint 4 Task 4.3: Symbol switch latency tracking
+          const tier = source === 'cached' ? 'cache' : 'network';
+          if (durationMs > 0) {
+            logger.data.info(`${symbol} loaded in ${durationMs}ms (${tier}:${source})`);
+            symbolSwitchTracker.record(durationMs, { symbol, source: `${tier}:${source}` });
+            try { track('symbol_switch', { symbol, durationMs, source: tier, provider: source }); } catch (_) { /* */ }
+          }
           useChartCoreStore.getState().setData(newData, source);
           if (newData?.length > 0) {
             const last = newData[newData.length - 1].close;

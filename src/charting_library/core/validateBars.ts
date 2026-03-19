@@ -70,6 +70,9 @@ export function validateBars(bars: unknown): ValidationResult {
   // Deduplicate indices
   const uniqueIndices = [...new Set(checkIndices)];
 
+  // Track string-time coercions to emit a single consolidated warning
+  let stringTimeCount = 0;
+
   for (const i of uniqueIndices) {
     const bar = bars[i] as Record<string, unknown>;
     if (!bar || typeof bar !== 'object') {
@@ -89,6 +92,15 @@ export function validateBars(bars: unknown): ValidationResult {
           { index: i, field }
         ));
       } else if (typeof bar[field] !== 'number' || Number.isNaN(bar[field])) {
+        // Auto-coerce parseable string timestamps (ISO 8601) to numbers
+        if (field === 'time' && typeof bar[field] === 'string') {
+          const parsed = new Date(bar[field] as string).getTime();
+          if (!isNaN(parsed)) {
+            bar[field] = parsed;
+            stringTimeCount++;
+            continue;
+          }
+        }
         errors.push(new ChartError(
           ERROR_CODES.INVALID_BAR_DATA,
           `Bar at index ${i} has invalid "${field}": ${bar[field]} (must be a finite number)`,
@@ -107,6 +119,15 @@ export function validateBars(bars: unknown): ValidationResult {
         ));
       }
     }
+  }
+
+  // Emit a single consolidated warning for string time coercions
+  if (stringTimeCount > 0) {
+    errors.push(new ChartError(
+      ERROR_CODES.INVALID_BAR_DATA,
+      `Auto-coerced ${stringTimeCount} bar(s) with string "time" values to numeric timestamps. Fix the data source to provide numeric times.`,
+      { count: stringTimeCount }
+    ));
   }
 
   // Check time ordering (sample: first→second, last two)
@@ -163,6 +184,8 @@ const KNOWN_PROPS: Set<string> = new Set([
   'paneHeights', 'panelHeights',
   // Mobile / responsive
   'priceAxisWidth', 'timeAxisHeight', 'compactMode', 'autoHideToolbar',
+  // Temporal
+  'activeTimezone',
 ]);
 
 /**

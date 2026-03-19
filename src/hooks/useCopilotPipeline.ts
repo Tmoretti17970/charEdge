@@ -141,41 +141,56 @@ export function useCopilotPipeline(): CopilotInsight & {
         };
     }, []);
 
-    // On-demand LLM narrative (or rich local analysis)
+    // On-demand LLM narrative (Sprint 63: routes through AIRouter)
     const requestNarrative = useCallback(async () => {
         setInsight((prev) => ({ ...prev, loading: true }));
         try {
-            const { llmService } = await import('../ai/LLMService.js');
             const state = useChartCoreStore.getState() as unknown;
             const bars = state.data || [];
+            const features = insight.features;
 
-            if (!llmService.isAvailable || bars.length < MIN_BARS_FOR_ANALYSIS) {
-                // Use LocalInsightEngine v2 for rich narrative-based analysis
-                const features = insight.features;
-                if (features) {
-                    const { localInsightEngine } = await import('../charting_library/ai/LocalInsightEngine.js');
-                    const result = localInsightEngine.generateDetailedNarrative(
-                        features, state.symbol || 'Chart', state.tf || '—', bars,
-                    );
-                    setInsight((prev) => ({ ...prev, narrative: result.narrative, loading: false }));
-                } else {
-                    setInsight((prev) => ({
-                        ...prev,
-                        narrative: 'No data available for analysis.',
-                        loading: false,
-                    }));
-                }
+            if (bars.length < MIN_BARS_FOR_ANALYSIS || !features) {
+                setInsight((prev) => ({
+                    ...prev,
+                    narrative: 'No data available for analysis.',
+                    loading: false,
+                }));
                 return;
             }
 
-            const { captureSnapshotFromStore } = await import('../hooks/useSnapshotCapture.js');
-            const snapshot = captureSnapshotFromStore();
-            const response = await llmService.analyzeTradeSnapshot(snapshot as unknown);
-            setInsight((prev) => ({
-                ...prev,
-                narrative: response.content,
-                loading: false,
-            }));
+            // Sprint 63: Try AIRouter first (WebLLM → cloud → local)
+            try {
+                const { aiRouter } = await import('../ai/AIRouter');
+                const prompt = `Market Analysis for ${state.symbol || 'Chart'} (${state.tf || '—'}):
+Momentum: ${insight.momentumLabel} (RSI: ${features.momentum?.rsi?.toFixed(1)})
+Volatility: ${insight.volatilityLabel} (ATR ratio: ${features.volatility?.atrRatio?.toFixed(2)})
+Volume: ${insight.volumeLabel}
+Trend: ${features.momentum?.trendStrength?.toFixed(2)}
+
+Give a 2-3 sentence market narrative covering current conditions, key levels to watch, and what to expect next.`;
+
+                const result = await aiRouter.route({
+                    type: 'narrate',
+                    messages: [
+                        { role: 'system', content: 'You are a concise market analyst. Give brief, actionable market narratives.' },
+                        { role: 'user', content: prompt },
+                    ],
+                    maxTokens: 200,
+                    temperature: 0.4,
+                });
+
+                if (result.tier !== 'L1') {
+                    setInsight((prev) => ({ ...prev, narrative: result.content, loading: false }));
+                    return;
+                }
+            } catch { /* AIRouter not available, fall through */ }
+
+            // Fallback: LocalInsightEngine
+            const { localInsightEngine } = await import('../charting_library/ai/LocalInsightEngine.js');
+            const result = localInsightEngine.generateDetailedNarrative(
+                features, state.symbol || 'Chart', state.tf || '—', bars,
+            );
+            setInsight((prev) => ({ ...prev, narrative: result.narrative, loading: false }));
         } catch {
             setInsight((prev) => ({
                 ...prev,

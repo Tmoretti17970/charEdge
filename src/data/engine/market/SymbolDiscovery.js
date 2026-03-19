@@ -10,6 +10,8 @@
 //   // → [{ symbol: 'AAPL', name: 'Apple Inc.', type: 'EQUITY', exchange: 'NASDAQ', adapter: 'polygon' }, ...]
 // ═══════════════════════════════════════════════════════════════════
 
+import { SymbolRegistry } from '../../SymbolRegistry.js';
+
 // ─── Adapter Registry ──────────────────────────────────────────
 
 // Lazy-loaded adapters — import on first use to avoid circular deps
@@ -109,7 +111,30 @@ class SymbolDiscovery {
             }
         }
 
-        return Array.from(seen.values()).slice(0, limit);
+        const results = Array.from(seen.values()).slice(0, limit);
+        // Auto-register newly discovered symbols into SymbolRegistry (Phase 1b)
+        this._autoRegister(results);
+        return results;
+    }
+
+    /**
+     * Auto-register search results into SymbolRegistry so subsequent lookups,
+     * watchlists, and routing find newly discovered symbols.
+     * @param {Array<{symbol: string, name: string, type: string, exchange: string, adapter: string}>} results
+     */
+    _autoRegister(results) {
+        for (const r of results) {
+            if (!r.symbol || SymbolRegistry.lookup(r.symbol)) continue;
+            SymbolRegistry.register({
+                symbol: r.symbol,
+                displayName: r.name || r.symbol,
+                assetClass: (r.type || 'stock').toLowerCase(),
+                provider: r.adapter || 'yahoo',
+                exchange: r.exchange || '',
+                currency: 'USD',
+                realtime: false,
+            });
+        }
     }
 
     /**

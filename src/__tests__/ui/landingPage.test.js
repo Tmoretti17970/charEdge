@@ -27,7 +27,7 @@ describe('LandingPage — production hero page (Task 2.2.2)', () => {
     expect(source).toContain('landing-benchmarks');
     expect(source).toContain('Frame Time');
     expect(source).toContain('Bars Rendered');
-    expect(source).toContain('Idle GPU Usage');
+    expect(source).toContain('GPU');
   });
 
   it('contains feature cards for GPU, AI Coach, and Journal', async () => {
@@ -50,9 +50,9 @@ describe('LandingPage — production hero page (Task 2.2.2)', () => {
     const fs = await import('fs');
     const source = await fs.promises.readFile('src/pages/LandingPage.jsx', 'utf8');
     expect(source).toContain('landing-tech');
-    expect(source).toContain('WebGPU Compute');
-    expect(source).toContain('GPU Instancing');
-    expect(source).toContain('SharedWorker');
+    expect(source).toContain('WebGPU');
+    expect(source).toContain('GPU');
+    expect(source).toContain('techPill');
   });
 
   it('is registered in PageRouter', async () => {

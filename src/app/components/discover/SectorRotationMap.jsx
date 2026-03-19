@@ -203,8 +203,7 @@ function SectorRotationMap() {
       {/* Header */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="tf-btn"
-        className={s.s0}
+        className={`tf-btn ${s.s0}`}
       >
         <div className={s.s1}>
           <span style={{ fontSize: 18 }}>🗺️</span>

@@ -172,6 +172,7 @@ const useSyncStore = create(
     }),
     {
       name: 'charEdge-sync',
+      version: 1,
       partialize: (state) => ({
         _changeQueue: state._changeQueue,
         lastSyncAt: state.lastSyncAt,

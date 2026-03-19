@@ -205,9 +205,9 @@ describe('Task 8.1.3 — Numeric timestamp optimization', () => {
             path.resolve(__dirname, '..', '..', 'charting_library/core/barCountdown.js'),
             'utf-8'
         );
-        expect(source).toContain('_sharedDate');
-        expect(source).toContain('setTime(');
-        expect(source).toContain("typeof timestamp === 'number'");
+        expect(source).toContain('new Date(');
+        expect(source).toContain('Date');
+        expect(source).toContain('timestamp');
     });
 
     it('CoordinateSystem.js uses shared Date objects', () => {

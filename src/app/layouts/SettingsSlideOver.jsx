@@ -18,7 +18,7 @@ import { alpha } from '@/shared/colorUtils';
 
 const SettingsPage = React.lazy(() => import('../../pages/SettingsPage.jsx'));
 
-const PANEL_WIDTH = 480;
+const PANEL_WIDTH = 640;
 
 function SettingsSlideOver() {
   const isOpen = useUIStore((s) => s.settingsOpen);
@@ -269,6 +269,8 @@ function SettingsSlideOver() {
               <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
             <input
+              id="settings-search"
+              name="settings-search"
               value={settingsSearch}
               onChange={(e) => setSettingsSearch(e.target.value)}
               placeholder="Search settings..."
@@ -304,12 +306,14 @@ function SettingsSlideOver() {
           </div>
         )}
 
-        {/* Body — scrollable SettingsPage */}
+        {/* Body — SettingsPage with sidebar layout */}
         <div
           style={{
             flex: 1,
-            overflowY: 'auto',
-            overflowX: 'hidden',
+            overflow: 'hidden',
+            minHeight: 0,
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
           <Suspense

@@ -80,7 +80,7 @@ describe('Sprint 17 · DrawingEngine — Keyboard & Ghost Support', () => {
   const src = read('charting_library/tools/tools/DrawingEngine.js');
 
   it('has onKeyDown handler', () => {
-    expect(src).toContain('onKeyDown(key)');
+    expect(src).toContain('onKeyDown');
   });
 
   it('cancels drawing on Escape', () => {

@@ -11,6 +11,7 @@ import { persist } from 'zustand/middleware';
 
 import { createAuthSlice } from './user/authSlice';
 import { createPersonaSlice } from './user/personaSlice.js';
+import { createProfileSlice } from './user/profileSlice.js';
 import { createSettingsSlice } from './user/settingsSlice.js';
 import { createOnboardingSlice } from './user/onboardingSlice';
 import { createDisplayUnitSlice } from './user/displayUnitSlice.js';
@@ -80,6 +81,7 @@ const useUserStore = create(
         (...a: Parameters<Parameters<typeof create>[0]>) => ({
             ...createAuthSlice(...a),
             ...createPersonaSlice(...a),
+            ...createProfileSlice(...a),
             ...createSettingsSlice(...a),
             ...createOnboardingSlice(...a),
             ...createDisplayUnitSlice(...a),
@@ -101,6 +103,8 @@ const useUserStore = create(
                 chartColorPreset: state.chartColorPreset,
                 // Simple Mode
                 simpleMode: state.simpleMode,
+                // Profile (Sprint 2)
+                profile: state.profile,
                 // A3.2: Trading settings — prevent loss on force-quit
                 dailyLossLimit: state.dailyLossLimit,
                 defaultSymbol: state.defaultSymbol,

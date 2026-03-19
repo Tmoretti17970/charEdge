@@ -9,7 +9,7 @@
 //   - Accessible from AlertPanel or Settings
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { radii } from '../../../theme/tokens.js';
 import { Card } from '../ui/UIKit.jsx';

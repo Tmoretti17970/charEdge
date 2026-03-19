@@ -143,7 +143,7 @@ function EmptyState({
 
 // ─── Dashboard Empty State ──────────────────────────────────────
 
-export function DashboardEmptyState({ onGoToJournal }) {
+export function DashboardEmptyState({ onGoToJournal, onImportTrades }) {
   return (
     <EmptyState
       icon="📊"
@@ -151,6 +151,8 @@ export function DashboardEmptyState({ onGoToJournal }) {
       message="Log your first trade to unlock performance analytics, equity tracking, and personalized insights."
       actionLabel="Log Your First Trade →"
       onAction={onGoToJournal}
+      secondaryLabel={onImportTrades ? "📥 Import Trades" : undefined}
+      onSecondary={onImportTrades}
       preview={<DashboardPreview />}
     >
       <FeatureRoadmap

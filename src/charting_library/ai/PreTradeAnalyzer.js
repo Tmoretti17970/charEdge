@@ -22,10 +22,8 @@ import { AI_DISCLAIMER } from './AIChartAnalysis.js';
  */
 export async function explainPattern(setup, stats, confidence) {
   try {
-    const { llmService } = await import('./LLMService.ts');
-    if (!llmService.hasExternalProvider()) {
-      return generateRecommendation(setup, stats, confidence, []);
-    }
+    // Sprint 65: Route through AIRouter (WebLLM → cloud → template)
+    const { aiRouter } = await import('../../ai/AIRouter');
 
     const prompt = `You are a trading coach. Explain this pattern analysis in 2-3 sentences.
 Be specific and actionable.
@@ -35,13 +33,22 @@ Time: ${setup.timeOfDay || 'unspecified'}  Emotion: ${setup.emotion || 'neutral'
 Historical stats: ${stats.sampleSize} similar trades, ${stats.winRate}% win rate, avg P&L: $${stats.avgPnl}
 Confidence: ${confidence}`;
 
-    const response = await llmService.complete(prompt, {
+    const result = await aiRouter.route({
+      type: 'explain',
+      messages: [
+        { role: 'system', content: 'You are a data-driven trading coach. Be concise.' },
+        { role: 'user', content: prompt },
+      ],
       maxTokens: 150,
       temperature: 0.5,
-      systemPrompt: 'You are a data-driven trading coach. Be concise.',
     });
 
-    return response.text;
+    // If we only got the L1 template, fall back to rule-based
+    if (result.tier === 'L1') {
+      return generateRecommendation(setup, stats, confidence, []);
+    }
+
+    return result.content;
   // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (_) {
     return generateRecommendation(setup, stats, confidence, []);

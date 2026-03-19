@@ -182,5 +182,24 @@ export function createProxyRouter() {
         }
     });
 
+    // ── Finnhub WebSocket Token Delivery (Phase 1d) ─────────────
+    // Securely delivers the Finnhub API key to the client for WS connections.
+    // The key lives server-side in env vars — never in the client bundle.
+    router.get('/api/proxy/finnhub-ws-token', (req, res) => {
+        const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
+        if (!checkRateLimit(clientIp)) {
+            res.setHeader('Retry-After', Math.ceil(RATE_LIMIT_WINDOW_MS / 1000));
+            return res.status(429).json({ ok: false, error: 'Rate limit exceeded' });
+        }
+
+        const token = process.env.FINNHUB_API_KEY;
+        if (!token) {
+            return res.status(503).json({ ok: false, error: 'FINNHUB_API_KEY not configured' });
+        }
+
+        res.setHeader('Cache-Control', 'private, max-age=3600');
+        return res.json({ ok: true, token });
+    });
+
     return router;
 }

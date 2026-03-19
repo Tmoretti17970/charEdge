@@ -55,11 +55,19 @@ class EncryptedStore {
 
     /** @private */
     async _doInit() {
-        // #22: Use the unified database instead of a separate one
-        this._db = await openUnifiedDB();
+        try {
+            // #22: Use the unified database instead of a separate one
+            this._db = await openUnifiedDB();
 
-        // Now that DB is open, get or create encryption key
-        this._cryptoKey = await this._getOrCreateKey();
+            // Now that DB is open, get or create encryption key
+            this._cryptoKey = await this._getOrCreateKey();
+        } catch (err) {
+            // DB may be mid-upgrade or unavailable — reset so next call can retry
+            this._db = null;
+            this._cryptoKey = null;
+            this._initPromise = null;
+            throw err; // Let caller handle (AppBoot catches this as non-fatal)
+        }
     }
 
     // ─── CRUD ───────────────────────────────────────────────────

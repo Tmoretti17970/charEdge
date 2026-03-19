@@ -11,7 +11,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C, M } from '../../../constants.js';
 import { useMarketsPrefsStore, ASSET_CLASSES } from '../../../state/useMarketsPrefsStore';
 import { radii, transition } from '../../../theme/tokens.js';
 import ColumnCustomizer from './ColumnCustomizer.jsx';
@@ -150,29 +150,7 @@ function AlertsButton() {
   );
 }
 
-function CopilotButton() {
-  const copilotPanelOpen = useMarketsPrefsStore((s) => s.copilotPanelOpen);
-  const setCopilotPanelOpen = useMarketsPrefsStore((s) => s.setCopilotPanelOpen);
 
-  return (
-    <button
-      onClick={() => setCopilotPanelOpen(!copilotPanelOpen)}
-      title="AI Copilot"
-      style={{
-        display: 'flex', alignItems: 'center', gap: 4,
-        padding: '4px 10px', borderRadius: radii.sm,
-        fontSize: 10, fontWeight: 600, fontFamily: M,
-        border: copilotPanelOpen ? '1px solid #30d5c840' : `1px solid ${C.bd}30`,
-        background: copilotPanelOpen ? '#30d5c812' : 'transparent',
-        color: copilotPanelOpen ? '#30d5c8' : C.t3,
-        cursor: 'pointer',
-        transition: `all ${transition.fast}`,
-      }}
-    >
-      🤖 AI
-    </button>
-  );
-}
 
 function SmartFolderButton() {
   const smartFolderOpen = useMarketsPrefsStore((s) => s.smartFolderOpen);
@@ -222,29 +200,7 @@ function ScreenerButton() {
   );
 }
 
-function WatchlistAlertButton() {
-  const watchlistAlertOpen = useMarketsPrefsStore((s) => s.watchlistAlertOpen);
-  const setWatchlistAlertOpen = useMarketsPrefsStore((s) => s.setWatchlistAlertOpen);
 
-  return (
-    <button
-      onClick={() => setWatchlistAlertOpen(!watchlistAlertOpen)}
-      title="Watchlist Alerts"
-      style={{
-        display: 'flex', alignItems: 'center', gap: 4,
-        padding: '4px 10px', borderRadius: radii.sm,
-        fontSize: 10, fontWeight: 600, fontFamily: M,
-        border: watchlistAlertOpen ? `1px solid ${C.orange}40` : `1px solid ${C.bd}30`,
-        background: watchlistAlertOpen ? `${C.orange}12` : 'transparent',
-        color: watchlistAlertOpen ? C.orange : C.t3,
-        cursor: 'pointer',
-        transition: `all ${transition.fast}`,
-      }}
-    >
-      🔔 Alerts
-    </button>
-  );
-}
 
 function AnalyticsButton() {
   const performancePanelOpen = useMarketsPrefsStore((s) => s.performancePanelOpen);
@@ -393,8 +349,6 @@ function MarketsToolbar() {
         {/* Sprint 22: Alerts button */}
         <AlertsButton />
 
-        {/* Sprint 23: Copilot button */}
-        <CopilotButton />
 
         {/* Sprint 28: Smart Folders button */}
         <SmartFolderButton />
@@ -402,8 +356,7 @@ function MarketsToolbar() {
         {/* Sprint 29: Screener button */}
         <ScreenerButton />
 
-        {/* Sprint 30: Watchlist Alerts button */}
-        <WatchlistAlertButton />
+
 
         {/* Sprint 31: Analytics button */}
         <AnalyticsButton />

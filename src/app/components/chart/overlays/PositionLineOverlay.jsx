@@ -27,11 +27,25 @@ function PositionLineOverlay({ symbol, engineRef }) {
 
   // RAF loop: mutate DOM directly — no React state updates
   const rafRef = useRef(null);
+  const stableFrames = useRef(0);
 
   const tick = useCallback(() => {
     const eng = engineRef?.current;
     const R = eng?.state?.lastRender;
     if (!R || !R.mainH || !R.p2y) {
+      stableFrames.current = 0;
+      rafRef.current = requestAnimationFrame(tick);
+      return;
+    }
+
+    // Wait for price axis to stabilize before showing lines (prevents ghost lines during init)
+    if (stableFrames.current < 10) {
+      stableFrames.current++;
+      // Hide all lines while stabilizing
+      for (const pos of openPositions) {
+        const el = lineRefsMap.current.get(pos.id);
+        if (el) el.style.display = 'none';
+      }
       rafRef.current = requestAnimationFrame(tick);
       return;
     }

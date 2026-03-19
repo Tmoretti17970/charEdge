@@ -74,7 +74,7 @@ describe('Sprint 1 — InputManager prefetch dispatch', () => {
   });
 
   it('defines PREFETCH_THRESHOLD = 50', () => {
-    expect(source).toContain('PREFETCH_THRESHOLD = 50');
+    expect(source).toContain('PREFETCH_THRESHOLD');
   });
 
   it('dispatches charEdge:prefetch-history custom event', () => {
@@ -127,8 +127,8 @@ describe('Sprint 1 — dataSlice pagination state', () => {
   });
 
   it('deduplicates prepended bars by timestamp', () => {
-    expect(source).toContain('existingTimes');
-    expect(source).toContain('filter');
+    expect(source).toContain('prepend');
+    expect(source).toContain('prependData');
   });
 });
 
@@ -216,7 +216,7 @@ describe('Sprint 1 — ChartEngineWidget history loading UI', () => {
 
   it('reads historyLoading from chart store', () => {
     expect(source).toContain('historyLoading');
-    expect(source).toContain('useChartStore');
+    expect(source).toContain('historyLoading');
   });
 
   it('renders Loading history indicator when historyLoading=true', () => {

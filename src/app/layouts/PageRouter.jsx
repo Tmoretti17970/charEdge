@@ -16,6 +16,7 @@ const TermsPage = React.lazy(() => import('../../pages/TermsPage.jsx'));
 const LandingPage = React.lazy(() => import('../../pages/LandingPage.jsx'));
 const SpeedtestPage = React.lazy(() => import('../../pages/SpeedtestPage.jsx'));
 const MarketsPage = React.lazy(() => import('../../pages/MarketsPage.jsx'));
+const ImportPage = React.lazy(() => import('../../pages/ImportPage.jsx'));
 
 // Prefetch Journal immediately (it's the default page) so it loads in background
 if (typeof window !== 'undefined') {
@@ -36,6 +37,7 @@ const PAGES = {
   speedtest: SpeedtestPage,
   settings: SettingsPage,
   telemetry: TelemetryDashboard,
+  import: ImportPage,
 };
 
 function SkeletonBlock({ w, h, style }) {
@@ -132,6 +134,7 @@ function PageRouter() {
     terms: 'Terms of Service',
     landing: 'Landing',
     speedtest: 'Speed Test',
+    import: 'Import Hub',
   };
 
   const motionEnabled = hasMounted.current && !prefersReducedMotion;

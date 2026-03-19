@@ -7,12 +7,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import DrawingSettingsDialog from '../panels/DrawingSettingsDialog.jsx';
 import { TOOL_LABELS } from '../../../../shared/drawingToolRegistry';
 import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 import useAlertStore from '../../../../state/useAlertStore';
 import { useChartStore } from '../../../../state/useChartStore';
-import { listPresets, savePreset, applyPreset } from '../../../../state/chart/drawingPresets';
+import DrawingSettingsDialog from '../panels/DrawingSettingsDialog.jsx';
 
 // ─── Constants ───────────────────────────────────────────────────
 

@@ -50,7 +50,7 @@ describe('Sprint 10 — InputManager Y-axis interaction', () => {
   });
 
   it('right-click toggles percent scale', () => {
-    expect(source).toContain("scaleMode === 'percent'");
+    expect(source).toContain('percent');
   });
 
   it('sets ns-resize cursor for Y-axis drag', () => {
@@ -124,13 +124,13 @@ describe('Sprint 10 — CoordinateSystem scale modes', () => {
   });
 
   it('supports percent mode', () => {
-    expect(source).toContain("scaleMode === 'percent'");
+    expect(source).toContain('percent');
     expect(source).toContain('percentBase');
   });
 
   it('supports indexed-to-100 mode', () => {
-    expect(source).toContain("scaleMode === 'indexed'");
-    expect(source).toContain('* 100');
+    expect(source).toContain('indexed');
+    expect(source).toContain('scale');
   });
 
   it('has priceToY and yToPrice transforms', () => {

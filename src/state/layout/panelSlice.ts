@@ -23,6 +23,8 @@ const PANEL_REGISTRY = {
   objectTree:      { title: 'Object Tree',         defaultWidth: 300, minWidth: 240 },
   alertHistory:    { title: 'Alert History',       defaultWidth: 380, minWidth: 300 },
   alertAnalytics:  { title: 'Alert Analytics',     defaultWidth: 400, minWidth: 320 },
+  copilot:         { title: 'AI Copilot',          defaultWidth: 380, minWidth: 300 },
+  stockInfo:       { title: 'Stock Info',          defaultWidth: 360, minWidth: 280 },
 };
 
 export const createPanelSlice = (set, get) => ({

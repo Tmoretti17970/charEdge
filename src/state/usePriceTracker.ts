@@ -258,7 +258,7 @@ const usePriceTracker = create<PriceTrackerState & PriceTrackerActions>()(
 
             clear: () => set({ stats: {} }),
         }),
-        { name: 'charEdge-price-tracker' },
+        { name: 'charEdge-price-tracker', version: 1 },
     ),
 );
 

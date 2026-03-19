@@ -20,24 +20,41 @@ vi.mock('../../app/misc/alertSounds', () => ({
 }));
 
 // Mock notificationLog (A5) — avoid full store chain in tests
-vi.mock('../../state/useNotificationLog', () => ({
+vi.mock('../../state/useNotificationStore', () => ({
     default: { push: mockPush, clear: vi.fn(), toggle: vi.fn() },
-    useNotificationLog: { getState: () => ({ push: mockPush }) },
+    useNotificationStore: { getState: () => ({ pushLog: mockPush }) },
     notificationLog: { push: mockPush, clear: vi.fn(), toggle: vi.fn() },
 }));
 
-// Mock alertPreferences (C5) — DND always off, volume=1 for tests
-vi.mock('../../state/useAlertPreferences', () => ({
-    isInQuietHours: () => false,
+// Mock notificationPreferences (absorbs alertPreferences) — DND always off, volume=1 for tests
+vi.mock('../../state/useNotificationPreferences', () => ({
+    useNotificationPreferences: { getState: () => ({ globalMute: false, dndEnabled: false, globalVolume: 1, alertFrequency: 'instant' }) },
+    shouldDeliver: (_cat: string, channel: string) => channel === 'sound' || channel === 'inApp',
     getAlertVolume: () => 1,
-    useAlertPreferences: { getState: () => ({ globalMute: false, dndEnabled: false, globalVolume: 1 }) },
+    isInQuietHours: () => false,
 }));
 
-// Mock alertHistory (C2) — avoid persistence in tests
-vi.mock('../../state/useAlertHistory', () => ({
-    default: { getState: () => ({ pushEntry: vi.fn() }) },
-    useAlertHistory: { getState: () => ({ pushEntry: vi.fn() }) },
-}));
+
+
+// Mock notification router to call playAlertSound and notificationLog directly
+vi.mock('../../state/notificationRouter', async (importOriginal) => {
+    const actual = await importOriginal() as Record<string, unknown>;
+    return {
+        ...actual,
+        notify: (payload: any) => {
+            // Deliver sound
+            const soundType = payload.soundType || 'price';
+            mockPlayAlertSound(soundType, 1);
+            // Deliver log
+            mockPush({
+                type: payload.variant || 'info',
+                message: `${payload.icon || ''} ${payload.title}: ${payload.body}`.trim(),
+                category: payload.category,
+                meta: payload.meta,
+            });
+        },
+    };
+});
 
 import { useAlertStore, checkAlerts, checkSymbolAlerts } from '../../state/useAlertStore.ts';
 import { playAlertSound } from '../../app/misc/alertSounds';
@@ -248,8 +265,7 @@ describe('useAlertStore', () => {
         checkAlerts({ GOOG: 140 });
         expect(mockPush).toHaveBeenCalledWith(
             expect.objectContaining({
-                type: 'info',
-                category: 'alert',
+                category: 'priceAlerts',
                 meta: expect.objectContaining({
                     symbol: 'GOOG',
                     price: 140,

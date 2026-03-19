@@ -117,30 +117,6 @@ function AchievementsSection() {
         </Card>
       )}
 
-      {/* Notification Preferences */}
-      {enabled && (
-        <Card className={s.s13}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, marginBottom: 12 }}>Notifications</div>
-          <div className={s.s14}>
-            {[
-              { key: 'levelUp', label: 'Level-Up Celebration', desc: 'Full-screen modal when you rank up' },
-              { key: 'achievements', label: 'Achievement Toasts', desc: 'Pop-up notification when you unlock a badge' },
-            ].map(({ key, label, desc }) => (
-              <div key={key} className={s.s15}>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: C.t1 }}>{label}</div>
-                  <div style={{ fontSize: 10, color: C.t3 }}>{desc}</div>
-                </div>
-                <button onClick={() => setNotificationPref(key, !notificationPrefs[key])} className="tf-btn"
-                  style={{ width: 44, height: 24, borderRadius: 12, border: 'none', background: notificationPrefs[key] ? C.g : C.bd, cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}>
-                  <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: notificationPrefs[key] ? 23 : 3, transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
       {/* Reset Progress */}
       {enabled && (
         <Card style={{ padding: 20, border: `1px solid ${C.r}20`, background: C.r + '03' }}>

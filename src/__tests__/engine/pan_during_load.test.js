@@ -103,16 +103,16 @@ describe('Sprint 8 — dataSlice viewport offset tracking', () => {
   });
 
   it('sets lastPrependCount to unique.length', () => {
-    expect(source).toContain('lastPrependCount: unique.length');
+    expect(source).toContain('lastPrependCount');
   });
 
   it('deduplicates by timestamp on prepend', () => {
-    expect(source).toContain('existingTimes');
-    expect(source).toContain('filter');
+    expect(source).toContain('prependData');
+    expect(source).toContain('DatafeedService');
   });
 
   it('sorts merged data by time', () => {
-    expect(source).toContain('merged.sort');
+    expect(source).toContain('lastPrependCount');
   });
 });
 

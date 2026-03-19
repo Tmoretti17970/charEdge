@@ -25,6 +25,7 @@ import { migrateAllTrades } from './charting_library/model/Money.js';
 import { encryptedStore } from './data/EncryptedStore.js';
 import { initApiKeys } from './data/providers/ApiKeyStore.js';
 import { StorageService } from './data/StorageService';
+import { getActiveAccountId } from './state/useAccountStore';
 import { initTelemetry } from './observability/telemetry';
 import { useAnalyticsStore } from './state/useAnalyticsStore';
 import { useGamificationStore } from './state/useGamificationStore';
@@ -34,6 +35,33 @@ import { useUserStore } from './state/useUserStore';
 import { useWatchlistStore } from './state/useWatchlistStore.js';
 import { useWorkspaceStore } from './state/useWorkspaceStore';
 import { logger } from '@/observability/logger.js';
+import { track } from '@/observability/telemetry';
+
+// Sprint 4 Task 4.1: Collect boot performance metrics from performance entries
+function _collectBootMetrics() {
+  try {
+    const p1 = performance.getEntriesByName('boot:phase1')[0];
+    const p2 = performance.getEntriesByName('boot:phase2')[0];
+    const p3 = performance.getEntriesByName('boot:phase3')[0];
+    if (!p1 || !p2 || !p3) return null;
+    const phase1 = Math.round(p1.duration);
+    const phase2 = Math.round(p2.duration);
+    const phase3 = Math.round(p3.duration);
+    return {
+      phase1,
+      phase2,
+      phase3,
+      total: phase1 + phase2 + phase3,
+      phases: [
+        { name: 'Load from Storage', duration: phase1, color: '#4ecdc4' },
+        { name: 'Hydrate Stores', duration: phase2, color: '#ffa726' },
+        { name: 'Post-Boot Setup', duration: phase3, color: '#7c4dff' },
+      ],
+    };
+  } catch (_) {
+    return null;
+  }
+}
 
 // ─── Phase 1: Load from storage ─────────────────────────────────
 
@@ -43,8 +71,30 @@ import { logger } from '@/observability/logger.js';
  * @returns {Promise<Object>} Raw storage results keyed by store name.
  */
 export async function loadFromStorage() {
+  performance.mark('boot:phase1:start');
   logger.boot.info('Phase 1: Legacy migration...');
   await StorageService.migrateFromLegacy();
+
+  // Sprint 2 Task 2.1: Encrypt existing unencrypted trade data (one-time migration)
+  try {
+    const { getDeviceKey, isEncryptionSupported, isEncryptionEnabled, migrateStore } = await import('./data/StorageEncryption');
+    if (isEncryptionSupported() && isEncryptionEnabled()) {
+      await getDeviceKey(); // Ensure device key exists before reads
+      const { openUnifiedDB } = await import('./data/UnifiedDB.js');
+      const migrationDb = await openUnifiedDB();
+      const stores = ['trades', 'trades_real', 'trades_demo', 'playbooks', 'playbooks_real', 'playbooks_demo', 'notes', 'notes_real', 'notes_demo'];
+      let totalMigrated = 0;
+      for (const store of stores) {
+        try {
+          totalMigrated += await migrateStore(migrationDb, store);
+        } catch { /* store may not exist yet */ }
+      }
+      if (totalMigrated > 0) logger.boot.info(`Encrypted ${totalMigrated} previously-unencrypted records`);
+      migrationDb.close();
+    }
+  } catch (err) {
+    logger.boot.warn('Encryption migration skipped (non-fatal):', err?.message);
+  }
 
   // Initialize encrypted stores in parallel with IDB reads (Batch 16: 4.5.1)
   logger.boot.info('Phase 1: Initializing encrypted stores + loading from IndexedDB...');
@@ -76,6 +126,8 @@ export async function loadFromStorage() {
     StorageService.settings.get('gamification'),
   ]);
   logger.boot.info('Phase 1 complete.');
+  performance.mark('boot:phase1:end');
+  try { performance.measure('boot:phase1', 'boot:phase1:start', 'boot:phase1:end'); } catch (_) { /* */ }
 
   return {
     tradesResult,
@@ -101,6 +153,7 @@ export async function loadFromStorage() {
  * @returns {Promise<Array>} Hydrated trades array.
  */
 export async function hydrateStores(raw) {
+  performance.mark('boot:phase2:start');
   logger.boot.info('Phase 2: Hydrating stores...');
 
   // ─── Journal (trades, playbooks, notes, plans) ────────────
@@ -113,15 +166,27 @@ export async function hydrateStores(raw) {
   // Idempotent: trades already migrated (_moneyV === 1) are skipped.
   trades = migrateAllTrades(trades);
 
-  if (trades.length === 0 && playbooks.length === 0) {
+  const bootAccount = getActiveAccountId();
+  if (trades.length === 0 && playbooks.length === 0 && bootAccount === 'demo') {
+    logger.boot.info('Demo account is empty — seeding demo data...');
     const { genDemoData } = await import('./data/demoData.js');
     const demo = genDemoData();
-    useJournalStore.getState().hydrate({
+    const seedData = {
       trades: demo.trades,
       playbooks: demo.playbooks,
       notes: [],
       tradePlans: [],
-    });
+    };
+    useJournalStore.getState().hydrate(seedData);
+    logger.boot.info(`Seeded ${demo.trades.length} demo trades`);
+
+    // Persist to demo IDB so it's there on next reload
+    try {
+      if (demo.trades.length > 0) await StorageService.trades.bulkPut(demo.trades);
+      for (const pb of demo.playbooks) await StorageService.playbooks.put(pb);
+    } catch (e) {
+      logger.boot.warn('Demo data IDB persist failed (non-fatal):', e?.message);
+    }
   } else {
     useJournalStore.getState().hydrate({ trades, playbooks, notes, tradePlans });
   }
@@ -155,9 +220,16 @@ export async function hydrateStores(raw) {
   if (savedGamification && typeof savedGamification === 'object') {
     useGamificationStore.getState().hydrate(savedGamification);
   }
-  useGamificationStore.getState().generateDailyChallenge();
+  // Only generate challenge if one doesn't exist for today
+  const gamState = useGamificationStore.getState();
+  const today = new Date().toISOString().slice(0, 10);
+  if (!gamState.dailyChallenge || gamState.dailyChallenge.date !== today) {
+    gamState.generateDailyChallenge();
+  }
 
   logger.boot.info('Phase 2 complete.');
+  performance.mark('boot:phase2:end');
+  try { performance.measure('boot:phase2', 'boot:phase2:start', 'boot:phase2:end'); } catch (_) { /* */ }
   return trades;
 }
 
@@ -169,6 +241,7 @@ export async function hydrateStores(raw) {
  * @returns {Array<Function>} Unsubscribe functions from auto-save.
  */
 export async function postBoot(trades) {
+  performance.mark('boot:phase3:start');
   logger.boot.info('Phase 3: Post-boot setup...');
 
   // Telemetry (gated behind consent — Phase 1 GDPR compliance)
@@ -188,6 +261,15 @@ export async function postBoot(trades) {
 
   // Persona from trade count
   useUserStore.getState().updateFromTrades(trades);
+
+  // AI Copilot: Rebuild user profile intelligence from trade history
+  try {
+    const { userProfileStore } = await import('./ai/UserProfileStore');
+    await userProfileStore.rebuild(trades || []);
+    logger.boot.info('UserProfileStore rebuilt from trade history');
+  } catch (err) {
+    logger.boot.warn('UserProfileStore init failed (non-fatal): ' + err?.message);
+  }
 
   // Auto-save subscriptions
   const unsubs = setupAutoSave();
@@ -234,6 +316,8 @@ export async function postBoot(trades) {
   }
 
   logger.boot.info('Phase 3 complete.');
+  performance.mark('boot:phase3:end');
+  try { performance.measure('boot:phase3', 'boot:phase3:start', 'boot:phase3:end'); } catch (_) { /* */ }
   return unsubs;
 }
 
@@ -264,21 +348,38 @@ export function useAppBoot() {
         unsubscribers.current = await postBoot(trades);
 
         logger.boot.info('✅ Boot complete!');
+
+        // Sprint 4 Task 4.1: Collect boot phase metrics
+        const bootMetrics = _collectBootMetrics();
+        if (bootMetrics) {
+          logger.boot.info(
+            `Phase 1: ${bootMetrics.phase1}ms | Phase 2: ${bootMetrics.phase2}ms | Phase 3: ${bootMetrics.phase3}ms | Total: ${bootMetrics.total}ms`
+          );
+          if (typeof window !== 'undefined') window.__charEdge_bootMetrics = bootMetrics;
+          try { track('boot_complete', bootMetrics); } catch (_) { /* telemetry best-effort */ }
+        }
+
         if (!cancelled) {
           setPhase('ready');
           setReady(true);
         }
       } catch (err) {
         logger.boot.error('❌ Hydration failed', err);
-        // Seed demo data so the app still works
-        const { genDemoData } = await import('./data/demoData.js');
-        const demo = genDemoData();
-        useJournalStore.getState().hydrate({
-          trades: demo.trades,
-          playbooks: demo.playbooks,
-          notes: [],
-          tradePlans: [],
-        });
+        // Only seed demo data if on demo account — protect real trades
+        const activeAccount = getActiveAccountId();
+        if (activeAccount === 'demo') {
+          const { genDemoData } = await import('./data/demoData.js');
+          const demo = genDemoData();
+          useJournalStore.getState().hydrate({
+            trades: demo.trades,
+            playbooks: demo.playbooks,
+            notes: [],
+            tradePlans: [],
+          });
+        } else {
+          logger.boot.warn('Boot failed on real account — starting with empty journal to protect data');
+          useJournalStore.getState().hydrate({ trades: [], playbooks: [], notes: [], tradePlans: [] });
+        }
         if (!cancelled) {
           setPhase('ready');
           setReady(true);
@@ -294,7 +395,7 @@ export function useAppBoot() {
     };
   }, []);
 
-  return { ready, phase };
+  return { ready, phase, bootMetrics: typeof window !== 'undefined' ? window.__charEdge_bootMetrics : null };
 }
 
 /**

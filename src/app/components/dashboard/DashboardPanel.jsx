@@ -9,7 +9,7 @@
 // Sub-components live in DashboardPrimitives.jsx.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { safeSum } from '../../../charting_library/model/Money.js';
 import { useTodayStats } from '../../../hooks/useTodayStats';
 import { useGamificationStore } from '../../../state/useGamificationStore';
@@ -96,7 +96,14 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
         {computing ? (
           <DashboardSkeleton isMobile={isMobile} />
         ) : trades.length === 0 ? (
-          <DashboardEmptyState onGoToJournal={() => setPage('journal')} />
+          <DashboardEmptyState
+            onGoToJournal={() => window.dispatchEvent(new CustomEvent('tf:openTradeForm'))}
+            onImportTrades={() => {
+              useUIStore.getState().openSettings();
+              // Small delay so panel is open before navigating to Data tab
+              setTimeout(() => window.dispatchEvent(new CustomEvent('tf:openSettingsImport')), 100);
+            }}
+          />
         ) : (
           <DashboardSkeleton isMobile={isMobile} />
         )}

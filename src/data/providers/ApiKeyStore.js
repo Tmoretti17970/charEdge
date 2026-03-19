@@ -85,7 +85,7 @@ export async function initApiKeys() {
 
     // 2. Migrate legacy plain-text keys (charEdge-apikey-*)
     let migrated = false;
-    const knownProviders = ['polygon', 'alphavantage', 'finnhub', 'fmp', 'fred', 'whalealert', 'coingecko', 'etherscan'];
+    const knownProviders = ['polygon', 'alphavantage', 'finnhub', 'fmp', 'fred', 'whalealert', 'coingecko', 'etherscan', 'gemini', 'groq'];
     for (const provider of knownProviders) {
       try {
         const legacyKey = localStorage.getItem(LEGACY_PREFIX + provider);
@@ -119,6 +119,8 @@ export async function initApiKeys() {
       whalealert: 'VITE_WHALEALERT_API_KEY',
       coingecko: 'VITE_COINGECKO_API_KEY',
       etherscan: 'VITE_ETHERSCAN_API_KEY',
+      gemini: 'VITE_GEMINI_API_KEY',
+      groq: 'VITE_GROQ_API_KEY',
     };
     try {
       const env = import.meta?.env;

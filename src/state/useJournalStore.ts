@@ -78,6 +78,7 @@ export async function rehydrateJournalForAccount() {
 
     // ── Fast path: cache hit ────────────────────────────────
     if (_cache[accountId]) {
+      console.info(`[Journal] ✅ Fast-path cache hit for "${accountId}" — ${_cache[accountId]?.trades?.length || 0} trades`);
       useJournalStore.getState().hydrate(_cache[accountId]);
       // Invalidate analytics hash — recomputes without skeleton flash
       import('../app/features/analytics/analyticsSingleton.js').then((m) => m.invalidateCache());
@@ -101,11 +102,13 @@ export async function rehydrateJournalForAccount() {
 
     // If switching to demo and the stores are empty → seed demo data
     if (accountId === 'demo' && trades.length === 0 && playbooks.length === 0) {
+      console.info('[Journal] Demo account IDB is empty — seeding demo data...');
       try {
         const { genDemoData } = await import('../data/demoData.js');
         const demo = genDemoData();
         trades = demo.trades || [];
         playbooks = demo.playbooks || [];
+        console.info(`[Journal] Seeded ${trades.length} demo trades, ${playbooks.length} playbooks`);
 
         // Persist seeded demo data to the demo stores
         if (trades.length > 0) await StorageService.trades.bulkPut(trades);
@@ -150,7 +153,10 @@ export async function rehydrateJournalForAccount() {
  * Runs in the background — never blocks the UI.
  */
 export async function prewarmAccountCache(accountId) {
-  if (_cache[accountId]) return; // Already cached
+  if (_cache[accountId]) {
+    console.info(`[Journal] prewarm: cache already exists for "${accountId}"`);
+    return; // Already cached
+  }
 
   try {
     const { openUnifiedDB } = await import('../data/UnifiedDB.js');
@@ -181,6 +187,7 @@ export async function prewarmAccountCache(accountId) {
       try {
         const { genDemoData } = await import('../data/demoData.js');
         const demo = genDemoData();
+        console.info(`[Journal] prewarm: seeded ${demo.trades?.length || 0} demo trades into cache`);
         _cache.demo = {
           trades: demo.trades || [],
           playbooks: demo.playbooks || [],

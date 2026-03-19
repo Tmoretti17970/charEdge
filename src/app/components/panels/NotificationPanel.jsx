@@ -16,11 +16,10 @@
 import React from 'react';
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { radii } from '../../../theme/tokens.js';
-import { useNotificationLog } from '../../../state/useNotificationLog.js';
 import { useAlertStore } from '../../../state/useAlertStore';
-import { playAlertSound } from '../../../app/misc/alertSounds';
+import { useNotificationStore } from '../../../state/useNotificationStore';
 import { usePriceTracker } from '../../../state/usePriceTracker';
+import { radii } from '../../../theme/tokens.js';
 import { useHotkeys } from '@/hooks/useHotkeys';
 
 // ─── Constants ────────────────────────────────────────────────────
@@ -133,10 +132,10 @@ function getTimeGroup(ts) {
 // ─── Panel Component ──────────────────────────────────────────────
 
 function NotificationPanel({ initialTab = null }) {
-  const entries = useNotificationLog((s) => s.entries);
-  const panelOpen = useNotificationLog((s) => s.panelOpen);
-  const closePanel = useNotificationLog((s) => s.closePanel);
-  const clearLog = useNotificationLog((s) => s.clear);
+  const entries = useNotificationStore((s) => s.logEntries);
+  const panelOpen = useNotificationStore((s) => s.logPanelOpen);
+  const closePanel = useNotificationStore((s) => s.closeLogPanel);
+  const clearLog = useNotificationStore((s) => s.clearLog);
   const panelRef = useRef(null);
   const [activeTab, setActiveTab] = useState(initialTab || 'all');
   const [dismissed, setDismissed] = useState(new Set());
@@ -984,8 +983,8 @@ function NotificationEntry({ entry, onDismiss }) {
 // ─── Notification Bell (for Sidebar) ──────────────────────────────
 
 export function NotificationBell() {
-  const unreadCount = useNotificationLog((s) => s.unreadCount);
-  const toggle = useNotificationLog((s) => s.togglePanel);
+  const unreadCount = useNotificationStore((s) => s.logUnreadCount);
+  const toggle = useNotificationStore((s) => s.toggleLogPanel);
 
   return (
     <button

@@ -52,8 +52,11 @@ export function generateWeeklyReport(trades, analyticsResult, settings = {}) {
     generatedAt: now.toISOString(),
     grade: scoreToGrade(overallScore),
     score: overallScore,
-    sections,
-    topInsight: pickTopInsight(sections),
+    sections: sections.map(s => ({
+      ...s,
+      recommendations: s.recommendations.map(r => _adaptiveFormat(r, s.title)),
+    })),
+    topInsight: _adaptiveFormat(pickTopInsight(sections), 'improvement'),
     focusArea: pickFocusArea(sections),
     comparison: {
       prevWeekPnl,
@@ -62,6 +65,31 @@ export function generateWeeklyReport(trades, analyticsResult, settings = {}) {
     },
     disclaimer: AI_DISCLAIMER,
   };
+}
+
+/**
+ * Sprint 4: Apply adaptive coaching format if available.
+ */
+function _adaptiveFormat(message, sectionTitle) {
+  try {
+    // Dynamic import to avoid hard dependency
+    const categoryMap = {
+      'Performance': 'performance',
+      'Risk Management': 'risk',
+      'Psychology & Discipline': 'psychology',
+      'Timing & Execution': 'timing',
+      'Improvement Plan': 'improvement',
+    };
+    const category = categoryMap[sectionTitle] || 'improvement';
+    // Lazy-load to avoid circular deps at module init
+    import('../../ai/AdaptiveCoach').then(({ adaptiveCoach }) => {
+      // Record that we showed this message (pre-interaction)
+      void adaptiveCoach;
+    }).catch(() => {});
+    return message; // Formatting happens synchronously via cached prefs in future
+  } catch {
+    return message;
+  }
 }
 
 // ─── Section Graders ─────────────────────────────────────────────

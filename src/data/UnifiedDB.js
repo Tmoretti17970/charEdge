@@ -17,7 +17,7 @@ import { logger } from '@/observability/logger';
 // ═══════════════════════════════════════════════════════════════════
 
 const UNIFIED_DB_NAME = 'charEdge-unified';
-const UNIFIED_DB_VERSION = 5; // P2 v5: Added account-specific stores (trades_real, trades_demo, etc.)
+const UNIFIED_DB_VERSION = 6; // Sprint 5: Added timestamp indexes on cache stores for fast eviction
 
 // Old database names (for migration)
 const OLD_DBS = [
@@ -117,6 +117,11 @@ function openUnifiedDB() {
           if (!db.objectStoreNames.contains(storeName)) {
             db.createObjectStore(storeName, { keyPath: 'key' });
           }
+          // Sprint 5 Task 5.2.1: Add timestamp index for IDBKeyRange-based eviction
+          const cacheStore = event.target.transaction.objectStore(storeName);
+          if (!cacheStore.indexNames.contains('timestamp')) {
+            cacheStore.createIndex('timestamp', 'timestamp', { unique: false });
+          }
         }
 
         // ── Tick stores ──
@@ -208,9 +213,10 @@ function openUnifiedDB() {
     }
   });
 
-  // Reset on failure so future calls can retry
+  // On failure, cache the rejection for 30s to prevent rapid-fire retries
+  // that flood the console (TickPersistence flushes every 5s)
   _dbPromise.catch(() => {
-    _dbPromise = null;
+    setTimeout(() => { _dbPromise = null; }, 30000);
   });
 
   return _dbPromise;

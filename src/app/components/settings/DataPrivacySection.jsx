@@ -6,13 +6,35 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { C, M } from '../../../constants.js';
+import { C, F, M } from '../../../constants.js';
 import { useConsentStore } from '../../../state/useConsentStore';
 import { useGamificationStore } from '../../../state/useGamificationStore';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useUserStore } from '../../../state/useUserStore';
 import { Card, Btn } from '../ui/UIKit.jsx';
 import { SectionHeader } from './SettingsHelpers.jsx';
+
+function PermissionRow({ label, api }) {
+  const [status, setStatus] = React.useState('checking');
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const result = await navigator.permissions?.query({ name: api });
+        setStatus(result?.state || 'unknown');
+      } catch { setStatus('unknown'); }
+    })();
+  }, [api]);
+  const colors = { granted: C.g, denied: C.r, prompt: C.y || C.t3, unknown: C.t3, checking: C.t3 };
+  const labels = { granted: 'Allowed', denied: 'Blocked', prompt: 'Ask', unknown: '—', checking: '…' };
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0' }}>
+      <span style={{ fontSize: 12, color: C.t2, fontFamily: F }}>{label}</span>
+      <span style={{ fontSize: 10, fontWeight: 600, color: colors[status] || C.t3, fontFamily: M }}>
+        {labels[status] || status}
+      </span>
+    </div>
+  );
+}
 
 function DataPrivacySection() {
   const analytics = useConsentStore((s) => s.analytics);
@@ -134,35 +156,53 @@ function DataPrivacySection() {
             {analytics ? 'Opt Out' : 'Opt In'}
           </Btn>
         </div>
+      </Card>
 
-        {/* Data export */}
-        <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          paddingBottom: 16, marginBottom: 16, borderBottom: `1px solid ${C.bd}`,
-        }}>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: C.t1 }}>Export My Data</div>
-            <div style={{ fontSize: 12, color: C.t3, marginTop: 2 }}>
-              Download all your data as JSON ({tradeCount} trades, settings, progress)
-            </div>
-          </div>
-          <Btn variant="ghost" onClick={handleExport} style={{ fontSize: 12, padding: '8px 14px', flexShrink: 0 }}>
-            📥 Export JSON
-          </Btn>
-        </div>
+      {/* Permissions Status */}
+      <Card style={{ padding: 20, marginTop: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: C.t1, marginBottom: 12 }}>Browser Permissions</div>
+        <PermissionRow label="Notifications" api="notifications" />
+        <PermissionRow label="Clipboard" api="clipboard-write" />
+        <PermissionRow label="Persistent Storage" api="persistent-storage" />
+      </Card>
 
-        {/* Data deletion */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: C.t1 }}>Delete All Data</div>
-            <div style={{ fontSize: 12, color: C.t3, marginTop: 2 }}>
-              Permanently erase all data from this browser. Cannot be undone.
-            </div>
-          </div>
-          <Btn variant="danger" onClick={handleDelete} style={{ fontSize: 12, padding: '8px 14px', flexShrink: 0 }}>
-            🗑️ Delete Everything
-          </Btn>
+      {/* Data Processing Statement */}
+      <Card style={{ padding: 20, marginTop: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: C.t1, marginBottom: 8 }}>Data Processing</div>
+        <div style={{ fontSize: 11, color: C.t3, lineHeight: 1.6, fontFamily: F }}>
+          <p style={{ margin: '0 0 8px' }}>🔒 <strong>Local-first architecture:</strong> All data stays in your browser. No trade data, personal information, or analytics are sent to any server unless you explicitly enable cloud sync.</p>
+          <p style={{ margin: '0 0 8px' }}>🧠 <strong>AI processing:</strong> All AI analysis runs in your browser using on-device models. No prompts or responses leave your machine.</p>
+          <p style={{ margin: 0 }}>📊 <strong>Analytics:</strong> If opted in, only anonymous usage events (page views, feature usage) are collected. No trade data or personal information is included.</p>
         </div>
+      </Card>
+
+      {/* Storage Breakdown */}
+      <Card style={{ padding: 20, marginTop: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: C.t1, marginBottom: 8 }}>What We Store</div>
+        <table style={{ width: '100%', fontSize: 11, color: C.t2, fontFamily: F, borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ borderBottom: `1px solid ${C.bd}30` }}>
+              <th style={{ textAlign: 'left', padding: '6px 0', fontSize: 10, fontWeight: 700, color: C.t3 }}>Data</th>
+              <th style={{ textAlign: 'left', padding: '6px 0', fontSize: 10, fontWeight: 700, color: C.t3 }}>Storage</th>
+              <th style={{ textAlign: 'left', padding: '6px 0', fontSize: 10, fontWeight: 700, color: C.t3 }}>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ['Trades & Journal', 'IndexedDB', 'Your trading history'],
+              ['Settings', 'localStorage', 'App preferences'],
+              ['AI Models', 'OPFS / Cache', 'On-device AI inference'],
+              ['Consent', 'localStorage', 'Your privacy choices'],
+              ['Session', 'sessionStorage', 'Current session state'],
+            ].map(([data, storage, purpose]) => (
+              <tr key={data} style={{ borderBottom: `1px solid ${C.bd}10` }}>
+                <td style={{ padding: '6px 0' }}>{data}</td>
+                <td style={{ padding: '6px 0', fontFamily: M, fontSize: 10 }}>{storage}</td>
+                <td style={{ padding: '6px 0', color: C.t3 }}>{purpose}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </Card>
     </section>
   );

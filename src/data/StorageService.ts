@@ -15,6 +15,7 @@
 import { openUnifiedDB } from './UnifiedDB.js';
 import { logger } from '@/observability/logger';
 import { accountStoreName } from '@/state/useAccountStore';
+import { encryptRecord, decryptRecord, isEncryptionEnabled, isEncryptionSupported } from './StorageEncryption';
 
 // ─── Database Access ────────────────────────────────────────────
 let _db = null;
@@ -57,42 +58,57 @@ async function _getDB() {
 // ─── Low-level Helpers ──────────────────────────────────────────
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function _idbPut(db, table, item) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(table, 'readwrite');
-    const store = tx.objectStore(table);
-    const req = store.put(item);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => {
-      const err = req.error || tx.error;
-      if (err?.name === 'QuotaExceededError') {
-        err.isQuotaError = true;
-        err.message = `Storage quota exceeded writing to "${table}". Run quotaRecovery() to free space.`;
-      }
+  return new Promise(async (resolve, reject) => {
+    try {
+      const record = (isEncryptionEnabled() && isEncryptionSupported())
+        ? await encryptRecord(item)
+        : item;
+      const tx = db.transaction(table, 'readwrite');
+      const store = tx.objectStore(table);
+      const req = store.put(record);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => {
+        const err = req.error || tx.error;
+        if (err?.name === 'QuotaExceededError') {
+          err.isQuotaError = true;
+          err.message = `Storage quota exceeded writing to "${table}". Run quotaRecovery() to free space.`;
+        }
+        reject(err);
+      };
+    } catch (err) {
       reject(err);
-    };
+    }
   });
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function _idbBulkPut(db, table, items) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(table, 'readwrite');
-    const store = tx.objectStore(table);
-    for (const item of items) store.put(item);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => {
-      const err = tx.error;
-      if (err?.name === 'QuotaExceededError') {
-        err.isQuotaError = true;
-        err.message = `Storage quota exceeded during bulk write to "${table}".`;
-      }
+  return new Promise(async (resolve, reject) => {
+    try {
+      const shouldEncrypt = isEncryptionEnabled() && isEncryptionSupported();
+      const records = shouldEncrypt
+        ? await Promise.all(items.map((item) => encryptRecord(item)))
+        : items;
+      const tx = db.transaction(table, 'readwrite');
+      const store = tx.objectStore(table);
+      for (const record of records) store.put(record);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => {
+        const err = tx.error;
+        if (err?.name === 'QuotaExceededError') {
+          err.isQuotaError = true;
+          err.message = `Storage quota exceeded during bulk write to "${table}".`;
+        }
+        reject(err);
+      };
+      tx.onabort = () => {
+        const err = tx.error;
+        if (err?.name === 'QuotaExceededError') err.isQuotaError = true;
+        reject(err || new Error('Transaction aborted'));
+      };
+    } catch (err) {
       reject(err);
-    };
-    tx.onabort = () => {
-      const err = tx.error;
-      if (err?.name === 'QuotaExceededError') err.isQuotaError = true;
-      reject(err || new Error('Transaction aborted'));
-    };
+    }
   });
 }
 
@@ -101,7 +117,15 @@ function _idbGet(db, table, key) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(table, 'readonly');
     const req = tx.objectStore(table).get(key);
-    req.onsuccess = () => resolve(req.result || null);
+    req.onsuccess = async () => {
+      try {
+        const result = req.result ? await decryptRecord(req.result) : null;
+        resolve(result);
+      } catch (err) {
+        logger.data.warn(`[StorageService] Decryption failed for ${table}/${key}:`, (err as Error)?.message);
+        resolve(req.result); // fallback to raw
+      }
+    };
     req.onerror = () => reject(req.error);
   });
 }
@@ -111,7 +135,16 @@ function _idbGetAll(db, table) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(table, 'readonly');
     const req = tx.objectStore(table).getAll();
-    req.onsuccess = () => resolve(req.result);
+    req.onsuccess = async () => {
+      try {
+        const records = req.result || [];
+        const decrypted = await Promise.all(records.map((r) => decryptRecord(r)));
+        resolve(decrypted);
+      } catch (err) {
+        logger.data.warn(`[StorageService] Batch decryption failed for ${table}:`, (err as Error)?.message);
+        resolve(req.result || []); // fallback to raw
+      }
+    };
     req.onerror = () => reject(req.error);
   });
 }
@@ -553,9 +586,28 @@ const StorageService = {
 
     try {
       const db = await _getDB();
+      let freedItems = 0;
+
+      // Phase 3 Task #44: Prioritize deleting cache/temp data over user content
+      // 1. Try clearing non-critical cached settings first (telemetry, etc.)
+      const cacheStores = ['chart_cache', 'indicator_cache', 'ai_cache'];
+      for (const store of cacheStores) {
+        try {
+          if (db) await _idbClear(db, store);
+          freedItems++;
+        } catch { /* store may not exist — skip */ }
+      }
+
+      // 2. Re-check quota after clearing caches
+      const recheck = await this.checkQuota();
+      if (recheck.ok && recheck.data.percent < _targetPercent) {
+        return { ok: true, freed: freedItems, message: `Freed cache data, quota now at ${recheck.data.percent}%` };
+      }
+
+      // 3. Only as a last resort: remove oldest 10% of trades (was 20%)
       const allTrades = db ? await _idbGetAll(db, 'trades') : [..._memFallback.get('trades').values()];
 
-      if (allTrades.length === 0) return { ok: true, freed: 0 };
+      if (allTrades.length === 0) return { ok: true, freed: freedItems };
 
       allTrades.sort((a, b) => {
         const da = a.date || a.entryDate || 0;
@@ -567,7 +619,7 @@ const StorageService = {
         );
       });
 
-      const removeCount = Math.ceil(allTrades.length * 0.2);
+      const removeCount = Math.ceil(allTrades.length * 0.1); // 10% instead of 20%
       const toRemove = allTrades.slice(0, removeCount);
 
       for (const trade of toRemove) {
@@ -575,8 +627,8 @@ const StorageService = {
         else _memFallback.get('trades').delete(trade.id);
       }
 
-      logger.data.warn(`[StorageService] Quota recovery: removed ${removeCount} oldest trades`);
-      return { ok: true, freed: removeCount, message: `Removed ${removeCount} oldest trades` };
+      logger.data.warn(`[StorageService] Quota recovery: cleared caches + removed ${removeCount} oldest trades`);
+      return { ok: true, freed: freedItems + removeCount, message: `Removed ${removeCount} oldest trades after clearing caches` };
     } catch (e) {
       return { ok: false, freed: 0, error: e.message };
     }

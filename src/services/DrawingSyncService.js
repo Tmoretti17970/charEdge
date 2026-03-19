@@ -1,15 +1,19 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Drawing Sync Service (Sprint 23)
+// charEdge — Drawing Sync Service (Sprint 6 Enhanced)
 //
 // Cross-device drawing synchronization:
 //   - Save/load drawings to IndexedDB for offline support
 //   - Queue changes when offline → sync on reconnect
 //   - Version-based conflict resolution (last-write-wins)
-//   - Sync status tracking (synced, pending, conflict)
+//   - Sprint 6 Task 6.2: Real Supabase cloud sync
 //
-// NOTE: Cloud API integration is a stub — replace with real API
-// endpoints when backend is ready.
+// Usage:
+//   const svc = getDrawingSyncService();
+//   svc.saveLocal('BTC', '1h', drawings);
+//   svc.pullFromCloud('BTC', '1h');
 // ═══════════════════════════════════════════════════════════════════
+
+import supabase from '../data/supabaseClient.ts';
 
 const DB_NAME = 'charEdge-drawings';
 const DB_VERSION = 1;
@@ -172,22 +176,45 @@ class DrawingSyncService {
     }
   }
 
-  // ─── Cloud sync stubs ─────────────────────────────────────
+  // ─── Sprint 6 Task 6.2: Real Supabase cloud sync ─────────
 
+  /**
+   * Push a drawing record to Supabase (upsert).
+   * @param {Object} record - { id, symbol, tf, drawings, version, updatedAt }
+   */
   async _syncToCloud(record) {
     this._syncStatus = 'syncing';
     this._notify();
 
-    try {
-      // STUB: Replace with actual API call
-      // await fetch('/api/drawings/sync', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(record),
-      // });
+    // Guard: skip if Supabase is not configured
+    if (!supabase) {
+      this._syncStatus = 'idle';
+      this._notify();
+      return;
+    }
 
-      // Simulate network latency
-      await new Promise(resolve => setTimeout(resolve, 100));
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        // Not authenticated — save locally only
+        this._syncStatus = 'idle';
+        this._notify();
+        return;
+      }
+
+      const { error } = await supabase
+        .from('drawings')
+        .upsert({
+          id: record.id,
+          user_id: user.id,
+          symbol: record.symbol,
+          tf: record.tf,
+          drawings: record.drawings,
+          version: record.version,
+          updated_at: new Date(record.updatedAt).toISOString(),
+        }, { onConflict: 'id' });
+
+      if (error) throw error;
 
       this._syncStatus = 'idle';
       this._notify();
@@ -196,6 +223,112 @@ class DrawingSyncService {
       this._syncStatus = 'error';
       this._notify();
       await this._enqueue(record);
+    }
+  }
+
+  /**
+   * Sprint 6 Task 6.2.4: Pull drawings from Supabase and merge with local (last-write-wins).
+   * @param {string} symbol
+   * @param {string} tf
+   * @returns {Promise<Array>} Merged drawings
+   */
+  async pullFromCloud(symbol, tf) {
+    if (!supabase) return this.loadLocal(symbol, tf);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return this.loadLocal(symbol, tf);
+
+      const key = `${symbol}-${tf}`;
+      const { data: cloudRecord, error } = await supabase
+        .from('drawings')
+        .select('*')
+        .eq('id', key)
+        .eq('user_id', user.id)
+        .single();
+
+      if (error || !cloudRecord) {
+        // No cloud data — return local
+        return this.loadLocal(symbol, tf);
+      }
+
+      // Last-write-wins merge: compare timestamps
+      const all = await idbGetAll(STORE_NAME);
+      const localRecord = all.find(r => r.id === key);
+      const cloudTime = new Date(cloudRecord.updated_at).getTime();
+      const localTime = localRecord?.updatedAt || 0;
+
+      if (cloudTime > localTime) {
+        // Cloud is newer — update local
+        const merged = {
+          id: key,
+          symbol,
+          tf,
+          drawings: cloudRecord.drawings,
+          version: cloudRecord.version,
+          updatedAt: cloudTime,
+        };
+        await idbPut(STORE_NAME, merged);
+        return merged.drawings;
+      }
+
+      // Local is newer or same — keep local, push to cloud
+      if (localRecord && localTime > cloudTime) {
+        await this._syncToCloud(localRecord);
+      }
+      return localRecord?.drawings || [];
+    } catch (err) {
+      console.warn('[DrawingSync] Cloud pull failed:', err);
+      return this.loadLocal(symbol, tf);
+    }
+  }
+
+  /**
+   * Sprint 6 Task 6.2: Full sync on app boot — push any queued changes,
+   * then pull latest from cloud for all locally-known symbol/tf combos.
+   */
+  async syncFromCloud() {
+    if (!supabase || !this._online) return;
+
+    try {
+      // Flush any offline queue first
+      await this._flushQueue();
+
+      // Pull all user drawings from cloud
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: cloudRecords, error } = await supabase
+        .from('drawings')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error || !cloudRecords) return;
+
+      // Merge each cloud record with local
+      const localAll = await idbGetAll(STORE_NAME);
+      const localMap = new Map(localAll.map(r => [r.id, r]));
+
+      for (const cloud of cloudRecords) {
+        const local = localMap.get(cloud.id);
+        const cloudTime = new Date(cloud.updated_at).getTime();
+
+        if (!local || cloudTime > (local.updatedAt || 0)) {
+          // Cloud is newer — update local
+          await idbPut(STORE_NAME, {
+            id: cloud.id,
+            symbol: cloud.symbol,
+            tf: cloud.tf,
+            drawings: cloud.drawings,
+            version: cloud.version,
+            updatedAt: cloudTime,
+          });
+        }
+      }
+
+      console.log(`[DrawingSync] Boot sync: merged ${cloudRecords.length} cloud records`);
+    } catch (err) {
+      console.warn('[DrawingSync] Boot sync failed:', err);
     }
   }
 

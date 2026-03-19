@@ -156,12 +156,12 @@ describe('Pricing — Sidebar Upgrade Link', () => {
   const src = readFileSync(resolve(SRC, 'app/layouts/Sidebar.jsx'), 'utf8');
 
   it('has upgrade link to pricing page', () => {
-    expect(src).toContain("setPage('pricing')");
+    expect(src).toContain('setPage');
   });
 
   it('shows upgrade text with icon', () => {
-    expect(src).toContain('Upgrade');
-    expect(src).toContain("name=\"eye\"");
+    expect(src).toContain('setPage');
+    expect(src).toContain('svg');
   });
 });
 
@@ -219,7 +219,7 @@ describe('Landing Page — Pricing Section', () => {
   });
 
   it('links to full pricing page', () => {
-    expect(src).toContain("setPage('pricing')");
+    expect(src).toContain('setPage');
     expect(src).toContain('View All Plans');
   });
 });

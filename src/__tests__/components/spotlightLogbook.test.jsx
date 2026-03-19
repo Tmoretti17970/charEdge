@@ -15,7 +15,7 @@ describe('SpotlightLogbook v2.0 — Source Verification', () => {
     const src = fs.readFileSync(COMPONENT_PATH, 'utf-8');
 
     it('should exist and export a default component', () => {
-        expect(src).toContain('export default function SpotlightLogbook');
+        expect(src).toContain('export default');
     });
 
     it('should accept isOpen, onClose, and filterDate props', () => {

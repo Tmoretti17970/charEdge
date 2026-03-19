@@ -19,10 +19,12 @@
 import { logger } from '@/observability/logger.js';
 import type { TradeSnapshot } from './TradeSnapshot';
 import type { LeakReport } from './LeakDetector';
+import { userProfileStore } from './UserProfileStore';
+import { conversationMemory } from './ConversationMemory';
 
 // ─── Types ──────────────────────────────────────────────────────
 
-export type LLMProvider = 'openai' | 'anthropic' | 'local' | 'none';
+export type LLMProvider = 'openai' | 'anthropic' | 'local' | 'webllm' | 'none';
 
 export interface LLMConfig {
     provider: LLMProvider;
@@ -45,6 +47,11 @@ interface Message {
     content: string;
 }
 
+interface StreamMessage {
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+}
+
 // ─── Constants ──────────────────────────────────────────────────
 
 const DEFAULT_CONFIG: LLMConfig = {
@@ -62,6 +69,55 @@ Guidelines:
 - Suggest concrete improvements, not generic advice.
 - Use trading terminology appropriately.
 - Keep responses under 200 words unless explicitly asked for detail.`;
+
+/**
+ * Builds a personalized system prompt by appending the trader's profile.
+ * This makes every AI response aware of the user's style, strengths, and weaknesses.
+ */
+function _getPersonalizedSystemPrompt(): string {
+    let prompt = SYSTEM_PROMPT;
+
+    // Sprint 5: Try TraderDNA first (richer profile), fall back to UserProfileStore
+    try {
+        // Sync import — TraderDNA reads from UserProfileStore which uses localStorage
+        const { traderDNA } = require('./TraderDNA') as { traderDNA: { getDNAForPrompt(): string } };
+        const dnaPrompt = traderDNA.getDNAForPrompt();
+        if (dnaPrompt) {
+            prompt += `\n\n${dnaPrompt}`;
+        } else {
+            // Fallback to basic profile
+            const profileSummary = userProfileStore.getSummaryForAI();
+            if (profileSummary) {
+                prompt += `\n\n--- Trader Profile ---\n${profileSummary}`;
+            }
+        }
+    } catch {
+        // TraderDNA not available — use basic profile
+        const profileSummary = userProfileStore.getSummaryForAI();
+        if (profileSummary) {
+            prompt += `\n\n--- Trader Profile ---\n${profileSummary}`;
+        }
+    }
+
+    // Sprint 4: Add coaching preferences context
+    try {
+        const { adaptiveCoach } = require('./AdaptiveCoach') as { adaptiveCoach: { getCoachingSummaryForAI(): string } };
+        const coachingSummary = adaptiveCoach.getCoachingSummaryForAI();
+        if (coachingSummary) {
+            prompt += `\n\n--- Coaching Preferences ---\n${coachingSummary}`;
+        }
+    } catch { /* not available */ }
+
+    // Sprint 2: Add conversation memory context (sync — uses cached data)
+    const recentContext = conversationMemory.getRecentContext(3);
+    if (recentContext.length > 0) {
+        const contextStr = recentContext
+            .map(m => `${m.role === 'user' ? 'User' : 'AI'}: ${m.content.slice(0, 100)}`)
+            .join('\n');
+        prompt += `\n\n--- Recent Conversation ---\n${contextStr}`;
+    }
+    return prompt;
+}
 
 // ─── LLMService Class ───────────────────────────────────────────
 
@@ -113,7 +169,39 @@ class LLMService {
     }
 
     get isAvailable(): boolean {
+        // WebLLM is available even without explicit config
+        try {
+            const { webLLMProvider } = require('./WebLLMProvider');
+            if (webLLMProvider?.isLoaded) return true;
+        } catch { /* not imported yet */ }
         return this._initialized;
+    }
+
+    /**
+     * Public chat method for AIRouter (Sprint 58).
+     */
+    async chatDirect(messages: Message[]): Promise<LLMResponse> {
+        return this._chat(messages);
+    }
+
+    /**
+     * Streaming chat (Sprint 59). Yields tokens one-by-one.
+     */
+    async *streamChat(messages: Message[], maxTokens = 512, temperature = 0.3): AsyncGenerator<string, void, unknown> {
+        // Prefer WebLLM for streaming
+        try {
+            const { webLLMProvider } = await import('./WebLLMProvider');
+            if (webLLMProvider.isLoaded) {
+                for await (const token of webLLMProvider.streamChat(messages, maxTokens, temperature)) {
+                    yield token;
+                }
+                return;
+            }
+        } catch { /* webllm not available */ }
+
+        // Fallback: non-streaming, yield full response
+        const response = await this._chat(messages);
+        yield response.content;
     }
 
     // ─── High-Level Analysis Methods ────────────────────────────
@@ -124,7 +212,7 @@ class LLMService {
     async analyzeTradeSnapshot(snapshot: TradeSnapshot): Promise<LLMResponse> {
         const prompt = this._buildTradePrompt(snapshot);
         return this._chat([
-            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'system', content: _getPersonalizedSystemPrompt() },
             { role: 'user', content: prompt },
         ]);
     }
@@ -147,13 +235,35 @@ class LLMService {
 Provide: 1) Overall assessment, 2) Best trade, 3) Worst trade, 4) Key improvement`;
 
         return this._chat([
-            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'system', content: _getPersonalizedSystemPrompt() },
             { role: 'user', content: prompt },
         ]);
     }
 
     /**
+     * Sprint 3: Analyze with journal RAG context.
+     * Searches past trades for relevant context before sending to LLM.
+     */
+    async analyzeWithJournalContext(question: string): Promise<LLMResponse> {
+        let ragContext = '';
+        try {
+            const { journalRAG } = await import('./JournalRAG');
+            ragContext = await journalRAG.getContextForPrompt(question);
+        } catch { /* RAG not available */ }
+
+        const systemPrompt = ragContext
+            ? `${_getPersonalizedSystemPrompt()}\n\n${ragContext}`
+            : _getPersonalizedSystemPrompt();
+
+        return this._chat([
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: question },
+        ]);
+    }
+
+    /**
      * Generate coaching response for detected behavioral leaks.
+     * Sprint 62: Routes through AIRouter for in-browser LLM coaching.
      */
     async coachOnLeaks(report: LeakReport): Promise<LLMResponse> {
         const leakSummary = report.leaks
@@ -169,10 +279,30 @@ ${leakSummary}
 
 Provide empathetic but direct coaching. Prioritize the most impactful leak. Give one specific action item for this week.`;
 
-        return this._chat([
-            { role: 'system', content: SYSTEM_PROMPT },
+        const messages: Message[] = [
+            { role: 'system', content: _getPersonalizedSystemPrompt() },
             { role: 'user', content: prompt },
-        ]);
+        ];
+
+        // Sprint 62: Try AIRouter first (routes to WebLLM if loaded)
+        try {
+            const { aiRouter } = await import('./AIRouter');
+            const result = await aiRouter.route({
+                type: 'coach',
+                messages,
+                maxTokens: 300,
+                temperature: 0.5,
+            });
+            return {
+                content: result.content,
+                model: result.model,
+                tokensUsed: result.tokensUsed,
+                latencyMs: result.latencyMs,
+            };
+        } catch {
+            // Fallback to direct chat
+            return this._chat(messages);
+        }
     }
 
     // ─── Core Chat Method ───────────────────────────────────────
@@ -197,8 +327,18 @@ Provide empathetic but direct coaching. Prioritize the most impactful leak. Give
                     return await this._chatAnthropic(messages, start);
                 case 'local':
                     return await this._chatLocal(messages, start);
-                default:
+                case 'webllm':
+                    return await this._chatWebLLM(messages, start);
+                default: {
+                    // Try WebLLM first if loaded, even without explicit config
+                    try {
+                        const { webLLMProvider } = await import('./WebLLMProvider');
+                        if (webLLMProvider.isLoaded) {
+                            return await this._chatWebLLM(messages, start);
+                        }
+                    } catch { /* not available */ }
                     throw new Error(`Unknown provider: ${this._config.provider}`);
+                }
             }
         } catch (err: unknown) {
             logger.network.error(`[LLM] ${this._config.provider} error`, err);
@@ -287,6 +427,26 @@ Provide empathetic but direct coaching. Prioritize the most impactful leak. Give
             content: data.choices?.[0]?.message?.content || '',
             model: data.model || this._config.model || 'local',
             tokensUsed: data.usage?.total_tokens || 0,
+            latencyMs: performance.now() - start,
+        };
+    }
+
+    private async _chatWebLLM(messages: Message[], start: number): Promise<LLMResponse> {
+        const { webLLMProvider } = await import('./WebLLMProvider');
+        if (!webLLMProvider.isLoaded) {
+            throw new Error('WebLLM model not loaded');
+        }
+
+        const result = await webLLMProvider.chat(
+            messages,
+            this._config.maxTokens || 512,
+            this._config.temperature ?? 0.3,
+        );
+
+        return {
+            content: result.content,
+            model: webLLMProvider.status.modelId || 'webllm',
+            tokensUsed: result.tokensUsed,
             latencyMs: performance.now() - start,
         };
     }

@@ -10,7 +10,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useRef } from 'react';
-import { useAlertHistory } from '../state/useAlertHistory';
+import { useAlertStore } from '../state/useAlertStore';
 
 const INTERVALS = [
     { key: '5m' as const, ms: 5 * 60_000 },
@@ -31,7 +31,7 @@ export function useAlertOutcomeTracker(getPrice?: (symbol: string) => number | n
 
     useEffect(() => {
         const tick = () => {
-            const { entries, updateOutcome } = useAlertHistory.getState();
+            const { historyEntries: entries, updateHistoryOutcome: updateOutcome } = useAlertStore.getState();
             const now = Date.now();
 
             for (const entry of entries) {

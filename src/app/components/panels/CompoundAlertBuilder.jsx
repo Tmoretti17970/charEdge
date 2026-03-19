@@ -9,7 +9,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useCallback } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C, M } from '../../../constants.js';
 import { useAlertStore } from '../../../state/useAlertStore';
 
 const CONDITIONS = [

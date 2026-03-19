@@ -33,11 +33,23 @@ export interface PanelSettings {
     focusMode: boolean;
 }
 
+export interface MultiChartPanel {
+    symbol: string;
+    tf: string;
+}
+
+export interface MultiChartConfig {
+    layout: '1x1' | '2x1' | '1x2' | '3x1' | '1x3' | '2x2';
+    panels: MultiChartPanel[];
+}
+
 export interface WorkspaceState {
     page: string;
     chart: ChartSettings;
     panels?: PanelSettings;
     journal?: Record<string, unknown>;
+    // Sprint 6 Task 6.1.5: Multi-chart layout persistence
+    multiChart?: MultiChartConfig;
     zen: boolean;
 }
 
@@ -202,11 +214,11 @@ function defaultWorkspace(name: string): Workspace {
 
 // ─── Snapshot: capture current app state for workspace ──────────
 
-export function captureState(stores: StoreRefs): WorkspaceState {
+export function captureState(stores: StoreRefs & { multiChart?: MultiChartConfig }): WorkspaceState {
     const ui = stores.uiStore?.getState?.() || {} as Record<string, unknown>;
     const chart = stores.chartStore?.getState?.() || {} as Record<string, unknown>;
 
-    return {
+    const state: WorkspaceState = {
         page: (ui.page as string) || 'dashboard',
         chart: {
             symbol: (chart.symbol as string) || 'ES',
@@ -222,6 +234,13 @@ export function captureState(stores: StoreRefs): WorkspaceState {
         },
         zen: (ui.zenMode as boolean) || false,
     };
+
+    // Sprint 6 Task 6.1.5: Capture multi-chart layout if present
+    if (stores.multiChart) {
+        state.multiChart = stores.multiChart;
+    }
+
+    return state;
 }
 
 export function restoreState(state: WorkspaceState, stores: StoreRefs): void {

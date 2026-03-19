@@ -6,6 +6,7 @@ import { tradeHash } from '../../charting_library/datafeed/csv.js';
 import { normalizeBatch } from '../../charting_library/model/TradeSchema.js';
 import { detectBroker, BROKER_PARSERS, BROKER_LABELS } from './brokerDetection.js';
 import { parseCSV } from './parseCSV.js';
+import { generateBatchId } from '../../state/useImportHistoryStore.js';
 
 /**
  * Normalize an array of imported trades through the schema validator.
@@ -40,6 +41,54 @@ export async function importFile(file, options = {}) {
       ? new Set(existingTrades.filter(t => t.date && t.symbol).map(tradeHash))
       : null;
 
+    // ─── OFX / QFX Import (Sprint 6.6) ───────────────────
+    if (name.endsWith('.ofx') || name.endsWith('.qfx')) {
+      const { parseOFX } = await import('./parsers/ofx.js');
+      const result = parseOFX(text);
+      const { trades: normalized } = normalizeImported(result.trades);
+      const { unique, duplicates } = _dedup(normalized, existingHashes);
+      const batchId = generateBatchId();
+      unique.forEach(t => { t._batchId = batchId; });
+      return { ok: true, trades: unique, broker: 'ofx', brokerLabel: 'OFX/QFX', count: unique.length, duplicates, batchId, format: 'ofx' };
+    }
+
+    // ─── QIF Import (Sprint 6.6) ─────────────────────────
+    if (name.endsWith('.qif')) {
+      const { parseQIF } = await import('./parsers/ofx.js');
+      const result = parseQIF(text);
+      const { trades: normalized } = normalizeImported(result.trades);
+      const { unique, duplicates } = _dedup(normalized, existingHashes);
+      const batchId = generateBatchId();
+      unique.forEach(t => { t._batchId = batchId; });
+      return { ok: true, trades: unique, broker: 'qif', brokerLabel: 'QIF (Quicken)', count: unique.length, duplicates, batchId, format: 'qif' };
+    }
+
+    // ─── Excel Import (Sprint 6.7) ───────────────────────
+    if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+      const { parseExcel } = await import('./parsers/excel.js');
+      const buffer = await file.arrayBuffer();
+      const { rows, errors: excelErrors } = await parseExcel(buffer);
+      if (rows.length === 0) {
+        return { ok: false, trades: [], broker: 'excel', error: excelErrors[0] || 'No data found in Excel file.' };
+      }
+      const { trades: normalized } = normalizeImported(rows);
+      const { unique, duplicates } = _dedup(normalized, existingHashes);
+      const batchId = generateBatchId();
+      unique.forEach(t => { t._batchId = batchId; });
+      return { ok: true, trades: unique, broker: 'excel', brokerLabel: 'Excel', count: unique.length, duplicates, batchId, format: 'xlsx' };
+    }
+
+    // ─── HTML Report Import (Sprint 6.8) ─────────────────
+    if (name.endsWith('.html') || name.endsWith('.htm')) {
+      const { parseHTML } = await import('./parsers/html.js');
+      const result = parseHTML(text);
+      const { trades: normalized } = normalizeImported(result.trades);
+      const { unique, duplicates } = _dedup(normalized, existingHashes);
+      const batchId = generateBatchId();
+      unique.forEach(t => { t._batchId = batchId; });
+      return { ok: true, trades: unique, broker: result.broker, brokerLabel: result.broker === 'mt5' ? 'MetaTrader 5' : result.broker === 'ctrader' ? 'cTrader' : 'HTML Report', count: unique.length, duplicates, batchId, format: 'html' };
+    }
+
     // ─── JSON Import ──────────────────────────────────────
     if (name.endsWith('.json')) {
       const json = JSON.parse(text);
@@ -57,7 +106,11 @@ export async function importFile(file, options = {}) {
       // Dedup against existing trades
       const { unique, duplicates } = _dedup(normalized, existingHashes);
 
-      return { ok: true, trades: unique, broker: 'charEdge', count: unique.length, duplicates };
+      // Sprint 6.2: Stamp batch ID on all imported trades
+      const batchId = generateBatchId();
+      unique.forEach(t => { t._batchId = batchId; });
+
+      return { ok: true, trades: unique, broker: 'charEdge', count: unique.length, duplicates, batchId };
     }
 
     // ─── CSV Import ───────────────────────────────────────
@@ -77,6 +130,10 @@ export async function importFile(file, options = {}) {
     // Dedup against existing trades
     const { unique, duplicates } = _dedup(normalized, existingHashes);
 
+    // Sprint 6.2: Stamp batch ID on all imported trades
+    const batchId = generateBatchId();
+    unique.forEach(t => { t._batchId = batchId; });
+
     return {
       ok: true,
       trades: unique,
@@ -84,6 +141,7 @@ export async function importFile(file, options = {}) {
       brokerLabel: BROKER_LABELS[broker] || broker,
       count: unique.length,
       duplicates,
+      batchId,
       skipped: rows.length - normalized.length,
       schemaErrors: schemaErrors.length > 0 ? schemaErrors : undefined,
     };

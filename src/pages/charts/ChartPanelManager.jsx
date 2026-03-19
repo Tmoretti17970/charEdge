@@ -12,6 +12,7 @@ import { useChartToolsStore } from '../../state/chart/useChartToolsStore';
 import { useAlertStore } from '../../state/useAlertStore';
 import { useLayoutStore } from '../../state/useLayoutStore';
 const IndicatorPanel = React.lazy(() => import('../../app/components/panels/IndicatorPanel.jsx'));
+// CopilotChatInline removed from SlidePanel — consolidated into watchlist side panel tab
 
 // Lazy-loaded panels & modals
 const ObjectTreePanel = React.lazy(() => import('../../app/components/panels/ObjectTreePanel.jsx'));
@@ -48,6 +49,7 @@ const InstitutionalPanel = React.lazy(() => import('../../app/components/data/In
 const CommunitySignals = React.lazy(() => import('../../app/components/data/CommunitySignals.jsx'));
 const PositionSizer = React.lazy(() => import('../../app/components/chart/chart_ui/PositionSizer.jsx'));
 const QuickJournalPanel = React.lazy(() => import('../../app/components/chart/chart_ui/QuickJournalPanel.jsx'));
+const StockInfoPanel = React.lazy(() => import('../../app/components/charts/StockInfoPanel.jsx'));
 
 /**
  * Manages all side panels, modals, bottom panels, and mobile sheets.
@@ -223,6 +225,8 @@ export default function ChartPanelManager({
               {activePanel === 'alertHistory' && <AlertHistoryPanel />}
               {activePanel === 'alertAnalytics' && <AlertAnalytics />}
               {activePanel === 'quickJournal' && <QuickJournalPanel onClose={closePanel} />}
+              {activePanel === 'stockInfo' && <StockInfoPanel symbol={symbol} />}
+              {/* copilot removed — consolidated into watchlist side panel */}
             </Suspense>
           </div>
         </SlidePanel>

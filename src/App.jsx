@@ -3,7 +3,7 @@
 // Boot sequence → Loading → Sidebar + Page layout
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useCallback, Suspense } from 'react';
+import React, { useState, useCallback, useEffect, useRef, Suspense } from 'react';
 import AuthGate from './app/components/auth/AuthGate.jsx';
 import ErrorBoundary from './app/components/ui/ErrorBoundary.jsx';
 import KeyboardShortcuts from './app/components/ui/KeyboardShortcuts.jsx';
@@ -17,9 +17,12 @@ import { useAppBoot } from './AppBoot.js';
 import { useBootEffects } from './hooks/useBootEffects.js';
 import { useConsentStore } from './state/useConsentStore';
 import { useFocusStore } from './state/useFocusStore.js';
-import { useNotificationLog } from './state/useNotificationLog.js';
+import { useNotificationStore } from './state/useNotificationStore';
 import { useUIStore } from './state/useUIStore';
+import { useAccountStore } from './state/useAccountStore';
+import { useJournalStore } from './state/useJournalStore';
 import { useUserStore } from './state/useUserStore';
+import useCopilotChat from './hooks/useCopilotChat';
 import { useHotkeys } from '@/hooks/useHotkeys';
 import { useBreakpoints } from '@/hooks/useMediaQuery';
 import { installGlobalErrorHandlers } from '@/shared/globalErrorHandler';
@@ -27,6 +30,7 @@ import { installGlobalErrorHandlers } from '@/shared/globalErrorHandler';
 
 // Lazy-load overlay components (not needed on initial render)
 const LogbookBridge = React.lazy(() => import('./app/components/ui/LogbookBridge.jsx'));
+const ImportBridge = React.lazy(() => import('./app/components/ui/ImportBridge.jsx'));
 const NotificationPanel = React.lazy(() => import('./app/components/panels/NotificationPanel.jsx'));
 const OnboardingWizard = React.lazy(() => import('./app/layouts/OnboardingWizard.jsx'));
 const GlobalQuickAddModal = React.lazy(() => import('./app/components/ui/GlobalQuickAddModal.jsx'));
@@ -41,6 +45,11 @@ const VercelAnalytics = React.lazy(() => import('@vercel/analytics/react').then(
 const VercelSpeedInsights = React.lazy(() =>
   import('@vercel/speed-insights/react').then((m) => ({ default: m.SpeedInsights })),
 );
+
+// Sprint 5: Global AI Copilot Panel (lazy-loaded)
+const CopilotPanel = React.lazy(() => import('./app/components/ai/CopilotPanel.jsx'));
+const ErrorBudgetBanner = React.lazy(() => import('./app/components/ui/ErrorBudgetBanner.jsx'));
+const PipelineDevTools = React.lazy(() => import('./app/components/data/PipelineDevTools.jsx'));
 
 // ─── Chunk Load Error Boundary ──────────────────────────────────
 // Handles stale cache: when old cached HTML references JS chunks
@@ -128,7 +137,7 @@ installGlobalErrorHandlers();
 if (typeof window !== 'undefined') {
   setTimeout(() => {
     try {
-      globalThis.__charEdge_notification_store__ = useNotificationLog;
+      globalThis.__charEdge_notification_store__ = useNotificationStore;
       // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       /* storage/API may be blocked */
@@ -139,11 +148,16 @@ if (typeof window !== 'undefined') {
 export default function App() {
   const { ready, phase } = useAppBoot();
   const { isMobile } = useBreakpoints();
-  const toggleNotifications = useNotificationLog((s) => s.togglePanel);
+  const toggleNotifications = useNotificationStore((s) => s.toggleLogPanel);
   const page = useUIStore((s) => s.page);
   const setPage = useUIStore((s) => s.setPage);
   const theme = useUserStore((s) => s.theme);
   const analyticsConsent = useConsentStore((s) => s.analytics);
+
+  // Sprint 4: Global copilot state
+  const copilotOpen = useCopilotChat((s) => s.panelOpen);
+  const toggleCopilot = useCopilotChat((s) => s.togglePanel);
+  const copilotRef = useRef(null);
 
   // Keyboard shortcuts panel
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -151,6 +165,33 @@ export default function App() {
 
   // Post-mount side effects (theme, auth, gamification) — extracted to keep App.jsx render-only
   useBootEffects();
+
+  // ─── Guaranteed demo data seeding ──────────────────────────
+  const demoActive = useAccountStore((s) => s.activeAccountId === 'demo');
+  const tradeCount = useJournalStore((s) => s.trades?.length || 0);
+  const journalLoaded = useJournalStore((s) => s.loaded);
+
+  useEffect(() => {
+    if (!ready || !demoActive || tradeCount > 0 || !journalLoaded) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { genDemoData } = await import('./data/demoData.js');
+        const demo = genDemoData();
+        if (cancelled || !demo.trades?.length) return;
+        console.info(`[App] Seeding ${demo.trades.length} demo trades (fallback)`);
+        useJournalStore.getState().hydrate({
+          trades: demo.trades,
+          playbooks: demo.playbooks,
+          notes: [],
+          tradePlans: [],
+        });
+      } catch (err) {
+        console.warn('[App] Demo seed failed:', err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [ready, demoActive, tradeCount, journalLoaded]);
 
   // Page navigation map: keys 1-3 → pages, 4 → settings slide-over
   const PAGE_KEYS = ['journal', 'charts', 'discover'];
@@ -185,6 +226,19 @@ export default function App() {
         description: 'Toggle focus mode',
         allowInInput: true,
       },
+      // Sprint 4: Global copilot toggle
+      {
+        key: 'meta+k',
+        handler: toggleCopilot,
+        description: 'Toggle AI Copilot',
+        allowInInput: true,
+      },
+      {
+        key: 'ctrl+k',
+        handler: toggleCopilot,
+        description: 'Toggle AI Copilot',
+        allowInInput: true,
+      },
     ],
     { scope: 'global', enabled: true },
   );
@@ -216,6 +270,9 @@ export default function App() {
             {/* overlay modals — each in its own Suspense so triggering one doesn't suspend all */}
             <Suspense fallback={null}>
               <LogbookBridge />
+            </Suspense>
+            <Suspense fallback={null}>
+              <ImportBridge />
             </Suspense>
             <Suspense fallback={null}>
               <GlobalQuickAddModal />
@@ -259,6 +316,19 @@ export default function App() {
               </Suspense>
             )}
             <KeyboardShortcuts isOpen={shortcutsOpen} onClose={closeShortcuts} />
+            {/* Sprint 5: Global AI Copilot Panel */}
+            {copilotOpen && (
+              <Suspense fallback={null}>
+                <CopilotPanel />
+              </Suspense>
+            )}
+            {/* Sprint 4: Error Budget Banner + Pipeline DevTools */}
+            <Suspense fallback={null}>
+              <ErrorBudgetBanner />
+            </Suspense>
+            <Suspense fallback={null}>
+              <PipelineDevTools />
+            </Suspense>
           </div>
         </Suspense>
       </AuthGate>

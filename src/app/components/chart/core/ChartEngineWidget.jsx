@@ -62,6 +62,7 @@ import usePsychologyAlerts from '../../../../hooks/usePsychologyAlerts.js';
 import AIBehavioralAlert from '../../design/AIBehavioralAlert.jsx';
 import { useCrosshairSync } from './hooks/useCrosshairSync';
 import { useScrollSync } from './hooks/useScrollSync';
+import { useHistoryPrefetch } from './hooks/useHistoryPrefetch';
 import { useTradeNavigation } from './hooks/useTradeNavigation';
 import crosshairBus from '@/charting_library/utils/CrosshairBus';
 import { ReplayPaperTrade } from '@/trading/ReplayPaperTrade.js';
@@ -257,6 +258,7 @@ export default function ChartEngineWidget({
   const { highlightedTrade, dismissTradeOverlay } = useTradeNavigation(engineRef, barsRef);
   useCrosshairSync(engineRef, paneIdRef.current);
   useScrollSync(engineRef, paneIdRef.current, barCount);
+  useHistoryPrefetch(binanceSymbol, binanceTf);
 
   // Sprint 16: Psychology Engine — behavioral alerts for live trading
   const { topAlert, dismissAlert } = usePsychologyAlerts(barsRef.current);

@@ -14,7 +14,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { notifyAnnouncement } from './notificationRouter';
+import { notifyAnnouncement } from './notificationEngine';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -160,6 +160,7 @@ export const useAnnouncementStore = create<AnnouncementState>()(
     }),
     {
       name: 'charEdge-announcements',
+      version: 1,
       partialize: (s) => ({ readIds: s.readIds, dismissedIds: s.dismissedIds }),
     },
   ),

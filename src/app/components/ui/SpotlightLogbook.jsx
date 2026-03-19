@@ -613,6 +613,28 @@ function SpotlightLogbook({ isOpen, onClose, filterDate = null }) {
     onClose();
   }, [onClose]);
 
+  // ─── Focus trap (accessibility — WCAG 2.1 §4.1.2) ────────
+  const overlayRef = useRef(null);
+  useEffect(() => {
+    if (!isOpen || !overlayRef.current) return;
+    const trap = (e) => {
+      if (e.key !== 'Tab') return;
+      const focusable = overlayRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+    document.addEventListener('keydown', trap);
+    return () => document.removeEventListener('keydown', trap);
+  }, [isOpen]);
+
   // ─── Keyboard shortcuts ────────────────────────────────────
   useEffect(() => {
     if (!isOpen) return;
@@ -703,7 +725,7 @@ function SpotlightLogbook({ isOpen, onClose, filterDate = null }) {
   if (!isOpen) return null;
 
   return (
-    <div className={css.overlay} role="dialog" aria-label="Spotlight Logbook" aria-modal="true">
+    <div ref={overlayRef} className={css.overlay} role="dialog" aria-label="Spotlight Logbook" aria-modal="true">
       {/* Backdrop */}
       <div className={css.backdrop} onClick={handleClose} />
 

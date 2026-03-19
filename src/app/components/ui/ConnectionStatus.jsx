@@ -26,13 +26,14 @@ function ConnectionStatus({ status, feedStatus, error, theme = 'dark', latencyTi
   const statusConfig = {
     connected: { color: '#26A69A', label: 'Live', dot: true },
     connecting: { color: '#FF9800', label: 'Connecting...', dot: true, pulse: true },
-    disconnected: { color: '#787B86', label: 'Offline', dot: true },
+    disconnected: { color: '#FF9800', label: 'Offline', dot: true },
     error: { color: '#EF5350', label: 'Error', dot: true },
   };
 
   const wsConfig = statusConfig[feedStatus] || statusConfig.disconnected;
   const isLoading = status === 'loading' || status === 'loading_more';
-  const tierInfo = latencyTier ? TIER_CONFIG[latencyTier] : null;
+  const isDisconnected = feedStatus === 'disconnected' || feedStatus === 'error';
+  const tierInfo = latencyTier && !isDisconnected ? TIER_CONFIG[latencyTier] : null;
 
   // RTT color coding
   const rttColor = rttMs != null

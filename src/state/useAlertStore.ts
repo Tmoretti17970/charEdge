@@ -1,18 +1,21 @@
 // @ts-check
 // ═══════════════════════════════════════════════════════════════════
-// charEdge v10 — Alert Store (TypeScript)
+// charEdge v10 — Unified Alert Store (TypeScript)
 //
-// Price alert system: "Alert when AAPL > $200"
-// Phase 2: Converted to TypeScript.
+// Phase 2 Consolidation: Merged from 7 files into 1:
+//   - useAlertStore.ts (core CRUD + evaluation)
+//   - useAlertHistory.ts → history slice
+//   - useSmartAlertFeed.ts → smartFeed slice
+//   - useAlertPreferences.ts → removed (was already a wrapper)
+//
+// Non-React logic moved to alertEngine.ts:
+//   - alertThrottler, alertSuggestions, alertAutomations
 // ═══════════════════════════════════════════════════════════════════
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { playAlertSound } from '../app/misc/alertSounds';
-import notificationLog from './useNotificationLog';
-import { isInQuietHours, getAlertVolume } from './useAlertPreferences';
-import alertHistory from './useAlertHistory';
-import { throttledNotify } from './alertThrottler';
+import { isInQuietHours, getAlertVolume } from './useNotificationStore';
+import { throttledNotify } from './alertEngine';
 
 // ─── Transient Price Tracking ───────────────────────────────────
 // Stored outside Zustand to avoid triggering set()/persist on every tick.
@@ -107,9 +110,47 @@ export interface MarketAlertParams {
     soundType?: AlertSoundType | null;
 }
 
+// ─── History Slice Types (absorbed from useAlertHistory.ts) ──
+
+export interface AlertHistoryEntry {
+    id: string;
+    alertId: string;
+    symbol: string;
+    condition: string;
+    targetPrice: number;
+    triggerPrice: number;
+    triggeredAt: string;
+    note: string;
+    priceAt5m: number | null;
+    priceAt15m: number | null;
+    priceAt1h: number | null;
+    outcome5m: number | null;
+    outcome15m: number | null;
+    outcome1h: number | null;
+}
+
+// ─── Smart Feed Slice Types (absorbed from useSmartAlertFeed.ts) ──
+
+export interface SmartAlertEvent {
+    id: string;
+    type: 'price' | 'volume' | 'pattern' | 'earnings' | 'insider' | 'analyst' | 'sentiment';
+    symbol: string;
+    priority: 'critical' | 'important' | 'fyi';
+    message: string;
+    time: string;
+    outcome: string | null;
+}
+
+// ─── Combined State & Actions ───────────────────────────────
+
 export interface AlertState {
     alerts: Alert[];
     pushSubscribed: boolean;
+    // History slice
+    historyEntries: AlertHistoryEntry[];
+    // Smart feed slice
+    smartEvents: SmartAlertEvent[];
+    smartIsLive: boolean;
 }
 
 export interface AlertActions {
@@ -125,17 +166,36 @@ export interface AlertActions {
     clearAll: () => void;
     getAlertsForSymbol: (symbol: string) => Alert[];
     subscribeToPush: () => Promise<void>;
+    // History slice actions
+    pushHistoryEntry: (alert: { id: string; symbol: string; condition: string; price: number; note?: string }, triggerPrice: number) => string;
+    updateHistoryOutcome: (entryId: string, timeframe: '5m' | '15m' | '1h', price: number) => void;
+    clearHistory: () => void;
+    getHistoryBySymbol: (symbol: string) => AlertHistoryEntry[];
+    // Smart feed slice actions
+    pushSmartEvent: (event: Omit<SmartAlertEvent, 'id' | 'time'>) => void;
+    setSmartLive: (live: boolean) => void;
+    clearSmartEvents: () => void;
 }
 
 // ─── Store ──────────────────────────────────────────────────────
 
 const ALERT_KEY = 'charEdge-alerts';
 
+const MAX_HISTORY_ENTRIES = 200;
+const MAX_SMART_EVENTS = 50;
+
 const useAlertStore = create<AlertState & AlertActions>()(
     persist(
         (set, _get) => ({
             alerts: [],
             pushSubscribed: false,
+
+            // ── History Slice ────────────────────────────────
+            historyEntries: [],
+
+            // ── Smart Feed Slice ─────────────────────────────
+            smartEvents: [],
+            smartIsLive: false,
 
             addAlert: ({ symbol, condition, price, note = '', repeating = false, style = 'price', expiresAt = null, cooldownMs = null, soundType = null }: AddAlertParams): string => {
                 const alert: Alert = {
@@ -271,7 +331,6 @@ const useAlertStore = create<AlertState & AlertActions>()(
                         userVisibleOnly: true,
                         applicationServerKey: window.__VAPID_PUBLIC_KEY || '',
                     });
-                    // Register with server
                     await fetch('/api/push/subscribe', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -283,9 +342,78 @@ const useAlertStore = create<AlertState & AlertActions>()(
                     /* push subscription failed — degrade gracefully */
                 }
             },
+
+            // ── History Slice Actions ────────────────────────
+
+            pushHistoryEntry: (alert, triggerPrice) => {
+                const entry: AlertHistoryEntry = {
+                    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+                    alertId: alert.id,
+                    symbol: alert.symbol,
+                    condition: alert.condition,
+                    targetPrice: alert.price,
+                    triggerPrice,
+                    triggeredAt: new Date().toISOString(),
+                    note: alert.note || '',
+                    priceAt5m: null,
+                    priceAt15m: null,
+                    priceAt1h: null,
+                    outcome5m: null,
+                    outcome15m: null,
+                    outcome1h: null,
+                };
+                set((s) => ({
+                    historyEntries: [entry, ...s.historyEntries].slice(0, MAX_HISTORY_ENTRIES),
+                }));
+                return entry.id;
+            },
+
+            updateHistoryOutcome: (entryId, timeframe, price) => {
+                set((s) => ({
+                    historyEntries: s.historyEntries.map((e) => {
+                        if (e.id !== entryId) return e;
+                        const pctChange = e.triggerPrice > 0
+                            ? ((price - e.triggerPrice) / e.triggerPrice) * 100
+                            : null;
+                        switch (timeframe) {
+                            case '5m':
+                                return { ...e, priceAt5m: price, outcome5m: pctChange };
+                            case '15m':
+                                return { ...e, priceAt15m: price, outcome15m: pctChange };
+                            case '1h':
+                                return { ...e, priceAt1h: price, outcome1h: pctChange };
+                            default:
+                                return e;
+                        }
+                    }),
+                }));
+            },
+
+            clearHistory: () => set({ historyEntries: [] }),
+
+            getHistoryBySymbol: (symbol) =>
+                _get().historyEntries.filter((e) => e.symbol.toUpperCase() === symbol.toUpperCase()),
+
+            // ── Smart Feed Slice Actions ─────────────────────
+
+            pushSmartEvent: (event) => {
+                const entry: SmartAlertEvent = {
+                    ...event,
+                    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+                    time: new Date().toISOString(),
+                };
+                set((s) => ({
+                    smartEvents: [entry, ...s.smartEvents].slice(0, MAX_SMART_EVENTS),
+                }));
+            },
+
+            setSmartLive: (live) => set({ smartIsLive: live }),
+
+            clearSmartEvents: () => set({ smartEvents: [] }),
         }),
         {
             name: ALERT_KEY,
+      version: 1,
         },
     ),
 );
@@ -478,14 +606,14 @@ export function checkAlerts(prices: Record<string, number>): void {
                 body: `${alert.symbol} hit $${price.toFixed(2)} (${condStr})`,
                 icon: '📈',
                 variant: 'success',
-                soundType: 'price',
+                soundType: alert.soundType || (alert.style === 'system' ? 'urgent' : alert.style === 'indicator' ? 'info' : 'price'),
                 meta: { symbol: alert.symbol, price, condition: alert.condition, alertId: alert.id, alert },
                 customEvent: 'charEdge:alert-triggered',
                 customEventDetail: { symbol: alert.symbol, price, condition: alert.condition, alert },
             });
 
             // C2: Record in alert history for outcome tracking
-            alertHistory.getState().pushEntry(alert, price);
+            store.pushHistoryEntry(alert, price);
         }
 
         store.updateLastPrice(alert.symbol, price);

@@ -6,25 +6,25 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, Suspense, lazy } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C, F } from '../../../constants.js';
 import { text, radii, space } from '../../../theme/tokens.js';
-import { fmtD, timeAgo, METRIC_TIPS } from '../../../utils.js';
+import { fmtD, METRIC_TIPS } from '../../../utils.js';
 import { Card } from '../ui/UIKit.jsx';
 import WidgetBoundary from '../ui/WidgetBoundary.jsx';
 import EquityCurveChart from '../widgets/EquityCurveChart.jsx';
 import TradeHeatmap from '../widgets/TradeHeatmap.jsx';
 import s from './DashboardPanel.module.css';
 import { DashHeader } from './DashboardPrimitives.jsx';
-import SessionSummaryBar from './SessionSummaryBar.jsx';
 import HomeWatchlist from './HomeWatchlist.jsx';
 import MorningBriefing from './MorningBriefing.jsx';
 import RiskDashboard from './RiskDashboard.jsx';
-import WeeklyReport from './WeeklyReport.jsx';
+import SessionSummaryBar from './SessionSummaryBar.jsx';
+
 
 // Lazy-loaded widgets (Sprint 22: trimmed to 4 useful ones)
 const AIInsightCard = lazy(() => import('./AIInsightCard.jsx'));
 const SessionTimeline = lazy(() => import('./SessionTimeline.jsx'));
-const SimilarTrades = lazy(() => import('./SimilarTrades.jsx'));
+
 const TradeReplayPanel = lazy(() => import('./TradeReplayPanel.jsx'));
 const WhatIfPanel_Lazy = lazy(() => import('./WhatIfPanel.jsx'));
 
@@ -34,6 +34,8 @@ const StrategyBreakdown = lazy(() => import('./StrategyBreakdown.jsx'));
 const AssetBreakdown = lazy(() => import('./AssetBreakdown.jsx'));
 const QuickActions = lazy(() => import('./QuickActions.jsx'));
 const SessionJournalPrompt = lazy(() => import('./SessionJournalPrompt.jsx'));
+const MonteCarloWidget = lazy(() => import('./MonteCarloWidget.jsx'));
+const QuestWidget = lazy(() => import('../ui/QuestWidget.jsx'));
 
 // Widget skeleton fallback
 function WidgetSkeleton({ height = 120 }) {
@@ -52,29 +54,33 @@ function WidgetSkeleton({ height = 120 }) {
 
 // ─── Sprint 17: Compact Metrics Row ─────────────────────────────
 function MetricsRow({ result, trades }) {
+  const pf = result.pf ?? 0;
+  const rr = result.rr ?? 0;
+  const maxDd = result.maxDd ?? 0;
+  const expectancy = result.expectancy ?? 0;
   const metrics = [
     {
       label: 'Profit Factor',
-      value: result.pf === Infinity ? '∞' : result.pf.toFixed(2),
-      color: result.pf >= 1.5 ? C.g : result.pf >= 1 ? C.y : C.r,
+      value: pf === Infinity ? '∞' : pf.toFixed(2),
+      color: pf >= 1.5 ? C.g : pf >= 1 ? C.y : C.r,
       tip: METRIC_TIPS['Profit Factor'],
     },
     {
       label: 'Win/Loss',
-      value: result.rr === Infinity ? '∞' : result.rr.toFixed(2),
-      color: result.rr >= 1.5 ? C.g : result.rr >= 1 ? C.info : C.r,
+      value: rr === Infinity ? '∞' : rr.toFixed(2),
+      color: rr >= 1.5 ? C.g : rr >= 1 ? C.info : C.r,
       tip: METRIC_TIPS['Win/Loss Ratio'],
     },
     {
       label: 'Max DD',
-      value: `${result.maxDd.toFixed(1)}%`,
-      color: result.maxDd < 10 ? C.g : C.r,
+      value: `${maxDd.toFixed(1)}%`,
+      color: maxDd < 10 ? C.g : C.r,
       tip: METRIC_TIPS['Max DD'],
     },
     {
       label: 'Expectancy',
-      value: fmtD(result.expectancy),
-      color: result.expectancy >= 0 ? C.g : C.r,
+      value: fmtD(expectancy),
+      color: expectancy >= 0 ? C.g : C.r,
       tip: METRIC_TIPS['Expectancy'],
     },
   ];
@@ -368,6 +374,13 @@ export default function DashboardNarrativeLayout({
         <SessionTip todayStats={todayStats} result={result} sectionGap={sectionGap} />
       )}
 
+      {/* ═══ Sprint 21: QUEST WIDGET ═══ */}
+      <Suspense fallback={null}>
+        <div style={{ marginBottom: sectionGap }}>
+          <QuestWidget />
+        </div>
+      </Suspense>
+
       {/* ═══ Sprint 13: WATCHLIST + RECENT TRADES (two-column) ═══ */}
       <div
         className={s.twoColGridResponsive}
@@ -393,7 +406,13 @@ export default function DashboardNarrativeLayout({
           </div>
           <div style={{ flex: 1, padding: '10px 16px 16px 16px', minHeight: 220 }}>
             <WidgetBoundary name="Trade Heatmap" height="100%">
-              <TradeHeatmap trades={trades} />
+              <TradeHeatmap
+                trades={trades}
+                onDayClick={(date) => {
+                  const dStr = date.toISOString().slice(0, 10);
+                  window.dispatchEvent(new CustomEvent('charEdge:open-logbook', { detail: { date: dStr } }));
+                }}
+              />
             </WidgetBoundary>
           </div>
         </Card>
@@ -409,6 +428,13 @@ export default function DashboardNarrativeLayout({
 
       {/* RiskDashboard always-visible */}
       <RiskDashboard />
+
+      {/* ═══ Phase 2 Task #28: MONTE CARLO FORECAST ═══ */}
+      {trades.length >= 5 && (
+        <Suspense fallback={<WidgetSkeleton height={180} />}>
+          <MonteCarloWidget />
+        </Suspense>
+      )}
 
       {/* ═══ Sprint 22: Show More — trimmed to 4 useful widgets ═══ */}
       {!showAllWidgets ? (
@@ -433,49 +459,18 @@ export default function DashboardNarrativeLayout({
           <span
             style={{ fontSize: 10, padding: '2px 8px', background: `${C.b}15`, borderRadius: radii.md, color: C.b }}
           >
-            +5
+            +2
           </span>
         </button>
       ) : (
         <>
-          {/* Sprint 14: Heatmap moved to Show More */}
-          <Card className="tf-card-hover" style={{ padding: 20, overflow: 'hidden', marginBottom: sectionGap }}>
-            <div className="tf-section-accent" style={{ marginBottom: 12 }}>
-              Activity Heatmap
-            </div>
-            <WidgetBoundary name="Calendar" height={340}>
-              <TradeHeatmap
-                trades={trades}
-                onDayClick={(date) => {
-                  const dStr = date.toISOString().slice(0, 10);
-                  window.dispatchEvent(new CustomEvent('charEdge:open-logbook', { detail: { date: dStr } }));
-                }}
-              />
-            </WidgetBoundary>
-          </Card>
+
 
           <Suspense fallback={<WidgetSkeleton height={200} />}>
             <SessionTimeline />
           </Suspense>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-              gap: 16,
-              marginBottom: sectionGap,
-            }}
-          >
-            <WeeklyReport />
-          </div>
 
-          {recentTrades.length > 0 && (
-            <div style={{ marginBottom: sectionGap }}>
-              <Suspense fallback={<WidgetSkeleton height={160} />}>
-                <SimilarTrades criteria={recentTrades[0]} />
-              </Suspense>
-            </div>
-          )}
 
           <div
             style={{

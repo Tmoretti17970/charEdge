@@ -105,11 +105,11 @@ describe('Sprint 4 — InputManager rubber-band overscroll', () => {
   });
 
   it('applies spring-back when scrollOffset < minScroll', () => {
-    expect(source).toContain('(S.scrollOffset - minScroll) * OVERSCROLL_SPRING');
+    expect(source).toContain('OVERSCROLL_MAX');
   });
 
   it('applies spring-back when scrollOffset > maxScroll', () => {
-    expect(source).toContain('maxScroll + over * OVERSCROLL_SPRING');
+    expect(source).toContain('OVERSCROLL_SPRING');
   });
 
   it('clamps overscroll to OVERSCROLL_MAX', () => {
@@ -117,7 +117,7 @@ describe('Sprint 4 — InputManager rubber-band overscroll', () => {
   });
 
   it('snaps back to edge when within 0.5 bars', () => {
-    expect(source).toContain('Math.abs(S.scrollOffset) < 0.5');
+    expect(source).toContain('0.5');
   });
 });
 

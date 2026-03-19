@@ -15,7 +15,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useAlertStore } from '../../../state/useAlertStore';
 import { playAlertSound } from '../../../app/misc/alertSounds';
-import { useAlertPreferences } from '../../../state/useAlertPreferences';
+import { useNotificationPreferences } from '../../../state/useNotificationStore';
 import CompoundAlertBuilder from './CompoundAlertBuilder.jsx';
 import { usePriceTracker } from '../../../state/usePriceTracker';
 
@@ -111,8 +111,8 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
   ];
 
   const addMarketAlert = useAlertStore((s) => s.addMarketAlert);
-  const alertFrequency = useAlertPreferences((s) => s.alertFrequency);
-  const watchlistAutoAlerts = useAlertPreferences((s) => s.watchlistAutoAlerts);
+  const alertFrequency = useNotificationPreferences((s) => s.alertFrequency);
+  const watchlistAutoAlerts = useNotificationPreferences((s) => s.watchlistAutoAlerts);
 
   const handlePresetClick = useCallback((presetId) => {
     if (!symbol.trim()) return;
@@ -154,18 +154,18 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
         <span style={{ fontSize: 13, fontWeight: 600, color: C.t1 }}>🔔 Price Alerts</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <button
-            onClick={() => useAlertPreferences.getState().toggleMute()}
-            title={useAlertPreferences.getState().globalMute ? 'Unmute alerts' : 'Mute all alerts'}
+            onClick={() => useNotificationPreferences.getState().toggleMute()}
+            title={useNotificationPreferences.getState().globalMute ? 'Unmute alerts' : 'Mute all alerts'}
             style={{
               background: 'none',
               border: 'none',
               cursor: 'pointer',
               fontSize: 12,
               padding: '2px 4px',
-              opacity: useAlertPreferences.getState().globalMute ? 1 : 0.4,
+              opacity: useNotificationPreferences.getState().globalMute ? 1 : 0.4,
               transition: 'opacity 0.15s',
             }}
-          >{useAlertPreferences.getState().globalMute ? '🔇' : '🔊'}</button>
+          >{useNotificationPreferences.getState().globalMute ? '🔇' : '🔊'}</button>
           <span style={{ fontSize: 10, color: C.t3, fontFamily: M }}>{activeAlerts.length} active</span>
         </div>
       </div>
@@ -505,7 +505,7 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
         }}>
           <span>⚙ Alert Preferences</span>
           <span style={{ fontSize: 9, color: C.t3 }}>
-            {useAlertPreferences.getState().dndEnabled ? '🌙 DND On' : ''}
+            {useNotificationPreferences.getState().dndEnabled ? '🌙 DND On' : ''}
             {watchlistAutoAlerts ? ' · 🔔 Auto' : ''}
           </span>
         </summary>
@@ -520,7 +520,7 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
               {[{ id: 'instant', label: '⚡ Instant' }, { id: 'hourly_digest', label: '📋 Hourly' }, { id: 'daily_digest', label: '📰 Daily' }].map((freq) => (
                 <button
                   key={freq.id}
-                  onClick={() => useAlertPreferences.getState().setFrequency(freq.id)}
+                  onClick={() => useNotificationPreferences.getState().setFrequency(freq.id)}
                   style={{
                     flex: 1, padding: '4px 0', fontSize: 9, fontWeight: 600,
                     border: 'none', cursor: 'pointer', fontFamily: F,
@@ -540,7 +540,7 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
               <input
                 type="checkbox"
                 checked={watchlistAutoAlerts}
-                onChange={(e) => useAlertPreferences.getState().setWatchlistAutoAlerts(e.target.checked)}
+                onChange={(e) => useNotificationPreferences.getState().setWatchlistAutoAlerts(e.target.checked)}
                 style={{ accentColor: C.b }}
               />
               🔔 Auto-alert all watchlist assets
@@ -555,19 +555,19 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
             <label style={{ color: C.t3, display: 'flex', alignItems: 'center', gap: 6 }}>
               <input
                 type="checkbox"
-                checked={useAlertPreferences.getState().dndEnabled}
-                onChange={(e) => useAlertPreferences.setState({ dndEnabled: e.target.checked })}
+                checked={useNotificationPreferences.getState().dndEnabled}
+                onChange={(e) => useNotificationPreferences.setState({ dndEnabled: e.target.checked })}
                 style={{ accentColor: C.b }}
               />
               🌙 Do Not Disturb Schedule
             </label>
-            {useAlertPreferences.getState().dndEnabled && (
+            {useNotificationPreferences.getState().dndEnabled && (
               <div style={{ display: 'flex', gap: 6, marginTop: 4, marginLeft: 20 }}>
                 <label style={{ color: C.t3 }}>Start:
                   <input
                     type="time"
-                    value={useAlertPreferences.getState().dndStart || '22:00'}
-                    onChange={(e) => useAlertPreferences.setState({ dndStart: e.target.value })}
+                    value={useNotificationPreferences.getState().dndStart || '22:00'}
+                    onChange={(e) => useNotificationPreferences.setState({ dndStart: e.target.value })}
                     style={{
                       marginLeft: 4, background: C.bg, border: `1px solid ${C.bd}`,
                       borderRadius: 4, color: C.t1, padding: '2px 4px', fontSize: 10,
@@ -577,8 +577,8 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
                 <label style={{ color: C.t3 }}>End:
                   <input
                     type="time"
-                    value={useAlertPreferences.getState().dndEnd || '07:00'}
-                    onChange={(e) => useAlertPreferences.setState({ dndEnd: e.target.value })}
+                    value={useNotificationPreferences.getState().dndEnd || '07:00'}
+                    onChange={(e) => useNotificationPreferences.setState({ dndEnd: e.target.value })}
                     style={{
                       marginLeft: 4, background: C.bg, border: `1px solid ${C.bd}`,
                       borderRadius: 4, color: C.t1, padding: '2px 4px', fontSize: 10,
@@ -594,12 +594,12 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
             <span style={{ color: C.t3, minWidth: 50 }}>🔊 Volume</span>
             <input
               type="range" min="0" max="100" step="5"
-              value={Math.round((useAlertPreferences.getState().globalVolume ?? 0.7) * 100)}
-              onChange={(e) => useAlertPreferences.setState({ globalVolume: parseInt(e.target.value) / 100 })}
+              value={Math.round((useNotificationPreferences.getState().globalVolume ?? 0.7) * 100)}
+              onChange={(e) => useNotificationPreferences.setState({ globalVolume: parseInt(e.target.value) / 100 })}
               style={{ flex: 1, accentColor: C.b }}
             />
             <span style={{ fontSize: 9, color: C.t2, fontFamily: M, minWidth: 24, textAlign: 'right' }}>
-              {Math.round((useAlertPreferences.getState().globalVolume ?? 0.7) * 100)}%
+              {Math.round((useNotificationPreferences.getState().globalVolume ?? 0.7) * 100)}%
             </span>
           </div>
 
@@ -607,8 +607,8 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
           <label style={{ color: C.t3, display: 'flex', alignItems: 'center', gap: 6 }}>
             <input
               type="checkbox"
-              checked={useAlertPreferences.getState().globalMute}
-              onChange={() => useAlertPreferences.getState().toggleMute()}
+              checked={useNotificationPreferences.getState().globalMute}
+              onChange={() => useNotificationPreferences.getState().toggleMute()}
               style={{ accentColor: C.r }}
             />
             🔇 Mute all alerts

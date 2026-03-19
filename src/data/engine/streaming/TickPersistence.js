@@ -142,6 +142,8 @@ class _TickPersistence {
     this._enabled = typeof indexedDB !== 'undefined';
     this._started = false;
     this._metaCache = new Map();       // symbol → { totalTicks, firstTime, lastTime }
+    this._consecutiveFailures = 0;
+    this._maxRetries = 3;              // Drop ticks after this many consecutive failures
 
     if (this._enabled) {
       this._start();
@@ -501,14 +503,36 @@ class _TickPersistence {
       for (const [symbol, ticks] of allTicks) {
         await this._writeBatch(db, symbol, ticks);
       }
+      // Reset failure counter on success
+      this._consecutiveFailures = 0;
     } catch (err) {
-      pipelineLogger.error('TickPersistence', 'Flush failed — re-enqueuing ticks', err);
-      // Re-enqueue failed ticks (push back to ring buffers)
-      for (const [symbol, ticks] of allTicks) {
-        for (const tick of ticks) {
-          this.enqueue(symbol, tick);
+      this._consecutiveFailures++;
+
+      if (this._consecutiveFailures <= this._maxRetries) {
+        pipelineLogger.warn('TickPersistence',
+          `Flush failed (attempt ${this._consecutiveFailures}/${this._maxRetries}) — re-enqueuing ticks`, err);
+        // Re-enqueue failed ticks WITHOUT triggering a new flush
+        for (const [symbol, ticks] of allTicks) {
+          let ring = this._buffers.get(symbol);
+          if (!ring) {
+            ring = new TypedRingBuffer(MAX_RING_SIZE);
+            this._buffers.set(symbol, ring);
+          }
+          for (const tick of ticks) {
+            ring.push(tick.price, tick.volume, tick.time, tick.side);
+          }
         }
+      } else if (this._consecutiveFailures === this._maxRetries + 1) {
+        // Log once when giving up, then self-disable to stop all IDB calls
+        const totalDropped = [...allTicks.values()].reduce((s, t) => s + t.length, 0);
+        pipelineLogger.warn('TickPersistence',
+          `Flush failed ${this._maxRetries} times — dropping ${totalDropped} ticks. Disabling persistence.`);
+        // Stop the flush timer so we never call openUnifiedDB again
+        if (this._flushTimer) { clearInterval(this._flushTimer); this._flushTimer = null; }
+        if (this._evictionTimer) { clearInterval(this._evictionTimer); this._evictionTimer = null; }
+        this._enabled = false;
       }
+      // else: silently drop ticks to avoid console spam
     }
   }
 
@@ -588,13 +612,21 @@ class _TickPersistence {
 
     try {
       const db = await openTickDB();
-      const cutoff = Date.now() - RETENTION_MS;
 
       return new Promise((resolve) => {
-        const tx = db.transaction(STORE_NAME, 'readwrite');
+        let tx;
+        try {
+          tx = db.transaction(STORE_NAME, 'readwrite');
+        } catch (e) {
+          // InvalidStateError: DB connection is closing (HMR, version change, etc.)
+          // Reset cached DB so next call gets a fresh connection
+          _db = null;
+          resolve();
+          return;
+        }
         const store = tx.objectStore(STORE_NAME);
         const index = store.index('time');
-        const range = IDBKeyRange.upperBound(cutoff);
+        const range = IDBKeyRange.upperBound(Date.now() - RETENTION_MS);
 
         let evicted = 0;
         const req = index.openCursor(range);
@@ -616,6 +648,8 @@ class _TickPersistence {
         tx.onerror = () => resolve();
       });
     } catch (err) {
+      // If openTickDB itself failed, reset cached reference
+      _db = null;
       pipelineLogger.warn('TickPersistence', 'Eviction failed', err);
     }
   }

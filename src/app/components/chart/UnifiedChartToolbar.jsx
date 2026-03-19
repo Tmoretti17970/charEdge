@@ -10,6 +10,8 @@
 
 import React, { useState, useRef, useEffect, useCallback, useLayoutEffect, useMemo, Suspense } from 'react';
 import { C, TFS } from '../../../constants.js';
+import { useUserStore } from '../../../state/useUserStore';
+import { CHART_COLOR_PRESETS } from '../../../state/user/themeSlice';
 import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
 import { useChartFeaturesStore } from '../../../state/chart/useChartFeaturesStore';
 import { useChartToolsStore } from '../../../state/chart/useChartToolsStore';
@@ -62,6 +64,83 @@ function ToolbarBtn({ children, active, onClick, disabled, title, style, 'aria-l
 
 function Divider() {
   return <div className="tf-chart-divider" />;
+}
+
+// ─── Chart Color Picker (dropdown) ───────────────────────────────
+function ChartColorPicker() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const chartColorPreset = useUserStore((s) => s.chartColorPreset);
+  const setChartColorPreset = useUserStore((s) => s.setChartColorPreset);
+  const activePreset = CHART_COLOR_PRESETS.find((p) => p.id === chartColorPreset) || CHART_COLOR_PRESETS[0];
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <ToolbarBtn
+        onClick={() => setOpen(!open)}
+        title={`Chart Colors: ${activePreset.label}`}
+        active={open}
+      >
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="5" cy="5" r="3" fill={activePreset.bull} opacity="0.9" />
+          <circle cx="9" cy="9" r="3" fill={activePreset.bear} opacity="0.9" />
+        </svg>
+      </ToolbarBtn>
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)',
+          background: C.sf, border: `1px solid ${C.bd}`, borderRadius: 10,
+          padding: 8, zIndex: 999, width: 160,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+        }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6, padding: '0 4px' }}>
+            Chart Colors
+          </div>
+          {CHART_COLOR_PRESETS.map((preset) => {
+            const active = chartColorPreset === preset.id;
+            return (
+              <button
+                key={preset.id}
+                onClick={() => { setChartColorPreset(preset.id); setOpen(false); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                  padding: '6px 8px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                  background: active ? `${C.b}20` : 'transparent',
+                  outline: active ? `1px solid ${C.b}` : 'none',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = active ? `${C.b}30` : `${C.t3}15`; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = active ? `${C.b}20` : 'transparent'; }}
+              >
+                <div style={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+                  {[preset.bull, preset.bear, preset.bull, preset.bear].map((clr, i) => (
+                    <div key={i} style={{
+                      width: 4, borderRadius: 1,
+                      height: [12, 16, 10, 14][i],
+                      background: clr,
+                    }} />
+                  ))}
+                </div>
+                <span style={{ fontSize: 11, fontWeight: active ? 600 : 400, color: active ? C.t1 : C.t2 }}>
+                  {preset.label}
+                </span>
+                {active && <span style={{ marginLeft: 'auto', fontSize: 11, color: C.b }}>✓</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // ─── Animated Capsule Timeframe Selector ──────────────────────────
@@ -177,8 +256,7 @@ export default function UnifiedChartToolbar({
   // Layout
   layoutMode,
   setLayoutMode,
-  // Batch 2: AI Analysis
-  onToggleAnalysis,
+  // Batch 2: AI Analysis removed — copilot lives in side panel now
 
 }) {
   const { isMobile } = useBreakpoints();
@@ -368,21 +446,7 @@ export default function UnifiedChartToolbar({
             />
           </div>
           <div className="tf-tools-capsule__divider" />
-          <ToolbarBtn
-            active={false}
-            onClick={onToggleAnalysis}
-            title="AI Analysis"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinejoin="round"
-                fill="rgba(232,100,44,0.2)"
-              />
-            </svg>
-          </ToolbarBtn>
+          <ChartColorPicker />
         </div>
       )}
 

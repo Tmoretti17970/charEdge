@@ -179,7 +179,7 @@ const useTemplateStore = create(
       },
     }),
     {
-      name: 'charEdge-chart-templates',
+      name: 'charEdge-chart-templates', version: 1,
       // Merge built-ins on rehydrate (in case we add new built-ins in updates)
       merge: (persisted, current) => {
         const stored = persisted?.templates || [];

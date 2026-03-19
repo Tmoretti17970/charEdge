@@ -308,3 +308,25 @@ html.theme-light .navBtn:hover {
   color: #e8a0b0;
   transition: opacity 0.2s;
 }
+
+/* ─── Mobile Touch Targets (Task #15 — 44px min per Apple HIG) ── */
+@media (max-width: 768px) {
+  .navBtn {
+    height: 44px;
+    min-height: 44px;
+  }
+
+  .navBtnCollapsed {
+    width: 44px;
+    min-width: 44px;
+  }
+
+  .recentBtn {
+    height: 44px;
+    min-height: 44px;
+  }
+
+  .sidebar {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+}

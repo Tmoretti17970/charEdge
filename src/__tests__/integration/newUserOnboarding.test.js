@@ -30,9 +30,9 @@ describe('New User Onboarding Flow', () => {
     });
 
     it('Getting Started has trade entry, CSV import, and chart exploration steps', () => {
-        expect(narrativeSrc).toContain('Add your first trade');
+        // Sprint 23: Simplified to single-line banner
+        expect(narrativeSrc).toContain('Add a trade');
         expect(narrativeSrc).toContain('Import from CSV');
-        expect(narrativeSrc).toContain('Explore the chart');
     });
 
     it('Getting Started card can be dismissed persistently', () => {

@@ -1,16 +1,18 @@
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — useHistoricalData Hook (Sprint 10)
 //
-// Fetches OHLCV kline data for a symbol and timeframe. Uses the
-// existing Binance REST kline endpoint via fetchBinanceBatch.
+// Fetches OHLCV kline data for a symbol and timeframe.
+// Crypto → Binance REST klines via fetchBinanceBatch.
+// Equities → FetchService (routes to Polygon/Yahoo/etc).
 // Caches results to avoid redundant fetches when switching time
 // ranges or re-selecting the same symbol.
 //
 // Returns: { candles, loading, error, timeRange, setTimeRange }
 // ═══════════════════════════════════════════════════════════════════
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { fetchBinanceBatch, toBinancePair } from '../data/BinanceClient.js';
+import { isCrypto } from '../constants.js';
 
 // ─── Time range presets ────────────────────────────────────────
 
@@ -22,6 +24,11 @@ export const TIME_RANGES = [
   { id: '1Y', label: '1Y', interval: '1d',  limit: 365 },   // 1d × 365
   { id: 'ALL', label: 'ALL', interval: '1w', limit: 500 },   // 1w × 500 ~10yr
 ];
+
+/** Map hook time-range intervals to FetchService TF IDs */
+const INTERVAL_TO_TF = {
+  '5m': '5m', '30m': '30m', '4h': '4h', '1d': '1D', '1w': '1w',
+};
 
 const DEFAULT_RANGE = '1M';
 
@@ -69,8 +76,19 @@ export default function useHistoricalData(symbol) {
 
     (async () => {
       try {
-        const pair = toBinancePair(symbol);
-        const data = await fetchBinanceBatch(pair, range.interval, range.limit);
+        let data = null;
+
+        if (isCrypto(symbol)) {
+          // Crypto → Binance REST klines
+          const pair = toBinancePair(symbol);
+          data = await fetchBinanceBatch(pair, range.interval, range.limit);
+        } else {
+          // Equities/Futures/Forex → route through FetchService
+          const { fetchOHLC } = await import('../data/FetchService');
+          const tfId = INTERVAL_TO_TF[range.interval] || '1D';
+          const result = await fetchOHLC(symbol, tfId);
+          data = result?.data || null;
+        }
 
         if (cancelled || !mountedRef.current) return;
 

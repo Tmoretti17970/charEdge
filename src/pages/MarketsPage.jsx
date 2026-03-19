@@ -12,52 +12,221 @@
 // Sprint 9: Detail panel (slide-in, linked browsing)
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useEffect } from 'react';
-import { C, F, M } from '../constants.js';
-import { useUIStore } from '../state/useUIStore';
-import { useWatchlistStore } from '../state/useWatchlistStore.js';
-import { useMarketsPrefsStore } from '../state/useMarketsPrefsStore';
+import React, { useState, useEffect, useRef, useCallback, useLayoutEffect, Suspense } from 'react';
 import AIOrb from '../app/components/design/AIOrb.jsx';
-import MarketsSearchBar from '../app/components/markets/MarketsSearchBar.jsx';
-import MarketsWatchlistGrid from '../app/components/markets/MarketsWatchlistGrid.jsx';
-import MarketsToolbar from '../app/components/markets/MarketsToolbar.jsx';
-import MarketsDetailPanel from '../app/components/markets/MarketsDetailPanel.jsx';
+import { Btn } from '../app/components/ui/UIKit.jsx';
 import MarketsCardView from '../app/components/markets/MarketsCardView.jsx';
 import MarketsCompactView from '../app/components/markets/MarketsCompactView.jsx';
-import MarketsHeatMap from '../app/components/markets/MarketsHeatMap.jsx';
 import MarketsWatchlistTabs from '../app/components/markets/MarketsWatchlistTabs.jsx';
 import MarketsCompareOverlay from '../app/components/markets/MarketsCompareOverlay.jsx';
 import SmartAlertPicker from '../app/components/markets/SmartAlertPicker.jsx';
 import MarketsCopilotPanel from '../app/components/markets/MarketsCopilotPanel.jsx';
-import SmartFolderManager from '../app/components/markets/SmartFolderManager.jsx';
-import MarketsScreenerPanel from '../app/components/markets/MarketsScreenerPanel.jsx';
-import WatchlistAlertCreator from '../app/components/markets/WatchlistAlertCreator.jsx';
-import MarketsPerformancePanel from '../app/components/markets/MarketsPerformancePanel.jsx';
+import MarketsHeatMap from '../app/components/markets/MarketsHeatMap.jsx';
+import MarketsMobileView from '../app/components/markets/MarketsMobileView.jsx';
+import MarketsSearchBar from '../app/components/markets/MarketsSearchBar.jsx';
+import MarketsToolbar from '../app/components/markets/MarketsToolbar.jsx';
+import MarketsWatchlistGrid from '../app/components/markets/MarketsWatchlistGrid.jsx';
+import MarketsGridSkeleton from '../app/components/markets/MarketsGridSkeleton.jsx';
+import { MarketsGridEmpty, MarketsGridError } from '../app/components/markets/MarketsGridSkeleton.jsx';
+import { C, F, M } from '../constants.js';
+import useCopilotChat from '../hooks/useCopilotChat';
+import { useMarketsKeyboard } from '../hooks/useMarketsKeyboard';
+import { useChartCoreStore } from '../state/chart/useChartCoreStore';
+import { useAccountStore, ACCOUNTS } from '../state/useAccountStore';
+import { useMarketsPrefsStore } from '../state/useMarketsPrefsStore';
+import { useUIStore } from '../state/useUIStore';
+import { useWatchlistStore } from '../state/useWatchlistStore.js';
+import { alpha } from '@/shared/colorUtils';
+
+// ─── Lazy-loaded panels (breaks HMR circular dep chain) ────────
+const MarketsDetailPanel = React.lazy(() => import('../app/components/markets/MarketsDetailPanel.jsx'));
+const SmartFolderManager = React.lazy(() => import('../app/components/markets/SmartFolderManager.jsx'));
+const MarketsScreenerPanel = React.lazy(() => import('../app/components/markets/MarketsScreenerPanel.jsx'));
+
+const MarketsPerformancePanel = React.lazy(() => import('../app/components/markets/MarketsPerformancePanel.jsx'));
 
 // ─── Constants ──────────────────────────────────────────────────
 
 const ACCENT = '#6e5ce6';
 const ACCENT_GLOW = '#6e5ce630';
+const MOBILE_BREAKPOINT = 768;
+
+// ─── Responsive hook ────────────────────────────────────────────
+function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState(
+    typeof window !== 'undefined' ? window.innerWidth < MOBILE_BREAKPOINT : false,
+  );
+  React.useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return isMobile;
+}
+
+// ─── ModePill — Apple-style Segmented Toggle (Real / Demo) ─────
+function ModePill() {
+  const activeAccountId = useAccountStore((s) => s.activeAccountId);
+  const switchAccount = useAccountStore((s) => s.switchAccount);
+  const activeAccount = ACCOUNTS.find((a) => a.id === activeAccountId) || ACCOUNTS[0];
+
+  const containerRef = useRef(null);
+  const optionRefs = useRef({});
+  const [sliderStyle, setSliderStyle] = useState({ left: 0, width: 0, ready: false });
+
+  const updateSlider = useCallback(() => {
+    const container = containerRef.current;
+    const activeEl = optionRefs.current[activeAccountId];
+    if (!container || !activeEl) return;
+    const cRect = container.getBoundingClientRect();
+    const aRect = activeEl.getBoundingClientRect();
+    setSliderStyle({ left: aRect.left - cRect.left, width: aRect.width, ready: true });
+  }, [activeAccountId]);
+
+  useLayoutEffect(() => {
+    updateSlider();
+  }, [updateSlider]);
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        position: 'relative',
+        display: 'inline-flex',
+        alignItems: 'center',
+        borderRadius: 20,
+        padding: 3,
+        gap: 2,
+        background: C.sf2,
+        border: `1px solid ${C.bd}`,
+        height: 32,
+        flexShrink: 0,
+      }}
+    >
+      {sliderStyle.ready && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 3,
+            height: 'calc(100% - 6px)',
+            borderRadius: 16,
+            left: sliderStyle.left,
+            width: sliderStyle.width,
+            background: alpha(activeAccount.color, 0.15),
+            boxShadow: `0 0 8px ${alpha(activeAccount.color, 0.1)}, inset 0 1px 0 ${alpha(activeAccount.color, 0.08)}`,
+            transition:
+              'left 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease',
+            pointerEvents: 'none',
+            zIndex: 0,
+          }}
+        />
+      )}
+
+      {ACCOUNTS.map((account) => {
+        const isActive = activeAccountId === account.id;
+        return (
+          <button
+            key={account.id}
+            ref={(el) => {
+              optionRefs.current[account.id] = el;
+            }}
+            onClick={() => switchAccount(account.id)}
+            aria-label={`Switch to ${account.label} account`}
+            aria-pressed={isActive}
+            style={{
+              position: 'relative',
+              zIndex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 5,
+              border: 'none',
+              background: 'none',
+              cursor: 'pointer',
+              padding: '2px 10px',
+              borderRadius: 16,
+              fontSize: 11,
+              fontWeight: isActive ? 700 : 500,
+              fontFamily: F,
+              color: isActive ? account.color : C.t3,
+              whiteSpace: 'nowrap',
+              transition: 'color 0.2s ease',
+              lineHeight: 1,
+            }}
+          >
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: account.color,
+                flexShrink: 0,
+                opacity: isActive ? 1 : 0.35,
+                transition: 'opacity 0.2s ease',
+              }}
+            />
+            {account.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 // ─── Markets Page ───────────────────────────────────────────────
 
 function MarketsPage() {
   const setPage = useUIStore((s) => s.setPage);
   const items = useWatchlistStore((s) => s.items);
+  const loaded = useWatchlistStore((s) => s.loaded);
   const addSymbol = useWatchlistStore((s) => s.add);
+  const removeSymbol = useWatchlistStore((s) => s.remove);
   const hasItems = items.length > 0;
+  const isLoading = !loaded;
 
   const selectedSymbol = useMarketsPrefsStore((s) => s.selectedSymbol);
   const viewMode = useMarketsPrefsStore((s) => s.viewMode);
+  const setSelectedSymbol = useMarketsPrefsStore((s) => s.setSelectedSymbol);
+  const closeDetail = useMarketsPrefsStore((s) => s.closeDetail);
   const smartFolderOpen = useMarketsPrefsStore((s) => s.smartFolderOpen);
   const setSmartFolderOpen = useMarketsPrefsStore((s) => s.setSmartFolderOpen);
   const screenerPanelOpen = useMarketsPrefsStore((s) => s.screenerPanelOpen);
   const setScreenerPanelOpen = useMarketsPrefsStore((s) => s.setScreenerPanelOpen);
-  const watchlistAlertOpen = useMarketsPrefsStore((s) => s.watchlistAlertOpen);
-  const setWatchlistAlertOpen = useMarketsPrefsStore((s) => s.setWatchlistAlertOpen);
+
   const performancePanelOpen = useMarketsPrefsStore((s) => s.performancePanelOpen);
   const setPerformancePanelOpen = useMarketsPrefsStore((s) => s.setPerformancePanelOpen);
   const panelOpen = !!selectedSymbol;
+
+  // Copilot state
+  const copilotOpen = useCopilotChat((s) => s.panelOpen);
+  const toggleCopilot = useCopilotChat((s) => s.togglePanel);
+
+  // Logbook / Import hover states
+  const [logbookHover, setLogbookHover] = useState(false);
+  const [importHover, setImportHover] = useState(false);
+
+  const setChartSymbol = useChartCoreStore((s) => s.setSymbol);
+  const searchRef = useRef(null);
+  const isMobile = useIsMobile();
+
+  // ─── Keyboard navigation (Sprint 50) ──────────────────────
+  const onSelectRow = useCallback((symbol) => setSelectedSymbol(symbol), [setSelectedSymbol]);
+  const onRemoveRow = useCallback((symbol) => removeSymbol(symbol), [removeSymbol]);
+  const onDoubleClickRow = useCallback((symbol) => {
+    setChartSymbol(symbol);
+    setPage('charts');
+  }, [setChartSymbol, setPage]);
+
+  const { focusedIndex, setFocusedIndex } = useMarketsKeyboard({
+    items,
+    onSelect: onSelectRow,
+    onRemove: onRemoveRow,
+    onDoubleClick: onDoubleClickRow,
+    searchRef,
+    detailOpen: panelOpen,
+    closeDetail,
+  });
 
   // ─── Global Hotkeys (page-level) ──────────────────────────
   useEffect(() => {
@@ -98,6 +267,7 @@ function MarketsPage() {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '16px 24px 12px',
+          background: C.bg2,
           flexShrink: 0,
         }}
       >
@@ -105,11 +275,10 @@ function MarketsPage() {
           <h1
             style={{
               margin: 0,
-              fontSize: 22,
-              fontWeight: 800,
+              fontSize: 20,
+              fontWeight: 700,
               fontFamily: F,
               color: C.t1,
-              letterSpacing: '-0.02em',
             }}
           >
             Markets
@@ -127,16 +296,146 @@ function MarketsPage() {
           >
             {items.length}
           </span>
+          <button
+            className="tf-btn"
+            id="tf-markets-copilot-pill"
+            aria-label="Open AI Copilot"
+            aria-expanded={copilotOpen}
+            onClick={toggleCopilot}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              height: 30,
+              padding: '0 12px 0 8px',
+              borderRadius: 15,
+              background: copilotOpen ? C.b + '15' : C.sf2,
+              border: `1px solid ${copilotOpen ? C.b + '40' : C.bd}`,
+              color: copilotOpen ? C.t1 : C.t2,
+              fontSize: 11,
+              fontWeight: 600,
+              fontFamily: F,
+              cursor: 'pointer',
+              transition: 'all 0.25s cubic-bezier(0.25, 0.1, 0.25, 1)',
+              boxShadow: copilotOpen ? `0 0 16px ${C.b}25` : 'none',
+            }}
+            onMouseEnter={(e) => {
+              if (!copilotOpen) {
+                e.currentTarget.style.background = C.b + '12';
+                e.currentTarget.style.borderColor = C.b + '30';
+                e.currentTarget.style.color = C.t1;
+                e.currentTarget.style.boxShadow = `0 0 14px ${C.b}18`;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!copilotOpen) {
+                e.currentTarget.style.background = C.sf2;
+                e.currentTarget.style.borderColor = C.bd;
+                e.currentTarget.style.color = C.t2;
+                e.currentTarget.style.boxShadow = 'none';
+              }
+            }}
+          >
+            <AIOrb size={16} glow={copilotOpen} animate={copilotOpen} />
+            Copilot
+          </button>
         </div>
 
-        {/* Search bar (Sprint 5) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <MarketsSearchBar />
+        {/* Right side: Search + Mode Toggle + Logbook | + Add Trade */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <MarketsSearchBar ref={searchRef} />
+
+          {/* Real / Demo Mode Pill */}
+          <ModePill />
+
+          {/* Segmented CTA: Logbook | Import | + Add Trade */}
+          <div
+            style={{
+              display: 'flex',
+              borderRadius: 12,
+              overflow: 'hidden',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+            }}
+          >
+            {/* Logbook button (ghost left segment) */}
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('charEdge:open-logbook'))}
+              onMouseEnter={() => setLogbookHover(true)}
+              onMouseLeave={() => setLogbookHover(false)}
+              id="tf-markets-logbook-btn"
+              aria-label="Open trade logbook"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 14px',
+                fontSize: 13,
+                fontWeight: 600,
+                fontFamily: F,
+                border: `1.5px solid ${C.b}`,
+                borderRight: 'none',
+                borderRadius: '12px 0 0 12px',
+                background: logbookHover ? C.b + '12' : 'transparent',
+                color: logbookHover ? C.b : C.t2,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <span style={{ fontSize: 14, lineHeight: 1 }}>📓</span>
+              Logbook
+            </button>
+
+            {/* Import button (ghost middle segment) */}
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('charEdge:open-import'))}
+              onMouseEnter={() => setImportHover(true)}
+              onMouseLeave={() => setImportHover(false)}
+              id="tf-markets-import-btn"
+              aria-label="Open import hub"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 14px',
+                fontSize: 13,
+                fontWeight: 600,
+                fontFamily: F,
+                border: `1.5px solid ${C.b}`,
+                borderRight: 'none',
+                borderRadius: 0,
+                background: importHover ? C.b + '12' : 'transparent',
+                color: importHover ? C.b : C.t2,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <span style={{ fontSize: 14, lineHeight: 1 }}>📥</span>
+              Import
+            </button>
+
+            {/* Add Trade button (primary right segment) */}
+            <Btn
+              onClick={() => window.dispatchEvent(new CustomEvent('charEdge:add-trade'))}
+              id="tf-markets-add-trade-btn"
+              style={{
+                fontSize: 13,
+                padding: '8px 18px',
+                fontWeight: 700,
+                borderRadius: '0 12px 12px 0',
+                border: `1.5px solid ${C.b}`,
+                borderLeft: 'none',
+              }}
+            >
+              + Add Trade
+            </Btn>
+          </div>
         </div>
       </div>
 
       {/* ─── Content ───────────────────────────────────────── */}
-      {hasItems ? (
+      {isLoading ? (
+        <MarketsGridSkeleton rows={8} />
+      ) : hasItems ? (
         <>
           <MarketsToolbar />
           <MarketsWatchlistTabs />
@@ -160,22 +459,28 @@ function MarketsPage() {
               }}
             >
               {/* Sprint 17+18: Conditional view rendering */}
-              {viewMode === 'heatmap' ? (
+              {isMobile ? (
+                <MarketsMobileView />
+              ) : viewMode === 'heatmap' ? (
                 <MarketsHeatMap />
               ) : viewMode === 'cards' ? (
                 <MarketsCardView />
               ) : viewMode === 'compact' ? (
                 <MarketsCompactView />
               ) : (
-                <MarketsWatchlistGrid />
+                <MarketsWatchlistGrid focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex} />
               )}
             </div>
 
             {/* Comparison overlay (Sprint 20) */}
             <MarketsCompareOverlay />
 
-            {/* Detail panel (Sprint 9) */}
-            {panelOpen && <MarketsDetailPanel />}
+            {/* Detail panel (Sprint 9) — lazy loaded */}
+            {panelOpen && (
+              <Suspense fallback={null}>
+                <MarketsDetailPanel />
+              </Suspense>
+            )}
 
             {/* Smart Alert Picker (Sprint 22) */}
             <SmartAlertPicker />
@@ -183,29 +488,28 @@ function MarketsPage() {
             {/* AI Copilot Panel (Sprint 23) */}
             <MarketsCopilotPanel />
 
-            {/* Smart Folder Manager (Sprint 28) */}
-            <SmartFolderManager
-              open={smartFolderOpen}
-              onClose={() => setSmartFolderOpen(false)}
-            />
+            {/* Lazy-loaded slide-over panels */}
+            <Suspense fallback={null}>
+              {/* Smart Folder Manager (Sprint 28) */}
+              <SmartFolderManager
+                open={smartFolderOpen}
+                onClose={() => setSmartFolderOpen(false)}
+              />
 
-            {/* Screener Panel (Sprint 29) */}
-            <MarketsScreenerPanel
-              open={screenerPanelOpen}
-              onClose={() => setScreenerPanelOpen(false)}
-            />
+              {/* Screener Panel (Sprint 29) */}
+              <MarketsScreenerPanel
+                open={screenerPanelOpen}
+                onClose={() => setScreenerPanelOpen(false)}
+              />
 
-            {/* Watchlist Alert Creator (Sprint 30) */}
-            <WatchlistAlertCreator
-              open={watchlistAlertOpen}
-              onClose={() => setWatchlistAlertOpen(false)}
-            />
 
-            {/* Performance Analytics Panel (Sprint 31) */}
-            <MarketsPerformancePanel
-              open={performancePanelOpen}
-              onClose={() => setPerformancePanelOpen(false)}
-            />
+
+              {/* Performance Analytics Panel (Sprint 31) */}
+              <MarketsPerformancePanel
+                open={performancePanelOpen}
+                onClose={() => setPerformancePanelOpen(false)}
+              />
+            </Suspense>
           </div>
         </>
       ) : (

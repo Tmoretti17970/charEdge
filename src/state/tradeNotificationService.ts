@@ -13,7 +13,7 @@
 //   - SL/TP Modified
 // ═══════════════════════════════════════════════════════════════════
 
-import { notifyTradeActivity } from './notificationRouter';
+import { notifyTradeActivity } from './notificationEngine';
 
 // ─── Trade Event Types ──────────────────────────────────────────
 
@@ -136,7 +136,7 @@ export function initTradeNotifications(): void {
     if (type && EVENT_TEMPLATES[type as TradeEventType]) {
       notifyTradeEvent(type as TradeEventType, payload as TradeEventPayload);
     }
-  }) as EventListener);
+  }) as ((e: Event) => void));
 }
 
 export default tradeNotify;

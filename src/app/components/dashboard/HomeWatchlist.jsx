@@ -9,12 +9,12 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
-import { C, F, M } from '../../../constants.js';
-import { useJournalStore } from '../../../state/useJournalStore';
-import { useWatchlistStore, enrichWithTradeStats } from '../../../state/useWatchlistStore.js';
-import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
-import { useUIStore } from '../../../state/useUIStore';
+import { C, M } from '../../../constants.js';
 import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming.js';
+import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
+import { useJournalStore } from '../../../state/useJournalStore';
+import { useUIStore } from '../../../state/useUIStore';
+import { useWatchlistStore, enrichWithTradeStats } from '../../../state/useWatchlistStore.js';
 import { radii } from '../../../theme/tokens.js';
 import Sparkline from '../ui/Sparkline.jsx';
 
@@ -24,14 +24,17 @@ let _cachedAlertStore = null;
 function getAlertSymbols() {
   try {
     if (!_cachedAlertStore) {
-      // Attempt synchronous require — works if module already loaded by Vite
-      _cachedAlertStore = require('../../../state/useAlertStore.ts').default;
+      // Kick off lazy ESM import — will be ready on next render cycle
+      import('../../../state/useAlertStore.ts').then((mod) => {
+        _cachedAlertStore = mod.default;
+      }).catch(() => {});
+      return new Set();
     }
     if (!_cachedAlertStore) return new Set();
     const alerts = _cachedAlertStore.getState().alerts || [];
     const syms = new Set();
     for (const a of alerts) {
-      if (a.status === 'active' && a.symbol) syms.add(a.symbol.toUpperCase());
+      if (a.active && a.symbol) syms.add(a.symbol.toUpperCase());
     }
     return syms;
   } catch { return new Set(); }

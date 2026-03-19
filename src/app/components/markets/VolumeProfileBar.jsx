@@ -7,8 +7,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo, useState } from 'react';
-import { C, F, M } from '../../../constants.js';
-import { radii, transition } from '../../../theme/tokens.js';
+import { C, M } from '../../../constants.js';
+import { transition } from '../../../theme/tokens.js';
 
 function fmtVol(v) {
   if (v == null || isNaN(v)) return '—';

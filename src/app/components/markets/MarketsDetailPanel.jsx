@@ -15,7 +15,8 @@
 // Animation: 300ms slide-in with spring-like easing
 // ═══════════════════════════════════════════════════════════════════
 
-import { useEffect, useRef, memo, useMemo } from 'react';
+import { useEffect, useRef, memo, useMemo, useCallback } from 'react';
+import DetailJournalSection from './DetailJournalSection.jsx';
 import { C, F, M } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
@@ -31,6 +32,8 @@ import TradingActivityInsights from './TradingActivityInsights.jsx';
 import VolumeProfileBar from './VolumeProfileBar.jsx';
 import TickerNotes from './TickerNotes.jsx';
 import { usePriceTracker } from '../../../state/usePriceTracker';
+import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
+import { useUIStore } from '../../../state/useUIStore';
 
 // ─── Asset class colors (shared with grid) ─────────────────────
 
@@ -71,9 +74,24 @@ function MarketsDetailPanel() {
   const items = useWatchlistStore((s) => s.items);
 
   const panelRef = useRef(null);
+  const setChartSymbol = useChartCoreStore((s) => s.setSymbol);
+  const setPage = useUIStore((s) => s.setPage);
+  const setWatchlistAlertOpen = useMarketsPrefsStore((s) => s.setWatchlistAlertOpen);
 
   // Find item data for the selected symbol
   const item = items.find((i) => i.symbol === selectedSymbol);
+
+  // Callbacks for quick-action buttons
+  const handleOpenChart = useCallback(() => {
+    if (selectedSymbol) {
+      setChartSymbol(selectedSymbol);
+      setPage('charts');
+    }
+  }, [selectedSymbol, setChartSymbol, setPage]);
+
+  const handleSetAlert = useCallback(() => {
+    setWatchlistAlertOpen(true);
+  }, [setWatchlistAlertOpen]);
 
   // Live prices for the selected symbol
   const symbolArr = selectedSymbol ? [selectedSymbol] : [];
@@ -83,6 +101,14 @@ function MarketsDetailPanel() {
   const livePrice = liveData?.price ?? null;
   const changePercent = liveData?.changePercent ?? null;
   const volume = liveData?.volume ?? null;
+
+  // Pre-compute price stats (avoid inline getState() calls in JSX)
+  const priceStats = useMemo(() => {
+    if (!selectedSymbol) return null;
+    try {
+      return usePriceTracker.getState().getStats?.(selectedSymbol) ?? null;
+    } catch { return null; }
+  }, [selectedSymbol, livePrice]); // re-eval when price ticks
 
   // ─── Keyboard: Escape closes ─────────────────────────────
   useEffect(() => {
@@ -322,8 +348,8 @@ function MarketsDetailPanel() {
         {/* Sprint 34: 52-Week Range */}
         <DetailSection title="52-Week Range" icon="📏">
           <WeekRangeBar
-            low52w={(() => { const s = usePriceTracker.getState().getStats(selectedSymbol); return s?.low52w; })()}
-            high52w={(() => { const s = usePriceTracker.getState().getStats(selectedSymbol); return s?.high52w; })()}
+            low52w={priceStats?.low52w ?? null}
+            high52w={priceStats?.high52w ?? null}
             currentPrice={livePrice}
             expanded
           />
@@ -348,6 +374,11 @@ function MarketsDetailPanel() {
           <TickerNotes symbol={selectedSymbol} />
         </DetailSection>
 
+        {/* Sprint 38: Journal Integration */}
+        <DetailSection title="Trade History" icon="📓">
+          <DetailJournalSection symbol={selectedSymbol} />
+        </DetailSection>
+
         {/* Quick actions */}
         <div
           style={{
@@ -356,10 +387,8 @@ function MarketsDetailPanel() {
             gap: 8,
           }}
         >
-          <ActionButton label="Open Chart" onClick={() => {
-            // Will wire to setChartSymbol + setPage('charts') in Sprint 10
-          }} />
-          <ActionButton label="Set Alert" variant="secondary" onClick={() => {}} />
+          <ActionButton label="Open Chart" onClick={handleOpenChart} />
+          <ActionButton label="Set Alert" variant="secondary" onClick={handleSetAlert} />
         </div>
       </div>
 

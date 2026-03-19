@@ -3,11 +3,11 @@
 // Full theme editor: Theme, Accent, Font Size, Chart Style, Density.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { C } from '../../../constants.js';
 import { DENSITY_MODES } from '../../../state/user/densitySlice.js';
 import { ACCENT_PRESETS, CHART_COLOR_PRESETS } from '../../../state/user/themeSlice';
+import { useSettingsHistory } from '../../../state/useSettingsHistory.js';
 import { useUserStore } from '../../../state/useUserStore';
 import TFIcon from '../ui/TFIcon.jsx';
 import { Card } from '../ui/UIKit.jsx';
@@ -19,6 +19,19 @@ import s from './AppearanceSection.module.css';
 function subLabel() { return { fontSize: 13, fontWeight: 700, color: C.t1, marginBottom: 4 }; }
 function subHint() { return { fontSize: 11, color: C.t3, marginBottom: 16 }; }
 const cardWrap = { padding: 20, marginBottom: 12 };
+
+function SubSectionHeader({ title }) {
+  return (
+    <div style={{
+      fontSize: 10, fontWeight: 700, color: C.t3,
+      textTransform: 'uppercase', letterSpacing: 0.8,
+      padding: '16px 0 6px', marginBottom: 4,
+      borderBottom: `1px solid ${C.bd}15`,
+    }}>
+      {title}
+    </div>
+  );
+}
 
 // ─── Theme Picker ────────────────────────────────────────────────
 
@@ -46,7 +59,15 @@ function ThemePicker() {
           return (
             <button
               key={opt.value}
-              onClick={() => setTheme(opt.value)}
+              onClick={() => {
+                const prev = theme;
+                setTheme(opt.value);
+                useSettingsHistory.getState().record({
+                  store: 'user', key: 'theme',
+                  label: `Theme → ${opt.label}`,
+                  previousValue: prev, newValue: opt.value,
+                });
+              }}
               className="tf-btn"
               style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
@@ -242,7 +263,7 @@ function FontSizeSlider() {
 
 function ChartStylePicker() {
   const chartColorPreset = useUserStore((s) => s.chartColorPreset);
-  const setChartColorPreset = useUserStore((s) => s.setChartColorPreset);
+  const activePreset = CHART_COLOR_PRESETS.find((p) => p.id === chartColorPreset) || CHART_COLOR_PRESETS[0];
 
   return (
     <Card style={cardWrap}>
@@ -250,38 +271,16 @@ function ChartStylePicker() {
         <TFIcon name="chart" size={14} className={s.s8} />
         Chart Colors
       </div>
-      <div style={subHint()}>Choose candle color styling for charts</div>
-
-      <div className={s.s9}>
-        {CHART_COLOR_PRESETS.map((preset) => {
-          const active = chartColorPreset === preset.id;
-          return (
-            <button
-              key={preset.id}
-              onClick={() => setChartColorPreset(preset.id)}
-              className="tf-btn"
-              style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-                padding: '14px 8px', borderRadius: 10,
-                border: `1.5px solid ${active ? C.b : C.bd}`,
-                background: active ? C.b + '10' : 'transparent',
-                cursor: 'pointer',
-              }}
-            >
-              {/* Mini candle preview */}
-              <div className={s.s10}>
-                <MiniCandle color={preset.bull} h={20} body={12} />
-                <MiniCandle color={preset.bear} h={24} body={16} down />
-                <MiniCandle color={preset.bull} h={18} body={10} />
-                <MiniCandle color={preset.bear} h={22} body={14} down />
-                <MiniCandle color={preset.bull} h={26} body={18} />
-              </div>
-              <span style={{ fontSize: 11, fontWeight: 600, color: active ? C.b : C.t2 }}>
-                {preset.label}
-              </span>
-            </button>
-          );
-        })}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
+        <div style={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+          {[activePreset.bull, activePreset.bear, activePreset.bull, activePreset.bear].map((clr, i) => (
+            <div key={i} style={{ width: 5, borderRadius: 1, height: [14, 18, 12, 16][i], background: clr }} />
+          ))}
+        </div>
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: C.t1 }}>Current: {activePreset.label}</div>
+          <div style={{ fontSize: 11, color: C.t3 }}>🎨 Customize from the chart toolbar color picker</div>
+        </div>
       </div>
     </Card>
   );
@@ -394,6 +393,88 @@ function SimpleModePicker() {
   );
 }
 
+// ─── Keyboard Shortcuts Reference Card ───────────────────────────
+
+const QUICK_SHORTCUTS = [
+  { key: '⌘K', desc: 'AI Copilot / Command Palette' },
+  { key: '?', desc: 'Full shortcuts panel' },
+  { key: '1–7', desc: 'Switch pages' },
+  { key: '⌘I', desc: 'Indicator panel' },
+  { key: 'Esc', desc: 'Close panel / cancel' },
+  { key: 'J / K', desc: 'Navigate journal trades' },
+  { key: 'D', desc: 'Drawing sidebar' },
+  { key: '/', desc: 'Quick symbol search' },
+];
+
+function KeyboardShortcutsCard() {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <Card style={cardWrap}>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="tf-btn"
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+          background: 'transparent', border: 'none', cursor: 'pointer',
+          padding: 0, textAlign: 'left',
+        }}
+      >
+        <TFIcon name="command" size={14} color={C.t3} />
+        <span style={{ ...subLabel(), marginBottom: 0, flex: 1 }}>Keyboard Shortcuts</span>
+        <span style={{ fontSize: 11, color: C.t3, transition: 'transform 0.2s', transform: expanded ? 'rotate(90deg)' : 'none' }}>›</span>
+      </button>
+      {expanded && (
+        <div style={{ marginTop: 12 }}>
+          {QUICK_SHORTCUTS.map((sc) => (
+            <div key={sc.key} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '5px 0', borderBottom: `1px solid ${C.bd}08`,
+            }}>
+              <span style={{ fontSize: 11, color: C.t2 }}>{sc.desc}</span>
+              <span style={{
+                fontSize: 10, fontWeight: 600, color: C.t2,
+                padding: '2px 7px', borderRadius: 4,
+                background: C.bg2, border: `1px solid ${C.bd}`,
+                fontFamily: "'JetBrains Mono', monospace",
+              }}>{sc.key}</span>
+            </div>
+          ))}
+          <div style={{ fontSize: 10, color: C.t3, marginTop: 8, fontStyle: 'italic' }}>
+            Press <strong>?</strong> anywhere to see all shortcuts
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ─── Reset to Defaults ───────────────────────────────────────────
+
+function ResetDefaultsButton() {
+  const resetSettings = useUserStore((s) => s.resetSettings);
+  const handleReset = () => {
+    if (window.confirm('Reset all appearance settings to defaults? This will reset your theme, accent color, font size, chart colors, and density.')) {
+      resetSettings();
+    }
+  };
+  return (
+    <div style={{ textAlign: 'center', paddingTop: 8 }}>
+      <button
+        onClick={handleReset}
+        className="tf-btn"
+        style={{
+          padding: '8px 20px', borderRadius: 8,
+          border: `1px solid ${C.bd}`, background: 'transparent',
+          color: C.t3, fontSize: 11, fontWeight: 600,
+          cursor: 'pointer', transition: 'all 0.15s ease',
+        }}
+      >
+        ↺ Reset to Defaults
+      </button>
+    </div>
+  );
+}
+
 // ─── Main Export ─────────────────────────────────────────────────
 
 function AppearanceSection() {
@@ -401,11 +482,22 @@ function AppearanceSection() {
     <section style={{ marginBottom: 40 }}>
       <SectionHeader icon="palette" title="Appearance" description="Customize how the interface looks and feels" />
       <SimpleModePicker />
+
+      <SubSectionHeader title="Look & Feel" />
       <ThemePicker />
       <AccentColorPicker />
-      <FontSizeSlider />
       <ChartStylePicker />
+
+      <SubSectionHeader title="Display" />
+      <FontSizeSlider />
+
+      <SubSectionHeader title="Layout" />
       <DensityPicker />
+
+      <SubSectionHeader title="Reference" />
+      <KeyboardShortcutsCard />
+
+      <ResetDefaultsButton />
     </section>
   );
 }

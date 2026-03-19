@@ -11,9 +11,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo, useState, useRef, useCallback, useEffect } from 'react';
-import { C, F, M } from '../../../constants.js';
-import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
+import { C, F } from '../../../constants.js';
 import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
+import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { radii, transition } from '../../../theme/tokens.js';
 
 const ACCENT = '#6e5ce6';

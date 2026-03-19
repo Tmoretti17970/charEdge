@@ -12,18 +12,24 @@
 //         enrichWithTradeStats, SparklineService, useMarketsPrefsStore
 // ═══════════════════════════════════════════════════════════════════
 
-import { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
 import { C, F, M } from '../../../constants.js';
+import '../../../styles/markets-animations.css';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useWatchlistStore, enrichWithTradeStats, groupByAssetClass } from '../../../state/useWatchlistStore.js';
 import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
 import { useUIStore } from '../../../state/useUIStore';
 import { useMarketsPrefsStore, ALL_COLUMNS } from '../../../state/useMarketsPrefsStore';
 import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming.js';
+import { useFundamentalsEnrich } from '../../../hooks/useFundamentalsEnrich';
+import { fmtCompact } from '../../../data/FundamentalService.js';
 import { radii, transition } from '../../../theme/tokens.js';
 import Sparkline from '../ui/Sparkline.jsx';
 import MarketsRowContextMenu from './MarketsRowContextMenu.jsx';
+import EarningsBadge from './EarningsBadge.jsx';
 import { useAlertStore } from '../../../state/useAlertStore';
+import { useDragReorder } from '../../../hooks/useDragReorder';
+import { useVirtualScroll } from '../../../hooks/useVirtualScroll';
 
 // ─── Format helpers ────────────────────────────────────────────
 
@@ -99,12 +105,27 @@ function buildGridTemplate(columns, isNarrow) {
 // MarketsWatchlistGrid — Main Component
 // ═══════════════════════════════════════════════════════════════════
 
-export default function MarketsWatchlistGrid() {
+export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedIndex }) {
   const items = useWatchlistStore((s) => s.items);
-  const removeSymbol = useWatchlistStore((s) => s.remove);
+  const storeRemoveSymbol = useWatchlistStore((s) => s.remove);
+  const reorderItems = useWatchlistStore((s) => s.reorder);
+
+  // ─── Sprint 51: Animated remove (play exit, then remove) ───
+  const removeSymbol = useCallback((symbol) => {
+    setExitingSymbols(prev => new Set([...prev, symbol]));
+    setTimeout(() => {
+      storeRemoveSymbol(symbol);
+      setExitingSymbols(prev => {
+        const next = new Set(prev);
+        next.delete(symbol);
+        return next;
+      });
+    }, 300); // matches markets-row-slide-out duration
+  }, [storeRemoveSymbol]);
   const trades = useJournalStore((s) => s.trades);
   const setChartSymbol = useChartCoreStore((s) => s.setSymbol);
   const setPage = useUIStore((s) => s.setPage);
+  const scrollContainerRef = useRef(null);
 
   const visibleColumns = useMarketsPrefsStore((s) => s.visibleColumns);
   const sortKey = useMarketsPrefsStore((s) => s.sortKey);
@@ -117,6 +138,30 @@ export default function MarketsWatchlistGrid() {
 
   const [sparklines, setSparklines] = useState({});
   const [isNarrow, setIsNarrow] = useState(false);
+
+  // ─── Sprint 51: Track enter/exit animations ────────────────
+  const prevSymbolsRef = useRef(new Set());
+  const [newSymbols, setNewSymbols] = useState(new Set());
+  const [exitingSymbols, setExitingSymbols] = useState(new Set());
+
+  useEffect(() => {
+    const currentSyms = new Set(items.map(i => i.symbol));
+    const prevSyms = prevSymbolsRef.current;
+
+    // Find newly added symbols
+    const added = new Set();
+    for (const sym of currentSyms) {
+      if (!prevSyms.has(sym)) added.add(sym);
+    }
+
+    if (added.size > 0) {
+      setNewSymbols(added);
+      const timer = setTimeout(() => setNewSymbols(new Set()), 400);
+      return () => clearTimeout(timer);
+    }
+
+    prevSymbolsRef.current = currentSyms;
+  }, [items]);
 
   // ─── Responsive check ───────────────────────────────────────
   useEffect(() => {
@@ -160,19 +205,28 @@ export default function MarketsWatchlistGrid() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
 
-  // ─── Enriched items ─────────────────────────────────────────
+  // ─── Fundamentals enrichment (Sprint 32) ──────────────────
+  const { fundamentals } = useFundamentalsEnrich(symbols);
+
+  // ─── Enriched items ─────────────────────────────────────
   const enrichedItems = useMemo(() => {
     const enriched = enrichWithTradeStats(items, trades);
     return enriched.map((item) => {
       const p = prices[item.symbol];
+      const f = fundamentals[item.symbol];
       return {
         ...item,
         livePrice: p?.price ?? null,
         changePercent: p?.changePercent ?? null,
         volume: p?.volume ?? null,
+        marketCap: f?.marketCap ?? null,
+        supply: f?.supply ?? null,
+        maxSupply: f?.maxSupply ?? null,
+        ath: f?.ath ?? null,
+        athChange: f?.athChange ?? null,
       };
     });
-  }, [items, trades, prices]);
+  }, [items, trades, prices, fundamentals]);
 
   // ─── Filter ─────────────────────────────────────────────────
   const filteredItems = useMemo(() => {
@@ -245,23 +299,51 @@ export default function MarketsWatchlistGrid() {
     setCtxMenu({ x: e.clientX, y: e.clientY, symbol: sym, price: price || 0 });
   }, []);
 
-  const renderRows = (rowItems) =>
-    rowItems.map((item) => (
-      <WatchlistGridRow
-        key={item.symbol}
-        item={item}
-        sparkline={sparklines[item.symbol]}
-        columns={columns}
-        gridTemplate={gridTemplate}
-        isNarrow={isNarrow}
-        isSelected={item.symbol === selectedSymbol}
-        onClick={() => handleClickSymbol(item.symbol)}
-        onDoubleClick={() => handleDoubleClick(item.symbol)}
-        onRemove={() => removeSymbol(item.symbol)}
-        onContextMenu={(e) => handleContextMenu(e, item.symbol, item.price)}
-        hasAlert={alertSymbols.has(item.symbol)}
-      />
-    ));
+  // ─── Drag-and-drop reorder (Sprint 49) ──────────────────────
+  const moveToFolder = useWatchlistStore((s) => s.moveToFolder);
+  const { dragIndex, dropIndex, getDragHandlers } = useDragReorder({
+    onReorder: reorderItems,
+    onMoveToFolder: moveToFolder,
+  });
+
+  // ─── Sprint 56: Virtual scrolling for large lists ───────────
+  const ROW_HEIGHT = 48;
+  const { virtualItems, totalHeight, isVirtualized } = useVirtualScroll({
+    itemCount: !groupedData ? sortedItems.length : 0,
+    itemHeight: ROW_HEIGHT,
+    containerRef: scrollContainerRef,
+    overscan: 5,
+    enabled: !groupedData, // Only virtualize flat view
+  });
+
+  const renderRows = (rowItems, startIndex = 0) =>
+    rowItems.map((item, idx) => {
+      const globalIdx = sortedItems.indexOf(item);
+      return (
+        <WatchlistGridRow
+          key={item.symbol}
+          item={item}
+          sparkline={sparklines[item.symbol]}
+          columns={columns}
+          gridTemplate={gridTemplate}
+          isNarrow={isNarrow}
+          isSelected={item.symbol === selectedSymbol}
+          isFocused={globalIdx === focusedIndex}
+          rowIndex={globalIdx}
+          onClick={() => handleClickSymbol(item.symbol)}
+          onDoubleClick={() => handleDoubleClick(item.symbol)}
+          onRemove={() => removeSymbol(item.symbol)}
+          onContextMenu={(e) => handleContextMenu(e, item.symbol, item.price)}
+          hasAlert={alertSymbols.has(item.symbol)}
+          onMouseEnterRow={() => setFocusedIndex?.(globalIdx)}
+          isDragging={dragIndex === globalIdx}
+          isDropTarget={dropIndex === globalIdx && dragIndex !== globalIdx}
+          dragHandlers={getDragHandlers(globalIdx, item.symbol)}
+          isEntering={newSymbols.has(item.symbol)}
+          isExiting={exitingSymbols.has(item.symbol)}
+        />
+      );
+    });
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
@@ -316,7 +398,7 @@ export default function MarketsWatchlistGrid() {
       </div>
 
       {/* ─── Rows ─────────────────────────────────────────── */}
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+      <div ref={scrollContainerRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }} role="listbox" aria-label="Watchlist">
         {groupedData ? (
           // Grouped view
           Array.from(groupedData.entries()).map(([cls, groupItems]) => (
@@ -339,8 +421,41 @@ export default function MarketsWatchlistGrid() {
               {renderRows(groupItems)}
             </div>
           ))
+        ) : isVirtualized ? (
+          // Sprint 56: Virtualized flat view
+          <div style={{ height: totalHeight, position: 'relative' }}>
+            {virtualItems.map(({ index, offsetY }) => {
+              const item = sortedItems[index];
+              if (!item) return null;
+              return (
+                <div key={item.symbol} style={{ position: 'absolute', top: offsetY, left: 0, right: 0, height: ROW_HEIGHT }}>
+                  <WatchlistGridRow
+                    item={item}
+                    sparkline={sparklines[item.symbol]}
+                    columns={columns}
+                    gridTemplate={gridTemplate}
+                    isNarrow={isNarrow}
+                    isSelected={item.symbol === selectedSymbol}
+                    isFocused={index === focusedIndex}
+                    rowIndex={index}
+                    onClick={() => handleClickSymbol(item.symbol)}
+                    onDoubleClick={() => handleDoubleClick(item.symbol)}
+                    onRemove={() => removeSymbol(item.symbol)}
+                    onContextMenu={(e) => handleContextMenu(e, item.symbol, item.price)}
+                    hasAlert={alertSymbols.has(item.symbol)}
+                    onMouseEnterRow={() => setFocusedIndex?.(index)}
+                    isDragging={dragIndex === index}
+                    isDropTarget={dropIndex === index && dragIndex !== index}
+                    dragHandlers={getDragHandlers(index, item.symbol)}
+                    isEntering={newSymbols.has(item.symbol)}
+                    isExiting={exitingSymbols.has(item.symbol)}
+                  />
+                </div>
+              );
+            })}
+          </div>
         ) : (
-          // Flat view
+          // Flat view (small list)
           renderRows(sortedItems)
         )}
 
@@ -384,18 +499,47 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
   gridTemplate,
   isNarrow,
   isSelected,
+  isFocused,
+  rowIndex,
   onClick,
   onDoubleClick,
   onRemove,
   onContextMenu,
   hasAlert,
+  onMouseEnterRow,
+  isDragging,
+  isDropTarget,
+  dragHandlers,
+  isEntering,
+  isExiting,
 }) {
   const [hovered, setHovered] = useState(false);
+  const rowRef = useRef(null);
+  const prevPriceRef = useRef(item.livePrice);
+  const [flashClass, setFlashClass] = useState('');
   const isPositive = (item.changePercent ?? 0) >= 0;
   const changeColor = item.changePercent != null ? (isPositive ? C.g : C.r) : C.t3;
   const hasTrades = (item.tradeCount || 0) > 0;
   const assetColor = ASSET_COLORS[item.assetClass] || ASSET_COLORS.other;
   const ACCENT = '#6e5ce6';
+
+  // Auto-scroll into view when focused via keyboard
+  useEffect(() => {
+    if (isFocused && rowRef.current) {
+      rowRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [isFocused]);
+
+  // Price flash animation on tick
+  useEffect(() => {
+    if (prevPriceRef.current != null && item.livePrice != null && item.livePrice !== prevPriceRef.current) {
+      setFlashClass(item.livePrice > prevPriceRef.current ? 'markets-row-flash-up' : 'markets-row-flash-down');
+      const timer = setTimeout(() => setFlashClass(''), 700);
+      prevPriceRef.current = item.livePrice;
+      return () => clearTimeout(timer);
+    }
+    prevPriceRef.current = item.livePrice;
+  }, [item.livePrice]);
 
   const cells = {
     symbol: (
@@ -417,6 +561,7 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
                 {item.symbol}
               </span>
               {hasAlert && <span style={{ fontSize: 10 }} title="Active alert">🔔</span>}
+              <EarningsBadge symbol={item.symbol} />
               <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: M, display: 'none' }}>
               </span>
               {item.assetClass && item.assetClass !== 'other' && (
@@ -456,7 +601,7 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
       </div>
     ),
     sparkline: (
-      <div style={{ width: isNarrow ? 60 : 80, height: 28, flexShrink: 0 }}>
+      <div className="markets-sparkline-transition" style={{ width: isNarrow ? 60 : 80, height: 28, flexShrink: 0 }}>
         {sparkline && sparkline.length > 1 ? (
           <Sparkline
             data={sparkline}
@@ -540,6 +685,37 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
         <div style={{ fontSize: 10, color: C.t3, fontFamily: M }}>—</div>
       </div>
     ),
+    marketCap: (
+      <div style={{ textAlign: 'right' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, fontFamily: M, color: C.t2, fontVariantNumeric: 'tabular-nums' }}>
+          {item.marketCap ? fmtCompact(item.marketCap) : '—'}
+        </span>
+      </div>
+    ),
+    supply: (
+      <div style={{ textAlign: 'right' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, fontFamily: M, color: C.t2, fontVariantNumeric: 'tabular-nums' }}>
+          {item.supply ? fmtCompact(item.supply, 0) : '—'}
+        </span>
+        {item.maxSupply && (
+          <div style={{ fontSize: 9, color: C.t3, fontFamily: M }}>
+            / {fmtCompact(item.maxSupply, 0)}
+          </div>
+        )}
+      </div>
+    ),
+    ath: (
+      <div style={{ textAlign: 'right' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, fontFamily: M, color: C.t2, fontVariantNumeric: 'tabular-nums' }}>
+          {item.ath ? fmtPrice(item.ath) : '—'}
+        </span>
+        {item.athChange != null && (
+          <div style={{ fontSize: 9, fontFamily: M, color: item.athChange < -50 ? C.r : C.t3 }}>
+            {item.athChange > 0 ? '+' : ''}{item.athChange?.toFixed(1)}%
+          </div>
+        )}
+      </div>
+    ),
     assetClass: (
       <div style={{ textAlign: 'right' }}>
         <span
@@ -560,13 +736,32 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
     ),
   };
 
+  // Build CSS class list
+  const rowClasses = [
+    'markets-row-transition',
+    'markets-row-glow',
+    flashClass,
+    isFocused ? 'markets-row-focused' : '',
+    isDragging ? 'markets-row-dragging' : '',
+    isDropTarget ? 'markets-row-drop-target' : '',
+    isEntering ? 'markets-row-enter' : '',
+    isExiting ? 'markets-row-exit' : '',
+  ].filter(Boolean).join(' ');
+
   return (
     <div
+      ref={rowRef}
+      className={rowClasses}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
       onContextMenu={onContextMenu}
-      onMouseEnter={() => setHovered(true)}
+      onMouseEnter={() => { setHovered(true); onMouseEnterRow?.(); }}
       onMouseLeave={() => setHovered(false)}
+      role="option"
+      aria-selected={isSelected}
+      data-symbol={item.symbol}
+      data-row-index={rowIndex}
+      tabIndex={-1}
       style={{
         position: 'relative',
         display: 'grid',
@@ -577,10 +772,9 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
         cursor: 'pointer',
         background: isSelected ? `${ACCENT}08` : hovered ? `${C.b}06` : 'transparent',
         borderBottom: `1px solid ${C.bd}15`,
-        borderLeft: isSelected ? `3px solid ${ACCENT}` : '3px solid transparent',
-        transition: `background ${transition.fast}, box-shadow ${transition.fast}, border-left ${transition.fast}`,
-        boxShadow: isSelected ? `inset 0 0 0 1px ${ACCENT}12` : hovered ? `inset 0 0 0 1px ${C.b}10` : 'none',
+        borderLeft: isSelected ? `3px solid ${ACCENT}` : isFocused ? `3px solid ${ACCENT}60` : '3px solid transparent',
       }}
+      {...(dragHandlers || {})}
     >
       {columns.map((col) => (
         <div key={col}>{cells[col]}</div>

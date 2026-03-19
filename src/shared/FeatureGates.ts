@@ -50,10 +50,13 @@ export const FEATURE_GATES: FeatureGate[] = [
   { id: 'custom_scripts', name: 'Custom Scripts', requiredLevel: 15, description: 'Custom indicator scripting engine', category: 'analysis' },
 ];
 
+import { BETA_MODE } from '../shared/featureFlags';
+
 /**
  * Check if a feature is unlocked at a given level.
  */
 export function isFeatureUnlocked(featureId: string, userLevel: number): boolean {
+  if (BETA_MODE) return true;
   const gate = FEATURE_GATES.find((g) => g.id === featureId);
   if (!gate) return true; // Unknown features are unlocked by default
   return userLevel >= gate.requiredLevel;

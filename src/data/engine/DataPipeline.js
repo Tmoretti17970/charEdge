@@ -82,8 +82,8 @@ class DataPipeline extends EventTarget {
     this._started = true;
     this._stats.startTime = Date.now();
 
-    // 1. Start TickerPlant (also starts PriceAggregator + SharedWorker)
-    tickerPlant.start();
+    // 1. TickerPlant lifecycle is owned by AppBoot.postBoot() — not started here
+    //    to avoid double-start. DataPipeline only manages symbol watching.
 
     // 2. Listen for online/offline events
     this._wireNetworkDetection();

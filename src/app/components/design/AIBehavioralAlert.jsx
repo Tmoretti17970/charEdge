@@ -11,7 +11,7 @@
 //   autoDismissMs - auto-dismiss after N ms (default: 10000)
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 const SEVERITY_CONFIG = {
     high: {

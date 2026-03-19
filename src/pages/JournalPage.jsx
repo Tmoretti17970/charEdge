@@ -50,7 +50,31 @@ import { useBreakpoints } from '@/hooks/useMediaQuery';
 export default function JournalPage() {
   const trades = useJournalStore((s) => s.trades);
   const switching = useAccountStore((s) => s.switching);
+  const isDemo = useAccountStore((s) => s.activeAccountId === 'demo');
   const { isMobile } = useBreakpoints();
+
+  // ─── Fallback: seed demo data if demo account is empty ────
+  useEffect(() => {
+    if (!isDemo || trades.length > 0 || switching) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { genDemoData } = await import('../data/demoData.js');
+        const demo = genDemoData();
+        if (cancelled || !demo.trades?.length) return;
+        console.info(`[JournalPage] Fallback seeding ${demo.trades.length} demo trades`);
+        useJournalStore.getState().hydrate({
+          trades: demo.trades,
+          playbooks: demo.playbooks,
+          notes: [],
+          tradePlans: [],
+        });
+      } catch (err) {
+        console.warn('[JournalPage] Fallback demo seed failed:', err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isDemo, trades.length, switching]);
 
   // ─── Journal tab state ──────────────────────────────────────
   const [journalTab, setJournalTab] = useState('dashboard');

@@ -1,7 +1,11 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Multi-Chart View (Upgraded)
+// charEdge — Multi-Chart View (Sprint 6 Enhanced)
 // Uses full ChartEngineWidget per pane for indicators, drawings, etc.
 // Supports 1×1, 2×1, 1×2, 2×2 layouts with crosshair sync.
+//
+// Sprint 6 Task 6.1:
+//   - Crosshair sync across all visible charts
+//   - Layout config exposed for workspace persistence
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef, memo, useCallback } from 'react';
@@ -25,12 +29,32 @@ const LAYOUT_CONFIG = {
   '2x2': { cols: '1fr 1fr', rows: '1fr 1fr', count: 4 },
 };
 
-const QuadChart = memo(function QuadChart({ initialQuads = DEFAULT_QUADS, layoutMode = '2x2' }) {
+const QuadChart = memo(function QuadChart({ initialQuads = DEFAULT_QUADS, layoutMode = '2x2', onConfigChange }) {
   const [quads, setQuads] = useState(initialQuads);
   const config = LAYOUT_CONFIG[layoutMode] || LAYOUT_CONFIG['2x2'];
 
+  // Sprint 6 Task 6.1.2: Shared crosshair timestamp for sync across charts
+  const [crosshairTime, setCrosshairTime] = useState(null);
+  const [crosshairSourcePane, setCrosshairSourcePane] = useState(-1);
+
   const updateQuad = useCallback((idx, updates) => {
-    setQuads((q) => q.map((quad, i) => (i === idx ? { ...quad, ...updates } : quad)));
+    setQuads((q) => {
+      const next = q.map((quad, i) => (i === idx ? { ...quad, ...updates } : quad));
+      // Sprint 6 Task 6.1.5: Notify parent for workspace persistence
+      onConfigChange?.({ layout: layoutMode, panels: next });
+      return next;
+    });
+  }, [layoutMode, onConfigChange]);
+
+  // Sprint 6 Task 6.1.2: Crosshair move handler — lifted to parent
+  const handleCrosshairSync = useCallback((paneIdx, time) => {
+    setCrosshairTime(time);
+    setCrosshairSourcePane(paneIdx);
+  }, []);
+
+  const handleCrosshairLeave = useCallback(() => {
+    setCrosshairTime(null);
+    setCrosshairSourcePane(-1);
   }, []);
 
   return (
@@ -53,6 +77,9 @@ const QuadChart = memo(function QuadChart({ initialQuads = DEFAULT_QUADS, layout
           tf={quad.tf}
           onSymbolChange={(s) => updateQuad(i, { symbol: s })}
           onTfChange={(t) => updateQuad(i, { tf: t })}
+          crosshairTime={crosshairSourcePane !== i ? crosshairTime : null}
+          onCrosshairSync={(time) => handleCrosshairSync(i, time)}
+          onCrosshairLeave={handleCrosshairLeave}
         />
       ))}
     </div>
@@ -61,19 +88,25 @@ const QuadChart = memo(function QuadChart({ initialQuads = DEFAULT_QUADS, layout
 
 // ─── Full-Engine Chart Pane ─────────────────────────────────────
 
-const MultiChartPane = memo(function MultiChartPane({ _paneId, symbol, tf, onSymbolChange, onTfChange }) {
+const MultiChartPane = memo(function MultiChartPane({
+  _paneId, symbol, tf, onSymbolChange, onTfChange,
+  crosshairTime, onCrosshairSync, onCrosshairLeave,
+}) {
   const [editing, setEditing] = useState(false);
   const [symInput, setSymInput] = useState(symbol);
   const [lastPrice, setLastPrice] = useState(null);
   const [priceChange, setPriceChange] = useState(0);
   const engineRef = useRef(null);
 
-  // Track data for price display
+  // Sprint 6 Task 6.1.2: Forward crosshair events to parent for sync
   const handleCrosshairMove = useCallback((e) => {
     if (e?.close) {
       setLastPrice(e.close);
     }
-  }, []);
+    if (e?.time && onCrosshairSync) {
+      onCrosshairSync(e.time);
+    }
+  }, [onCrosshairSync]);
 
   // Update price when engine reports data
   const handleEngineReady = useCallback((eng) => {
@@ -102,13 +135,16 @@ const MultiChartPane = memo(function MultiChartPane({ _paneId, symbol, tf, onSym
   }, [symbol]);
 
   return (
-    <div style={{
-      background: C.bg,
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-      position: 'relative',
-    }}>
+    <div
+      style={{
+        background: C.bg,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        position: 'relative',
+      }}
+      onMouseLeave={onCrosshairLeave}
+    >
       {/* Compact Header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -194,11 +230,30 @@ const MultiChartPane = memo(function MultiChartPane({ _paneId, symbol, tf, onSym
           overrideTf={tf}
           onCrosshairMove={handleCrosshairMove}
           onEngineReady={handleEngineReady}
+          crosshairSyncTime={crosshairTime}
         />
+
+        {/* Sprint 6 Task 6.1.2: Synced crosshair line from other panes */}
+        {crosshairTime != null && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              bottom: 0,
+              width: 1,
+              background: `${C.t3}60`,
+              pointerEvents: 'none',
+              zIndex: 10,
+              // The crosshair position is approximate — engine calculates x from timestamp
+              // This overlay is a visual indicator; the engine's own crosshairSyncTime
+              // prop handles precise positioning
+            }}
+          />
+        )}
       </div>
     </div>
   );
 });
 
 export default QuadChart;
-export { QuadChart };
+export { QuadChart, LAYOUT_CONFIG };

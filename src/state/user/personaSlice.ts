@@ -3,6 +3,8 @@
 // Extracted from usePersonaStore for useUserStore consolidation.
 // ═══════════════════════════════════════════════════════════════════
 
+import { BETA_MODE } from '../../shared/featureFlags';
+
 // ─── Tiers ───────────────────────────────────────────────────────
 
 export const TIERS = {
@@ -99,8 +101,8 @@ function computeTier(tradeCount) {
 // ─── Persona Defaults ────────────────────────────────────────────
 
 const PERSONA_DEFAULTS = {
-  tier: TIERS.EXPLORER,
-  manualTier: null,
+  tier: BETA_MODE ? TIERS.ARCHITECT : TIERS.EXPLORER,
+  manualTier: BETA_MODE ? TIERS.ARCHITECT : null,
   tradeCount: 0,
   tierHistory: [],
   unlockedFeatures: [],

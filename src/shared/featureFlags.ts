@@ -11,6 +11,12 @@
 //   if (isEnabled(FEATURES.SCRIPTING)) { /* show scripting UI */ }
 // ═══════════════════════════════════════════════════════════════════
 
+/**
+ * BETA_MODE — flip to `true` to force ALL features on during testing.
+ * Set back to `false` before shipping to production.
+ */
+export const BETA_MODE = true;
+
 const STORAGE_KEY = 'charEdge_featureFlags';
 
 /**
@@ -26,14 +32,14 @@ export const FEATURES = Object.freeze({
   WEBGPU: 'webgpu',          // WebGPU compute shaders
 });
 
-/** Default state for each flag (all off until proven stable) */
+/** Default state for each flag (BETA_MODE overrides all to true) */
 const DEFAULTS = {
-  [FEATURES.SCRIPTING]: false,
-  [FEATURES.BACKTESTING]: false,
-  [FEATURES.PAPER_TRADING]: false,
-  [FEATURES.AI_COACH]: true,   // Smart Insights — enabled by default
-  [FEATURES.SOCIAL]: false,
-  [FEATURES.WEBGPU]: false,
+  [FEATURES.SCRIPTING]: BETA_MODE || false,
+  [FEATURES.BACKTESTING]: BETA_MODE || false,
+  [FEATURES.PAPER_TRADING]: BETA_MODE || false,
+  [FEATURES.AI_COACH]: true,   // Smart Insights — always on
+  [FEATURES.SOCIAL]: BETA_MODE || false,
+  [FEATURES.WEBGPU]: BETA_MODE || false,
 };
 
 /** In-memory cache (avoids repeated localStorage reads) */
@@ -69,6 +75,7 @@ function _saveFlags(flags) {
  * @returns {boolean}
  */
 export function isEnabled(flag) {
+  if (BETA_MODE) return true;
   return !!_loadFlags()[flag];
 }
 

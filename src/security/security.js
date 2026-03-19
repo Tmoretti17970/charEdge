@@ -1,25 +1,29 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Dev-mode CSP Violation Detector (P3 Cleanup)
+// charEdge — CSP Violation Detector (Sprint 2 — Task 2.2)
 //
-// In development mode, adds a listener for CSP violations and logs
-// them to the console for early detection before they reach
-// production. In production, this module is a no-op.
+// Logs Content-Security-Policy violations for visibility.
+// In development: console.warn for immediate feedback.
+// In all modes: logger.data.warn for structured logging.
 //
 // Usage: import once at app entry (e.g., main.jsx)
-//   import './utils/security.js';
+//   import './security/security.js';
 // ═══════════════════════════════════════════════════════════════════
 
-const __DEV__ = typeof import.meta !== 'undefined' && import.meta.env?.DEV;
+import { logger } from '@/observability/logger';
 
-if (__DEV__ && typeof document !== 'undefined') {
-    // Listen for CSP violations and log them for early detection
+if (typeof document !== 'undefined') {
     document.addEventListener('securitypolicyviolation', (e) => {
-        // eslint-disable-next-line no-console
-        console.warn(
-            `[CSP Violation] Directive: ${e.violatedDirective} | ` +
+        const msg = `[CSP Violation] Directive: ${e.violatedDirective} | ` +
             `Blocked: ${e.blockedURI || '(inline)'} | ` +
-            `Source: ${e.sourceFile}:${e.lineNumber}`
-        );
-    });
+            `Source: ${e.sourceFile}:${e.lineNumber}`;
 
+        logger.data.warn(msg);
+
+        // Also console in dev for immediate visibility
+        const __DEV__ = typeof import.meta !== 'undefined' && import.meta.env?.DEV;
+        if (__DEV__) {
+            // eslint-disable-next-line no-console
+            console.warn(msg);
+        }
+    });
 }

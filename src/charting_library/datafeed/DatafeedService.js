@@ -24,6 +24,7 @@ class DatafeedService {
     this.cache = new Map(); // key: 'symbol_tf', value: { bars: [], status: 'idle'|'loading'|'ready', subscribers: Set(), generation: number }
     this.sockets = new Map(); // key: 'symbol_tf', value: WebSocket
     this._reconnectTimers = new Map(); // key → setTimeout id for pending reconnects
+    this._pythUnsubs = new Map(); // key → unsubscribe fn for Pyth SSE streams
   }
 
   /**
@@ -90,9 +91,68 @@ class DatafeedService {
 
     entry.status = 'loading';
 
+    // ── Phase 3b: Try deriving from a cached base timeframe ──────────
+    // If e.g. '3m' is requested and we have '1m' cached, aggregate locally
+    // instead of hitting the network. Saves a full round-trip.
+    try {
+      const { canAggregate, aggregateBars } = await import('../../data/engine/TimeAggregator.ts');
+      // Candidate base timeframes ordered by preference (finest first)
+      const candidates = ['1m', '5m', '15m', '30m', '1h', '4h'];
+      for (const baseTf of candidates) {
+        if (baseTf === tf) break; // Don't derive from itself
+        if (!canAggregate(baseTf, tf)) continue;
+        const baseKey = `${symbol}_${baseTf}`;
+        const baseEntry = this.cache.get(baseKey);
+        if (baseEntry?.status === 'ready' && baseEntry.bars?.length > 50) {
+          const aggregated = aggregateBars(baseEntry.bars, tf);
+          if (aggregated.length > 10) {
+            const currentEntry = this.cache.get(key);
+            if (!currentEntry || currentEntry.generation !== gen) return;
+            currentEntry.bars = aggregated;
+            currentEntry.status = 'ready';
+            currentEntry._abortController = null;
+            const source = isCrypto(symbol.replace(/USDT$|BUSD$|USD$/, ''))
+              ? 'datafeed:aggregated:crypto' : 'datafeed:aggregated:equity';
+            useChartCoreStore.getState().setDataMeta(aggregated.length, source, aggregated[0]?.time ?? null);
+            tickChannel.pushHistorical(key, aggregated);
+            currentEntry.subscribers.forEach(sub => {
+              if (sub.onHistorical) sub.onHistorical(aggregated);
+            });
+            logger.engine.info(`[DatafeedService] Derived ${tf} from cached ${baseTf}: ${aggregated.length} bars (local aggregation)`);
+            return;
+          }
+        }
+      }
+    } catch { /* TimeAggregator import failed — fall through to normal fetch */ }
+
+
     // Route non-crypto symbols through FetchService (Yahoo fallback chain)
     const baseSym = symbol.toUpperCase().replace(/USDT$|BUSD$|USD$/, '');
     if (!isCrypto(baseSym)) {
+      // Phase 6: Check 3-tier cache first (memory → IDB → OPFS)
+      const EQUITY_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+      try {
+        const { cacheManager } = await import('../../data/engine/infra/CacheManager.js');
+        const cached = await cacheManager.read(baseSym, tf, EQUITY_CACHE_TTL);
+        if (cached && cached.data && cached.data.length > 0) {
+          const currentEntry = this.cache.get(key);
+          if (!currentEntry || currentEntry.generation !== gen) return;
+          currentEntry.bars = cached.data;
+          currentEntry.status = 'ready';
+          currentEntry._abortController = null;
+          useChartCoreStore.getState().setDataMeta(cached.data.length, `datafeed:equity:${cached.tier}`, cached.data[0]?.time ?? null);
+          tickChannel.pushHistorical(key, cached.data);
+          currentEntry.subscribers.forEach(sub => {
+            if (sub.onHistorical) sub.onHistorical(cached.data);
+          });
+          if (currentEntry.subscribers.size > 0) {
+            this._startPythStream(baseSym, tf, key);
+          }
+          logger.engine.info(`[DatafeedService] Cache hit (${cached.tier}) for ${baseSym}@${tf}: ${cached.data.length} bars`);
+          return;
+        }
+      } catch (e) { logger.engine.warn('[DatafeedService] Cache read failed', e); }
+
       try {
         const { fetchOHLC } = await import('../../data/FetchService.ts');
         // Map Binance-style timeframes to FetchService timeframe IDs
@@ -122,6 +182,17 @@ class DatafeedService {
           currentEntry.subscribers.forEach(sub => {
             if (sub.onHistorical) sub.onHistorical(bars);
           });
+
+          // Phase 6: Write to cache for future instant loads
+          try {
+            const { cacheManager } = await import('../../data/engine/infra/CacheManager.js');
+            cacheManager.write(baseSym, tf, bars, 'yahoo');
+          } catch (e) { logger.engine.warn('[DatafeedService] Cache write failed', e); }
+
+          // Start Pyth SSE stream for live equity/forex/commodity ticks
+          if (currentEntry.subscribers.size > 0) {
+            this._startPythStream(baseSym, tf, key);
+          }
           return;
         }
       } catch (e) { logger.engine.warn('Operation failed', e); }
@@ -138,7 +209,7 @@ class DatafeedService {
 
     try {
       const base = typeof window === 'undefined' ? `http://localhost:${globalThis.__TF_PORT || 3000}` : '';
-      const url = `${base}/api/binance/v3/klines?symbol=${symbol}&interval=${tf}&limit=500`;
+      const url = `${base}/api/binance/v3/klines?symbol=${symbol}&interval=${tf}&limit=1000`;
       const res = await fetch(url, { signal });
 
       if (!res.ok) throw new Error('Failed to fetch historical data');
@@ -375,6 +446,88 @@ class DatafeedService {
    * @param {string} tf
    * @param {Array} olderBars - Bars to prepend (oldest first)
    */
+  // ──────────────────────────────────────────────────────────────
+  // Phase 3: Pyth SSE Streaming for Non-Crypto Symbols
+  // Provides ~400ms real-time price ticks for equities, forex,
+  // and commodities via Pyth Hermes SSE. No API key required.
+  // ──────────────────────────────────────────────────────────────
+  _startPythStream(symbol, tf, key) {
+    // Clean up any existing Pyth subscription for this key
+    const existingUnsub = this._pythUnsubs.get(key);
+    if (existingUnsub) {
+      existingUnsub();
+      this._pythUnsubs.delete(key);
+    }
+
+    // Lazy import to avoid circular dependency
+    import('../../data/adapters/PythAdapter.js').then(({ pythAdapter }) => {
+      // Guard: don't start if cache was cleaned up during import
+      const entry = this.cache.get(key);
+      if (!entry || entry.subscribers.size === 0) return;
+
+      // Check if Pyth supports this symbol
+      if (!pythAdapter.supports(symbol)) {
+        logger.engine.info(`[DatafeedService] Pyth does not support ${symbol} — no live ticks`);
+        return;
+      }
+
+      useChartCoreStore.getState().setWsStatus(WS_STATUS.CONNECTING);
+
+      // Track whether we've calibrated the Pyth SSE against historical data
+      let calibrated = false;
+
+      const unsub = pythAdapter.subscribe(symbol, (priceData) => {
+        const currentEntry = this.cache.get(key);
+        if (!currentEntry || currentEntry.bars.length === 0) return;
+
+        const price = priceData.price;
+        if (!price || !isFinite(price)) return;
+
+        const bars = currentEntry.bars;
+        const last = bars[bars.length - 1];
+
+        // Calibration: on the first tick, check if Pyth and historical sources
+        // have a price mismatch. If >2%, snap the last bar to the Pyth price
+        // so subsequent ticks track real movement instead of creating false candles.
+        if (!calibrated) {
+          const deviation = Math.abs(price - last.close) / last.close;
+          if (deviation > 0.02) {
+            logger.engine.info(
+              `[DatafeedService] Calibrating ${symbol}: snapping last bar from ` +
+              `${last.close.toFixed(2)} → ${price.toFixed(2)} (${(deviation * 100).toFixed(1)}% source delta)`
+            );
+            // Snap the last bar so it becomes a tiny candle at the Pyth price
+            last.open = price;
+            last.high = price;
+            last.low = price;
+            last.close = price;
+          }
+          calibrated = true;
+        }
+
+        useChartCoreStore.getState().setWsStatus(WS_STATUS.CONNECTED);
+
+        // Update the current bar's close, and adjust high/low if needed
+        last.close = price;
+        if (price > last.high) last.high = price;
+        if (price < last.low) last.low = price;
+
+        // Push through TickChannel for direct engine delivery (rAF-batched)
+        tickChannel.pushTick(key, bars, last);
+
+        // Notify React subscribers
+        currentEntry.subscribers.forEach(sub => {
+          if (sub.onTick) sub.onTick(bars, last);
+        });
+      });
+
+      this._pythUnsubs.set(key, unsub);
+      logger.engine.info(`[DatafeedService] Started Pyth SSE stream for ${symbol}`);
+    }).catch(err => {
+      logger.engine.warn(`[DatafeedService] Failed to start Pyth stream for ${symbol}:`, err);
+    });
+  }
+
   prependBars(symbol, tf, olderBars) {
     const key = `${symbol}_${tf}`;
     const entry = this.cache.get(key);
@@ -422,6 +575,14 @@ class DatafeedService {
       }
       this.sockets.delete(key);
     }
+
+    // Phase 3: Clean up Pyth SSE subscription
+    const pythUnsub = this._pythUnsubs.get(key);
+    if (pythUnsub) {
+      pythUnsub();
+      this._pythUnsubs.delete(key);
+    }
+
     this.cache.delete(key);
     removeAggregator(key);
   }

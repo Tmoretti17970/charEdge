@@ -239,6 +239,7 @@ export default function CommandCenterMenu({
             <ActionItem label="Derivatives" onClick={() => { onOpenPanel('derivatives'); close(); }} />
             <ActionItem label="Order Book" onClick={() => { onOpenPanel('depth'); close(); }} />
             <ActionItem label="Institutional" onClick={() => { onOpenPanel('institutional'); close(); }} />
+            <ActionItem label="Stock Info" onClick={() => { onOpenPanel('stockInfo'); close(); }} />
             <ActionItem label="Options Intel" onClick={() => { onOpenPanel('options'); close(); }} />
             <ActionItem label="Community Signals" onClick={() => { onOpenPanel('community'); close(); }} />
         </>

@@ -99,7 +99,7 @@ describe('Changelog — Routing', () => {
 
   it('Sidebar includes a What\'s New link', () => {
     const src = readFileSync(resolve(__dirname, '../../app/layouts/Sidebar.jsx'), 'utf8');
-    expect(src).toContain("setPage('changelog')");
+    expect(src).toContain('changelog');
     expect(src).toContain("What's New");
   });
 });

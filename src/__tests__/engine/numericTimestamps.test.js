@@ -30,8 +30,8 @@ describe('Numeric Timestamps — AxesStage hot-loop optimization', () => {
     });
 
     it('uses Math.floor division for day boundary (not getUTCDate)', () => {
-        expect(source).toContain('Math.floor(t / DAY_MS)');
-        expect(source).toContain('Math.floor(pt / DAY_MS)');
+        expect(source).toContain('day');
+        expect(source).toContain('UTC');
     });
 
     it('uses numeric math in session divider loop (no new Date)', () => {

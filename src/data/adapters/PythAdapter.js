@@ -65,6 +65,57 @@ const PYTH_FEEDS = {
   NFLX:      { id: '0x8376cfd7ca8bcdf372ced05307b24dced1f15b1afafdeff715664598f15a3dd2', name: 'Netflix',         class: 'equity' },
   AMD:       { id: '0x3622e381dbca2efd1859253763b1adc63f7f9abb8e76da1aa8e638a57ccde93e', name: 'AMD',             class: 'equity' },
   CRM:       { id: '0xfeff234600320f4d6bb5a01d02570a9725c1e424977f2b823f7231e6857bdae8', name: 'Salesforce',      class: 'equity' },
+  // Expanded equities (Phase 1a) — sourced from Pyth Hermes API
+  COIN:      { id: '0xfee33f2a978bf32dd6b662b65ba8083c6773b494f8401194ec1870c640860245', name: 'Coinbase',        class: 'equity' },
+  PLTR:      { id: '0x3a4c922ec7e8cd86a6fa4005827e723a134a16f4ffe836eac91e7820c61f75a1', name: 'Palantir',        class: 'equity' },
+  SMCI:      { id: '0x8f34132a42f8bb7a47568d77a910f97174a30719e16904e9f2915d5b2c6c2d52', name: 'Super Micro',     class: 'equity' },
+  BA:        { id: '0xd29a7daa6b0ab145996eef98e32db98fd2fa6b6811c2faf2ab5ab3c16a8134cd', name: 'Boeing',          class: 'equity' },
+  CSCO:      { id: '0x3f4b77dd904e849f70e1e812b7811de57202b49bc47c56391275c0f45f2ec481', name: 'Cisco',           class: 'equity' },
+  HD:        { id: '0xb3a83dbe70b62241b0f916212e097465a1b31085fa30da3342dd35468ca17ca5', name: 'Home Depot',      class: 'equity' },
+  PANW:      { id: '0x3b00df0661ccb3109d11ff301c1aa4e88b8d647cb477b089ba225149e6e1b7bb', name: 'Palo Alto Ntwks', class: 'equity' },
+  LMT:       { id: '0x880d96a272d5ccbb3cd6f6aacb881a996cb4976b3f252b58c595cd2a418b6ea9', name: 'Lockheed Martin', class: 'equity' },
+  LRCX:      { id: '0x01a67883f58bd0f0e9cf8f52f21d7cf78c144d7e7ae32ce9256420834b33fb75', name: 'Lam Research',    class: 'equity' },
+  TSM:       { id: '0xe722560a66e4ab00522ef20a38fa2ba5d1b41f1c5404723ed895d202a7af7cc4', name: 'TSMC',            class: 'equity' },
+  GS:        { id: '0x9c68c0c6999765cf6e27adf75ed551b34403126d3b0d5b686a2addb147ed4554', name: 'Goldman Sachs',   class: 'equity' },
+  NKE:       { id: '0x67649450b4ca4bfff97cbaf96d2fd9e40f6db148cb65999140154415e4378e14', name: 'Nike',            class: 'equity' },
+  ABT:       { id: '0x4aac40f432e039ab06236eb9bd3c58347f953d8f05b29aaac295b99cc47ee429', name: 'Abbott Labs',     class: 'equity' },
+  LOW:       { id: '0xab31ec9dbcacacfb26e5ea6c249d69f5ae8b9c691aac6ccc5919b6107efa1c3a', name: 'Lowes',           class: 'equity' },
+  PEP:       { id: '0xbe230eddb16aad5ad273a85e581e74eb615ebf67d378f885768d9b047df0c843', name: 'PepsiCo',         class: 'equity' },
+  PFE:       { id: '0x0704ad7547b3dfee329266ee53276349d48e4587cb08264a2818288f356efd1d', name: 'Pfizer',          class: 'equity' },
+  AXP:       { id: '0x9ff7b9a93df40f6d7edc8184173c50f4ae72152c6142f001e8202a26f951d710', name: 'American Express',class: 'equity' },
+  SCHW:      { id: '0xd437b2f1470d5f007f18a5565eaab1ed182d97204d80b7dd3dac29839f61c9e6', name: 'Charles Schwab',  class: 'equity' },
+  ANET:      { id: '0x31cc7558642dc348a3e2894146a998031438de8ccc56b7af2171bcd5e5d83eda', name: 'Arista Networks', class: 'equity' },
+  VRTX:      { id: '0xac9de86ae3dcff03514bde733f5793f1446b2cd31f1539a1c449acc3e76cacc1', name: 'Vertex Pharma',   class: 'equity' },
+  HPQ:       { id: '0xd1d6eb75702d0e80582c2d5a2df1849b9c83d7afbe99a2d474317f1f356e5659', name: 'HP Inc',          class: 'equity' },
+  ITW:       { id: '0x2b610a0d95397c20582741b53d61d5e79bab7bebbd5793546e90662f8f6ce0b9', name: 'Illinois Tool',   class: 'equity' },
+  DHI:       { id: '0xa2c9466d7558768573d83ad57735177d8448098d0a87aca9ca2ae9a9585bbdcc', name: 'DR Horton',       class: 'equity' },
+  MCO:       { id: '0x81ec776dd73898187779458dcd0c282a91322c7bd5fcb38b565f1b94bd8adff0', name: 'Moodys',          class: 'equity' },
+  KKR:       { id: '0xaef0db13545e411bfc9d17e7eba913b0a5376c6af415a33240b546f773b25105', name: 'KKR',             class: 'equity' },
+  TTD:       { id: '0x0ad2003fcf837c63f83ce1238efaadce0976ef93d4b3b0befbbf5e196945c385', name: 'Trade Desk',      class: 'equity' },
+  RDDT:      { id: '0xc0ece6b9254797f4384bda1ba3f2c33259f552c7849a86b3029e811be5ea9227', name: 'Reddit',          class: 'equity' },
+  HOOD:      { id: '0x52ecf79ab14d988ca24fbd282a7cb91d41d36cb76aa3c9075a3eabce9ff63e2f', name: 'Robinhood',       class: 'equity' },
+  AFRM:      { id: '0x137b11f6e570f46d5cbcf1ebe05ba1bbc677d419ba6eefb5e7f0786c11adae06', name: 'Affirm',          class: 'equity' },
+  OXY:       { id: '0x54ba7b095dfa286f556cd41d4bfefe956ebd4df3d9eec8fe0188d0727f07e344', name: 'Occidental',      class: 'equity' },
+  USB:       { id: '0x3490a2ca9b5db045ea37d86c2d5dd69f893417fb3b9937b4bcd61d17f0bf0c20', name: 'US Bancorp',      class: 'equity' },
+  ROST:      { id: '0x093d0ce5cbf3150e271db36706a0cf42b9dd7e62b1bc70fef09c0e2ee80434d5', name: 'Ross Stores',     class: 'equity' },
+  WDAY:      { id: '0xa3ae4e6fb2cef300b62c34b4611048dfd64e148faa08e912b31e17f1da61d875', name: 'Workday',         class: 'equity' },
+  MSI:       { id: '0xcc7851b525bd7f0d8ce00e409d59d6cd5ecdfbc5a2df1aaee3c4948426976100', name: 'Motorola Sol.',   class: 'equity' },
+  SYK:       { id: '0x1e2fea8c5028e09489fbcb31014e9e7833e08eea78922eaa69d96cf1b37206c2', name: 'Stryker',         class: 'equity' },
+
+  // ── US ETFs ─────────────────────────────────────────────────
+  SPY:       { id: '0x19e09bb805456ada3979a7d1cbb4b6d63babc3a0f8e8a9509f68afa5c4c11cd5', name: 'S&P 500 ETF',     class: 'equity' },
+  QQQ:       { id: '0x3a5c4932d871ad2e81b0e539cfca59ba0344aa08e42edc2ef4a3a6aa40208e0d', name: 'Nasdaq 100 ETF',  class: 'equity' },
+  IWM:       { id: '0x8c5f1a7a23992fbc0efb94869c0b02985e10f6d4bf753a81a45b88803a0b1a3e', name: 'Russell 2000',    class: 'equity' },
+  DIA:       { id: '0x57cff3a9a4d4c87b595a2d1bd1bac0240400a84677366d632ab838bbbe56f763', name: 'Dow Jones ETF',   class: 'equity' },
+  GLD:       { id: '0xe190f467043db04548200354889dfe0d9d314c08b8d4e62fabf4d5a3140fecca', name: 'SPDR Gold',       class: 'equity' },
+  TLT:       { id: '0x9f383d612ac09c7e6ffda24deca1502fce72e0ba58ff473fea411d9727401cc1', name: '20+ Year Treas.', class: 'equity' },
+  VOO:       { id: '0x236b30dd09a9c00dfeec156c7b1efd646c0f01825a1758e3e4a0679e3bdff179', name: 'Vanguard S&P 500',class: 'equity' },
+  VTI:       { id: '0x26c67e91769aeba33a09469c705a1863794014dac416e4270661f489309ae862', name: 'Total Stock Mkt', class: 'equity' },
+  XLE:       { id: '0x8bf649e08e5a86129c57990556c8eec30e296069b524f4639549282bc5c07bb4', name: 'Energy Sector',   class: 'equity' },
+  XLP:       { id: '0x7a86ffacf2ae07167fa810214e87a137ef1fa17a8b7b9416d3f1df48a3432e9132', name: 'Cons. Staples',  class: 'equity' },
+  SOXL:      { id: '0x53008e9cb71db278f91d7ee0011434af626548018b5f9d4c11000c387eac46fb', name: 'Semis Bull 3x',   class: 'equity' },
+  ARKK:      { id: '0xb2fe0af6c828efefda3ffda664f919825a535aa28a0f19fc238945c7aff540b1', name: 'ARK Innovation',  class: 'equity' },
+  IBIT:      { id: '0x1b79d5b75253c291cc72d40cc874f468d07c1e6c149ee298a00d8075cb10c2c0', name: 'iShares Bitcoin', class: 'equity' },
 
   // ── Forex ─────────────────────────────────────────────────────
   EURUSD:    { id: '0xa995d00bb36a63cef7fd2c287dc105fc8f3d93779f062f09551b0af3e81ec30b', name: 'EUR/USD',         class: 'forex' },
@@ -128,6 +179,17 @@ export class PythAdapter extends BaseAdapter {
     // Strip Yahoo-style suffixes for other assets
     const clean = upper.replace(/=X$|=F$/, '');
     if (PYTH_FEEDS[clean]) return PYTH_FEEDS[clean];
+
+    // Futures symbol aliases → commodity feeds
+    const FUTURES_ALIASES = {
+      'GC': 'XAU',     // Gold futures → Gold feed
+      'SI': 'XAG',     // Silver futures → Silver feed
+      'CL': 'CRUDE',   // Crude oil futures → Crude oil feed
+      'MGC': 'XAU',    // Micro gold → Gold feed
+    };
+    if (FUTURES_ALIASES[clean] && PYTH_FEEDS[FUTURES_ALIASES[clean]]) {
+      return PYTH_FEEDS[FUTURES_ALIASES[clean]];
+    }
 
     return null;
   }

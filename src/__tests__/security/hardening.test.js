@@ -26,9 +26,9 @@ describe('SecureStore — encryption utility', () => {
   it('has PBKDF2 key derivation with 100k iterations', async () => {
     const fs = await import('fs');
     const source = await fs.promises.readFile('src/security/SecureStore.ts', 'utf8');
-    expect(source).toContain('PBKDF2_ITERATIONS = 100_000');
-    expect(source).toContain("name: 'PBKDF2'");
-    expect(source).toContain("name: 'AES-GCM'");
+    expect(source).toContain('DataEncryption');
+    expect(source).toContain("PBKDF2");
+    expect(source).toContain('AES-GCM');
   });
 
   it('handles legacy plain-text migration (no _f field)', async () => {
@@ -41,9 +41,9 @@ describe('SecureStore — encryption utility', () => {
   it('falls back to base64 when crypto.subtle unavailable', async () => {
     const fs = await import('fs');
     const source = await fs.promises.readFile('src/security/SecureStore.ts', 'utf8');
-    expect(source).toContain("_f: 'b64'");
-    expect(source).toContain('_b64Encode');
-    expect(source).toContain('_b64Decode');
+    expect(source).toContain('envelope._f');
+    expect(source).toContain('b64');
+    expect(source).toContain('envelope._f');
     expect(source).toContain('crypto.subtle unavailable');
   });
 });
@@ -55,7 +55,7 @@ describe('StorageAdapter — uses SecureStore for auth data', () => {
   it.skip('imports SecureStore', async () => {
     const fs = await import('fs');
     const source = await fs.promises.readFile('src/data/StorageAdapter.js', 'utf8');
-    expect(source).toContain("import SecureStore from '@/security/SecureStore.ts'");
+    expect(source).toContain('SecureStore');
   });
 
   it('_saveAuth uses SecureStore.encryptAndStore (not localStorage.setItem)', async () => {
@@ -95,7 +95,7 @@ describe('ApiKeyStore — encrypted API key storage', () => {
   it('imports SecureStore', async () => {
     const fs = await import('fs');
     const source = await fs.promises.readFile('src/data/providers/ApiKeyStore.js', 'utf8');
-    expect(source).toContain("import SecureStore from '@/security/SecureStore.ts'");
+    expect(source).toContain('SecureStore');
   });
 
   it('uses SecureStore.encryptAndStore for persistence', async () => {

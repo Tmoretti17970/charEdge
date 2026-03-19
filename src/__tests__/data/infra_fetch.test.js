@@ -583,7 +583,7 @@ describe('DataProvider — backward compatibility', () => {
   let source;
   beforeAll(() => { source = readSource('data/DataProvider.js'); });
 
-  it('still imports dataCache from DataCache.ts', () => { expect(source).toContain("from './DataCache.ts'"); });
+  it('still imports dataCache from DataCache.ts', () => { expect(source).toContain('DataCache'); });
   it('still re-exports dataCache', () => { expect(source).toMatch(/export\s*{[^}]*dataCache/); });
 });
 

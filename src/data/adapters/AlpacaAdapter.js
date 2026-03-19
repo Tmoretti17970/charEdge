@@ -181,6 +181,10 @@ export class AlpacaAdapter extends BaseAdapter {
     if (opts.from) params.set('start', new Date(opts.from).toISOString());
     if (opts.to) params.set('end', new Date(opts.to).toISOString());
 
+    // Phase 4a: SIP feed for pre-market/after-hours data + split/dividend adjustment
+    params.set('feed', opts.extendedHours ? 'sip' : 'iex');
+    params.set('adjustment', opts.adjustment || 'all');
+
     const data = await this._fetch(
       `${ALPACA_DATA}/stocks/${symbol.toUpperCase()}/bars?${params}`,
     );
@@ -193,6 +197,17 @@ export class AlpacaAdapter extends BaseAdapter {
       close: b.c,
       volume: b.v,
     }));
+  }
+
+  /**
+   * Fetch extended-hours bars (pre-market + after-hours) for an equity.
+   * Uses Alpaca's SIP feed which includes 4:00 AM–8:00 PM ET data.
+   * @param {string} symbol - e.g. 'AAPL'
+   * @param {string} [interval='1m'] - Timeframe
+   * @param {Object} [opts] - Additional options (limit, from, to)
+   */
+  async fetchExtendedHours(symbol, interval = '1m', opts = {}) {
+    return this.fetchOHLCV(symbol, interval, { ...opts, extendedHours: true });
   }
 
   async fetchQuote(symbol) {

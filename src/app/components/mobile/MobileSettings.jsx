@@ -6,7 +6,7 @@
 //   - 44px touch targets on all inputs/buttons
 //   - Full-width cards, 16px edge padding
 //   - Safe area handling for notched phones
-//   - Sections: Trading · Playbooks · Data · Integrations · Profile · Danger
+//   - Sections: Profile · Intelligence · Data · Integrations · Danger
 //
 // Decomposed: primitives in MobilePrimitives.jsx,
 // section content in sections/*.jsx
@@ -17,7 +17,6 @@
 
 import { useState } from 'react';
 import { C } from '../../../constants.js';
-import PlaybookManager from '../../features/playbook/PlaybookManager.jsx';
 // eslint-disable-next-line import/order
 import { AccordionSection } from './MobilePrimitives.jsx';
 
@@ -26,28 +25,35 @@ import DangerContent from './sections/DangerContent.jsx';
 import DataContent from './sections/DataContent.jsx';
 import IntegrationsContent from './sections/IntegrationsContent.jsx';
 import ProfileContent from './sections/ProfileContent.jsx';
-import TradingContent from './sections/TradingContent.jsx';
+import IntelligenceSection from '../settings/IntelligenceSection.jsx';
+import AppearanceSection from '../settings/AppearanceSection.jsx';
+import NotificationsSection from '../settings/NotificationsSection.jsx';
 
 // ─── Section Definitions ────────────────────────────────────────
 
 const SECTIONS = [
-  { id: 'trading', label: 'Trading Setup', icon: '⚙️' },
-  { id: 'playbooks', label: 'Playbooks', icon: '📚' },
-  { id: 'data', label: 'Data', icon: '📁' },
-  { id: 'integrations', label: 'Integrations', icon: '🔌' },
-  { id: 'profile', label: 'Profile', icon: '👤' },
-  { id: 'danger', label: 'Danger Zone', icon: '⚠️' },
+  { id: 'account',  label: 'Account',           icon: '👤' },
+  { id: 'app',      label: 'App',               icon: '🎨' },
+  { id: 'ai',       label: 'AI',                icon: '🧠' },
+  { id: 'alerts',   label: 'Alerts',            icon: '🔔' },
+  { id: 'data',     label: 'Data',              icon: '💾' },
+  { id: 'privacy',  label: 'Privacy & Security', icon: '🔒' },
 ];
 
 // ─── Section Content Map ────────────────────────────────────────
 
 const SECTION_CONTENT = {
-  trading: TradingContent,
-  playbooks: () => <PlaybookManager />,
+  account: ProfileContent,
+  app: () => <AppearanceSection />,
+  ai: () => <IntelligenceSection />,
+  alerts: () => <NotificationsSection />,
   data: DataContent,
-  integrations: IntegrationsContent,
-  profile: ProfileContent,
-  danger: DangerContent,
+  privacy: () => (
+    <>
+      <IntegrationsContent />
+      <DangerContent />
+    </>
+  ),
 };
 
 // ═══════════════════════════════════════════════════════════════════

@@ -1,11 +1,12 @@
 import { useState, useRef, useCallback, useLayoutEffect } from 'react';
-import AICopilotPopover from '../../app/components/dashboard/AICopilotPopover.jsx';
+import useCopilotChat from '../../hooks/useCopilotChat';
 import AIOrb from '../../app/components/design/AIOrb.jsx';
 import Coachmark from '../../app/components/ui/Coachmark.jsx';
 import { Btn } from '../../app/components/ui/UIKit.jsx';
 import { C, F } from '../../constants.js';
 import useHotkeys from '@/hooks/useHotkeys';
 import { alpha } from '@/shared/colorUtils';
+import { useUIStore } from '@/state/useUIStore';
 import { useAccountStore, ACCOUNTS } from '@/state/useAccountStore';
 
 // ─── ModePill — Apple-style Segmented Toggle (Real / Demo) ─────
@@ -136,16 +137,12 @@ export { INSIGHT_SUB_TABS };
 export default function JournalHeader({ journalTab, setJournalTab, openAddTrade, tradeCount }) {
   const showSubTabs = INSIGHT_SUB_TABS.some((s) => s.id === journalTab);
   const [logbookHover, setLogbookHover] = useState(false);
+  const [importHover, setImportHover] = useState(false);
+  const setPage = useUIStore((s) => s.setPage);
 
-  // ─── Copilot popover state ─────────────────────────────────────
-  const [copilotOpen, setCopilotOpen] = useState(false);
-  const pillRef = useRef(null);
-
-  const toggleCopilot = useCallback(() => setCopilotOpen((p) => !p), []);
-  const closeCopilot = useCallback(() => setCopilotOpen(false), []);
-
-  // ⌘K / Ctrl+K → toggle copilot (via useHotkeys — no duplicate listener)
-  useHotkeys([{ key: 'meta+k', handler: toggleCopilot, description: 'Toggle AI Copilot' }], { scope: 'page' });
+  // ─── Copilot (Sprint 4: use global store) ─────────────────────
+  const copilotOpen = useCopilotChat((s) => s.panelOpen);
+  const toggleCopilot = useCopilotChat((s) => s.togglePanel);
 
   return (
     <>
@@ -163,7 +160,6 @@ export default function JournalHeader({ journalTab, setJournalTab, openAddTrade,
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <h1 style={{ fontSize: 20, fontWeight: 700, fontFamily: F, color: C.t1, margin: 0 }}>Home</h1>
           <button
-            ref={pillRef}
             className="tf-btn"
             id="tf-copilot-pill"
             aria-label="Open AI Copilot"
@@ -206,9 +202,6 @@ export default function JournalHeader({ journalTab, setJournalTab, openAddTrade,
             <AIOrb size={16} glow={copilotOpen} animate={copilotOpen} />
             Copilot
           </button>
-
-          {/* ─── Copilot Popover ──────────────────────────── */}
-          {copilotOpen && <AICopilotPopover anchorRef={pillRef} onClose={closeCopilot} />}
         </div>
 
         {/* ─── Right side: Mode Toggle + Logbook | + Add Trade ─── */}
@@ -216,7 +209,7 @@ export default function JournalHeader({ journalTab, setJournalTab, openAddTrade,
           {/* ─── Real / Demo Mode Pill ──────────────── */}
           <ModePill />
 
-          {/* ─── Segmented CTA: Logbook | + Add Trade ──── */}
+          {/* ─── Segmented CTA: Logbook | Import | + Add Trade ──── */}
           <div
             style={{
               display: 'flex',
@@ -251,6 +244,34 @@ export default function JournalHeader({ journalTab, setJournalTab, openAddTrade,
             >
               <span style={{ fontSize: 14, lineHeight: 1 }}>📓</span>
               Logbook
+            </button>
+
+            {/* Import button (ghost middle segment) */}
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('charEdge:open-import'))}
+              onMouseEnter={() => setImportHover(true)}
+              onMouseLeave={() => setImportHover(false)}
+              id="tf-import-btn"
+              aria-label="Open import hub"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 14px',
+                fontSize: 13,
+                fontWeight: 600,
+                fontFamily: F,
+                border: `1.5px solid ${C.b}`,
+                borderRight: 'none',
+                borderRadius: 0,
+                background: importHover ? C.b + '12' : 'transparent',
+                color: importHover ? C.b : C.t2,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <span style={{ fontSize: 14, lineHeight: 1 }}>📥</span>
+              Import
             </button>
 
             {/* Add Trade button (primary right segment) */}

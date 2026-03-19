@@ -233,6 +233,14 @@ export function validateCandle(candle: Record<string, unknown>): CandleValidatio
         return { valid: false, candle, issues: ['all-zero candle'] };
     }
 
+    // Candle where close (or open) is 0 but the other isn't → bad tick
+    if (
+        ((fixed.close as number) === 0 && (fixed.open as number) > 0) ||
+        ((fixed.open as number) === 0 && (fixed.close as number) > 0)
+    ) {
+        return { valid: false, candle, issues: ['partial-zero candle (bad tick data)'] };
+    }
+
     return { valid: true, candle: fixed, issues };
 }
 
@@ -247,6 +255,31 @@ export function validateCandleArray(bars: unknown[]): Record<string, unknown>[] 
     for (const bar of bars) {
         const { valid, candle } = validateCandle(bar as Record<string, unknown>);
         if (valid) result.push(candle);
+    }
+
+    // Outlier removal: drop bars where close deviates >90% from the
+    // median close of the 5 nearest neighbors.  This catches stock-split
+    // artifacts and corrupt data points (e.g. MSFT close=0 from Yahoo).
+    if (result.length > 5) {
+        const closes = result.map(b => b.close as number);
+        const cleaned: Record<string, unknown>[] = [];
+        for (let i = 0; i < result.length; i++) {
+            const c = closes[i];
+            // Build window of up-to-5 neighbors (excluding self)
+            const start = Math.max(0, i - 3);
+            const end = Math.min(result.length, i + 4);
+            const neighbors: number[] = [];
+            for (let j = start; j < end; j++) {
+                if (j !== i && isFinite(closes[j]) && closes[j] > 0) neighbors.push(closes[j]);
+            }
+            if (neighbors.length < 2) { cleaned.push(result[i]); continue; }
+            neighbors.sort((a, b) => a - b);
+            const med = neighbors[Math.floor(neighbors.length / 2)];
+            // If close deviates more than 90% from median → outlier
+            if (med > 0 && Math.abs(c - med) / med > 0.9) continue;
+            cleaned.push(result[i]);
+        }
+        return cleaned;
     }
     return result;
 }
