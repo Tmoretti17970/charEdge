@@ -13,8 +13,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { C } from '../../../../constants.js';
-import { isCrypto } from '../../../../constants.js';
+import { C, isCrypto } from '@/constants.js';
 import { logger } from '@/observability/logger';
 
 const TABS = ['Profile', 'Analysts', 'Earnings', 'News', 'Insiders'];
@@ -40,7 +39,7 @@ export default function StockInfoPanel({ symbol }) {
     if (!baseSym || !isEquity) return;
     setLoading(true);
     try {
-      const { finnhubAdapter } = await import('../../../../data/adapters/FinnhubAdapter.js');
+      const { finnhubAdapter } = await import('@/data/adapters/FinnhubAdapter.js');
       switch (tab) {
         case 'Profile': {
           const p = await finnhubAdapter.fetchProfile(baseSym);
