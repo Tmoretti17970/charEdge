@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
-import { webLLMProvider, MODEL_CATALOG } from '../../../ai/WebLLMProvider.ts';
+import { webLLMProvider, MODEL_CATALOG } from '@/WebLLMProvider.ts';
 import { useWebGPUCapability } from '../../../hooks/useWebGPUCapability.ts';
 
 const ACCENT = '#6e5ce6';

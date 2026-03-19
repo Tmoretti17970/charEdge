@@ -8,7 +8,7 @@
 
 import { useMemo } from 'react';
 import { C, M } from '../../../constants.js';
-import { setupScorer } from '../../../ai/SetupScorer';
+import { setupScorer } from '@/SetupScorer';
 import { useJournalStore } from '../../../state/useJournalStore';
 
 // ─── Sample Size Warning (Task #31) ─────────────────────────────
