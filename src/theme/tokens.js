@@ -7,8 +7,12 @@
 // the design system with dimensional and behavioral tokens.
 // ═══════════════════════════════════════════════════════════════════
 
-import { C, F, M } from '../constants.js';
+import { C, F } from '../constants.js';
 export { alpha } from '@/shared/colorUtils';
+
+// Inlined to avoid circular-dep TDZ in production Rollup bundles.
+// Same value as constants/theme.js → export const M.
+const M = "'JetBrains Mono', 'SF Mono', monospace";
 
 // ─── Spacing Scale (4px base) ─────────────────────────────────
 export const space = {
