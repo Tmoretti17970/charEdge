@@ -7,11 +7,12 @@
 // the design system with dimensional and behavioral tokens.
 // ═══════════════════════════════════════════════════════════════════
 
-import { C, F } from '../constants.js';
+import { C } from '../constants.js';
 export { alpha } from '@/shared/colorUtils';
 
 // Inlined to avoid circular-dep TDZ in production Rollup bundles.
-// Same value as constants/theme.js → export const M.
+// Same values as constants/theme.js → export const F / M.
+const F = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
 const M = "'JetBrains Mono', 'SF Mono', monospace";
 
 // ─── Spacing Scale (4px base) ─────────────────────────────────
