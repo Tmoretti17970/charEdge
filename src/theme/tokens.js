@@ -7,8 +7,16 @@
 // the design system with dimensional and behavioral tokens.
 // ═══════════════════════════════════════════════════════════════════
 
-import { C } from '../constants.js';
+// ─── Lazy Constants Accessor ──────────────────────────────────
+// Production Rollup bundles can evaluate this module before
+// constants/theme.js finishes initializing (cross-chunk TDZ).
+// We import the namespace but DON'T read .C at module scope.
+// Instead, getC() resolves C at RENDER time (first getter call).
+import * as _constants from '../constants.js';
 export { alpha } from '@/shared/colorUtils';
+
+let _C;
+function getC() { return _C || (_C = _constants.C); }
 
 // Inlined to avoid circular-dep TDZ in production Rollup bundles.
 // Same values as constants/theme.js → export const F / M.
