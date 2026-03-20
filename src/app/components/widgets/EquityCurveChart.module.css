@@ -1,0 +1,41 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * EquityCurveChart — CSS Module (Sprint 22)
+ * ═══════════════════════════════════════════════════════════════════ */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.pillBar {
+  display: flex;
+  gap: var(--tf-space-1);
+  justify-content: flex-end;
+  margin-bottom: var(--tf-space-1);
+  flex-shrink: 0;
+}
+
+.pill {
+  padding: 3px 10px;
+  font-size: 10px;
+  font-family: var(--tf-font);
+  border-radius: var(--tf-radius-xs);
+  border: none;
+  cursor: pointer;
+  background: color-mix(in srgb, var(--tf-t3) 8%, transparent);
+  color: var(--tf-t3);
+  font-weight: 400;
+  transition: all var(--tf-transition-base);
+}
+
+.pill[data-active='true'] {
+  background: color-mix(in srgb, var(--tf-info) 25%, transparent);
+  color: var(--tf-info);
+  font-weight: 600;
+}
+
+.chartArea {
+  flex: 1;
+  min-height: 0;
+}

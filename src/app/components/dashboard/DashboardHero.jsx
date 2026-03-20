@@ -1,20 +1,18 @@
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Dashboard Hero Stats (Narrative Redesign)
 //
-// Rich hero section with:
-//  - Trend indicator (↑/↓ vs yesterday)
-//  - 7-day P&L sparkline in the hero tile
-//  - Animated counters
-//  - Responsive layout
+// Sprint 22: Migrated from inline styles → CSS Modules + tokens.
+// Dynamic color via --hero-color CSS var; states via data-* attrs.
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useRef } from 'react';
-import { C, GLASS } from '../../../constants.js';
-import { gradient, text, radii } from '../../../theme/tokens.js';
+import { C } from '../../../constants.js';
+import { gradient } from '../../../theme/tokens.js';
 import { fmtD } from '../../../utils.js';
 import { Card } from '../ui/UIKit.jsx';
 import { useCountUp } from '@/hooks/useCountUp';
 import { useAccountStore } from '@/state/useAccountStore';
+import s from './DashboardHero.module.css';
 
 // ─── Mini Sparkline (inline SVG) ────────────────────────────────
 function MiniSparkline({ data, color, width = 120, height = 32 }) {
@@ -39,7 +37,7 @@ function MiniSparkline({ data, color, width = 120, height = 32 }) {
       height={height}
       viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="none"
-      style={{ opacity: 0.5, marginTop: 'auto' }}
+      className={s.sparklineSvg}
     >
       <defs>
         <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
@@ -68,22 +66,7 @@ function TrendArrow({ current, previous }) {
   const isUp = delta >= 0;
 
   return (
-    <span
-      className="tf-hero-trend"
-      style={{
-        ...text.monoXs,
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 3,
-        fontWeight: 700,
-        fontVariantNumeric: 'tabular-nums',
-        color: isUp ? C.g : C.r,
-        background: (isUp ? C.g : C.r) + '12',
-        padding: '2px 7px',
-        borderRadius: radii.xs,
-        marginLeft: 6,
-      }}
-    >
+    <span className={`tf-hero-trend ${s.trend}`} data-dir={isUp ? 'up' : 'down'}>
       {isUp ? '↑' : '↓'} {Math.abs(pct)}%
     </span>
   );
@@ -106,172 +89,61 @@ function DashboardHero({ todayPnl, todayCount, winRate, yesterdayPnl, recentDail
 
   const isDemo = useAccountStore((s) => s.activeAccountId === 'demo');
 
+  // Win rate color tier
+  const wrTier = winRate >= 60 ? 'good' : winRate >= 40 ? 'mid' : 'low';
+
   return (
-    <div
-      className="tf-section-enter"
-      style={{
-        display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr' : 'minmax(240px, 1.8fr) minmax(120px, 1fr) minmax(120px, 1fr)',
-        gap: 12,
-        marginBottom: 24,
-        position: 'relative',
-      }}
-    >
+    <div className={`tf-section-enter ${s.grid}`} data-mobile={isMobile}>
       {/* DEMO MODE badge */}
-      {isDemo && (
-        <div
-          style={{
-            position: 'absolute',
-            top: -8,
-            right: 8,
-            zIndex: 10,
-            padding: '2px 10px',
-            fontSize: 9,
-            fontWeight: 800,
-            background: 'linear-gradient(135deg, #3b82f620, #3b82f610)',
-            color: '#3b82f6',
-            border: '1px solid #3b82f630',
-            borderRadius: 6,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-          }}
-        >
-          🧪 Demo Mode
-        </div>
-      )}
+      {isDemo && <div className={s.demoBadge}>🧪 Demo Mode</div>}
+
       {/* ─── Hero P&L Tile ───────────────────────────────────── */}
       <Card
-        className={todayPnl >= 0 ? 'tf-glow-positive' : todayPnl < 0 ? 'tf-glow-negative' : ''}
-        style={{
-          padding: '20px 22px 12px',
-          background: heroGradient,
-          border: `1px solid ${pnlColor}20`,
-          position: 'relative',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
+        className={`${s.pnlTile} ${todayPnl >= 0 ? 'tf-glow-positive' : todayPnl < 0 ? 'tf-glow-negative' : ''}`}
+        style={{ '--hero-color': pnlColor, '--hero-gradient': heroGradient }}
       >
         {/* Label row */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            marginBottom: 6,
-          }}
-        >
-          <span style={{ ...text.label }}>Today's P&L</span>
+        <div className={s.labelRow}>
+          <span className={s.label}>Today's P&L</span>
           <TrendArrow current={todayPnl} previous={yesterdayPnl} />
         </div>
 
         {/* Big number */}
-        <div
-          style={{
-            ...text.dataHero,
-            fontSize: 42,
-            fontWeight: 800,
-            color: pnlColor,
-            letterSpacing: '-1.5px',
-            fontVariantNumeric: 'tabular-nums',
-            textShadow: `0 0 40px ${pnlColor}35, 0 0 80px ${pnlColor}15`,
-            zIndex: 1,
-          }}
-        >
+        <div className={s.bigNumber}>
           {fmtD(animatedPnl)}
         </div>
 
         {/* Sparkline (last 7 days) */}
         {recentDailyPnl.length > 1 && (
-          <div style={{ marginTop: 'auto', paddingTop: 8 }}>
+          <div className={s.sparklineWrap}>
             <MiniSparkline data={recentDailyPnl} color={pnlColor} />
           </div>
         )}
 
         {/* Background orb */}
-        <div
-          className="tf-hero-orb"
-          style={{
-            position: 'absolute',
-            top: -40,
-            right: -40,
-            width: 160,
-            height: 160,
-            background: `radial-gradient(circle, ${pnlColor}18, transparent 70%)`,
-            borderRadius: radii.pill,
-            pointerEvents: 'none',
-          }}
-        />
+        <div className={`tf-hero-orb ${s.orb}`} />
       </Card>
 
       {/* ─── Win Rate ────────────────────────────────────────── */}
-      <Card
-        style={{
-          padding: '16px 18px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          background: GLASS.subtle,
-          backdropFilter: GLASS.blurSm,
-          WebkitBackdropFilter: GLASS.blurSm,
-        }}
-      >
-        <div
-          style={{
-            ...text.label,
-            marginBottom: 6,
-          }}
-        >
-          Win Rate
-        </div>
-        <div
-          style={{
-            ...text.dataLg,
-            fontSize: 26,
-            fontWeight: 800,
-            color: winRate >= 60 ? C.g : winRate >= 40 ? C.y : C.t3,
-            lineHeight: 1.1,
-          }}
-        >
+      <Card className={s.statTile}>
+        <div className={s.statLabel}>Win Rate</div>
+        <div className={s.statValue} data-wr={wrTier}>
           {todayCount > 0 ? `${Math.round(animatedWinRate)}%` : '—'}
         </div>
         {todayCount > 0 && (
-          <div style={{ ...text.captionSm, marginTop: 4 }}>
+          <div className={s.statCaption}>
             {Math.round(winRate)}% of {todayCount} trades
           </div>
         )}
       </Card>
 
       {/* ─── Trade Count ─────────────────────────────────────── */}
-      <Card
-        style={{
-          padding: '16px 18px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          background: GLASS.subtle,
-          backdropFilter: GLASS.blurSm,
-          WebkitBackdropFilter: GLASS.blurSm,
-        }}
-      >
-        <div
-          style={{
-            ...text.label,
-            marginBottom: 6,
-          }}
-        >
-          Trades
-        </div>
-        <div
-          style={{
-            ...text.dataLg,
-            fontSize: 26,
-            fontWeight: 800,
-            lineHeight: 1.1,
-          }}
-        >
+      <Card className={s.statTile}>
+        <div className={s.statLabel}>Trades</div>
+        <div className={s.statValue}>
           {animatedCount < 1 && todayCount > 0 ? 1 : Math.round(animatedCount)}
         </div>
-        <div style={{ ...text.captionSm, marginTop: 4 }}>today's session</div>
+        <div className={s.statCaption}>today's session</div>
       </Card>
     </div>
   );

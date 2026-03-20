@@ -1,0 +1,181 @@
+/* ═══════════════════════════════════════════════════════════════════
+   ChartSkeleton — CSS Module (Sprint 23)
+   Migrated structural/layout inline styles → classes.
+   Dynamic sizes (candle %, animationDelay) remain inline.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Main Container ─── */
+.root {
+  position: absolute;
+  inset: 0;
+  background: var(--tf-bg, #08090a);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Toolbar Skeleton ─── */
+.toolbar {
+  height: 40px;
+  min-height: 40px;
+  border-bottom: 1px solid var(--tf-bd, #2a2e3a);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+}
+.toolbarDivider {
+  width: 1px;
+  height: 16px;
+  background: var(--tf-bd, #2a2e3a);
+  opacity: 0.3;
+}
+.toolbarSpacer { flex: 1; }
+
+/* ─── Chart Area ─── */
+.chartArea {
+  flex: 1;
+  position: relative;
+  border-bottom: 1px solid var(--tf-bd, #2a2e3a);
+}
+
+/* Grid lines */
+.hGrid {
+  position: absolute;
+  left: 0;
+  right: 60px;
+  height: 0;
+  border-top: 1px dashed var(--tf-bd, #2a2e3a);
+  opacity: 0.2;
+}
+.vGrid {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1px dashed var(--tf-bd, #2a2e3a);
+  opacity: 0.15;
+}
+
+/* ─── Candle Skeleton ─── */
+.candleWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  height: 100%;
+}
+.candleContainer {
+  position: absolute;
+  left: 5%;
+  right: 68px;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  gap: 2px;
+  padding: 10% 0;
+}
+
+/* ─── Center Spinner ─── */
+.spinnerWrap {
+  position: absolute;
+  top: 50%;
+  left: calc(50% - 30px);
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: fadeIn 0.4s ease;
+}
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--tf-bd, #2a2e3a);
+  border-top: 2px solid var(--tf-accent, #e8642c);
+  border-radius: 50%;
+}
+.spinnerText {
+  color: var(--tf-t3, #7078a0);
+  font-size: 11px;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+/* ─── Price Axis ─── */
+.priceAxis {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  border-left: 1px solid var(--tf-bd, #2a2e3a);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+}
+
+/* ─── Indicator Pane ─── */
+.indicatorPane {
+  height: 80px;
+  border-top: 1px solid var(--tf-bd, #2a2e3a);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.indicatorYAxis {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  border-left: 1px solid var(--tf-bd, #2a2e3a);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+}
+
+/* ─── Time Axis ─── */
+.timeAxis {
+  height: 24px;
+  display: flex;
+  border-bottom: 1px solid var(--tf-bd, #2a2e3a);
+}
+.timeAxisLabels {
+  flex: 1;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.timeAxisCap {
+  width: 60px;
+  border-left: 1px solid var(--tf-bd, #2a2e3a);
+}
+
+/* ─── Panel Skeleton ─── */
+.panel {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.panelRow { display: flex; gap: 8px; }
+.panelTextCol {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+/* ─── Mini Skeleton ─── */
+.mini {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.miniRow { display: flex; gap: 6px; }

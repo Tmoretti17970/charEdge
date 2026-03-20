@@ -151,5 +151,12 @@ export function getCommands(actions) {
     // ─── CHART SETTINGS ──────────────────────────────────────
     { id: 'settings-chart', label: 'Chart Settings', group: 'Settings', icon: '⚙️', action: () => { window.dispatchEvent(new CustomEvent('tf:open-panel', { detail: 'settings' })); actions.close(); } },
     { id: 'settings-shortcuts', label: 'Keyboard Shortcuts', group: 'Settings', shortcut: '?', icon: '⌨️', action: () => { useUIStore.getState().toggleShortcuts(); actions.close(); } },
+
+    // ─── HELP (Sprint 17) ───────────────────────────────────
+    { id: 'help-import', label: 'How to Import Trades', group: 'Help', icon: '❓', action: () => { actions.setPage('journal'); setTimeout(() => window.dispatchEvent(new CustomEvent('charEdge:import-csv')), 200); } },
+    { id: 'help-shortcuts', label: 'View All Keyboard Shortcuts', group: 'Help', shortcut: '?', icon: '⌨️', action: () => { useUIStore.getState().toggleShortcuts(); actions.close(); } },
+    { id: 'help-tour', label: 'Start Guided Tour', group: 'Help', icon: '🎓', action: () => { useUserStore.getState().resetTour(); useUserStore.getState().startTour(); actions.close(); } },
+    { id: 'help-what-is', label: 'What is charEdge?', group: 'Help', icon: 'ℹ️', action: () => { window.open('https://charedge.com', '_blank'); actions.close(); } },
   ];
 }
+

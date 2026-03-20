@@ -51,6 +51,15 @@ function ActionItem({ label, onClick, accent }) {
     );
 }
 
+// Sprint 18: Sub-section label for progressive disclosure
+function SubLabel({ children }) {
+    return (
+        <div style={{ padding: '8px 14px 4px', fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', opacity: 0.45, userSelect: 'none' }}>
+            {children}
+        </div>
+    );
+}
+
 // ─── Layout Picker (Subtle Redesign) ──────────────────────────────
 function LayoutPicker({ layoutMode, setLayoutMode, onClose }) {
     const layouts = [
@@ -209,14 +218,18 @@ export default function CommandCenterMenu({
 
     const renderOverlays = () => (
         <>
-            <ToggleItem label="Compare Symbols" active={showComparisonOverlay} onClick={() => { toggleComparisonOverlay(); close(); }} />
-            <ToggleItem label="Liquidity Heatmap" active={showHeatmap} onClick={toggleHeatmap} />
+            <SubLabel>Essential</SubLabel>
             <ToggleItem label="Sessions" active={showSessions} onClick={toggleSessions} />
             <ToggleItem label="Extended Hours" active={showExtendedHours} onClick={toggleExtendedHours} />
-            <ToggleItem label="Pattern Detection" active={showPatternOverlays} onClick={togglePatternOverlays} />
+            <ToggleItem label="Compare Symbols" active={showComparisonOverlay} onClick={() => { toggleComparisonOverlay(); close(); }} />
 
+            <SubLabel>Analysis</SubLabel>
+            <ToggleItem label="Liquidity Heatmap" active={showHeatmap} onClick={toggleHeatmap} />
+            <ToggleItem label="Pattern Detection" active={showPatternOverlays} onClick={togglePatternOverlays} />
             <ActionItem label="Volume Delta" onClick={() => { useChartToolsStore.getState().addIndicator({ indicatorId: 'volumeDelta', params: {} }); close(); }} />
             <ActionItem label="Anchored VWAP" onClick={() => { useChartToolsStore.getState().addIndicator({ indicatorId: 'vwap', params: { anchorTime: Date.now() } }); close(); }} />
+
+            <SubLabel>Advanced</SubLabel>
             <ToggleItem label="Volume Spikes" active={showVolumeSpikes} onClick={toggleVolumeSpikes} />
             <ToggleItem label="Delta Histogram" active={showDeltaOverlay} onClick={toggleDeltaOverlay} />
             <ToggleItem label="Volume Profile" active={showVPOverlay} onClick={toggleVPOverlay} />
@@ -228,16 +241,20 @@ export default function CommandCenterMenu({
 
     const renderPanels = () => (
         <>
+            <SubLabel>Essential</SubLabel>
+            <ToggleItem label="Status Bar" active={showStatusBar} onClick={toggleStatusBar} />
+            <ToggleItem label="Crosshair Tooltip" active={showCrosshairTooltip} onClick={toggleCrosshairTooltip} />
+            <ToggleItem label="Data Window" active={showDataWindow} onClick={toggleDataWindow} />
+            <ToggleItem label="Minimap" active={showMinimap} onClick={toggleMinimap} />
 
+            <SubLabel>Analysis</SubLabel>
             <ToggleItem label="DOM Ladder" active={showDOM} onClick={toggleDOM} />
             <ToggleItem label="Depth Chart" active={showDepthChart} onClick={toggleDepthChart} />
-            <ToggleItem label="Minimap" active={showMinimap} onClick={toggleMinimap} />
-            <ToggleItem label="Status Bar" active={showStatusBar} onClick={toggleStatusBar} />
-            <ToggleItem label="Data Window" active={showDataWindow} onClick={toggleDataWindow} />
-            <ToggleItem label="Crosshair Tooltip" active={showCrosshairTooltip} onClick={toggleCrosshairTooltip} />
             <ActionItem label="Order Flow" onClick={() => { onOpenPanel('orderflow'); close(); }} />
-            <ActionItem label="Derivatives" onClick={() => { onOpenPanel('derivatives'); close(); }} />
             <ActionItem label="Order Book" onClick={() => { onOpenPanel('depth'); close(); }} />
+
+            <SubLabel>Advanced</SubLabel>
+            <ActionItem label="Derivatives" onClick={() => { onOpenPanel('derivatives'); close(); }} />
             <ActionItem label="Institutional" onClick={() => { onOpenPanel('institutional'); close(); }} />
             <ActionItem label="Stock Info" onClick={() => { onOpenPanel('stockInfo'); close(); }} />
             <ActionItem label="Options Intel" onClick={() => { onOpenPanel('options'); close(); }} />

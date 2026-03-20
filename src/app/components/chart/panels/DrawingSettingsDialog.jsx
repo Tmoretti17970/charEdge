@@ -11,6 +11,7 @@
 
 import { useState, useCallback } from 'react';
 import { C, F, M } from '@/constants.js';
+import st from './DrawingSettingsDialog.module.css';
 import {
     ColorSwatch,
     Toggle,
@@ -471,7 +472,7 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
     };
 
     const templateFooter = (
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className={st.templateFooter}>
             {templates.length > 0 && (
                 <select
                     onChange={(e) => {
@@ -480,12 +481,7 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
                         e.target.value = '';
                     }}
                     defaultValue=""
-                    style={{
-                        padding: '4px 8px', borderRadius: 6,
-                        border: `1px solid ${C.bd}`, background: C.sf,
-                        color: C.t1, fontFamily: F, fontSize: 11,
-                        cursor: 'pointer', outline: 'none',
-                    }}
+                    className={st.templateSelect}
                 >
                     <option value="" disabled>Templates</option>
                     {templates.map(t => (
@@ -494,7 +490,7 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
                 </select>
             )}
             {showTemplateSave ? (
-                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                <div className={st.templateSaveRow}>
                     <input
                         type="text"
                         value={templateName}
@@ -502,39 +498,13 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
                         onKeyDown={(e) => e.key === 'Enter' && handleSaveTemplate()}
                         placeholder="Name"
                         autoFocus
-                        style={{
-                            width: 80, padding: '3px 6px', borderRadius: 5,
-                            border: `1px solid ${C.bd}`, background: C.sf,
-                            color: C.t1, fontSize: 11, fontFamily: F, outline: 'none',
-                        }}
+                        className={st.templateInput}
                     />
-                    <button
-                        onClick={handleSaveTemplate}
-                        style={{
-                            padding: '3px 8px', borderRadius: 5, border: 'none',
-                            background: C.b, color: '#fff', fontSize: 11,
-                            fontFamily: F, cursor: 'pointer',
-                        }}
-                    >Save</button>
-                    <button
-                        onClick={() => setShowTemplateSave(false)}
-                        style={{
-                            padding: '3px 6px', borderRadius: 5,
-                            border: `1px solid ${C.bd}`, background: 'transparent',
-                            color: C.t2, fontSize: 11, cursor: 'pointer',
-                        }}
-                    >✕</button>
+                    <button onClick={handleSaveTemplate} className={st.templateSaveBtn}>Save</button>
+                    <button onClick={() => setShowTemplateSave(false)} className={st.templateCancelBtn}>✕</button>
                 </div>
             ) : (
-                <button
-                    onClick={() => setShowTemplateSave(true)}
-                    style={{
-                        padding: '3px 8px', borderRadius: 5,
-                        border: `1px solid ${C.bd}`, background: 'transparent',
-                        color: C.t2, fontSize: 11, fontFamily: F,
-                        cursor: 'pointer',
-                    }}
-                >+ Save Template</button>
+                <button onClick={() => setShowTemplateSave(true)} className={st.templateNewBtn}>+ Save Template</button>
             )}
             {templates.length > 0 && (
                 <button
@@ -542,11 +512,7 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
                         const name = templates[templates.length - 1]?.name;
                         if (name && confirm(`Delete template "${name}"?`)) handleDeleteTemplate(name);
                     }}
-                    style={{
-                        padding: '3px 6px', borderRadius: 5,
-                        border: `1px solid ${C.bd}`, background: 'transparent',
-                        color: '#EF5350', fontSize: 11, cursor: 'pointer',
-                    }}
+                    className={st.templateDeleteBtn}
                     title="Delete last template"
                 >🗑</button>
             )}
@@ -568,7 +534,7 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
             {/* ═══ INPUTS TAB (Position Tools) ═══════════════════════ */}
             {activeTab === 'inputs' && config.hasInputs && (
                 <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                    <div className={`${st.flexRowGap8} ${st.mb12}`}>
                         <StepperInput
                             label="Account size"
                             value={accountSize}
@@ -583,7 +549,7 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
                         />
                     </div>
                     <StepperInput label="Lot size" value={lotSize} onChange={applyAndSet(setLotSize, 'lotSize')} step={0.01} min={0.01} />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
+                    <div className={`${st.flexRowGap8} ${st.padY6}`}>
                         <StepperInput label="Risk" value={risk} onChange={applyAndSet(setRisk, 'risk')} step={0.5} min={0} />
                         <SelectDropdown value={riskUnit} options={RISK_UNIT_OPTIONS} onChange={applyAndSet(setRiskUnit, 'riskUnit')} />
                     </div>
@@ -598,7 +564,7 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
                     <StepperInput label="Ticks" value={stopTicks} onChange={applyAndSet(setStopTicks, 'stopTicks')} step={1} min={0} />
                     <StepperInput label="Price" value={stopPrice} onChange={applyAndSet(setStopPrice, 'stopPrice')} step={0.1} />
 
-                    <div style={{ padding: '8px 0' }}>
+                    <div className={st.padY8}>
                         <SelectDropdown label="QTY precision" value={qtyPrecision} options={QTY_PRECISION_OPTIONS} onChange={applyAndSet(setQtyPrecision, 'qtyPrecision')} />
                     </div>
                 </div>
@@ -626,17 +592,17 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
                     {/* Stop / Target colors (Position tools) */}
                     {config.hasStopTargetColors && (
                         <>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
-                                <span style={{ fontSize: 13, fontFamily: F, color: C.t1, minWidth: 80 }}>Stop color</span>
+                            <div className={`${st.flexRowGap10} ${st.padY6}`}>
+                                <span className={st.colorLabel}>Stop color</span>
                                 <ColorSwatch color={stopColor} onChange={applyAndSet(setStopColor, 'stopColor')} />
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
-                                <span style={{ fontSize: 13, fontFamily: F, color: C.t1, minWidth: 80 }}>Target color</span>
+                            <div className={`${st.flexRowGap10} ${st.padY6}`}>
+                                <span className={st.colorLabel}>Target color</span>
                                 <ColorSwatch color={targetColor} onChange={applyAndSet(setTargetColor, 'targetColor')} />
                             </div>
                             {/* Text color + size on Style tab for position tools */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 0' }}>
-                                <span style={{ fontSize: 13, fontFamily: F, color: C.t1, minWidth: 80 }}>Text</span>
+                            <div className={`${st.flexRowGap6} ${st.padY6}`}>
+                                <span className={st.colorLabel}>Text</span>
                                 <ColorSwatch color={textColor} onChange={applyAndSet(setTextColor, 'textColor')} />
                                 <SelectDropdown
                                     value={fontSize}
@@ -660,7 +626,7 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
 
                     {/* Middle line (shapes) */}
                     {config.hasMiddleLine && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0' }}>
+                        <div className={`${st.flexRowGap8} ${st.padY4}`}>
                             <CheckboxRow
                                 label="Middle line"
                                 checked={middleLine}
@@ -677,7 +643,7 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
 
                     {/* Background (shapes) */}
                     {config.hasBackground && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0' }}>
+                        <div className={`${st.flexRowGap8} ${st.padY4}`}>
                             <CheckboxRow
                                 label="Background"
                                 checked={showBackground}
@@ -691,7 +657,7 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
 
                     {/* Extend dropdown */}
                     {config.hasExtend && (
-                        <div style={{ padding: '6px 0' }}>
+                        <div className={st.padY6}>
                             <SelectDropdown
                                 label="Extend"
                                 value={extend}
@@ -758,22 +724,12 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
                     {config.hasFibLevels && (
                         <>
                             <SectionLabel>Fib Levels</SectionLabel>
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: '1fr 1fr',
-                                gap: '2px 16px',
-                            }}>
+                            <div className={st.fibGrid}>
                                 {fibLevels.map((level, i) => (
                                     <div
                                         key={i}
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 6,
-                                            padding: '3px 0',
-                                            opacity: level.visible ? 1 : 0.35,
-                                            transition: 'opacity 0.12s ease',
-                                        }}
+                                        className={st.fibRow}
+                                        data-visible={level.visible}
                                     >
                                         <button
                                             onClick={() => {
@@ -782,20 +738,8 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
                                                 setFibLevels(next);
                                                 updateStyle('fibLevels', next);
                                             }}
-                                            style={{
-                                                width: 18,
-                                                height: 18,
-                                                borderRadius: 4,
-                                                border: `1.5px solid ${level.visible ? C.b : C.bd}`,
-                                                background: level.visible ? C.b : 'transparent',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                flexShrink: 0,
-                                                padding: 0,
-                                                transition: 'all 0.12s ease',
-                                            }}
+                                            className={st.fibCheckbox}
+                                            data-checked={level.visible}
                                         >
                                             {level.visible && (
                                                 <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
@@ -815,27 +759,10 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
                                                 updateStyle('fibLevels', next);
                                             }}
                                             step={0.001}
-                                            style={{
-                                                width: 52,
-                                                padding: '3px 5px',
-                                                borderRadius: 4,
-                                                border: `1px solid ${C.bd}`,
-                                                background: C.sf,
-                                                color: C.t1,
-                                                fontFamily: M,
-                                                fontSize: 11,
-                                                outline: 'none',
-                                                textAlign: 'right',
-                                            }}
+                                            className={st.fibInput}
                                         />
-                                        <div style={{ position: 'relative', width: 22, height: 22, flexShrink: 0 }}>
-                                            <div style={{
-                                                width: 22,
-                                                height: 22,
-                                                borderRadius: 5,
-                                                background: level.color,
-                                                border: `1px solid ${C.bd}`,
-                                            }} />
+                                        <div className={st.fibColorWrap}>
+                                            <div className={st.fibColorSwatch} style={{ background: level.color }} />
                                             <input
                                                 type="color"
                                                 value={level.color}
@@ -845,7 +772,7 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
                                                     setFibLevels(next);
                                                     updateStyle('fibLevels', next);
                                                 }}
-                                                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                                                className={st.fibColorInput}
                                             />
                                         </div>
                                     </div>
@@ -861,22 +788,10 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
                     )}
 
                     {/* Save as default */}
-                    <div style={{ marginTop: 16 }}>
+                    <div className={st.mt16}>
                         <button
                             onClick={handleSaveAsDefault}
-                            style={{
-                                width: '100%',
-                                padding: '8px 12px',
-                                borderRadius: 8,
-                                border: `1px solid ${C.b}40`,
-                                background: C.b + '15',
-                                color: C.b,
-                                fontFamily: F,
-                                fontSize: 12,
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease',
-                            }}
+                            className={st.saveDefaultBtn}
                         >
                             Save as Default for {toolLabel}
                         </button>
@@ -897,7 +812,7 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
                         italic={fontItalic}
                         onItalicChange={applyAndSet(setFontItalic, 'fontItalic')}
                     />
-                    <div style={{ margin: '12px 0' }}>
+                    <div className={st.my12}>
                         <StyledTextArea
                             value={textContent}
                             onChange={(v) => {
@@ -928,21 +843,9 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
                     {points.map((pt, i) => (
                         <div
                             key={i}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 10,
-                                padding: '10px 0',
-                                borderBottom: i < points.length - 1 ? `1px solid ${C.bd}20` : 'none',
-                            }}
+                            className={st.coordRow}
                         >
-                            <span style={{
-                                fontSize: 13,
-                                fontFamily: F,
-                                color: C.t2,
-                                minWidth: 100,
-                                whiteSpace: 'nowrap',
-                            }}>
+                            <span className={st.coordLabel}>
                                 #{i + 1} (price, bar)
                             </span>
                             <StepperInput
@@ -959,24 +862,13 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
                                         handlePointChange(i, 'time', new Date('2024-01-01').getTime() + barIdx * 3600000);
                                     }
                                 }}
-                                style={{
-                                    width: 60,
-                                    padding: '6px 8px',
-                                    borderRadius: 6,
-                                    border: `1px solid ${C.bd}`,
-                                    background: C.sf,
-                                    color: C.t1,
-                                    fontFamily: M,
-                                    fontSize: 12,
-                                    outline: 'none',
-                                    textAlign: 'center',
-                                }}
+                                className={st.coordBarInput}
                             />
                         </div>
                     ))}
 
                     {points.length === 0 && (
-                        <div style={{ padding: '20px 0', textAlign: 'center', fontSize: 12, color: C.t3, fontFamily: F }}>
+                        <div className={st.coordEmpty}>
                             No anchor points for this drawing type.
                         </div>
                     )}
@@ -992,7 +884,7 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
                         onChange={(v) => { setVisibilityTicks(v); updateVisibility(); }}
                     />
 
-                    <div style={{ marginTop: 8 }}>
+                    <div className={st.mt8}>
                         {TIMEFRAME_ROWS.map((row) => (
                             <TimeframeVisibilityRow
                                 key={row.id}
@@ -1020,7 +912,7 @@ export default function DrawingSettingsDialog({ drawing, engine, onClose }) {
                         ))}
                     </div>
 
-                    <div style={{ marginTop: 10 }}>
+                    <div className={st.mt10}>
                         <CheckboxRow
                             label="Ranges"
                             checked={visibilityRanges}

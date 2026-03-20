@@ -1,0 +1,170 @@
+/* ═══════════════════════════════════════════════════════════════════
+   DrawingObjectTree — CSS Module (Sprint 23)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.panel {
+  position: absolute;
+  right: 0;
+  top: 42px;
+  bottom: 0;
+  width: 260px;
+  background: rgba(19, 23, 34, 0.97);
+  border-left: 1px solid rgba(54, 58, 69, 0.5);
+  backdrop-filter: blur(10px);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: transform 0.2s ease;
+}
+
+/* ─── Header ─── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(54, 58, 69, 0.5);
+}
+.headerTitle {
+  color: #D1D4DC;
+  font-size: 13px;
+  font-weight: 600;
+}
+.headerCount {
+  color: #787B86;
+  font-weight: 400;
+}
+.headerActions {
+  display: flex;
+  gap: 4px;
+}
+
+/* ─── Icon Button ─── */
+.iconBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+.iconBtn:hover { opacity: 1 !important; }
+
+/* ─── Search ─── */
+.searchWrap { padding: 6px 12px; }
+.searchInput {
+  width: 100%;
+  background: #1E222D;
+  border: 1px solid #363A45;
+  border-radius: 4px;
+  color: #D1D4DC;
+  font-size: 11px;
+  padding: 5px 8px;
+  outline: none;
+}
+
+/* ─── Drawing Row ─── */
+.drawingRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size: 12px;
+}
+.drawingRow:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.drawingRow[data-selected="true"] {
+  background: rgba(41, 98, 255, 0.12);
+}
+.rowIcon {
+  font-size: 14px;
+  opacity: 0.7;
+  font-family: monospace;
+  width: 18px;
+  text-align: center;
+}
+.rowContent { flex: 1; min-width: 0; }
+.rowLabel {
+  color: #D1D4DC;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+.rowInput {
+  background: #1E222D;
+  border: 1px solid #363A45;
+  border-radius: 3px;
+  color: #D1D4DC;
+  font-size: 11px;
+  padding: 1px 4px;
+  width: 100%;
+  outline: none;
+}
+
+/* ─── Group Header ─── */
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  color: #787B86;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(54, 58, 69, 0.3);
+}
+.groupArrow {
+  font-size: 10px;
+  transition: transform 0.2s;
+}
+.groupArrow[data-expanded="true"] { transform: rotate(90deg); }
+.groupCount {
+  margin-left: auto;
+  color: #363A45;
+  font-size: 10px;
+}
+
+/* ─── List ─── */
+.list { flex: 1; overflow: auto; padding: 4px 0; }
+.groupItems { padding: 2px 4px; }
+
+/* ─── Empty State ─── */
+.emptyState {
+  padding: 20px;
+  text-align: center;
+  color: #787B86;
+  font-size: 12px;
+}
+.emptyHint { font-size: 11px; opacity: 0.7; }
+
+/* ─── Footer ─── */
+.footer {
+  padding: 8px 12px;
+  border-top: 1px solid rgba(54, 58, 69, 0.5);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.footerCount {
+  color: #787B86;
+  font-size: 11px;
+}
+.deleteSelectedBtn {
+  margin-left: auto;
+  background: rgba(239, 83, 80, 0.15);
+  border: 1px solid rgba(239, 83, 80, 0.3);
+  border-radius: 4px;
+  color: #EF5350;
+  font-size: 11px;
+  padding: 3px 10px;
+  cursor: pointer;
+}

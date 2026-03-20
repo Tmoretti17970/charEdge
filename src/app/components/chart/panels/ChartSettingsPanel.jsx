@@ -4,6 +4,7 @@ import { C, F } from '@/constants.js';
 import { ColorSwatch, Toggle, RangeSlider, RadioGroup } from '../../settings/SettingsControls.jsx';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
+import s from './ChartSettingsPanel.module.css';
 
 // SVG Tab Icons
 const TabIcon = ({ children }) => <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ display: 'block' }}>{children}</svg>;
@@ -55,109 +56,50 @@ export default function ChartSettingsPanel({ _onClose }) {
   const toggleCrosshairTooltip = useChartFeaturesStore((s) => s.toggleCrosshairTooltip);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className={s.root}>
       {/* Tabs */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 2,
-          marginBottom: 16,
-          borderBottom: `1px solid ${C.bd}`,
-          paddingBottom: 8,
-        }}
-      >
+      <div className={s.tabRow}>
         {TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            style={{
-              flex: 1,
-              padding: '6px 4px',
-              background: tab === t.id ? C.b + '15' : 'transparent',
-              border: 'none',
-              borderRadius: 6,
-              color: tab === t.id ? C.b : C.t2,
-              fontFamily: F,
-              fontSize: 11,
-              fontWeight: tab === t.id ? 600 : 400,
-              cursor: 'pointer',
-              transition: 'all 0.12s ease',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 2,
-            }}
+            className={s.tab}
+            data-active={tab === t.id || undefined}
           >
-            <span style={{ fontSize: 14 }}>{TAB_ICONS[t.id]}</span>
+            <span className={s.tabIcon}>{TAB_ICONS[t.id]}</span>
             {t.label}
           </button>
         ))}
       </div>
 
       {/* Tab Content */}
-      <div style={{ flex: 1, overflowY: 'auto' }}>
+      <div className={s.tabContent}>
         {tab === 'appearance' && (
           <div>
             {/* Theme Preset Picker */}
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: C.t3,
-                fontFamily: F,
-                letterSpacing: 0.5,
-                marginBottom: 6,
-                textTransform: 'uppercase',
-              }}
-            >
-              Theme
-            </div>
-            <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
+            <div className={s.sectionLabel} style={{ marginBottom: 6 }}>Theme</div>
+            <div className={s.themeRow}>
               {THEME_PILLS.map((tp) => (
                 <button
                   key={tp.id}
                   onClick={() => applyChartPreset(tp.id)}
                   title={tp.label}
+                  className={s.themePill}
                   style={{
-                    flex: 1,
-                    padding: '6px 4px',
-                    borderRadius: 8,
                     border: `1.5px solid ${activePreset === tp.id ? C.b : C.bd}`,
                     background: activePreset === tp.id ? C.b + '12' : 'transparent',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 4,
                   }}
                 >
-                  <div style={{ display: 'flex', gap: 2 }}>
-                    <div style={{ width: 10, height: 10, borderRadius: 3, background: tp.colors[0] }} />
-                    <div style={{ width: 10, height: 10, borderRadius: 3, background: tp.colors[1] }} />
+                  <div className={s.themeDots}>
+                    <div className={s.themeDot} style={{ background: tp.colors[0] }} />
+                    <div className={s.themeDot} style={{ background: tp.colors[1] }} />
                   </div>
-                  <span style={{
-                    fontSize: 8, fontWeight: 600, fontFamily: F,
-                    color: activePreset === tp.id ? C.b : C.t3,
-                    letterSpacing: '0.3px',
-                  }}>{tp.label}</span>
+                  <span className={s.themeLabel} style={{ color: activePreset === tp.id ? C.b : C.t3 }}>{tp.label}</span>
                 </button>
               ))}
             </div>
 
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: C.t3,
-                fontFamily: F,
-                letterSpacing: 0.5,
-                marginBottom: 8,
-                textTransform: 'uppercase',
-              }}
-            >
-              Candle Colors
-            </div>
+            <div className={s.sectionLabel}>Candle Colors</div>
             <ColorSwatch
               label="Up / Bullish"
               color={appearance.upColor}
@@ -188,32 +130,8 @@ export default function ChartSettingsPanel({ _onClose }) {
               onChange={(v) => setAppearance('bodyStyle', v)}
             />
 
-            <div style={{ marginTop: 16 }}>
-              <button
-                onClick={resetAppearance}
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  borderRadius: 8,
-                  border: `1px solid ${C.bd}`,
-                  background: 'transparent',
-                  color: C.t2,
-                  fontFamily: F,
-                  fontSize: 12,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = C.r + '15';
-                  e.currentTarget.style.borderColor = C.r + '40';
-                  e.currentTarget.style.color = C.r;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.borderColor = C.bd;
-                  e.currentTarget.style.color = C.t2;
-                }}
-              >
+            <div className={s.resetWrap}>
+              <button onClick={resetAppearance} className={s.resetBtn}>
                 Reset to Defaults
               </button>
             </div>
@@ -236,19 +154,7 @@ export default function ChartSettingsPanel({ _onClose }) {
               onChange={(v) => setAppearance('gridOpacity', v)}
               display={`${Math.round(appearance.gridOpacity * 100)}%`}
             />
-            <div
-              style={{
-                marginTop: 16,
-                padding: '8px 10px',
-                borderRadius: 6,
-                background: C.sf,
-                border: `1px solid ${C.bd}`,
-                fontSize: 11,
-                color: C.t3,
-                fontFamily: F,
-                lineHeight: 1.5,
-              }}
-            >
+            <div className={s.infoBox}>
               💡 Grid lines help identify price levels. Lower opacity keeps the chart clean while maintaining
               reference points.
             </div>
@@ -269,20 +175,7 @@ export default function ChartSettingsPanel({ _onClose }) {
               onChange={setScaleMode}
             />
 
-            <div
-              style={{
-                marginTop: 12,
-                fontSize: 11,
-                fontWeight: 600,
-                color: C.t3,
-                fontFamily: F,
-                letterSpacing: 0.5,
-                marginBottom: 8,
-                textTransform: 'uppercase',
-              }}
-            >
-              Layout
-            </div>
+            <div className={s.sectionLabel} style={{ marginTop: 12 }}>Layout</div>
             <Toggle label="Show Minimap" checked={showMinimap} onChange={toggleMinimap} />
             <Toggle label="Show Status Bar" checked={showStatusBar} onChange={toggleStatusBar} />
           </div>
@@ -332,19 +225,7 @@ export default function ChartSettingsPanel({ _onClose }) {
               onChange={toggleCrosshairTooltip}
             />
 
-            <div
-              style={{
-                marginTop: 16,
-                padding: '8px 10px',
-                borderRadius: 6,
-                background: C.sf,
-                border: `1px solid ${C.bd}`,
-                fontSize: 11,
-                color: C.t3,
-                fontFamily: F,
-                lineHeight: 1.5,
-              }}
-            >
+            <div className={s.infoBox}>
               <div>
                 <strong style={{ color: C.t2 }}>Free</strong> — Follows cursor with soft magnetic snap
               </div>
@@ -366,7 +247,7 @@ export default function ChartSettingsPanel({ _onClose }) {
           const params = typeEntry?.configParams;
           if (!params) {
             return (
-              <div style={{ padding: '12px 0', fontSize: 12, color: C.t3, fontFamily: F, textAlign: 'center' }}>
+              <div className={s.chartTypeEmpty}>
                 No configurable parameters for <strong style={{ color: C.t1 }}>{typeEntry?.name || chartType}</strong>.
               </div>
             );
@@ -375,7 +256,7 @@ export default function ChartSettingsPanel({ _onClose }) {
           const cfg = { ...defaults, ...(chartTypeConfig[chartType] || {}) };
           return (
             <div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: C.t3, fontFamily: F, letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
+              <div className={s.sectionLabel}>
                 {typeEntry.icon} {typeEntry.name} Settings
               </div>
               {Object.entries(params).map(([key, p]) => {
@@ -394,12 +275,10 @@ export default function ChartSettingsPanel({ _onClose }) {
                 }
                 return null;
               })}
-              <div style={{ marginTop: 16 }}>
+              <div className={s.resetWrap}>
                 <button
                   onClick={() => resetChartTypeConfig(chartType)}
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: `1px solid ${C.bd}`, background: 'transparent', color: C.t2, fontFamily: F, fontSize: 12, cursor: 'pointer', transition: 'all 0.15s ease' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = C.r + '15'; e.currentTarget.style.borderColor = C.r + '40'; e.currentTarget.style.color = C.r; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = C.bd; e.currentTarget.style.color = C.t2; }}
+                  className={s.resetBtn}
                 >
                   Reset to Defaults
                 </button>

@@ -1,0 +1,186 @@
+/* ═══════════════════════════════════════════════════════════════════
+   ReplayBar — CSS Module (Sprint 23)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--tf-bd);
+  background: var(--tf-bg2);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* ─── Play Controls ─── */
+.playGroup { display: flex; gap: 2px; }
+
+.ctrlBtn {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--tf-font-mono);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.ctrlBtn[data-active="true"] {
+  border: 1px solid var(--tf-accent);
+  background: color-mix(in srgb, var(--tf-accent) 12%, transparent);
+  color: var(--tf-accent);
+}
+.ctrlBtn:not([data-active="true"]) {
+  border: 1px solid var(--tf-bd);
+  background: transparent;
+  color: var(--tf-t2);
+}
+.ctrlBtn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* ─── Speed Buttons ─── */
+.speedGroup { display: flex; gap: 1px; }
+.speedBtn {
+  padding: 3px 6px;
+  border-radius: 3px;
+  border: none;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--tf-font-mono);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.speedBtn[data-active="true"] {
+  background: color-mix(in srgb, var(--tf-accent) 15%, transparent);
+  color: var(--tf-accent);
+}
+.speedBtn:not([data-active="true"]) {
+  background: transparent;
+  color: var(--tf-t3);
+}
+
+/* ─── Divider ─── */
+.divider {
+  width: 1px;
+  height: 18px;
+  background: var(--tf-bd);
+  margin: 0 2px;
+}
+
+/* ─── Progress ─── */
+.progressSlider {
+  width: 120px;
+  accent-color: var(--tf-accent);
+  cursor: pointer;
+  height: 4px;
+}
+.progressLabel {
+  font-size: 9px;
+  font-family: var(--tf-font-mono);
+  color: var(--tf-t3);
+  min-width: 45px;
+}
+
+/* ─── Ghost Trade Controls ─── */
+.ghostGroup {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+.ghostSideBtn {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--tf-font-mono);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid var(--ghost-color);
+  background: color-mix(in srgb, var(--ghost-color) 8%, transparent);
+  color: var(--ghost-color);
+}
+
+.ghostIndicator {
+  font-size: 10px;
+  font-family: var(--tf-font-mono);
+  color: var(--tf-yellow);
+}
+.ghostPL {
+  font-weight: 700;
+}
+
+.spacer { flex: 1; }
+
+/* ─── Backtest Stats ─── */
+.stats {
+  display: flex;
+  gap: 10px;
+  font-size: 10px;
+  font-family: var(--tf-font-mono);
+}
+.statLabel { color: var(--tf-t3); }
+.statValue {
+  font-weight: 700;
+  color: var(--tf-t1);
+}
+
+/* ─── Upcoming Trades ─── */
+.upcomingBadge {
+  font-size: 9px;
+  font-family: var(--tf-font-mono);
+  color: var(--tf-purple);
+  font-weight: 600;
+}
+
+/* ─── Trade Annotation Overlay ─── */
+.annotationOverlay {
+  position: absolute;
+  top: 100%;
+  left: 12px;
+  right: 12px;
+  z-index: 100;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+}
+.annotationCard {
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: var(--tf-sf2);
+  max-width: 320px;
+  font-size: 11px;
+}
+.annotationHeader {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.annotationPL {
+  font-weight: 800;
+  font-family: var(--tf-font-mono);
+}
+.annotationPlaybook {
+  font-size: 9px;
+  color: var(--tf-accent);
+  font-weight: 600;
+}
+.annotationEmotion {
+  font-size: 9px;
+  color: var(--tf-t3);
+}
+.annotationR {
+  font-size: 9px;
+  font-family: var(--tf-font-mono);
+  font-weight: 700;
+}
+.annotationNotes {
+  font-size: 10px;
+  color: var(--tf-t2);
+  line-height: 1.4;
+  max-height: 40px;
+  overflow: hidden;
+}

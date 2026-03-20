@@ -6,6 +6,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import Icon from '../../design/Icon.jsx';
+import s from './DrawingObjectTree.module.css';
 
 const TOOL_ICONS = {
   trendline: '╱', hline: '─', vline: '│', ray: '↗', arrow: '→',
@@ -37,16 +38,12 @@ function IconBtn({ onClick, title, active, children, style: extraStyle }) {
     <button
       onClick={(e) => { e.stopPropagation(); onClick(); }}
       title={title}
+      className={s.iconBtn}
       style={{
-        background: 'none', border: 'none', cursor: 'pointer',
-        padding: '2px 4px', borderRadius: 3, fontSize: 12,
         color: active ? '#2962FF' : '#787B86',
         opacity: active ? 1 : 0.6,
-        transition: 'all 0.15s',
         ...extraStyle,
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.opacity = 1; }}
-      onMouseLeave={(e) => { e.currentTarget.style.opacity = active ? 1 : 0.6; }}
     >
       {children}
     </button>
@@ -77,29 +74,13 @@ function DrawingRow({ drawing, drawingEngine, isSelected, onSelect }) {
   return (
     <div
       onClick={() => onSelect(drawing.id)}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        padding: '5px 8px', borderRadius: 4,
-        background: isSelected ? 'rgba(41,98,255,0.12)' : 'transparent',
-        borderLeft: `3px solid ${color}`,
-        cursor: 'pointer',
-        transition: 'background 0.15s',
-        fontSize: 12,
-      }}
-      onMouseEnter={(e) => {
-        if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
-      }}
-      onMouseLeave={(e) => {
-        if (!isSelected) e.currentTarget.style.background = 'transparent';
-      }}
+      className={s.drawingRow}
+      data-selected={isSelected || undefined}
+      style={{ borderLeft: `3px solid ${color}` }}
     >
-      {/* Icon */}
-      <span style={{ fontSize: 14, opacity: 0.7, fontFamily: 'monospace', width: 18, textAlign: 'center' }}>
-        {icon}
-      </span>
+      <span className={s.rowIcon}>{icon}</span>
 
-      {/* Label / editable */}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div className={s.rowContent}>
         {editing ? (
           <input
             ref={inputRef}
@@ -107,19 +88,12 @@ function DrawingRow({ drawing, drawingEngine, isSelected, onSelect }) {
             placeholder={drawing.type}
             onBlur={handleLabelSave}
             onKeyDown={(e) => { if (e.key === 'Enter') handleLabelSave(e); if (e.key === 'Escape') setEditing(false); }}
-            style={{
-              background: '#1E222D', border: '1px solid #363A45', borderRadius: 3,
-              color: '#D1D4DC', fontSize: 11, padding: '1px 4px', width: '100%',
-              outline: 'none',
-            }}
+            className={s.rowInput}
           />
         ) : (
           <span
             onDoubleClick={(e) => { e.stopPropagation(); setEditing(true); }}
-            style={{
-              color: '#D1D4DC', overflow: 'hidden', textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap', display: 'block',
-            }}
+            className={s.rowLabel}
           >
             {label}
           </span>
@@ -162,21 +136,10 @@ function DrawingRow({ drawing, drawingEngine, isSelected, onSelect }) {
 // ─── Group header ─────────────────────────────────────────────
 function GroupHeader({ name, count, expanded, onToggle }) {
   return (
-    <div
-      onClick={onToggle}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        padding: '6px 8px', cursor: 'pointer',
-        color: '#787B86', fontSize: 11, fontWeight: 600,
-        textTransform: 'uppercase', letterSpacing: '0.5px',
-        borderBottom: '1px solid rgba(54,58,69,0.3)',
-      }}
-    >
-      <span style={{ fontSize: 10, transition: 'transform 0.2s', transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>
-        ▶
-      </span>
+    <div onClick={onToggle} className={s.groupHeader}>
+      <span className={s.groupArrow} data-expanded={expanded || undefined}>▶</span>
       <span>{name}</span>
-      <span style={{ marginLeft: 'auto', color: '#363A45', fontSize: 10 }}>{count}</span>
+      <span className={s.groupCount}>{count}</span>
     </div>
   );
 }
@@ -223,51 +186,33 @@ export default function DrawingObjectTree({ drawingEngine, drawings, selectedDra
   const totalCount = filteredDrawings.length;
 
   return (
-    <div style={{
-      position: 'absolute', right: 0, top: 42, bottom: 0,
-      width: 260, background: 'rgba(19,23,34,0.97)',
-      borderLeft: '1px solid rgba(54,58,69,0.5)',
-      backdropFilter: 'blur(10px)', zIndex: 30,
-      display: 'flex', flexDirection: 'column',
-      fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
-      transition: 'transform 0.2s ease',
-    }}>
-      {/* Header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '10px 12px', borderBottom: '1px solid rgba(54,58,69,0.5)',
-      }}>
-        <span style={{ color: '#D1D4DC', fontSize: 13, fontWeight: 600 }}>
-          Drawings <span style={{ color: '#787B86', fontWeight: 400 }}>({totalCount})</span>
+    <div className={s.panel}>
+      <div className={s.header}>
+        <span className={s.headerTitle}>
+          Drawings <span className={s.headerCount}>({totalCount})</span>
         </span>
-        <div style={{ display: 'flex', gap: 4 }}>
+        <div className={s.headerActions}>
           <IconBtn onClick={() => drawingEngine?.selectAll()} title="Select All">☑</IconBtn>
           <IconBtn onClick={() => drawingEngine?.clearAll()} title="Clear All" style={{ color: '#EF5350' }}>🗑</IconBtn>
           {onClose && <IconBtn onClick={onClose} title="Close">✕</IconBtn>}
         </div>
       </div>
 
-      {/* Search */}
-      <div style={{ padding: '6px 12px' }}>
+      <div className={s.searchWrap}>
         <input
           type="text"
           placeholder="Filter drawings..."
           value={searchFilter}
           onChange={(e) => setSearchFilter(e.target.value)}
-          style={{
-            width: '100%', background: '#1E222D', border: '1px solid #363A45',
-            borderRadius: 4, color: '#D1D4DC', fontSize: 11, padding: '5px 8px',
-            outline: 'none',
-          }}
+          className={s.searchInput}
         />
       </div>
 
-      {/* Drawing list */}
-      <div style={{ flex: 1, overflow: 'auto', padding: '4px 0' }}>
+      <div className={s.list}>
         {totalCount === 0 ? (
-          <div style={{ padding: 20, textAlign: 'center', color: '#787B86', fontSize: 12 }}>
+          <div className={s.emptyState}>
             No drawings on this chart.
-            <br /><span style={{ fontSize: 11, opacity: 0.7 }}>Use the toolbar to add drawings.</span>
+            <br /><span className={s.emptyHint}>Use the toolbar to add drawings.</span>
           </div>
         ) : (
           Object.entries(grouped).map(([group, items]) => (
@@ -279,7 +224,7 @@ export default function DrawingObjectTree({ drawingEngine, drawings, selectedDra
                 onToggle={() => toggleGroup(group)}
               />
               {expandedGroups[group] && (
-                <div style={{ padding: '2px 4px' }}>
+                <div className={s.groupItems}>
                   {items.map(d => (
                     <DrawingRow
                       key={d.id}
@@ -296,23 +241,14 @@ export default function DrawingObjectTree({ drawingEngine, drawings, selectedDra
         )}
       </div>
 
-      {/* Footer: batch actions */}
       {drawingEngine?.selectedDrawingIds?.size > 0 && (
-        <div style={{
-          padding: '8px 12px', borderTop: '1px solid rgba(54,58,69,0.5)',
-          display: 'flex', gap: 6, alignItems: 'center',
-        }}>
-          <span style={{ color: '#787B86', fontSize: 11 }}>
+        <div className={s.footer}>
+          <span className={s.footerCount}>
             {drawingEngine.selectedDrawingIds.size} selected
           </span>
           <button
             onClick={() => drawingEngine.deleteSelected()}
-            style={{
-              marginLeft: 'auto', background: 'rgba(239,83,80,0.15)',
-              border: '1px solid rgba(239,83,80,0.3)', borderRadius: 4,
-              color: '#EF5350', fontSize: 11, padding: '3px 10px',
-              cursor: 'pointer',
-            }}
+            className={s.deleteSelectedBtn}
           >
             Delete Selected
           </button>

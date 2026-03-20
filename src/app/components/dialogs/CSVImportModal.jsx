@@ -108,37 +108,77 @@ function CSVImportModal({ isOpen, onClose }) {
 
       {/* ─── Stage: Upload ───────────────────────────── */}
       {stage === 'upload' && (
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragOver(true);
-          }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={onDrop}
-          onClick={() => fileRef.current?.click()}
-          style={{
-            border: `2px dashed ${dragOver ? C.b : C.bd}`,
-            borderRadius: 12,
-            padding: '48px 24px',
-            textAlign: 'center',
-            cursor: 'pointer',
-            background: dragOver ? C.b + '08' : 'transparent',
-            transition: 'all 0.15s',
-          }}
-        >
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".csv,.tsv,.txt"
-            style={{ display: 'none' }}
-            onChange={(e) => processFile(e.target.files[0])}
-          />
-          <div className={s.s1}>📁</div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: C.t1, marginBottom: 4 }}>
-            Drop CSV file here or click to browse
+        <div>
+          {/* Sprint 20: Connection Status Indicators */}
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              marginBottom: 14,
+              flexWrap: 'wrap',
+            }}
+          >
+            {[
+              { label: 'CSV File', status: 'ready', icon: '⚙️', hint: 'Drop or browse' },
+              { label: 'Auto-Detect', status: 'ready', icon: '✅', hint: 'Headers & delimiters' },
+              { label: 'Dedup Engine', status: 'ready', icon: '✅', hint: 'Active' },
+              { label: 'Reconciliation', status: 'ready', icon: '✅', hint: 'Quality grading' },
+            ].map((conn, i) => (
+              <div
+                key={i}
+                style={{
+                  flex: 1,
+                  minWidth: 100,
+                  padding: '8px 10px',
+                  background: C.sf,
+                  border: `1px solid ${C.bd}50`,
+                  borderRadius: 8,
+                  fontSize: 10,
+                  fontFamily: M,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 2 }}>
+                  <span style={{ fontSize: 12 }}>{conn.icon}</span>
+                  <span style={{ fontWeight: 700, color: C.t1 }}>{conn.label}</span>
+                </div>
+                <div style={{ color: C.t3, fontSize: 9 }}>{conn.hint}</div>
+              </div>
+            ))}
           </div>
-          <div style={{ fontSize: 11, color: C.t3, fontFamily: M }}>
-            Supports .csv, .tsv, .txt · Auto-detects delimiters and headers
+
+          {/* Drop zone */}
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={onDrop}
+            onClick={() => fileRef.current?.click()}
+            style={{
+              border: `2px dashed ${dragOver ? C.b : C.bd}`,
+              borderRadius: 12,
+              padding: '48px 24px',
+              textAlign: 'center',
+              cursor: 'pointer',
+              background: dragOver ? C.b + '08' : 'transparent',
+              transition: 'all 0.15s',
+            }}
+          >
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv,.tsv,.txt"
+              style={{ display: 'none' }}
+              onChange={(e) => processFile(e.target.files[0])}
+            />
+            <div className={s.s1}>📁</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: C.t1, marginBottom: 4 }}>
+              Drop CSV file here or click to browse
+            </div>
+            <div style={{ fontSize: 11, color: C.t3, fontFamily: M }}>
+              Supports .csv, .tsv, .txt · Auto-detects delimiters and headers
+            </div>
           </div>
         </div>
       )}

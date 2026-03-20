@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — DrawingQuickEditor  (Sprint 4)
+// charEdge — DrawingQuickEditor  (Sprint 4 / CSS Module Sprint 23)
 // Single, consolidated editing surface for selected drawings.
 // Compact quick-bar by default; gear toggle expands full editor
 // (coordinates, full settings dialog bridge).
@@ -12,6 +12,7 @@ import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 import useAlertStore from '../../../../state/useAlertStore';
 import { useChartStore } from '../../../../state/useChartStore';
 import DrawingSettingsDialog from '../panels/DrawingSettingsDialog.jsx';
+import s from './DrawingQuickEditor.module.css';
 
 // ─── Constants ───────────────────────────────────────────────────
 
@@ -58,7 +59,7 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
 
   // ─── Drag-to-reposition state ──────────────────────────────
   const [isDragging, setIsDragging] = useState(false);
-  const [userPosition, setUserPosition] = useState(null); // { x, y } when user has dragged
+  const [userPosition, setUserPosition] = useState(null);
   const dragOffsetRef = useRef({ mouseX: 0, mouseY: 0, corrX: 0, corrY: 0 });
 
   // Sync points from drawing
@@ -79,19 +80,17 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
     setShowColorPicker(false);
     setShowFillPicker(false);
     setShowFullSettings(false);
-    setUserPosition(null); // Reset to auto-position
+    setUserPosition(null);
   }, [drawing?.id]);
 
   // ─── Drag handlers (document-level for smooth tracking) ────
   useEffect(() => {
     if (!isDragging) return;
     const onMove = (e) => {
-      // Convert viewport mouse position to CSS coordinate space
       const newVpX = e.clientX - dragOffsetRef.current.mouseX;
       const newVpY = e.clientY - dragOffsetRef.current.mouseY;
       const nx = newVpX - dragOffsetRef.current.corrX;
       const ny = newVpY - dragOffsetRef.current.corrY;
-      // Clamp within viewport
       const el = editorRef.current;
       const w = el?.offsetWidth || 360;
       const h = el?.offsetHeight || 40;
@@ -115,8 +114,6 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
     const el = editorRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    // Compute correction: difference between actual viewport position
-    // and CSS left/top. Parent transforms can cause these to diverge.
     const cssLeft = parseFloat(el.style.left) || 0;
     const cssTop = parseFloat(el.style.top) || 0;
     dragOffsetRef.current = {
@@ -158,11 +155,10 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
   }, [engine, canvasRect, drawing?.id, engine?.version, expanded]);
 
   // Style update helper — also persists per-tool style memory (Sprint 7)
-  const setToolStyleMemory = useChartToolsStore((s) => s.setToolStyleMemory);
+  const setToolStyleMemory = useChartToolsStore((st) => st.setToolStyleMemory);
   const updateStyle = useCallback((patch) => {
     if (!engine || !drawing) return;
     engine.updateStyle(drawing.id, patch);
-    // Persist to per-tool memory (store + engine)
     const merged = { ...drawing.style, ...patch };
     const memoryStyle = { color: merged.color, lineWidth: merged.lineWidth, dash: merged.dash, ...(merged.fillColor ? { fillColor: merged.fillColor } : {}) };
     setToolStyleMemory(drawing.type, memoryStyle);
@@ -255,7 +251,6 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
       style: 'price',
       soundType: 'price',
     });
-    // Mark drawing as having an alert
     if (!drawing.meta) drawing.meta = {};
     drawing.meta._alertPrice = price;
     window.dispatchEvent(new CustomEvent('charEdge:drawing-alert-created', {
@@ -288,91 +283,53 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
   return (
     <div
       ref={editorRef}
+      className={s.editor}
+      data-expanded={expanded || undefined}
+      data-visible={visible}
+      data-dragging={isDragging || undefined}
       style={{
-        position: 'fixed',
         left: userPosition ? userPosition.x : pos.x,
         top: userPosition ? userPosition.y : pos.y,
-        zIndex: 9999,
-        minWidth: expanded ? 280 : undefined,
-        maxWidth: expanded ? 340 : undefined,
-        borderRadius: expanded ? 14 : 10,
-        background: 'rgba(24, 26, 34, 0.92)',
-        backdropFilter: 'blur(24px) saturate(1.8)',
-        WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: '0 10px 40px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)',
-        transform: visible ? 'translateY(0) scale(1)' : 'translateY(6px) scale(0.96)',
-        opacity: visible ? 1 : 0,
-        transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.15s ease',
-        pointerEvents: 'auto',
-        userSelect: 'none',
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif",
-        fontSize: 12,
-        color: '#D1D4DC',
       }}
       onMouseDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
     >
       {/* ─── Quick Bar (always visible) ─── */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 2,
-        padding: expanded ? '5px 6px 4px' : '4px 6px',
-        borderBottom: expanded ? '1px solid rgba(255,255,255,0.06)' : 'none',
-      }}>
+      <div className={s.quickBar} data-expanded={expanded || undefined}>
         {/* ─── Drag Handle ─── */}
         <div
           onMouseDown={handleDragStart}
           title="Drag to reposition"
-          style={{
-            display: 'flex', flexDirection: 'column', gap: 2,
-            padding: '4px 4px 4px 2px',
-            cursor: isDragging ? 'grabbing' : 'grab',
-            opacity: 0.4, transition: 'opacity 0.15s',
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
-          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.4'}
+          className={s.dragHandle}
+          data-dragging={isDragging || undefined}
         >
-          <div style={{ display: 'flex', gap: 2 }}>
-            <div style={{ width: 3, height: 3, borderRadius: '50%', background: '#D1D4DC' }} />
-            <div style={{ width: 3, height: 3, borderRadius: '50%', background: '#D1D4DC' }} />
-          </div>
-          <div style={{ display: 'flex', gap: 2 }}>
-            <div style={{ width: 3, height: 3, borderRadius: '50%', background: '#D1D4DC' }} />
-            <div style={{ width: 3, height: 3, borderRadius: '50%', background: '#D1D4DC' }} />
-          </div>
-          <div style={{ display: 'flex', gap: 2 }}>
-            <div style={{ width: 3, height: 3, borderRadius: '50%', background: '#D1D4DC' }} />
-            <div style={{ width: 3, height: 3, borderRadius: '50%', background: '#D1D4DC' }} />
-          </div>
+          {[0, 1, 2].map(i => (
+            <div key={i} className={s.gripRow}>
+              <div className={s.gripDot} />
+              <div className={s.gripDot} />
+            </div>
+          ))}
         </div>
         <Divider />
         {/* Color dots */}
-        <div style={{ display: 'flex', gap: 2 }}>
+        <div className={s.colorDotsRow}>
           {PRESET_COLORS.slice(0, 6).map(c => (
             <button
               key={c}
               onClick={() => updateStyle({ color: c })}
               title={c}
+              className={s.colorDot}
+              data-selected={currentColor === c || undefined}
               style={{
-                width: 16, height: 16, borderRadius: '50%', background: c,
-                border: currentColor === c ? '2px solid #fff' : '2px solid transparent',
-                cursor: 'pointer', outline: 'none',
-                transition: 'transform 0.12s, border-color 0.15s',
-                transform: currentColor === c ? 'scale(1.15)' : 'scale(1)',
+                background: c,
                 boxShadow: currentColor === c ? `0 0 6px ${c}66` : 'none',
               }}
             />
           ))}
-          {/* Expand color picker */}
           <button
             onClick={() => { setShowColorPicker(!showColorPicker); setShowFillPicker(false); }}
             title="More colors"
-            style={{
-              width: 16, height: 16, borderRadius: '50%',
-              background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)',
-              border: '2px solid rgba(255,255,255,0.15)',
-              cursor: 'pointer', outline: 'none',
-            }}
+            className={s.colorWheelBtn}
           />
         </div>
 
@@ -391,7 +348,7 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
             <line x1="3" y1="7" x2="11" y2="7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
         </QBtn>
-        <span style={{ color: '#D1D4DC', fontSize: 10, fontWeight: 600, minWidth: 14, textAlign: 'center' }}>
+        <span className={s.widthDisplay}>
           {currentWidth}
         </span>
         <QBtn
@@ -482,24 +439,14 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
 
       {/* ─── Expanded panel ─── */}
       {expanded && (
-        <div style={{ padding: '0 2px' }}>
+        <div className={s.expandedPanel}>
           {/* Tool label */}
-          <div style={{
-            padding: '4px 8px 3px', fontSize: 11, fontWeight: 600,
-            color: '#787B86', display: 'flex', alignItems: 'center', gap: 6,
-          }}>
-            <span style={{ flex: 1 }}>{toolLabel}</span>
-            {/* Full settings button */}
+          <div className={s.toolLabelRow}>
+            <span className={s.toolLabelName}>{toolLabel}</span>
             <button
               onClick={() => setShowFullSettings(true)}
               title="Full settings"
-              style={{
-                background: 'none', border: 'none', color: '#787B86',
-                cursor: 'pointer', fontSize: 10, padding: '2px 6px',
-                borderRadius: 4, transition: 'color 0.12s',
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.color = '#D1D4DC'}
-              onMouseLeave={(e) => e.currentTarget.style.color = '#787B86'}
+              className={s.fullSettingsBtn}
             >
               Full Settings →
             </button>
@@ -507,20 +454,13 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
 
           {/* Fill color (shapes only) */}
           {hasFill && (
-            <div style={{
-              padding: '3px 8px', display: 'flex', alignItems: 'center', gap: 6,
-              borderBottom: '1px solid rgba(255,255,255,0.04)',
-            }}>
-              <span style={{ fontSize: 10, color: '#787B86' }}>Fill</span>
-              <div style={{ position: 'relative' }}>
+            <div className={s.fillRow}>
+              <span className={s.fillLabel}>Fill</span>
+              <div className={s.fillBtnWrap}>
                 <button
                   onClick={() => { setShowFillPicker(!showFillPicker); setShowColorPicker(false); }}
-                  style={{
-                    width: 20, height: 20, borderRadius: 5,
-                    background: style.fillColor || 'rgba(41,98,255,0.1)',
-                    border: '2px solid rgba(255,255,255,0.12)',
-                    cursor: 'pointer', outline: 'none',
-                  }}
+                  className={s.fillBtn}
+                  style={{ background: style.fillColor || 'rgba(41,98,255,0.1)' }}
                 />
                 {showFillPicker && (
                   <ColorGrid
@@ -537,7 +477,7 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
           )}
 
           {/* Dash pattern full row */}
-          <div style={{ padding: '4px 8px', display: 'flex', gap: 2, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+          <div className={s.dashRow}>
             {DASH_OPTIONS.map((dp) => {
               const active = JSON.stringify(currentDash) === JSON.stringify(dp.value);
               return (
@@ -545,14 +485,8 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
                   key={dp.name}
                   onClick={() => updateStyle({ dash: dp.value })}
                   title={dp.name}
-                  style={{
-                    padding: '3px 6px',
-                    background: active ? 'rgba(41,98,255,0.15)' : 'transparent',
-                    border: active ? '1px solid rgba(41,98,255,0.3)' : '1px solid transparent',
-                    borderRadius: 6, cursor: 'pointer', fontSize: 10,
-                    color: active ? '#2962FF' : '#787B86',
-                    letterSpacing: 1, transition: 'all 0.12s',
-                  }}
+                  className={s.dashBtn}
+                  data-active={active || undefined}
                 >
                   {dp.label}
                 </button>
@@ -561,26 +495,19 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
           </div>
 
           {/* Coordinates (collapsible) */}
-          <div style={{ padding: '3px 8px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+          <div className={s.coordSection}>
             <button
               onClick={() => setShowCoords(!showCoords)}
-              style={{
-                background: 'none', border: 'none', color: '#787B86', cursor: 'pointer',
-                fontSize: 10, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4,
-                padding: '2px 0', width: '100%', textAlign: 'left',
-              }}
+              className={s.coordToggle}
             >
-              <span style={{
-                transform: showCoords ? 'rotate(90deg)' : 'rotate(0deg)',
-                transition: 'transform 0.15s', display: 'inline-block',
-              }}>▸</span>
+              <span className={s.coordChevron} data-open={showCoords || undefined}>▸</span>
               COORDINATES
             </button>
             {showCoords && (
-              <div style={{ marginTop: 4 }}>
+              <div className={s.coordBody}>
                 {points.map((pt, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                    <span style={{ fontSize: 10, color: '#787B86', minWidth: 20 }}>P{i + 1}</span>
+                  <div key={i} className={s.coordRow}>
+                    <span className={s.coordLabel}>P{i + 1}</span>
                     <CoordField
                       icon="$"
                       value={pt.price >= 1000 ? pt.price.toFixed(0) : pt.price.toFixed(2)}
@@ -605,7 +532,7 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
           </div>
 
           {/* Action row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: '4px 6px 5px' }}>
+          <div className={s.actionRow}>
             <ActionBtn onClick={handleDuplicate} title="Duplicate" icon="⧉" />
             <ActionBtn
               onClick={handleToggleVisibility}
@@ -619,7 +546,7 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
               icon="🔗"
               style={{ color: drawing.syncAcrossTimeframes ? '#42A5F5' : undefined }}
             />
-            <div style={{ flex: 1 }} />
+            <div className={s.actionSpacer} />
             <ActionBtn onClick={handleDelete} title="Delete" icon="🗑" style={{ color: '#EF5350' }} />
             <ActionBtn
               onClick={() => {
@@ -639,34 +566,18 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
 // ─── Subcomponents ───────────────────────────────────────────────
 
 function Divider() {
-  return <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.08)', margin: '0 2px' }} />;
+  return <div className={s.divider} />;
 }
 
 function QBtn({ children, onClick, title, active, danger, disabled }) {
-  const [hovered, setHovered] = useState(false);
   return (
     <button
       onClick={disabled ? undefined : onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
       title={title}
       disabled={disabled}
-      style={{
-        width: 26, height: 26,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        borderRadius: 6, border: 'none',
-        background: active
-          ? 'rgba(41, 98, 255, 0.2)'
-          : hovered ? 'rgba(255,255,255,0.08)' : 'transparent',
-        color: danger
-          ? (hovered ? '#FF5252' : '#D1D4DC')
-          : active ? '#2962FF' : '#D1D4DC',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        outline: 'none',
-        transition: 'background 0.12s, color 0.12s, transform 0.1s',
-        transform: hovered && !disabled ? 'scale(1.08)' : 'scale(1)',
-        opacity: disabled ? 0.4 : 1,
-      }}
+      className={s.qBtn}
+      data-active={active || undefined}
+      data-danger={danger || undefined}
     >
       {children}
     </button>
@@ -678,22 +589,8 @@ function ActionBtn({ onClick, title, icon, style = {} }) {
     <button
       onClick={onClick}
       title={title}
-      style={{
-        padding: '3px 5px', background: 'transparent',
-        border: '1px solid transparent', borderRadius: 6,
-        cursor: 'pointer', fontSize: 12, color: '#D1D4DC',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        minWidth: 24, minHeight: 24, transition: 'all 0.12s',
-        ...style,
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
-        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = 'transparent';
-        e.currentTarget.style.borderColor = 'transparent';
-      }}
+      className={s.actionBtn}
+      style={style}
     >
       {icon}
     </button>
@@ -704,12 +601,8 @@ function CoordField({ icon, value, onChange, type = 'text', step, onBlur }) {
   const handleChange = onBlur ? undefined : (e) => onChange(e.target.value);
   const handleBlurCb = onBlur ? (e) => onChange(e.target.value) : undefined;
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 3,
-      background: 'rgba(255,255,255,0.04)', borderRadius: 6,
-      padding: '3px 6px', border: '1px solid rgba(255,255,255,0.06)', flex: 1,
-    }}>
-      <span style={{ fontSize: 10, color: '#787B86' }}>{icon}</span>
+    <div className={s.coordField}>
+      <span className={s.coordFieldIcon}>{icon}</span>
       <input
         type={type}
         defaultValue={onBlur ? value : undefined}
@@ -717,11 +610,7 @@ function CoordField({ icon, value, onChange, type = 'text', step, onBlur }) {
         onChange={handleChange}
         onBlur={handleBlurCb}
         step={step}
-        style={{
-          background: 'none', border: 'none', outline: 'none',
-          color: '#D1D4DC', fontSize: 11, width: '100%',
-          fontFamily: "'SF Mono', 'Cascadia Code', monospace",
-        }}
+        className={s.coordFieldInput}
       />
     </div>
   );
@@ -729,24 +618,18 @@ function CoordField({ icon, value, onChange, type = 'text', step, onBlur }) {
 
 function ColorGrid({ selected, onSelect, popoverStyle = {} }) {
   return (
-    <div style={{
-      padding: '8px 8px 6px',
-      borderBottom: '1px solid rgba(255,255,255,0.04)',
-      ...popoverStyle,
-    }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: 4, marginBottom: 6 }}>
+    <div className={s.colorGrid} style={popoverStyle}>
+      <div className={s.colorGridSwatches}>
         {PRESET_COLORS.map(c => (
           <button
             key={c}
             onClick={() => onSelect(c)}
+            className={s.colorGridSwatch}
+            data-selected={selected === c || undefined}
             style={{
-              width: 20, height: 20, borderRadius: 5, background: c,
-              border: selected === c ? '2px solid #fff' : '2px solid transparent',
+              background: c,
               boxShadow: selected === c ? `0 0 0 2px ${c}40` : 'none',
-              cursor: 'pointer', transition: 'transform 0.1s',
             }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.15)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
           />
         ))}
       </div>
@@ -754,10 +637,7 @@ function ColorGrid({ selected, onSelect, popoverStyle = {} }) {
         type="color"
         value={selected || '#2962FF'}
         onChange={(e) => onSelect(e.target.value)}
-        style={{
-          width: '100%', height: 22, border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 5, cursor: 'pointer', background: 'rgba(30,34,45,0.8)',
-        }}
+        className={s.colorGridInput}
       />
     </div>
   );

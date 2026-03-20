@@ -5,6 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { Suspense } from 'react';
+import WidgetBoundary from '../../app/components/ui/WidgetBoundary.jsx';
 import ChartContextMenu from '../../app/components/chart/chart_ui/ChartContextMenu.jsx';
 import { C } from '../../constants.js';
 import { useChartCoreStore } from '../../state/chart/useChartCoreStore';
@@ -120,7 +121,7 @@ export default function ChartOverlays({
   const strategyBuilderOpen = useStrategyBuilderStore((s) => s.panelOpen);
 
   return (
-    <>
+    <WidgetBoundary name="Chart Overlays">
       {/* Indicator Legend Header — positioned inline after OHLCV bar */}
       {!multiMode && !isMobile && (
         <Suspense fallback={null}>
@@ -422,6 +423,6 @@ export default function ChartOverlays({
           />
         </Suspense>
       )}
-    </>
+    </WidgetBoundary>
   );
 }

@@ -181,6 +181,62 @@
   --ai-confidence-mid: var(--tf-yellow);
   --ai-confidence-low: var(--tf-red);
 
+  /* ─── Fluid Type Scale (responsive across 320px→4K) ──────────── */
+  --tf-fs-xs:   clamp(0.625rem,  0.575rem + 0.2vw,  0.75rem);   /* 10–12px */
+  --tf-fs-sm:   clamp(0.75rem,   0.7rem   + 0.2vw,  0.875rem);  /* 12–14px */
+  --tf-fs-base: clamp(0.8125rem, 0.75rem  + 0.25vw, 1rem);      /* 13–16px */
+  --tf-fs-md:   clamp(0.875rem,  0.8rem   + 0.3vw,  1.125rem);  /* 14–18px */
+  --tf-fs-lg:   clamp(1rem,      0.9rem   + 0.35vw, 1.25rem);   /* 16–20px */
+  --tf-fs-xl:   clamp(1.125rem,  1rem     + 0.4vw,  1.5rem);    /* 18–24px */
+  --tf-fs-2xl:  clamp(1.25rem,   1.1rem   + 0.5vw,  1.75rem);   /* 20–28px */
+  --tf-fs-3xl:  clamp(1.5rem,    1.3rem   + 0.6vw,  2.25rem);   /* 24–36px */
+
+  /* ─── Card Padding Presets ───────────────────────────────────── */
+  --tf-card-pad-compact:  10px 14px;   /* stat card secondary tier */
+  --tf-card-pad-standard: 14px 16px;   /* stat card primary, info cards */
+  --tf-card-pad-hero:     20px 22px;   /* hero stat card */
+  --tf-card-pad-form:     20px 24px;   /* settings/form sections */
+  --tf-card-pad-section:  24px 28px;   /* top-level settings sections */
+
+  /* ─── Layout Tokens ──────────────────────────────────────────── */
+  --tf-page-pad:        var(--tf-space-8);   /* 32px desktop page padding */
+  --tf-page-pad-mobile: var(--tf-space-4);   /* 16px mobile page padding */
+  --tf-max-width:       1200px;
+
+  /* ─── Container Query Breakpoints ────────────────────────────── */
+  --tf-cq-sm: 400px;
+  --tf-cq-md: 600px;
+  --tf-cq-lg: 900px;
+  --tf-cq-xl: 1200px;
+
+  /* ─── Legacy Token Aliases (Sprint 21 consolidation) ─────────── *
+   * These alias --c-*, --fs-*, --br-* prefixes from the deprecated
+   * styles/tokens.css to canonical --tf-* tokens. Used by NPSSurvey,
+   * PWAInstallPrompt, and KeyboardShortcutModal. Remove once those
+   * components are migrated in Sprints 24–25.
+   * ────────────────────────────────────────────────────────────── */
+  --c-bg-primary:   var(--tf-bg);
+  --c-bg-secondary: var(--tf-bg2);
+  --c-bg-tertiary:  var(--tf-sf);
+  --c-bg-elevated:  var(--tf-sf2);
+  --c-fg-primary:   var(--tf-t1);
+  --c-fg-secondary: var(--tf-t2);
+  --c-fg-tertiary:  var(--tf-t3);
+  --c-fg-muted:     var(--tf-t3);
+  --c-border:       var(--tf-bd);
+  --c-border-hover: var(--tf-bd2);
+  --c-accent-green: var(--tf-green);
+  --c-accent-red:   var(--tf-red);
+  --c-accent-amber: var(--tf-yellow);
+  --fs-xs:   var(--tf-fs-xs);
+  --fs-sm:   var(--tf-fs-sm);
+  --fs-base: var(--tf-fs-base);
+  --fs-lg:   var(--tf-fs-lg);
+  --br-sm:   var(--tf-radius-xs);
+  --br-md:   var(--tf-radius-sm);
+  --br-lg:   var(--tf-radius-md);
+  --br-xl:   var(--tf-radius-lg);
+
   /* ─── Houdini Theme Interpolation (Task 2.1.2) ─────────────── *
    * @property in properties.css registers these as <color>, so the
    * browser can interpolate them smoothly on theme switch instead

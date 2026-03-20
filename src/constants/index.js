@@ -21,6 +21,7 @@ export { TFS, CRYPTO_TFS } from './timeframes.js';
 
 export {
   CRYPTO_IDS, isCrypto, FUTURES_ROOTS, FOREX_PAIRS, getAssetClass,
+  isFutures, isForex, toYahooSymbol,
 } from './assets.js';
 
 export { IND_CAT, ICATS, OV_COLORS } from './indicators.js';

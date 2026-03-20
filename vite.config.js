@@ -204,6 +204,26 @@ export default defineConfig({
           if (id.includes('node_modules/zustand/')) {
             return 'vendor-zustand';
           }
+          // Sprint 7: Split chart.js + plugins (biggest vendor dep)
+          if (id.includes('node_modules/chart.js/') || id.includes('node_modules/chartjs-')) {
+            return 'vendor-chartjs';
+          }
+          // Sprint 7: ONNX runtime (AI inference — 399KB, lazy-load only when needed)
+          if (id.includes('node_modules/onnxruntime-web/') || id.includes('node_modules/onnxruntime-common/')) {
+            return 'vendor-onnx';
+          }
+          // Sprint 7: WebLLM (6MB — only loaded when AI copilot is opened)
+          if (id.includes('node_modules/@mlc-ai/web-llm/')) {
+            return 'vendor-webllm';
+          }
+          // Sprint 7: D3 modules (used by some chart components)
+          if (id.includes('node_modules/d3-') || id.includes('node_modules/d3/')) {
+            return 'vendor-d3';
+          }
+          // Sprint 7: msgpackr, idb, and other utility vendors
+          if (id.includes('node_modules/msgpackr/') || id.includes('node_modules/idb/')) {
+            return 'vendor-misc';
+          }
 
           // ── Feature splits ─────────────────────────────────────
           if (id.includes('src/pages/CommunityPage')) {
@@ -228,6 +248,10 @@ export default defineConfig({
           if (id.includes('src/charting_library/') || id.includes('src/pages/ChartsPage') || id.includes('src/pages/MarketsPage')
             || id.includes('src/app/features/chart') || id.includes('src/app/components/chart')) {
             return 'chart-tools';
+          }
+          // Sprint 7: Journal is the biggest page (227KB) — give it its own chunk
+          if (id.includes('src/pages/JournalPage')) {
+            return 'journal-page';
           }
         },
       },

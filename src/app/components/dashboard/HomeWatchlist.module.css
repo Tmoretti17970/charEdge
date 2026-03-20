@@ -1,0 +1,402 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * HomeWatchlist — CSS Module (Sprint 22: inline style migration)
+ *
+ * Uses var(--tf-*) tokens for all static styles. Dynamic state
+ * handled via data-* attributes and CSS custom properties.
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Container ───────────────────────────────────────────────── */
+.container {
+  background: var(--tf-sf);
+  border: 1px solid color-mix(in srgb, var(--tf-bd) 25%, transparent);
+  border-radius: var(--tf-radius-md);
+  overflow: hidden;
+}
+
+/* ─── Empty State ─────────────────────────────────────────────── */
+.empty {
+  padding: 28px 24px;
+  background: var(--tf-sf);
+  border: 1px solid color-mix(in srgb, var(--tf-bd) 25%, transparent);
+  border-radius: var(--tf-radius-md);
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 28px;
+  margin-bottom: var(--tf-space-2);
+}
+
+.emptyTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--tf-t1);
+  margin-bottom: var(--tf-space-1);
+}
+
+.emptyDesc {
+  font-size: 12px;
+  color: var(--tf-t3);
+  margin-bottom: var(--tf-space-4);
+}
+
+.emptyActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+  justify-content: center;
+}
+
+.emptyBtn {
+  padding: 6px 14px;
+  border-radius: var(--tf-radius-md);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--tf-mono);
+  background: color-mix(in srgb, var(--tf-accent) 6%, transparent);
+  color: var(--tf-accent);
+  border: 1px solid color-mix(in srgb, var(--tf-accent) 15%, transparent);
+  cursor: pointer;
+  transition: background var(--tf-transition-base), border-color var(--tf-transition-base);
+}
+
+.emptyBtn:hover {
+  background: color-mix(in srgb, var(--tf-accent) 12%, transparent);
+  border-color: var(--tf-accent);
+}
+
+/* ─── Header ──────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--tf-card-pad-standard);
+  border-bottom: 1px solid color-mix(in srgb, var(--tf-bd) 19%, transparent);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.headerTitle {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--tf-t1);
+}
+
+.headerCount {
+  font-size: 10px;
+  font-family: var(--tf-mono);
+  color: var(--tf-t3);
+  padding: 2px 6px;
+  background: color-mix(in srgb, var(--tf-bd) 12%, transparent);
+  border-radius: var(--tf-radius-xs);
+}
+
+.headerPnl {
+  font-size: 11px;
+  font-family: var(--tf-mono);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.headerPnl[data-dir='up'] { color: var(--tf-green); }
+.headerPnl[data-dir='down'] { color: var(--tf-red); }
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+.sortSelect {
+  background: transparent;
+  border: none;
+  color: var(--tf-t3);
+  font-size: 10px;
+  font-family: var(--tf-mono);
+  outline: none;
+  cursor: pointer;
+}
+
+/* ─── Quick-Add Bar ───────────────────────────────────────────── */
+.addBar {
+  display: flex;
+  gap: 6px;
+  padding: 10px 20px;
+  border-bottom: 1px solid color-mix(in srgb, var(--tf-bd) 12%, transparent);
+}
+
+.addInput {
+  flex: 1;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--tf-bd) 25%, transparent);
+  border-radius: var(--tf-radius-sm);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-family: var(--tf-mono);
+  color: var(--tf-t1);
+  outline: none;
+}
+
+.addBtn {
+  background: var(--tf-accent);
+  border: none;
+  border-radius: var(--tf-radius-sm);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity var(--tf-transition-base);
+}
+
+.addBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ─── Scrollable Section ──────────────────────────────────────── */
+.scrollArea {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* ─── Section Label (Top Movers / All Assets) ─────────────────── */
+.sectionDivider {
+  border-bottom: 1px solid color-mix(in srgb, var(--tf-bd) 12%, transparent);
+}
+
+.sectionLabel {
+  padding: 8px 20px 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--tf-t3);
+  font-family: var(--tf-mono);
+}
+
+/* ─── Watchlist Row ───────────────────────────────────────────── */
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 70px auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 20px;
+  cursor: pointer;
+  background: transparent;
+  border-bottom: 1px solid color-mix(in srgb, var(--tf-bd) 8%, transparent);
+  transition:
+    background var(--tf-transition-base),
+    box-shadow var(--tf-transition-base),
+    transform var(--tf-transition-base);
+}
+
+.row[data-mobile='true'] {
+  grid-template-columns: 1fr 50px auto;
+  gap: 8px;
+  padding: 14px 20px;
+  min-height: 56px;
+}
+
+.row[data-compact='true'] {
+  padding: 8px 20px;
+}
+
+.row:hover {
+  background: color-mix(in srgb, var(--tf-accent) 2%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tf-accent) 7%, transparent);
+}
+
+/* ─── Row Content ─────────────────────────────────────────────── */
+.symbolWrap { min-width: 0; }
+
+.symbolRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.symbolName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--tf-t1);
+  font-family: var(--tf-mono);
+}
+
+.alertIcon {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.assetBadge {
+  font-size: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--tf-t3);
+  background: color-mix(in srgb, var(--tf-bd) 19%, transparent);
+  padding: 1px 5px;
+  border-radius: var(--tf-radius-xs);
+  letter-spacing: 0.04em;
+}
+
+.itemName {
+  font-size: 10px;
+  color: var(--tf-t3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+
+/* ─── Sparkline Cell ──────────────────────────────────────────── */
+.sparkCell {
+  width: 70px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.sparkCell[data-mobile='true'] {
+  width: 50px;
+}
+
+.sparkPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tf-t3);
+  font-size: 8px;
+}
+
+/* ─── Price / Change Cell ─────────────────────────────────────── */
+.priceCell {
+  text-align: right;
+  min-width: 80px;
+}
+
+.price {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--tf-mono);
+  color: var(--tf-t1);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.change {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--tf-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.change[data-dir='up'] { color: var(--tf-green); }
+.change[data-dir='down'] { color: var(--tf-red); }
+.change[data-dir='neutral'] { color: var(--tf-t3); }
+
+/* ─── Trade P&L Cell ──────────────────────────────────────────── */
+.pnlCell {
+  text-align: right;
+  min-width: 70px;
+}
+
+.pnlValue {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--tf-mono);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.pnlValue[data-dir='up'] { color: var(--tf-green); }
+.pnlValue[data-dir='down'] { color: var(--tf-red); }
+
+.pnlCount {
+  font-size: 9px;
+  color: var(--tf-t3);
+  font-family: var(--tf-mono);
+}
+
+.pnlDash {
+  font-size: 10px;
+  color: var(--tf-t3);
+}
+
+/* ─── Remove Button (hover) ───────────────────────────────────── */
+.removeBtn {
+  position: absolute;
+  right: 8px;
+  background: color-mix(in srgb, var(--tf-red) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tf-red) 19%, transparent);
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-red);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+/* ─── Swipe Indicator (mobile) ────────────────────────────────── */
+.swipeIndicator {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--tf-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ─── Context Menu Overlay (mobile long-press) ────────────────── */
+.contextOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--tf-z-popover);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.contextSheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--tf-sf);
+  border-radius: var(--tf-radius-md) var(--tf-radius-md) 0 0;
+  padding: 12px 0;
+  box-shadow: var(--tf-shadow-3);
+}
+
+.contextTitle {
+  padding: 6px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--tf-t1);
+}
+
+.contextBtn {
+  display: block;
+  width: 100%;
+  padding: 14px 20px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-size: 14px;
+  color: var(--tf-t1);
+  cursor: pointer;
+}
+
+.contextBtnDanger {
+  composes: contextBtn;
+  color: var(--tf-red);
+}

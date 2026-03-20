@@ -7,7 +7,7 @@
 // pagination in HistoryPaginator.js.
 // ═══════════════════════════════════════════════════════════════════
 
-import { TFS, isCrypto, buildCacheKey } from '../constants.js';
+import { TFS, isCrypto, buildCacheKey, toYahooSymbol } from '../constants.js';
 import { opfsBarStore } from './engine/infra/OPFSBarStore.js';
 import { withCircuitBreaker } from './engine/infra/CircuitBreaker';
 import { validateCandleArray } from './engine/infra/DataValidator';
@@ -44,6 +44,10 @@ const TTL = {
 const _inflight = new Map();
 let _lastWarning = null; // Set by fetchers when they fail
 
+// Sprint 8: Auto-retry config for failed fetches
+const MAX_RETRIES = 2;
+const RETRY_BASE_MS = 1000; // 1s → 2s → 4s backoff
+
 
 
 // ─── Symbol Search (extracted to SymbolSearch.js) ──────────────
@@ -71,14 +75,33 @@ async function fetchOHLC(sym, tfId) {
   // Dedup in-flight requests (prevents cache stampede)
   if (_inflight.has(key)) return _inflight.get(key);
 
-  // Network fetch
-  const promise = _doFetch(sym, tfId, tf, key);
+  // Network fetch with auto-retry (Sprint 8)
+  const promise = _doFetchWithRetry(sym, tfId, tf, key);
   _inflight.set(key, promise);
   try {
     return await promise;
   } finally {
     _inflight.delete(key);
+    // Sprint 8: Bounded growth guard — prevent memory leak from abandoned entries
+    if (_inflight.size > 100) {
+      _inflight.clear();
+    }
   }
+}
+
+// Sprint 8: Retry wrapper with exponential backoff
+async function _doFetchWithRetry(sym, tfId, tf, key, attempt = 0) {
+  const result = await _doFetch(sym, tfId, tf, key);
+  // If we got data, return immediately
+  if (result.data && result.data.length > 0) return result;
+  // If no data and retries remain, wait and retry
+  if (attempt < MAX_RETRIES) {
+    const delay = RETRY_BASE_MS * Math.pow(2, attempt);
+    pipelineLogger.debug('FetchService', `Retry ${attempt + 1}/${MAX_RETRIES} for ${sym}:${tfId} in ${delay}ms`);
+    await new Promise(r => setTimeout(r, delay));
+    return _doFetchWithRetry(sym, tfId, tf, key, attempt + 1);
+  }
+  return result;
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -180,13 +203,14 @@ async function _doFetch(sym, tfId, _tf, _key) {
           '1w': { interval: '1wk', range: '5y' },
         };
         const yahooTf = YAHOO_TF_MAP[tfId] || { interval: '1d', range: '1y' };
-        const candles = await yahoo.fetchOHLCV(sym, yahooTf.interval, { range: yahooTf.range });
+        // Map futures (ES→ES=F) and forex (EURUSD→EURUSD=X) to Yahoo format
+        const yahooSym = toYahooSymbol(sym);
+        const candles = await yahoo.fetchOHLCV(yahooSym, yahooTf.interval, { range: yahooTf.range });
         if (candles && candles.length > 1) {
+          // Sprint 8: Don't pre-convert timestamps — let normalizeTimestamps() at line 240 handle it
+          // consistently across ALL adapters. Previously was converting to ISO here, causing inconsistency.
           return {
-            data: candles.map((c: any) => ({
-              time: typeof c.time === 'number' ? new Date(c.time).toISOString() : c.time,
-              open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume,
-            })),
+            data: candles,
             source: 'yahoo',
           };
         }

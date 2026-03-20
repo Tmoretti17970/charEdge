@@ -63,7 +63,7 @@ export function registerBuiltInSources(sources: Map<string, SourceAdapter>): voi
                     callback({ price: d.price, timestamp: d.time, confidence: d.confidence || 0, volume: d.volume || 0 });
                 });
             }).catch(() => {});
-            return () => { disposed = true; if (unsub) unsub(); };
+            return () => { disposed = true; if (typeof unsub === 'function') unsub(); };
         },
 
         fetchQuote: async (symbol: string) => {
@@ -126,7 +126,7 @@ export function registerBuiltInSources(sources: Map<string, SourceAdapter>): voi
                     callback({ price: d.price, timestamp: d.timestamp || Date.now(), confidence: 0, volume: d.volume || 0 });
                 });
             }).catch(() => {});
-            return () => { disposed = true; if (unsub) unsub(); };
+            return () => { disposed = true; if (typeof unsub === 'function') unsub(); };
         },
 
         fetchQuote: async (symbol: string) => {
@@ -160,7 +160,7 @@ export function registerBuiltInSources(sources: Map<string, SourceAdapter>): voi
                     callback({ price: d.price, timestamp: d.timestamp || Date.now(), confidence: d.confidence || 0, volume: 0 });
                 });
             }).catch(() => {});
-            return () => { disposed = true; if (unsub) unsub(); };
+            return () => { disposed = true; if (typeof unsub === 'function') unsub(); };
         },
 
         fetchQuote: async (symbol: string) => {
@@ -190,7 +190,7 @@ export function registerBuiltInSources(sources: Map<string, SourceAdapter>): voi
                     callback({ price: d.price, timestamp: d.time || d.timestamp || Date.now(), confidence: 0, volume: d.volume || 0 });
                 });
             }).catch(() => {});
-            return () => { disposed = true; if (unsub) unsub(); };
+            return () => { disposed = true; if (typeof unsub === 'function') unsub(); };
         },
 
         fetchQuote: async (symbol: string) => {
@@ -221,7 +221,7 @@ export function registerBuiltInSources(sources: Map<string, SourceAdapter>): voi
                     callback({ price: d.price, timestamp: d.time || d.timestamp || Date.now(), confidence: 0, volume: d.volume || 0 });
                 });
             }).catch(() => {});
-            return () => { disposed = true; if (unsub) unsub(); };
+            return () => { disposed = true; if (typeof unsub === 'function') unsub(); };
         },
 
         fetchQuote: async (symbol: string) => {
@@ -252,7 +252,7 @@ export function registerBuiltInSources(sources: Map<string, SourceAdapter>): voi
                     callback({ price: d.price, timestamp: d.time || d.timestamp || Date.now(), confidence: 0, volume: d.volume || 0 });
                 });
             }).catch(() => {});
-            return () => { disposed = true; if (unsub) unsub(); };
+            return () => { disposed = true; if (typeof unsub === 'function') unsub(); };
         },
 
         fetchQuote: async (symbol: string) => {
@@ -283,7 +283,7 @@ export function registerBuiltInSources(sources: Map<string, SourceAdapter>): voi
                     callback({ price: d.price, timestamp: d.time || d.timestamp || Date.now(), confidence: 0, volume: d.volume || 0 });
                 });
             }).catch(() => {});
-            return () => { disposed = true; if (unsub) unsub(); };
+            return () => { disposed = true; if (typeof unsub === 'function') unsub(); };
         },
 
         fetchQuote: async (symbol: string) => {
@@ -354,7 +354,7 @@ export function registerBuiltInSources(sources: Map<string, SourceAdapter>): voi
                     });
                 });
             }).catch(() => { /* CoinCapAdapter import failed — skip */ });
-            return () => { disposed = true; if (unsub) unsub(); };
+            return () => { disposed = true; if (typeof unsub === 'function') unsub(); };
         },
 
         fetchQuote: async (symbol: string) => {

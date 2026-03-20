@@ -1,0 +1,197 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * CalendarHeatmap — CSS Module (Sprint 22)
+ *
+ * GitHub-style yearly P&L heatmap. Cell colors are data-driven
+ * (inline), but all layout and typography use tokens.
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Summary Stats Grid ─────────────────────────────────────── */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: var(--tf-space-2);
+  margin-bottom: var(--tf-space-4);
+}
+
+.statCard {
+  background: var(--tf-bg2);
+  border: 1px solid color-mix(in srgb, var(--tf-bd) 25%, transparent);
+  border-radius: var(--tf-radius-sm);
+  padding: 8px 10px;
+}
+
+.statLabel {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+  font-family: var(--tf-mono);
+}
+
+.statValue {
+  font-size: 14px;
+  font-weight: 800;
+  font-family: var(--tf-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Calendar Container ──────────────────────────────────────── */
+.calendarBox {
+  background: var(--tf-sf);
+  border: 1px solid color-mix(in srgb, var(--tf-bd) 38%, transparent);
+  border-radius: var(--tf-radius-md);
+  padding: 16px 20px;
+  overflow-x: auto;
+}
+
+/* ─── Month Labels Row ────────────────────────────────────────── */
+.monthRow {
+  display: flex;
+  padding-left: 30px;
+  margin-bottom: var(--tf-space-1);
+}
+
+.monthCell {
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  font-family: var(--tf-mono);
+  text-align: center;
+}
+
+/* ─── Grid Wrapper ────────────────────────────────────────────── */
+.gridWrap { display: flex; gap: 0; }
+
+.dayLabels {
+  display: flex;
+  flex-direction: column;
+  margin-right: 6px;
+  padding-top: 0;
+}
+
+.dayLabel {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  font-family: var(--tf-mono);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 24px;
+}
+
+.weeksRow { display: flex; }
+.weekCol  { display: flex; flex-direction: column; }
+
+/* ─── Individual Cell ─────────────────────────────────────────── */
+/* bg, outline, opacity are data-driven → inline */
+.cell {
+  position: relative;
+  transition: transform var(--tf-transition-fast), box-shadow var(--tf-transition-fast);
+}
+
+.cell:hover:not([data-future='true']) {
+  transform: scale(1.3);
+}
+
+/* ─── Indicator Dots ──────────────────────────────────────────── */
+.ruleBreakDot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--tf-yellow);
+  border: 1px solid var(--tf-bg);
+  z-index: 1;
+}
+
+.leakDot {
+  composes: ruleBreakDot;
+  background: var(--tf-red);
+}
+
+/* ─── Legend ───────────────────────────────────────────────────── */
+.legend {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  margin-top: var(--tf-space-3);
+  justify-content: flex-end;
+}
+
+.legendLabel {
+  font-size: 10px;
+  color: var(--tf-t3);
+  font-family: var(--tf-mono);
+}
+
+.legendCell {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+/* ─── Tooltip ─────────────────────────────────────────────────── */
+.tooltip {
+  position: fixed;
+  z-index: var(--tf-z-popover);
+  background: var(--tf-sf2);
+  border: 1px solid var(--tf-bd);
+  border-radius: var(--tf-radius-sm);
+  padding: 8px 12px;
+  box-shadow: var(--tf-shadow-3);
+  pointer-events: none;
+  min-width: 140px;
+}
+
+.tooltipDate {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tf-t1);
+  margin-bottom: var(--tf-space-1);
+  font-family: var(--tf-font);
+}
+
+.tooltipPnl {
+  font-size: 13px;
+  font-weight: 800;
+  font-family: var(--tf-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.tooltipPnl[data-dir='up']   { color: var(--tf-green); }
+.tooltipPnl[data-dir='down'] { color: var(--tf-red); }
+
+.tooltipMeta {
+  font-size: 10px;
+  color: var(--tf-t3);
+  margin-top: 2px;
+  font-family: var(--tf-mono);
+}
+
+.tooltipWarn {
+  font-size: 10px;
+  color: var(--tf-yellow);
+  margin-top: 3px;
+  font-family: var(--tf-mono);
+  font-weight: 700;
+}
+
+.tooltipDanger {
+  font-size: 10px;
+  color: var(--tf-red);
+  margin-top: 2px;
+  font-family: var(--tf-mono);
+  font-weight: 700;
+}
+
+.tooltipEmpty {
+  font-size: 11px;
+  color: var(--tf-t3);
+  font-family: var(--tf-mono);
+}

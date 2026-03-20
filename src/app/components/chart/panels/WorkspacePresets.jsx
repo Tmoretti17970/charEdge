@@ -14,6 +14,7 @@ import {
   captureState,
   restoreState,
 } from '../../../../state/useWorkspaceStore';
+import w from './WorkspacePresets.module.css';
 
 export default function WorkspacePresets() {
   const [open, setOpen] = useState(false);
@@ -102,7 +103,7 @@ export default function WorkspacePresets() {
   const _activeIcon = builtIn?.icon || '📂';
 
   return (
-    <div ref={ref} style={{ position: 'relative', display: 'flex', flexShrink: 0 }}>
+    <div ref={ref} className={w.root}>
       {/* Trigger button */}
       <button
         className="tf-trade-capsule__util-btn"
@@ -120,18 +121,7 @@ export default function WorkspacePresets() {
 
       {/* Dropdown */}
       {open && (
-        <div
-          className="tf-chart-dropdown"
-          style={{
-            position: 'absolute',
-            top: '100%',
-            right: 0,
-            marginTop: 6,
-            minWidth: 260,
-            maxHeight: '70vh',
-            overflowY: 'auto',
-          }}
-        >
+        <div className={`tf-chart-dropdown ${w.dropdown}`}>
           {/* Built-in presets */}
           <div className="tf-chart-dropdown-label">PRESETS</div>
           {BUILT_IN_PRESETS.map((preset) => {
@@ -142,39 +132,18 @@ export default function WorkspacePresets() {
                 className="tf-chart-dropdown-item"
                 data-active={isActive || undefined}
                 onClick={() => handleApply(preset.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  textAlign: 'left',
-                }}
               >
-                <span style={{ fontSize: 16, width: 22, textAlign: 'center', flexShrink: 0 }}>
-                  {preset.icon}
-                </span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: isActive ? C.b : C.t1,
-                    fontFamily: F,
-                  }}>
+                <span className={w.presetIcon}>{preset.icon}</span>
+                <div className={w.presetContent}>
+                  <div className={w.presetName} style={{ color: isActive ? C.b : C.t1 }}>
                     {preset.name}
                   </div>
-                  <div style={{
-                    fontSize: 9,
-                    color: C.t3,
-                    fontFamily: F,
-                    marginTop: 1,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}>
+                  <div className={w.presetDesc}>
                     {preset.description}
                   </div>
                 </div>
                 {isActive && (
-                  <span style={{ color: C.b, fontSize: 13, flexShrink: 0, fontWeight: 700 }}>✓</span>
+                  <span className={w.checkMark}>✓</span>
                 )}
               </button>
             );
@@ -188,10 +157,7 @@ export default function WorkspacePresets() {
               {workspaces.map((ws) => {
                 const isActive = activePreset === ws.id;
                 return (
-                  <div
-                    key={ws.id}
-                    style={{ display: 'flex', alignItems: 'center', gap: 0 }}
-                  >
+                  <div key={ws.id} className={w.customRow}>
                     <button
                       className="tf-chart-dropdown-item"
                       data-active={isActive || undefined}
@@ -203,7 +169,7 @@ export default function WorkspacePresets() {
                       }}
                       style={{ flex: 1, textAlign: 'left' }}
                     >
-                      <span style={{ fontSize: 14, width: 22, textAlign: 'center', flexShrink: 0 }}>📂</span>
+                      <span className={w.customIcon}>📂</span>
                       {renamingId === ws.id ? (
                         <input
                           autoFocus
@@ -216,49 +182,24 @@ export default function WorkspacePresets() {
                           }}
                           onBlur={commitRename}
                           onClick={(e) => e.stopPropagation()}
-                          style={{
-                            flex: 1,
-                            background: C.bg,
-                            border: `1px solid ${C.bd}`,
-                            borderRadius: 4,
-                            padding: '2px 6px',
-                            fontSize: 12,
-                            fontFamily: F,
-                            color: C.t1,
-                            outline: 'none',
-                          }}
+                          className={w.renameInput}
                         />
                       ) : (
-                        <span style={{
-                          fontSize: 12,
+                        <span className={w.customName} style={{
                           fontWeight: isActive ? 600 : 500,
                           color: isActive ? C.b : C.t1,
-                          fontFamily: F,
                         }}>
                           {ws.name}
                         </span>
                       )}
                       {isActive && (
-                        <span style={{ marginLeft: 'auto', color: C.b, fontSize: 13, fontWeight: 700 }}>✓</span>
+                        <span className={w.customCheckMark}>✓</span>
                       )}
                     </button>
                     <button
-                      className="tf-btn"
+                      className={w.deleteBtn}
                       onClick={(e) => { e.stopPropagation(); remove(ws.id); }}
                       title="Delete preset"
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: C.t3,
-                        fontSize: 11,
-                        cursor: 'pointer',
-                        padding: '6px 8px',
-                        borderRadius: 4,
-                        transition: 'color 0.15s',
-                        flexShrink: 0,
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = '#EF5350'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = C.t3; }}
                     >
                       ×
                     </button>
@@ -271,40 +212,16 @@ export default function WorkspacePresets() {
           {/* Save custom */}
           <div className="tf-chart-dropdown-sep" />
           {saving ? (
-            <div style={{ padding: '6px 10px', display: 'flex', gap: 6, alignItems: 'center' }}>
+            <div className={w.saveRow}>
               <input
                 autoFocus
                 value={saveName}
                 onChange={(e) => setSaveName(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setSaving(false); }}
                 placeholder="Preset name…"
-                style={{
-                  flex: 1,
-                  background: C.bg,
-                  border: `1px solid ${C.bd}`,
-                  borderRadius: 6,
-                  padding: '4px 8px',
-                  fontSize: 11,
-                  fontFamily: F,
-                  color: C.t1,
-                  outline: 'none',
-                }}
+                className={w.saveInput}
               />
-              <button
-                className="tf-btn"
-                onClick={handleSave}
-                style={{
-                  background: C.b,
-                  border: 'none',
-                  color: '#fff',
-                  fontSize: 10,
-                  fontWeight: 700,
-                  fontFamily: F,
-                  padding: '4px 10px',
-                  borderRadius: 6,
-                  cursor: 'pointer',
-                }}
-              >
+              <button className={w.saveBtn} onClick={handleSave}>
                 Save
               </button>
             </div>
@@ -314,7 +231,7 @@ export default function WorkspacePresets() {
               onClick={() => setSaving(true)}
               style={{ fontWeight: 600, color: C.b }}
             >
-              <span style={{ fontSize: 14, width: 22, textAlign: 'center', flexShrink: 0 }}>+</span>
+              <span className={w.addPresetIcon}>+</span>
               Save Current as Preset
             </button>
           )}

@@ -3,6 +3,7 @@ import { C } from '../../constants.js';
 import { trackPageView } from '../../observability/telemetry';
 import { useUIStore } from '../../state/useUIStore';
 import ErrorBoundary from '../components/ui/ErrorBoundary.jsx';
+import PageBreadcrumb from '../components/ui/PageBreadcrumb.jsx';
 
 // All pages lazy-loaded for optimal initial bundle size
 const JournalPage = React.lazy(() => import('../../pages/JournalPage.jsx'));
@@ -163,6 +164,8 @@ function PageRouter() {
           animation: motionEnabled ? 'fadeInUp 250ms cubic-bezier(0.16, 1, 0.3, 1) both' : 'none',
         }}
       >
+        {/* Sprint 11: Section title breadcrumb */}
+        <PageBreadcrumb page={page} />
         <Suspense fallback={<PageFallback />}>
           <ErrorBoundary resetKey={page}>
             <Page />

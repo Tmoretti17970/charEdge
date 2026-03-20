@@ -5,6 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { Suspense, useEffect } from 'react';
+import WidgetBoundary from '../../app/components/ui/WidgetBoundary.jsx';
 import SlidePanel from '../../app/components/panels/SlidePanel.jsx';
 import { C } from '../../constants.js';
 import { useChartFeaturesStore } from '../../state/chart/useChartFeaturesStore';
@@ -114,7 +115,7 @@ export default function ChartPanelManager({
   }, [activePanel, showIndicators, setShowIndicators]);
 
   return (
-    <>
+    <WidgetBoundary name="Chart Panels">
       {/* ─── Indicator Panel — routed through SlidePanel (#40) ─── */}
       {/* Indicators now rendered inside the SlidePanel below via activePanel === 'indicators' */}
 
@@ -174,6 +175,7 @@ export default function ChartPanelManager({
           onWidthChange={(w) => activePanel && useLayoutStore.getState().setPanelWidth(activePanel, w)}
         >
           <div style={{ padding: 16, height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <WidgetBoundary name="Panel Content">
             <Suspense fallback={<div style={{ padding: 16, color: C.t3 }}>Loading component...</div>}>
               {activePanel === 'indicators' && <IndicatorPanel isOpen={true} onClose={closePanel} />}
               {activePanel === 'watchlist' && <WatchlistPanel compact />}
@@ -228,6 +230,7 @@ export default function ChartPanelManager({
               {activePanel === 'stockInfo' && <StockInfoPanel symbol={symbol} />}
               {/* copilot removed — consolidated into watchlist side panel */}
             </Suspense>
+            </WidgetBoundary>
           </div>
         </SlidePanel>
       )}
@@ -321,6 +324,6 @@ export default function ChartPanelManager({
           <KeyboardShortcutsOverlay onClose={() => setShowShortcuts(false)} />
         </Suspense>
       )}
-    </>
+    </WidgetBoundary>
   );
 }

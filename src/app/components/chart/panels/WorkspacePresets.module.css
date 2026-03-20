@@ -1,0 +1,143 @@
+/* ═══════════════════════════════════════════════════════════════════
+   WorkspacePresets — CSS Module (Sprint 23)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.root {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+}
+
+/* ─── Dropdown ─── */
+.dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  min-width: 260px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* ─── Preset Item ─── */
+.presetBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+.presetIcon {
+  font-size: 16px;
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.presetContent { flex: 1; min-width: 0; }
+.presetName {
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--tf-font);
+}
+.presetDesc {
+  font-size: 9px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.checkMark {
+  color: var(--tf-accent);
+  font-size: 13px;
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+/* ─── Custom Item ─── */
+.customRow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.customIcon {
+  font-size: 14px;
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.customName {
+  font-size: 12px;
+  font-family: var(--tf-font);
+}
+.customCheckMark {
+  margin-left: auto;
+  color: var(--tf-accent);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ─── Rename Input ─── */
+.renameInput {
+  flex: 1;
+  background: var(--tf-bg);
+  border: 1px solid var(--tf-bd);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-family: var(--tf-font);
+  color: var(--tf-t1);
+  outline: none;
+}
+
+/* ─── Delete Btn ─── */
+.deleteBtn {
+  background: none;
+  border: none;
+  color: var(--tf-t3);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 4px;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+.deleteBtn:hover { color: #EF5350; }
+
+/* ─── Save Row ─── */
+.saveRow {
+  padding: 6px 10px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.saveInput {
+  flex: 1;
+  background: var(--tf-bg);
+  border: 1px solid var(--tf-bd);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-family: var(--tf-font);
+  color: var(--tf-t1);
+  outline: none;
+}
+.saveBtn {
+  background: var(--tf-accent);
+  border: none;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--tf-font);
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ─── Add Preset Btn ─── */
+.addPresetIcon {
+  font-size: 14px;
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+}

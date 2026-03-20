@@ -12,6 +12,7 @@ import MobileNav from './app/layouts/MobileNav.jsx';
 import PageRouter from './app/layouts/PageRouter.jsx';
 import Sidebar from './app/layouts/Sidebar.jsx';
 import DailyGuardBanner from './app/misc/components/DailyGuardBanner.jsx';
+import { useHashRouter } from './hooks/useHashRouter.js';
 import styles from './App.module.css';
 import { useAppBoot } from './AppBoot.js';
 import { useBootEffects } from './hooks/useBootEffects.js';
@@ -162,6 +163,9 @@ export default function App() {
   // Keyboard shortcuts panel
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const closeShortcuts = useCallback(() => setShortcutsOpen(false), []);
+
+  // Sprint 6: Hash-based URL routing — enables deep links & back/forward buttons
+  useHashRouter();
 
   // Post-mount side effects (theme, auth, gamification) — extracted to keep App.jsx render-only
   useBootEffects();

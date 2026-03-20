@@ -1,0 +1,82 @@
+/* ═══════════════════════════════════════════════════════════════════
+   UnifiedChartToolbar — CSS Module (Sprint 23)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Compact mode dot ─── */
+.compactDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--tf-yellow);
+  opacity: 0.6;
+  flex-shrink: 0;
+  margin-right: 2px;
+}
+
+/* ─── Color picker dropdown ─── */
+.colorPickerDropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--tf-sf);
+  border: 1px solid var(--tf-bd);
+  border-radius: 10px;
+  padding: 8px;
+  z-index: 999;
+  width: 160px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+.colorPickerTitle {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  padding: 0 4px;
+}
+.colorPresetBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.colorPresetBtn:hover {
+  background: color-mix(in srgb, var(--tf-t3) 10%, transparent);
+}
+.colorPresetBars {
+  display: flex;
+  gap: 2px;
+  align-items: flex-end;
+}
+.colorPresetBar {
+  width: 4px;
+  border-radius: 1px;
+}
+.colorPresetLabel {
+  font-size: 11px;
+}
+.colorPresetCheck {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--tf-accent);
+}
+
+/* ─── Capsule positioning ─── */
+.capsuleRelative { position: relative; }
+.spacer { flex: 1; min-width: 4px; }
+.mobileRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+/* ─── Timeframe capsule pill ─── */
+.tfPillRelative { position: relative; z-index: 1; }

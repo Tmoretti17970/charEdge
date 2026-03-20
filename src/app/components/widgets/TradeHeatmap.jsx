@@ -2,69 +2,40 @@
 // charEdge v10 — TradeHeatmap
 //
 // Calendar-style P&L heatmap widget. Each cell = one day.
-// Color intensity scales with P&L magnitude.
-// Green = profit, Red = loss, blank = no trades.
-//
-// Features:
-//   - Month navigation (prev/next)
-//   - Hover tooltip with day stats (trade count, total P&L, win rate)
-//   - Click handler for drill-down (filters journal to that day)
-//   - Responsive: works in DashboardPage cards or full-width
-//
-// Usage:
-//   <TradeHeatmap trades={trades} onDayClick={(date) => { ... }} />
+// Sprint 22: Migrated from inline styles → CSS Modules + tokens.
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
 import { useMemo, useState, useCallback } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C, M } from '../../../constants.js';
+import st from './TradeHeatmap.module.css';
 
 // ─── Date Helpers ───────────────────────────────────────────────
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-/** Get YYYY-MM-DD key from a Date. */
 function dateKey(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-/** Get first day of month (0=Sun). */
 function firstDayOfMonth(year, month) {
   return new Date(year, month, 1).getDay();
 }
 
-/** Get number of days in month. */
 function daysInMonth(year, month) {
   return new Date(year, month + 1, 0).getDate();
 }
 
 // ─── Color Scaling ──────────────────────────────────────────────
 
-/**
- * Map a P&L value to a color with opacity based on magnitude.
- * @param {number} pnl - Daily P&L
- * @param {number} maxAbsPnl - Max absolute P&L in the month (for normalization)
- * @returns {{ bg: string, text: string }}
- */
 function pnlToColor(pnl, maxAbsPnl) {
   if (pnl === 0) return { bg: C.sf, text: C.t3 };
 
   const intensity = Math.min(1, Math.abs(pnl) / (maxAbsPnl || 1));
-  // Minimum opacity: 15%, max: 80%
   const alpha = Math.round(15 + intensity * 65);
   const alphaHex = alpha.toString(16).padStart(2, '0');
 
@@ -77,13 +48,6 @@ function pnlToColor(pnl, maxAbsPnl) {
 
 // ─── Aggregation ────────────────────────────────────────────────
 
-/**
- * Aggregate trades by day for a given month.
- * @param {Array} trades - Trade array
- * @param {number} year
- * @param {number} month - 0-indexed
- * @returns {{ dayMap: Map<string, { pnl, count, wins, losses }>, maxAbsPnl: number, monthPnl: number }}
- */
 function aggregateMonth(trades, year, month) {
   const dayMap = new Map();
   let maxAbsPnl = 0;
@@ -107,7 +71,6 @@ function aggregateMonth(trades, year, month) {
     monthPnl += pnl;
   }
 
-  // Calculate max absolute daily P&L for color scaling
   for (const [, day] of dayMap) {
     maxAbsPnl = Math.max(maxAbsPnl, Math.abs(day.pnl));
   }
@@ -123,7 +86,6 @@ function TradeHeatmap({ trades = [], onDayClick = null, initialDate = null }) {
   const [viewMonth, setViewMonth] = useState(initialDate ? initialDate.getMonth() : today.getMonth());
   const [hoveredDay, setHoveredDay] = useState(null);
 
-  // Month data
   const { dayMap, maxAbsPnl, monthPnl } = useMemo(
     () => aggregateMonth(trades, viewYear, viewMonth),
     [trades, viewYear, viewMonth],
@@ -132,7 +94,6 @@ function TradeHeatmap({ trades = [], onDayClick = null, initialDate = null }) {
   const totalDays = daysInMonth(viewYear, viewMonth);
   const firstDay = firstDayOfMonth(viewYear, viewMonth);
 
-  // Navigation
   const prevMonth = useCallback(() => {
     if (viewMonth === 0) {
       setViewYear((y) => y - 1);
@@ -153,7 +114,6 @@ function TradeHeatmap({ trades = [], onDayClick = null, initialDate = null }) {
     setViewMonth(d.getMonth());
   }, []);
 
-  // Build grid cells
   const cells = useMemo(() => {
     const result = [];
     const _today = new Date();
@@ -161,12 +121,10 @@ function TradeHeatmap({ trades = [], onDayClick = null, initialDate = null }) {
     const tMonth = _today.getMonth();
     const tYear = _today.getFullYear();
 
-    // Leading blanks for alignment
     for (let i = 0; i < firstDay; i++) {
       result.push({ day: null, key: `blank-${i}` });
     }
 
-    // Actual days
     for (let d = 1; d <= totalDays; d++) {
       const key = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const data = dayMap.get(key) || null;
@@ -177,44 +135,25 @@ function TradeHeatmap({ trades = [], onDayClick = null, initialDate = null }) {
     return result;
   }, [dayMap, firstDay, totalDays, viewYear, viewMonth]);
 
-  // Month stats
   const tradingDays = dayMap.size;
   const winDays = Array.from(dayMap.values()).filter((d) => d.pnl > 0).length;
 
   return (
-    <div style={{ fontFamily: F }}>
+    <div className={st.container}>
       {/* Header: month nav */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <NavBtn onClick={prevMonth}>‹</NavBtn>
-          <span style={{ fontSize: 14, fontWeight: 700, color: C.t1, minWidth: 140, textAlign: 'center' }}>
-            {MONTHS[viewMonth]} {viewYear}
-          </span>
-          <NavBtn onClick={nextMonth}>›</NavBtn>
-          <button
-            className="tf-btn"
-            onClick={goToToday}
-            style={{
-              background: 'none',
-              border: `1px solid ${C.bd}`,
-              borderRadius: 4,
-              color: C.t3,
-              fontSize: 9,
-              fontFamily: M,
-              cursor: 'pointer',
-              padding: '2px 6px',
-              marginLeft: 4,
-            }}
-          >
-            Today
-          </button>
+      <div className={st.header}>
+        <div className={st.navGroup}>
+          <button className={`tf-btn ${st.navBtn}`} onClick={prevMonth}>‹</button>
+          <span className={st.monthLabel}>{MONTHS[viewMonth]} {viewYear}</span>
+          <button className={`tf-btn ${st.navBtn}`} onClick={nextMonth}>›</button>
+          <button className={`tf-btn ${st.todayBtn}`} onClick={goToToday}>Today</button>
         </div>
 
         {/* Month summary */}
-        <div style={{ display: 'flex', gap: 12, fontSize: 10, fontFamily: M, color: C.t3 }}>
+        <div className={st.summaryRow}>
           <span>
             P&L:{' '}
-            <span style={{ color: monthPnl >= 0 ? C.g : C.r, fontWeight: 700 }}>
+            <span className={monthPnl >= 0 ? st.pnlUp : st.pnlDown}>
               {monthPnl >= 0 ? '+' : ''}${monthPnl.toFixed(0)}
             </span>
           </span>
@@ -224,19 +163,14 @@ function TradeHeatmap({ trades = [], onDayClick = null, initialDate = null }) {
       </div>
 
       {/* Weekday headers */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
+      <div className={st.weekdayGrid}>
         {WEEKDAYS.map((w) => (
-          <div
-            key={w}
-            style={{ textAlign: 'center', fontSize: 9, fontWeight: 600, color: C.t3, fontFamily: M, padding: '2px 0' }}
-          >
-            {w}
-          </div>
+          <div key={w} className={st.weekdayLabel}>{w}</div>
         ))}
       </div>
 
       {/* Calendar grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, position: 'relative' }}>
+      <div className={st.calendarGrid}>
         {cells.map((cell) => (
           <DayCell
             key={cell.key}
@@ -262,7 +196,7 @@ function TradeHeatmap({ trades = [], onDayClick = null, initialDate = null }) {
 
 function DayCell({ day, data, isToday, maxAbsPnl, hovered, onHover, onLeave, onClick }) {
   if (day === null) {
-    return <div style={{ aspectRatio: '1', minHeight: 32 }} />;
+    return <div className={st.blankCell} />;
   }
 
   const hasData = data && data.count > 0;
@@ -273,65 +207,30 @@ function DayCell({ day, data, isToday, maxAbsPnl, hovered, onHover, onLeave, onC
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
       onClick={onClick}
+      className={st.cell}
       style={{
-        aspectRatio: '1',
-        minHeight: 32,
-        borderRadius: 4,
         background: hasData ? color.bg : hovered ? C.sf : 'transparent',
         border: isToday ? `1.5px solid ${C.b}` : `1px solid ${hovered ? C.bd : 'transparent'}`,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
         cursor: hasData ? 'pointer' : 'default',
-        transition: 'background 0.1s, border-color 0.15s',
-        position: 'relative',
       }}
     >
       <span
+        className={st.dayNum}
         style={{
-          fontSize: 10,
           fontWeight: isToday ? 800 : 500,
           color: hasData ? color.text : isToday ? C.b : C.t3,
-          fontFamily: M,
         }}
       >
         {day}
       </span>
       {hasData && (
-        <span
-          style={{
-            fontSize: 8,
-            fontWeight: 700,
-            color: color.text,
-            fontFamily: M,
-            marginTop: 1,
-          }}
-        >
+        <span className={st.dayPnl} style={{ color: color.text }}>
           {data.pnl >= 0 ? '+' : ''}
           {data.pnl >= 100 || data.pnl <= -100 ? `$${(data.pnl / 1000).toFixed(1)}k` : `$${data.pnl.toFixed(0)}`}
         </span>
       )}
-      {/* Trade count dot */}
       {hasData && data.count > 1 && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 2,
-            right: 3,
-            width: 10,
-            height: 10,
-            borderRadius: '50%',
-            background: C.sf,
-            fontSize: 7,
-            fontWeight: 700,
-            fontFamily: M,
-            color: C.t2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
+        <div className={st.countDot}>
           {data.count > 9 ? '9+' : data.count}
         </div>
       )}
@@ -348,59 +247,17 @@ function DayTooltip({ dayKey, data }) {
   const winRate = data.count > 0 ? ((data.wins / data.count) * 100).toFixed(0) : '0';
 
   return (
-    <div
-      style={{
-        marginTop: 8,
-        padding: '8px 12px',
-        background: C.sf,
-        border: `1px solid ${C.bd}`,
-        borderRadius: 6,
-        fontSize: 11,
-        fontFamily: F,
-        color: C.t1,
-        display: 'flex',
-        gap: 16,
-        justifyContent: 'center',
-      }}
-    >
-      <span style={{ fontWeight: 600 }}>{formatted}</span>
+    <div className={st.tooltip}>
+      <span className={st.tooltipDate}>{formatted}</span>
       <span>
         P&L:{' '}
-        <span style={{ color: data.pnl >= 0 ? C.g : C.r, fontWeight: 700, fontFamily: M }}>
+        <span className={`${st.tooltipPnl} ${data.pnl >= 0 ? st.pnlUp : st.pnlDown}`}>
           {data.pnl >= 0 ? '+' : ''}${data.pnl.toFixed(2)}
         </span>
       </span>
-      <span style={{ color: C.t3 }}>{data.count} trades</span>
-      <span style={{ color: C.t3 }}>{winRate}% win</span>
+      <span className={st.tooltipMuted}>{data.count} trades</span>
+      <span className={st.tooltipMuted}>{winRate}% win</span>
     </div>
-  );
-}
-
-// ─── Nav Button ─────────────────────────────────────────────────
-
-function NavBtn({ onClick, children }) {
-  return (
-    <button
-      className="tf-btn"
-      onClick={onClick}
-      style={{
-        width: 24,
-        height: 24,
-        borderRadius: 4,
-        background: 'none',
-        border: `1px solid ${C.bd}`,
-        color: C.t2,
-        fontSize: 14,
-        fontWeight: 700,
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'background 0.1s',
-      }}
-    >
-      {children}
-    </button>
   );
 }
 

@@ -203,6 +203,7 @@ function Sidebar() {
       ref={navRef}
       role="navigation"
       aria-label="Main navigation"
+      data-tour="sidebar"
       className={`${sb.sidebar} ${expanded ? sb.expanded : sb.collapsed}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -218,13 +219,13 @@ function Sidebar() {
         transition: 'width 300ms cubic-bezier(0.32, 0.72, 0, 1), min-width 300ms cubic-bezier(0.32, 0.72, 0, 1)',
       }}
     >
-      {/* ─── Sliding Active Indicator Bar (Sprint 1: spring physics) ─ */}
+      {/* ─── Sliding Active Indicator Bar (Sprint 11: gradient) ─── */}
       <div
         className={sb.activeBar}
         style={{
           top: barTop,
-          background: C.b,
-          boxShadow: `0 0 8px ${C.b}60`,
+          background: `linear-gradient(180deg, ${C.b}, ${C.y})`,
+          boxShadow: `0 0 10px ${C.b}50, 0 0 4px ${C.y}30`,
           opacity: barVisible ? 1 : 0,
           transition: 'top 300ms cubic-bezier(0.32, 0.72, 0, 1), opacity 200ms ease',
         }}

@@ -36,6 +36,7 @@ const QuickActions = lazy(() => import('./QuickActions.jsx'));
 const SessionJournalPrompt = lazy(() => import('./SessionJournalPrompt.jsx'));
 const MonteCarloWidget = lazy(() => import('./MonteCarloWidget.jsx'));
 const QuestWidget = lazy(() => import('../ui/QuestWidget.jsx'));
+const JournalHealthStreak = lazy(() => import('./JournalHealthStreak.jsx'));
 
 // Widget skeleton fallback
 function WidgetSkeleton({ height = 120 }) {
@@ -49,6 +50,37 @@ function WidgetSkeleton({ height = 120 }) {
         marginBottom: 16,
       }}
     />
+  );
+}
+
+// Sprint 15: Dashboard narrative section header
+function SectionHeader({ emoji, title }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 12,
+        marginTop: 8,
+        paddingLeft: 2,
+      }}
+    >
+      <span style={{ fontSize: 14 }}>{emoji}</span>
+      <span
+        style={{
+          fontSize: 11,
+          fontWeight: 700,
+          textTransform: 'uppercase',
+          letterSpacing: '0.06em',
+          color: C.t3,
+          fontFamily: F,
+        }}
+      >
+        {title}
+      </span>
+      <div style={{ flex: 1, height: 1, background: `${C.bd}30`, marginLeft: 8 }} />
+    </div>
   );
 }
 
@@ -310,87 +342,55 @@ export default function DashboardNarrativeLayout({
         </Suspense>
       )}
 
-      {/* ═══ EQUITY CURVE ═══ */}
-      <Card
-        className={`tf-card-hover ${s.equitySpan}`}
-        style={{
-          padding: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          backdropFilter: 'blur(16px)',
-          marginBottom: sectionGap,
-        }}
-      >
-        <div
-          style={{
-            padding: '12px 20px 0 20px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <div className="tf-section-accent" style={{ marginBottom: 0 }}>
-            Equity Curve
-          </div>
-          <div style={{ ...text.dataLg, fontSize: 24, fontWeight: 800, color: result.totalPnl >= 0 ? C.g : C.r }}>
-            {fmtD(result.totalPnl)}
-          </div>
-        </div>
-        <div className={s.equityChartWrapResponsive}>
-          <div style={{ position: 'absolute', inset: 0 }}>
-            <WidgetBoundary name="Equity Curve" height="100%">
-              <EquityCurveChart eq={result.eq} height="100%" />
-            </WidgetBoundary>
-          </div>
-        </div>
-      </Card>
+      {/* ═══ HERO SECTION: EQUITY CURVE + TRADE HEATMAP ═══ */}
+      <SectionHeader emoji="📊" title="Performance Overview" />
 
-
-      {/* ═══ Sprint 17: COMPACT METRICS ROW ═══ */}
-      <MetricsRow result={result} trades={trades} />
-
-      {/* ═══ Sprint 43: INTRADAY P&L CHART ═══ */}
-      {trades.length >= 2 && (
-        <div style={{ marginBottom: sectionGap }}>
-          <Suspense fallback={null}>
-            <IntradayChart trades={trades} isMobile={isMobile} />
-          </Suspense>
-        </div>
-      )}
-
-      {/* ═══ Sprint 44-45: STRATEGY + ASSET BREAKDOWN ═══ */}
-      {trades.length >= 5 && (
-        <div style={{ marginBottom: sectionGap }}>
-          <Suspense fallback={null}>
-            <StrategyBreakdown trades={trades} />
-            <AssetBreakdown trades={trades} />
-          </Suspense>
-        </div>
-      )}
-
-      {/* ═══ Sprint 48: SMART SESSION RECOMMENDATIONS ═══ */}
-      {todayStats && todayStats.count >= 3 && (
-        <SessionTip todayStats={todayStats} result={result} sectionGap={sectionGap} />
-      )}
-
-      {/* ═══ Sprint 21: QUEST WIDGET ═══ */}
-      <Suspense fallback={null}>
-        <div style={{ marginBottom: sectionGap }}>
-          <QuestWidget />
-        </div>
-      </Suspense>
-
-      {/* ═══ Sprint 13: WATCHLIST + RECENT TRADES (two-column) ═══ */}
-      <div
-        className={s.twoColGridResponsive}
-        style={{ marginBottom: sectionGap }}
-      >
-        <HomeWatchlist isMobile={isMobile} />
-
+      <div className={s.heroRow} style={{ marginBottom: sectionGap }}>
+        {/* ═══ EQUITY CURVE ═══ */}
         <Card
           className="tf-card-hover"
-          style={{ padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+          style={{
+            padding: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            backdropFilter: 'blur(16px)',
+          }}
+        >
+          <div
+            style={{
+              padding: '12px 20px 0 20px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <div className="tf-section-accent" style={{ marginBottom: 0 }}>
+              Equity Curve
+            </div>
+            <div style={{ ...text.dataLg, fontSize: 24, fontWeight: 800, color: result.totalPnl >= 0 ? C.g : C.r }}>
+              {fmtD(result.totalPnl)}
+            </div>
+          </div>
+          <div className={s.equityChartWrapResponsive} style={{ flex: 1 }}>
+            <div style={{ position: 'absolute', inset: 0 }}>
+              <WidgetBoundary name="Equity Curve" height="100%">
+                <EquityCurveChart eq={result.eq} height="100%" />
+              </WidgetBoundary>
+            </div>
+          </div>
+        </Card>
+
+        {/* ═══ TRADE HEATMAP ═══ */}
+        <Card
+          className="tf-card-hover"
+          style={{
+            padding: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            borderImage: `linear-gradient(135deg, ${C.b}30, ${C.y}30) 1`,
+          }}
         >
           <div
             style={{
@@ -418,23 +418,67 @@ export default function DashboardNarrativeLayout({
         </Card>
       </div>
 
-      {/* Quick Journal prompt — appears after 3+ trades */}
+
+      {/* ═══ Sprint 17: COMPACT METRICS ROW ═══ */}
+      <MetricsRow result={result} trades={trades} />
+
+      {/* ═══ P&L TIMELINE + BREAKDOWN side by side ═══ */}
+      <div className={s.heroRow} style={{ marginBottom: sectionGap, alignItems: 'stretch' }}>
+        {trades.length >= 2 && (
+          <Suspense fallback={null}>
+            <IntradayChart trades={trades} isMobile={isMobile} />
+          </Suspense>
+        )}
+        {trades.length >= 5 && (
+          <Suspense fallback={null}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <StrategyBreakdown trades={trades} />
+              <AssetBreakdown trades={trades} />
+            </div>
+          </Suspense>
+        )}
+      </div>
+
+      {/* ═══ Sprint 48: SMART SESSION RECOMMENDATIONS ═══ */}
+      {todayStats && todayStats.count >= 3 && (
+        <SessionTip todayStats={todayStats} result={result} sectionGap={sectionGap} />
+      )}
+
+      {/* ═══ Sprint 21: QUEST WIDGET ═══ */}
       <Suspense fallback={null}>
-        <SessionJournalPrompt tradeCount={todayStats.count} />
+        <div style={{ marginBottom: sectionGap }}>
+          <QuestWidget />
+        </div>
       </Suspense>
 
-      {/* ═══ INSIGHTS ═══ */}
-      <MorningBriefing />
+      {/* Trade Heatmap moved to heroRow above */}
+
+      {/* ═══ YOUR EDGE section ═══ */}
+      <SectionHeader emoji="🎯" title="Your Edge" />
+
+      {/* ═══ Sprint 13: WATCHLIST ═══ */}
+      <div style={{ marginBottom: sectionGap }}>
+        <HomeWatchlist isMobile={isMobile} />
+      </div>
+
+
+
+      {/* ═══ GROWTH section ═══ */}
+      <SectionHeader emoji="📈" title="Growth" />
+
+      {/* ═══ INSIGHTS + MONTE CARLO side by side ═══ */}
+      <div className={s.heroRow} style={{ marginBottom: sectionGap }}>
+        <MorningBriefing />
+
+        {trades.length >= 5 ? (
+          <Suspense fallback={<WidgetSkeleton height={180} />}>
+            <MonteCarloWidget />
+          </Suspense>
+        ) : <div />}
+      </div>
 
       {/* RiskDashboard always-visible */}
       <RiskDashboard />
-
-      {/* ═══ Phase 2 Task #28: MONTE CARLO FORECAST ═══ */}
-      {trades.length >= 5 && (
-        <Suspense fallback={<WidgetSkeleton height={180} />}>
-          <MonteCarloWidget />
-        </Suspense>
-      )}
 
       {/* ═══ Sprint 22: Show More — trimmed to 4 useful widgets ═══ */}
       {!showAllWidgets ? (

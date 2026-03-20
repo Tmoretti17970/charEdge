@@ -15,12 +15,12 @@
 
 import React, { Suspense } from 'react';
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { C, F, M, GLASS, DEPTH } from '../../../constants.js';
+import { C, F, M } from '../../../constants.js';
 import { useWatchlistStore, groupByAssetClass, buildFolderTree, getRootItems, enrichWithTradeStats } from '../../../state/useWatchlistStore.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
-import { alpha } from '@/shared/colorUtils';
 import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming.js';
+import s from './WatchlistQuickPanel.module.css';
 
 // Lazy-load AI Copilot for the AI tab
 const CopilotChatInline = React.lazy(() => import('../ai/CopilotChatInline.jsx'));
@@ -28,7 +28,6 @@ const CopilotChatInline = React.lazy(() => import('../ai/CopilotChatInline.jsx')
 // ─── Constants ──────────────────────────────────────────────────
 
 const PANEL_WIDTH = 300;
-const HANDLE_WIDTH = 22;
 const DISMISS_THRESHOLD = 120; // drag right px to dismiss
 
 const ASSET_ICONS = {
@@ -96,7 +95,8 @@ function MiniSparkline({ data, color, width = 60, height = 24 }) {
   return (
     <canvas
       ref={canvasRef}
-      style={{ width, height, display: 'block', borderRadius: 4 }}
+      className={s.sparklineCanvas}
+      style={{ width, height }}
     />
   );
 }
@@ -104,11 +104,11 @@ function MiniSparkline({ data, color, width = 60, height = 24 }) {
 // ─── Watchlist Quick Panel ──────────────────────────────────────
 
 function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initialTab }) {
-  const items = useWatchlistStore((s) => s.items);
-  const addSymbol = useWatchlistStore((s) => s.add);
-  const removeSymbol = useWatchlistStore((s) => s.remove);
-  const trades = useJournalStore((s) => s.trades);
-  const currentSymbol = useChartCoreStore((s) => s.symbol);
+  const items = useWatchlistStore((st) => st.items);
+  const addSymbol = useWatchlistStore((st) => st.add);
+  const removeSymbol = useWatchlistStore((st) => st.remove);
+  const trades = useJournalStore((st) => st.trades);
+  const currentSymbol = useChartCoreStore((st) => st.symbol);
 
   const [filter, setFilter] = useState('');
   const [hoveredSymbol, setHoveredSymbol] = useState(null);
@@ -117,20 +117,19 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
   const [addInput, setAddInput] = useState('');
   const [showAddInput, setShowAddInput] = useState(false);
   const [viewMode, setViewMode] = useState('standard'); // 'compact' | 'standard' | 'table'
-  const [handleHovered, setHandleHovered] = useState(false);
   const [groupMode, setGroupMode] = useState('folders'); // 'folders' | 'asset'
   const filterRef = useRef(null);
   const [activeTab, setActiveTab] = useState(initialTab || 'watchlist'); // 'watchlist' | 'copilot'
 
   // Folder state
-  const folders = useWatchlistStore((s) => s.folders);
-  const addFolder = useWatchlistStore((s) => s.addFolder);
-  const addSmartFolder = useWatchlistStore((s) => s.addSmartFolder);
-  const removeFolder = useWatchlistStore((s) => s.removeFolder);
-  const renameFolder = useWatchlistStore((s) => s.renameFolder);
-  const toggleFolderCollapse = useWatchlistStore((s) => s.toggleFolderCollapse);
-  const moveToFolder = useWatchlistStore((s) => s.moveToFolder);
-  const reorderStore = useWatchlistStore((s) => s.reorder);
+  const folders = useWatchlistStore((st) => st.folders);
+  const addFolder = useWatchlistStore((st) => st.addFolder);
+  const addSmartFolder = useWatchlistStore((st) => st.addSmartFolder);
+  const removeFolder = useWatchlistStore((st) => st.removeFolder);
+  const renameFolder = useWatchlistStore((st) => st.renameFolder);
+  const toggleFolderCollapse = useWatchlistStore((st) => st.toggleFolderCollapse);
+  const moveToFolder = useWatchlistStore((st) => st.moveToFolder);
+  const reorderStore = useWatchlistStore((st) => st.reorder);
   const [showSmartPresets, setShowSmartPresets] = useState(false);
   const [renamingFolder, setRenamingFolder] = useState(null);
   const [renameValue, setRenameValue] = useState('');
@@ -154,12 +153,9 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
 
     const handleMove = (moveEvt) => {
       const delta = dragStartRef.current.startX - moveEvt.clientX;
-      // delta > 0 means dragging left (opening), delta < 0 means dragging right (closing)
       if (dragStartRef.current.wasOpen) {
-        // If already open, only track rightward drags for dismissal
         setDragOffset(Math.min(0, delta));
       } else {
-        // If closed, track leftward drags to reveal
         setDragOffset(Math.max(0, delta));
       }
     };
@@ -170,12 +166,10 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
       setDragOffset(0);
 
       if (dragStartRef.current.wasOpen) {
-        // Was open — dismiss if dragged right enough
         if (-delta > DISMISS_THRESHOLD) {
           onClose?.();
         }
       } else {
-        // Was closed — open if dragged left enough
         if (delta > DISMISS_THRESHOLD / 2) {
           onToggle?.();
         }
@@ -322,10 +316,8 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
     e.preventDefault();
     if (!dragItem) return;
     if (targetFolderId !== undefined) {
-      // Drop onto a folder
       moveToFolder(dragItem.symbol, targetFolderId);
     } else if (dragItem.idx !== targetIdx) {
-      // Reorder within same list
       reorderStore(dragItem.idx, targetIdx);
     }
     setDragItem(null);
@@ -366,7 +358,6 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
     }
     if (Object.keys(flashes).length > 0) {
       setFlashSymbols(flashes);
-      // Clear after animation
       const t = setTimeout(() => setFlashSymbols({}), 600);
       return () => clearTimeout(t);
     }
@@ -383,13 +374,9 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
     const changeColor = changePercent !== null ? (isPositive ? C.g : C.r) : C.t3;
     const lastPrice = ticker ? parseFloat(ticker.lastPrice) : null;
 
-    // ─── View-mode-specific layout ───
     const isCompact = viewMode === 'compact';
     const isTable = viewMode === 'table';
-    const rowPadding = isCompact ? '4px 12px' : '7px 12px';
-    const symbolFont = isCompact ? 11 : 12;
-    const priceFont = isCompact ? 10 : 11;
-    const showSparkline = !isCompact; // No sparkline in compact
+    const showSparkline = !isCompact;
     const showName = !isCompact && !isTable;
 
     return (
@@ -403,72 +390,42 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
         onClick={() => handleSymbolClick(item.symbol)}
         onMouseEnter={() => setHoveredSymbol(item.symbol)}
         onMouseLeave={() => setHoveredSymbol(null)}
-        style={{
-          display: 'flex', alignItems: 'center', gap: isTable ? 4 : 8,
-          padding: rowPadding, cursor: 'grab',
-          background: isActive
-            ? alpha(C.b, 0.08)
-            : isHovered ? alpha(C.sf2, 0.6) : 'transparent',
-          borderLeft: isActive ? `2px solid ${C.b}` : '2px solid transparent',
-          transition: 'all 0.12s ease',
-          position: 'relative',
-          opacity: dragItem?.symbol === item.symbol ? 0.4 : 1,
-          borderBottom: isTable ? `1px solid ${alpha(C.bd, 0.15)}` : 'none',
-        }}
+        className={s.symbolRow}
+        data-compact={isCompact || undefined}
+        data-table={isTable || undefined}
+        data-active={isActive || undefined}
+        data-dragging={dragItem?.symbol === item.symbol || undefined}
       >
         {/* Price flash overlay */}
         {flashSymbols[item.symbol] && (
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: flashSymbols[item.symbol] === 'up'
-              ? alpha(C.g, 0.08)
-              : alpha(C.r, 0.08),
-            animation: 'priceFlash 0.6s ease-out',
-            pointerEvents: 'none',
-          }} />
+          <div className={s.priceFlash} data-dir={flashSymbols[item.symbol]} />
         )}
         {/* Drag grip (hidden in compact) */}
         {!isCompact && (
-          <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 1.5, opacity: 0.3, cursor: 'grab' }}>
+          <div className={s.dragGrip}>
             {[0, 1].map(i => (
-              <div key={i} style={{ display: 'flex', gap: 1.5 }}>
-                <div style={{ width: 2, height: 2, borderRadius: 1, background: C.t3 }} />
-                <div style={{ width: 2, height: 2, borderRadius: 1, background: C.t3 }} />
+              <div key={i} className={s.dragGripRow}>
+                <div className={s.dragGripDot} />
+                <div className={s.dragGripDot} />
               </div>
             ))}
           </div>
         )}
 
         {/* Symbol + Name */}
-        <div style={{ flex: isTable ? 'none' : 1, minWidth: isTable ? 60 : 0, width: isTable ? 60 : 'auto' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-            <span
-              style={{
-                fontSize: symbolFont, fontWeight: isActive ? 800 : 700,
-                color: isActive ? C.b : C.t1, fontFamily: M,
-              }}
-            >
+        <div className={s.symbolInfo}>
+          <div className={s.symbolNameRow}>
+            <span className={s.symbolTicker}>
               {item.symbol}
             </span>
             {item.tradeCount > 0 && !isCompact && (
-              <span
-                style={{
-                  fontSize: 8, color: item.totalPnl >= 0 ? C.g : C.r,
-                  fontFamily: M, fontWeight: 600,
-                }}
-              >
+              <span className={s.tradeStats} style={{ color: item.totalPnl >= 0 ? C.g : C.r }}>
                 {item.totalPnl >= 0 ? '+' : ''}${item.totalPnl.toFixed(0)}
               </span>
             )}
           </div>
           {showName && item.name && item.name !== item.symbol && (
-            <div
-              style={{
-                fontSize: 9, color: C.t3, overflow: 'hidden',
-                textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                fontFamily: F, marginTop: 1,
-              }}
-            >
+            <div className={s.symbolName}>
               {item.name}
             </div>
           )}
@@ -476,25 +433,22 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
 
         {/* Sparkline (standard + table only) */}
         {showSparkline && sparkline && sparkline.length > 0 && (
-          <div style={{ flexShrink: 0, opacity: 0.85, flex: isTable ? 1 : 'none' }}>
+          <div className={s.sparklineWrap}>
             <MiniSparkline data={sparkline} color={changeColor} width={isTable ? 64 : 48} height={isTable ? 18 : 20} />
           </div>
         )}
 
         {/* Price + Change */}
-        <div style={{ textAlign: 'right', flexShrink: 0, minWidth: isTable ? 65 : 56 }}>
+        <div className={s.priceCol}>
           {lastPrice !== null && (
-            <div style={{ fontSize: priceFont, fontWeight: 700, fontFamily: M, color: C.t1 }}>
+            <div className={s.priceValue}>
               {lastPrice < 1 ? lastPrice.toFixed(4) : lastPrice < 100 ? lastPrice.toFixed(2) : lastPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </div>
           )}
           {changePercent !== null && (
             <div
-              style={{
-                fontSize: isCompact ? 8 : 9, fontWeight: 600, fontFamily: M, color: changeColor,
-                background: alpha(changeColor, 0.08), padding: '1px 5px',
-                borderRadius: 4, marginTop: isCompact ? 0 : 1, display: 'inline-block',
-              }}
+              className={s.changeBadge}
+              style={{ color: changeColor, background: changeColor + '14' }}
             >
               {isPositive ? '+' : ''}{changePercent.toFixed(2)}%
             </div>
@@ -503,9 +457,9 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
 
         {/* Volume column (table only) */}
         {isTable && (
-          <div style={{ textAlign: 'right', flexShrink: 0, minWidth: 50 }}>
+          <div className={s.volumeCol}>
             {ticker?.volume ? (
-              <span style={{ fontSize: 9, fontFamily: M, color: C.t3 }}>
+              <span className={s.volumeVal}>
                 {parseFloat(ticker.volume) >= 1e6
                   ? `${(parseFloat(ticker.volume) / 1e6).toFixed(1)}M`
                   : parseFloat(ticker.volume) >= 1e3
@@ -513,7 +467,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
                     : parseFloat(ticker.volume).toFixed(0)}
               </span>
             ) : (
-              <span style={{ fontSize: 9, fontFamily: M, color: alpha(C.t3, 0.4) }}>—</span>
+              <span className={s.volumeEmpty}>—</span>
             )}
           </div>
         )}
@@ -525,14 +479,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
               e.stopPropagation();
               removeSymbol(item.symbol);
             }}
-            style={{
-              position: 'absolute', right: 4, top: isCompact ? 2 : 4,
-              width: 16, height: 16, borderRadius: 4, border: 'none',
-              background: alpha(C.r, 0.1), color: C.r, fontSize: 9,
-              cursor: 'pointer', display: 'flex',
-              alignItems: 'center', justifyContent: 'center',
-              transition: 'background 0.15s',
-            }}
+            className={s.removeBtn}
             title="Remove from watchlist"
           >
             ✕
@@ -543,18 +490,11 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
   }, [mergedTickers, sparklines, currentSymbol, hoveredSymbol, dragItem, flashSymbols, viewMode, handleRowDragStart, handleRowDragOver, handleRowDrop, handleRowDragEnd, handleSymbolClick, removeSymbol]);
 
   // ─── Compute transform ────────────────────────────────────────
-  // Panel is in the normal flow of the flex container.
-  // When closed: translateX(100%) pushes it offscreen right.
-  // When open: translateX(0) shows it.
-  // During drag: interpolate based on dragOffset.
-
   let panelTranslateX;
   if (isDragging) {
     if (dragStartRef.current?.wasOpen) {
-      // Open + dragging right to dismiss: translate by negative offset (rightward)
       panelTranslateX = Math.max(0, -dragOffset);
     } else {
-      // Closed + dragging left to reveal: translate from full width minus offset
       panelTranslateX = Math.max(0, PANEL_WIDTH - dragOffset);
     }
   } else {
@@ -565,88 +505,41 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
 
   return (
     <div
-      style={{
-        position: 'relative',
-        width: isOpen && !isDragging ? PANEL_WIDTH : 0,
-        minWidth: isOpen && !isDragging ? PANEL_WIDTH : 0,
-        flexShrink: 0,
-        transition: isDragging ? 'none' : 'width 0.35s cubic-bezier(0.32, 0.72, 0, 1), min-width 0.35s cubic-bezier(0.32, 0.72, 0, 1)',
-        overflow: 'visible',
-      }}
+      className={s.wrapper}
+      data-open={isOpen && !isDragging}
+      data-dragging={isDragging || undefined}
     >
-      {/* ─── Drag Handle Tab (always visible on the right edge of chart area) ─── */}
+      {/* ─── Drag Handle Tab ─── */}
       <div
         onMouseDown={handleDragStart}
-        onMouseEnter={() => setHandleHovered(true)}
-        onMouseLeave={() => setHandleHovered(false)}
         onClick={() => !isDragging && onToggle?.()}
         title={isOpen ? 'Drag right to close (W)' : 'Drag left to open watchlist (W)'}
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: isOpen ? -(HANDLE_WIDTH + 4) : -(HANDLE_WIDTH + 6),
-          transform: 'translateY(-50%)',
-          width: HANDLE_WIDTH + 4,
-          height: 120,
-          borderRadius: '10px 0 0 10px',
-          background: handleHovered || isDragging
-            ? alpha(C.b, 0.25)
-            : isOpen
-              ? alpha(C.sf2, 0.7)
-              : alpha(C.b, 0.08),
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderTop: `1.5px solid ${alpha(C.b, handleHovered || isDragging ? 0.5 : 0.2)}`,
-          borderBottom: `1.5px solid ${alpha(C.b, handleHovered || isDragging ? 0.5 : 0.2)}`,
-          borderLeft: `1.5px solid ${alpha(C.b, handleHovered || isDragging ? 0.5 : 0.2)}`,
-          borderRight: 'none',
-          cursor: 'grab',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 4,
-          zIndex: 20,
-          transition: 'background 0.15s, border-color 0.15s, left 0.3s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.15s',
-          userSelect: 'none',
-          boxShadow: handleHovered || isDragging ? `0 0 12px ${alpha(C.b, 0.2)}` : 'none',
-          animation: !isOpen && !handleHovered ? 'handlePulse 3s ease-in-out infinite' : 'none',
-        }}
+        className={s.handle}
+        data-open={isOpen}
+        data-active={isDragging || undefined}
       >
         {/* Grip dots */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <div className={s.handleDots}>
           {[0, 1, 2, 3].map(i => (
-            <div key={i} style={{
-              width: 5,
-              height: 5,
-              borderRadius: 3,
-              background: handleHovered || isDragging ? C.b : alpha(C.b, 0.35),
-              transition: 'background 0.15s',
-            }} />
+            <div key={i} className={s.gripDot} />
           ))}
         </div>
-        {/* Tab icon below dots — switches based on active tab */}
+        {/* Tab icon below dots */}
         {activeTab === 'copilot' ? (
           <svg
             width="12" height="12" viewBox="0 0 24 24"
-            fill="none"
-            stroke={handleHovered || isDragging ? C.b : alpha(C.b, 0.4)}
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{ marginTop: 3, transition: 'stroke 0.15s' }}
+            fill="none" stroke="currentColor"
+            strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            className={s.handleIcon}
           >
             <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" />
           </svg>
         ) : (
           <svg
             width="12" height="12" viewBox="0 0 24 24"
-            fill="none"
-            stroke={handleHovered || isDragging ? C.b : alpha(C.b, 0.4)}
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{ marginTop: 3, transition: 'stroke 0.15s' }}
+            fill="none" stroke="currentColor"
+            strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            className={s.handleIcon}
           >
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
             <circle cx="12" cy="12" r="3" />
@@ -655,51 +548,28 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
         {/* Chevron arrow hint */}
         <svg
           width="10" height="10" viewBox="0 0 24 24"
-          fill="none"
-          stroke={handleHovered || isDragging ? C.b : alpha(C.b, 0.3)}
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{ marginTop: 2, transition: 'stroke 0.15s' }}
+          fill="none" stroke="currentColor"
+          strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+          className={s.handleIcon}
+          style={{ marginTop: 2 }}
         >
           <polyline points={isOpen ? '9 18 15 12 9 6' : '15 18 9 12 15 6'} />
         </svg>
       </div>
 
-      {/* ─── Panel Body ────────────────────────────────────────── */}
+      {/* ─── Panel Body ─── */}
       <div
+        className={s.panelBody}
+        data-dragging={isDragging || undefined}
         style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: PANEL_WIDTH,
-          display: 'flex',
-          flexDirection: 'column',
-          background: GLASS.standard,
-          backdropFilter: GLASS.blurMd,
-          WebkitBackdropFilter: GLASS.blurMd,
-          borderLeft: GLASS.border,
-          boxShadow: isOpen ? DEPTH[2] : 'none',
+          boxShadow: isOpen ? 'var(--tf-shadow-2)' : 'none',
           transform: `translateX(${panelTranslateX}px)`,
-          transition: isDragging ? 'none' : 'transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.3s ease',
-          overflow: 'hidden',
           pointerEvents: panelTranslateX >= PANEL_WIDTH ? 'none' : 'auto',
         }}
       >
-        {/* ─── Tab Bar ──────────────────────────────────────── */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0 12px',
-            borderBottom: GLASS.border,
-            flexShrink: 0,
-            gap: 0,
-          }}
-        >
-          {/* Tab buttons */}
-          <div style={{ display: 'flex', flex: 1, gap: 0 }}>
+        {/* ─── Tab Bar ─── */}
+        <div className={s.tabBar}>
+          <div className={s.tabList}>
             {[
               { id: 'watchlist', label: 'Watchlist', icon: (
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -712,90 +582,44 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
                   <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" fill="currentColor" fillOpacity="0.15" />
                 </svg>
               ) },
-            ].map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 5,
-                    padding: '10px 12px', background: 'transparent',
-                    border: 'none', borderBottom: `2px solid ${isActive ? C.b : 'transparent'}`,
-                    color: isActive ? C.t1 : C.t3, fontSize: 11,
-                    fontWeight: isActive ? 700 : 500, fontFamily: F,
-                    cursor: 'pointer', transition: 'all 0.15s ease',
-                    marginBottom: -1,
-                  }}
-                  onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = C.t2; }}
-                  onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = C.t3; }}
-                >
-                  <span style={{ display: 'flex', color: isActive ? C.b : 'inherit' }}>{tab.icon}</span>
-                  {tab.label}
-                  {tab.badge != null && (
-                    <span style={{
-                      fontSize: 8, fontWeight: 700, fontFamily: M,
-                      color: isActive ? C.b : C.t3,
-                      background: isActive ? alpha(C.b, 0.1) : alpha(C.t3, 0.08),
-                      padding: '1px 5px', borderRadius: 4,
-                    }}>
-                      {tab.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={s.tabBtn}
+                data-active={activeTab === tab.id || undefined}
+              >
+                <span className={s.tabIcon}>{tab.icon}</span>
+                {tab.label}
+                {tab.badge != null && (
+                  <span className={s.tabBadge}>{tab.badge}</span>
+                )}
+              </button>
+            ))}
           </div>
 
           {/* Close button */}
           <button
             onClick={() => onClose?.()}
             title="Slide away (W)"
-            style={{
-              width: 24, height: 24, borderRadius: 6, border: 'none',
-              background: 'transparent', color: C.t3, fontSize: 12, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'all 0.15s', flexShrink: 0,
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = alpha(C.t3, 0.1); }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            className={s.closeBtn}
           >
             ✕
           </button>
         </div>
 
-        {/* ─── Watchlist Header Controls (only visible on watchlist tab) ── */}
+        {/* ─── Watchlist Header Controls ─── */}
         {activeTab === 'watchlist' && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              padding: '6px 12px',
-              borderBottom: GLASS.border,
-              flexShrink: 0,
-              gap: 4,
-            }}
-          >
+          <div className={s.headerControls}>
             {/* View mode toggle */}
-            <div style={{
-              display: 'flex', gap: 1, background: alpha(C.sf, 0.5),
-              borderRadius: 5, padding: 1.5,
-            }}>
+            <div className={s.viewModeGroup}>
               {[['compact', '☰'], ['standard', '≡'], ['table', '▤']].map(([mode, icon]) => (
                 <button
                   key={mode}
                   onClick={() => setViewMode(mode)}
                   title={`${mode.charAt(0).toUpperCase() + mode.slice(1)} view`}
-                  style={{
-                    width: 20, height: 18, borderRadius: 3, border: 'none',
-                    background: viewMode === mode ? alpha(C.b, 0.15) : 'transparent',
-                    color: viewMode === mode ? C.b : C.t3,
-                    fontSize: 10, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'all 0.12s',
-                    fontWeight: viewMode === mode ? 700 : 400,
-                  }}
+                  className={s.viewModeBtn}
+                  data-active={viewMode === mode || undefined}
                 >
                   {icon}
                 </button>
@@ -804,27 +628,15 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
             <button
               onClick={() => setShowAddInput(!showAddInput)}
               title="Add symbol"
-              style={{
-                width: 24, height: 24, borderRadius: 6, border: 'none',
-                background: showAddInput ? alpha(C.b, 0.12) : 'transparent',
-                color: showAddInput ? C.b : C.t3, fontSize: 16, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'all 0.15s',
-              }}
+              className={`${s.iconBtn} ${s.addBtn}`}
+              data-active={showAddInput || undefined}
             >
               +
             </button>
             <button
               onClick={handleNewFolder}
               title="New folder"
-              style={{
-                width: 24, height: 24, borderRadius: 6, border: 'none',
-                background: 'transparent', color: C.t3, fontSize: 13, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'all 0.15s',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = alpha(C.t3, 0.08); }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              className={`${s.iconBtn} ${s.folderBtn}`}
             >
               📁
             </button>
@@ -833,30 +645,15 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
               <button
                 onClick={() => setShowSmartPresets(!showSmartPresets)}
                 title="Create smart folder"
-                style={{
-                  width: 24, height: 24, borderRadius: 6, border: 'none',
-                  background: showSmartPresets ? alpha(C.b, 0.12) : 'transparent',
-                  color: showSmartPresets ? C.b : C.t3, fontSize: 12, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'all 0.15s',
-                }}
+                className={`${s.iconBtn} ${s.smartBtn}`}
+                data-active={showSmartPresets || undefined}
               >
                 ⚡
               </button>
               {/* Smart folder preset dropdown */}
               {showSmartPresets && (
-                <div
-                  style={{
-                    position: 'absolute', top: '100%', right: 0, marginTop: 4,
-                    width: 180, background: GLASS.standard,
-                    backdropFilter: GLASS.blurMd, WebkitBackdropFilter: GLASS.blurMd,
-                    border: GLASS.border, borderRadius: 8, overflow: 'hidden',
-                    boxShadow: DEPTH[2], zIndex: 100,
-                  }}
-                >
-                  <div style={{ padding: '6px 10px', fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: F }}>
-                    Smart Folders
-                  </div>
+                <div className={s.smartDropdown}>
+                  <div className={s.smartDropdownLabel}>Smart Folders</div>
                   {[
                     { name: '🔥 Movers > 3%', rules: [{ field: 'changePercent', op: '>=', value: 3 }] },
                     { name: '📉 Oversold', rules: [{ field: 'rsi', op: '<=', value: 30 }] },
@@ -870,14 +667,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
                         addSmartFolder(preset.name, preset.rules);
                         setShowSmartPresets(false);
                       }}
-                      style={{
-                        display: 'block', width: '100%', textAlign: 'left',
-                        padding: '7px 10px', background: 'transparent', border: 'none',
-                        color: C.t1, fontSize: 11, fontFamily: F, fontWeight: 500,
-                        cursor: 'pointer', transition: 'background 0.12s',
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = alpha(C.sf2, 0.6); }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                      className={s.smartPresetBtn}
                     >
                       {preset.name}
                     </button>
@@ -891,77 +681,52 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
         {/* ─── WATCHLIST TAB CONTENT ─── */}
         {activeTab === 'watchlist' && (
           <>
-            {/* ─── Add Symbol Input (toggled) ──────────────────── */}
+            {/* ─── Add Symbol Input ─── */}
             {showAddInput && (
-              <div style={{ display: 'flex', gap: 4, padding: '6px 12px', borderBottom: GLASS.border, flexShrink: 0 }}>
+              <div className={s.addRow}>
                 <input
                   value={addInput}
                   onChange={(e) => setAddInput(e.target.value.toUpperCase())}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddSymbol()}
                   placeholder="Add ticker..."
                   autoFocus
-                  style={{
-                    flex: 1, background: alpha(C.sf, 0.6), border: `1px solid ${C.bd}`,
-                    borderRadius: 6, padding: '5px 10px', fontSize: 12, fontFamily: M,
-                    fontWeight: 600, color: C.t1, outline: 'none',
-                  }}
+                  className={s.addInput}
                 />
                 <button
                   onClick={handleAddSymbol}
                   disabled={!addInput.trim()}
-                  style={{
-                    background: C.b, border: 'none', borderRadius: 6, color: '#fff',
-                    fontSize: 11, fontWeight: 700, padding: '5px 12px',
-                    cursor: addInput.trim() ? 'pointer' : 'default',
-                    opacity: addInput.trim() ? 1 : 0.4,
-                    transition: 'opacity 0.15s',
-                  }}
+                  className={s.addSubmitBtn}
                 >
                   Add
                 </button>
               </div>
             )}
 
-            {/* ─── Search Filter ──────────────────────────────── */}
-            <div style={{ padding: '6px 12px', flexShrink: 0 }}>
+            {/* ─── Search Filter ─── */}
+            <div className={s.filterWrap}>
               <input
                 ref={filterRef}
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 placeholder="🔍 Filter symbols..."
-                style={{
-                  width: '100%', background: alpha(C.sf, 0.4),
-                  border: `1px solid ${alpha(C.bd, 0.5)}`, borderRadius: 8,
-                  padding: '6px 10px', fontSize: 11, fontFamily: F, color: C.t1, outline: 'none',
-                  transition: 'border-color 0.15s',
-                }}
-                onFocus={(e) => { e.target.style.borderColor = alpha(C.b, 0.4); }}
-                onBlur={(e) => { e.target.style.borderColor = alpha(C.bd, 0.5); }}
+                className={s.filterInput}
               />
             </div>
 
-            {/* ─── Table Header (table mode only) ──────────── */}
+            {/* ─── Table Header (table mode only) ─── */}
             {viewMode === 'table' && filteredItems.length > 0 && (
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 4, padding: '4px 12px',
-                borderBottom: `1px solid ${alpha(C.bd, 0.3)}`, flexShrink: 0,
-              }}>
-                <div style={{ width: 60, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.t3, fontFamily: F }}>Symbol</div>
-                <div style={{ flex: 1, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.t3, fontFamily: F, textAlign: 'center' }}>Chart</div>
-                <div style={{ minWidth: 65, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.t3, fontFamily: F, textAlign: 'right' }}>Price</div>
-                <div style={{ minWidth: 50, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.t3, fontFamily: F, textAlign: 'right' }}>Volume</div>
+              <div className={s.tableHeader}>
+                <div className={s.tableHeaderCol} style={{ width: 60 }}>Symbol</div>
+                <div className={s.tableHeaderCol} style={{ flex: 1, textAlign: 'center' }}>Chart</div>
+                <div className={s.tableHeaderCol} style={{ minWidth: 65, textAlign: 'right' }}>Price</div>
+                <div className={s.tableHeaderCol} style={{ minWidth: 50, textAlign: 'right' }}>Volume</div>
               </div>
             )}
 
-            {/* ─── Symbol List ────────────────────────────────── */}
-            <div
-              style={{
-                flex: 1, overflowY: 'auto', overflowX: 'hidden',
-                scrollbarWidth: 'thin', scrollbarColor: `${C.bd} transparent`,
-              }}
-            >
+            {/* ─── Symbol List ─── */}
+            <div className={s.symbolList}>
               {filteredItems.length === 0 ? (
-                <div style={{ padding: 20, textAlign: 'center', color: C.t3, fontSize: 11, fontFamily: F }}>
+                <div className={s.emptyState}>
                   {filter ? 'No matching symbols' : 'Watchlist is empty'}
                 </div>
               ) : (
@@ -975,16 +740,11 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
                     >
                       {/* Folder header */}
                       <div
-                        style={{
-                          padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 6,
-                          cursor: 'pointer', userSelect: 'none',
-                          background: alpha(C.sf2, 0.3),
-                          borderBottom: `1px solid ${alpha(C.bd, 0.2)}`,
-                        }}
+                        className={s.folderHeader}
                         onClick={() => toggleFolderCollapse(folder.id)}
                       >
-                        <span style={{ fontSize: 8, color: C.t3, transition: 'transform 0.15s', transform: folder.collapsed ? 'rotate(-90deg)' : 'rotate(0)' }}>▼</span>
-                        <span style={{ fontSize: 12 }}>{folder.color ? '' : '📁'}</span>
+                        <span className={s.folderChevron} data-collapsed={folder.collapsed || undefined}>▼</span>
+                        <span className={s.folderIcon}>{folder.color ? '' : '📁'}</span>
                         {renamingFolder === folder.id ? (
                           <input
                             value={renameValue}
@@ -993,32 +753,21 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
                             onKeyDown={(e) => { if (e.key === 'Enter') { renameFolder(folder.id, renameValue || 'Folder'); setRenamingFolder(null); } }}
                             autoFocus
                             onClick={(e) => e.stopPropagation()}
-                            style={{
-                              fontSize: 11, fontWeight: 700, fontFamily: F, color: C.t1,
-                              background: alpha(C.sf, 0.6), border: `1px solid ${C.b}`,
-                              borderRadius: 4, padding: '1px 6px', outline: 'none', width: 100,
-                            }}
+                            className={s.folderRenameInput}
                           />
                         ) : (
-                          <span style={{ fontSize: 11, fontWeight: 700, fontFamily: F, color: C.t1, flex: 1 }}>
-                            {folder.name}
-                          </span>
+                          <span className={s.folderName}>{folder.name}</span>
                         )}
-                        <span style={{ fontSize: 8, fontFamily: M, color: C.t3 }}>({folderItems.length})</span>
-                        {/* Folder actions */}
+                        <span className={s.folderCount}>({folderItems.length})</span>
                         <button
                           onClick={(e) => { e.stopPropagation(); setRenamingFolder(folder.id); setRenameValue(folder.name); }}
                           title="Rename"
-                          style={{ background: 'none', border: 'none', color: C.t3, fontSize: 9, cursor: 'pointer', padding: '0 2px', opacity: 0.5 }}
-                          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.5'; }}
+                          className={s.folderAction}
                         >✏️</button>
                         <button
                           onClick={(e) => { e.stopPropagation(); removeFolder(folder.id); }}
                           title="Delete folder"
-                          style={{ background: 'none', border: 'none', color: C.t3, fontSize: 9, cursor: 'pointer', padding: '0 2px', opacity: 0.5 }}
-                          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.5'; }}
+                          className={s.folderAction}
                         >🗑️</button>
                       </div>
                       {/* Folder items */}
@@ -1026,25 +775,14 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
                     </div>
                   ))}
 
-                  {/* ─── Root items (no folder) grouped by asset class ─── */}
+                  {/* ─── Root items grouped by asset class ─── */}
                   {Array.from(rootGrouped.entries()).map(([assetClass, groupItems]) => (
                     <div key={assetClass}>
-                      {/* Group header */}
-                      <div
-                        style={{
-                          padding: '8px 12px 3px', fontSize: 9, fontWeight: 700,
-                          textTransform: 'uppercase', letterSpacing: '0.06em',
-                          color: C.t3, fontFamily: F, display: 'flex',
-                          alignItems: 'center', gap: 4,
-                        }}
-                      >
+                      <div className={s.groupHeader}>
                         <span>{ASSET_ICONS[assetClass] || '📋'}</span>
                         <span>{assetClass}</span>
-                        <span style={{ fontFamily: M, fontSize: 8, color: alpha(C.t3, 0.6) }}>
-                          ({groupItems.length})
-                        </span>
+                        <span className={s.groupCount}>({groupItems.length})</span>
                       </div>
-                      {/* Symbols */}
                       {groupItems.map((item, idx) => renderSymbolRow(item, idx))}
                     </div>
                   ))}
@@ -1052,29 +790,13 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
               )}
             </div>
 
-            {/* ─── Footer ────────────────────────────────────── */}
-            <div
-              style={{
-                padding: '6px 12px', borderTop: GLASS.border,
-                display: 'flex', justifyContent: 'space-between',
-                alignItems: 'center', flexShrink: 0,
-              }}
-            >
-              <span style={{ fontSize: 9, color: C.t3, fontFamily: F, display: 'flex', alignItems: 'center', gap: 5 }}>
-                {/* WS status dot */}
-                <span style={{
-                  width: 6, height: 6, borderRadius: 3,
-                  background: wsStatus === 'connected' ? C.g : wsStatus === 'connecting' || wsStatus === 'reconnecting' ? '#f0b64e' : C.r,
-                  display: 'inline-block',
-                  animation: wsStatus === 'connecting' || wsStatus === 'reconnecting' ? 'pulse 1s infinite' : 'none',
-                }} />
-                Press <kbd style={{
-                  fontSize: 8, fontFamily: M,
-                  background: alpha(C.sf2, 0.8), padding: '1px 4px',
-                  borderRadius: 3, border: `1px solid ${alpha(C.bd, 0.5)}`,
-                }}>W</kbd> to toggle · {wsStatus === 'connected' ? 'live' : wsStatus}
+            {/* ─── Footer ─── */}
+            <div className={s.footer}>
+              <span className={s.footerInfo}>
+                <span className={s.wsDot} data-status={wsStatus} />
+                Press <kbd className={s.kbd}>W</kbd> to toggle · {wsStatus === 'connected' ? 'live' : wsStatus}
               </span>
-              <span style={{ fontSize: 9, color: C.t3, fontFamily: M }}>
+              <span className={s.footerCount}>
                 {filteredItems.length} symbols
               </span>
             </div>
@@ -1083,9 +805,9 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
 
         {/* ─── AI COPILOT TAB CONTENT ─── */}
         {activeTab === 'copilot' && (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <div className={s.copilotWrap}>
             <Suspense fallback={
-              <div style={{ padding: 20, textAlign: 'center', color: C.t3, fontSize: 11, fontFamily: F }}>
+              <div className={s.copilotLoading}>
                 Loading AI Copilot…
               </div>
             }>
@@ -1093,22 +815,6 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
             </Suspense>
           </div>
         )}
-
-        {/* CSS keyframes for flash + pulse */}
-        <style>{`
-          @keyframes priceFlash {
-            0% { opacity: 1; }
-            100% { opacity: 0; }
-          }
-          @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-          }
-          @keyframes handlePulse {
-            0%, 100% { opacity: 0.85; }
-            50% { opacity: 1; border-color: rgba(var(--brand-rgb, 100, 200, 180), 0.35); }
-          }
-        `}</style>
       </div>
     </div>
   );

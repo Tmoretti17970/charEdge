@@ -1,0 +1,168 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * TradeHeatmap — CSS Module (Sprint 22)
+ *
+ * Many cells have data-driven dynamic colors (P&L intensity).
+ * Those remain as inline styles; this module covers all static layout.
+ * ═══════════════════════════════════════════════════════════════════ */
+
+.container {
+  font-family: var(--tf-font);
+}
+
+/* ─── Header ──────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--tf-space-3);
+}
+
+.navGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+.monthLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--tf-t1);
+  min-width: 140px;
+  text-align: center;
+}
+
+.navBtn {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--tf-radius-xs);
+  background: none;
+  border: 1px solid var(--tf-bd);
+  color: var(--tf-t2);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--tf-transition-fast);
+}
+
+.navBtn:hover {
+  background: color-mix(in srgb, var(--tf-bd) 30%, transparent);
+}
+
+.todayBtn {
+  background: none;
+  border: 1px solid var(--tf-bd);
+  border-radius: var(--tf-radius-xs);
+  color: var(--tf-t3);
+  font-size: 9px;
+  font-family: var(--tf-mono);
+  cursor: pointer;
+  padding: 2px 6px;
+  margin-left: var(--tf-space-1);
+}
+
+.summaryRow {
+  display: flex;
+  gap: var(--tf-space-3);
+  font-size: 10px;
+  font-family: var(--tf-mono);
+  color: var(--tf-t3);
+}
+
+.pnlUp   { color: var(--tf-green); font-weight: 700; }
+.pnlDown { color: var(--tf-red);   font-weight: 700; }
+
+/* ─── Weekday Headers ─────────────────────────────────────────── */
+.weekdayGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: var(--tf-space-1);
+}
+
+.weekdayLabel {
+  text-align: center;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  font-family: var(--tf-mono);
+  padding: 2px 0;
+}
+
+/* ─── Calendar Grid ───────────────────────────────────────────── */
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  position: relative;
+}
+
+/* ─── Day Cell (layout — dynamic bg/border via inline style) ──── */
+.cell {
+  aspect-ratio: 1;
+  min-height: 32px;
+  border-radius: var(--tf-radius-xs);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition:
+    background var(--tf-transition-fast),
+    border-color var(--tf-transition-base);
+}
+
+.blankCell {
+  aspect-ratio: 1;
+  min-height: 32px;
+}
+
+.dayNum {
+  font-size: 10px;
+  font-family: var(--tf-mono);
+}
+
+.dayPnl {
+  font-size: 8px;
+  font-weight: 700;
+  font-family: var(--tf-mono);
+  margin-top: 1px;
+}
+
+.countDot {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--tf-sf);
+  font-size: 7px;
+  font-weight: 700;
+  font-family: var(--tf-mono);
+  color: var(--tf-t2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Tooltip ─────────────────────────────────────────────────── */
+.tooltip {
+  margin-top: var(--tf-space-2);
+  padding: 8px 12px;
+  background: var(--tf-sf);
+  border: 1px solid var(--tf-bd);
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: var(--tf-font);
+  color: var(--tf-t1);
+  display: flex;
+  gap: var(--tf-space-4);
+  justify-content: center;
+}
+
+.tooltipDate { font-weight: 600; }
+.tooltipPnl { font-weight: 700; font-family: var(--tf-mono); }
+.tooltipMuted { color: var(--tf-t3); }

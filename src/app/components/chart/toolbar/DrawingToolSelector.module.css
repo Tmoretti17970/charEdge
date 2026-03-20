@@ -1,0 +1,226 @@
+/* ═══════════════════════════════════════════════════════════════════
+   DrawingToolSelector — CSS Module (Sprint 23)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 6px;
+  width: 320px;
+  max-height: 460px;
+  overflow-y: auto;
+  border-radius: 14px;
+  background: var(--tf-glass-3);
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  border: var(--tf-glass-border);
+  box-shadow: var(--tf-shadow-3), var(--tf-inner-glow-strong);
+  z-index: 1000;
+  font-family: var(--tf-font);
+  font-size: 12px;
+  color: var(--tf-t1);
+  animation: tfDropdownIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+/* ─── Search ─── */
+.searchWrap {
+  padding: 10px 10px 6px;
+  border-bottom: 1px solid var(--tf-bd);
+}
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: color-mix(in srgb, var(--tf-t2) 8%, transparent);
+  border-radius: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--tf-bd);
+}
+.searchInput {
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--tf-t1);
+  font-size: 12px;
+  width: 100%;
+  font-family: inherit;
+}
+.searchClear {
+  background: none;
+  border: none;
+  color: var(--tf-t3);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0;
+}
+
+/* ─── Search Results ─── */
+.searchResults {
+  padding: 4px 6px 8px;
+}
+.noResults {
+  padding: 16px 10px;
+  text-align: center;
+  color: var(--tf-t3);
+  font-size: 11px;
+}
+.toolGrid4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+}
+.toolGrid3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+
+/* ─── Tier Section ─── */
+.tierSection {
+  border-bottom: 1px solid var(--tf-bd);
+}
+.tierHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 12px;
+  background: none;
+  border: none;
+  color: var(--tf-t2);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  text-align: left;
+}
+.tierArrow {
+  transition: transform 0.15s;
+  display: inline-block;
+  font-size: 9px;
+}
+.tierArrow[data-open="true"] {
+  transform: rotate(90deg);
+}
+.tierTitle { flex: 1; }
+.tierBadge {
+  background: color-mix(in srgb, var(--tf-t2) 15%, transparent);
+  border-radius: 8px;
+  padding: 1px 6px;
+  font-size: 9px;
+  color: var(--tf-t3);
+}
+.tierBody {
+  padding: 0 6px 6px;
+}
+
+/* ─── Tool Item ─── */
+.toolItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.12s, transform 0.1s;
+  position: relative;
+  background: transparent;
+  color: var(--tf-t1);
+}
+.toolItem[data-active="true"] {
+  background: color-mix(in srgb, var(--tf-accent) 15%, transparent);
+  color: var(--tf-accent);
+}
+.toolItem:hover:not([data-active="true"]) {
+  background: color-mix(in srgb, var(--tf-t2) 12%, transparent);
+}
+.toolItem:hover {
+  transform: scale(1.04);
+}
+.toolIcon {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.toolLabel {
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--tf-t2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  line-height: 1.1;
+}
+.toolItem[data-active="true"] .toolLabel {
+  color: var(--tf-accent);
+}
+.shortcutBadge {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  background: color-mix(in srgb, var(--tf-t2) 8%, transparent);
+  border-radius: 3px;
+  padding: 0 3px;
+  font-family: 'SF Mono', monospace;
+}
+.toolItem[data-active="true"] .shortcutBadge {
+  color: var(--tf-accent);
+}
+
+/* ─── Sticky Footer ─── */
+.stickyFooter {
+  padding: 8px 12px;
+  border-top: 1px solid var(--tf-bd);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.stickyLabel {
+  font-size: 11px;
+  color: var(--tf-t3);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.toggleTrack {
+  width: 32px;
+  height: 18px;
+  border-radius: 9px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s;
+}
+.toggleTrack[data-on="true"] {
+  background: var(--tf-accent);
+}
+.toggleTrack:not([data-on="true"]) {
+  background: color-mix(in srgb, var(--tf-t2) 20%, transparent);
+}
+.toggleKnob {
+  position: absolute;
+  top: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  transition: left 0.15s;
+}
+.toggleTrack[data-on="true"] .toggleKnob {
+  left: 16px;
+  background: #fff;
+}
+.toggleTrack:not([data-on="true"]) .toggleKnob {
+  left: 2px;
+  background: var(--tf-t2);
+}

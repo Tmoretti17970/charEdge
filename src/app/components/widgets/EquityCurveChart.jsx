@@ -6,7 +6,7 @@
 import React, { useMemo, useState } from 'react';
 import { C, M } from '../../../constants.js';
 import ChartWrapper from '../chart/core/ChartWrapper.jsx';
-import { alpha } from '@/shared/colorUtils';
+import st from './EquityCurveChart.module.css';
 
 /**
  * @param {Array} eq - Equity curve array from computeFast: [{ date, pnl, daily, dd }]
@@ -262,28 +262,14 @@ function EquityCurveChart({ eq = [], height = 280, showBenchmark = false, showDr
 
   if (!config) return null;
 
-  // D4.2: Smoothing toggle pills
-  const pillStyle = (mode) => ({
-    padding: '3px 10px',
-    fontSize: '10px',
-    fontFamily: 'Inter, system-ui, sans-serif',
-    borderRadius: '4px',
-    border: 'none',
-    cursor: 'pointer',
-    background: smoothMode === mode ? alpha(C.info, 0.25) : alpha(C.t3, 0.08),
-    color: smoothMode === mode ? C.info : C.t3,
-    fontWeight: smoothMode === mode ? 600 : 400,
-    transition: 'all 0.15s ease',
-  });
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', marginBottom: '4px', flexShrink: 0 }}>
-        <button style={pillStyle('raw')} onClick={() => setSmoothMode('raw')}>Raw</button>
-        <button style={pillStyle('gaussian')} onClick={() => setSmoothMode('gaussian')}>Gaussian</button>
-        <button style={pillStyle('wma')} onClick={() => setSmoothMode('wma')}>WMA</button>
+    <div className={st.wrapper}>
+      <div className={st.pillBar}>
+        <button className={st.pill} data-active={smoothMode === 'raw'} onClick={() => setSmoothMode('raw')}>Raw</button>
+        <button className={st.pill} data-active={smoothMode === 'gaussian'} onClick={() => setSmoothMode('gaussian')}>Gaussian</button>
+        <button className={st.pill} data-active={smoothMode === 'wma'} onClick={() => setSmoothMode('wma')}>WMA</button>
       </div>
-      <div style={{ flex: 1, minHeight: 0 }}>
+      <div className={st.chartArea}>
         <ChartWrapper config={config} height={height} />
       </div>
     </div>

@@ -9,6 +9,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useRef, useEffect, useCallback, useLayoutEffect, useMemo, Suspense } from 'react';
+import st from './UnifiedChartToolbar.module.css';
 import { C, TFS } from '../../../constants.js';
 import { useUserStore } from '../../../state/useUserStore';
 import { CHART_COLOR_PRESETS } from '../../../state/user/themeSlice';
@@ -84,7 +85,7 @@ function ChartColorPicker() {
   }, [open]);
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <div ref={ref} className={st.capsuleRelative}>
       <ToolbarBtn
         onClick={() => setOpen(!open)}
         title={`Chart Colors: ${activePreset.label}`}
@@ -96,44 +97,31 @@ function ChartColorPicker() {
         </svg>
       </ToolbarBtn>
       {open && (
-        <div style={{
-          position: 'absolute', top: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)',
-          background: C.sf, border: `1px solid ${C.bd}`, borderRadius: 10,
-          padding: 8, zIndex: 999, width: 160,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-        }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6, padding: '0 4px' }}>
-            Chart Colors
-          </div>
+        <div className={st.colorPickerDropdown}>
+          <div className={st.colorPickerTitle}>Chart Colors</div>
           {CHART_COLOR_PRESETS.map((preset) => {
             const active = chartColorPreset === preset.id;
             return (
               <button
                 key={preset.id}
                 onClick={() => { setChartColorPreset(preset.id); setOpen(false); }}
+                className={st.colorPresetBtn}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                  padding: '6px 8px', borderRadius: 6, border: 'none', cursor: 'pointer',
                   background: active ? `${C.b}20` : 'transparent',
                   outline: active ? `1px solid ${C.b}` : 'none',
-                  transition: 'background 0.15s',
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = active ? `${C.b}30` : `${C.t3}15`; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = active ? `${C.b}20` : 'transparent'; }}
               >
-                <div style={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+                <div className={st.colorPresetBars}>
                   {[preset.bull, preset.bear, preset.bull, preset.bear].map((clr, i) => (
-                    <div key={i} style={{
-                      width: 4, borderRadius: 1,
-                      height: [12, 16, 10, 14][i],
-                      background: clr,
-                    }} />
+                    <div key={i} className={st.colorPresetBar} style={{ height: [12, 16, 10, 14][i], background: clr }} />
                   ))}
                 </div>
-                <span style={{ fontSize: 11, fontWeight: active ? 600 : 400, color: active ? C.t1 : C.t2 }}>
+                <span className={st.colorPresetLabel} style={{ fontWeight: active ? 600 : 400, color: active ? C.t1 : C.t2 }}>
                   {preset.label}
                 </span>
-                {active && <span style={{ marginLeft: 'auto', fontSize: 11, color: C.b }}>✓</span>}
+                {active && <span className={st.colorPresetCheck}>✓</span>}
               </button>
             );
           })}
@@ -174,7 +162,7 @@ function TimeframeCapsule({ tf, setTf, showCustomTf, toggleCustomTf }) {
   }, [updateCapsule]);
 
   return (
-    <div className="tf-chart-tf-group" ref={groupRef} style={{ position: 'relative' }}>
+    <div className={`tf-chart-tf-group ${st.capsuleRelative}`} ref={groupRef}>
       {/* Animated capsule background */}
       {capsule.ready && (
         <div
@@ -204,12 +192,13 @@ function TimeframeCapsule({ tf, setTf, showCustomTf, toggleCustomTf }) {
           data-active={tf === t.id || undefined}
           onClick={() => setTf(t.id)}
           style={{ position: 'relative', zIndex: 1 }}
+
         >
           {t.label}
         </button>
       ))}
       {/* Custom Timeframe */}
-      <div ref={customTfRef} style={{ position: 'relative', zIndex: 1 }}>
+      <div ref={customTfRef} className={st.tfPillRelative}>
         <button
           className="tf-chart-tf-pill"
           data-active={showCustomTf || undefined}
@@ -375,18 +364,7 @@ export default function UnifiedChartToolbar({
     >
       {/* P2 2.6: Compact mode indicator */}
       {isMobile && (
-        <div
-          style={{
-            width: 6,
-            height: 6,
-            borderRadius: '50%',
-            background: C.y,
-            opacity: 0.6,
-            flexShrink: 0,
-            marginRight: 2,
-          }}
-          title="Compact mode — some controls hidden"
-        />
+        <div className={st.compactDot} title="Compact mode — some controls hidden" />
       )}
       {/* ─── Navigation Capsule (Ticker + Timeframes) ──────────── */}
       <div className="tf-nav-capsule">
@@ -419,7 +397,7 @@ export default function UnifiedChartToolbar({
             ƒx
           </ToolbarBtn>
           <div className="tf-tools-capsule__divider" />
-          <div style={{ position: 'relative' }} ref={drawBtnRef}>
+          <div className={st.capsuleRelative} ref={drawBtnRef}>
             <ToolbarBtn
               active={!!storeActiveTool}
               onClick={() => setDrawSelectorOpen(!drawSelectorOpen)}
@@ -463,7 +441,7 @@ export default function UnifiedChartToolbar({
       )}
 
       {/* Flex spacer — pushes trade capsule to the right */}
-      <div style={{ flex: 1, minWidth: 4 }} />
+      <div className={st.spacer} />
 
       {/* ─── Apple-Style Trade Capsule (unified right controls) ──── */}
       {!isMobile && (
@@ -600,7 +578,7 @@ export default function UnifiedChartToolbar({
 
       {/* Mobile: minimal right-side controls */}
       {isMobile && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+        <div className={st.mobileRow}>
           <Suspense fallback={null}>
             <CommandCenterMenu
               isMobile={isMobile}

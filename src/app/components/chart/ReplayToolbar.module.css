@@ -1,0 +1,183 @@
+/* ═══════════════════════════════════════════════════════════════════
+   ReplayToolbar — CSS Module (Sprint 23)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.toolbar {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(15, 17, 28, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  z-index: 50;
+  user-select: none;
+  min-width: 360px;
+  flex-wrap: wrap;
+}
+
+/* ─── Replay Badge ─── */
+.replayBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: rgba(239, 68, 68, 0.15);
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--tf-font);
+  color: #ef4444;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.replayDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+
+/* ─── Toolbar Button ─── */
+.toolbarBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--tf-t1);
+  font-size: 14px;
+  transition: all 0.15s ease;
+}
+.toolbarBtn[data-active="true"] {
+  background: rgba(239, 176, 51, 0.1);
+}
+.toolbarBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+.toolbarBtn:not(:disabled) {
+  cursor: pointer;
+}
+
+/* ─── Divider ─── */
+.divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ─── Speed Buttons ─── */
+.speedRow { display: flex; gap: 2px; }
+.speedBtn {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: var(--tf-mono);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+/* ─── Progress ─── */
+.progressWrap {
+  flex: 1;
+  min-width: 60px;
+  position: relative;
+  height: 6px;
+  cursor: pointer;
+}
+.progressBg {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+}
+.progressFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  border-radius: 3px;
+}
+
+/* ─── Bar Count ─── */
+.barCount {
+  font-size: 10px;
+  font-family: var(--tf-mono);
+  color: var(--tf-t3);
+  min-width: 65px;
+  text-align: right;
+}
+
+/* ─── Paper Trading ─── */
+.qtyInput {
+  width: 48px;
+  padding: 3px 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  color: var(--tf-t1);
+  font-size: 10px;
+  font-family: var(--tf-mono);
+  text-align: center;
+  outline: none;
+}
+
+.longBtn {
+  padding: 4px 10px;
+  background: rgba(52, 211, 153, 0.15);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 6px;
+  color: #34d399;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--tf-font);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.shortBtn {
+  padding: 4px 10px;
+  background: rgba(248, 113, 113, 0.15);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  border-radius: 6px;
+  color: #f87171;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--tf-font);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.closeAllBtn {
+  padding: 4px 8px;
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 6px;
+  color: #fbbf24;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--tf-font);
+  cursor: pointer;
+}
+
+/* ─── Stats ─── */
+.statsBox {
+  display: flex;
+  gap: 10px;
+  padding: 3px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  font-size: 10px;
+  font-family: var(--tf-mono);
+}

@@ -57,6 +57,18 @@ function openDB() {
   return openUnifiedDB();
 }
 
+// Sprint 9: Validate IDB record structure before returning to callers.
+// Catches corrupted entries from partial writes, version mismatches, or storage errors.
+function _isValidRecord(record: any, storeName?: string): boolean {
+  if (!record || typeof record !== 'object') return false;
+  // All records must have a 'data' field and a numeric timestamp
+  if (!('data' in record)) return false;
+  if (typeof record.timestamp !== 'number' || isNaN(record.timestamp)) return false;
+  // Candles must be arrays
+  if (storeName === 'candles' && !Array.isArray(record.data)) return false;
+  return true;
+}
+
 // ─── Generic Read/Write ────────────────────────────────────────
 
 async function dbGet(storeName, key) {
@@ -162,6 +174,12 @@ class _DataCache {
     const key = `${symbol}:${interval}`;
     const record = await dbGet('candles', key);
     if (!record) return null;
+    // Sprint 9: Validate record structure before returning
+    if (!_isValidRecord(record, 'candles')) {
+      logger.data.warn(`[DataCache] Corrupted candle record for ${key} — discarding`);
+      await dbDelete('candles', key);
+      return null;
+    }
 
     const age = Date.now() - record.timestamp;
     if (age > STORES.candles.ttl) return null; // Expired

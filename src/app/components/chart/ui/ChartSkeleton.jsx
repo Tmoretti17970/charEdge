@@ -14,6 +14,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo } from 'react';
+import s from './ChartSkeleton.module.css';
 
 // Deterministic "random" candle heights for consistent skeleton appearance
 const CANDLE_PATTERN = [
@@ -38,16 +39,7 @@ const CANDLE_PATTERN = [
 const CandleSkeleton = memo(function CandleSkeleton({ candle, index }) {
   const opacity = 0.15 + (index % 3) * 0.05;
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        flex: 1,
-        position: 'relative',
-        height: '100%',
-      }}
-    >
+    <div className={s.candleWrap}>
       {/* Wick */}
       <div
         style={{
@@ -80,22 +72,11 @@ const CandleSkeleton = memo(function CandleSkeleton({ candle, index }) {
 // ─── Toolbar Skeleton ─────────────────────────────────────────────
 const ToolbarSkeleton = memo(function ToolbarSkeleton() {
   return (
-    <div
-      className="tf-skel-toolbar"
-      style={{
-        height: 40,
-        minHeight: 40,
-        borderBottom: '1px solid var(--tf-bd, #2a2e3a)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '0 12px',
-      }}
-    >
+    <div className={s.toolbar}>
       {/* Symbol pill */}
       <div className="tf-skeleton" style={{ width: 64, height: 20, borderRadius: 6 }} />
       {/* Divider */}
-      <div style={{ width: 1, height: 16, background: 'var(--tf-bd, #2a2e3a)', opacity: 0.3 }} />
+      <div className={s.toolbarDivider} />
       {/* Timeframe pills */}
       {[28, 24, 24, 28, 24, 28].map((w, i) => (
         <div
@@ -105,7 +86,7 @@ const ToolbarSkeleton = memo(function ToolbarSkeleton() {
         />
       ))}
       {/* Spacer */}
-      <div style={{ flex: 1 }} />
+      <div className={s.toolbarSpacer} />
       {/* Right buttons */}
       <div className="tf-skeleton" style={{ width: 24, height: 20, borderRadius: 6 }} />
       <div className="tf-skeleton" style={{ width: 24, height: 20, borderRadius: 6, animationDelay: '0.1s' }} />
@@ -116,17 +97,7 @@ const ToolbarSkeleton = memo(function ToolbarSkeleton() {
 // ─── Indicator Pane Skeleton ──────────────────────────────────────
 const IndicatorPaneSkeleton = memo(function IndicatorPaneSkeleton() {
   return (
-    <div
-      className="tf-skel-indicators"
-      style={{
-        height: 80,
-        borderTop: '1px solid var(--tf-bd, #2a2e3a)',
-        position: 'relative',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
+    <div className={s.indicatorPane}>
       {/* Simulated indicator line */}
       <svg width="100%" height="40" viewBox="0 0 400 40" preserveAspectRatio="none" style={{ opacity: 0.15 }}>
         <polyline
@@ -139,7 +110,7 @@ const IndicatorPaneSkeleton = memo(function IndicatorPaneSkeleton() {
         />
       </svg>
       {/* Y-axis labels */}
-      <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 60, borderLeft: '1px solid var(--tf-bd, #2a2e3a)', display: 'flex', flexDirection: 'column', justifyContent: 'space-around', alignItems: 'center' }}>
+      <div className={s.indicatorYAxis}>
         {[...Array(3)].map((_, i) => (
           <div key={i} className="tf-skeleton" style={{ width: 28, height: 6, borderRadius: 3, animationDelay: `${i * 0.05}s` }} />
         ))}
@@ -151,23 +122,14 @@ const IndicatorPaneSkeleton = memo(function IndicatorPaneSkeleton() {
 // ─── Panel Skeleton (for slide-in panels) ─────────────────────────
 const PanelSkeleton = memo(function PanelSkeleton() {
   return (
-    <div
-      style={{
-        padding: 16,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 12,
-      }}
-      role="progressbar"
-      aria-label="Loading panel"
-    >
+    <div className={s.panel} role="progressbar" aria-label="Loading panel">
       {/* Header */}
       <div className="tf-skeleton" style={{ width: '60%', height: 14, borderRadius: 4 }} />
       {/* Content rows */}
       {[...Array(5)].map((_, i) => (
-        <div key={i} style={{ display: 'flex', gap: 8 }}>
+        <div key={i} className={s.panelRow}>
           <div className="tf-skeleton" style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0, animationDelay: `${i * 0.06}s` }} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+          <div className={s.panelTextCol}>
             <div className="tf-skeleton" style={{ width: '80%', height: 10, borderRadius: 3, animationDelay: `${i * 0.06 + 0.02}s` }} />
             <div className="tf-skeleton" style={{ width: '50%', height: 8, borderRadius: 3, animationDelay: `${i * 0.06 + 0.04}s` }} />
           </div>
@@ -180,14 +142,10 @@ const PanelSkeleton = memo(function PanelSkeleton() {
 // ─── Mini Skeleton (for compact widgets) ──────────────────────────
 const MiniSkeleton = memo(function MiniSkeleton() {
   return (
-    <div
-      style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}
-      role="progressbar"
-      aria-label="Loading widget"
-    >
+    <div className={s.mini} role="progressbar" aria-label="Loading widget">
       <div className="tf-skeleton" style={{ width: '40%', height: 10, borderRadius: 3 }} />
       <div className="tf-skeleton" style={{ width: '100%', height: 40, borderRadius: 6, animationDelay: '0.05s' }} />
-      <div style={{ display: 'flex', gap: 6 }}>
+      <div className={s.miniRow}>
         <div className="tf-skeleton" style={{ flex: 1, height: 8, borderRadius: 3, animationDelay: '0.1s' }} />
         <div className="tf-skeleton" style={{ flex: 1, height: 8, borderRadius: 3, animationDelay: '0.15s' }} />
       </div>
@@ -208,15 +166,7 @@ export default memo(function ChartSkeleton({ phase = 0, variant = 'chart' }) {
 
   return (
     <div
-      className={phaseClass}
-      style={{
-        position: 'absolute',
-        inset: 0,
-        background: 'var(--tf-bg, #08090a)',
-        zIndex: 50,
-        display: 'flex',
-        flexDirection: 'column',
-      }}
+      className={`${phaseClass} ${s.root}`}
       role="progressbar"
       aria-busy="true"
       aria-label="Loading chart data"
@@ -225,52 +175,18 @@ export default memo(function ChartSkeleton({ phase = 0, variant = 'chart' }) {
       <ToolbarSkeleton />
 
       {/* Main charting area */}
-      <div style={{ flex: 1, position: 'relative', borderBottom: '1px solid var(--tf-bd, #2a2e3a)' }}>
+      <div className={s.chartArea}>
         {/* Dashed grid lines */}
         {[20, 40, 60, 80].map((pct) => (
-          <div
-            key={`h${pct}`}
-            style={{
-              position: 'absolute',
-              top: `${pct}%`,
-              left: 0,
-              right: 60,
-              height: 0,
-              borderTop: '1px dashed var(--tf-bd, #2a2e3a)',
-              opacity: 0.2,
-            }}
-          />
+          <div key={`h${pct}`} className={s.hGrid} style={{ top: `${pct}%` }} />
         ))}
         {[15, 30, 45, 60, 75, 90].map((pct) => (
-          <div
-            key={`v${pct}`}
-            style={{
-              position: 'absolute',
-              left: `${pct * 0.93}%`,
-              top: 0,
-              bottom: 0,
-              width: 0,
-              borderLeft: '1px dashed var(--tf-bd, #2a2e3a)',
-              opacity: 0.15,
-            }}
-          />
+          <div key={`v${pct}`} className={s.vGrid} style={{ left: `${pct * 0.93}%` }} />
         ))}
 
         {/* Candle skeletons */}
         {showCandles && (
-          <div
-            className="tf-skel-candles"
-            style={{
-              position: 'absolute',
-              left: '5%',
-              right: 68,
-              top: 0,
-              bottom: 0,
-              display: 'flex',
-              gap: 2,
-              padding: '10% 0',
-            }}
-          >
+          <div className={s.candleContainer}>
             {CANDLE_PATTERN.map((candle, i) => (
               <CandleSkeleton key={i} candle={candle} index={i} />
             ))}
@@ -279,67 +195,19 @@ export default memo(function ChartSkeleton({ phase = 0, variant = 'chart' }) {
 
         {/* Center loading indicator (only in phase 0) */}
         {showSpinner && (
-          <div
-            style={{
-              position: 'absolute',
-              top: '50%',
-              left: 'calc(50% - 30px)',
-              transform: 'translateY(-50%)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 8,
-              animation: 'fadeIn 0.4s ease',
-            }}
-          >
-            <div
-              className="tf-spin"
-              style={{
-                width: 18,
-                height: 18,
-                border: '2px solid var(--tf-bd, #2a2e3a)',
-                borderTop: '2px solid var(--tf-accent, #e8642c)',
-                borderRadius: '50%',
-              }}
-            />
-            <span
-              style={{
-                color: 'var(--tf-t3, #7078a0)',
-                fontSize: 11,
-                fontFamily: "'Inter', sans-serif",
-                letterSpacing: '0.5px',
-              }}
-            >
-              Loading chart…
-            </span>
+          <div className={s.spinnerWrap}>
+            <div className={`tf-spin ${s.spinner}`} />
+            <span className={s.spinnerText}>Loading chart…</span>
           </div>
         )}
 
         {/* Price axis */}
-        <div
-          style={{
-            position: 'absolute',
-            right: 0,
-            top: 0,
-            bottom: 0,
-            width: 60,
-            borderLeft: '1px solid var(--tf-bd, #2a2e3a)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-around',
-            alignItems: 'center',
-          }}
-        >
+        <div className={s.priceAxis}>
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
               className="tf-skeleton"
-              style={{
-                width: 36,
-                height: 8,
-                borderRadius: 4,
-                animationDelay: `${i * 0.06}s`,
-              }}
+              style={{ width: 36, height: 8, borderRadius: 4, animationDelay: `${i * 0.06}s` }}
             />
           ))}
         </div>
@@ -349,29 +217,17 @@ export default memo(function ChartSkeleton({ phase = 0, variant = 'chart' }) {
       {showIndicators && <IndicatorPaneSkeleton />}
 
       {/* Time axis */}
-      <div style={{ height: 24, display: 'flex', borderBottom: '1px solid var(--tf-bd, #2a2e3a)' }}>
-        <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            justifyContent: 'space-around',
-            alignItems: 'center',
-          }}
-        >
+      <div className={s.timeAxis}>
+        <div className={s.timeAxisLabels}>
           {[...Array(8)].map((_, i) => (
             <div
               key={i}
               className="tf-skeleton"
-              style={{
-                width: 28,
-                height: 6,
-                borderRadius: 3,
-                animationDelay: `${i * 0.04}s`,
-              }}
+              style={{ width: 28, height: 6, borderRadius: 3, animationDelay: `${i * 0.04}s` }}
             />
           ))}
         </div>
-        <div style={{ width: 60, borderLeft: '1px solid var(--tf-bd, #2a2e3a)' }} />
+        <div className={s.timeAxisCap} />
       </div>
     </div>
   );

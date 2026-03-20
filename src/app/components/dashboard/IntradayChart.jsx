@@ -55,7 +55,7 @@ function IntradayChart({ trades = [], isMobile = false }) {
   if (points.length < 2) return null;
 
   const width = isMobile ? 320 : 400;
-  const height = 120;
+  const height = 72;
   const pad = 8;
   const range = Math.max(high - low, 1);
   const isPositive = current >= 0;

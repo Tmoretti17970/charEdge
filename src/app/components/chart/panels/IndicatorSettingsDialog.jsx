@@ -19,6 +19,7 @@ import {
   SectionLabel,
 } from '../../settings/SettingsControls.jsx';
 import SettingsTabShell from '../../settings/SettingsTabShell.jsx';
+import s from './IndicatorSettingsDialog.module.css';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -191,73 +192,23 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
   const templateFooter = (
     <div>
       <SectionLabel>Templates</SectionLabel>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+      <div className={s.templateRow}>
         <input
           type="text"
           placeholder="Template name..."
           value={templateName}
           onChange={(e) => setTemplateName(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleSaveTemplate(); }}
-          style={{
-            flex: 1,
-            padding: '5px 8px',
-            borderRadius: 6,
-            border: `1px solid ${C.bd}`,
-            background: C.sf,
-            color: C.t1,
-            fontFamily: F,
-            fontSize: 12,
-            outline: 'none',
-          }}
+          className={s.templateInput}
         />
-        <button
-          onClick={handleSaveTemplate}
-          disabled={!templateName.trim()}
-          style={{
-            padding: '5px 12px',
-            borderRadius: 6,
-            border: `1px solid ${C.b}40`,
-            background: C.b + '15',
-            color: C.b,
-            fontFamily: F,
-            fontSize: 11,
-            fontWeight: 600,
-            cursor: templateName.trim() ? 'pointer' : 'default',
-            opacity: templateName.trim() ? 1 : 0.4,
-            transition: 'all 0.12s ease',
-          }}
-        >
+        <button onClick={handleSaveTemplate} disabled={!templateName.trim()} className={s.templateSaveBtn}>
           Save
         </button>
       </div>
       {templates.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+        <div className={s.templateList}>
           {templates.map((name) => (
-            <button
-              key={name}
-              onClick={() => handleLoadTemplate(name)}
-              style={{
-                padding: '4px 10px',
-                borderRadius: 6,
-                border: `1px solid ${C.bd}`,
-                background: 'transparent',
-                color: C.t2,
-                fontFamily: F,
-                fontSize: 11,
-                cursor: 'pointer',
-                transition: 'all 0.12s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = C.b + '15';
-                e.currentTarget.style.borderColor = C.b + '40';
-                e.currentTarget.style.color = C.b;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.borderColor = C.bd;
-                e.currentTarget.style.color = C.t2;
-              }}
-            >
+            <button key={name} onClick={() => handleLoadTemplate(name)} className={s.templateChip}>
               {name}
             </button>
           ))}
@@ -327,22 +278,8 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
                 const currentValue = override.value ?? band.value;
                 const currentColor = override.color ?? band.color;
                 return (
-                  <div
-                    key={bi}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      marginBottom: 6,
-                      padding: '6px 10px',
-                      borderRadius: 6,
-                      background: C.sf,
-                      border: `1px solid ${C.bd}`,
-                    }}
-                  >
-                    <span style={{ fontSize: 11, color: C.t3, fontFamily: F, minWidth: 40 }}>
-                      {band.label || `Level ${bi + 1}`}
-                    </span>
+                  <div key={bi} className={s.bandRow}>
+                    <span className={s.bandLabel}>{band.label || `Level ${bi + 1}`}</span>
                     <NumberInput
                       label=""
                       value={currentValue}
@@ -360,19 +297,7 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
           )}
 
           {/* Info tooltip area */}
-          <div
-            style={{
-              marginTop: 16,
-              padding: '8px 10px',
-              borderRadius: 6,
-              background: C.sf,
-              border: `1px solid ${C.bd}`,
-              fontSize: 11,
-              color: C.t3,
-              fontFamily: F,
-              lineHeight: 1.5,
-            }}
-          >
+          <div className={s.infoBox}>
             💡 {registryDef.name} — {registryDef.mode === 'overlay' ? 'Overlay indicator' : 'Pane indicator'}.
             {Object.keys(registryDef.params || {}).length > 0 &&
               ` Adjust parameters above for live preview.`}
@@ -404,49 +329,19 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
                   visible: true,
                 };
                 return (
-                  <div
-                    key={out.key}
-                    style={{
-                      padding: '8px 10px',
-                      marginBottom: 6,
-                      borderRadius: 8,
-                      background: C.sf,
-                      border: `1px solid ${C.bd}`,
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        marginBottom: 6,
-                      }}
-                    >
-                      <span style={{ fontSize: 12, fontFamily: F, color: C.t1, fontWeight: 600 }}>
-                        {out.label || out.key}
-                      </span>
+                  <div key={out.key} className={s.outputCard}>
+                    <div className={s.outputHeader}>
+                      <span className={s.outputName}>{out.label || out.key}</span>
                       <button
                         onClick={() => updateIndicatorOutputStyle(indicatorStableId, out.key, { visible: !style.visible })}
                         title={style.visible ? 'Hide' : 'Show'}
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: 6,
-                          border: `1px solid ${C.bd}`,
-                          background: 'transparent',
-                          color: style.visible ? C.b : C.t3,
-                          fontSize: 12,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'all 0.12s ease',
-                        }}
+                        className={s.visToggleBtn}
+                        style={{ color: style.visible ? C.b : C.t3 }}
                       >
                         {style.visible ? '👁' : '👁‍🗨'}
                       </button>
                     </div>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <div className={s.outputColorRow}>
                       <ColorSwatch
                         color={style.color}
                         onChange={(c) => updateIndicatorOutputStyle(indicatorStableId, out.key, { color: c })}
@@ -472,17 +367,7 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
           {registryDef.fills && registryDef.fills.length > 0 && (
             <>
               <SectionLabel>Fill</SectionLabel>
-              <div
-                style={{
-                  padding: '6px 10px',
-                  borderRadius: 6,
-                  background: C.sf,
-                  border: `1px solid ${C.bd}`,
-                  fontSize: 11,
-                  color: C.t3,
-                  fontFamily: F,
-                }}
-              >
+              <div className={s.fillBox}>
                 {registryDef.fills.length} fill zone{registryDef.fills.length > 1 ? 's' : ''} configured from defaults.
               </div>
             </>
@@ -521,14 +406,7 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
           />
 
           {!visibility.showAll && (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: 6,
-                marginTop: 10,
-              }}
-            >
+            <div className={s.tfGrid}>
               {TIMEFRAMES.map((tf) => {
                 const isActive = visibility.timeframes?.includes(tf.id);
                 return (
@@ -541,18 +419,8 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
                         : [...tfs, tf.id];
                       setIndicatorVisibility(indicatorStableId, { showAll: false, timeframes: next });
                     }}
-                    style={{
-                      padding: '8px 12px',
-                      borderRadius: 8,
-                      border: `1px solid ${isActive ? C.b + '60' : C.bd}`,
-                      background: isActive ? C.b + '15' : 'transparent',
-                      color: isActive ? C.b : C.t2,
-                      fontFamily: F,
-                      fontSize: 12,
-                      fontWeight: isActive ? 600 : 400,
-                      cursor: 'pointer',
-                      transition: 'all 0.12s ease',
-                    }}
+                    className={s.tfBtn}
+                    data-active={isActive || undefined}
                   >
                     {tf.label}
                   </button>
@@ -565,18 +433,7 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
           {registryDef.mode === 'pane' && (
             <>
               <SectionLabel>Pane</SectionLabel>
-              <div
-                style={{
-                  padding: '8px 10px',
-                  borderRadius: 6,
-                  background: C.sf,
-                  border: `1px solid ${C.bd}`,
-                  fontSize: 11,
-                  color: C.t3,
-                  fontFamily: F,
-                  lineHeight: 1.5,
-                }}
-              >
+              <div className={s.paneBox}>
                 📐 This indicator renders in a separate pane below the main chart.
                 {registryDef.paneConfig?.min !== undefined && (
                   <> Scale: {registryDef.paneConfig.min} – {registryDef.paneConfig.max}.</>
@@ -586,34 +443,8 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
           )}
 
           {/* Reset button */}
-          <div style={{ marginTop: 20 }}>
-            <button
-              onClick={handleReset}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                borderRadius: 8,
-                border: `1px solid ${C.bd}`,
-                background: 'transparent',
-                color: C.t2,
-                fontFamily: F,
-                fontSize: 12,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = C.r + '15';
-                e.currentTarget.style.borderColor = C.r + '40';
-                e.currentTarget.style.color = C.r;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.borderColor = C.bd;
-                e.currentTarget.style.color = C.t2;
-              }}
-            >
-              Reset to Default
-            </button>
+          <div className={s.resetSection}>
+            <button onClick={handleReset} className={s.resetBtn}>Reset to Default</button>
           </div>
         </div>
       )}

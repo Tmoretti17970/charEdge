@@ -509,7 +509,7 @@ class _TickPersistence {
       this._consecutiveFailures++;
 
       if (this._consecutiveFailures <= this._maxRetries) {
-        pipelineLogger.warn('TickPersistence',
+        pipelineLogger.debug('TickPersistence',
           `Flush failed (attempt ${this._consecutiveFailures}/${this._maxRetries}) — re-enqueuing ticks`, err);
         // Re-enqueue failed ticks WITHOUT triggering a new flush
         for (const [symbol, ticks] of allTicks) {
@@ -525,7 +525,7 @@ class _TickPersistence {
       } else if (this._consecutiveFailures === this._maxRetries + 1) {
         // Log once when giving up, then self-disable to stop all IDB calls
         const totalDropped = [...allTicks.values()].reduce((s, t) => s + t.length, 0);
-        pipelineLogger.warn('TickPersistence',
+        pipelineLogger.debug('TickPersistence',
           `Flush failed ${this._maxRetries} times — dropping ${totalDropped} ticks. Disabling persistence.`);
         // Stop the flush timer so we never call openUnifiedDB again
         if (this._flushTimer) { clearInterval(this._flushTimer); this._flushTimer = null; }

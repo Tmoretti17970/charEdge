@@ -1,0 +1,133 @@
+/* ═══════════════════════════════════════════════════════════════════
+   ChartSettingsPanel — CSS Module (Sprint 23)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* ─── Tabs ─── */
+.tabRow {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--tf-bd);
+  padding-bottom: 8px;
+}
+.tab {
+  flex: 1;
+  padding: 6px 4px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  font-family: var(--tf-font);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.tab[data-active="true"] {
+  background: color-mix(in srgb, var(--tf-accent) 8%, transparent);
+  color: var(--tf-accent);
+  font-weight: 600;
+}
+.tab:not([data-active="true"]) {
+  color: var(--tf-t2);
+  font-weight: 400;
+}
+.tabIcon { font-size: 14px; }
+.tabContent {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ─── Section Label ─── */
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+/* ─── Theme Pills ─── */
+.themeRow {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+.themePill {
+  flex: 1;
+  padding: 6px 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.themeDots {
+  display: flex;
+  gap: 2px;
+}
+.themeDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+.themeLabel {
+  font-size: 8px;
+  font-weight: 600;
+  font-family: var(--tf-font);
+  letter-spacing: 0.3px;
+}
+
+/* ─── Info Box ─── */
+.infoBox {
+  margin-top: 16px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--tf-sf);
+  border: 1px solid var(--tf-bd);
+  font-size: 11px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  line-height: 1.5;
+}
+
+/* ─── Reset Button ─── */
+.resetWrap { margin-top: 16px; }
+.resetBtn {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--tf-bd);
+  background: transparent;
+  color: var(--tf-t2);
+  font-family: var(--tf-font);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.resetBtn:hover {
+  background: color-mix(in srgb, var(--tf-red, #EF5350) 8%, transparent);
+  border-color: color-mix(in srgb, var(--tf-red, #EF5350) 25%, transparent);
+  color: var(--tf-red, #EF5350);
+}
+
+/* ─── Chart Type empty ─── */
+.chartTypeEmpty {
+  padding: 12px 0;
+  font-size: 12px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  text-align: center;
+}

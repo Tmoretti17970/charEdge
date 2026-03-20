@@ -553,4 +553,116 @@ function _MetricPreview({ label }) {
   );
 }
 
+// ─── Sprint 13: Dashboard Widget Empty States ───────────────────
+
+export function EquityCurveEmptyState({ onAddTrade }) {
+  return (
+    <WidgetEmptyState
+      message="Your equity curve appears after your first trade. It reveals the shape of your edge over time."
+      actionLabel="Log a trade to start tracking →"
+      onAction={onAddTrade}
+    />
+  );
+}
+
+export function HeatmapEmptyState({ onAddTrade }) {
+  return (
+    <WidgetEmptyState
+      message="The trade heatmap shows when you trade best. Log trades with timestamps to reveal your optimal windows."
+      actionLabel="Start logging trades →"
+      onAction={onAddTrade}
+    />
+  );
+}
+
+export function CalendarEmptyState({ onAddTrade }) {
+  return (
+    <WidgetEmptyState
+      message="Your P&L calendar fills in as you log trades. See daily wins and losses at a glance."
+      actionLabel="Add your first trade →"
+      onAction={onAddTrade}
+    />
+  );
+}
+
+export function StreakEmptyState() {
+  return (
+    <WidgetEmptyState
+      message="Trading streaks track consecutive winning days. Log trades to start building your streak."
+    />
+  );
+}
+
+// ─── Sprint 14: All-Page Empty States ───────────────────────────
+
+export function WatchlistEmptyState({ onAddSymbol }) {
+  return (
+    <EmptyState
+      icon="👁"
+      title="Build Your Watchlist"
+      message="Track the symbols that matter most. Add from search or click any symbol to start watching."
+      actionLabel="+ Add Symbol"
+      onAction={onAddSymbol}
+    />
+  );
+}
+
+export function AlertsEmptyState({ onCreateAlert }) {
+  return (
+    <EmptyState
+      icon="🔔"
+      title="Set Up Price Alerts"
+      message="Get notified when symbols hit your levels. Alerts work across all your watched assets."
+      actionLabel="Create First Alert"
+      onAction={onCreateAlert}
+    />
+  );
+}
+
+export function PropFirmEmptyState({ onSetup }) {
+  return (
+    <EmptyState
+      icon="🏢"
+      title="Track Your Prop Firm Challenge"
+      message="Monitor drawdown limits, profit targets, and rule compliance. Connect your prop firm account to get started."
+      actionLabel="Set Up Prop Firm"
+      onAction={onSetup}
+    />
+  );
+}
+
+export function ScreenerEmptyState({ onSearch }) {
+  return (
+    <EmptyState
+      icon="🔍"
+      title="No Matches Found"
+      message="Try adjusting your filters or broadening your search criteria to find more symbols."
+      actionLabel="Clear Filters"
+      onAction={onSearch}
+    />
+  );
+}
+
+export function PlaybooksEmptyState({ onAddTrade }) {
+  return (
+    <EmptyState
+      icon="📚"
+      title="Strategies Emerge From Data"
+      message="Tag your trades with strategy names and charEdge will automatically detect recurring patterns and build playbooks."
+      actionLabel="Log a Trade With a Strategy →"
+      onAction={onAddTrade}
+    >
+      <FeatureRoadmap
+        items={[
+          { trades: 5, label: 'First strategy detected', icon: '🏷' },
+          { trades: 15, label: 'Win rate by strategy', icon: '📊' },
+          { trades: 30, label: 'Optimal conditions analysis', icon: '🔬' },
+        ]}
+        current={0}
+      />
+    </EmptyState>
+  );
+}
+
 export default React.memo(EmptyState);
+

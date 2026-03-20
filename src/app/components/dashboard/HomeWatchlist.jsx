@@ -2,10 +2,7 @@
 // charEdge — HomeWatchlist
 //
 // Coinbase-style watchlist for the home dashboard (Sprints 6–16).
-// Live prices via useWatchlistStreaming, sparklines via SparklineService,
-// trade enrichment via useWatchlistStore + useJournalStore.
-// Sprint 15: Row hover glow + smooth transitions.
-// Sprint 16: Price alert indicator per row.
+// Sprint 22: Migrated from inline styles → CSS Modules + tokens.
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
@@ -15,8 +12,8 @@ import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useUIStore } from '../../../state/useUIStore';
 import { useWatchlistStore, enrichWithTradeStats } from '../../../state/useWatchlistStore.js';
-import { radii } from '../../../theme/tokens.js';
 import Sparkline from '../ui/Sparkline.jsx';
+import s from './HomeWatchlist.module.css';
 
 // Sprint 16: lazy import alert store to avoid circular deps
 let _cachedAlertStore = null;
@@ -24,7 +21,6 @@ let _cachedAlertStore = null;
 function getAlertSymbols() {
   try {
     if (!_cachedAlertStore) {
-      // Kick off lazy ESM import — will be ready on next render cycle
       import('../../../state/useAlertStore.ts').then((mod) => {
         _cachedAlertStore = mod.default;
       }).catch(() => {});
@@ -131,8 +127,6 @@ export default function HomeWatchlist({ isMobile }) {
   // ─── Sprint 8: Trade enrichment + Sprint 9: sorting ─────────
   const enrichedItems = useMemo(() => {
     const enriched = enrichWithTradeStats(items, trades);
-
-    // Attach price data for sorting
     return enriched.map((item) => {
       const p = prices[item.symbol];
       return {
@@ -198,57 +192,20 @@ export default function HomeWatchlist({ isMobile }) {
   // ─── Sprint 12: Empty state ─────────────────────────────────
   if (items.length === 0) {
     return (
-      <div
-        style={{
-          padding: '28px 24px',
-          background: C.sf,
-          border: `1px solid ${C.bd}40`,
-          borderRadius: radii.lg,
-          textAlign: 'center',
-        }}
-      >
-        <div style={{ fontSize: 28, marginBottom: 8 }}>📊</div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: C.t1, marginBottom: 4 }}>
-          Start tracking your assets
-        </div>
-        <div style={{ fontSize: 12, color: C.t3, marginBottom: 16 }}>
+      <div className={s.empty}>
+        <div className={s.emptyIcon}>📊</div>
+        <div className={s.emptyTitle}>Start tracking your assets</div>
+        <div className={s.emptyDesc}>
           Add symbols to see live prices, sparklines, and your trading P&L
         </div>
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 8,
-            justifyContent: 'center',
-          }}
-        >
-          {POPULAR.map((s) => (
+        <div className={s.emptyActions}>
+          {POPULAR.map((item) => (
             <button
-              key={s.symbol}
-              className="tf-btn"
-              onClick={() => addSymbol(s)}
-              style={{
-                padding: '6px 14px',
-                borderRadius: radii.md,
-                fontSize: 12,
-                fontWeight: 700,
-                fontFamily: M,
-                background: `${C.b}10`,
-                color: C.b,
-                border: `1px solid ${C.b}25`,
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = `${C.b}20`;
-                e.currentTarget.style.borderColor = C.b;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = `${C.b}10`;
-                e.currentTarget.style.borderColor = `${C.b}25`;
-              }}
+              key={item.symbol}
+              className={`tf-btn ${s.emptyBtn}`}
+              onClick={() => addSymbol(item)}
             >
-              + {s.symbol}
+              + {item.symbol}
             </button>
           ))}
         </div>
@@ -258,66 +215,23 @@ export default function HomeWatchlist({ isMobile }) {
 
   // ─── Main render ─────────────────────────────────────────────
   return (
-    <div
-      style={{
-        background: C.sf,
-        border: `1px solid ${C.bd}40`,
-        borderRadius: radii.lg,
-        overflow: 'hidden',
-      }}
-    >
+    <div className={s.container}>
       {/* Header (Sprint 6 + Sprint 11 portfolio P&L) */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '14px 20px',
-          borderBottom: `1px solid ${C.bd}30`,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 13, fontWeight: 800, color: C.t1 }}>Watchlist</span>
-          <span
-            style={{
-              fontSize: 10,
-              fontFamily: M,
-              color: C.t3,
-              padding: '2px 6px',
-              background: `${C.bd}20`,
-              borderRadius: radii.xs,
-            }}
-          >
-            {items.length}
-          </span>
+      <div className={s.header}>
+        <div className={s.headerLeft}>
+          <span className={s.headerTitle}>Watchlist</span>
+          <span className={s.headerCount}>{items.length}</span>
           {portfolioPnl.count > 0 && (
-            <span
-              style={{
-                fontSize: 11,
-                fontFamily: M,
-                fontWeight: 700,
-                color: portfolioPnl.total >= 0 ? C.g : C.r,
-                fontVariantNumeric: 'tabular-nums',
-              }}
-            >
+            <span className={s.headerPnl} data-dir={portfolioPnl.total >= 0 ? 'up' : 'down'}>
               {fmtPnl(portfolioPnl.total)} · {portfolioPnl.count} trades
             </span>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {/* Sort dropdown */}
+        <div className={s.headerRight}>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: C.t3,
-              fontSize: 10,
-              fontFamily: M,
-              outline: 'none',
-              cursor: 'pointer',
-            }}
+            className={s.sortSelect}
           >
             {SORT_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -329,71 +243,30 @@ export default function HomeWatchlist({ isMobile }) {
       </div>
 
       {/* Sprint 10: Quick-add search */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 6,
-          padding: '10px 20px',
-          borderBottom: `1px solid ${C.bd}20`,
-        }}
-      >
+      <div className={s.addBar}>
         <input
           aria-label="Add symbol to watchlist"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
           placeholder="Add symbol (e.g. BTC, AAPL)..."
-          style={{
-            flex: 1,
-            background: 'transparent',
-            border: `1px solid ${C.bd}40`,
-            borderRadius: radii.sm,
-            padding: '6px 12px',
-            fontSize: 12,
-            fontFamily: M,
-            color: C.t1,
-            outline: 'none',
-          }}
+          className={s.addInput}
         />
         <button
-          className="tf-btn"
+          className={`tf-btn ${s.addBtn}`}
           onClick={handleAdd}
           disabled={!inputValue.trim()}
-          style={{
-            background: C.b,
-            border: 'none',
-            borderRadius: radii.sm,
-            color: '#fff',
-            fontSize: 12,
-            fontWeight: 700,
-            padding: '6px 14px',
-            cursor: inputValue.trim() ? 'pointer' : 'default',
-            opacity: inputValue.trim() ? 1 : 0.4,
-            whiteSpace: 'nowrap',
-          }}
         >
           + Add
         </button>
       </div>
 
       {/* Scrollable rows container */}
-      <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+      <div className={s.scrollArea}>
         {/* Sprint 9: Top Movers */}
         {topMovers.length > 0 && sortBy === 'default' && (
-          <div style={{ borderBottom: `1px solid ${C.bd}20` }}>
-            <div
-              style={{
-                padding: '8px 20px 4px',
-                fontSize: 10,
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                color: C.t3,
-                fontFamily: M,
-              }}
-            >
-              🔥 Top Movers
-            </div>
+          <div className={s.sectionDivider}>
+            <div className={s.sectionLabel}>🔥 Top Movers</div>
             {topMovers.map((item) => (
               <WatchlistRow
                 key={`mover-${item.symbol}`}
@@ -411,19 +284,7 @@ export default function HomeWatchlist({ isMobile }) {
         {/* All Assets */}
         <div>
           {sortBy === 'default' && topMovers.length > 0 && (
-            <div
-              style={{
-                padding: '8px 20px 4px',
-                fontSize: 10,
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                color: C.t3,
-                fontFamily: M,
-              }}
-            >
-              All Assets
-            </div>
+            <div className={s.sectionLabel}>All Assets</div>
           )}
           {sortedItems.map((item) => (
             <WatchlistRow
@@ -455,6 +316,7 @@ const WatchlistRow = memo(function WatchlistRow({
   const touchRef = useRef({ startX: 0, startY: 0, timer: null });
 
   const isPositive = (item.changePercent ?? 0) >= 0;
+  const changeDir = item.changePercent != null ? (isPositive ? 'up' : 'down') : 'neutral';
   const changeColor = item.changePercent != null ? (isPositive ? C.g : C.r) : C.t3;
   const hasTrades = (item.tradeCount || 0) > 0;
 
@@ -467,7 +329,6 @@ const WatchlistRow = memo(function WatchlistRow({
     const t = e.touches[0];
     touchRef.current.startX = t.clientX;
     touchRef.current.startY = t.clientY;
-    // Sprint 40: long-press timer
     touchRef.current.timer = setTimeout(() => {
       setShowContextMenu(true);
     }, 500);
@@ -477,7 +338,7 @@ const WatchlistRow = memo(function WatchlistRow({
     clearTimeout(touchRef.current.timer);
     const dx = e.touches[0].clientX - touchRef.current.startX;
     const dy = Math.abs(e.touches[0].clientY - touchRef.current.startY);
-    if (dy > 20) { setSwipeX(0); return; } // vertical scroll, cancel
+    if (dy > 20) { setSwipeX(0); return; }
     if (dx < 0) setSwipeX(Math.max(dx, -100));
   }, []);
 
@@ -498,75 +359,29 @@ const WatchlistRow = memo(function WatchlistRow({
         onTouchStart={isMobile ? handleTouchStart : undefined}
         onTouchMove={isMobile ? handleTouchMove : undefined}
         onTouchEnd={isMobile ? handleTouchEnd : undefined}
-        style={{
-          position: 'relative',
-          display: 'grid',
-          gridTemplateColumns: isMobile
-            ? '1fr 50px auto'
-            : '1fr 70px auto auto',
-          gap: isMobile ? 8 : 12,
-          alignItems: 'center',
-          padding: compact ? '8px 20px' : (isMobile ? '14px 20px' : '10px 20px'),
-          minHeight: isMobile ? 56 : undefined,
-          cursor: 'pointer',
-          background: hovered ? `${C.b}06` : 'transparent',
-          borderBottom: `1px solid ${C.bd}15`,
-          transition: 'background 0.15s, box-shadow 0.15s, transform 0.15s',
-          boxShadow: hovered ? `inset 0 0 0 1px ${C.b}12` : 'none',
-          transform: swipeX ? `translateX(${swipeX}px)` : undefined,
-        }}
+        className={s.row}
+        data-mobile={isMobile || undefined}
+        data-compact={compact || undefined}
+        style={swipeX ? { transform: `translateX(${swipeX}px)` } : undefined}
       >
         {/* Symbol + name */}
-        <div style={{ minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span
-              style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: C.t1,
-                fontFamily: M,
-              }}
-            >
-              {item.symbol}
-            </span>
+        <div className={s.symbolWrap}>
+          <div className={s.symbolRow}>
+            <span className={s.symbolName}>{item.symbol}</span>
             {hasAlert && (
-              <span style={{ fontSize: 10, opacity: 0.7 }} title="Has active alert">🔔</span>
+              <span className={s.alertIcon} title="Has active alert">🔔</span>
             )}
             {item.assetClass && item.assetClass !== 'other' && (
-              <span
-                style={{
-                  fontSize: 8,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  color: C.t3,
-                  background: `${C.bd}30`,
-                  padding: '1px 5px',
-                  borderRadius: radii.xs,
-                  letterSpacing: '0.04em',
-                }}
-              >
-                {item.assetClass}
-              </span>
+              <span className={s.assetBadge}>{item.assetClass}</span>
             )}
           </div>
           {item.name && item.name !== item.symbol && (
-            <div
-              style={{
-                fontSize: 10,
-                color: C.t3,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                marginTop: 1,
-              }}
-            >
-              {item.name}
-            </div>
+            <div className={s.itemName}>{item.name}</div>
           )}
         </div>
 
         {/* Sparkline */}
-        <div style={{ width: isMobile ? 50 : 70, height: 24, flexShrink: 0 }}>
+        <div className={s.sparkCell} data-mobile={isMobile || undefined}>
           {sparkline && sparkline.length > 1 ? (
             <Sparkline
               data={sparkline}
@@ -576,72 +391,32 @@ const WatchlistRow = memo(function WatchlistRow({
               showArea={false}
             />
           ) : (
-            <div
-              style={{
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: C.t3,
-                fontSize: 8,
-              }}
-            >
-              ···
-            </div>
+            <div className={s.sparkPlaceholder}>···</div>
           )}
         </div>
 
         {/* Price + change */}
-        <div style={{ textAlign: 'right', minWidth: 80 }}>
-          <div
-            style={{
-              fontSize: 13,
-              fontWeight: 700,
-              fontFamily: M,
-              color: C.t1,
-              fontVariantNumeric: 'tabular-nums',
-              lineHeight: 1.2,
-            }}
-          >
-            {fmtPrice(item.livePrice)}
-          </div>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              fontFamily: M,
-              color: changeColor,
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
+        <div className={s.priceCell}>
+          <div className={s.price}>{fmtPrice(item.livePrice)}</div>
+          <div className={s.change} data-dir={changeDir}>
             {fmtChange(item.changePercent)}
           </div>
         </div>
 
         {/* Trade P&L (desktop only) */}
         {!isMobile && (
-          <div style={{ textAlign: 'right', minWidth: 70 }}>
+          <div className={s.pnlCell}>
             {hasTrades ? (
               <>
-                <div
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    fontFamily: M,
-                    color: item.totalPnl >= 0 ? C.g : C.r,
-                    fontVariantNumeric: 'tabular-nums',
-                    lineHeight: 1.2,
-                  }}
-                >
+                <div className={s.pnlValue} data-dir={item.totalPnl >= 0 ? 'up' : 'down'}>
                   {fmtPnl(item.totalPnl)}
                 </div>
-                <div style={{ fontSize: 9, color: C.t3, fontFamily: M }}>
+                <div className={s.pnlCount}>
                   {item.tradeCount} trade{item.tradeCount !== 1 ? 's' : ''}
                 </div>
               </>
             ) : (
-              <div style={{ fontSize: 10, color: C.t3 }}>—</div>
+              <div className={s.pnlDash}>—</div>
             )}
           </div>
         )}
@@ -649,22 +424,10 @@ const WatchlistRow = memo(function WatchlistRow({
         {/* Hover remove (desktop) */}
         {hovered && !isMobile && (
           <button
-            className="tf-btn"
+            className={`tf-btn ${s.removeBtn}`}
             onClick={(e) => {
               e.stopPropagation();
               onRemove();
-            }}
-            style={{
-              position: 'absolute',
-              right: 8,
-              background: `${C.r}15`,
-              border: `1px solid ${C.r}30`,
-              borderRadius: radii.sm,
-              color: C.r,
-              fontSize: 10,
-              fontWeight: 700,
-              padding: '2px 8px',
-              cursor: 'pointer',
             }}
             title="Remove from watchlist"
           >
@@ -674,20 +437,7 @@ const WatchlistRow = memo(function WatchlistRow({
 
         {/* Swipe-to-remove indicator (mobile) */}
         {swipeX < -20 && (
-          <div style={{
-            position: 'absolute',
-            right: 0,
-            top: 0,
-            bottom: 0,
-            width: Math.abs(swipeX),
-            background: C.r,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            fontSize: 12,
-            fontWeight: 700,
-          }}>
+          <div className={s.swipeIndicator} style={{ width: Math.abs(swipeX) }}>
             {swipeX < -60 ? 'Release' : '✕'}
           </div>
         )}
@@ -695,50 +445,18 @@ const WatchlistRow = memo(function WatchlistRow({
 
       {/* Sprint 40: Long-press context menu */}
       {showContextMenu && (
-        <div
-          onClick={() => setShowContextMenu(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 1000,
-            background: 'rgba(0,0,0,0.3)',
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              position: 'fixed',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              background: C.sf,
-              borderRadius: `${radii.lg}px ${radii.lg}px 0 0`,
-              padding: '12px 0',
-              boxShadow: '0 -4px 24px rgba(0,0,0,0.2)',
-            }}
-          >
-            <div style={{ padding: '6px 20px', fontSize: 13, fontWeight: 700, color: C.t1 }}>
-              {item.symbol}
-            </div>
+        <div className={s.contextOverlay} onClick={() => setShowContextMenu(false)}>
+          <div className={s.contextSheet} onClick={(e) => e.stopPropagation()}>
+            <div className={s.contextTitle}>{item.symbol}</div>
             {[
               { label: '📈 View Chart', action: () => { onClick(); setShowContextMenu(false); } },
               { label: '🔔 Set Alert', action: () => setShowContextMenu(false) },
-              { label: '❌ Remove', action: () => { onRemove(); setShowContextMenu(false); }, color: C.r },
+              { label: '❌ Remove', action: () => { onRemove(); setShowContextMenu(false); }, danger: true },
             ].map((opt) => (
               <button
                 key={opt.label}
                 onClick={opt.action}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  padding: '14px 20px',
-                  background: 'transparent',
-                  border: 'none',
-                  textAlign: 'left',
-                  fontSize: 14,
-                  color: opt.color || C.t1,
-                  cursor: 'pointer',
-                }}
+                className={opt.danger ? s.contextBtnDanger : s.contextBtn}
               >
                 {opt.label}
               </button>

@@ -59,10 +59,23 @@
   }
 }
 
-.equityChartWrapResponsive { min-height: 340px; position: relative; }
+.equityChartWrapResponsive { min-height: 280px; position: relative; }
 
 @container dashboard (min-width: 640px) {
-  .equityChartWrapResponsive { min-height: 340px; }
+  .equityChartWrapResponsive { min-height: 280px; }
+}
+
+/* Side-by-side hero row: equity + heatmap */
+.heroRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@container dashboard (min-width: 640px) {
+  .heroRow {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 /* Container-responsive onboard grid */

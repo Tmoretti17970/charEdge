@@ -7,6 +7,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { C } from '@/constants.js';
 import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
+import s from './DrawingPropertyEditor.module.css';
 
 const PRESET_COLORS = [
   '#2962FF', '#FF6D00', '#EF5350', '#26A69A', '#AB47BC',
@@ -98,41 +99,14 @@ export default function DrawingPropertyEditor() {
   const hasFill = style.fillColor !== undefined || ['rect', 'triangle', 'ellipse', 'channel', 'alertzone'].includes(drawing.type);
 
   return (
-    <div
-      ref={containerRef}
-      className="tf-fade-in"
-      style={{
-        position: 'absolute',
-        bottom: 56,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 500,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 3,
-        padding: '5px 8px',
-        background: 'rgba(18, 20, 28, 0.82)',
-        backdropFilter: 'blur(24px) saturate(1.4)',
-        WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: 14,
-        boxShadow: '0 8px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06)',
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif",
-        fontSize: 12,
-        animation: 'tfDropdownIn 0.18s cubic-bezier(0.16,1,0.3,1)',
-      }}
-    >
+    <div ref={containerRef} className={`tf-fade-in ${s.toolbar}`}>
       {/* ─── Color Picker ─────────────────── */}
-      <div style={{ position: 'relative' }}>
+      <div className={s.pickerWrap}>
         <EditorBtn
           title="Line Color"
           onClick={() => { setShowColorPicker(!showColorPicker); setShowFillPicker(false); }}
         >
-          <div style={{
-            width: 18, height: 18, borderRadius: 4,
-            background: style.color || '#2962FF',
-            border: '2px solid rgba(255,255,255,0.15)',
-          }} />
+          <div className={s.colorSwatch} style={{ background: style.color || '#2962FF' }} />
         </EditorBtn>
 
         {showColorPicker && (
@@ -150,18 +124,13 @@ export default function DrawingPropertyEditor() {
       {/* ─── Fill Color (shapes only) ────── */}
       {hasFill && (
         <>
-          <div style={{ position: 'relative' }}>
+          <div className={s.pickerWrap}>
             <EditorBtn
               title="Fill Color"
               onClick={() => { setShowFillPicker(!showFillPicker); setShowColorPicker(false); }}
             >
-              <div style={{
-                width: 18, height: 18, borderRadius: 4,
-                background: style.fillColor || 'rgba(41, 98, 255, 0.1)',
-                border: '2px solid rgba(255,255,255,0.1)',
-                position: 'relative',
-              }}>
-                <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#fff', opacity: 0.6 }}>▧</span>
+              <div className={s.fillSwatch} style={{ background: style.fillColor || 'rgba(41, 98, 255, 0.1)' }}>
+                <span className={s.fillIcon}>▧</span>
               </div>
             </EditorBtn>
 
@@ -184,32 +153,22 @@ export default function DrawingPropertyEditor() {
       )}
 
       {/* ─── Line Width (range slider) ──── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 4px' }}>
-        <span style={{ fontSize: 10, color: '#787B86', whiteSpace: 'nowrap' }}>W</span>
+      <div className={s.widthRow}>
+        <span className={s.widthLabel}>W</span>
         <input
-          type="range"
-          min={1}
-          max={5}
-          step={1}
+          type="range" min={1} max={5} step={1}
           value={style.lineWidth || 2}
           onChange={(e) => updateStyle('lineWidth', parseInt(e.target.value))}
           title={`Line Width: ${style.lineWidth || 2}px`}
-          style={{
-            width: 60,
-            height: 4,
-            accentColor: '#2962FF',
-            cursor: 'pointer',
-          }}
+          className={s.widthSlider}
         />
-        <span style={{ fontSize: 10, color: '#D1D4DC', minWidth: 14, textAlign: 'right' }}>
-          {style.lineWidth || 2}
-        </span>
+        <span className={s.widthValue}>{style.lineWidth || 2}</span>
       </div>
 
       <Separator />
 
       {/* ─── Dash Pattern ────────────────── */}
-      <div style={{ display: 'flex', gap: 1 }}>
+      <div className={s.dashRow}>
         {DASH_PATTERNS.map((dp) => (
           <EditorBtn
             key={dp.name}
@@ -228,14 +187,14 @@ export default function DrawingPropertyEditor() {
 
       {/* ─── Actions ─────────────────────── */}
       <EditorBtn title="Duplicate" onClick={handleDuplicate}>
-        <span style={{ fontSize: 13 }}>⧉</span>
+        <span className={s.actionEmoji}>⧉</span>
       </EditorBtn>
       <EditorBtn
         title={drawing.visible === false ? 'Show' : 'Hide'}
         onClick={handleToggleVisibility}
         active={drawing.visible === false}
       >
-        <span style={{ fontSize: 13, opacity: drawing.visible === false ? 0.4 : 1 }}>
+        <span className={s.actionEmoji} style={{ opacity: drawing.visible === false ? 0.4 : 1 }}>
           {drawing.visible === false ? '🙈' : '👁'}
         </span>
       </EditorBtn>
@@ -244,10 +203,10 @@ export default function DrawingPropertyEditor() {
         onClick={handleToggleLock}
         active={drawing.locked}
       >
-        <span style={{ fontSize: 13 }}>{drawing.locked ? '🔒' : '🔓'}</span>
+        <span className={s.actionEmoji}>{drawing.locked ? '🔒' : '🔓'}</span>
       </EditorBtn>
       <EditorBtn title="Delete" onClick={handleDelete}>
-        <span style={{ fontSize: 13, color: C.r || '#EF5350' }}>🗑</span>
+        <span className={s.actionEmoji} style={{ color: C.r || '#EF5350' }}>🗑</span>
       </EditorBtn>
     </div>
   );
@@ -257,83 +216,30 @@ export default function DrawingPropertyEditor() {
 
 function EditorBtn({ children, active, onClick, title }) {
   return (
-    <button
-      onClick={onClick}
-      title={title}
-      style={{
-        padding: '5px 7px',
-        background: active ? 'rgba(41, 98, 255, 0.15)' : 'transparent',
-        border: active ? '1px solid rgba(41, 98, 255, 0.3)' : '1px solid transparent',
-        borderRadius: 8,
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'all 0.15s ease',
-        minWidth: 30,
-        minHeight: 30,
-      }}
-      onMouseEnter={(e) => {
-        if (!active) {
-          e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
-          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!active) {
-          e.currentTarget.style.background = 'transparent';
-          e.currentTarget.style.borderColor = 'transparent';
-        }
-      }}
-    >
+    <button onClick={onClick} title={title} className={s.editorBtn} data-active={active || undefined}>
       {children}
     </button>
   );
 }
 
 function Separator() {
-  return <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.06)', margin: '0 2px', flexShrink: 0 }} />;
+  return <div className={s.separator} />;
 }
 
 function ColorPalette({ selected, onSelect, customColor, onCustomChange }) {
   return (
-    <div style={{
-      position: 'absolute',
-      bottom: '100%',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      marginBottom: 8,
-      background: 'rgba(18, 20, 28, 0.92)',
-      backdropFilter: 'blur(24px) saturate(1.4)',
-      WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: 12,
-      padding: 10,
-      zIndex: 600,
-      boxShadow: '0 12px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)',
-      animation: 'tfDropdownIn 0.15s cubic-bezier(0.16,1,0.3,1)',
-    }}>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(5, 1fr)',
-        gap: 5,
-        marginBottom: 8,
-      }}>
+    <div className={s.palette}>
+      <div className={s.paletteGrid}>
         {PRESET_COLORS.map((c) => (
           <button
             key={c}
             onClick={() => onSelect(c)}
+            className={s.paletteSwatch}
             style={{
-              width: 26, height: 26,
-              borderRadius: 7,
               background: c,
               border: selected === c ? '2px solid #fff' : '2px solid transparent',
               boxShadow: selected === c ? `0 0 0 2px ${c}40, inset 0 0 0 1px rgba(255,255,255,0.3)` : 'none',
-              cursor: 'pointer',
-              transition: 'all 0.12s ease',
             }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.15)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
           />
         ))}
       </div>
@@ -341,14 +247,7 @@ function ColorPalette({ selected, onSelect, customColor, onCustomChange }) {
         type="color"
         value={customColor || selected || '#2962FF'}
         onChange={(e) => onCustomChange(e.target.value)}
-        style={{
-          width: '100%',
-          height: 28,
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 7,
-          cursor: 'pointer',
-          background: 'rgba(30,34,45,0.8)',
-        }}
+        className={s.customColorInput}
       />
     </div>
   );

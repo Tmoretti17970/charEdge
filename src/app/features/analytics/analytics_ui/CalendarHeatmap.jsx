@@ -2,15 +2,13 @@
 // charEdge — Calendar Heatmap (Sprint 2: Phase B.2)
 //
 // GitHub-style P&L heatmap showing daily trading performance.
-// Green cells = profitable days, red cells = losing days.
-// Click a cell to see trade details for that day.
-//
-// Data comes from computeFast's equity curve (eq array).
+// Sprint 22: Migrated from inline styles → CSS Modules + tokens.
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
 import { useState, useMemo } from 'react';
-import { C, F, M } from '@/constants.js';
+import { C, M } from '@/constants.js';
+import st from './CalendarHeatmap.module.css';
 
 const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -25,22 +23,18 @@ function getCellColor(pnl, maxAbsPnl) {
   if (pnl === 0) return `${C.bd || '#1F2937'}50`;
 
   const intensity = Math.min(1, Math.abs(pnl) / (maxAbsPnl || 1));
-  // Graduated opacity: 0.15 → 0.9
   const alpha = 0.15 + intensity * 0.75;
 
   if (pnl > 0) {
-    // Green spectrum: light → deep green
-    return `rgba(16, 185, 129, ${alpha.toFixed(2)})`; // emerald
+    return `rgba(16, 185, 129, ${alpha.toFixed(2)})`;
   } else {
-    // Red spectrum: light → deep red
-    return `rgba(239, 68, 68, ${alpha.toFixed(2)})`; // red
+    return `rgba(239, 68, 68, ${alpha.toFixed(2)})`;
   }
 }
 
 // ─── Build Calendar Grid ─────────────────────────────────────────
 
 function buildCalendarData(equityCurve, trades) {
-  // Build a daily map from equity curve
   const dailyMap = {};
   if (equityCurve?.length) {
     for (const day of equityCurve) {
@@ -48,7 +42,6 @@ function buildCalendarData(equityCurve, trades) {
     }
   }
 
-  // Count trades, rule-breaks, and leaks per day
   const tradeCountMap = {};
   const ruleBreakCountMap = {};
   const leakCountMap = {};
@@ -64,15 +57,12 @@ function buildCalendarData(equityCurve, trades) {
     }
   }
 
-  // Build 53-week × 7-day grid for the last year
   const today = new Date();
   const endDate = new Date(today);
   endDate.setHours(23, 59, 59, 999);
 
-  // Start from 52 weeks ago, on Sunday
   const startDate = new Date(endDate);
   startDate.setDate(startDate.getDate() - 364);
-  // Adjust to start on Sunday
   startDate.setDate(startDate.getDate() - startDate.getDay());
 
   const weeks = [];
@@ -88,7 +78,6 @@ function buildCalendarData(equityCurve, trades) {
       const dateStr = cursor.toISOString().slice(0, 10);
       const month = cursor.getMonth();
 
-      // Track month boundary labels
       if (dow === 0 && month !== lastMonth) {
         monthLabels.push({ weekIdx, month });
         lastMonth = month;
@@ -125,65 +114,38 @@ function Tooltip({ cell, style }) {
 
   const dateObj = new Date(cell.date + 'T12:00:00');
   const dateStr = dateObj.toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+    weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
   });
   const hasPnl = cell.pnl !== null && cell.pnl !== undefined;
   const hasRuleBreak = cell.ruleBreaks > 0;
   const hasLeak = cell.leaks > 0;
 
   return (
-    <div
-      role="tooltip"
-      style={{
-        position: 'fixed',
-        zIndex: 1000,
-        background: '#1a1f2e',
-        border: `1px solid ${C.bd || '#1F2937'}`,
-        borderRadius: 8,
-        padding: '8px 12px',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-        pointerEvents: 'none',
-        minWidth: 140,
-        ...style,
-      }}
-    >
-      <div style={{ fontSize: 11, fontWeight: 700, color: C.t1 || '#F9FAFB', marginBottom: 4, fontFamily: F }}>
-        {dateStr}
-      </div>
+    <div role="tooltip" className={st.tooltip} style={style}>
+      <div className={st.tooltipDate}>{dateStr}</div>
       {hasPnl ? (
         <>
-          <div
-            style={{
-              fontSize: 13,
-              fontWeight: 800,
-              color: cell.pnl >= 0 ? '#10B981' : '#EF4444',
-              fontFamily: M,
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
+          <div className={st.tooltipPnl} data-dir={cell.pnl >= 0 ? 'up' : 'down'}>
             {cell.pnl >= 0 ? '+' : ''}${cell.pnl.toFixed(2)}
           </div>
           {cell.trades > 0 && (
-            <div style={{ fontSize: 10, color: C.t3 || '#9CA3AF', marginTop: 2, fontFamily: M }}>
+            <div className={st.tooltipMeta}>
               {cell.trades} trade{cell.trades !== 1 ? 's' : ''}
             </div>
           )}
           {hasRuleBreak && (
-            <div style={{ fontSize: 10, color: '#f0b64e', marginTop: 3, fontFamily: M, fontWeight: 700 }}>
+            <div className={st.tooltipWarn}>
               ⚠️ {cell.ruleBreaks} rule break{cell.ruleBreaks !== 1 ? 's' : ''}
             </div>
           )}
           {hasLeak && (
-            <div style={{ fontSize: 10, color: '#FF453A', marginTop: 2, fontFamily: M, fontWeight: 700 }}>
+            <div className={st.tooltipDanger}>
               🚨 {cell.leaks} leak{cell.leaks !== 1 ? 's' : ''}
             </div>
           )}
         </>
       ) : (
-        <div style={{ fontSize: 11, color: C.t3 || '#9CA3AF', fontFamily: M }}>No trades</div>
+        <div className={st.tooltipEmpty}>No trades</div>
       )}
     </div>
   );
@@ -194,20 +156,12 @@ function Tooltip({ cell, style }) {
 function Legend() {
   const steps = [-3, -2, -1, 0, 1, 2, 3];
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 12, justifyContent: 'flex-end' }}>
-      <span style={{ fontSize: 10, color: C.t3 || '#9CA3AF', fontFamily: M, marginRight: 4 }}>Less</span>
+    <div className={st.legend}>
+      <span className={st.legendLabel} style={{ marginRight: 4 }}>Less</span>
       {steps.map((s, i) => (
-        <div
-          key={i}
-          style={{
-            width: 12,
-            height: 12,
-            borderRadius: 2,
-            background: getCellColor(s * 100, 300),
-          }}
-        />
+        <div key={i} className={st.legendCell} style={{ background: getCellColor(s * 100, 300) }} />
       ))}
-      <span style={{ fontSize: 10, color: C.t3 || '#9CA3AF', fontFamily: M, marginLeft: 4 }}>More</span>
+      <span className={st.legendLabel} style={{ marginLeft: 4 }}>More</span>
     </div>
   );
 }
@@ -216,16 +170,10 @@ function Legend() {
 
 function SummaryStats({ weeks }) {
   const stats = useMemo(() => {
-    let totalDays = 0,
-      profitDays = 0,
-      lossDays = 0,
-      totalPnl = 0;
+    let totalDays = 0, profitDays = 0, lossDays = 0, totalPnl = 0;
     let bestDay = { pnl: -Infinity, date: '' };
     let worstDay = { pnl: Infinity, date: '' };
-    let currentStreak = 0,
-      bestStreak = 0,
-      worstStreak = 0,
-      currentLoss = 0;
+    let currentStreak = 0, bestStreak = 0, worstStreak = 0, currentLoss = 0;
 
     for (const week of weeks) {
       for (const cell of week) {
@@ -252,58 +200,32 @@ function SummaryStats({ weeks }) {
   }, [weeks]);
 
   const statItems = [
-    { label: 'Trading Days', value: stats.totalDays, color: C.t1 },
-    { label: 'Green Days', value: stats.profitDays, color: '#10B981' },
-    { label: 'Red Days', value: stats.lossDays, color: '#EF4444' },
+    { label: 'Trading Days', value: stats.totalDays, color: 'var(--tf-t1)' },
+    { label: 'Green Days', value: stats.profitDays, color: 'var(--tf-green)' },
+    { label: 'Red Days', value: stats.lossDays, color: 'var(--tf-red)' },
     {
       label: 'Total P&L',
       value: `${stats.totalPnl >= 0 ? '+' : ''}$${stats.totalPnl.toFixed(0)}`,
-      color: stats.totalPnl >= 0 ? '#10B981' : '#EF4444',
+      color: stats.totalPnl >= 0 ? 'var(--tf-green)' : 'var(--tf-red)',
     },
     {
       label: 'Best Day',
       value: stats.bestDay.pnl > -Infinity ? `+$${stats.bestDay.pnl.toFixed(0)}` : '—',
-      color: '#10B981',
+      color: 'var(--tf-green)',
     },
     {
       label: 'Worst Day',
       value: stats.worstDay.pnl < Infinity ? `-$${Math.abs(stats.worstDay.pnl).toFixed(0)}` : '—',
-      color: '#EF4444',
+      color: 'var(--tf-red)',
     },
   ];
 
   return (
-    <div
-      style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 8, marginBottom: 16 }}
-    >
+    <div className={st.statsGrid}>
       {statItems.map((s) => (
-        <div
-          key={s.label}
-          style={{
-            background: `${C.bg2 || '#111827'}`,
-            border: `1px solid ${C.bd || '#1F2937'}40`,
-            borderRadius: 8,
-            padding: '8px 10px',
-          }}
-        >
-          <div
-            style={{
-              fontSize: 9,
-              fontWeight: 700,
-              color: C.t3 || '#9CA3AF',
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em',
-              marginBottom: 2,
-              fontFamily: M,
-            }}
-          >
-            {s.label}
-          </div>
-          <div
-            style={{ fontSize: 14, fontWeight: 800, color: s.color, fontFamily: M, fontVariantNumeric: 'tabular-nums' }}
-          >
-            {s.value}
-          </div>
+        <div key={s.label} className={st.statCard}>
+          <div className={st.statLabel}>{s.label}</div>
+          <div className={st.statValue} style={{ color: s.color }}>{s.value}</div>
         </div>
       ))}
     </div>
@@ -317,7 +239,6 @@ function CalendarHeatmap({ eq, trades }) {
 
   const { weeks, monthLabels } = useMemo(() => buildCalendarData(eq, trades), [eq, trades]);
 
-  // Compute rule-break and behavioral leak day sets
   const { ruleBreakDays, leakDays } = useMemo(() => {
     const rb = new Set();
     const lk = new Set();
@@ -331,7 +252,6 @@ function CalendarHeatmap({ eq, trades }) {
     return { ruleBreakDays: rb, leakDays: lk };
   }, [trades]);
 
-  // Compute max absolute P&L for color scaling
   const maxAbsPnl = useMemo(() => {
     let max = 0;
     for (const week of weeks) {
@@ -342,8 +262,6 @@ function CalendarHeatmap({ eq, trades }) {
     return max || 100;
   }, [weeks]);
 
-  const _gridWidth = weeks.length * (CELL_SIZE + CELL_GAP) + 30; // 30 for day labels
-
   const handleCellHover = (cell, e) => {
     if (cell.isFuture) return;
     setTooltip({ cell, x: e.clientX + 12, y: e.clientY - 50 });
@@ -353,32 +271,13 @@ function CalendarHeatmap({ eq, trades }) {
     <div>
       <SummaryStats weeks={weeks} />
 
-      <div
-        style={{
-          background: `${C.sf || '#0f1523'}`,
-          border: `1px solid ${C.bd || '#1F2937'}60`,
-          borderRadius: 12,
-          padding: '16px 20px',
-          overflowX: 'auto',
-        }}
-      >
+      <div className={st.calendarBox}>
         {/* Month labels */}
-        <div style={{ display: 'flex', paddingLeft: 30, marginBottom: 4, gap: CELL_GAP }}>
+        <div className={st.monthRow} style={{ gap: CELL_GAP }}>
           {weeks.map((_, wIdx) => {
             const label = monthLabels.find((m) => m.weekIdx === wIdx);
             return (
-              <div
-                key={wIdx}
-                style={{
-                  width: CELL_SIZE,
-                  flexShrink: 0,
-                  fontSize: 9,
-                  fontWeight: 600,
-                  color: C.t3 || '#9CA3AF',
-                  fontFamily: M,
-                  textAlign: 'center',
-                }}
-              >
+              <div key={wIdx} className={st.monthCell} style={{ width: CELL_SIZE }}>
                 {label ? MONTH_NAMES[label.month] : ''}
               </div>
             );
@@ -386,38 +285,27 @@ function CalendarHeatmap({ eq, trades }) {
         </div>
 
         {/* Grid */}
-        <div style={{ display: 'flex', gap: 0 }}>
+        <div className={st.gridWrap}>
           {/* Day labels */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: CELL_GAP, marginRight: 6, paddingTop: 0 }}>
+          <div className={st.dayLabels} style={{ gap: CELL_GAP }}>
             {DAY_LABELS.map((label, i) => (
-              <div
-                key={i}
-                style={{
-                  height: CELL_SIZE,
-                  fontSize: 9,
-                  fontWeight: 600,
-                  color: C.t3 || '#9CA3AF',
-                  fontFamily: M,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'flex-end',
-                  width: 24,
-                }}
-              >
+              <div key={i} className={st.dayLabel} style={{ height: CELL_SIZE }}>
                 {label}
               </div>
             ))}
           </div>
 
           {/* Columns (weeks) */}
-          <div style={{ display: 'flex', gap: CELL_GAP }}>
+          <div className={st.weeksRow} style={{ gap: CELL_GAP }}>
             {weeks.map((week, wIdx) => (
-              <div key={wIdx} style={{ display: 'flex', flexDirection: 'column', gap: CELL_GAP }}>
+              <div key={wIdx} className={st.weekCol} style={{ gap: CELL_GAP }}>
                 {week.map((cell) => (
                   <div
                     key={cell.date}
                     role="gridcell"
                     aria-label={`${cell.date}: ${cell.pnl !== null ? `$${cell.pnl.toFixed(2)}` : 'No trades'}`}
+                    className={st.cell}
+                    data-future={cell.isFuture || undefined}
                     onMouseEnter={(e) => handleCellHover(cell, e)}
                     onMouseMove={(e) => handleCellHover(cell, e)}
                     onMouseLeave={() => setTooltip(null)}
@@ -428,50 +316,12 @@ function CalendarHeatmap({ eq, trades }) {
                       background: getCellColor(cell.pnl, maxAbsPnl),
                       cursor: cell.isFuture ? 'default' : 'pointer',
                       opacity: cell.isFuture ? 0.2 : 1,
-                      transition: 'transform 0.1s, box-shadow 0.1s',
                       outline: cell.isToday ? `2px solid ${C.b || '#00D4AA'}` : 'none',
                       outlineOffset: -1,
-                      position: 'relative',
-                    }}
-                    onMouseOver={(e) => {
-                      if (!cell.isFuture) e.currentTarget.style.transform = 'scale(1.3)';
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.transform = 'scale(1)';
                     }}
                   >
-                    {/* Rule-break indicator (amber dot) */}
-                    {ruleBreakDays.has(cell.date) && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: -2,
-                          right: -2,
-                          width: 5,
-                          height: 5,
-                          borderRadius: '50%',
-                          background: '#f0b64e',
-                          border: '1px solid #08090a',
-                          zIndex: 1,
-                        }}
-                      />
-                    )}
-                    {/* Auto-detected leak indicator (red dot) */}
-                    {!ruleBreakDays.has(cell.date) && leakDays.has(cell.date) && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: -2,
-                          right: -2,
-                          width: 5,
-                          height: 5,
-                          borderRadius: '50%',
-                          background: '#FF453A',
-                          border: '1px solid #08090a',
-                          zIndex: 1,
-                        }}
-                      />
-                    )}
+                    {ruleBreakDays.has(cell.date) && <div className={st.ruleBreakDot} />}
+                    {!ruleBreakDays.has(cell.date) && leakDays.has(cell.date) && <div className={st.leakDot} />}
                   </div>
                 ))}
               </div>

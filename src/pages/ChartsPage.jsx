@@ -17,6 +17,8 @@ import ChartSkeleton from '../app/components/chart/ui/ChartSkeleton.jsx';
 import UnifiedChartToolbar from '../app/components/chart/UnifiedChartToolbar.jsx';
 import Coachmark from '../app/components/ui/Coachmark.jsx';
 import DataSourceBadge from '../app/components/ui/DataSourceBadge.jsx';
+import ConnectionStatus from '../app/components/ui/ConnectionStatus.jsx';
+import OfflineBadge from '../app/components/ui/OfflineBadge.jsx';
 import NoDataState from '../app/components/ui/NoDataState.jsx';
 import { C } from '../constants.js';
 import { fetchSymbolSearch } from '../data/FetchService';
@@ -417,7 +419,7 @@ function ChartsPageInner({ _mountTime }) {
         </div>
       )}
 
-      {/* Live Ticker + Data Source Badge */}
+      {/* Live Ticker + Data Source Badge + Connection Status */}
       {!workspaceMode && (
         <div
           style={{
@@ -444,6 +446,15 @@ function ChartsPageInner({ _mountTime }) {
               />
             </Suspense>
           )}
+          {/* Sprint 2: Connection status badge — always visible */}
+          <div style={{ marginLeft: 'auto', paddingRight: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <ConnectionStatus
+              status={dataLoading ? 'loading' : 'ready'}
+              feedStatus={wsSupported ? (isLive ? 'connected' : wsStatus === 'reconnecting' ? 'connecting' : 'disconnected') : 'disconnected'}
+              latencyTier={wsSupported && isLive ? 'realtime' : !wsSupported ? 'delayed' : undefined}
+            />
+            <OfflineBadge />
+          </div>
         </div>
       )}
 

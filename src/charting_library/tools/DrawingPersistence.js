@@ -74,7 +74,13 @@ export async function saveDrawings(symbol, timeframe, drawings) {
     }
 
     // Save local drawings
-    const tx = db.transaction(STORE_NAME, 'readwrite');
+    let tx;
+    try {
+      tx = db.transaction(STORE_NAME, 'readwrite');
+    } catch (e) {
+      // InvalidStateError: DB connection closing during symbol switch — fall through to localStorage fallback
+      throw e;
+    }
     const store = tx.objectStore(STORE_NAME);
     store.put({ key, drawings: localDrawings, updatedAt: Date.now() });
 
@@ -84,32 +90,50 @@ export async function saveDrawings(symbol, timeframe, drawings) {
       store.put({ key: syncKey, drawings: syncedDrawings, updatedAt: Date.now() });
     }
 
-    // Sprint 10: Version ring buffer — save a versioned snapshot
-    const versionKey = `${key}_versions`;
-    const vReq = store.get(versionKey);
-    const versionData = await new Promise((resolve) => {
-      vReq.onsuccess = () => resolve(vReq.result || { key: versionKey, versions: [] });
-      vReq.onerror = () => resolve({ key: versionKey, versions: [] });
-    });
-    const allDrawings = [...localDrawings, ...syncedDrawings];
-    versionData.versions.push({
-      timestamp: Date.now(),
-      count: allDrawings.length,
-      drawings: allDrawings,
-    });
-    // Keep only last MAX_VERSIONS
-    if (versionData.versions.length > MAX_VERSIONS) {
-      versionData.versions = versionData.versions.slice(-MAX_VERSIONS);
-    }
-    const tx2 = db.transaction(STORE_NAME, 'readwrite');
-    tx2.objectStore(STORE_NAME).put(versionData);
-
+    // Await first transaction before opening second (prevents IDB "connection closing" errors)
     await new Promise((resolve, reject) => {
-      tx2.oncomplete = resolve;
-      tx2.onerror = () => reject(tx2.error);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
     });
+
+    // Sprint 10: Version ring buffer — save a versioned snapshot (separate transaction)
+    try {
+      const tx2 = db.transaction(STORE_NAME, 'readwrite');
+      const store2 = tx2.objectStore(STORE_NAME);
+      const versionKey = `${key}_versions`;
+      const vReq = store2.get(versionKey);
+      const versionData = await new Promise((resolve) => {
+        vReq.onsuccess = () => resolve(vReq.result || { key: versionKey, versions: [] });
+        vReq.onerror = () => resolve({ key: versionKey, versions: [] });
+      });
+      const allDrawings = [...localDrawings, ...syncedDrawings];
+      versionData.versions.push({
+        timestamp: Date.now(),
+        count: allDrawings.length,
+        drawings: allDrawings,
+      });
+      // Keep only last MAX_VERSIONS
+      if (versionData.versions.length > MAX_VERSIONS) {
+        versionData.versions = versionData.versions.slice(-MAX_VERSIONS);
+      }
+      store2.put(versionData);
+
+      await new Promise((resolve, reject) => {
+        tx2.oncomplete = resolve;
+        tx2.onerror = () => reject(tx2.error);
+      });
+    } catch (vErr) {
+      // Version history save is non-critical — don't block drawing saves
+      logger.engine.debug('[DrawingPersistence] Version save failed (non-critical):', vErr);
+    }
   } catch (err) {
-    logger.engine.warn('[DrawingPersistence] Save failed:', err);
+    // InvalidStateError during symbol switch is expected — downgrade to debug
+    const isExpectedError = err?.name === 'InvalidStateError' || (err?.message || '').includes('connection is closing');
+    if (isExpectedError) {
+      logger.engine.debug('[DrawingPersistence] Save skipped (IDB closing):', err?.message);
+    } else {
+      logger.engine.warn('[DrawingPersistence] Save failed:', err);
+    }
     // Fallback: try localStorage
     try {
       const key = buildKey(symbol, timeframe);
@@ -140,7 +164,14 @@ export async function loadDrawings(symbol, timeframe) {
     const key = buildKey(symbol, timeframe);
     const syncKey = buildSyncKey(symbol);
 
-    const tx = db.transaction(STORE_NAME, 'readonly');
+    let tx;
+    try {
+      tx = db.transaction(STORE_NAME, 'readonly');
+    } catch (e) {
+      // InvalidStateError: DB connection closing during symbol switch — return empty
+      logger.engine.debug('[DrawingPersistence] IDB unavailable during load, returning empty:', e?.message || e);
+      return [];
+    }
     const store = tx.objectStore(STORE_NAME);
 
     const [localResult, syncResult] = await Promise.all([

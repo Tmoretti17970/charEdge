@@ -10,6 +10,7 @@ import React from 'react';
 import { useState, useCallback, useMemo } from 'react';
 import { alpacaAdapter } from '../../../../data/adapters/AlpacaAdapter.js';
 import { usePaperTradeStore, ORDER_TYPES, POSITION_SIDE } from '../../../../state/usePaperTradeStore';
+import s from './OrderEntryOverlay.module.css';
 
 const SIDE_COLORS = {
   buy: { bg: 'rgba(16, 185, 129, 0.15)', border: '#10b981', text: '#34d399' },
@@ -113,87 +114,49 @@ function OrderEntryOverlay({
   return (
     <div style={overlayStyle}>
       {/* Backdrop click to close */}
-      <div
-        style={{
-          position: 'fixed', inset: 0, zIndex: -1,
-          background: 'transparent',
-        }}
-        onClick={onClose}
-      />
+      <div className={s.backdrop} onClick={onClose} />
 
       <form
         onSubmit={handleSubmit}
-        style={{
-          background: 'var(--color-surface, #1a1a2e)',
-          border: `1px solid ${colors.border}`,
-          borderRadius: 12,
-          padding: 16,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-          fontFamily: "'Inter', sans-serif",
-          color: 'var(--color-text, #e2e8f0)',
-          fontSize: 13,
-        }}
+        className={s.form}
+        style={{ border: `1px solid ${colors.border}` }}
       >
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <span style={{ fontWeight: 700, fontSize: 14 }}>
+        <div className={s.header}>
+          <span className={s.headerTitle}>
             {isLive ? '🟢 Live' : '📝 Paper'} Order
           </span>
-          <span style={{ fontWeight: 600, color: 'var(--color-text-muted, #94a3b8)' }}>
+          <span className={s.headerSymbol}>
             {symbol}
           </span>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              background: 'none', border: 'none', color: 'var(--color-text-muted, #94a3b8)',
-              cursor: 'pointer', fontSize: 18, lineHeight: 1,
-            }}
-          >
+          <button type="button" onClick={onClose} className={s.closeBtn}>
             ×
           </button>
         </div>
 
         {/* Side Toggle */}
-        <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-          {['buy', 'sell'].map((s) => (
+        <div className={s.sideRow}>
+          {['buy', 'sell'].map((sd) => (
             <button
-              key={s}
+              key={sd}
               type="button"
-              onClick={() => setSide(s)}
+              onClick={() => setSide(sd)}
+              className={s.sideBtn}
               style={{
-                flex: 1,
-                padding: '6px 0',
-                borderRadius: 6,
-                border: `1px solid ${s === side ? SIDE_COLORS[s].border : 'var(--color-border, #334155)'}`,
-                background: s === side ? SIDE_COLORS[s].bg : 'transparent',
-                color: s === side ? SIDE_COLORS[s].text : 'var(--color-text-muted, #94a3b8)',
-                fontWeight: 600,
-                fontSize: 13,
-                cursor: 'pointer',
-                textTransform: 'uppercase',
+                border: `1px solid ${sd === side ? SIDE_COLORS[sd].border : 'var(--color-border, #334155)'}`,
+                background: sd === side ? SIDE_COLORS[sd].bg : 'transparent',
+                color: sd === side ? SIDE_COLORS[sd].text : 'var(--color-text-muted, #94a3b8)',
               }}
             >
-              {s}
+              {sd}
             </button>
           ))}
         </div>
 
         {/* Order Type */}
-        <div style={{ marginBottom: 10 }}>
-          <label style={{ display: 'block', fontSize: 11, color: 'var(--color-text-muted, #94a3b8)', marginBottom: 3 }}>
-            Type
-          </label>
-          <select
-            value={orderType}
-            onChange={(e) => setOrderType(e.target.value)}
-            style={{
-              width: '100%', padding: '6px 8px', borderRadius: 6,
-              background: 'var(--color-surface-alt, #16213e)',
-              border: '1px solid var(--color-border, #334155)',
-              color: 'var(--color-text, #e2e8f0)', fontSize: 13,
-            }}
-          >
+        <div className={s.fieldGroup}>
+          <label className={s.fieldLabel}>Type</label>
+          <select value={orderType} onChange={(e) => setOrderType(e.target.value)} className={s.selectInput}>
             <option value="market">Market</option>
             <option value="limit">Limit</option>
             <option value="stop">Stop</option>
@@ -203,8 +166,8 @@ function OrderEntryOverlay({
 
         {/* Price (for limit/stop orders) */}
         {orderType !== 'market' && (
-          <div style={{ marginBottom: 10 }}>
-            <label style={{ display: 'block', fontSize: 11, color: 'var(--color-text-muted, #94a3b8)', marginBottom: 3 }}>
+          <div className={s.fieldGroup}>
+            <label className={s.fieldLabel}>
               {orderType === 'stop' ? 'Stop Price' : 'Limit Price'}
             </label>
             <input
@@ -212,50 +175,24 @@ function OrderEntryOverlay({
               step="0.01"
               value={limitPrice}
               onChange={(e) => setLimitPrice(e.target.value)}
-              style={{
-                width: '100%', padding: '6px 8px', borderRadius: 6,
-                background: 'var(--color-surface-alt, #16213e)',
-                border: `1px solid ${colors.border}`,
-                color: colors.text, fontSize: 14, fontWeight: 600,
-                boxSizing: 'border-box',
-              }}
+              className={s.textInput}
+              style={{ border: `1px solid ${colors.border}`, color: colors.text, fontWeight: 600, fontSize: 14 }}
             />
           </div>
         )}
 
         {/* Quantity */}
-        <div style={{ marginBottom: 10 }}>
-          <label style={{ display: 'block', fontSize: 11, color: 'var(--color-text-muted, #94a3b8)', marginBottom: 3 }}>
-            Quantity
-          </label>
+        <div className={s.fieldGroup}>
+          <label className={s.fieldLabel}>Quantity</label>
           <input
-            type="number"
-            min="1"
-            step="1"
+            type="number" min="1" step="1"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
-            style={{
-              width: '100%', padding: '6px 8px', borderRadius: 6,
-              background: 'var(--color-surface-alt, #16213e)',
-              border: '1px solid var(--color-border, #334155)',
-              color: 'var(--color-text, #e2e8f0)', fontSize: 13,
-              boxSizing: 'border-box',
-            }}
+            className={s.textInput}
           />
-          <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
+          <div className={s.qtyRow}>
             {[0.25, 0.5, 0.75, 1].map((pct) => (
-              <button
-                key={pct}
-                type="button"
-                onClick={() => setQtyPercent(pct)}
-                style={{
-                  flex: 1, padding: '3px 0', borderRadius: 4,
-                  background: 'var(--color-surface-alt, #16213e)',
-                  border: '1px solid var(--color-border, #334155)',
-                  color: 'var(--color-text-muted, #94a3b8)', fontSize: 11,
-                  cursor: 'pointer',
-                }}
-              >
+              <button key={pct} type="button" onClick={() => setQtyPercent(pct)} className={s.qtyBtn}>
                 {pct * 100}%
               </button>
             ))}
@@ -264,68 +201,38 @@ function OrderEntryOverlay({
 
         {/* SL/TP (paper only) */}
         {!isLive && (
-          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: 11, color: '#ef4444', marginBottom: 3 }}>
-                Stop Loss
-              </label>
+          <div className={s.slTpRow}>
+            <div className={s.slTpCol}>
+              <label className={s.fieldLabelSL}>Stop Loss</label>
               <input
-                type="number"
-                step="0.01"
-                value={stopLoss}
+                type="number" step="0.01" value={stopLoss}
                 onChange={(e) => setStopLoss(e.target.value)}
                 placeholder="—"
-                style={{
-                  width: '100%', padding: '5px 6px', borderRadius: 6,
-                  background: 'var(--color-surface-alt, #16213e)',
-                  border: '1px solid var(--color-border, #334155)',
-                  color: 'var(--color-text, #e2e8f0)', fontSize: 12,
-                  boxSizing: 'border-box',
-                }}
+                className={s.smallInput}
               />
             </div>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: 11, color: '#10b981', marginBottom: 3 }}>
-                Take Profit
-              </label>
+            <div className={s.slTpCol}>
+              <label className={s.fieldLabelTP}>Take Profit</label>
               <input
-                type="number"
-                step="0.01"
-                value={takeProfit}
+                type="number" step="0.01" value={takeProfit}
                 onChange={(e) => setTakeProfit(e.target.value)}
                 placeholder="—"
-                style={{
-                  width: '100%', padding: '5px 6px', borderRadius: 6,
-                  background: 'var(--color-surface-alt, #16213e)',
-                  border: '1px solid var(--color-border, #334155)',
-                  color: 'var(--color-text, #e2e8f0)', fontSize: 12,
-                  boxSizing: 'border-box',
-                }}
+                className={s.smallInput}
               />
             </div>
           </div>
         )}
 
         {/* Estimated cost */}
-        <div style={{
-          padding: '6px 8px', borderRadius: 6, marginBottom: 10,
-          background: 'var(--color-surface-alt, #16213e)',
-          fontSize: 11, color: 'var(--color-text-muted, #94a3b8)',
-          display: 'flex', justifyContent: 'space-between',
-        }}>
+        <div className={s.costBox}>
           <span>Est. Cost</span>
-          <span style={{ color: 'var(--color-text, #e2e8f0)', fontWeight: 600 }}>
+          <span className={s.costValue}>
             ${((parseFloat(quantity) || 0) * (orderType === 'market' ? currentPrice : (parseFloat(limitPrice) || 0))).toFixed(2)}
           </span>
         </div>
 
-        {/* Error */}
         {error && (
-          <div style={{
-            padding: '6px 8px', borderRadius: 6, marginBottom: 10,
-            background: 'rgba(239, 68, 68, 0.15)', color: '#f87171',
-            fontSize: 12,
-          }}>
+          <div className={s.errorBox}>
             {error}
           </div>
         )}
@@ -334,21 +241,8 @@ function OrderEntryOverlay({
         <button
           type="submit"
           disabled={submitting}
-          style={{
-            width: '100%',
-            padding: '10px 0',
-            borderRadius: 8,
-            border: 'none',
-            background: side === 'buy'
-              ? 'linear-gradient(135deg, #10b981, #059669)'
-              : 'linear-gradient(135deg, #ef4444, #dc2626)',
-            color: '#fff',
-            fontWeight: 700,
-            fontSize: 14,
-            cursor: submitting ? 'wait' : 'pointer',
-            opacity: submitting ? 0.6 : 1,
-            transition: 'opacity 0.15s',
-          }}
+          className={s.submitBtn}
+          data-side={side}
         >
           {submitting
             ? 'Placing...'

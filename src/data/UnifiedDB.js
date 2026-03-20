@@ -188,6 +188,22 @@ function openUnifiedDB() {
         clearTimeout(timeout);
         _db = event.target.result;
 
+        // Sprint 9: Write schema version metadata for runtime health checks
+        try {
+          const tx = _db.transaction('meta', 'readwrite');
+          tx.objectStore('meta').put({
+            key: '__schema__',
+            data: {
+              version: UNIFIED_DB_VERSION,
+              updatedAt: Date.now(),
+              storeCount: _db.objectStoreNames.length,
+            },
+            timestamp: Date.now(),
+          });
+        } catch (_schemaErr) {
+          // Non-critical — meta store may not exist on first open
+        }
+
         // Run one-time migration in background (non-blocking)
         _migrateOldDBs(_db).catch((err) => {
           logger.data.warn('[UnifiedDB] Migration error (non-fatal):', err?.message);
@@ -536,7 +552,80 @@ function _addAllToStore(db, storeName, records) {
   });
 }
 
+// Sprint 9: Storage health check utility for Settings page
+async function getStorageHealth() {
+  const report = {
+    healthy: false,
+    version: UNIFIED_DB_VERSION,
+    actualVersion: null,
+    storeCount: 0,
+    totalRecords: 0,
+    storeCounts: {},
+    usageMB: 0,
+    quotaMB: 0,
+    usagePct: 0,
+    migrated: false,
+    errors: [],
+  };
+
+  try {
+    const db = await openUnifiedDB();
+    report.storeCount = db.objectStoreNames.length;
+
+    // Read schema version from meta store
+    try {
+      const tx = db.transaction('meta', 'readonly');
+      const req = tx.objectStore('meta').get('__schema__');
+      const schema = await new Promise(r => {
+        req.onsuccess = () => r(req.result);
+        req.onerror = () => r(null);
+      });
+      if (schema?.data) {
+        report.actualVersion = schema.data.version;
+      }
+    } catch (_) {
+      report.errors.push('Could not read schema version');
+    }
+
+    // Count records per store
+    const storeNames = [...db.objectStoreNames];
+    for (const name of storeNames) {
+      try {
+        const count = await new Promise(r => {
+          const tx = db.transaction(name, 'readonly');
+          const req = tx.objectStore(name).count();
+          req.onsuccess = () => r(req.result);
+          req.onerror = () => r(0);
+        });
+        report.storeCounts[name] = count;
+        report.totalRecords += count;
+      } catch (_) {
+        report.storeCounts[name] = -1; // Error flag
+      }
+    }
+
+    // Storage usage
+    if (navigator?.storage?.estimate) {
+      const est = await navigator.storage.estimate();
+      report.usageMB = Math.round((est.usage || 0) / 1048576 * 10) / 10;
+      report.quotaMB = Math.round((est.quota || 0) / 1048576);
+      report.usagePct = est.quota > 0 ? Math.round((est.usage / est.quota) * 1000) / 10 : 0;
+    }
+
+    // Migration status
+    try {
+      report.migrated = !!localStorage.getItem(MIGRATION_FLAG);
+    } catch (_) {}
+
+    report.healthy = report.errors.length === 0 && report.actualVersion === UNIFIED_DB_VERSION;
+  } catch (err) {
+    report.errors.push(err?.message || 'Failed to open database');
+  }
+
+  return report;
+}
+
 // ─── Exports ──────────────────────────────────────────────────
 
-export { openUnifiedDB, UNIFIED_DB_NAME, ACCOUNT_IDS, ACCOUNT_STORE_BASES, accountStoreNameFor };
+export { openUnifiedDB, getStorageHealth, UNIFIED_DB_NAME, ACCOUNT_IDS, ACCOUNT_STORE_BASES, accountStoreNameFor };
 export default openUnifiedDB;

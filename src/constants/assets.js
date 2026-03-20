@@ -96,14 +96,48 @@ export const FOREX_PAIRS = new Set([
  * @param {string} sym
  * @returns {'crypto'|'futures'|'forex'|'stock'}
  */
+/**
+ * Check if a symbol is a known futures contract.
+ * Handles raw roots ('ES'), Yahoo-style ('ES=F'), and contract codes ('ESH25').
+ */
+export function isFutures(sym) {
+  const s = (sym || '').toUpperCase();
+  const stripped = s.replace(/=F$/, '');
+  const root = stripped.replace(/[FGHJKMNQUVXZ]\d{1,2}$/, '').replace(/\d{2}-\d{2}$/, '');
+  return FUTURES_ROOTS.has(root) || FUTURES_ROOTS.has(stripped);
+}
+
+/**
+ * Check if a symbol is a known forex pair.
+ */
+export function isForex(sym) {
+  const s = (sym || '').toUpperCase().replace(/=X$/, '');
+  return FOREX_PAIRS.has(s);
+}
+
+/**
+ * Convert a charEdge symbol to its Yahoo Finance equivalent.
+ * Futures: ES → ES=F, GC → GC=F
+ * Forex:   EURUSD → EURUSD=X
+ * Stocks:  AAPL → AAPL (unchanged)
+ */
+export function toYahooSymbol(sym) {
+  const s = (sym || '').toUpperCase();
+  // Already in Yahoo format
+  if (s.endsWith('=F') || s.endsWith('=X')) return s;
+  if (isFutures(s)) {
+    // Strip contract month/year to get clean root, then append =F
+    const stripped = s.replace(/[FGHJKMNQUVXZ]\d{1,2}$/, '').replace(/\d{2}-\d{2}$/, '');
+    return stripped + '=F';
+  }
+  if (isForex(s)) return s + '=X';
+  return s;
+}
+
 export function getAssetClass(sym) {
   const s = (sym || '').toUpperCase();
   if (isCrypto(s)) return 'crypto';
-  // Strip Yahoo-style suffixes first: GC=F → GC, EURUSD=X → EURUSD
-  const stripped = s.replace(/=F$|=X$/, '');
-  // Strip futures contract month/year suffix: ESH5 → ES, ESH25 → ES, MES03-25 → MES
-  const root = stripped.replace(/[FGHJKMNQUVXZ]\d{1,2}$/, '').replace(/\d{2}-\d{2}$/, '');
-  if (FUTURES_ROOTS.has(root) || FUTURES_ROOTS.has(stripped)) return 'futures';
-  if (FOREX_PAIRS.has(s) || FOREX_PAIRS.has(stripped)) return 'forex';
+  if (isFutures(s)) return 'futures';
+  if (isForex(s)) return 'forex';
   return 'stock';
 }

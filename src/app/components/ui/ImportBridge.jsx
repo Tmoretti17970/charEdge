@@ -71,7 +71,7 @@ function ImportBridge() {
         display: 'flex',
         alignItems: 'flex-start',
         justifyContent: 'center',
-        paddingTop: '5vh',
+        paddingTop: '3vh',
         animation: 'fadeIn 0.18s ease-out',
       }}
     >
@@ -92,8 +92,8 @@ function ImportBridge() {
         style={{
           position: 'relative',
           width: '90vw',
-          maxWidth: 980,
-          maxHeight: '88vh',
+          maxWidth: 1100,
+          maxHeight: '92vh',
           borderRadius: 18,
           background: C.sf + 'e6',
           backdropFilter: 'blur(25px) saturate(1.6)',

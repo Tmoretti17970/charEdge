@@ -390,7 +390,14 @@ class _TickerPlant {
             // Sprint 1 Task 1.2.1: Reset reconnect counter on successful data receipt
             this._resetReconnect(symbol);
           });
-          if (unsub) entry.unsubs.push(unsub);
+          if (typeof unsub === 'function') {
+            entry.unsubs.push(unsub);
+          } else if (unsub && typeof (unsub as any).then === 'function') {
+            // Handle async subscribe that returns Promise<() => void>
+            (unsub as unknown as Promise<(() => void) | undefined>).then(fn => {
+              if (typeof fn === 'function' && entry.active) entry.unsubs.push(fn);
+            }).catch(() => {});
+          }
         } catch (err) {
           this._healthTracker.recordError(source.id);
           logger.data.warn(`[TickerPlant] Failed to subscribe ${symbol} to ${source.id}:`, (err as Error).message);

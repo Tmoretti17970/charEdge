@@ -1,0 +1,326 @@
+/* ═══════════════════════════════════════════════════════════════════
+   DrawingQuickEditor — CSS Module (Sprint 23)
+   Migrated from 47 inline styles → token-based CSS classes.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Editor Container ─── */
+.editor {
+  position: fixed;
+  z-index: 9999;
+  border-radius: 10px;
+  background: rgba(24, 26, 34, 0.92);
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+  pointer-events: auto;
+  user-select: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+  font-size: 12px;
+  color: #D1D4DC;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.15s ease;
+}
+.editor[data-expanded="true"] {
+  border-radius: 14px;
+  min-width: 280px;
+  max-width: 340px;
+}
+.editor[data-visible="false"] {
+  transform: translateY(6px) scale(0.96);
+  opacity: 0;
+}
+.editor[data-visible="true"] {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+.editor[data-dragging="true"] { transition: none; }
+
+/* ─── Quick Bar ─── */
+.quickBar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+}
+.quickBar[data-expanded="true"] {
+  padding: 5px 6px 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+/* ─── Drag Handle ─── */
+.dragHandle {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 4px 4px 2px;
+  cursor: grab;
+  opacity: 0.4;
+  transition: opacity 0.15s;
+}
+.dragHandle:hover { opacity: 0.8; }
+.dragHandle[data-dragging="true"] { cursor: grabbing; }
+.gripRow { display: flex; gap: 2px; }
+.gripDot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #D1D4DC;
+}
+
+/* ─── Divider ─── */
+.divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255,255,255,0.08);
+  margin: 0 2px;
+}
+
+/* ─── Color Dots ─── */
+.colorDotsRow { display: flex; gap: 2px; }
+.colorDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.12s, border-color 0.15s;
+}
+.colorDot[data-selected="true"] {
+  border-color: #fff;
+  transform: scale(1.15);
+}
+.colorWheelBtn {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+  border: 2px solid rgba(255,255,255,0.15);
+  cursor: pointer;
+  outline: none;
+}
+
+/* ─── Quick Button (QBtn) ─── */
+.qBtn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #D1D4DC;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.12s, color 0.12s, transform 0.1s;
+}
+.qBtn:hover {
+  background: rgba(255,255,255,0.08);
+  transform: scale(1.08);
+}
+.qBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+.qBtn:disabled:hover { transform: scale(1); background: transparent; }
+.qBtn[data-active="true"] {
+  background: rgba(41, 98, 255, 0.2);
+  color: #2962FF;
+}
+.qBtn[data-danger="true"]:hover { color: #FF5252; }
+
+/* Width display */
+.widthDisplay {
+  color: #D1D4DC;
+  font-size: 10px;
+  font-weight: 600;
+  min-width: 14px;
+  text-align: center;
+}
+
+/* ─── Expanded Panel ─── */
+.expandedPanel { padding: 0 2px; }
+
+/* Tool label row */
+.toolLabelRow {
+  padding: 4px 8px 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #787B86;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.toolLabelName { flex: 1; }
+.fullSettingsBtn {
+  background: none;
+  border: none;
+  color: #787B86;
+  cursor: pointer;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.12s;
+}
+.fullSettingsBtn:hover { color: #D1D4DC; }
+
+/* Fill row */
+.fillRow {
+  padding: 3px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.fillLabel { font-size: 10px; color: #787B86; }
+.fillBtnWrap { position: relative; }
+.fillBtn {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  border: 2px solid rgba(255,255,255,0.12);
+  cursor: pointer;
+  outline: none;
+}
+
+/* Dash pattern row */
+.dashRow {
+  padding: 4px 8px;
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.dashBtn {
+  padding: 3px 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 10px;
+  color: #787B86;
+  letter-spacing: 1px;
+  transition: all 0.12s;
+}
+.dashBtn[data-active="true"] {
+  background: rgba(41,98,255,0.15);
+  border-color: rgba(41,98,255,0.3);
+  color: #2962FF;
+}
+
+/* Coordinates section */
+.coordSection {
+  padding: 3px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.coordToggle {
+  background: none;
+  border: none;
+  color: #787B86;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 0;
+  width: 100%;
+  text-align: left;
+}
+.coordChevron {
+  display: inline-block;
+  transition: transform 0.15s;
+}
+.coordChevron[data-open="true"] { transform: rotate(90deg); }
+.coordBody { margin-top: 4px; }
+.coordRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.coordLabel { font-size: 10px; color: #787B86; min-width: 20px; }
+
+/* CoordField */
+.coordField {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 6px;
+  padding: 3px 6px;
+  border: 1px solid rgba(255,255,255,0.06);
+  flex: 1;
+}
+.coordFieldIcon { font-size: 10px; color: #787B86; }
+.coordFieldInput {
+  background: none;
+  border: none;
+  outline: none;
+  color: #D1D4DC;
+  font-size: 11px;
+  width: 100%;
+  font-family: 'SF Mono', 'Cascadia Code', monospace;
+}
+
+/* Action row */
+.actionRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px 5px;
+}
+.actionSpacer { flex: 1; }
+
+/* ActionBtn */
+.actionBtn {
+  padding: 3px 5px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #D1D4DC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  transition: all 0.12s;
+}
+.actionBtn:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.08);
+}
+
+/* ─── Color Grid ─── */
+.colorGrid {
+  padding: 8px 8px 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.colorGridSwatches {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.colorGridSwatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.colorGridSwatch:hover { transform: scale(1.15); }
+.colorGridSwatch[data-selected="true"] {
+  border-color: #fff;
+}
+.colorGridInput {
+  width: 100%;
+  height: 22px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 5px;
+  cursor: pointer;
+  background: rgba(30,34,45,0.8);
+}

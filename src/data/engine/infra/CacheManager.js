@@ -168,7 +168,7 @@ class _CacheManager {
           return { data: idbBars, source: 'cached', tier: 'idb' };
         }
       }
-    } catch (err) { pipelineLogger.warn('CacheManager', `IDB read failed: ${key}`, err); }
+    } catch (err) { pipelineLogger.debug('CacheManager', `IDB read failed: ${key}`, err); }
 
     // ── Tier 3: OPFS persistent cache (binary encoded) ──
     try {
@@ -178,7 +178,7 @@ class _CacheManager {
         this._memSet(key, opfsBars, 'cached');
         // Backfill IDB from OPFS in background
         this._loadDataCache().then(dc => {
-          if (dc) dc.putCandles(sym, tfId, opfsBars).catch((err) => pipelineLogger.warn('CacheManager', `IDB backfill failed: ${key}`, err));
+          if (dc) dc.putCandles(sym, tfId, opfsBars).catch((err) => pipelineLogger.debug('CacheManager', `IDB backfill failed: ${key}`, err));
         }).catch((err) => pipelineLogger.warn('CacheManager', `DataCache load failed during backfill: ${key}`, err));
         return { data: opfsBars, source: 'cached', tier: 'opfs' };
       }
@@ -220,7 +220,7 @@ class _CacheManager {
 
     // Tier 2: IndexedDB (async, fire-and-forget)
     this._loadDataCache().then(dc => {
-      if (dc) dc.putCandles(sym, tfId, data).catch((err) => pipelineLogger.warn('CacheManager', `IDB write failed: ${key}`, err));
+      if (dc) dc.putCandles(sym, tfId, data).catch((err) => pipelineLogger.debug('CacheManager', `IDB write failed: ${key}`, err));
     }).catch((err) => pipelineLogger.warn('CacheManager', `DataCache load failed during write: ${key}`, err));
 
     // Tier 3: OPFS (async, fire-and-forget)

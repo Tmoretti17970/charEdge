@@ -1,0 +1,266 @@
+/* ═══════════════════════════════════════════════════════════════════
+   FuturesAnalytics — CSS Module (Sprint 23)
+   Migrated from inline styles. Dynamic colors via CSS custom props.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Signal Badge ─── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-family: var(--tf-font);
+  font-size: 11px;
+  background: var(--badge-bg);
+}
+.badgeIcon {
+  color: var(--badge-color);
+  font-weight: 700;
+}
+.badgeLabel {
+  color: var(--badge-color);
+  font-weight: 600;
+}
+.badgeConf {
+  color: var(--tf-t3);
+  font-size: 9px;
+  margin-left: 2px;
+}
+
+/* ─── Metric Cell ─── */
+.metricCell {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.metricCell[data-small="true"] { padding: 2px 0; }
+.metricCell:not([data-small="true"]) { padding: 4px 0; }
+
+.metricLabel {
+  font-size: 9px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.metricValue {
+  font-weight: 600;
+  font-family: var(--tf-font);
+  font-variant-numeric: tabular-nums;
+  color: var(--metric-color, var(--tf-t1));
+}
+.metricValue[data-small="true"] { font-size: 12px; }
+.metricValue:not([data-small="true"]) { font-size: 14px; }
+
+.metricSuffix {
+  font-size: 9px;
+  color: var(--tf-t3);
+  margin-left: 2px;
+}
+
+/* ─── VWAP Bar ─── */
+.vwapWrap {
+  flex: 1;
+  min-width: 60px;
+}
+.vwapLabel {
+  font-size: 9px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  margin-bottom: 2px;
+}
+.vwapTrack {
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--tf-t1) 6%, transparent);
+  position: relative;
+  overflow: hidden;
+}
+.vwapCenter {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background: color-mix(in srgb, var(--tf-t1) 15%, transparent);
+}
+.vwapIndicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  background: var(--vwap-color);
+}
+.vwapValue {
+  font-size: 10px;
+  font-family: var(--tf-font);
+  font-weight: 600;
+  margin-top: 2px;
+  color: var(--vwap-color);
+}
+
+/* ─── Instrument Card ─── */
+.card {
+  padding: 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tf-t1) 3%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tf-t1) 8%, transparent);
+  transition: all 0.2s ease;
+}
+.card[data-waiting="true"] {
+  background: color-mix(in srgb, var(--tf-t1) 2%, transparent);
+  border-color: color-mix(in srgb, var(--tf-t1) 6%, transparent);
+  opacity: 0.5;
+}
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.cardHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cardDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--inst-color);
+}
+.card:not([data-waiting="true"]) .cardDot {
+  box-shadow: 0 0 6px color-mix(in srgb, var(--inst-color) 25%, transparent);
+}
+.card[data-waiting="true"] .cardDot { opacity: 0.4; }
+.cardSymbol {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--tf-font);
+  color: var(--tf-t1);
+}
+.cardName {
+  font-size: 10px;
+  color: var(--tf-t3);
+}
+.cardWaiting {
+  font-size: 11px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+}
+.metricsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.secondaryRow {
+  display: flex;
+  gap: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--tf-t1) 4%, transparent);
+  padding-top: 6px;
+}
+
+/* ─── Main Panel ─── */
+.panel {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 420px;
+  max-height: calc(100% - 16px);
+  overflow-y: auto;
+  border-radius: 12px;
+  z-index: 200;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: var(--tf-bg2, var(--tf-bg));
+  border: 1px solid var(--tf-bd);
+}
+.panelHeader {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--tf-bd);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panelHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.panelTitle {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--tf-font);
+  color: var(--tf-t1);
+}
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.statusDot[data-live="true"] {
+  background: var(--tf-green);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--tf-green) 50%, transparent);
+}
+.statusDot[data-live="false"] {
+  background: #e8642c;
+}
+.statusLabel {
+  font-size: 9px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+}
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--tf-t3);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 4px;
+}
+.closeBtn:hover { color: var(--tf-t1); }
+
+/* Legal notice */
+.legal {
+  padding: 4px 14px;
+  background: color-mix(in srgb, var(--tf-t1) 2%, transparent);
+  border-bottom: 1px solid var(--tf-bd);
+}
+.legalText {
+  font-size: 8px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  letter-spacing: 0.5px;
+}
+
+/* Cards container */
+.cards {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Footer */
+.footer {
+  padding: 8px 14px;
+  border-top: 1px solid var(--tf-bd);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.footerText {
+  font-size: 10px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+}
+.footerCode {
+  font-size: 9px;
+  font-family: monospace;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--tf-t1) 4%, transparent);
+  color: var(--tf-info);
+}

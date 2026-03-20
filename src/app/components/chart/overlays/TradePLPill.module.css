@@ -1,0 +1,319 @@
+/* ═══════════════════════════════════════════════════════════════════
+   TradePLPill — CSS Module (Sprint 23)
+   Migrated from inline styles. Dynamic colors via CSS custom props.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Root Container ─── */
+.root {
+  position: absolute;
+  top: 4px;
+  right: 68px;
+  z-index: 80;
+  font-family: var(--tf-font);
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ─── Auto-Fit Button ─── */
+.autoFitBtn {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: none;
+  background: #2962FF;
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  padding: 0;
+  flex-shrink: 0;
+}
+.autoFitBtn:hover {
+  filter: brightness(1.1);
+}
+
+/* ─── Pill Button ─── */
+.pillWrap { position: relative; }
+
+.pillBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--pill-color) 25%, transparent);
+  background: color-mix(in srgb, var(--pill-color) 7%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--pill-color);
+  font-family: var(--tf-font);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--pill-color) 12%, transparent);
+}
+.pillBtn:hover {
+  transform: scale(1.03);
+}
+
+.pulseDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--pill-color);
+  box-shadow: 0 0 6px var(--pill-color);
+  animation: tfPulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.openCount {
+  opacity: 0.6;
+  font-weight: 500;
+}
+.chevron {
+  font-size: 8px;
+  color: var(--tf-t3);
+  transition: transform 0.15s;
+}
+.chevron[data-open="true"] { transform: rotate(180deg); }
+
+/* ─── Dropdown Panel ─── */
+.dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  padding: 0;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--tf-bd);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  min-width: 280px;
+  max-width: 340px;
+  animation: tfDropdownIn 0.15s ease-out;
+  z-index: 90;
+  overflow: hidden;
+}
+
+/* ─── View Toggle ─── */
+.viewToggle {
+  display: flex;
+  gap: 0;
+  padding: 8px 10px 6px;
+  border-bottom: 1px solid var(--tf-bd);
+}
+.viewBtn {
+  flex: 1;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: none;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--tf-font);
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  background: transparent;
+  color: var(--tf-t3);
+  transition: all 0.15s ease;
+}
+.viewBtn[data-active="true"] {
+  background: color-mix(in srgb, var(--tf-accent) 12%, transparent);
+  color: var(--tf-accent);
+}
+
+/* ─── Positions Section ─── */
+.posSection { padding: 8px 10px; }
+.sectionTitle {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--tf-t3);
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.emptyMsg {
+  font-size: 11px;
+  color: var(--tf-t3);
+  padding: 8px 0;
+  text-align: center;
+}
+.posList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* ─── Position Card ─── */
+.posCard {
+  padding: 6px 8px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: color-mix(in srgb, var(--pos-color) 3%, transparent);
+}
+.posRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.posLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.posSymbol {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tf-t1);
+  font-family: var(--tf-font);
+}
+.posSide {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.posSide[data-dir="long"] { color: #26A69A; }
+.posSide[data-dir="short"] { color: #EF5350; }
+
+.posRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.posPL {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--tf-font);
+  color: var(--pos-color);
+}
+.posPct {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--pos-color);
+  opacity: 0.7;
+}
+.noPrice {
+  font-size: 10px;
+  color: var(--tf-t3);
+  font-style: italic;
+}
+
+/* ─── Position Detail Row ─── */
+.posDetail {
+  font-size: 9px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+}
+.posArrow {
+  margin: 0 3px;
+  opacity: 0.4;
+}
+.posDivider {
+  margin: 0 6px;
+  opacity: 0.3;
+}
+.posDuration {
+  color: var(--tf-t2);
+}
+.closeBtn {
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--tf-red) 25%, transparent);
+  background: color-mix(in srgb, var(--tf-red) 6%, transparent);
+  color: var(--tf-red);
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--tf-font);
+  transition: all 0.12s ease;
+}
+.closeBtn:hover {
+  background: color-mix(in srgb, var(--tf-red) 15%, transparent);
+}
+
+/* ─── Total Footer ─── */
+.totalRow {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--tf-bd);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.totalLabel {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+}
+.totalValue {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--tf-font);
+  color: var(--pill-color);
+}
+
+/* ─── Performance Section ─── */
+.perfSection {
+  padding: 8px 10px 10px;
+  border-top: 1px solid var(--tf-bd);
+}
+.perfGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.perfStat {
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--perf-color) 3%, transparent);
+}
+.perfLabel {
+  font-size: 9px;
+  color: var(--tf-t3);
+  margin-bottom: 2px;
+  font-family: var(--tf-font);
+}
+.perfValue {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--tf-font);
+  color: var(--perf-color);
+}
+.perfCount {
+  font-size: 8px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  margin-top: 1px;
+}
+
+/* ─── Close All Section ─── */
+.closeAllSection {
+  padding: 6px 10px 10px;
+  border-top: 1px solid var(--tf-bd);
+}
+.closeAllBtn {
+  width: 100%;
+  padding: 6px 0;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--tf-red) 25%, transparent);
+  background: color-mix(in srgb, var(--tf-red) 6%, transparent);
+  color: var(--tf-red);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--tf-font);
+  transition: all 0.12s ease;
+}
+.closeAllBtn:hover {
+  background: color-mix(in srgb, var(--tf-red) 15%, transparent);
+}

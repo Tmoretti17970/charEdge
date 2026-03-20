@@ -17,6 +17,7 @@ import React from 'react';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { C, F, M } from '../../constants.js';
 import { useUserStore } from '../../state/useUserStore';
+import { useUIStore } from '../../state/useUIStore';
 import { space, radii, text, transition, preset } from '../../theme/tokens.js';
 import { Btn } from '../components/ui/UIKit.jsx';
 import s from './OnboardingWizard.module.css';
@@ -393,80 +394,34 @@ function StepLiveChartHero() {
   );
 }
 
-// ─── Step 1: Quick Setup (condensed from Steps 1+2+3) ────────────
-
-const BROKERS = [
-  { id: 'thinkorswim', label: 'TD / thinkorswim', icon: '🟢' },
-  { id: 'tradovate', label: 'Tradovate', icon: '🔵' },
-  { id: 'interactive', label: 'Interactive Brokers', icon: '🔴' },
-  { id: 'webull', label: 'Webull', icon: '🟠' },
-  { id: 'robinhood', label: 'Robinhood', icon: '🟡' },
-  { id: 'metatrader', label: 'MetaTrader', icon: '🟣' },
-  { id: 'other', label: 'Other', icon: '📋' },
-];
+// ─── Step 1: Quick Setup (Sprint 12: simplified to Theme + Account Size) ──
 
 function StepQuickSetup() {
   const updateSettings = useUserStore((s) => s.update);
   const accountSize = useUserStore((s) => s.accountSize);
-  const riskPerTrade = useUserStore((s) => s.riskPerTrade);
-  const broker = useUserStore((s) => s.broker);
   const theme = useUserStore((s) => s.theme);
   const setTheme = useUserStore((s) => s.setTheme);
 
   return (
     <div>
-      {/* Account basics — compact row */}
-      <div style={{ display: 'flex', gap: space[3], marginBottom: space[4] }}>
-        <SettingInput
-          label="Account Size ($)"
-          value={accountSize || ''}
-          placeholder="10000"
-          onChange={(v) => updateSettings({ accountSize: Number(v) || 0 })}
-        />
-        <SettingInput
-          label="Risk Per Trade (%)"
-          value={riskPerTrade || ''}
-          placeholder="1"
-          onChange={(v) => updateSettings({ riskPerTrade: Number(v) || 0 })}
-        />
-      </div>
-
-      {/* Broker — compact grid */}
-      <div style={{ marginBottom: space[4] }}>
-        <div style={{ ...text.label, marginBottom: space[2] }}>Broker (for CSV auto-detect)</div>
-        <div className={s.s1}>
-          {BROKERS.map((b) => (
-            <button
-              key={b.id}
-              className="tf-btn"
-              onClick={() => updateSettings({ broker: b.id })}
-              style={{
-                padding: '5px 10px',
-                background: broker === b.id ? C.b + '15' : C.sf2,
-                border: `1.5px solid ${broker === b.id ? C.b : C.bd + '60'}`,
-                borderRadius: radii.sm,
-                color: broker === b.id ? C.b : C.t2,
-                fontSize: 11,
-                fontFamily: F,
-                fontWeight: broker === b.id ? 600 : 400,
-                cursor: 'pointer',
-                transition: `all ${transition.base}`,
-              }}
-            >
-              {b.icon} {b.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Theme — inline toggle */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: space[3] }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: space[3], marginBottom: space[4] }}>
         <span style={{ ...text.label }}>Theme</span>
         <div className={s.s2}>
           <ThemePill label="🌙 Dark" active={theme === 'dark'} onClick={() => setTheme('dark')} />
           <ThemePill label="☀️ Light" active={theme === 'light'} onClick={() => setTheme('light')} />
         </div>
         <span style={{ ...text.captionSm, marginLeft: 'auto', opacity: 0.6 }}>Press T to toggle</span>
+      </div>
+
+      {/* Account Size — single field */}
+      <div style={{ maxWidth: 240 }}>
+        <SettingInput
+          label="Account Size ($)"
+          value={accountSize || ''}
+          placeholder="10000"
+          onChange={(v) => updateSettings({ accountSize: Number(v) || 0 })}
+        />
       </div>
 
       <p style={{ ...text.captionSm, marginTop: space[3], fontStyle: 'italic', opacity: 0.6 }}>
@@ -476,35 +431,45 @@ function StepQuickSetup() {
   );
 }
 
-// ─── Step 2: Complete ────────────────────────────────────────────
+// ─── Step 2: What to Do Next (Sprint 12: action-oriented CTAs) ───
 
 function StepComplete() {
+  const setPage = useUIStore((s) => s.setPage);
+  const completeWizard = useUserStore((s) => s.completeWizard);
+
+  const handleAction = (action) => {
+    completeWizard();
+    action();
+  };
+
   return (
     <div>
       <p style={{ ...text.body, marginBottom: space[4] }}>
-        You're ready! Here are some power-user tips:
+        You're all set! Choose what to do first:
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: space[3] }}>
-        <FeatureHighlight
-          icon="📒"
-          title="Log Early, Log Often"
-          desc="Journal right after closing — emotions are freshest. More data = sharper insights."
-        />
-        <FeatureHighlight
-          icon="🎨"
-          title="Drawing Tools"
-          desc="Trend lines, Fibonacci, and more. Press D to toggle the toolbar."
-        />
-        <FeatureHighlight
-          icon="📁"
+        <ActionCTA
+          icon="📥"
           title="Import Trades"
-          desc="Import your existing trades via CSV — your broker format is auto-detected."
+          desc="Upload CSV from your broker — format is auto-detected."
+          onClick={() => handleAction(() => {
+            setPage('import');
+          })}
         />
-        <FeatureHighlight
-          icon="🧠"
-          title="Insights Page"
-          desc="Strategy breakdown, psychology analysis, and risk modeling in one hub."
+        <ActionCTA
+          icon="📈"
+          title="Explore Charts"
+          desc="Full charting with 50+ indicators and drawing tools."
+          onClick={() => handleAction(() => setPage('charts'))}
+        />
+        <ActionCTA
+          icon="📒"
+          title="Log First Trade"
+          desc="Start building your journal — more data = sharper insights."
+          onClick={() => handleAction(() => {
+            window.dispatchEvent(new CustomEvent('tf:openTradeForm'));
+          })}
         />
       </div>
 
@@ -547,6 +512,38 @@ function FeatureHighlight({ icon, title, desc }) {
         <div style={text.bodyXs}>{desc}</div>
       </div>
     </div>
+  );
+}
+
+function ActionCTA({ icon, title, desc, onClick }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex',
+        gap: space[3],
+        padding: `${space[3]}px ${space[4]}px`,
+        background: hovered ? `${C.b}12` : C.sf2,
+        borderRadius: radii.md,
+        border: hovered ? `1.5px solid ${C.b}40` : `1px solid ${C.bd}40`,
+        cursor: 'pointer',
+        textAlign: 'left',
+        color: C.t1,
+        transition: `all ${transition.base}`,
+        transform: hovered ? 'translateY(-1px)' : 'none',
+        boxShadow: hovered ? `0 4px 12px rgba(0,0,0,0.1)` : 'none',
+      }}
+    >
+      <span style={{ fontSize: 22, flexShrink: 0, lineHeight: 1 }}>{icon}</span>
+      <div>
+        <div style={{ ...text.h3, fontSize: 13, marginBottom: 2 }}>{title}</div>
+        <div style={{ ...text.bodyXs, color: C.t3 }}>{desc}</div>
+      </div>
+      <span style={{ marginLeft: 'auto', fontSize: 14, color: C.b, alignSelf: 'center', opacity: hovered ? 1 : 0.4, transition: 'opacity 0.15s' }}>→</span>
+    </button>
   );
 }
 

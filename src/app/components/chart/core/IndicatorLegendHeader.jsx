@@ -10,6 +10,7 @@ import { INDICATORS } from '../../../../charting_library/studies/indicators/regi
 import { C, F } from '@/constants.js';
 import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 import Icon from '../../design/Icon.jsx';
+import s from './IndicatorLegendHeader.module.css';
 
 /**
  * Format large numbers compactly: 1234567 → 1.23M
@@ -121,80 +122,32 @@ export default function IndicatorLegendHeader({ data, hoverIdx, _onEditIndicator
   if (!legendItems.length) return null;
 
   return (
-    <div
-      className="tf-fade-in"
-      style={{
-        position: 'absolute',
-        top: 4,
-        left: 'var(--legend-end-x, 420px)',
-        zIndex: 50,
-        display: 'flex',
-        flexWrap: 'nowrap',
-        gap: 4,
-        maxWidth: 'calc(100% - var(--legend-end-x, 420px) - 80px)',
-        pointerEvents: 'auto',
-      }}
-    >
+    <div className={`tf-fade-in ${s.root}`}>
       {legendItems.map((item) => (
-        <div key={`${item.id}-${item.idx}`} style={{ position: 'relative' }}>
+        <div key={`${item.id}-${item.idx}`} className={s.itemWrap}>
           <div
             onMouseEnter={() => setHoveredIdx(item.indId)}
             onMouseLeave={() => setHoveredIdx(null)}
             onClick={() => handleEdit(item.indId)}
+            className={s.itemRow}
+            data-hidden={!item.visible}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              padding: '2px 6px',
-              background: editIdx === item.indId ? `${C.b}18` : hoveredIdx === item.indId ? `${C.sf2}E8` : `${C.sf2}B0`,
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              border: `1px solid ${editIdx === item.indId ? C.b : hoveredIdx === item.indId ? C.bd2 : C.bd}`,
-              borderRadius: 6,
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-              opacity: item.visible ? 1 : 0.45,
+              '--item-bg': editIdx === item.indId ? `${C.b}18` : hoveredIdx === item.indId ? `${C.sf2}E8` : `${C.sf2}B0`,
+              '--item-border': editIdx === item.indId ? C.b : hoveredIdx === item.indId ? C.bd2 : C.bd,
             }}
           >
             {/* Color dot */}
-            <div
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                background: item.color,
-                flexShrink: 0,
-              }}
-            />
+            <div className={s.dot} style={{ '--dot-color': item.color }} />
 
             {/* Label */}
-            <span
-              style={{
-                fontSize: 10,
-                fontFamily: F,
-                fontWeight: 600,
-                color: C.t2,
-                letterSpacing: '0.3px',
-                whiteSpace: 'nowrap',
-              }}
-            >
+            <span className={s.label}>
               {item.shortName}
               {item.paramStr}
             </span>
 
             {/* Live indicator values */}
             {item.liveValues.length > 0 && item.liveValues.some((v) => v.value != null) && (
-              <span
-                style={{
-                  fontSize: 10,
-                  fontFamily: F,
-                  fontWeight: 500,
-                  color: item.liveValues[0]?.color || C.t3,
-                  letterSpacing: '0.2px',
-                  whiteSpace: 'nowrap',
-                  opacity: 0.9,
-                }}
-              >
+              <span className={s.values} style={{ '--val-color': item.liveValues[0]?.color || C.t3 }}>
                 {item.liveValues
                   .filter((v) => v.value != null)
                   .map((v) => compactNum(v.value))
@@ -203,41 +156,12 @@ export default function IndicatorLegendHeader({ data, hoverIdx, _onEditIndicator
             )}
 
             {/* Eye toggle — always visible */}
-            <button
-              onClick={(e) => handleToggleVis(e, item.indId)}
-              title={item.visible ? 'Hide' : 'Show'}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: C.t3,
-                fontSize: 9,
-                cursor: 'pointer',
-                padding: '0 1px',
-                lineHeight: 1,
-                fontFamily: F,
-                opacity: 0.6,
-              }}
-            >
+            <button onClick={(e) => handleToggleVis(e, item.indId)} title={item.visible ? 'Hide' : 'Show'} className={s.eyeBtn}>
               {item.visible ? <Icon name="eye" size={9} /> : <Icon name="eye-off" size={9} />}
             </button>
 
             {/* × Remove button — always visible */}
-            <button
-              onClick={(e) => handleRemove(e, item.indId)}
-              title="Remove indicator"
-              className="tf-hover-danger"
-              style={{
-                background: 'none',
-                border: 'none',
-                color: C.t3,
-                fontSize: 11,
-                cursor: 'pointer',
-                padding: '0 1px',
-                lineHeight: 1,
-                fontFamily: F,
-                opacity: 0.6,
-              }}
-            >
+            <button onClick={(e) => handleRemove(e, item.indId)} title="Remove indicator" className={`tf-hover-danger ${s.removeBtn}`}>
               ×
             </button>
           </div>
@@ -310,74 +234,22 @@ function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator, removeIn
   const paramDefs = Object.entries(params).filter(([k]) => typeof params[k] === 'number');
 
   return (
-    <div
-      onClick={(e) => e.stopPropagation()}
-      style={{
-        position: 'absolute',
-        top: '100%',
-        left: 0,
-        marginTop: 6,
-        width: 220,
-        padding: '10px 12px',
-        background: 'rgba(14, 16, 22, 0.92)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        border: `1px solid ${C.bd}`,
-        borderRadius: 10,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-        zIndex: 100,
-        fontFamily: F,
-        animation: 'scaleInSm 0.2s ease forwards',
-      }}
-    >
+    <div onClick={(e) => e.stopPropagation()} className={s.popover}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: C.t1 }}>{def?.shortName || regId}</span>
-        <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-          <button
-            onClick={() => {
-              onClose();
-              removeIndicator(idx);
-            }}
-            title="Delete indicator"
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#EF5350',
-              fontSize: 10,
-              cursor: 'pointer',
-              padding: '1px 4px',
-              lineHeight: 1,
-              fontFamily: F,
-            }}
-          >
-            🗑
-          </button>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: C.t3,
-              fontSize: 12,
-              cursor: 'pointer',
-              padding: '1px 4px',
-              lineHeight: 1,
-            }}
-          >
-            ×
-          </button>
+      <div className={s.popoverHeader}>
+        <span className={s.popoverTitle}>{def?.shortName || regId}</span>
+        <div className={s.popoverActions}>
+          <button onClick={() => { onClose(); removeIndicator(idx); }} title="Delete indicator" className={s.deleteBtn}>🗑</button>
+          <button onClick={onClose} className={s.closePopoverBtn}>×</button>
         </div>
       </div>
 
       {/* Parameter sliders */}
       {paramDefs.map(([key, value]) => (
-        <div key={key} style={{ marginBottom: 8 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-            <span style={{ fontSize: 9, color: C.t3, fontWeight: 600, textTransform: 'capitalize' }}>{key}</span>
-            <span style={{ fontSize: 9, color: C.t2, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-              {value}
-            </span>
+        <div key={key} className={s.paramRow}>
+          <div className={s.paramHeader}>
+            <span className={s.paramLabel}>{key}</span>
+            <span className={s.paramValue}>{value}</span>
           </div>
           <input
             type="range"
@@ -385,61 +257,40 @@ function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator, removeIn
             max={key === 'period' || key === 'fast' || key === 'slow' || key === 'signal' ? 200 : 100}
             value={value}
             onChange={(e) => handleParamChange(key, e.target.value)}
-            style={{
-              width: '100%',
-              height: 3,
-              accentColor: C.b,
-              cursor: 'pointer',
-            }}
+            className={s.paramSlider}
           />
         </div>
       ))}
 
       {/* Color swatches */}
-      <div style={{ marginBottom: 8 }}>
-        <span style={{ fontSize: 9, color: C.t3, fontWeight: 600, display: 'block', marginBottom: 4 }}>Color</span>
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+      <div className={s.colorSection}>
+        <span className={s.sectionLabel}>Color</span>
+        <div className={s.swatchGrid}>
           {COLOR_SWATCHES.map((c) => (
             <button
               key={c}
               onClick={() => handleColorChange(c)}
-              style={{
-                width: 16,
-                height: 16,
-                borderRadius: 4,
-                background: c,
-                border: color === c ? '2px solid #fff' : `1px solid ${C.bd}`,
-                cursor: 'pointer',
-                padding: 0,
-                transition: 'transform 0.15s ease',
-              }}
-              className="tf-hover-pop"
+              className={`tf-hover-pop ${s.swatch}`}
+              style={{ background: c, border: color === c ? '2px solid #fff' : `1px solid ${C.bd}` }}
             />
           ))}
         </div>
       </div>
 
       {/* Line style */}
-      <div style={{ marginBottom: 8 }}>
-        <span style={{ fontSize: 9, color: C.t3, fontWeight: 600, display: 'block', marginBottom: 4 }}>Line Style</span>
-        <div style={{ display: 'flex', gap: 4 }}>
+      <div className={s.lineStyleSection}>
+        <span className={s.sectionLabel}>Line Style</span>
+        <div className={s.lineStyleGrid}>
           {LINE_STYLES.map((ls) => (
             <button
               key={ls.id}
               onClick={() => handleLineStyleChange(ls.id)}
               title={ls.title}
+              className={s.lineStyleBtn}
               style={{
-                flex: 1,
-                padding: '3px 0',
-                borderRadius: 4,
                 border: `1px solid ${lineStyle === ls.id ? C.b : C.bd}`,
                 background: lineStyle === ls.id ? `${C.b}18` : 'transparent',
                 color: lineStyle === ls.id ? C.b : C.t3,
-                fontSize: 10,
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontFamily: 'monospace',
-                transition: 'all 0.15s ease',
               }}
             >
               {ls.label}
@@ -450,9 +301,9 @@ function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator, removeIn
 
       {/* Opacity slider */}
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-          <span style={{ fontSize: 9, color: C.t3, fontWeight: 600 }}>Opacity</span>
-          <span style={{ fontSize: 9, color: C.t2, fontWeight: 600 }}>{Math.round(opacity * 100)}%</span>
+        <div className={s.opacityHeader}>
+          <span className={s.opacityLabel}>Opacity</span>
+          <span className={s.opacityValue}>{Math.round(opacity * 100)}%</span>
         </div>
         <input
           type="range"
@@ -460,12 +311,7 @@ function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator, removeIn
           max={100}
           value={Math.round(opacity * 100)}
           onChange={(e) => handleOpacityChange(e.target.value / 100)}
-          style={{
-            width: '100%',
-            height: 3,
-            accentColor: C.b,
-            cursor: 'pointer',
-          }}
+          className={s.paramSlider}
         />
       </div>
     </div>

@@ -1,0 +1,186 @@
+/* ═══════════════════════════════════════════════════════════════════
+   OrderEntryOverlay — CSS Module (Sprint 23)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: transparent;
+}
+
+.form {
+  background: var(--color-surface, #1a1a2e);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  font-family: 'Inter', sans-serif;
+  color: var(--color-text, #e2e8f0);
+  font-size: 13px;
+}
+
+/* ─── Header ─── */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.headerTitle {
+  font-weight: 700;
+  font-size: 14px;
+}
+.headerSymbol {
+  font-weight: 600;
+  color: var(--color-text-muted, #94a3b8);
+}
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted, #94a3b8);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* ─── Side Toggle ─── */
+.sideRow {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.sideBtn {
+  flex: 1;
+  padding: 6px 0;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+/* ─── Form Fields ─── */
+.fieldGroup { margin-bottom: 10px; }
+.fieldLabel {
+  display: block;
+  font-size: 11px;
+  color: var(--color-text-muted, #94a3b8);
+  margin-bottom: 3px;
+}
+.fieldLabelSL {
+  display: block;
+  font-size: 11px;
+  color: #ef4444;
+  margin-bottom: 3px;
+}
+.fieldLabelTP {
+  display: block;
+  font-size: 11px;
+  color: #10b981;
+  margin-bottom: 3px;
+}
+.selectInput {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--color-surface-alt, #16213e);
+  border: 1px solid var(--color-border, #334155);
+  color: var(--color-text, #e2e8f0);
+  font-size: 13px;
+}
+.textInput {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--color-surface-alt, #16213e);
+  border: 1px solid var(--color-border, #334155);
+  color: var(--color-text, #e2e8f0);
+  font-size: 13px;
+  box-sizing: border-box;
+}
+.smallInput {
+  width: 100%;
+  padding: 5px 6px;
+  border-radius: 6px;
+  background: var(--color-surface-alt, #16213e);
+  border: 1px solid var(--color-border, #334155);
+  color: var(--color-text, #e2e8f0);
+  font-size: 12px;
+  box-sizing: border-box;
+}
+
+/* ─── Qty buttons ─── */
+.qtyRow {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+.qtyBtn {
+  flex: 1;
+  padding: 3px 0;
+  border-radius: 4px;
+  background: var(--color-surface-alt, #16213e);
+  border: 1px solid var(--color-border, #334155);
+  color: var(--color-text-muted, #94a3b8);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* ─── SL/TP ─── */
+.slTpRow {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.slTpCol { flex: 1; }
+
+/* ─── Cost Box ─── */
+.costBox {
+  padding: 6px 8px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  background: var(--color-surface-alt, #16213e);
+  font-size: 11px;
+  color: var(--color-text-muted, #94a3b8);
+  display: flex;
+  justify-content: space-between;
+}
+.costValue {
+  color: var(--color-text, #e2e8f0);
+  font-weight: 600;
+}
+
+/* ─── Error ─── */
+.errorBox {
+  padding: 6px 8px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  font-size: 12px;
+}
+
+/* ─── Submit ─── */
+.submitBtn {
+  width: 100%;
+  padding: 10px 0;
+  border-radius: 8px;
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  transition: opacity 0.15s;
+}
+.submitBtn[data-side="buy"] {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+.submitBtn[data-side="sell"] {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.submitBtn:not(:disabled) {
+  cursor: pointer;
+}

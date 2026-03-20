@@ -11,6 +11,7 @@ import { useChartBars } from '../../../hooks/useChartBars.js';
 import { Btn } from '../../ui/UIKit.jsx';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
+import s from './ReplayBar.module.css';
 
 const SPEEDS = [
   { label: '0.5×', ms: 1000 },
@@ -160,20 +161,9 @@ export default function ReplayBar() {
   const currentBar = data?.[replayIdx];
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '6px 12px',
-        borderBottom: `1px solid ${C.bd}`,
-        background: C.bg2,
-        flexShrink: 0,
-        flexWrap: 'wrap',
-      }}
-    >
+    <div className={s.bar}>
       {/* Play Controls */}
-      <div style={{ display: 'flex', gap: 2 }}>
+      <div className={s.playGroup}>
         <CtrlBtn onClick={() => setReplayIdx(Math.max(2, replayIdx - 1))} title="Step back" disabled={replayIdx <= 2}>
           ◀
         </CtrlBtn>
@@ -194,30 +184,20 @@ export default function ReplayBar() {
       </div>
 
       {/* Speed */}
-      <div style={{ display: 'flex', gap: 1 }}>
-        {SPEEDS.map((s, i) => (
+      <div className={s.speedGroup}>
+        {SPEEDS.map((sp, i) => (
           <button
-            className="tf-btn"
-            key={s.label}
+            className={`tf-btn ${s.speedBtn}`}
+            key={sp.label}
             onClick={() => setSpeedIdx(i)}
-            style={{
-              padding: '3px 6px',
-              borderRadius: 3,
-              border: 'none',
-              background: speedIdx === i ? C.b + '25' : 'transparent',
-              color: speedIdx === i ? C.b : C.t3,
-              fontSize: 9,
-              fontWeight: 700,
-              fontFamily: M,
-              cursor: 'pointer',
-            }}
+            data-active={speedIdx === i || undefined}
           >
-            {s.label}
+            {sp.label}
           </button>
         ))}
       </div>
 
-      <Divider />
+      <div className={s.divider} />
 
       {/* Progress Slider */}
       <input
@@ -226,35 +206,20 @@ export default function ReplayBar() {
         max={totalBars - 1}
         value={replayIdx}
         onChange={(e) => setReplayIdx(parseInt(e.target.value))}
-        style={{
-          width: 120,
-          accentColor: C.b,
-          cursor: 'pointer',
-          height: 4,
-        }}
+        className={s.progressSlider}
       />
-      <span style={{ fontSize: 9, fontFamily: M, color: C.t3, minWidth: 45 }}>
+      <span className={s.progressLabel}>
         {replayIdx}/{totalBars - 1} ({progress}%)
       </span>
 
-      <Divider />
+      <div className={s.divider} />
 
       {/* Ghost Trade Controls */}
-      <div style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+      <div className={s.ghostGroup}>
         <button
-          className="tf-btn"
+          className={`tf-btn ${s.ghostSideBtn}`}
           onClick={() => setGhostSide(ghostSide === 'long' ? 'short' : 'long')}
-          style={{
-            padding: '3px 8px',
-            borderRadius: 4,
-            border: `1px solid ${ghostSide === 'long' ? C.g : C.r}`,
-            background: (ghostSide === 'long' ? C.g : C.r) + '15',
-            color: ghostSide === 'long' ? C.g : C.r,
-            fontSize: 10,
-            fontWeight: 700,
-            fontFamily: M,
-            cursor: 'pointer',
-          }}
+          style={{ '--ghost-color': ghostSide === 'long' ? C.g : C.r }}
         >
           {ghostSide === 'long' ? '▲ LONG' : '▼ SHORT'}
         </button>
@@ -270,10 +235,11 @@ export default function ReplayBar() {
 
       {/* Active Ghost Indicator */}
       {activeGhost && currentBar && (
-        <span style={{ fontSize: 10, fontFamily: M, color: C.y }}>
+        <span className={s.ghostIndicator}>
           {activeGhost.side.toUpperCase()} @ {activeGhost.entry.toFixed(2)}
           {' → '}
           <span
+            className={s.ghostPL}
             style={{
               color:
                 (activeGhost.side === 'long'
@@ -281,7 +247,6 @@ export default function ReplayBar() {
                   : activeGhost.entry - currentBar.close) >= 0
                   ? C.g
                   : C.r,
-              fontWeight: 700,
             }}
           >
             {(activeGhost.side === 'long'
@@ -292,22 +257,22 @@ export default function ReplayBar() {
         </span>
       )}
 
-      <div style={{ flex: 1 }} />
+      <div className={s.spacer} />
 
       {/* Backtest Stats */}
       {stats && (
-        <div style={{ display: 'flex', gap: 10, fontSize: 10, fontFamily: M }}>
+        <div className={s.stats}>
           <span>
-            <span style={{ color: C.t3 }}>Trades: </span>
-            <span style={{ color: C.t1, fontWeight: 700 }}>{stats.count}</span>
+            <span className={s.statLabel}>Trades: </span>
+            <span className={s.statValue}>{stats.count}</span>
           </span>
           <span>
-            <span style={{ color: C.t3 }}>P&L: </span>
-            <span style={{ color: stats.totalPnl >= 0 ? C.g : C.r, fontWeight: 700 }}>{fmtD(stats.totalPnl)}</span>
+            <span className={s.statLabel}>P&L: </span>
+            <span className={s.statValue} style={{ color: stats.totalPnl >= 0 ? C.g : C.r }}>{fmtD(stats.totalPnl)}</span>
           </span>
           <span>
-            <span style={{ color: C.t3 }}>Win: </span>
-            <span style={{ color: stats.wr >= 50 ? C.g : C.r, fontWeight: 700 }}>{stats.wr.toFixed(0)}%</span>
+            <span className={s.statLabel}>Win: </span>
+            <span className={s.statValue} style={{ color: stats.wr >= 50 ? C.g : C.r }}>{stats.wr.toFixed(0)}%</span>
           </span>
         </div>
       )}
@@ -319,75 +284,37 @@ export default function ReplayBar() {
 
       {/* J2.7: Upcoming trade annotations indicator */}
       {upcomingCount > 0 && (
-        <span style={{ fontSize: 9, fontFamily: M, color: C.p, fontWeight: 600 }}>
+        <span className={s.upcomingBadge}>
           📝 {upcomingCount} trade{upcomingCount > 1 ? 's' : ''} ahead
         </span>
       )}
 
       {/* J2.7: Current bar trade annotation overlay */}
       {currentAnnotations.length > 0 && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '100%',
-            left: 12,
-            right: 12,
-            zIndex: 100,
-            display: 'flex',
-            gap: 8,
-            flexWrap: 'wrap',
-            padding: '8px 0',
-          }}
-        >
+        <div className={s.annotationOverlay}>
           {currentAnnotations.map((trade, i) => (
             <div
               key={trade.id || i}
+              className={s.annotationCard}
               style={{
-                padding: '8px 12px',
-                borderRadius: 6,
-                background: C.sf2,
                 border: `1px solid ${trade.pnl >= 0 ? C.g : C.r}40`,
                 borderLeft: `3px solid ${trade.pnl >= 0 ? C.g : C.r}`,
-                maxWidth: 320,
-                fontSize: 11,
               }}
             >
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
-                <span
-                  style={{
-                    fontWeight: 800,
-                    fontFamily: M,
-                    color: trade.pnl >= 0 ? C.g : C.r,
-                  }}
-                >
+              <div className={s.annotationHeader}>
+                <span className={s.annotationPL} style={{ color: trade.pnl >= 0 ? C.g : C.r }}>
                   {trade.side?.toUpperCase() || '—'} {fmtD(trade.pnl)}
                 </span>
-                {trade.playbook && <span style={{ fontSize: 9, color: C.b, fontWeight: 600 }}>{trade.playbook}</span>}
-                {trade.emotion && <span style={{ fontSize: 9, color: C.t3 }}>{trade.emotion}</span>}
+                {trade.playbook && <span className={s.annotationPlaybook}>{trade.playbook}</span>}
+                {trade.emotion && <span className={s.annotationEmotion}>{trade.emotion}</span>}
                 {trade.rMultiple != null && (
-                  <span
-                    style={{
-                      fontSize: 9,
-                      fontFamily: M,
-                      fontWeight: 700,
-                      color: trade.rMultiple >= 0 ? C.g : C.r,
-                    }}
-                  >
-                    {trade.rMultiple > 0 ? '+' : ''}
-                    {trade.rMultiple.toFixed(1)}R
+                  <span className={s.annotationR} style={{ color: trade.rMultiple >= 0 ? C.g : C.r }}>
+                    {trade.rMultiple > 0 ? '+' : ''}{trade.rMultiple.toFixed(1)}R
                   </span>
                 )}
               </div>
               {trade.notes && (
-                <div
-                  style={{
-                    fontSize: 10,
-                    color: C.t2,
-                    lineHeight: 1.4,
-                    maxHeight: 40,
-                    overflow: 'hidden',
-                  }}
-                >
+                <div className={s.annotationNotes}>
                   {trade.notes}
                 </div>
               )}
@@ -404,21 +331,11 @@ export default function ReplayBar() {
 function CtrlBtn({ children, onClick, title, disabled, active }) {
   return (
     <button
-      className="tf-btn"
+      className={`tf-btn ${s.ctrlBtn}`}
       onClick={onClick}
       disabled={disabled}
       title={title}
-      style={{
-        padding: '4px 8px',
-        borderRadius: 4,
-        border: `1px solid ${active ? C.b : C.bd}`,
-        background: active ? C.b + '20' : 'transparent',
-        color: disabled ? C.t3 + '40' : active ? C.b : C.t2,
-        fontSize: 11,
-        cursor: disabled ? 'default' : 'pointer',
-        fontWeight: 600,
-        fontFamily: M,
-      }}
+      data-active={active || undefined}
     >
       {children}
     </button>
@@ -426,7 +343,7 @@ function CtrlBtn({ children, onClick, title, disabled, active }) {
 }
 
 function Divider() {
-  return <div style={{ width: 1, height: 18, background: C.bd, margin: '0 2px' }} />;
+  return <div className={s.divider} />;
 }
 
 export { ReplayBar };

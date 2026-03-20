@@ -1,0 +1,234 @@
+/* ═══════════════════════════════════════════════════════════════════
+   IndicatorLegendHeader — CSS Module (Sprint 23)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Root Container ─── */
+.root {
+  position: absolute;
+  top: 4px;
+  left: var(--legend-end-x, 420px);
+  z-index: 50;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  max-width: calc(100% - var(--legend-end-x, 420px) - 80px);
+  pointer-events: auto;
+}
+
+/* ─── Item Row ─── */
+.itemWrap { position: relative; }
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid var(--item-border);
+  background: var(--item-bg);
+}
+.itemRow[data-hidden="true"] { opacity: 0.45; }
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dot-color);
+  flex-shrink: 0;
+}
+
+.label {
+  font-size: 10px;
+  font-family: var(--tf-font);
+  font-weight: 600;
+  color: var(--tf-t2);
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.values {
+  font-size: 10px;
+  font-family: var(--tf-font);
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  opacity: 0.9;
+  color: var(--val-color, var(--tf-t3));
+}
+
+/* ─── Action Buttons ─── */
+.actionBtn {
+  background: none;
+  border: none;
+  color: var(--tf-t3);
+  cursor: pointer;
+  padding: 0 1px;
+  line-height: 1;
+  font-family: var(--tf-font);
+  opacity: 0.6;
+}
+.eyeBtn {
+  background: none;
+  border: none;
+  color: var(--tf-t3);
+  cursor: pointer;
+  padding: 0 1px;
+  line-height: 1;
+  font-family: var(--tf-font);
+  opacity: 0.6;
+  font-size: 9px;
+}
+.eyeBtn:hover { opacity: 1; }
+.removeBtn {
+  background: none;
+  border: none;
+  color: var(--tf-t3);
+  cursor: pointer;
+  padding: 0 1px;
+  line-height: 1;
+  font-family: var(--tf-font);
+  opacity: 0.6;
+  font-size: 11px;
+}
+.removeBtn:hover { opacity: 1; }
+
+/* ─── Quick-Edit Popover ─── */
+.popover {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 6px;
+  width: 220px;
+  padding: 10px 12px;
+  background: rgba(14, 16, 22, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--tf-bd);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  font-family: var(--tf-font);
+  animation: scaleInSm 0.2s ease forwards;
+}
+.popoverHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.popoverTitle {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tf-t1);
+}
+.popoverActions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.deleteBtn {
+  background: none;
+  border: none;
+  color: #EF5350;
+  font-size: 10px;
+  cursor: pointer;
+  padding: 1px 4px;
+  line-height: 1;
+  font-family: var(--tf-font);
+}
+.closePopoverBtn {
+  background: none;
+  border: none;
+  color: var(--tf-t3);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 1px 4px;
+  line-height: 1;
+}
+
+/* ─── Param slider row ─── */
+.paramRow { margin-bottom: 8px; }
+.paramHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 3px;
+}
+.paramLabel {
+  font-size: 9px;
+  color: var(--tf-t3);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.paramValue {
+  font-size: 9px;
+  color: var(--tf-t2);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.paramSlider {
+  width: 100%;
+  height: 3px;
+  accent-color: var(--tf-accent);
+  cursor: pointer;
+}
+
+/* ─── Color swatches ─── */
+.colorSection { margin-bottom: 8px; }
+.sectionLabel {
+  font-size: 9px;
+  color: var(--tf-t3);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+.swatchGrid {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s ease;
+}
+
+/* ─── Line style buttons ─── */
+.lineStyleSection { margin-bottom: 8px; }
+.lineStyleGrid {
+  display: flex;
+  gap: 4px;
+}
+.lineStyleBtn {
+  flex: 1;
+  padding: 3px 0;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: monospace;
+  transition: all 0.15s ease;
+}
+
+/* ─── Opacity ─── */
+.opacityHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 3px;
+}
+.opacityLabel {
+  font-size: 9px;
+  color: var(--tf-t3);
+  font-weight: 600;
+}
+.opacityValue {
+  font-size: 9px;
+  color: var(--tf-t2);
+  font-weight: 600;
+}

@@ -233,7 +233,10 @@ class WatchlistPrefetcher {
                 const base = typeof window === 'undefined'
                     ? `http://localhost:${(globalThis as unknown).__TF_PORT || 3000}`
                     : '';
-                const url = `${base}/api/binance/v3/klines?symbol=${symbol}&interval=${tf}&limit=500`;
+                // Ensure symbol has a valid trading pair suffix for Binance (e.g., BTC → BTCUSDT)
+                const binanceSym = symbol.toUpperCase().endsWith('USDT') || symbol.toUpperCase().endsWith('BUSD')
+                    ? symbol.toUpperCase() : symbol.toUpperCase() + 'USDT';
+                const url = `${base}/api/binance/v3/klines?symbol=${binanceSym}&interval=${tf}&limit=500`;
                 const res = await fetch(url, { signal: ac.signal });
 
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);

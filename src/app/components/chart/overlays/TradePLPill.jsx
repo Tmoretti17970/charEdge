@@ -7,11 +7,12 @@
 
 import React from 'react';
 import { useState, useMemo, useCallback } from 'react';
-import { C, F } from '@/constants.js';
+import { C } from '@/constants.js';
 import { useAllOpenPositions } from '../../../../hooks/useAllOpenPositions.js';
 import { useOpenPositions } from '../../../../hooks/useOpenPositions.js';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 import { useJournalStore } from '../../../../state/useJournalStore';
+import s from './TradePLPill.module.css';
 
 // ─── Helpers ─────────────────────────────────────────────────────
 
@@ -247,155 +248,39 @@ function TradePLPill({ showAutoFit, onAutoFit }) {
   const displayCount = viewMode === 'chart' ? chartPositions.length : allPositions.length;
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 4,
-        right: 68,
-        zIndex: 80,
-        fontFamily: F,
-        userSelect: 'none',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-      }}
-    >
+    <div className={s.root} style={{ '--pill-color': pillColor }}>
       {/* Auto-Fit Button */}
       {showAutoFit && (
-        <button
-          onClick={onAutoFit}
-          style={{
-            width: 24,
-            height: 24,
-            borderRadius: 4,
-            border: 'none',
-            background: '#2962FF',
-            color: '#fff',
-            fontSize: 14,
-            fontWeight: 'bold',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
-            padding: 0,
-            flexShrink: 0,
-          }}
-          title="Auto-fit price axis"
-        >
-          ⊞
-        </button>
+        <button onClick={onAutoFit} className={s.autoFitBtn} title="Auto-fit price axis">⊞</button>
       )}
 
       {/* ── Live Position Pill ────────────────────────────────── */}
-      <div style={{ position: 'relative' }}>
-        <button
-          onClick={() => setExpanded(!expanded)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '4px 12px',
-            borderRadius: 16,
-            border: `1px solid ${pillColor}40`,
-            background: `${pillColor}12`,
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            color: pillColor,
-            fontFamily: F,
-            fontSize: 11,
-            fontWeight: 700,
-            cursor: 'pointer',
-            transition: 'all 0.15s ease',
-            boxShadow: `0 2px 8px ${pillColor}20`,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.03)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
-          }}
-        >
-          {/* Pulsing live dot */}
-          <span
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              background: pillColor,
-              boxShadow: `0 0 6px ${pillColor}`,
-              animation: 'tfPulse 2s ease-in-out infinite',
-              flexShrink: 0,
-            }}
-          />
+      <div className={s.pillWrap}>
+        <button onClick={() => setExpanded(!expanded)} className={s.pillBtn}>
+          <span className={s.pulseDot} />
           <span>
             {totalUnrealized !== null
               ? `${isPositive ? '+' : ''}${totalUnrealized.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
               : '—'}
           </span>
-          <span style={{ opacity: 0.6, fontWeight: 500 }}>({displayCount} open)</span>
-          <span
-            style={{
-              fontSize: 8,
-              color: C.t3,
-              transition: 'transform 0.15s',
-              transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-            }}
-          >
-            ▼
-          </span>
+          <span className={s.openCount}>({displayCount} open)</span>
+          <span className={s.chevron} data-open={expanded}>▼</span>
         </button>
 
         {/* ══════════ Expanded Dropdown ══════════ */}
         {expanded && (
           <div
-            className="tf-fade-in"
-            style={{
-              position: 'absolute',
-              top: '100%',
-              right: 0,
-              marginTop: 6,
-              padding: 0,
-              background: `${C.sf2}F5`,
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              border: `1px solid ${C.bd}`,
-              borderRadius: 10,
-              boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-              minWidth: 280,
-              maxWidth: 340,
-              animation: 'tfDropdownIn 0.15s ease-out',
-              zIndex: 90,
-              overflow: 'hidden',
-            }}
+            className={`tf-fade-in ${s.dropdown}`}
+            style={{ background: `${C.sf2}F5` }}
           >
             {/* ── View Toggle: This Chart / All Positions ── */}
-            <div
-              style={{
-                display: 'flex',
-                gap: 0,
-                padding: '8px 10px 6px',
-                borderBottom: `1px solid ${C.bd}`,
-              }}
-            >
+            <div className={s.viewToggle}>
               {['chart', 'all'].map((mode) => (
                 <button
                   key={mode}
                   onClick={() => setViewMode(mode)}
-                  style={{
-                    flex: 1,
-                    padding: '5px 8px',
-                    borderRadius: 6,
-                    border: 'none',
-                    fontSize: 10,
-                    fontWeight: 700,
-                    fontFamily: F,
-                    cursor: 'pointer',
-                    letterSpacing: '0.3px',
-                    background: viewMode === mode ? `${C.b}20` : 'transparent',
-                    color: viewMode === mode ? C.b : C.t3,
-                    transition: 'all 0.15s ease',
-                  }}
+                  className={s.viewBtn}
+                  data-active={viewMode === mode}
                 >
                   {mode === 'chart' ? `📊 This Chart` : `🌐 All Positions`}
                 </button>
@@ -403,95 +288,66 @@ function TradePLPill({ showAutoFit, onAutoFit }) {
             </div>
 
             {/* ── Open Positions Section ── */}
-            <div style={{ padding: '8px 10px' }}>
-              <div
-                style={{
-                  fontSize: 9,
-                  fontWeight: 700,
-                  color: C.t3,
-                  letterSpacing: '0.5px',
-                  marginBottom: 6,
-                }}
-              >
-                OPEN POSITIONS
-              </div>
+            <div className={s.posSection}>
+              <div className={s.sectionTitle}>OPEN POSITIONS</div>
 
               {positionDetails.length === 0 ? (
-                <div style={{ fontSize: 11, color: C.t3, padding: '8px 0', textAlign: 'center' }}>
+                <div className={s.emptyMsg}>
                   No open positions{viewMode === 'chart' ? ' on this chart' : ''}
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 200, overflowY: 'auto' }}>
+                <div className={s.posList}>
                   {positionDetails.map((pos) => {
                     const posColor = pos.pl !== null ? (pos.pl >= 0 ? '#26A69A' : '#EF5350') : C.t3;
                     return (
-                      <div
-                        key={pos.id}
-                        style={{
-                          padding: '6px 8px',
-                          borderRadius: 6,
-                          background: `${posColor}08`,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 3,
-                        }}
-                      >
+                      <div key={pos.id} className={s.posCard} style={{ '--pos-color': posColor }}>
                         {/* Row 1: Symbol + Side + P/L */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: 11, fontWeight: 700, color: C.t1, fontFamily: F }}>
-                              {pos.symbol}
-                            </span>
-                            <span
-                              style={{
-                                fontSize: 9,
-                                fontWeight: 600,
-                                color: pos.side === 'long' ? '#26A69A' : '#EF5350',
-                                textTransform: 'uppercase',
-                              }}
-                            >
+                        <div className={s.posRow}>
+                          <div className={s.posLeft}>
+                            <span className={s.posSymbol}>{pos.symbol}</span>
+                            <span className={s.posSide} data-dir={pos.side}>
                               {pos.side === 'long' ? '▲' : '▼'} {pos.side}
                             </span>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div className={s.posRight}>
                             {pos.pl !== null ? (
                               <>
-                                <span style={{ fontSize: 12, fontWeight: 700, color: posColor, fontFamily: F }}>
+                                <span className={s.posPL}>
                                   {pos.pl >= 0 ? '+' : ''}
                                   {pos.pl.toLocaleString(undefined, {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2,
                                   })}
                                 </span>
-                                <span style={{ fontSize: 9, fontWeight: 600, color: posColor, opacity: 0.7 }}>
+                                <span className={s.posPct}>
                                   ({pos.pctChange >= 0 ? '+' : ''}
                                   {pos.pctChange}%)
                                 </span>
                               </>
                             ) : (
-                              <span style={{ fontSize: 10, color: C.t3, fontStyle: 'italic' }}>no price</span>
+                              <span className={s.noPrice}>no price</span>
                             )}
                           </div>
                         </div>
 
                         {/* Row 2: Entry → Current + Duration + Close */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ fontSize: 9, color: C.t3, fontFamily: F }}>
+                        <div className={s.posRow}>
+                          <div className={s.posDetail}>
                             {pos.entry.toLocaleString(undefined, {
                               minimumFractionDigits: 2,
                               maximumFractionDigits: 2,
                             })}
                             {pos.currentPrice && (
                               <>
-                                <span style={{ margin: '0 3px', opacity: 0.4 }}>→</span>
+                                <span className={s.posArrow}>→</span>
                                 {pos.currentPrice.toLocaleString(undefined, {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2,
                                 })}
                               </>
                             )}
-                            <span style={{ margin: '0 6px', opacity: 0.3 }}>|</span>
-                            <span style={{ color: C.t2 }}>⏱ {pos.durationStr}</span>
+                            <span className={s.posDivider}>|</span>
+                            <span className={s.posDuration}>⏱ {pos.durationStr}</span>
                           </div>
                           <button
                             onClick={(e) => {
@@ -499,24 +355,7 @@ function TradePLPill({ showAutoFit, onAutoFit }) {
                               closePosition(pos.id);
                             }}
                             title="Close position"
-                            style={{
-                              padding: '2px 6px',
-                              borderRadius: 4,
-                              border: `1px solid ${C.r}40`,
-                              background: `${C.r}10`,
-                              color: C.r,
-                              fontSize: 9,
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              fontFamily: F,
-                              transition: 'all 0.12s ease',
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = `${C.r}25`;
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = `${C.r}10`;
-                            }}
+                            className={s.closeBtn}
                           >
                             ✕
                           </button>
@@ -529,18 +368,9 @@ function TradePLPill({ showAutoFit, onAutoFit }) {
 
               {/* Total footer (only when > 1 position with price) */}
               {positionDetails.filter((p) => p.pl !== null).length > 1 && (
-                <div
-                  style={{
-                    marginTop: 6,
-                    paddingTop: 6,
-                    borderTop: `1px solid ${C.bd}`,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <span style={{ fontSize: 9, fontWeight: 600, color: C.t3, fontFamily: F }}>TOTAL</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: pillColor, fontFamily: F }}>
+                <div className={s.totalRow}>
+                  <span className={s.totalLabel}>TOTAL</span>
+                  <span className={s.totalValue}>
                     {totalUnrealized !== null
                       ? `${isPositive ? '+' : ''}${totalUnrealized.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                       : '—'}
@@ -550,24 +380,9 @@ function TradePLPill({ showAutoFit, onAutoFit }) {
             </div>
 
             {/* ── Weekly / Monthly P&L Section ── */}
-            <div
-              style={{
-                padding: '8px 10px 10px',
-                borderTop: `1px solid ${C.bd}`,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 9,
-                  fontWeight: 700,
-                  color: C.t3,
-                  letterSpacing: '0.5px',
-                  marginBottom: 6,
-                }}
-              >
-                PERFORMANCE
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+            <div className={s.perfSection}>
+              <div className={s.sectionTitle}>PERFORMANCE</div>
+              <div className={s.perfGrid}>
                 <PerfStat label="This Week" value={periodStats.week} count={periodStats.weekCount} />
                 <PerfStat label="This Month" value={periodStats.month} count={periodStats.monthCount} />
               </div>
@@ -575,36 +390,13 @@ function TradePLPill({ showAutoFit, onAutoFit }) {
 
             {/* ── Close All (only when multiple positions) ── */}
             {positionDetails.length > 1 && (
-              <div
-                style={{
-                  padding: '6px 10px 10px',
-                  borderTop: `1px solid ${C.bd}`,
-                }}
-              >
+              <div className={s.closeAllSection}>
                 <button
                   onClick={() => {
                     positionDetails.forEach((p) => closePosition(p.id));
                     setExpanded(false);
                   }}
-                  style={{
-                    width: '100%',
-                    padding: '6px 0',
-                    borderRadius: 6,
-                    border: `1px solid ${C.r}40`,
-                    background: `${C.r}10`,
-                    color: C.r,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    fontFamily: F,
-                    transition: 'all 0.12s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = `${C.r}25`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = `${C.r}10`;
-                  }}
+                  className={s.closeAllBtn}
                 >
                   Close All ({positionDetails.length})
                 </button>
@@ -622,19 +414,13 @@ function TradePLPill({ showAutoFit, onAutoFit }) {
 function PerfStat({ label, value, count }) {
   const color = value >= 0 ? '#26A69A' : '#EF5350';
   return (
-    <div
-      style={{
-        padding: '6px 8px',
-        borderRadius: 6,
-        background: `${color}08`,
-      }}
-    >
-      <div style={{ fontSize: 9, color: C.t3, marginBottom: 2, fontFamily: F }}>{label}</div>
-      <div style={{ fontSize: 12, fontWeight: 700, color, fontFamily: F }}>
+    <div className={s.perfStat} style={{ '--perf-color': color }}>
+      <div className={s.perfLabel}>{label}</div>
+      <div className={s.perfValue}>
         {value >= 0 ? '+' : ''}
         {value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </div>
-      <div style={{ fontSize: 8, color: C.t3, fontFamily: F, marginTop: 1 }}>
+      <div className={s.perfCount}>
         {count} trade{count !== 1 ? 's' : ''}
       </div>
     </div>
