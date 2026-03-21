@@ -66,15 +66,21 @@ export const Card = React.forwardRef(function Card(
 
 // ─── Button ─────────────────────────────────────────────────────
 // #30: Added `size` prop — sm (28px), md (34px, default), lg (40px)
-const BTN_SIZES = {
-  sm: { padding: `4px ${space[3]}px`, fontSize: 11 },
-  md: { padding: `${space[2] + 2}px ${space[5]}px`, fontSize: textTokens.bodySm.fontSize },
-  lg: { padding: `${space[3]}px ${space[6]}px`, fontSize: 14 },
-};
+// Lazy — avoids reading textTokens (which reads C) at module scope (TDZ safe)
+function getBtnSize(size) {
+  switch (size) {
+    case 'sm':
+      return { padding: `4px ${space[3]}px`, fontSize: 11 };
+    case 'lg':
+      return { padding: `${space[3]}px ${space[6]}px`, fontSize: 14 };
+    default:
+      return { padding: `${space[2] + 2}px ${space[5]}px`, fontSize: textTokens.bodySm.fontSize };
+  }
+}
 
 export function Btn({ children, onClick, disabled, style = {}, variant = 'primary', size = 'md' }) {
   const bg = variant === 'primary' ? C.b : variant === 'danger' ? C.r : C.bg2;
-  const sizeStyle = BTN_SIZES[size] || BTN_SIZES.md;
+  const sizeStyle = getBtnSize(size);
   return (
     <button
       className="tf-btn tf-press tf-focus-ring"
@@ -225,16 +231,24 @@ export function ToolbarBtn({ active, onClick, icon, title, style = {} }) {
 
 // ─── Badge ──────────────────────────────────────────────────────
 // #30: Added `variant` prop — success/warning/danger/info for semantic coloring
-const BADGE_VARIANTS = {
-  default: null,
-  success: C.g,
-  warning: C.y,
-  danger: C.r,
-  info: C.info || '#5c9cf5',
-};
+// Lazy — avoids reading C at module scope (TDZ safe)
+function getBadgeVariantColor(variant) {
+  switch (variant) {
+    case 'success':
+      return C.g;
+    case 'warning':
+      return C.y;
+    case 'danger':
+      return C.r;
+    case 'info':
+      return C.info || '#5c9cf5';
+    default:
+      return null;
+  }
+}
 
 export function Badge({ text, color, variant = 'default', style = {} }) {
-  const resolvedColor = color || BADGE_VARIANTS[variant] || C.b;
+  const resolvedColor = color || getBadgeVariantColor(variant) || C.b;
   return (
     <span
       style={{
@@ -412,7 +426,9 @@ export function ModalOverlay({ isOpen, onClose, children, width = 480, 'aria-lab
           outline: 'none',
           opacity: animating ? 1 : 0,
           transform: animating ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(8px)',
-          transition: skipMotion ? 'none' : 'opacity 250ms cubic-bezier(0.32, 0.72, 0, 1), transform 250ms cubic-bezier(0.32, 0.72, 0, 1)',
+          transition: skipMotion
+            ? 'none'
+            : 'opacity 250ms cubic-bezier(0.32, 0.72, 0, 1), transform 250ms cubic-bezier(0.32, 0.72, 0, 1)',
         }}
       >
         {children}
