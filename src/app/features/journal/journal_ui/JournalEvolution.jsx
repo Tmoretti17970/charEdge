@@ -11,8 +11,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useMemo } from 'react';
-import { C, F, M } from '@/constants.js';
 import { fmtD } from '../../../../utils.js';
+import { C, F, M } from '@/constants.js';
 
 // ═══════════════════════════════════════════════════════════════════
 // C9.4 — STREAK TIMELINE
@@ -41,8 +41,6 @@ export function StreakTimeline({ trades, maxShow = 50, onTradeClick }) {
         border: `1px solid ${C.bd}`,
       }}
     >
-
-
       <div
         style={{
           display: 'flex',
@@ -229,110 +227,112 @@ export function AdvancedFilters({ filters, onFiltersChange, trades, isOpen }) {
   if (!isOpen) return null;
 
   return (
-    <div style={{ marginBottom: 8, padding: '8px 12px', background: C.bg2, borderRadius: 8, border: `1px solid ${C.bd}` }}>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-            gap: 8,
-            padding: '8px 0',
-          }}
-        >
-          {/* Playbook filter */}
-          <FilterChipGroup
-            label="Strategy"
-            options={options.playbooks}
-            selected={filters.playbooks || []}
-            onChange={(val) => updateFilter('playbooks', val)}
-          />
+    <div
+      style={{ marginBottom: 8, padding: '8px 12px', background: C.bg2, borderRadius: 8, border: `1px solid ${C.bd}` }}
+    >
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+          gap: 8,
+          padding: '8px 0',
+        }}
+      >
+        {/* Playbook filter */}
+        <FilterChipGroup
+          label="Strategy"
+          options={options.playbooks}
+          selected={filters.playbooks || []}
+          onChange={(val) => updateFilter('playbooks', val)}
+        />
 
-          {/* Emotion filter */}
-          <FilterChipGroup
-            label="Emotion"
-            options={options.emotions}
-            selected={filters.emotions || []}
-            onChange={(val) => updateFilter('emotions', val)}
-          />
+        {/* Emotion filter */}
+        <FilterChipGroup
+          label="Emotion"
+          options={options.emotions}
+          selected={filters.emotions || []}
+          onChange={(val) => updateFilter('emotions', val)}
+        />
 
-          {/* Symbol filter */}
-          <FilterChipGroup
-            label="Symbol"
-            options={options.symbols.slice(0, 10)}
-            selected={filters.symbols || []}
-            onChange={(val) => updateFilter('symbols', val)}
-          />
+        {/* Symbol filter */}
+        <FilterChipGroup
+          label="Symbol"
+          options={options.symbols.slice(0, 10)}
+          selected={filters.symbols || []}
+          onChange={(val) => updateFilter('symbols', val)}
+        />
 
-          {/* Tags filter */}
-          <FilterChipGroup
-            label="Tags"
-            options={options.tags.slice(0, 10)}
-            selected={filters.tags || []}
-            onChange={(val) => updateFilter('tags', val)}
-          />
+        {/* Tags filter */}
+        <FilterChipGroup
+          label="Tags"
+          options={options.tags.slice(0, 10)}
+          selected={filters.tags || []}
+          onChange={(val) => updateFilter('tags', val)}
+        />
 
-          {/* Context tags (from intelligence layer) */}
-          {options.contextTags.length > 0 && (
-            <FilterChipGroup
-              label="Context Tags"
-              options={options.contextTags.slice(0, 10)}
-              selected={filters.contextTags || []}
-              onChange={(val) => updateFilter('contextTags', val)}
+        {/* Context tags (from intelligence layer) */}
+        {options.contextTags.length > 0 && (
+          <FilterChipGroup
+            label="Context Tags"
+            options={options.contextTags.slice(0, 10)}
+            selected={filters.contextTags || []}
+            onChange={(val) => updateFilter('contextTags', val)}
+          />
+        )}
+
+        {/* P&L range */}
+        <div>
+          <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, fontFamily: M, marginBottom: 4 }}>P&L Range</div>
+          <div style={{ display: 'flex', gap: 4 }}>
+            <input
+              type="number"
+              placeholder="Min"
+              value={filters.pnlMin ?? ''}
+              onChange={(e) => updateFilter('pnlMin', e.target.value ? Number(e.target.value) : null)}
+              style={getInputStyle()}
             />
-          )}
-
-          {/* P&L range */}
-          <div>
-            <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, fontFamily: M, marginBottom: 4 }}>P&L Range</div>
-            <div style={{ display: 'flex', gap: 4 }}>
-              <input
-                type="number"
-                placeholder="Min"
-                value={filters.pnlMin ?? ''}
-                onChange={(e) => updateFilter('pnlMin', e.target.value ? Number(e.target.value) : null)}
-                style={inputStyle}
-              />
-              <input
-                type="number"
-                placeholder="Max"
-                value={filters.pnlMax ?? ''}
-                onChange={(e) => updateFilter('pnlMax', e.target.value ? Number(e.target.value) : null)}
-                style={inputStyle}
-              />
-            </div>
-          </div>
-
-          {/* Outcome filter */}
-          <FilterChipGroup
-            label="Outcome"
-            options={['Win', 'Loss', 'Breakeven']}
-            selected={filters.outcomes || []}
-            onChange={(val) => updateFilter('outcomes', val)}
-          />
-
-          {/* Confluence score range */}
-          <div>
-            <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, fontFamily: M, marginBottom: 4 }}>
-              Confluence Score
-            </div>
-            <div style={{ display: 'flex', gap: 4 }}>
-              <ChipBtn
-                label="Low (0-30)"
-                active={(filters.confluenceRange || []).includes('low')}
-                onClick={() => toggleInArray('confluenceRange', 'low', filters, updateFilter)}
-              />
-              <ChipBtn
-                label="Med (30-60)"
-                active={(filters.confluenceRange || []).includes('medium')}
-                onClick={() => toggleInArray('confluenceRange', 'medium', filters, updateFilter)}
-              />
-              <ChipBtn
-                label="High (60+)"
-                active={(filters.confluenceRange || []).includes('high')}
-                onClick={() => toggleInArray('confluenceRange', 'high', filters, updateFilter)}
-              />
-            </div>
+            <input
+              type="number"
+              placeholder="Max"
+              value={filters.pnlMax ?? ''}
+              onChange={(e) => updateFilter('pnlMax', e.target.value ? Number(e.target.value) : null)}
+              style={getInputStyle()}
+            />
           </div>
         </div>
+
+        {/* Outcome filter */}
+        <FilterChipGroup
+          label="Outcome"
+          options={['Win', 'Loss', 'Breakeven']}
+          selected={filters.outcomes || []}
+          onChange={(val) => updateFilter('outcomes', val)}
+        />
+
+        {/* Confluence score range */}
+        <div>
+          <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, fontFamily: M, marginBottom: 4 }}>
+            Confluence Score
+          </div>
+          <div style={{ display: 'flex', gap: 4 }}>
+            <ChipBtn
+              label="Low (0-30)"
+              active={(filters.confluenceRange || []).includes('low')}
+              onClick={() => toggleInArray('confluenceRange', 'low', filters, updateFilter)}
+            />
+            <ChipBtn
+              label="Med (30-60)"
+              active={(filters.confluenceRange || []).includes('medium')}
+              onClick={() => toggleInArray('confluenceRange', 'medium', filters, updateFilter)}
+            />
+            <ChipBtn
+              label="High (60+)"
+              active={(filters.confluenceRange || []).includes('high')}
+              onClick={() => toggleInArray('confluenceRange', 'high', filters, updateFilter)}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -385,17 +385,20 @@ function toggleInArray(key, val, filters, updateFilter) {
   updateFilter(key, next);
 }
 
-const inputStyle = {
-  width: '100%',
-  padding: '4px 8px',
-  fontSize: 10,
-  borderRadius: 4,
-  border: `1px solid ${C.bd}`,
-  background: C.sf,
-  color: C.t1,
-  fontFamily: M,
-  outline: 'none',
-};
+// Lazy function — avoids module-scope C read that causes TDZ in production Rollup chunks
+function getInputStyle() {
+  return {
+    width: '100%',
+    padding: '4px 8px',
+    fontSize: 10,
+    borderRadius: 4,
+    border: `1px solid ${C.bd}`,
+    background: C.sf,
+    color: C.t1,
+    fontFamily: M,
+    outline: 'none',
+  };
+}
 
 export function countActiveFilters(filters) {
   if (!filters) return 0;
