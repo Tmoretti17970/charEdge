@@ -8,25 +8,25 @@
 // ─── Theme Palettes ──────────────────────────────────────────────
 
 export const DARK_COLORS = {
-  bg: '#08090a',      // Sprint 2: deepened page background
-  bg2: '#0e1013',     // Sprint 2: +6 lightness (was #0f1012 = +1)
-  sf: '#16181d',      // Sprint 2: cards clearly distinct from bg2
-  sf2: '#1d2027',     // Sprint 2: interactive surfaces pop from sf
-  bd: '#2a2e3a',      // Sprint 2: higher-contrast borders
-  bd2: '#363b4a',     // Sprint 2: emphasis borders
+  bg: '#08090a', // Sprint 2: deepened page background
+  bg2: '#0e1013', // Sprint 2: +6 lightness (was #0f1012 = +1)
+  sf: '#16181d', // Sprint 2: cards clearly distinct from bg2
+  sf2: '#1d2027', // Sprint 2: interactive surfaces pop from sf
+  bd: '#2a2e3a', // Sprint 2: higher-contrast borders
+  bd2: '#363b4a', // Sprint 2: emphasis borders
   t1: '#ececef',
   t2: '#8b8fa2',
   t3: '#4e5266',
   b: '#e8642c',
   bH: '#d4551e',
-  g: '#34C759',       // Sprint 30: Apple system green
-  r: '#FF3B30',       // Sprint 30: Apple system red
+  g: '#34C759', // Sprint 30: Apple system green
+  r: '#FF3B30', // Sprint 30: Apple system red
   y: '#f0b64e',
   p: '#c084fc',
   cyan: '#22d3ee',
   orange: '#e8642c',
   pink: '#f472b6',
-  rose: '#e8a0b0',     // Charolette's Light — warm rose memorial accent
+  rose: '#e8a0b0', // Charolette's Light — warm rose memorial accent
   lime: '#a3e635',
   info: '#5c9cf5',
   bullish: '#34C759',
@@ -53,7 +53,7 @@ export const LIGHT_COLORS = {
   cyan: '#0891b2',
   orange: '#d4551e',
   pink: '#db2777',
-  rose: '#c47a8a',     // Charolette's Light — warm rose (light theme variant)
+  rose: '#c47a8a', // Charolette's Light — warm rose (light theme variant)
   lime: '#65a30d',
   info: '#2563eb',
   bullish: '#34C759',
@@ -92,12 +92,28 @@ export const DEEP_SEA_COLORS = {
 
 // ─── CSS Custom Property → C key mapping ────────────────────────
 const CSS_VAR_MAP = {
-  bg: '--tf-bg', bg2: '--tf-bg2', sf: '--tf-sf', sf2: '--tf-sf2',
-  bd: '--tf-bd', bd2: '--tf-bd2', t1: '--tf-t1', t2: '--tf-t2', t3: '--tf-t3',
-  b: '--tf-accent', bH: '--tf-accent-h',
-  g: '--tf-green', r: '--tf-red', y: '--tf-yellow', p: '--tf-purple',
-  cyan: '--tf-cyan', orange: '--tf-orange', pink: '--tf-pink', lime: '--tf-lime',
-  info: '--tf-info', bullish: '--tf-bullish', bearish: '--tf-bearish',
+  bg: '--tf-bg',
+  bg2: '--tf-bg2',
+  sf: '--tf-sf',
+  sf2: '--tf-sf2',
+  bd: '--tf-bd',
+  bd2: '--tf-bd2',
+  t1: '--tf-t1',
+  t2: '--tf-t2',
+  t3: '--tf-t3',
+  b: '--tf-accent',
+  bH: '--tf-accent-h',
+  g: '--tf-green',
+  r: '--tf-red',
+  y: '--tf-yellow',
+  p: '--tf-purple',
+  cyan: '--tf-cyan',
+  orange: '--tf-orange',
+  pink: '--tf-pink',
+  lime: '--tf-lime',
+  info: '--tf-info',
+  bullish: '--tf-bullish',
+  bearish: '--tf-bearish',
 };
 
 /**
@@ -116,11 +132,37 @@ function toHex(color) {
 
 /**
  * Active color palette — backed by CSS custom properties.
- * All components import C and read its properties at render time.
- * Values are refreshed from CSS vars on every theme change via refreshThemeCache().
- * CSS custom properties on <html> are the single source of truth.
+ *
+ * IMPORTANT: C is a Proxy, not a plain object. This is intentional.
+ * In production Rollup bundles, barrel re-exports (constants.js → index.js → theme.js)
+ * can cause the C binding to be in the Temporal Dead Zone (TDZ) when other modules
+ * read C.xxx at module scope (e.g. `const inputStyle = { color: C.t1 }`).
+ * A Proxy backed by _C_DATA ensures property reads always succeed at runtime,
+ * regardless of module evaluation order.
+ *
+ * All reads/writes go through _C_DATA. The Proxy handles get, set, has,
+ * ownKeys, and getOwnPropertyDescriptor so it behaves like a normal object.
  */
-export const C = { ...DARK_COLORS };
+const _C_DATA = { ...DARK_COLORS };
+
+export const C = new Proxy(_C_DATA, {
+  get(target, prop) {
+    return target[prop];
+  },
+  set(target, prop, value) {
+    target[prop] = value;
+    return true;
+  },
+  has(target, prop) {
+    return prop in target;
+  },
+  ownKeys(target) {
+    return Object.keys(target);
+  },
+  getOwnPropertyDescriptor(target, prop) {
+    return Object.getOwnPropertyDescriptor(target, prop);
+  },
+});
 
 /**
  * Refresh the C object by reading current CSS custom property values.
@@ -133,16 +175,16 @@ export function refreshThemeCache() {
   const cs = getComputedStyle(root);
   for (const [key, cssVar] of Object.entries(CSS_VAR_MAP)) {
     const val = cs.getPropertyValue(cssVar).trim();
-    if (val) C[key] = toHex(val);
+    if (val) _C_DATA[key] = toHex(val);
   }
   // Derived: red with alpha for subtle red backgrounds
   // Use proper rgba parsing — C.r may be rgb() from computed styles
-  const rMatch = C.r.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+  const rMatch = _C_DATA.r.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
   if (rMatch) {
-    C.rS = `rgba(${rMatch[1]},${rMatch[2]},${rMatch[3]},0.13)`;
+    _C_DATA.rS = `rgba(${rMatch[1]},${rMatch[2]},${rMatch[3]},0.13)`;
   } else {
     // Hex fallback
-    C.rS = C.r + '20';
+    _C_DATA.rS = _C_DATA.r + '20';
   }
 
   // Swap GLASS & DEPTH to match current theme
@@ -238,13 +280,19 @@ export const DEPTH = { ...DEPTH_DARK };
         return parsed?.state?.theme || parsed?.theme || null;
       }
       return null;
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) { return null; }
+      // eslint-disable-next-line unused-imports/no-unused-vars
+    } catch (_) {
+      return null;
+    }
   })();
-  const resolved = stored === 'light' ? 'light'
-    : stored === 'system'
-      ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
-      : stored || 'dark';
+  const resolved =
+    stored === 'light'
+      ? 'light'
+      : stored === 'system'
+        ? window.matchMedia('(prefers-color-scheme: light)').matches
+          ? 'light'
+          : 'dark'
+        : stored || 'dark';
 
   if (resolved === 'light') {
     // Apply theme class so CSS vars are available instantly
@@ -254,6 +302,6 @@ export const DEPTH = { ...DEPTH_DARK };
     for (const k of Object.keys(GLASS_LIGHT)) GLASS[k] = GLASS_LIGHT[k];
     for (const k of Object.keys(DEPTH_LIGHT)) DEPTH[k] = DEPTH_LIGHT[k];
     // Swap C to light defaults (CSS vars may not be computed yet)
-    Object.assign(C, LIGHT_COLORS);
+    Object.assign(_C_DATA, LIGHT_COLORS);
   }
 })();
