@@ -7,28 +7,11 @@
 // the design system with dimensional and behavioral tokens.
 // ═══════════════════════════════════════════════════════════════════
 
-// ─── Lazy Constants Accessor ──────────────────────────────────
-// Production Rollup bundles can evaluate this module before
-// constants/theme.js finishes initializing (cross-chunk TDZ).
-// We import the namespace but DON'T destructure C at module scope.
-// Instead, C is a Proxy that lazily reads from _constants.C at
-// access time, so all bare `C.xxx` references work without TDZ.
-import * as _constants from '../constants.js';
+// ─── Color/Font Imports ───────────────────────────────────────
+// Import directly from the leaf module (_colors.js has ZERO imports)
+// to guarantee C, F, M are initialized before this module evaluates.
+import { C, F, M } from '../constants/_colors.js';
 export { alpha } from '@/shared/colorUtils';
-
-const C = new Proxy(
-  {},
-  {
-    get(_, prop) {
-      return _constants.C[prop];
-    },
-  },
-);
-
-// Inlined to avoid circular-dep TDZ in production Rollup bundles.
-// Same values as constants/theme.js → export const F / M.
-const F = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
-const M = "'JetBrains Mono', 'SF Mono', monospace";
 
 // ─── Spacing Scale (4px base) ─────────────────────────────────
 export const space = {

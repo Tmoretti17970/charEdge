@@ -3,92 +3,18 @@
 //
 // Color palettes (dark/light), glassmorphism, depth shadows,
 // CSS custom property bridge, font stacks.
+//
+// ⚠️  C, F, M, DARK_COLORS, LIGHT_COLORS, DEEP_SEA_COLORS are
+//     defined in ./_colors.js (a leaf module with ZERO imports)
+//     to guarantee Rollup evaluates them before any consumer.
+//     This file re-exports them and adds derived tokens.
 // ═══════════════════════════════════════════════════════════════════
 
-// ─── Theme Palettes ──────────────────────────────────────────────
+// Re-export primitives from the leaf module
+export { C, F, M, DARK_COLORS, LIGHT_COLORS, DEEP_SEA_COLORS } from './_colors.js';
 
-export const DARK_COLORS = {
-  bg: '#08090a', // Sprint 2: deepened page background
-  bg2: '#0e1013', // Sprint 2: +6 lightness (was #0f1012 = +1)
-  sf: '#16181d', // Sprint 2: cards clearly distinct from bg2
-  sf2: '#1d2027', // Sprint 2: interactive surfaces pop from sf
-  bd: '#2a2e3a', // Sprint 2: higher-contrast borders
-  bd2: '#363b4a', // Sprint 2: emphasis borders
-  t1: '#ececef',
-  t2: '#8b8fa2',
-  t3: '#4e5266',
-  b: '#e8642c',
-  bH: '#d4551e',
-  g: '#34C759', // Sprint 30: Apple system green
-  r: '#FF3B30', // Sprint 30: Apple system red
-  y: '#f0b64e',
-  p: '#c084fc',
-  cyan: '#22d3ee',
-  orange: '#e8642c',
-  pink: '#f472b6',
-  rose: '#e8a0b0', // Charolette's Light — warm rose memorial accent
-  lime: '#a3e635',
-  info: '#5c9cf5',
-  bullish: '#34C759',
-  bearish: '#FF3B30',
-  rS: '#FF3B3020',
-};
-
-export const LIGHT_COLORS = {
-  bg: '#f8f8fa',
-  bg2: '#eef0f4',
-  sf: '#ffffff',
-  sf2: '#f2f3f6',
-  bd: '#d4d7e0',
-  bd2: '#bec3d0',
-  t1: '#111318',
-  t2: '#4a5068',
-  t3: '#8890a4',
-  b: '#d4551e',
-  bH: '#bf4a18',
-  g: '#34C759',
-  r: '#FF3B30',
-  y: '#d4930b',
-  p: '#7c3aed',
-  cyan: '#0891b2',
-  orange: '#d4551e',
-  pink: '#db2777',
-  rose: '#c47a8a', // Charolette's Light — warm rose (light theme variant)
-  lime: '#65a30d',
-  info: '#2563eb',
-  bullish: '#34C759',
-  bearish: '#FF3B30',
-  rS: '#FF3B3020',
-};
-
-// Task 4.9.3.2: Deep Sea OLED Dark Mode
-// True black for OLED panels, warm-shifted text for eye strain reduction.
-export const DEEP_SEA_COLORS = {
-  bg: '#000000',
-  bg2: '#050505',
-  sf: '#0a0a08',
-  sf2: '#121210',
-  bd: '#1a1a16',
-  bd2: '#28281e',
-  t1: '#f0e8d8',
-  t2: '#a09880',
-  t3: '#6a6450',
-  b: '#d4881e',
-  bH: '#b87418',
-  g: '#3dc78a',
-  r: '#e85c5c',
-  y: '#e8b830',
-  p: '#b08ae0',
-  cyan: '#d4a020',
-  orange: '#d4881e',
-  pink: '#d4889a',
-  rose: '#c89898',
-  lime: '#a8c830',
-  info: '#c8a048',
-  bullish: '#3dc78a',
-  bearish: '#e85c5c',
-  rS: '#e85c5c20',
-};
+// Import for local use (refreshThemeCache, earlyThemeInit)
+import { C, LIGHT_COLORS } from './_colors.js';
 
 // ─── CSS Custom Property → C key mapping ────────────────────────
 const CSS_VAR_MAP = {
@@ -131,40 +57,6 @@ function toHex(color) {
 }
 
 /**
- * Active color palette — backed by CSS custom properties.
- *
- * IMPORTANT: C is a Proxy, not a plain object. This is intentional.
- * In production Rollup bundles, barrel re-exports (constants.js → index.js → theme.js)
- * can cause the C binding to be in the Temporal Dead Zone (TDZ) when other modules
- * read C.xxx at module scope (e.g. `const inputStyle = { color: C.t1 }`).
- * A Proxy backed by _C_DATA ensures property reads always succeed at runtime,
- * regardless of module evaluation order.
- *
- * All reads/writes go through _C_DATA. The Proxy handles get, set, has,
- * ownKeys, and getOwnPropertyDescriptor so it behaves like a normal object.
- */
-const _C_DATA = { ...DARK_COLORS };
-
-export const C = new Proxy(_C_DATA, {
-  get(target, prop) {
-    return target[prop];
-  },
-  set(target, prop, value) {
-    target[prop] = value;
-    return true;
-  },
-  has(target, prop) {
-    return prop in target;
-  },
-  ownKeys(target) {
-    return Object.keys(target);
-  },
-  getOwnPropertyDescriptor(target, prop) {
-    return Object.getOwnPropertyDescriptor(target, prop);
-  },
-});
-
-/**
  * Refresh the C object by reading current CSS custom property values.
  * Called by useThemeStore after applying CSS vars on theme change.
  * Falls back to DARK_COLORS/LIGHT_COLORS when CSS vars aren't available (SSR/tests).
@@ -175,16 +67,16 @@ export function refreshThemeCache() {
   const cs = getComputedStyle(root);
   for (const [key, cssVar] of Object.entries(CSS_VAR_MAP)) {
     const val = cs.getPropertyValue(cssVar).trim();
-    if (val) _C_DATA[key] = toHex(val);
+    if (val) C[key] = toHex(val);
   }
   // Derived: red with alpha for subtle red backgrounds
   // Use proper rgba parsing — C.r may be rgb() from computed styles
-  const rMatch = _C_DATA.r.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+  const rMatch = C.r.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
   if (rMatch) {
-    _C_DATA.rS = `rgba(${rMatch[1]},${rMatch[2]},${rMatch[3]},0.13)`;
+    C.rS = `rgba(${rMatch[1]},${rMatch[2]},${rMatch[3]},0.13)`;
   } else {
     // Hex fallback
-    _C_DATA.rS = _C_DATA.r + '20';
+    C.rS = C.r + '20';
   }
 
   // Swap GLASS & DEPTH to match current theme
@@ -194,9 +86,6 @@ export function refreshThemeCache() {
   for (const k of Object.keys(glassSource)) GLASS[k] = glassSource[k];
   for (const k of Object.keys(depthSource)) DEPTH[k] = depthSource[k];
 }
-
-export const F = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
-export const M = "'JetBrains Mono', 'SF Mono', monospace";
 
 // ─── Sprint 3: Glass & Depth Tokens (JS-side) ────────────────────
 // Mirror of CSS custom properties for inline-styled components.
@@ -302,6 +191,6 @@ export const DEPTH = { ...DEPTH_DARK };
     for (const k of Object.keys(GLASS_LIGHT)) GLASS[k] = GLASS_LIGHT[k];
     for (const k of Object.keys(DEPTH_LIGHT)) DEPTH[k] = DEPTH_LIGHT[k];
     // Swap C to light defaults (CSS vars may not be computed yet)
-    Object.assign(_C_DATA, LIGHT_COLORS);
+    Object.assign(C, LIGHT_COLORS);
   }
 })();
