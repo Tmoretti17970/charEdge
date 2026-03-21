@@ -10,13 +10,20 @@
 // ─── Lazy Constants Accessor ──────────────────────────────────
 // Production Rollup bundles can evaluate this module before
 // constants/theme.js finishes initializing (cross-chunk TDZ).
-// We import the namespace but DON'T read .C at module scope.
-// Instead, getC() resolves C at RENDER time (first getter call).
+// We import the namespace but DON'T destructure C at module scope.
+// Instead, C is a Proxy that lazily reads from _constants.C at
+// access time, so all bare `C.xxx` references work without TDZ.
 import * as _constants from '../constants.js';
 export { alpha } from '@/shared/colorUtils';
 
-let _C;
-function getC() { return _C || (_C = _constants.C); }
+const C = new Proxy(
+  {},
+  {
+    get(_, prop) {
+      return _constants.C[prop];
+    },
+  },
+);
 
 // Inlined to avoid circular-dep TDZ in production Rollup bundles.
 // Same values as constants/theme.js → export const F / M.
@@ -53,11 +60,11 @@ export const cardPadding = {
 // ─── Border Radius ────────────────────────────────────────────
 export const radii = {
   none: 0,
-  xs: 4,     // tags, badges, small buttons
-  sm: 8,     // inputs, small cards
-  md: 12,    // cards, panels
-  lg: 16,    // modals, drawers
-  xl: 20,    // hero cards, dialogs
+  xs: 4, // tags, badges, small buttons
+  sm: 8, // inputs, small cards
+  md: 12, // cards, panels
+  lg: 16, // modals, drawers
+  xl: 20, // hero cards, dialogs
   pill: 9999,
 };
 
@@ -86,7 +93,7 @@ export const shadows = {
 export function shadow(size = 'md') {
   // Detect light theme by checking background brightness
   const isLight = C.bg && (C.bg.startsWith('#f') || C.bg.startsWith('#e'));
-  return isLight ? (shadows.light[size] || shadows.light.md) : (shadows[size] || shadows.md);
+  return isLight ? shadows.light[size] || shadows.light.md : shadows[size] || shadows.md;
 }
 
 // ─── Brand Gradients (theme-reactive via getters) ───────────
@@ -126,12 +133,12 @@ export const zIndex = {
 
 // ─── Transitions ──────────────────────────────────────────────
 export const transition = {
-  micro: '0.08s ease',       // hover feedback (instant feel)
+  micro: '0.08s ease', // hover feedback (instant feel)
   fast: '0.1s ease',
   base: '0.15s ease',
   slow: '0.25s ease',
-  enter: '0.2s cubic-bezier(0.16, 1, 0.3, 1)',   // elements appearing
-  exit: '0.15s ease-in',                           // elements disappearing
+  enter: '0.2s cubic-bezier(0.16, 1, 0.3, 1)', // elements appearing
+  exit: '0.15s ease-in', // elements disappearing
   spring: '0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
 };
 
