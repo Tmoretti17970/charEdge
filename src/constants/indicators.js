@@ -209,4 +209,13 @@ export const ICATS = [
   { id: 'volume', l: 'Volume' },
 ];
 
-export const OV_COLORS = [C.y, C.orange, C.p, C.cyan, C.pink, C.lime, '#6c5ce7', '#fd79a8'];
+// Lazy getter — avoids TDZ when Rollup evaluates this before theme.js
+let _OV_COLORS;
+export function getOvColors() {
+  return _OV_COLORS || (_OV_COLORS = [C.y, C.orange, C.p, C.cyan, C.pink, C.lime, '#6c5ce7', '#fd79a8']);
+}
+export const OV_COLORS = new Proxy([], {
+  get(_, p) {
+    return getOvColors()[p];
+  },
+});

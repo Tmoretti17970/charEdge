@@ -5,7 +5,10 @@
 // Extracted from useTournamentStore for useGamificationStore composition.
 // ═══════════════════════════════════════════════════════════════════
 
-import { C } from '../../constants/theme.js';
+// NOTE: We intentionally avoid importing C at module scope here.
+// Production Rollup bundles can evaluate this module before
+// constants/theme.js finishes initializing (TDZ). Static hex values
+// are used for mock tournament colors instead.
 
 const DAY = 86400000;
 const now = Date.now();
@@ -32,7 +35,7 @@ export const MOCK_TOURNAMENTS = [
       { rank: 6, name: 'You', avatar: '🔥', pnl: 1850, trades: 12, winRate: 67 },
     ],
     icon: '💰',
-    color: C.g,
+    color: '#34d399',
   },
   {
     id: 'tourn_2',
@@ -72,7 +75,7 @@ export const MOCK_TOURNAMENTS = [
   },
   {
     id: 'tourn_4',
-    name: 'Last Week\'s Sprint',
+    name: "Last Week's Sprint",
     type: 'trades',
     status: 'completed',
     description: 'Most profitable trades in a 48-hour sprint.',

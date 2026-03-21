@@ -3,7 +3,9 @@ import { useMemo } from 'react';
 import { detectPatterns, gradePatterns } from '../../../../charting_library/studies/PatternDetector.js';
 import { C, M } from '@/constants.js';
 
-const SEV_COLORS = { danger: C.r, warning: C.y || C.y, positive: C.g, info: C.b };
+function getSevColor(severity) {
+  return { danger: C.r, warning: C.y, positive: C.g, info: C.b }[severity];
+}
 const SEV_EMOJI = { danger: '🔴', warning: '🟡', positive: '🟢', info: '🔵' };
 
 export default function PatternsTab({ trades }) {
@@ -53,7 +55,7 @@ export default function PatternsTab({ trades }) {
             background: C.sf,
             borderRadius: 6,
             marginBottom: 4,
-            borderLeft: `3px solid ${SEV_COLORS[ins.severity] || C.b}`,
+            borderLeft: `3px solid ${getSevColor(ins.severity) || C.b}`,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
@@ -64,8 +66,8 @@ export default function PatternsTab({ trades }) {
                 fontSize: 8,
                 padding: '1px 5px',
                 borderRadius: 3,
-                background: SEV_COLORS[ins.severity] + '15',
-                color: SEV_COLORS[ins.severity],
+                background: (getSevColor(ins.severity) || C.b) + '15',
+                color: getSevColor(ins.severity) || C.b,
                 fontWeight: 700,
                 textTransform: 'uppercase',
               }}
