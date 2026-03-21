@@ -249,10 +249,9 @@ export default defineConfig({
             || id.includes('src/app/features/chart') || id.includes('src/app/components/chart')) {
             return 'chart-tools';
           }
-          // Sprint 7: Journal is the biggest page (227KB) — give it its own chunk
-          if (id.includes('src/pages/JournalPage')) {
-            return 'journal-page';
-          }
+          // ⚠️  journal-page chunk REMOVED — it created circular deps with
+          // chart-tools and data-adapters, causing cross-chunk TDZ errors
+          // in production. Journal code now stays in the entry chunk.
         },
       },
     },
