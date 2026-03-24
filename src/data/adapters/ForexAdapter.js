@@ -23,25 +23,25 @@ import { logger } from '@/observability/logger';
 
 const FX_PAIRS = {
   // Majors
-  'EURUSD':  { pyth: 'EURUSD=X', finnhub: 'OANDA:EUR_USD', name: 'Euro / US Dollar' },
-  'GBPUSD':  { pyth: 'GBPUSD=X', finnhub: 'OANDA:GBP_USD', name: 'British Pound / US Dollar' },
-  'USDJPY':  { pyth: 'USDJPY=X', finnhub: 'OANDA:USD_JPY', name: 'US Dollar / Japanese Yen' },
-  'AUDUSD':  { pyth: 'AUDUSD=X', finnhub: 'OANDA:AUD_USD', name: 'Australian Dollar / US Dollar' },
-  'USDCAD':  { pyth: 'USDCAD=X', finnhub: 'OANDA:USD_CAD', name: 'US Dollar / Canadian Dollar' },
-  'USDCHF':  { pyth: 'USDCHF=X', finnhub: 'OANDA:USD_CHF', name: 'US Dollar / Swiss Franc' },
-  'NZDUSD':  { pyth: 'NZDUSD=X', finnhub: 'OANDA:NZD_USD', name: 'New Zealand Dollar / US Dollar' },
+  EURUSD: { pyth: 'EURUSD=X', finnhub: 'OANDA:EUR_USD', name: 'Euro / US Dollar' },
+  GBPUSD: { pyth: 'GBPUSD=X', finnhub: 'OANDA:GBP_USD', name: 'British Pound / US Dollar' },
+  USDJPY: { pyth: 'USDJPY=X', finnhub: 'OANDA:USD_JPY', name: 'US Dollar / Japanese Yen' },
+  AUDUSD: { pyth: 'AUDUSD=X', finnhub: 'OANDA:AUD_USD', name: 'Australian Dollar / US Dollar' },
+  USDCAD: { pyth: 'USDCAD=X', finnhub: 'OANDA:USD_CAD', name: 'US Dollar / Canadian Dollar' },
+  USDCHF: { pyth: 'USDCHF=X', finnhub: 'OANDA:USD_CHF', name: 'US Dollar / Swiss Franc' },
+  NZDUSD: { pyth: 'NZDUSD=X', finnhub: 'OANDA:NZD_USD', name: 'New Zealand Dollar / US Dollar' },
 
   // Crosses
-  'EURGBP':  { pyth: null, finnhub: 'OANDA:EUR_GBP', name: 'Euro / British Pound' },
-  'EURJPY':  { pyth: null, finnhub: 'OANDA:EUR_JPY', name: 'Euro / Japanese Yen' },
-  'GBPJPY':  { pyth: null, finnhub: 'OANDA:GBP_JPY', name: 'British Pound / Japanese Yen' },
-  'AUDJPY':  { pyth: null, finnhub: 'OANDA:AUD_JPY', name: 'Australian Dollar / Japanese Yen' },
-  'CADJPY':  { pyth: null, finnhub: 'OANDA:CAD_JPY', name: 'Canadian Dollar / Japanese Yen' },
+  EURGBP: { pyth: null, finnhub: 'OANDA:EUR_GBP', name: 'Euro / British Pound' },
+  EURJPY: { pyth: null, finnhub: 'OANDA:EUR_JPY', name: 'Euro / Japanese Yen' },
+  GBPJPY: { pyth: null, finnhub: 'OANDA:GBP_JPY', name: 'British Pound / Japanese Yen' },
+  AUDJPY: { pyth: null, finnhub: 'OANDA:AUD_JPY', name: 'Australian Dollar / Japanese Yen' },
+  CADJPY: { pyth: null, finnhub: 'OANDA:CAD_JPY', name: 'Canadian Dollar / Japanese Yen' },
 
   // Emerging
-  'USDMXN':  { pyth: null, finnhub: 'OANDA:USD_MXN', name: 'US Dollar / Mexican Peso' },
-  'USDZAR':  { pyth: null, finnhub: 'OANDA:USD_ZAR', name: 'US Dollar / South African Rand' },
-  'USDTRY':  { pyth: null, finnhub: 'OANDA:USD_TRY', name: 'US Dollar / Turkish Lira' },
+  USDMXN: { pyth: null, finnhub: 'OANDA:USD_MXN', name: 'US Dollar / Mexican Peso' },
+  USDZAR: { pyth: null, finnhub: 'OANDA:USD_ZAR', name: 'US Dollar / South African Rand' },
+  USDTRY: { pyth: null, finnhub: 'OANDA:USD_TRY', name: 'US Dollar / Turkish Lira' },
 };
 
 // ─── Helpers ────────────────────────────────────────────────────
@@ -111,7 +111,9 @@ class _ForexAdapter {
         if (quote?.price > 0) {
           return { price: quote.price, source: 'pyth', pair, name: info.name, confidence: quote.confidence };
         }
-      } catch (e) { logger.data.warn('Operation failed', e); }
+      } catch (e) {
+        logger.data.warn('Operation failed', e);
+      }
     }
 
     // Try Finnhub
@@ -121,7 +123,9 @@ class _ForexAdapter {
         if (quote?.price > 0) {
           return { price: quote.price, source: 'finnhub', pair, name: info.name, confidence: 0 };
         }
-      } catch (e) { logger.data.warn('Operation failed', e); }
+      } catch (e) {
+        logger.data.warn('Operation failed', e);
+      }
     }
 
     return null;
@@ -154,7 +158,9 @@ class _ForexAdapter {
           });
         });
         if (unsub) this._unsubs.push(unsub);
-      } catch (e) { logger.data.warn('Operation failed', e); }
+      } catch (e) {
+        logger.data.warn('Operation failed', e);
+      }
     }
 
     // Subscribe to Finnhub as secondary
@@ -170,14 +176,60 @@ class _ForexAdapter {
           });
         });
         if (unsub) this._unsubs.push(unsub);
-      } catch (e) { logger.data.warn('Operation failed', e); }
+      } catch (e) {
+        logger.data.warn('Operation failed', e);
+      }
     }
 
     return () => {
       // Unsubscribe all related
-      this._unsubs.forEach(fn => { try { fn(); } catch (e) { logger.data.warn('Operation failed', e); } });
+      this._unsubs.forEach((fn) => {
+        try {
+          fn();
+        } catch (e) {
+          logger.data.warn('Operation failed', e);
+        }
+      });
       this._unsubs = [];
     };
+  }
+
+  /**
+   * Fetch historical OHLCV candles for an FX pair.
+   * Routes through Yahoo Finance (forex pairs use =X suffix).
+   *
+   * @param {string} symbol - e.g., 'EUR/USD', 'EURUSD', 'EURUSD=X'
+   * @param {string} [tf='1h'] - Timeframe
+   * @param {number} [limit=300] - Max candles
+   * @returns {Promise<Array<{ time, open, high, low, close, volume }>>}
+   */
+  async fetchOHLCV(symbol, tf = '1h', limit = 300) {
+    const pair = normalizePair(symbol);
+    if (!pair) return [];
+
+    const info = FX_PAIRS[pair];
+    // Yahoo uses =X suffix for forex: EURUSD=X
+    const yahooSymbol = info.pyth || `${pair}=X`;
+
+    try {
+      // Try Finnhub crypto candles endpoint for supported forex pairs
+      if (info.finnhub && finnhubAdapter.isConfigured) {
+        try {
+          const candles = await finnhubAdapter.fetchCryptoCandles?.(info.finnhub, tf);
+          if (candles?.length > 0) return candles;
+        } catch {
+          /* fallthrough to Yahoo */
+        }
+      }
+
+      // Fallback: Yahoo Finance via proxy
+      const { yahooAdapter } = await import('./YahooAdapter.js');
+      const bars = await yahooAdapter.fetchOHLCV(yahooSymbol, tf, limit);
+      return bars || [];
+    } catch (err) {
+      logger.data.warn(`[ForexAdapter] OHLCV fetch failed for ${pair}:`, err.message);
+      return [];
+    }
   }
 
   /**
@@ -188,9 +240,7 @@ class _ForexAdapter {
   search(query) {
     const q = (query || '').toUpperCase();
     return Object.entries(FX_PAIRS)
-      .filter(([pair, info]) =>
-        pair.includes(q) || info.name.toUpperCase().includes(q)
-      )
+      .filter(([pair, info]) => pair.includes(q) || info.name.toUpperCase().includes(q))
       .map(([pair, info]) => ({
         symbol: pair,
         displayName: info.name,
@@ -203,7 +253,13 @@ class _ForexAdapter {
    * Dispose of all connections.
    */
   dispose() {
-    this._unsubs.forEach(fn => { try { fn(); } catch (e) { logger.data.warn('Operation failed', e); } });
+    this._unsubs.forEach((fn) => {
+      try {
+        fn();
+      } catch (e) {
+        logger.data.warn('Operation failed', e);
+      }
+    });
     this._unsubs = [];
     this._subscribers.clear();
   }
