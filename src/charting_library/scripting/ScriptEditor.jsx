@@ -18,6 +18,7 @@ import { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHand
 import { C, M } from '../../constants.js';
 import { useScriptStore } from '../../state/useScriptStore.js';
 import { space, radii, text, transition, preset } from '../../theme/tokens.js';
+import { transpile, runEdgeScript, EXAMPLE_SCRIPTS } from './EdgeScript.js';
 import { executeScript, validateScript } from './ScriptEngine.js';
 
 const MIN_HEIGHT = 120;
@@ -40,8 +41,9 @@ const ScriptEditor = forwardRef(function ScriptEditor({ bars, onResults }, ref) 
   const [panelHeight, setPanelHeight] = useState(DEFAULT_HEIGHT);
   const [consoleOutput, setConsoleOutput] = useState(null);
   const [execMs, setExecMs] = useState(null);
-  const [tab, setTab] = useState('editor'); // editor | console | params
+  const [tab, setTab] = useState('editor'); // editor | console | params | examples
   const [declaredParams, setDeclaredParams] = useState({});
+  const [lang, setLang] = useState('edgescript'); // 'edgescript' | 'javascript'
 
   const _dragRef = useRef(null);
   const textareaRef = useRef(null);
@@ -67,17 +69,9 @@ const ScriptEditor = forwardRef(function ScriptEditor({ bars, onResults }, ref) 
   useImperativeHandle(ref, () => ({ openScript }), [openScript]);
 
   // ─── Run Script ─────────────────────────────────────────
-  const runScript = useCallback(() => {
+  const runScript = useCallback(async () => {
     if (!code.trim()) {
       setConsoleOutput({ error: 'Script is empty', outputs: [] });
-      setTab('console');
-      return;
-    }
-
-    // Validate first
-    const validation = validateScript(code);
-    if (!validation.valid) {
-      setConsoleOutput({ error: validation.error, outputs: [] });
       setTab('console');
       return;
     }
@@ -86,24 +80,54 @@ const ScriptEditor = forwardRef(function ScriptEditor({ bars, onResults }, ref) 
     const script = editingId ? useScriptStore.getState().scripts.find((s) => s.id === editingId) : null;
     const userParams = script?.params || {};
 
-    // Execute
-    const result = executeScript(code, bars || [], userParams);
+    let result;
+
+    if (lang === 'edgescript') {
+      // EdgeScript mode: transpile then execute
+      const transpiled = transpile(code);
+      if (transpiled.errors.length > 0) {
+        setConsoleOutput({
+          error: `Transpile errors:\n${transpiled.errors.join('\n')}`,
+          outputs: [],
+          transpiled: transpiled.js,
+        });
+        setTab('console');
+        return;
+      }
+
+      result = await runEdgeScript(code, bars || [], userParams);
+    } else {
+      // JavaScript mode: validate then execute
+      const validation = validateScript(code);
+      if (!validation.valid) {
+        setConsoleOutput({ error: validation.error, outputs: [] });
+        setTab('console');
+        return;
+      }
+      result = executeScript(code, bars || [], userParams);
+    }
+
     setExecMs(result.execMs);
     setDeclaredParams(result.params);
 
     if (result.error) {
-      setConsoleOutput({ error: result.error, outputs: [] });
+      setConsoleOutput({
+        error: result.error,
+        outputs: [],
+        transpiled: result.transpiled || null,
+      });
       setTab('console');
     } else {
       setConsoleOutput({
         error: null,
         outputs: result.outputs,
         summary: `${result.outputs.length} output(s) · ${result.execMs.toFixed(1)}ms`,
+        transpiled: result.transpiled || null,
       });
 
       // Save code back to store
       if (editingId) {
-        useScriptStore.getState().updateScript(editingId, { code });
+        useScriptStore.getState().updateScript(editingId, { code, lang });
       }
 
       // Send outputs to chart
@@ -111,7 +135,7 @@ const ScriptEditor = forwardRef(function ScriptEditor({ bars, onResults }, ref) 
         onResults(editingId, result.outputs);
       }
     }
-  }, [code, bars, editingId, onResults]);
+  }, [code, bars, editingId, onResults, lang]);
 
   // ─── Save on Ctrl+S ────────────────────────────────────
   const handleKeyDown = useCallback(
@@ -236,9 +260,40 @@ const ScriptEditor = forwardRef(function ScriptEditor({ bars, onResults }, ref) 
 
         {!collapsed && (
           <>
+            {/* Language toggle */}
+            <div
+              style={{
+                display: 'flex',
+                gap: 0,
+                marginLeft: space[1],
+                borderRadius: radii.sm,
+                overflow: 'hidden',
+                border: `1px solid ${C.bd}`,
+              }}
+            >
+              {['edgescript', 'javascript'].map((l) => (
+                <button
+                  className="tf-btn"
+                  key={l}
+                  onClick={() => setLang(l)}
+                  style={{
+                    ...preset.toolbarBtn,
+                    fontSize: 9,
+                    padding: '2px 6px',
+                    color: lang === l ? C.bg : C.t3,
+                    background: lang === l ? C.b : 'transparent',
+                    border: 'none',
+                    fontWeight: lang === l ? 700 : 400,
+                  }}
+                >
+                  {l === 'edgescript' ? 'Edge' : 'JS'}
+                </button>
+              ))}
+            </div>
+
             {/* Tabs */}
             <div style={{ display: 'flex', gap: 2, marginLeft: space[2] }}>
-              {['editor', 'console', 'params'].map((t) => (
+              {['editor', 'console', 'params', 'examples'].map((t) => (
                 <button
                   className="tf-btn"
                   key={t}
@@ -538,6 +593,43 @@ const ScriptEditor = forwardRef(function ScriptEditor({ bars, onResults }, ref) 
                   </button>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Examples Tab */}
+          {tab === 'examples' && (
+            <div style={{ flex: 1, padding: space[3], overflowY: 'auto' }}>
+              <div style={{ ...text.captionSm, color: C.t3, marginBottom: space[3] }}>
+                Load an example EdgeScript to get started.
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: space[2] }}>
+                {EXAMPLE_SCRIPTS.map((ex) => (
+                  <button
+                    className="tf-btn"
+                    key={ex.id}
+                    onClick={() => {
+                      setCode(ex.source);
+                      setLang('edgescript');
+                      setTab('editor');
+                    }}
+                    style={{
+                      padding: `${space[2]}px ${space[3]}px`,
+                      background: C.sf,
+                      border: `1px solid ${C.bd}`,
+                      borderRadius: radii.sm,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                    }}
+                  >
+                    <div style={{ fontSize: 12, fontWeight: 600, color: C.t1, fontFamily: 'var(--tf-font)' }}>
+                      {ex.name}
+                    </div>
+                    <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', marginTop: 2 }}>
+                      {ex.description}
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
