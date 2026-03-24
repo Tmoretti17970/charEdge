@@ -16,6 +16,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { isCrypto } from '../constants.js';
 
 /**
  * Subscribe to real-time prices for a list of symbols.
@@ -28,6 +29,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 export default function useWatchlistStreaming(symbols, enabled = true, visibleSymbols = null) {
   const [prices, setPrices] = useState({});
   const [wsStatus, setWsStatus] = useState('disconnected');
+  const [failedSymbols, setFailedSymbols] = useState(new Set());
   const subIdsRef = useRef([]);
   const pollTimerRef = useRef(null);
   const mountedRef = useRef(true);
@@ -35,86 +37,101 @@ export default function useWatchlistStreaming(symbols, enabled = true, visibleSy
   // Stores 24h ticker baselines for computing changePercent from WS ticks
   const tickerBaselineRef = useRef({});
 
-  // Separate crypto vs non-crypto symbols
-  const cryptoSymbols = symbols.filter(s =>
-    ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA', 'DOT', 'AVAX', 'MATIC', 'LINK', 'UNI', 'LTC'].includes(s.toUpperCase()),
-  );
-  const otherSymbols = symbols.filter(s => !cryptoSymbols.includes(s));
+  // Separate crypto vs non-crypto symbols using the canonical isCrypto()
+  // which covers 55+ tokens (not just the original 13)
+  const cryptoSymbols = symbols.filter((s) => isCrypto(s));
+  const otherSymbols = symbols.filter((s) => !isCrypto(s));
 
   // ─── Sprint 55: Load cached prices on mount (instant load) ────
   useEffect(() => {
     if (!enabled || symbols.length === 0 || cacheLoadedRef.current) return;
 
-    import('../services/WatchlistCache').then(async ({ getCached }) => {
-      if (!mountedRef.current) return;
+    import('../services/WatchlistCache')
+      .then(async ({ getCached }) => {
+        if (!mountedRef.current) return;
 
-      const cachedPrices = await getCached('prices', symbols);
-      if (!mountedRef.current || Object.keys(cachedPrices).length === 0) return;
+        const cachedPrices = await getCached('prices', symbols);
+        if (!mountedRef.current || Object.keys(cachedPrices).length === 0) return;
 
-      setPrices(prev => {
-        const merged = { ...prev };
-        for (const [sym, data] of Object.entries(cachedPrices)) {
-          // Only use cache if we don't already have live data
-          if (!merged[sym] || !merged[sym].source || merged[sym].source === 'cache') {
-            merged[sym] = { ...data, source: 'cache' };
+        setPrices((prev) => {
+          const merged = { ...prev };
+          for (const [sym, data] of Object.entries(cachedPrices)) {
+            // Only use cache if we don't already have live data
+            if (!merged[sym] || !merged[sym].source || merged[sym].source === 'cache') {
+              merged[sym] = { ...data, source: 'cache' };
+            }
           }
-        }
-        return merged;
+          return merged;
+        });
+        cacheLoadedRef.current = true;
+      })
+      .catch(() => {
+        /* cache is best-effort */
       });
-      cacheLoadedRef.current = true;
-    }).catch(() => { /* cache is best-effort */ });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, symbols.join(',')]);
 
   // ─── Sprint 55: Persist prices to IndexedDB cache ─────────────
   const persistToCache = useCallback((sym, priceData) => {
-    import('../services/WatchlistCache').then(({ setCached }) => {
-      setCached('prices', { [sym]: priceData });
-    }).catch(() => { /* best-effort */ });
+    import('../services/WatchlistCache')
+      .then(({ setCached }) => {
+        setCached('prices', { [sym]: priceData });
+      })
+      .catch(() => {
+        /* best-effort */
+      });
   }, []);
 
   // ─── Crypto: Fetch 24h ticker baseline for change % ──────────
   useEffect(() => {
     if (!enabled || cryptoSymbols.length === 0) return;
 
-    import('../data/FetchService').then(({ fetch24hTicker }) => {
-      if (!mountedRef.current) return;
-      fetch24hTicker(cryptoSymbols).then(results => {
+    import('../data/FetchService')
+      .then(({ fetch24hTicker }) => {
         if (!mountedRef.current) return;
-        const baselines = {};
-        const initialPrices = {};
-        for (const t of results) {
-          if (!t?.symbol) continue;
-          const sym = t.symbol.replace(/(USDT|BUSD|USDC|USD)$/, '');
-          const price = parseFloat(t.lastPrice);
-          const change = parseFloat(t.priceChange);
-          const changePercent = parseFloat(t.priceChangePercent);
-          const open24h = price - change;
-          baselines[sym] = { open24h, change, changePercent };
-          initialPrices[sym] = {
-            price,
-            change,
-            changePercent,
-            volume: parseFloat(t.volume),
-            high: parseFloat(t.highPrice),
-            low: parseFloat(t.lowPrice),
-            lastUpdate: Date.now(),
-            source: 'ticker',
-          };
-        }
-        tickerBaselineRef.current = { ...tickerBaselineRef.current, ...baselines };
-        setPrices(prev => {
-          const merged = { ...prev };
-          for (const [sym, data] of Object.entries(initialPrices)) {
-            // Only set if we don't already have live WS data
-            if (!merged[sym] || merged[sym].source === 'cache') {
-              merged[sym] = data;
+        fetch24hTicker(cryptoSymbols)
+          .then((results) => {
+            if (!mountedRef.current) return;
+            const baselines = {};
+            const initialPrices = {};
+            for (const t of results) {
+              if (!t?.symbol) continue;
+              const sym = t.symbol.replace(/(USDT|BUSD|USDC|USD)$/, '');
+              const price = parseFloat(t.lastPrice);
+              const change = parseFloat(t.priceChange);
+              const changePercent = parseFloat(t.priceChangePercent);
+              const open24h = price - change;
+              baselines[sym] = { open24h, change, changePercent };
+              initialPrices[sym] = {
+                price,
+                change,
+                changePercent,
+                volume: parseFloat(t.volume),
+                high: parseFloat(t.highPrice),
+                low: parseFloat(t.lowPrice),
+                lastUpdate: Date.now(),
+                source: 'ticker',
+              };
             }
-          }
-          return merged;
-        });
-      }).catch(() => { /* best-effort */ });
-    }).catch(() => { /* best-effort */ });
+            tickerBaselineRef.current = { ...tickerBaselineRef.current, ...baselines };
+            setPrices((prev) => {
+              const merged = { ...prev };
+              for (const [sym, data] of Object.entries(initialPrices)) {
+                // Only set if we don't already have live WS data
+                if (!merged[sym] || merged[sym].source === 'cache') {
+                  merged[sym] = data;
+                }
+              }
+              return merged;
+            });
+          })
+          .catch(() => {
+            /* best-effort */
+          });
+      })
+      .catch(() => {
+        /* best-effort */
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, cryptoSymbols.join(',')]);
 
@@ -131,7 +148,7 @@ export default function useWatchlistStreaming(symbols, enabled = true, visibleSy
       // Sprint 54: Batch subscribe — subscribe all at once.
       // The underlying WebSocketService debounces via _scheduleStreamUpdate (50ms),
       // so all subscriptions within this tick get batched into a single WS message.
-      const ids = cryptoSymbols.map(sym => {
+      const ids = cryptoSymbols.map((sym) => {
         // Sprint 54: Adaptive streaming — visible symbols get 1m, offscreen get 5m
         const isVisible = !visibleSymbols || visibleSymbols.includes(sym);
         const tf = isVisible ? '1m' : '5m';
@@ -157,7 +174,7 @@ export default function useWatchlistStreaming(symbols, enabled = true, visibleSy
               lastUpdate: Date.now(),
               source: 'ws',
             };
-            setPrices(prev => ({
+            setPrices((prev) => ({
               ...prev,
               [sym]: priceData,
             }));
@@ -197,7 +214,8 @@ export default function useWatchlistStreaming(symbols, enabled = true, visibleSy
         const results = await fetch24hTicker(otherSymbols);
         if (!mountedRef.current) return;
 
-        setPrices(prev => {
+        const succeededSyms = new Set();
+        setPrices((prev) => {
           const updated = { ...prev };
           for (const t of results) {
             if (t?.symbol) {
@@ -212,14 +230,35 @@ export default function useWatchlistStreaming(symbols, enabled = true, visibleSy
               };
               updated[sym] = priceData;
               updated[t.symbol] = priceData;
+              succeededSyms.add(sym);
               // Sprint 55: Persist
               persistToCache(sym, priceData);
             }
           }
           return updated;
         });
+
+        // Track symbols that returned no data
+        if (mountedRef.current) {
+          const failed = otherSymbols.filter((s) => !succeededSyms.has(s));
+          if (failed.length > 0) {
+            setFailedSymbols((prev) => {
+              const next = new Set(prev);
+              for (const s of failed) next.add(s);
+              for (const s of succeededSyms) next.delete(s);
+              return next;
+            });
+          }
+        }
       } catch {
-        // Silently fail — polling is best-effort
+        // Mark all non-crypto symbols as failed on total error
+        if (mountedRef.current) {
+          setFailedSymbols((prev) => {
+            const next = new Set(prev);
+            for (const s of otherSymbols) next.add(s);
+            return next;
+          });
+        }
       }
     };
 
@@ -239,5 +278,5 @@ export default function useWatchlistStreaming(symbols, enabled = true, visibleSy
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, otherSymbols.join(',')]);
 
-  return { prices, wsStatus };
+  return { prices, wsStatus, failedSymbols };
 }

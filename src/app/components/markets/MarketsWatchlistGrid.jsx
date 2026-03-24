@@ -15,22 +15,21 @@
 import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
 import { C } from '../../../constants.js';
 import '../../../styles/markets-animations.css';
-import { useJournalStore } from '../../../state/useJournalStore';
-import { useWatchlistStore, enrichWithTradeStats, groupByAssetClass } from '../../../state/useWatchlistStore.js';
-import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
-import { useUIStore } from '../../../state/useUIStore';
-import { useMarketsPrefsStore, ALL_COLUMNS } from '../../../state/useMarketsPrefsStore';
-import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming.js';
-import { useFundamentalsEnrich } from '../../../hooks/useFundamentalsEnrich';
 import { fmtCompact } from '../../../data/FundamentalService.js';
+import { useDragReorder } from '../../../hooks/useDragReorder';
+import { useFundamentalsEnrich } from '../../../hooks/useFundamentalsEnrich';
+import { useVirtualScroll } from '../../../hooks/useVirtualScroll';
+import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming.js';
+import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
+import { useAlertStore } from '../../../state/useAlertStore';
+import { useJournalStore } from '../../../state/useJournalStore';
+import { useMarketsPrefsStore, ALL_COLUMNS } from '../../../state/useMarketsPrefsStore';
+import { useUIStore } from '../../../state/useUIStore';
+import { useWatchlistStore, enrichWithTradeStats, groupByAssetClass } from '../../../state/useWatchlistStore.js';
 import { radii, transition } from '../../../theme/tokens.js';
 import Sparkline from '../ui/Sparkline.jsx';
-import MarketsRowContextMenu from './MarketsRowContextMenu.jsx';
 import EarningsBadge from './EarningsBadge.jsx';
-import { useAlertStore } from '../../../state/useAlertStore';
-import { useDragReorder } from '../../../hooks/useDragReorder';
-import { useVirtualScroll } from '../../../hooks/useVirtualScroll';
-import st from './MarketsWatchlistGrid.module.css';
+import MarketsRowContextMenu from './MarketsRowContextMenu.jsx';
 
 // ─── Format helpers ────────────────────────────────────────────
 
@@ -66,7 +65,9 @@ function fmtDate(val) {
   try {
     const d = new Date(val);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  } catch { return '—'; }
+  } catch {
+    return '—';
+  }
 }
 
 // ─── Asset class colors ────────────────────────────────────────
@@ -84,22 +85,36 @@ const ASSET_COLORS = {
 // ─── Grid template builder ─────────────────────────────────────
 
 function buildGridTemplate(columns, isNarrow) {
-  return columns.map((col) => {
-    switch (col) {
-      case 'symbol': return isNarrow ? '2fr' : '2fr';
-      case 'sparkline': return isNarrow ? '60px' : '80px';
-      case 'price': return '1fr';
-      case 'change': return '1fr';
-      case 'volume': return '1fr';
-      case 'weekRange': return '140px';
-      case 'volProfile': return '130px';
-      case 'pnl': return '1fr';
-      case 'tradeCount': return '80px';
-      case 'lastTraded': return '90px';
-      case 'assetClass': return '80px';
-      default: return '1fr';
-    }
-  }).join(' ');
+  return columns
+    .map((col) => {
+      switch (col) {
+        case 'symbol':
+          return isNarrow ? '2fr' : '2fr';
+        case 'sparkline':
+          return isNarrow ? '60px' : '80px';
+        case 'price':
+          return '1fr';
+        case 'change':
+          return '1fr';
+        case 'volume':
+          return '1fr';
+        case 'weekRange':
+          return '140px';
+        case 'volProfile':
+          return '130px';
+        case 'pnl':
+          return '1fr';
+        case 'tradeCount':
+          return '80px';
+        case 'lastTraded':
+          return '90px';
+        case 'assetClass':
+          return '80px';
+        default:
+          return '1fr';
+      }
+    })
+    .join(' ');
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -112,17 +127,20 @@ export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedInde
   const reorderItems = useWatchlistStore((s) => s.reorder);
 
   // ─── Sprint 51: Animated remove (play exit, then remove) ───
-  const removeSymbol = useCallback((symbol) => {
-    setExitingSymbols(prev => new Set([...prev, symbol]));
-    setTimeout(() => {
-      storeRemoveSymbol(symbol);
-      setExitingSymbols(prev => {
-        const next = new Set(prev);
-        next.delete(symbol);
-        return next;
-      });
-    }, 300); // matches markets-row-slide-out duration
-  }, [storeRemoveSymbol]);
+  const removeSymbol = useCallback(
+    (symbol) => {
+      setExitingSymbols((prev) => new Set([...prev, symbol]));
+      setTimeout(() => {
+        storeRemoveSymbol(symbol);
+        setExitingSymbols((prev) => {
+          const next = new Set(prev);
+          next.delete(symbol);
+          return next;
+        });
+      }, 300); // matches markets-row-slide-out duration
+    },
+    [storeRemoveSymbol],
+  );
   const trades = useJournalStore((s) => s.trades);
   const setChartSymbol = useChartCoreStore((s) => s.setSymbol);
   const setPage = useUIStore((s) => s.setPage);
@@ -146,7 +164,7 @@ export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedInde
   const [exitingSymbols, setExitingSymbols] = useState(new Set());
 
   useEffect(() => {
-    const currentSyms = new Set(items.map(i => i.symbol));
+    const currentSyms = new Set(items.map((i) => i.symbol));
     const prevSyms = prevSymbolsRef.current;
 
     // Find newly added symbols
@@ -174,7 +192,7 @@ export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedInde
 
   // ─── Live prices ────────────────────────────────────────────
   const symbols = useMemo(() => items.map((i) => i.symbol), [items]);
-  const { prices } = useWatchlistStreaming(symbols, symbols.length > 0);
+  const { prices, failedSymbols } = useWatchlistStreaming(symbols, symbols.length > 0);
 
   // ─── Sparkline data ─────────────────────────────────────────
   useEffect(() => {
@@ -202,7 +220,9 @@ export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedInde
       });
     });
 
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
 
@@ -225,9 +245,10 @@ export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedInde
         maxSupply: f?.maxSupply ?? null,
         ath: f?.ath ?? null,
         athChange: f?.athChange ?? null,
+        dataFailed: failedSymbols?.has(item.symbol) ?? false,
       };
     });
-  }, [items, trades, prices, fundamentals]);
+  }, [items, trades, prices, fundamentals, failedSymbols]);
 
   // ─── Filter ─────────────────────────────────────────────────
   const filteredItems = useMemo(() => {
@@ -243,13 +264,32 @@ export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedInde
     sorted.sort((a, b) => {
       let va, vb;
       switch (sortKey) {
-        case 'symbol': va = a.symbol; vb = b.symbol; return va < vb ? -dir : dir;
-        case 'price': va = a.livePrice ?? -Infinity; vb = b.livePrice ?? -Infinity; break;
-        case 'change': va = a.changePercent ?? -Infinity; vb = b.changePercent ?? -Infinity; break;
-        case 'volume': va = a.volume ?? -Infinity; vb = b.volume ?? -Infinity; break;
-        case 'pnl': va = a.totalPnl ?? -Infinity; vb = b.totalPnl ?? -Infinity; break;
-        case 'tradeCount': va = a.tradeCount ?? 0; vb = b.tradeCount ?? 0; break;
-        default: return 0;
+        case 'symbol':
+          va = a.symbol;
+          vb = b.symbol;
+          return va < vb ? -dir : dir;
+        case 'price':
+          va = a.livePrice ?? -Infinity;
+          vb = b.livePrice ?? -Infinity;
+          break;
+        case 'change':
+          va = a.changePercent ?? -Infinity;
+          vb = b.changePercent ?? -Infinity;
+          break;
+        case 'volume':
+          va = a.volume ?? -Infinity;
+          vb = b.volume ?? -Infinity;
+          break;
+        case 'pnl':
+          va = a.totalPnl ?? -Infinity;
+          vb = b.totalPnl ?? -Infinity;
+          break;
+        case 'tradeCount':
+          va = a.tradeCount ?? 0;
+          vb = b.tradeCount ?? 0;
+          break;
+        default:
+          return 0;
       }
       return (va - vb) * dir;
     });
@@ -264,15 +304,21 @@ export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedInde
   }, [sortedItems, groupBy]);
 
   // ─── Select symbol → detail panel (Sprint 9) ───────────────
-  const handleClickSymbol = useCallback((symbol) => {
-    setSelectedSymbol(symbol);
-  }, [setSelectedSymbol]);
+  const handleClickSymbol = useCallback(
+    (symbol) => {
+      setSelectedSymbol(symbol);
+    },
+    [setSelectedSymbol],
+  );
 
   // ─── Double-click → navigate to chart ──────────────────────
-  const handleDoubleClick = useCallback((symbol) => {
-    setChartSymbol(symbol);
-    setPage('charts');
-  }, [setChartSymbol, setPage]);
+  const handleDoubleClick = useCallback(
+    (symbol) => {
+      setChartSymbol(symbol);
+      setPage('charts');
+    },
+    [setChartSymbol, setPage],
+  );
 
   // ─── Responsive columns: hide extras on narrow screens ─────
   const columns = useMemo(() => {
@@ -293,7 +339,7 @@ export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedInde
   // ─── Context menu (Sprint 24) ───────────────────────────────
   const [ctxMenu, setCtxMenu] = useState(null);
   const alerts = useAlertStore((s) => s.alerts);
-  const alertSymbols = useMemo(() => new Set(alerts.filter(a => a.active).map(a => a.symbol)), [alerts]);
+  const alertSymbols = useMemo(() => new Set(alerts.filter((a) => a.active).map((a) => a.symbol)), [alerts]);
 
   const handleContextMenu = useCallback((e, sym, price) => {
     e.preventDefault();
@@ -317,8 +363,8 @@ export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedInde
     enabled: !groupedData, // Only virtualize flat view
   });
 
-  const renderRows = (rowItems, startIndex = 0) =>
-    rowItems.map((item, idx) => {
+  const renderRows = (rowItems, _startIndex = 0) =>
+    rowItems.map((item) => {
       const globalIdx = sortedItems.indexOf(item);
       return (
         <WatchlistGridRow
@@ -363,7 +409,7 @@ export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedInde
         }}
       >
         {columns.map((col) => {
-          const label = col === 'sparkline' ? '' : (colLabelMap[col] || col);
+          const label = col === 'sparkline' ? '' : colLabelMap[col] || col;
           const sortable = col !== 'sparkline';
           const isActive = sortKey === col;
           return (
@@ -388,18 +434,19 @@ export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedInde
               }}
             >
               {label}
-              {isActive && (
-                <span style={{ fontSize: 8, opacity: 0.8 }}>
-                  {sortDir === 'asc' ? '▲' : '▼'}
-                </span>
-              )}
+              {isActive && <span style={{ fontSize: 8, opacity: 0.8 }}>{sortDir === 'asc' ? '▲' : '▼'}</span>}
             </div>
           );
         })}
       </div>
 
       {/* ─── Rows ─────────────────────────────────────────── */}
-      <div ref={scrollContainerRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }} role="listbox" aria-label="Watchlist">
+      <div
+        ref={scrollContainerRef}
+        style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}
+        role="listbox"
+        aria-label="Watchlist"
+      >
         {groupedData ? (
           // Grouped view
           Array.from(groupedData.entries()).map(([cls, groupItems]) => (
@@ -429,7 +476,10 @@ export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedInde
               const item = sortedItems[index];
               if (!item) return null;
               return (
-                <div key={item.symbol} style={{ position: 'absolute', top: offsetY, left: 0, right: 0, height: ROW_HEIGHT }}>
+                <div
+                  key={item.symbol}
+                  style={{ position: 'absolute', top: offsetY, left: 0, right: 0, height: ROW_HEIGHT }}
+                >
                   <WatchlistGridRow
                     item={item}
                     sparkline={sparklines[item.symbol]}
@@ -561,10 +611,15 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
               <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-mono)' }}>
                 {item.symbol}
               </span>
-              {hasAlert && <span style={{ fontSize: 10 }} title="Active alert">🔔</span>}
+              {hasAlert && (
+                <span style={{ fontSize: 10 }} title="Active alert">
+                  🔔
+                </span>
+              )}
               <EarningsBadge symbol={item.symbol} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-mono)', display: 'none' }}>
-              </span>
+              <span
+                style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-mono)', display: 'none' }}
+               />
               {item.assetClass && item.assetClass !== 'other' && (
                 <span
                   style={{
@@ -604,15 +659,19 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
     sparkline: (
       <div className="markets-sparkline-transition" style={{ width: isNarrow ? 60 : 80, height: 28, flexShrink: 0 }}>
         {sparkline && sparkline.length > 1 ? (
-          <Sparkline
-            data={sparkline}
-            width={isNarrow ? 60 : 80}
-            height={28}
-            color={changeColor}
-            showArea={false}
-          />
+          <Sparkline data={sparkline} width={isNarrow ? 60 : 80} height={28} color={changeColor} showArea={false} />
         ) : (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.t3, fontSize: 8 }}>
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: C.t3,
+              fontSize: 8,
+            }}
+          >
             ···
           </div>
         )}
@@ -620,9 +679,23 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
     ),
     price: (
       <div style={{ textAlign: 'right' }}>
-        <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: C.t1, fontVariantNumeric: 'tabular-nums' }}>
-          {fmtPrice(item.livePrice)}
-        </div>
+        {item.livePrice == null && item.dataFailed ? (
+          <div style={{ fontSize: 10, color: C.t3, fontStyle: 'italic' }} title="Data unavailable for this symbol">
+            no data
+          </div>
+        ) : (
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 700,
+              fontFamily: 'var(--tf-mono)',
+              color: C.t1,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {fmtPrice(item.livePrice)}
+          </div>
+        )}
       </div>
     ),
     change: (
@@ -645,7 +718,15 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
     ),
     volume: (
       <div style={{ textAlign: 'right' }}>
-        <span style={{ fontSize: 12, fontWeight: 500, fontFamily: 'var(--tf-mono)', color: C.t2, fontVariantNumeric: 'tabular-nums' }}>
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 500,
+            fontFamily: 'var(--tf-mono)',
+            color: C.t2,
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
           {fmtVolume(item.volume)}
         </span>
       </div>
@@ -654,7 +735,16 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
       <div style={{ textAlign: 'right' }}>
         {hasTrades ? (
           <>
-            <div style={{ fontSize: 12, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: item.totalPnl >= 0 ? C.g : C.r, fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                fontFamily: 'var(--tf-mono)',
+                color: item.totalPnl >= 0 ? C.g : C.r,
+                fontVariantNumeric: 'tabular-nums',
+                lineHeight: 1.2,
+              }}
+            >
               {fmtPnl(item.totalPnl)}
             </div>
             <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>
@@ -688,14 +778,30 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
     ),
     marketCap: (
       <div style={{ textAlign: 'right' }}>
-        <span style={{ fontSize: 12, fontWeight: 500, fontFamily: 'var(--tf-mono)', color: C.t2, fontVariantNumeric: 'tabular-nums' }}>
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 500,
+            fontFamily: 'var(--tf-mono)',
+            color: C.t2,
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
           {item.marketCap ? fmtCompact(item.marketCap) : '—'}
         </span>
       </div>
     ),
     supply: (
       <div style={{ textAlign: 'right' }}>
-        <span style={{ fontSize: 12, fontWeight: 500, fontFamily: 'var(--tf-mono)', color: C.t2, fontVariantNumeric: 'tabular-nums' }}>
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 500,
+            fontFamily: 'var(--tf-mono)',
+            color: C.t2,
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
           {item.supply ? fmtCompact(item.supply, 0) : '—'}
         </span>
         {item.maxSupply && (
@@ -707,12 +813,21 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
     ),
     ath: (
       <div style={{ textAlign: 'right' }}>
-        <span style={{ fontSize: 12, fontWeight: 500, fontFamily: 'var(--tf-mono)', color: C.t2, fontVariantNumeric: 'tabular-nums' }}>
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 500,
+            fontFamily: 'var(--tf-mono)',
+            color: C.t2,
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
           {item.ath ? fmtPrice(item.ath) : '—'}
         </span>
         {item.athChange != null && (
           <div style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: item.athChange < -50 ? C.r : C.t3 }}>
-            {item.athChange > 0 ? '+' : ''}{item.athChange?.toFixed(1)}%
+            {item.athChange > 0 ? '+' : ''}
+            {item.athChange?.toFixed(1)}%
           </div>
         )}
       </div>
@@ -747,7 +862,9 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
     isDropTarget ? 'markets-row-drop-target' : '',
     isEntering ? 'markets-row-enter' : '',
     isExiting ? 'markets-row-exit' : '',
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div
@@ -756,7 +873,10 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
       onClick={onClick}
       onDoubleClick={onDoubleClick}
       onContextMenu={onContextMenu}
-      onMouseEnter={() => { setHovered(true); onMouseEnterRow?.(); }}
+      onMouseEnter={() => {
+        setHovered(true);
+        onMouseEnterRow?.();
+      }}
       onMouseLeave={() => setHovered(false)}
       role="option"
       aria-selected={isSelected}
@@ -783,7 +903,10 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
 
       {hovered && (
         <button
-          onClick={(e) => { e.stopPropagation(); onRemove(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
           style={{
             position: 'absolute',
             right: 8,

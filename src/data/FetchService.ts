@@ -30,7 +30,7 @@ const _cryptoCompareAdapter = new CryptoCompareAdapter();
 const _yahooAdapter = new YahooAdapter();
 
 const TTL = {
-  '1m': 15000,    // 1-minute candles — refresh fast
+  '1m': 15000, // 1-minute candles — refresh fast
   '5m': 15000,
   '15m': 30000,
   '30m': 30000,
@@ -48,12 +48,9 @@ let _lastWarning = null; // Set by fetchers when they fail
 const MAX_RETRIES = 2;
 const RETRY_BASE_MS = 1000; // 1s → 2s → 4s backoff
 
-
-
 // ─── Symbol Search (extracted to SymbolSearch.js) ──────────────
 import { fetchSymbolSearch } from './SymbolSearch.js';
 import { logger } from '@/observability/logger';
-
 
 // ─── Main Fetch Function ────────────────────────────────────────
 // Unified cache: CacheManager handles memory → IDB → OPFS
@@ -76,7 +73,7 @@ async function fetchOHLC(sym, tfId) {
   if (_inflight.has(key)) return _inflight.get(key);
 
   // Network fetch with auto-retry (Sprint 8)
-  const promise = _doFetchWithRetry(sym, tfId, tf, key);
+  const promise = doFetchWithRetry(sym, tfId, tf, key);
   _inflight.set(key, promise);
   try {
     return await promise;
@@ -90,7 +87,7 @@ async function fetchOHLC(sym, tfId) {
 }
 
 // Sprint 8: Retry wrapper with exponential backoff
-async function _doFetchWithRetry(sym, tfId, tf, key, attempt = 0) {
+async function doFetchWithRetry(sym, tfId, tf, key, attempt = 0) {
   const result = await _doFetch(sym, tfId, tf, key);
   // If we got data, return immediately
   if (result.data && result.data.length > 0) return result;
@@ -98,8 +95,8 @@ async function _doFetchWithRetry(sym, tfId, tf, key, attempt = 0) {
   if (attempt < MAX_RETRIES) {
     const delay = RETRY_BASE_MS * Math.pow(2, attempt);
     pipelineLogger.debug('FetchService', `Retry ${attempt + 1}/${MAX_RETRIES} for ${sym}:${tfId} in ${delay}ms`);
-    await new Promise(r => setTimeout(r, delay));
-    return _doFetchWithRetry(sym, tfId, tf, key, attempt + 1);
+    await new Promise((r) => setTimeout(r, delay));
+    return doFetchWithRetry(sym, tfId, tf, key, attempt + 1);
   }
   return result;
 }
@@ -119,8 +116,10 @@ async function _doFetch(sym, tfId, _tf, _key) {
       if (lastTime) {
         deltaStartTime = (typeof lastTime === 'string' ? new Date(lastTime).getTime() : lastTime) + 1;
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_) { /* OPFS unavailable — full fetch */ }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_) {
+      /* OPFS unavailable — full fetch */
+    }
     data = await withCircuitBreaker('binance', () => fetchBinance(sym, tfId, deltaStartTime));
     // If delta fetch returned data, merge with CacheManager's last read (avoids double OPFS read)
     if (data && deltaStartTime) {
@@ -129,14 +128,16 @@ async function _doFetch(sym, tfId, _tf, _key) {
         const cachedBars = cachedResult?.data;
         if (cachedBars && cachedBars.length > 0) {
           const lastCachedTime = cachedBars[cachedBars.length - 1].time;
-          const newBars = data.filter(b => b.time > lastCachedTime);
+          const newBars = data.filter((b) => b.time > lastCachedTime);
           if (newBars.length > 0) {
             data = [...cachedBars, ...newBars];
           } else {
             data = cachedBars;
           }
         }
-      } catch (e) { logger.data.warn('Operation failed', e); }
+      } catch (e) {
+        logger.data.warn('Operation failed', e);
+      }
     }
     if (data) source = 'binance';
   }
@@ -157,7 +158,7 @@ async function _doFetch(sym, tfId, _tf, _key) {
       };
       const cgTf = CG_TF_MAP[tfId] || { interval: '1d', days: 365 };
       const candles = await cg.fetchOHLCV(sym, cgTf.interval, { days: cgTf.days });
-      return (candles && candles.length > 1) ? candles : null;
+      return candles && candles.length > 1 ? candles : null;
     });
     if (data) {
       source = 'coingecko';
@@ -165,9 +166,11 @@ async function _doFetch(sym, tfId, _tf, _key) {
       if (data._noVolume) {
         _lastWarning = `${sym} data from CoinGecko has no volume. Volume indicators may be inaccurate.`;
         if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('charEdge:data-warning', {
-            detail: { message: _lastWarning, symbol: sym, type: 'no-volume' },
-          }));
+          window.dispatchEvent(
+            new CustomEvent('charEdge:data-warning', {
+              detail: { message: _lastWarning, symbol: sym, type: 'no-volume' },
+            }),
+          );
         }
       }
     }
@@ -178,14 +181,47 @@ async function _doFetch(sym, tfId, _tf, _key) {
     data = await withCircuitBreaker('cryptocompare', async () => {
       const cc = _cryptoCompareAdapter;
       const CC_TF_MAP = {
-        '1m': '5m', '5m': '5m', '15m': '1h', '30m': '1h',
-        '1h': '1h', '4h': '1d', '1D': '1d', '1w': '1d',
+        '1m': '5m',
+        '5m': '5m',
+        '15m': '1h',
+        '30m': '1h',
+        '1h': '1h',
+        '4h': '1d',
+        '1D': '1d',
+        '1w': '1d',
       };
       const ccInterval = CC_TF_MAP[tfId] || '1d';
       const candles = await cc.fetchOHLCV(sym, ccInterval);
-      return (candles && candles.length > 1) ? candles : null;
+      return candles && candles.length > 1 ? candles : null;
     });
     if (data) source = 'cryptocompare';
+  }
+
+  // ── Step 1.7: Crypto → Kraken (free, no key, 600+ pairs) ──────
+  if (!data && isCrypto(sym)) {
+    try {
+      const { krakenAdapter } = await import('./adapters/KrakenAdapter.js');
+      if (krakenAdapter.supports(sym)) {
+        const KR_TF_MAP: Record<string, string> = {
+          '1m': '1m',
+          '5m': '5m',
+          '15m': '15m',
+          '30m': '30m',
+          '1h': '1h',
+          '4h': '4h',
+          '1D': '1d',
+          '1w': '1w',
+        };
+        const krInterval = KR_TF_MAP[tfId] || '1h';
+        const candles = await krakenAdapter.fetchOHLCV(sym, krInterval);
+        if (candles && candles.length > 1) {
+          data = candles;
+          source = 'kraken';
+        }
+      }
+    } catch {
+      /* Kraken unavailable */
+    }
   }
 
   // ── Step 2: Equities → Premium first, then Yahoo fallback ──────
@@ -244,8 +280,10 @@ async function _doFetch(sym, tfId, _tf, _key) {
         cacheManager.write(sym, tfId, offlineBars, 'cached');
         return { data: offlineBars, source: 'cached' };
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_) { /* OPFS unavailable */ }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_) {
+      /* OPFS unavailable */
+    }
 
     source = 'no_data';
     const warningMsg = !isCrypto(sym)
@@ -296,7 +334,9 @@ function _bgRefresh(sym, tfId, tf, key) {
       if (t < cutoff) _bgRefreshTimestamps.delete(k);
     }
   }
-  _doFetch(sym, tfId, tf, key).catch((err) => pipelineLogger.warn('FetchService', `Background refresh failed: ${key}`, err));
+  _doFetch(sym, tfId, tf, key).catch((err) =>
+    pipelineLogger.warn('FetchService', `Background refresh failed: ${key}`, err),
+  );
 }
 
 function clearCache() {
@@ -344,7 +384,9 @@ function warmCache(sym, currentTfId) {
         const ttl = TTL[tfId] || 60000;
         if (cacheManager.hasFresh(sym, tfId, ttl)) return;
         // Background fetch — errors silently caught
-        fetchOHLC(sym, tfId).catch((err) => pipelineLogger.debug('FetchService', `Cache warm failed: ${sym}:${tfId}`, err));
+        fetchOHLC(sym, tfId).catch((err) =>
+          pipelineLogger.debug('FetchService', `Cache warm failed: ${sym}:${tfId}`, err),
+        );
       },
       (i + 1) * 2000,
     );

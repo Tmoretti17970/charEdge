@@ -17,7 +17,6 @@ import { useState, useEffect, useRef, useCallback, memo, forwardRef, useImperati
 import { C } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { radii, transition, zIndex } from '../../../theme/tokens.js';
-import st from './MarketsSearchBar.module.css';
 
 // ─── Asset class colors ────────────────────────────────────────
 
@@ -106,48 +105,54 @@ const MarketsSearchBar = forwardRef(function MarketsSearchBar(_props, ref) {
   }, []);
 
   // ─── Add symbol handler ─────────────────────────────────────
-  const handleSelect = useCallback((item) => {
-    addSymbol({
-      symbol: item.name || item.pair,
-      name: item.description || item.name,
-      assetClass: item.assetClass || 'crypto',
-    });
-    setQuery('');
-    setResults([]);
-    setIsOpen(false);
-    inputRef.current?.blur();
-  }, [addSymbol]);
+  const handleSelect = useCallback(
+    (item) => {
+      addSymbol({
+        symbol: item.name || item.pair,
+        name: item.description || item.name,
+        assetClass: item.assetClass || 'crypto',
+      });
+      setQuery('');
+      setResults([]);
+      setIsOpen(false);
+      inputRef.current?.blur();
+    },
+    [addSymbol],
+  );
 
   // ─── Keyboard navigation ───────────────────────────────────
-  const handleKeyDown = useCallback((e) => {
-    if (!isOpen || results.length === 0) {
-      if (e.key === 'Escape') {
-        setIsOpen(false);
-        inputRef.current?.blur();
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (!isOpen || results.length === 0) {
+        if (e.key === 'Escape') {
+          setIsOpen(false);
+          inputRef.current?.blur();
+        }
+        return;
       }
-      return;
-    }
 
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setHighlightIdx((prev) => Math.min(prev + 1, results.length - 1));
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setHighlightIdx((prev) => Math.max(prev - 1, 0));
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (results[highlightIdx]) handleSelect(results[highlightIdx]);
-        break;
-      case 'Escape':
-        e.preventDefault();
-        setIsOpen(false);
-        inputRef.current?.blur();
-        break;
-    }
-  }, [isOpen, results, highlightIdx, handleSelect]);
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          setHighlightIdx((prev) => Math.min(prev + 1, results.length - 1));
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setHighlightIdx((prev) => Math.max(prev - 1, 0));
+          break;
+        case 'Enter':
+          e.preventDefault();
+          if (results[highlightIdx]) handleSelect(results[highlightIdx]);
+          break;
+        case 'Escape':
+          e.preventDefault();
+          setIsOpen(false);
+          inputRef.current?.blur();
+          break;
+      }
+    },
+    [isOpen, results, highlightIdx, handleSelect],
+  );
 
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
@@ -183,7 +188,9 @@ const MarketsSearchBar = forwardRef(function MarketsSearchBar(_props, ref) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={() => { if (results.length > 0) setIsOpen(true); }}
+          onFocus={() => {
+            if (results.length > 0) setIsOpen(true);
+          }}
           placeholder="Search symbols..."
           aria-label="Search and add symbols to watchlist"
           style={{
@@ -284,9 +291,7 @@ const MarketsSearchBar = forwardRef(function MarketsSearchBar(_props, ref) {
                         {sym}
                       </span>
                       {item.exchange && (
-                        <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>
-                          {item.exchange}
-                        </span>
+                        <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>{item.exchange}</span>
                       )}
                     </div>
                     {item.description && item.description !== sym && (
@@ -362,8 +367,16 @@ const MarketsSearchBar = forwardRef(function MarketsSearchBar(_props, ref) {
             No results for "<strong style={{ color: C.t1 }}>{query}</strong>"
           </div>
           <button
-            onClick={() => {
-              addSymbol({ symbol: query.trim().toUpperCase() });
+            onClick={async () => {
+              const sym = query.trim().toUpperCase();
+              // Auto-discover symbol via Binance/registry
+              const { default: SymbolRegistry } = await import('../../../data/SymbolRegistry.js');
+              const info = await SymbolRegistry.resolve(sym);
+              addSymbol({
+                symbol: info?.symbol || sym,
+                name: info?.displayName || sym,
+                assetClass: info?.assetClass || 'stock',
+              });
               setQuery('');
               setIsOpen(false);
             }}

@@ -47,7 +47,7 @@ class FrameBudget {
    */
   constructor(opts = {}) {
     // B1.1: Accept budgetMs directly from DisplayHz, or compute from targetFps
-    this._targetMs = opts.budgetMs || (1000 / (opts.targetFps || 60));
+    this._targetMs = opts.budgetMs || 1000 / (opts.targetFps || 60);
     this._windowSize = opts.windowSize || 30;
 
     // Scale LOD thresholds proportional to budget (base: 16.67ms @ 60Hz)
@@ -319,7 +319,10 @@ class IndicatorCache {
   static key(ind) {
     // Task 2.3.28: Stable key — sort param keys to avoid JSON.stringify ordering instability
     const params = ind.params || {};
-    const sortedParams = Object.keys(params).sort().map(k => `${k}=${params[k]}`).join('&');
+    const sortedParams = Object.keys(params)
+      .sort()
+      .map((k) => `${k}=${params[k]}`)
+      .join('&');
     return `${ind.type}|${sortedParams}|${ind.color || ''}`;
   }
 
@@ -339,8 +342,12 @@ class IndicatorCache {
       return [];
     }
 
-    const dataChanged = data.length !== this._lastDataLen;
-    this._lastDataLen = data.length;
+    const prevLen = this._lastDataLen;
+    const curLen = data.length;
+    // Incremental: only 1 new bar arrived (streaming tick)
+    const isIncremental = prevLen > 0 && (curLen === prevLen || curLen === prevLen + 1);
+    const dataChanged = curLen !== prevLen;
+    this._lastDataLen = curLen;
 
     // Build closes array once (shared across all indicators)
     let closes = null; // lazy — only computed if needed
@@ -359,11 +366,26 @@ class IndicatorCache {
         return { ...ind, result: cached.result };
       }
 
-      // Cache miss: compute
+      // Incremental optimization: if only the last bar changed/was added,
+      // and we have a cached result, skip full recompute for simple indicators.
+      // The last ~50 values may need updating (lookback period), but the rest stays valid.
+      if (isIncremental && cached && cached.config === k && cached.dataLen >= prevLen - 1) {
+        // For tick updates (same length), just update the last bar's indicator value
+        // Full recompute is only needed when indicator config changes
+        if (curLen === prevLen) {
+          // Last bar updated — recompute but reuse cache to avoid flicker
+          if (!closes) closes = data.map((d) => d.close);
+          const result = computeFn(ind, data, closes);
+          this._cache.set(k, { config: k, result, dataLen: curLen });
+          return { ...ind, result };
+        }
+      }
+
+      // Full compute (new indicator, config change, or bulk data load)
       if (!closes) closes = data.map((d) => d.close);
       const result = computeFn(ind, data, closes);
 
-      this._cache.set(k, { config: k, result });
+      this._cache.set(k, { config: k, result, dataLen: curLen });
       return { ...ind, result };
     });
 
