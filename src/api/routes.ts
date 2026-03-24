@@ -124,42 +124,28 @@ interface SyncResults {
   pulled: Record<string, unknown>;
 }
 
-// ─── Social Service Stub ──────────────────────────────────────────
+// ─── Social Service (Phase 4: real SQLite persistence) ────────────
 
-const SocialService = {
-  getProfile: async (_userId: string): Promise<SocialResult> => ({
-    ok: false,
-    error: 'Social features are disabled in v1.0',
-  }),
-  updateProfile: async (_userId: string, _updates: Record<string, unknown>): Promise<SocialResult> => ({
-    ok: false,
-    error: 'Social features are disabled in v1.0',
-  }),
-  getFeed: async (_opts: { limit: number; offset: number; sortBy: string }): Promise<SocialResult> => ({
-    ok: false,
-    error: 'Social features are disabled in v1.0',
-  }),
-  createSnapshot: async (_data: Record<string, unknown>): Promise<SocialResult> => ({
-    ok: false,
-    error: 'Social features are disabled in v1.0',
-  }),
-  getSnapshot: async (_id: string): Promise<SocialResult> => ({
-    ok: false,
-    error: 'Social features are disabled in v1.0',
-  }),
-  deleteSnapshot: async (_id: string, _userId: string): Promise<SocialResult> => ({
-    ok: false,
-    error: 'Social features are disabled in v1.0',
-  }),
-  toggleLike: async (_id: string, _userId: string): Promise<SocialResult> => ({
-    ok: false,
-    error: 'Social features are disabled in v1.0',
-  }),
-  getLeaderboard: async (_opts: { metric: string; period: string; limit: number }): Promise<SocialResult> => ({
-    ok: false,
-    error: 'Social features are disabled in v1.0',
-  }),
-};
+import { createSocialService } from './services/SocialService.ts';
+
+// Lazy-init: created when router is first used (needs db reference)
+let _socialService: ReturnType<typeof createSocialService> | null = null;
+function getSocialService() {
+  if (!_socialService) _socialService = createSocialService(getDb());
+  return _socialService;
+}
+
+// Proxy that lazy-initializes on first call
+const SocialService = new Proxy({} as Record<string, (...args: unknown[]) => Promise<SocialResult>>, {
+  get(_target, prop: string) {
+    return (...args: unknown[]) => {
+      const svc = getSocialService();
+      const fn = (svc as Record<string, unknown>)[prop];
+      if (typeof fn === 'function') return fn.apply(svc, args);
+      return Promise.resolve({ ok: false, error: `Unknown method: ${prop}` });
+    };
+  },
+});
 
 // ─── Router Factory ───────────────────────────────────────────────
 
@@ -361,6 +347,32 @@ export function createApiRouter(services: ApiRouterServices = {}): Router {
     if (!result.ok) return errorResponse(res, 500, 'FETCH_FAILED', 'Could not load leaderboard');
 
     okResponse(res, result.data, { metric, period });
+  });
+
+  // ─── Follow System ─────────────────────────────────────
+
+  router.post('/follow/:userId', async (req: Request<IdParams>, res: Response) => {
+    const result = await getSocialService().follow(req.userId!, req.params.userId);
+    if (!result.ok) return errorResponse(res, 400, 'FOLLOW_FAILED', result.error!);
+    okResponse(res, result.data);
+  });
+
+  router.delete('/follow/:userId', async (req: Request<IdParams>, res: Response) => {
+    const result = await getSocialService().unfollow(req.userId!, req.params.userId);
+    if (!result.ok) return errorResponse(res, 400, 'UNFOLLOW_FAILED', result.error!);
+    okResponse(res, result.data);
+  });
+
+  router.get('/followers', async (req: Request, res: Response) => {
+    const result = await getSocialService().getFollowers(req.userId!);
+    if (!result.ok) return errorResponse(res, 500, 'FETCH_FAILED', 'Could not load followers');
+    okResponse(res, result.data);
+  });
+
+  router.get('/following', async (req: Request, res: Response) => {
+    const result = await getSocialService().getFollowing(req.userId!);
+    if (!result.ok) return errorResponse(res, 500, 'FETCH_FAILED', 'Could not load following');
+    okResponse(res, result.data);
   });
 
   // ─── Webhooks ───────────────────────────────────────────
