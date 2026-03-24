@@ -6,10 +6,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { C, F, M, GLASS } from '../../../constants.js';
+import { C, GLASS } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
 import { Card } from '../ui/UIKit.jsx';
 import { useConnectorStore } from '../../../state/useConnectorStore.js';
+import st from './ConnectedAccountsPanel.module.css';
 
 const STATUS_CONFIG = {
   connected: { color: C.g, label: 'Connected', icon: '🟢' },
@@ -43,14 +44,14 @@ function AccountRow({ connection, onSync, onDisconnect }) {
       <span style={{ fontSize: 18 }}>{connection.brokerLogo}</span>
       <div style={{ flex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: F }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
             {connection.brokerName}
           </span>
-          <span style={{ fontSize: 8, color: statusCfg.color, fontWeight: 700, fontFamily: M }}>
+          <span style={{ fontSize: 8, color: statusCfg.color, fontWeight: 700, fontFamily: 'var(--tf-mono)' }}>
             {statusCfg.icon} {statusCfg.label}
           </span>
         </div>
-        <div style={{ fontSize: 10, color: C.t3, fontFamily: M, marginTop: 1 }}>
+        <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-mono)', marginTop: 1 }}>
           {connection.tradeCount || 0} trades synced · Last: {lastSyncStr}
         </div>
       </div>
@@ -67,7 +68,7 @@ function AccountRow({ connection, onSync, onDisconnect }) {
               color: C.b,
               fontSize: 9,
               fontWeight: 600,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
               cursor: 'pointer',
             }}
           >
@@ -83,7 +84,7 @@ function AccountRow({ connection, onSync, onDisconnect }) {
               color: C.r,
               fontSize: 9,
               fontWeight: 600,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
               cursor: 'pointer',
             }}
           >
@@ -127,7 +128,7 @@ function ConnectedAccountsPanel({ onConnectNew }) {
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <h2 style={{ fontSize: 14, fontWeight: 700, color: C.t1, fontFamily: F, margin: 0 }}>
+        <h2 style={{ fontSize: 14, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)', margin: 0 }}>
           Connected Accounts
         </h2>
         <button
@@ -135,7 +136,7 @@ function ConnectedAccountsPanel({ onConnectNew }) {
           style={{
             fontSize: 10,
             fontWeight: 600,
-            fontFamily: F,
+            fontFamily: 'var(--tf-font)',
             padding: '4px 10px',
             borderRadius: 6,
             border: `1px solid ${alpha(C.b, 0.2)}`,

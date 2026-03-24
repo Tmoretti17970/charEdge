@@ -12,6 +12,7 @@
 import React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { logger } from '@/observability/logger';
+import st from './PipelineDevTools.module.css';
 
 // ─── Styles ────────────────────────────────────────────────────
 

@@ -1,0 +1,24 @@
+/* PrivacyAIControls — CSS Module */
+.cardPad { padding: var(--sp-5); margin-bottom: var(--sp-5); }
+.headerRow { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--tf-t1); font-family: var(--tf-font); margin-bottom: var(--sp-3); display: flex; align-items: center; gap: var(--sp-2); }
+.shieldBanner { padding: 10px var(--sp-3); border-radius: var(--br-md); font-size: var(--fs-2xs); color: var(--tf-t1); font-family: var(--tf-font); margin-bottom: 14px; display: flex; align-items: center; gap: var(--sp-2); }
+.shieldIcon { font-size: 16px; }
+.shieldTitle { font-weight: var(--fw-bold); }
+.shieldHint { font-size: var(--fs-3xs); color: var(--tf-t3); margin-top: 1px; }
+.accessBlock { margin-bottom: 14px; }
+.accessLabel { font-size: var(--fs-2xs); font-weight: var(--fw-semibold); color: var(--tf-t2); font-family: var(--tf-font); margin-bottom: var(--sp-1_5); }
+.accessList { font-size: var(--fs-xs); color: var(--tf-t3); font-family: var(--tf-font); line-height: 1.7; padding-left: var(--sp-1); }
+.clearRow { display: flex; gap: var(--sp-2); margin-bottom: 10px; }
+.clearBtn {
+  flex: 1; padding: var(--sp-2) 0; border-radius: var(--br-md);
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold); font-family: var(--tf-font);
+  cursor: pointer; transition: all var(--dur-fast);
+}
+.statusRow { display: flex; align-items: center; gap: var(--sp-1_5); margin-top: var(--sp-1_5); }
+.statusBadge {
+  display: inline-flex; align-items: center; gap: var(--sp-1);
+  font-size: var(--fs-3xs); font-weight: var(--fw-semibold); font-family: var(--tf-font);
+  padding: 2px var(--sp-2); border-radius: 999px;
+}
+.statusDot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.memoryCount { font-size: var(--fs-3xs); color: var(--tf-t3); font-family: var(--tf-mono); }

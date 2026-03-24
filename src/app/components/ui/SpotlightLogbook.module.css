@@ -622,3 +622,113 @@
     display: none;
   }
 }
+
+/* ─── Inline style migration ─── */
+.detailLabel {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 2px;
+}
+.detailValue { font-size: 11px; color: var(--tf-t2); font-family: var(--tf-mono, 'JetBrains Mono', monospace); }
+.notesBlock {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: var(--tf-sf);
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--tf-t2);
+  line-height: 1.5;
+}
+.screenshotSection { margin-top: 10px; }
+.screenshotLabel {
+  composes: detailLabel;
+  margin-bottom: 6px;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+}
+.screenshotGrid { display: flex; gap: 8px; flex-wrap: wrap; }
+.screenshotThumb {
+  display: block;
+  width: 140px;
+  height: 90px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--tf-bd);
+  cursor: zoom-in;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.screenshotThumb:hover { transform: scale(1.03); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+.screenshotImg { width: 100%; height: 100%; object-fit: cover; }
+.flexSpacer { flex: 1; }
+.filterDateBadge {
+  font-size: 10px;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  color: var(--tf-accent);
+  padding: 3px 8px;
+  background: color-mix(in srgb, var(--tf-accent) 8%, transparent);
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.bulkBarWrap { padding: 0 16px; }
+.sessionTag { font-size: 8px; opacity: 0.5; margin-left: 4px; }
+.leakPill {
+  font-size: 8px;
+  font-weight: 700;
+  font-family: var(--tf-mono);
+  padding: 1px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.checkMark { color: #fff; font-size: 9px; font-weight: 800; }
+
+/* ─── Token-based colors (Sprint 24 migration) ───────────────── */
+
+/* Search input */
+.searchInput { font-family: var(--tf-font); color: var(--tf-t1); }
+.clearBtn { color: var(--tf-t3); }
+
+/* Panel bg */
+.panel { color: var(--tf-t1); }
+
+/* Toolbar / filter area */
+.toolbar { background: var(--tf-bg2-60, rgba(var(--bg2-rgb, 30,32,38), 0.37)); }
+.toolbarDivider { background: var(--tf-bd); }
+.toolbarBtn { color: var(--tf-t3); }
+.toolbarBtn[data-active="true"] { color: var(--tf-brand); background: var(--tf-brand-15, rgba(59,130,246,0.09)); }
+.tradeCount { color: var(--tf-t3); font-family: var(--tf-mono); }
+
+/* Filter summary */
+.filterSummary { background: var(--tf-brand-08, rgba(59,130,246,0.05)); border-bottom: 1px solid var(--tf-bd-40, rgba(128,128,128,0.25)); }
+.filterSummaryText { font-size: 11px; color: var(--tf-t2); font-family: var(--tf-mono); }
+.filterSummaryArrow { opacity: 0.6; }
+.filterSummaryCount { color: var(--tf-brand); font-weight: 700; }
+.clearAllBtn { color: var(--tf-brand); }
+
+/* Table header */
+.tableHeader { font-family: var(--tf-mono); color: var(--tf-t3); background: var(--tf-bg2-80, rgba(var(--bg2-rgb, 30,32,38), 0.5)); }
+.colHeader[data-active="true"] { color: var(--tf-brand); }
+
+/* Trade row colors */
+.tradeDate { font-family: var(--tf-mono); color: var(--tf-t3); }
+.tradeSymbol { color: var(--tf-t1); }
+.tradeStrategy { font-family: var(--tf-font); color: var(--tf-t2); display: flex; align-items: center; gap: 4px; }
+.tradePnl { font-family: var(--tf-mono); }
+.sparklineLabel { font-family: var(--tf-mono); color: var(--tf-t3); }
+
+/* Detail panel */
+.detailPanel { border-top: 1px solid var(--tf-bd-30, rgba(128,128,128,0.19)); }
+.detailBtnEdit { color: var(--tf-brand); }
+.detailBtnDefault { color: var(--tf-t2); }
+.detailBtnDelete { color: var(--tf-r); }
+
+/* Empty state */
+.emptyTitle { color: var(--tf-t1); font-family: var(--tf-font); }
+.emptyDesc { color: var(--tf-t3); }
+
+/* Action bar */
+.actionBar { font-family: var(--tf-mono); color: var(--tf-t3); background: var(--tf-bg2-60, rgba(var(--bg2-rgb, 30,32,38), 0.37)); }
+.kbd { background: var(--tf-sf2); border: 1px solid var(--tf-bd); }
+.actionHintRight { margin-left: auto; }

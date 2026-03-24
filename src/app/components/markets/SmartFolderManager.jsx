@@ -7,9 +7,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useMemo, useCallback, memo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { radii, transition } from '../../../theme/tokens.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore';
+import st from './SmartFolderManager.module.css';
 
 // ─── Available Fields ────────────────────────────────────────────
 
@@ -62,7 +63,7 @@ function RuleRow({ rule, index, onChange, onRemove }) {
         style={{
           flex: 1, padding: '4px 6px', borderRadius: radii.sm,
           background: C.sf, border: `1px solid ${C.bd}`,
-          color: C.t1, fontSize: 11, fontFamily: F,
+          color: C.t1, fontSize: 11, fontFamily: 'var(--tf-font)',
         }}
       >
         {FIELDS.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
@@ -75,7 +76,7 @@ function RuleRow({ rule, index, onChange, onRemove }) {
         style={{
           width: 60, padding: '4px 4px', borderRadius: radii.sm,
           background: C.sf, border: `1px solid ${C.bd}`,
-          color: C.t1, fontSize: 11, fontFamily: M, textAlign: 'center',
+          color: C.t1, fontSize: 11, fontFamily: 'var(--tf-mono)', textAlign: 'center',
         }}
       >
         {OPERATORS.filter(o => !o.numOnly || !isText).map(o => (
@@ -91,7 +92,7 @@ function RuleRow({ rule, index, onChange, onRemove }) {
         style={{
           width: 70, padding: '4px 6px', borderRadius: radii.sm,
           background: C.sf, border: `1px solid ${C.bd}`,
-          color: C.t1, fontSize: 11, fontFamily: M, textAlign: 'center',
+          color: C.t1, fontSize: 11, fontFamily: 'var(--tf-mono)', textAlign: 'center',
         }}
       />
 
@@ -161,7 +162,7 @@ function SmartFolderManager({ open, onClose }) {
       boxShadow: '-8px 0 32px rgba(0,0,0,0.3)',
       display: 'flex', flexDirection: 'column',
       animation: 'tf-slide-left 0.25s ease-out',
-      fontFamily: F,
+      fontFamily: 'var(--tf-font)',
     }}>
       {/* Header */}
       <div style={{
@@ -182,7 +183,7 @@ function SmartFolderManager({ open, onClose }) {
         {/* Templates */}
         <div style={{
           fontSize: 10, fontWeight: 700, color: C.t3,
-          fontFamily: M, textTransform: 'uppercase', marginBottom: 8,
+          fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', marginBottom: 8,
         }}>
           Quick Templates
         </div>
@@ -198,7 +199,7 @@ function SmartFolderManager({ open, onClose }) {
                 padding: '8px 6px', borderRadius: radii.md,
                 background: C.bg2, border: `1px solid ${C.bd}`,
                 color: C.t1, fontSize: 10, fontWeight: 600,
-                fontFamily: F, cursor: 'pointer', textAlign: 'center',
+                fontFamily: 'var(--tf-font)', cursor: 'pointer', textAlign: 'center',
                 transition: transition.fast,
               }}
             >
@@ -211,7 +212,7 @@ function SmartFolderManager({ open, onClose }) {
         {/* Folder Name */}
         <div style={{
           fontSize: 10, fontWeight: 700, color: C.t3,
-          fontFamily: M, textTransform: 'uppercase', marginBottom: 6,
+          fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', marginBottom: 6,
         }}>
           Folder Name
         </div>
@@ -223,7 +224,7 @@ function SmartFolderManager({ open, onClose }) {
             width: '100%', padding: '8px 12px',
             borderRadius: radii.md, background: C.bg2,
             border: `1px solid ${C.bd}`, color: C.t1,
-            fontSize: 12, fontFamily: F, marginBottom: 14,
+            fontSize: 12, fontFamily: 'var(--tf-font)', marginBottom: 14,
             boxSizing: 'border-box',
           }}
         />
@@ -235,7 +236,7 @@ function SmartFolderManager({ open, onClose }) {
         }}>
           <span style={{
             fontSize: 10, fontWeight: 700, color: C.t3,
-            fontFamily: M, textTransform: 'uppercase',
+            fontFamily: 'var(--tf-mono)', textTransform: 'uppercase',
           }}>
             Rules ({rules.length})
           </span>
@@ -244,7 +245,7 @@ function SmartFolderManager({ open, onClose }) {
             style={{
               fontSize: 10, color: C.b, background: `${C.b}12`,
               border: 'none', borderRadius: radii.sm,
-              padding: '3px 8px', cursor: 'pointer', fontFamily: F,
+              padding: '3px 8px', cursor: 'pointer', fontFamily: 'var(--tf-font)',
               fontWeight: 600,
             }}
           >
@@ -259,7 +260,7 @@ function SmartFolderManager({ open, onClose }) {
 
         {rules.length > 1 && (
           <div style={{
-            fontSize: 10, color: C.t3, fontFamily: M,
+            fontSize: 10, color: C.t3, fontFamily: 'var(--tf-mono)',
             textAlign: 'center', margin: '4px 0 10px',
           }}>
             All rules must match (AND logic)
@@ -271,7 +272,7 @@ function SmartFolderManager({ open, onClose }) {
           <div style={{ marginTop: 16 }}>
             <div style={{
               fontSize: 10, fontWeight: 700, color: C.t3,
-              fontFamily: M, textTransform: 'uppercase', marginBottom: 8,
+              fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', marginBottom: 8,
             }}>
               Active Smart Folders
             </div>
@@ -284,7 +285,7 @@ function SmartFolderManager({ open, onClose }) {
                 <span style={{ fontSize: 12, fontWeight: 600, color: C.t1 }}>
                   ⚡ {f.name}
                 </span>
-                <span style={{ fontSize: 10, color: C.t3, fontFamily: M }}>
+                <span style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-mono)' }}>
                   {(f.rules || []).length} rules
                 </span>
               </div>
@@ -306,7 +307,7 @@ function SmartFolderManager({ open, onClose }) {
                 : `linear-gradient(135deg, ${C.p}, ${C.b})`,
             color: created ? '#fff' : (!folderName.trim() ? C.t3 : '#fff'),
             fontSize: 13, fontWeight: 700,
-            fontFamily: F, border: 'none', cursor: 'pointer',
+            fontFamily: 'var(--tf-font)', border: 'none', cursor: 'pointer',
             transition: transition.base,
           }}
         >

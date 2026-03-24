@@ -32,6 +32,11 @@
 }
 .toolbarSpacer { flex: 1; }
 
+/* Toolbar skeleton pieces */
+.skelSymbol   { width: 64px; height: 20px; border-radius: 6px; }
+.skelTf       { height: 18px; border-radius: 5px; animation-delay: var(--d, 0s); }
+.skelRightBtn { width: 24px; height: 20px; border-radius: 6px; animation-delay: var(--d, 0s); }
+
 /* ─── Chart Area ─── */
 .chartArea {
   flex: 1;
@@ -103,6 +108,12 @@
   letter-spacing: 0.5px;
 }
 
+/* Indicator skeleton line */
+.indicatorSvg { opacity: 0.15; }
+
+/* Indicator Y-axis skeleton tick */
+.skelIndicatorTick { width: 28px; height: 6px; border-radius: 3px; animation-delay: var(--d, 0s); }
+
 /* ─── Price Axis ─── */
 .priceAxis {
   position: absolute;
@@ -151,6 +162,12 @@
   justify-content: space-around;
   align-items: center;
 }
+/* Price axis skeleton tick */
+.skelPriceTick { width: 36px; height: 8px; border-radius: 4px; animation-delay: var(--d, 0s); }
+
+/* Time axis skeleton tick */
+.skelTimeTick { width: 28px; height: 6px; border-radius: 3px; animation-delay: var(--d, 0s); }
+
 .timeAxisCap {
   width: 60px;
   border-left: 1px solid var(--tf-bd, #2a2e3a);
@@ -171,6 +188,12 @@
   flex: 1;
 }
 
+/* Panel skeleton pieces */
+.skelPanelHeader { width: 60%; height: 14px; border-radius: 4px; }
+.skelPanelIcon   { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; animation-delay: var(--d, 0s); }
+.skelPanelLine   { height: 10px; border-radius: 3px; animation-delay: var(--d, 0s); }
+.skelPanelSub    { height: 8px; border-radius: 3px; animation-delay: var(--d, 0s); }
+
 /* ─── Mini Skeleton ─── */
 .mini {
   padding: 12px;
@@ -179,3 +202,8 @@
   gap: 8px;
 }
 .miniRow { display: flex; gap: 6px; }
+
+/* Mini skeleton pieces */
+.skelMiniLabel { width: 40%; height: 10px; border-radius: 3px; }
+.skelMiniBar   { width: 100%; height: 40px; border-radius: 6px; animation-delay: 0.05s; }
+.skelMiniFlex  { flex: 1; height: 8px; border-radius: 3px; animation-delay: var(--d, 0s); }

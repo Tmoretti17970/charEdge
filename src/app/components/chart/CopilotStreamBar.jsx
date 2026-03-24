@@ -8,50 +8,8 @@
 import { useState, useCallback } from 'react';
 import useCopilotPipeline from '../../../hooks/useCopilotPipeline';
 import AIOrb from '../design/AIOrb.jsx';
+import s from './CopilotStreamBar.module.css';
 
-const FONT = 'var(--forge-font, Inter, sans-serif)';
-const _MONO = 'var(--forge-mono, "JetBrains Mono", monospace)';
-
-const BAR_STYLE = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    padding: '6px 12px',
-    background: 'rgba(15, 15, 25, 0.7)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-    fontSize: 11,
-    fontFamily: FONT,
-    color: 'rgba(255, 255, 255, 0.7)',
-    minHeight: 32,
-    overflow: 'hidden',
-};
-
-const CHIP_STYLE = {
-    padding: '2px 8px',
-    borderRadius: 6,
-    fontSize: 10,
-    fontWeight: 600,
-    whiteSpace: 'nowrap',
-    letterSpacing: '0.01em',
-};
-
-const EXPAND_PANEL = {
-    padding: '12px 16px',
-    background: 'rgba(15, 15, 25, 0.85)',
-    backdropFilter: 'blur(16px)',
-    borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-    fontSize: 13,
-    fontFamily: FONT,
-    color: 'rgba(255, 255, 255, 0.8)',
-    lineHeight: 1.6,
-    whiteSpace: 'pre-wrap',
-    maxHeight: 300,
-    overflowY: 'auto',
-};
-
-// Chip color mapping based on condition label
 function chipColor(label) {
     if (label.includes('Trending Up') || label.includes('🚀')) return { bg: 'rgba(52,211,153,0.12)', border: 'rgba(52,211,153,0.2)', color: '#34d399' };
     if (label.includes('Trending Down') || label.includes('🔻')) return { bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.2)', color: '#f87171' };
@@ -61,29 +19,15 @@ function chipColor(label) {
 }
 
 export default function CopilotStreamBar() {
-    const {
-        features,
-        momentumLabel,
-        volatilityLabel,
-        volumeLabel,
-        conditionLabel,
-        narrative,
-        loading,
-        requestNarrative,
-    } = useCopilotPipeline();
-
+    const { features, momentumLabel, volatilityLabel, volumeLabel, conditionLabel, narrative, loading, requestNarrative } = useCopilotPipeline();
     const [expanded, setExpanded] = useState(false);
 
-    const handleAsk = useCallback(async () => {
-        await requestNarrative();
-        setExpanded(true);
-    }, [requestNarrative]);
+    const handleAsk = useCallback(async () => { await requestNarrative(); setExpanded(true); }, [requestNarrative]);
 
-    // No data yet
     if (!features) {
         return (
-            <div style={BAR_STYLE}>
-                <span style={{ opacity: 0.4, display: 'inline-flex', alignItems: 'center', gap: 6 }}><AIOrb size={14} /> Co-Pilot waiting for data…</span>
+            <div className={s.bar}>
+                <span className={s.dimLabel} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><AIOrb size={14} /> Co-Pilot waiting for data…</span>
             </div>
         );
     }
@@ -92,90 +36,24 @@ export default function CopilotStreamBar() {
 
     return (
         <>
-            <div style={BAR_STYLE}>
-                {/* Condition chip */}
-                <div
-                    style={{
-                        ...CHIP_STYLE,
-                        background: cc.bg,
-                        border: `1px solid ${cc.border}`,
-                        color: cc.color,
-                    }}
-                >
-                    {conditionLabel}
-                </div>
-
-                {/* Separator */}
-                <div style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.08)' }} />
-
-                {/* Labels */}
-                <span style={{ opacity: 0.6 }}>{momentumLabel}</span>
-                <span style={{ opacity: 0.6 }}>{volatilityLabel}</span>
-                <span style={{ opacity: 0.6 }}>{volumeLabel}</span>
-
-                {/* Spacer */}
-                <div style={{ flex: 1 }} />
-
-                {/* Narrative snippet or ask button */}
+            <div className={s.bar}>
+                <div className={s.chip} style={{ background: cc.bg, border: `1px solid ${cc.border}`, color: cc.color }}>{conditionLabel}</div>
+                <div className={s.sep} />
+                <span className={s.dimLabel}>{momentumLabel}</span>
+                <span className={s.dimLabel}>{volatilityLabel}</span>
+                <span className={s.dimLabel}>{volumeLabel}</span>
+                <div className={s.spacer} />
                 {narrative && !expanded ? (
-                    <button
-                        onClick={() => setExpanded(true)}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'rgba(255,255,255,0.4)',
-                            fontSize: 10,
-                            cursor: 'pointer',
-                            fontFamily: FONT,
-                            textDecoration: 'underline',
-                            textDecorationColor: 'rgba(255,255,255,0.15)',
-                        }}
-                    >
-                        Show analysis
-                    </button>
+                    <button onClick={() => setExpanded(true)} className={s.linkBtn}>Show analysis</button>
                 ) : !narrative ? (
-                    <button
-                        onClick={handleAsk}
-                        disabled={loading}
-                        style={{
-                            background: 'rgba(96, 165, 250, 0.1)',
-                            border: '1px solid rgba(96, 165, 250, 0.2)',
-                            borderRadius: 6,
-                            color: '#60a5fa',
-                            fontSize: 10,
-                            fontWeight: 600,
-                            fontFamily: FONT,
-                            padding: '2px 10px',
-                            cursor: loading ? 'wait' : 'pointer',
-                            opacity: loading ? 0.5 : 1,
-                            transition: 'opacity 0.2s',
-                        }}
-                    >
+                    <button onClick={handleAsk} disabled={loading} className={s.askBtn} data-loading={loading || undefined}>
                         {loading ? '⏳ Analyzing…' : <><AIOrb size={12} style={{ marginRight: 4 }} /> Ask Co-Pilot</>}
                     </button>
                 ) : (
-                    <button
-                        onClick={() => setExpanded(false)}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'rgba(255,255,255,0.4)',
-                            fontSize: 10,
-                            cursor: 'pointer',
-                            fontFamily: FONT,
-                        }}
-                    >
-                        ▲ Collapse
-                    </button>
+                    <button onClick={() => setExpanded(false)} className={s.linkBtn}>▲ Collapse</button>
                 )}
             </div>
-
-            {/* Expanded narrative panel */}
-            {expanded && narrative && (
-                <div style={EXPAND_PANEL}>
-                    {narrative}
-                </div>
-            )}
+            {expanded && narrative && <div className={s.expandPanel}>{narrative}</div>}
         </>
     );
 }

@@ -12,12 +12,13 @@
 
 import React from 'react';
 import { useState, useCallback, useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useAlertStore } from '../../../state/useAlertStore';
 import { playAlertSound } from '../../../app/misc/alertSounds';
 import { useNotificationPreferences } from '../../../state/useNotificationStore';
 import CompoundAlertBuilder from './CompoundAlertBuilder.jsx';
 import { usePriceTracker } from '../../../state/usePriceTracker';
+import s from './AlertPanel.module.css';
 
 const AlertHistoryPanel = React.lazy(() => import('./AlertHistoryPanel.jsx'));
 const AlertAnalytics = React.lazy(() => import('./AlertAnalytics.jsx'));
@@ -89,17 +90,6 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
     if (e.key === 'Enter') handleAdd();
   };
 
-  const inputStyle = {
-    background: C.sf,
-    border: `1px solid ${C.bd}`,
-    color: C.t1,
-    borderRadius: 4,
-    padding: '4px 8px',
-    fontFamily: M,
-    fontSize: 12,
-    outline: 'none',
-  };
-
   // ─── Coinbase-Style Presets ──────────────────────────────────
   const PRESETS = [
     { id: '52w_high', label: '📈 52W High', desc: 'Alert at 52-week high', color: '#10b981' },
@@ -132,77 +122,41 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
   });
 
   return (
-    <div
-      style={{
-        height: '100%',
-        overflow: 'auto',
-        padding: compact ? 8 : 12,
-        fontFamily: F,
-        background: C.bg,
-        color: C.t2,
-      }}
-    >
+    <div className={`${s.root} ${compact ? s.rootCompact : ''}`}>
       {/* ─── Header ───────────────────────────────────── */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 10,
-        }}
-      >
-        <span style={{ fontSize: 13, fontWeight: 600, color: C.t1 }}>🔔 Price Alerts</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div className={s.header}>
+        <span className={s.title}>🔔 Price Alerts</span>
+        <div className={s.headerRight}>
           <button
             onClick={() => useNotificationPreferences.getState().toggleMute()}
             title={useNotificationPreferences.getState().globalMute ? 'Unmute alerts' : 'Mute all alerts'}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: 12,
-              padding: '2px 4px',
-              opacity: useNotificationPreferences.getState().globalMute ? 1 : 0.4,
-              transition: 'opacity 0.15s',
-            }}
+            className={`${s.muteBtn} ${useNotificationPreferences.getState().globalMute ? s.muteBtnActive : s.muteBtnInactive}`}
           >{useNotificationPreferences.getState().globalMute ? '🔇' : '🔊'}</button>
-          <span style={{ fontSize: 10, color: C.t3, fontFamily: M }}>{activeAlerts.length} active</span>
+          <span className={s.activeCount}>{activeAlerts.length} active</span>
         </div>
       </div>
 
       {/* E3: Tab bar */}
-      <div style={{ display: 'flex', gap: 0, marginBottom: 10, borderRadius: 6, overflow: 'hidden', border: `1px solid ${C.bd}` }}>
+      <div className={s.tabBar}>
         {[{ id: 'manage', label: '🔔 Manage' }, { id: 'history', label: '📜 History' }, { id: 'analytics', label: '📈 Analytics' }].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            style={{
-              flex: 1,
-              padding: '5px 0',
-              fontSize: 10,
-              fontWeight: 600,
-              fontFamily: F,
-              cursor: 'pointer',
-              border: 'none',
-              background: activeTab === tab.id ? C.b + '20' : 'transparent',
-              color: activeTab === tab.id ? C.b : C.t3,
-              borderBottom: activeTab === tab.id ? `2px solid ${C.b}` : '2px solid transparent',
-              transition: 'all 0.15s',
-            }}
+            className={`${s.tab} ${activeTab === tab.id ? s.tabActive : ''}`}
           >{tab.label}</button>
         ))}
       </div>
 
       {/* E3: History tab */}
       {activeTab === 'history' && (
-        <React.Suspense fallback={<div style={{ padding: 12, color: C.t3, fontSize: 11 }}>Loading...</div>}>
+        <React.Suspense fallback={<div className={s.suspenseFallback}>Loading...</div>}>
           <AlertHistoryPanel />
         </React.Suspense>
       )}
 
       {/* E3: Analytics tab */}
       {activeTab === 'analytics' && (
-        <React.Suspense fallback={<div style={{ padding: 12, color: C.t3, fontSize: 11 }}>Loading...</div>}>
+        <React.Suspense fallback={<div className={s.suspenseFallback}>Loading...</div>}>
           <AlertAnalytics />
         </React.Suspense>
       )}
@@ -212,58 +166,32 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
 
       {/* ─── Coinbase-Style Quick Presets ──────────────── */}
       {symbol.trim() && (
-        <div
-          style={{
-            marginBottom: 10,
-            padding: 8,
-            background: C.sf,
-            borderRadius: 8,
-            border: `1px solid ${C.bd}`,
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-            <span style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+        <div className={s.presetSection}>
+          <div className={s.presetHeader}>
+            <span className={s.presetLabel}>
               ⚡ Quick Alerts for {symbol.toUpperCase()}
             </span>
             {highProximity != null && (
-              <span style={{
-                fontSize: 9, fontFamily: M, padding: '1px 6px', borderRadius: 4,
-                background: Math.abs(highProximity) < 3 ? '#10b98120' : 'transparent',
-                color: Math.abs(highProximity) < 3 ? '#10b981' : C.t3,
-              }}>
+              <span className={`${s.proximityBadge} ${Math.abs(highProximity) < 3 ? s.proximityNear : ''}`}>
                 {Math.abs(highProximity) < 3 ? `🌟 ${Math.abs(highProximity).toFixed(1)}% from 52W High` : ''}
               </span>
             )}
           </div>
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          <div className={s.presetGrid}>
             {PRESETS.map((preset) => (
               <button
                 key={preset.id}
                 onClick={() => handlePresetClick(preset.id)}
                 title={preset.desc}
-                style={{
-                  flex: '1 1 calc(33% - 4px)',
-                  padding: '5px 6px',
-                  fontSize: 9,
-                  fontWeight: 700,
-                  fontFamily: F,
-                  cursor: 'pointer',
-                  border: `1px solid ${preset.color}30`,
-                  borderRadius: 6,
-                  background: `${preset.color}10`,
-                  color: preset.color,
-                  transition: 'all 0.15s',
-                  whiteSpace: 'nowrap',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = `${preset.color}25`; e.currentTarget.style.borderColor = `${preset.color}60`; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = `${preset.color}10`; e.currentTarget.style.borderColor = `${preset.color}30`; }}
+                className={s.presetBtn}
+                style={{ '--preset-color': preset.color }}
               >
                 {preset.label}
               </button>
             ))}
           </div>
           {lowProximity != null && Math.abs(lowProximity) < 5 && (
-            <div style={{ marginTop: 4, fontSize: 9, color: '#ef4444', fontFamily: M }}>
+            <div className={s.lowWarning}>
               ⚠️ Within {lowProximity.toFixed(1)}% of 52-Week Low
             </div>
           )}
@@ -271,38 +199,21 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
       )}
 
       {/* ─── Add Alert Form ───────────────────────────── */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 6,
-          padding: 8,
-          background: C.sf,
-          borderRadius: 8,
-          border: `1px solid ${C.bd}`,
-          marginBottom: 12,
-        }}
-      >
-        <div style={{ display: 'flex', gap: 4 }}>
+      <div className={s.formCard}>
+        <div className={s.formRow}>
           <input
             aria-label="Alert parameter"
             value={symbol}
             onChange={(e) => setSymbol(e.target.value.toUpperCase())}
             onKeyDown={handleKeyDown}
             placeholder="SYM"
-            style={{ ...inputStyle, width: 60, fontWeight: 700, textAlign: 'center' }}
+            className={`${s.input} ${s.inputSymbol}`}
           />
           <select
             aria-label="Alert condition"
             value={condition}
             onChange={(e) => setCondition(e.target.value)}
-            style={{
-              ...inputStyle,
-              flex: 1,
-              cursor: 'pointer',
-              appearance: 'none',
-              paddingRight: 4,
-            }}
+            className={`${s.input} ${s.selectCondition}`}
           >
             {CONDITIONS.map((c) => (
               <option key={c.id} value={c.id}>
@@ -317,34 +228,24 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
             placeholder="Price"
             type="number"
             step="any"
-            style={{ ...inputStyle, width: 80, textAlign: 'right' }}
+            className={`${s.input} ${s.inputPrice}`}
           />
         </div>
 
-        <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+        <div className={s.formRowCenter}>
           <input
             value={note}
             onChange={(e) => setNote(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Note (optional)"
-            style={{ ...inputStyle, flex: 1, fontSize: 11 }}
+            className={`${s.input} ${s.inputNote}`}
           />
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 3,
-              fontSize: 10,
-              color: C.t3,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-            }}
-          >
+          <label className={s.repeatLabel}>
             <input
               type="checkbox"
               checked={repeating}
               onChange={(e) => setRepeating(e.target.checked)}
-              style={{ width: 12, height: 12 }}
+              className={s.checkbox}
             />
             Repeat
           </label>
@@ -352,7 +253,7 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
           <select
             value={soundType}
             onChange={(e) => setSoundType(e.target.value)}
-            style={{ ...inputStyle, width: 58, cursor: 'pointer', appearance: 'none', fontSize: 10 }}
+            className={`${s.input} ${s.selectSound}`}
             title="Alert sound"
           >
             <option value="">🔔 Auto</option>
@@ -363,27 +264,14 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
             <option value="error">❌ Err</option>
           </select>
           <button
-            className="tf-btn"
+            className={`tf-btn ${s.btnGhost}`}
             onClick={() => { try { playAlertSound(soundType || 'price'); } catch {} }}
             title="Preview sound"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: C.t3, padding: '2px 2px' }}
           >▶</button>
           <button
-            className="tf-btn"
+            className={`tf-btn ${s.addBtn} ${(!symbol.trim() || !price || isNaN(parseFloat(price))) ? s.addBtnDisabled : ''}`}
             onClick={handleAdd}
             disabled={!symbol.trim() || !price || isNaN(parseFloat(price))}
-            style={{
-              background: C.b,
-              color: '#fff',
-              border: 'none',
-              borderRadius: 4,
-              padding: '4px 12px',
-              fontSize: 11,
-              fontWeight: 600,
-              cursor: 'pointer',
-              opacity: !symbol.trim() || !price ? 0.4 : 1,
-              transition: 'opacity 0.15s',
-            }}
           >
             + Add
           </button>
@@ -391,20 +279,10 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
       </div>
 
       {/* ─── Advanced Toggle ──────────────────────────── */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+      <div className={s.advancedCenter}>
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}
-          style={{
-            background: 'none',
-            border: `1px solid ${C.bd}`,
-            borderRadius: 4,
-            color: showAdvanced ? C.b : C.t3,
-            fontSize: 10,
-            fontWeight: 600,
-            padding: '3px 10px',
-            cursor: 'pointer',
-            transition: 'all 0.15s',
-          }}
+          className={`${s.advancedBtn} ${showAdvanced ? s.advancedBtnActive : ''}`}
         >
           {showAdvanced ? '✕ Simple' : '⚙ Advanced'}
         </button>
@@ -418,16 +296,7 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
       {/* ─── Active Alerts ────────────────────────────── */}
       {activeAlerts.length > 0 && (
         <>
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              color: C.t3,
-              textTransform: 'uppercase',
-              marginBottom: 6,
-              letterSpacing: '0.04em',
-            }}
-          >
+          <div className={s.sectionLabel}>
             Active ({activeAlerts.length})
           </div>
           {activeAlerts.map((alert) => (
@@ -440,36 +309,15 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
       {triggeredAlerts.length > 0 && (
         <>
           <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginTop: activeAlerts.length > 0 ? 12 : 0,
-              marginBottom: 6,
-            }}
+            className={s.triggeredHeader}
+            style={{ marginTop: activeAlerts.length > 0 ? 'var(--sp-3)' : 0 }}
           >
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                color: C.t3,
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
-              }}
-            >
+            <span className={s.sectionLabel}>
               Triggered ({triggeredAlerts.length})
             </span>
             <button
-              className="tf-btn"
+              className={`tf-btn ${s.clearBtn}`}
               onClick={clearTriggered}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: C.t3,
-                fontSize: 10,
-                cursor: 'pointer',
-                padding: '2px 4px',
-              }}
             >
               Clear all
             </button>
@@ -482,53 +330,36 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
 
       {/* ─── Empty State ──────────────────────────────── */}
       {alerts.length === 0 && (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '24px 12px',
-            color: C.t3,
-            fontSize: 12,
-          }}
-        >
-          <div style={{ fontSize: 24, marginBottom: 8 }}>🔔</div>
+        <div className={s.empty}>
+          <div className={s.emptyIcon}>🔔</div>
           <div>No alerts yet</div>
-          <div style={{ fontSize: 10, marginTop: 4, lineHeight: 1.5 }}>
+          <div className={s.emptyHint}>
             Get notified when a symbol hits your target price. Set an alert above to get started.
           </div>
         </div>
       )}
       {/* E6: DND Preferences Section */}
-      <details style={{ marginTop: 12, borderRadius: 6, border: `1px solid ${C.bd}`, background: C.sf }}>
-        <summary style={{
-          padding: '6px 10px', fontSize: 11, fontWeight: 600, color: C.t2, cursor: 'pointer',
-          listStyle: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        }}>
+      <details className={s.prefsDetails}>
+        <summary className={s.prefsSummary}>
           <span>⚙ Alert Preferences</span>
-          <span style={{ fontSize: 9, color: C.t3 }}>
+          <span className={s.prefsBadge}>
             {useNotificationPreferences.getState().dndEnabled ? '🌙 DND On' : ''}
             {watchlistAutoAlerts ? ' · 🔔 Auto' : ''}
           </span>
         </summary>
-        <div style={{ padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 8, fontSize: 10 }}>
+        <div className={s.prefsBody}>
 
           {/* Alert Frequency */}
           <div>
-            <label style={{ color: C.t3, display: 'block', marginBottom: 4, fontWeight: 600, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <label className={s.prefsLabel}>
               📬 Alert Frequency
             </label>
-            <div style={{ display: 'flex', gap: 0, borderRadius: 4, overflow: 'hidden', border: `1px solid ${C.bd}` }}>
+            <div className={s.freqBar}>
               {[{ id: 'instant', label: '⚡ Instant' }, { id: 'hourly_digest', label: '📋 Hourly' }, { id: 'daily_digest', label: '📰 Daily' }].map((freq) => (
                 <button
                   key={freq.id}
                   onClick={() => useNotificationPreferences.getState().setFrequency(freq.id)}
-                  style={{
-                    flex: 1, padding: '4px 0', fontSize: 9, fontWeight: 600,
-                    border: 'none', cursor: 'pointer', fontFamily: F,
-                    background: alertFrequency === freq.id ? C.b + '20' : 'transparent',
-                    color: alertFrequency === freq.id ? C.b : C.t3,
-                    borderBottom: alertFrequency === freq.id ? `2px solid ${C.b}` : '2px solid transparent',
-                    transition: 'all 0.15s',
-                  }}
+                  className={`${s.freqBtn} ${alertFrequency === freq.id ? s.freqBtnActive : ''}`}
                 >{freq.label}</button>
               ))}
             </div>
@@ -536,53 +367,47 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
 
           {/* Watchlist Auto-Alerts */}
           <div>
-            <label style={{ color: C.t3, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <label className={s.checkLabel}>
               <input
                 type="checkbox"
                 checked={watchlistAutoAlerts}
                 onChange={(e) => useNotificationPreferences.getState().setWatchlistAutoAlerts(e.target.checked)}
-                style={{ accentColor: C.b }}
+                className={s.checkAccent}
               />
               🔔 Auto-alert all watchlist assets
             </label>
-            <div style={{ fontSize: 8, color: C.t3, marginLeft: 20, marginTop: 2, opacity: 0.7 }}>
+            <div className={s.checkHint}>
               Automatically creates 52W High/Low alerts for new watchlist additions
             </div>
           </div>
 
           {/* DND Schedule */}
           <div>
-            <label style={{ color: C.t3, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <label className={s.checkLabel}>
               <input
                 type="checkbox"
                 checked={useNotificationPreferences.getState().dndEnabled}
                 onChange={(e) => useNotificationPreferences.setState({ dndEnabled: e.target.checked })}
-                style={{ accentColor: C.b }}
+                className={s.checkAccent}
               />
               🌙 Do Not Disturb Schedule
             </label>
             {useNotificationPreferences.getState().dndEnabled && (
-              <div style={{ display: 'flex', gap: 6, marginTop: 4, marginLeft: 20 }}>
-                <label style={{ color: C.t3 }}>Start:
+              <div className={s.dndRow}>
+                <label className={s.checkLabel}>Start:
                   <input
                     type="time"
                     value={useNotificationPreferences.getState().dndStart || '22:00'}
                     onChange={(e) => useNotificationPreferences.setState({ dndStart: e.target.value })}
-                    style={{
-                      marginLeft: 4, background: C.bg, border: `1px solid ${C.bd}`,
-                      borderRadius: 4, color: C.t1, padding: '2px 4px', fontSize: 10,
-                    }}
+                    className={s.timeInput}
                   />
                 </label>
-                <label style={{ color: C.t3 }}>End:
+                <label className={s.checkLabel}>End:
                   <input
                     type="time"
                     value={useNotificationPreferences.getState().dndEnd || '07:00'}
                     onChange={(e) => useNotificationPreferences.setState({ dndEnd: e.target.value })}
-                    style={{
-                      marginLeft: 4, background: C.bg, border: `1px solid ${C.bd}`,
-                      borderRadius: 4, color: C.t1, padding: '2px 4px', fontSize: 10,
-                    }}
+                    className={s.timeInput}
                   />
                 </label>
               </div>
@@ -590,26 +415,26 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
           </div>
 
           {/* Master Volume */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ color: C.t3, minWidth: 50 }}>🔊 Volume</span>
+          <div className={s.volumeRow}>
+            <span className={s.volumeLabel}>🔊 Volume</span>
             <input
               type="range" min="0" max="100" step="5"
               value={Math.round((useNotificationPreferences.getState().globalVolume ?? 0.7) * 100)}
               onChange={(e) => useNotificationPreferences.setState({ globalVolume: parseInt(e.target.value) / 100 })}
-              style={{ flex: 1, accentColor: C.b }}
+              className={s.volumeSlider}
             />
-            <span style={{ fontSize: 9, color: C.t2, fontFamily: M, minWidth: 24, textAlign: 'right' }}>
+            <span className={s.volumeVal}>
               {Math.round((useNotificationPreferences.getState().globalVolume ?? 0.7) * 100)}%
             </span>
           </div>
 
           {/* Global Mute */}
-          <label style={{ color: C.t3, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <label className={s.checkLabel}>
             <input
               type="checkbox"
               checked={useNotificationPreferences.getState().globalMute}
               onChange={() => useNotificationPreferences.getState().toggleMute()}
-              style={{ accentColor: C.r }}
+              className={s.checkRed}
             />
             🔇 Mute all alerts
           </label>
@@ -637,64 +462,42 @@ function AlertRow({ alert, onToggle, onRemove, triggered = false }) {
     : alert.severity === 'urgent' ? C.r
       : alert.severity === 'warning' ? C.y
         : C.b;
-  const _severityLabel = triggered ? null
-    : alert.severity === 'urgent' ? 'URGENT'
-      : alert.severity === 'warning' ? 'WARN'
-        : null;
 
   return (
     <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '6px 8px',
-        background: triggered ? C.sf + '80' : C.sf,
-        borderRadius: 6,
-        marginBottom: 3,
-        opacity: triggered ? 0.7 : 1,
-        borderLeft: `3px solid ${severityColor}`,
-      }}
+      className={`${s.alertRow} ${triggered ? s.alertRowTriggered : ''}`}
+      style={{ '--severity-color': severityColor }}
     >
       {/* Symbol + condition */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <span style={{ fontFamily: M, fontWeight: 700, fontSize: 12, color: C.t1 }}>{alert.symbol}</span>
-          <span style={{ fontSize: 10, color: C.t3 }}>
+      <div className={s.alertBody}>
+        <div className={s.alertSymbolRow}>
+          <span className={s.alertSymbol}>{alert.symbol}</span>
+          <span className={s.alertCondition}>
             {condIcons[alert.condition] || ''} {alert.condition.replace('_', ' ')}
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 1 }}>
-          <span style={{ fontFamily: M, fontWeight: 600, fontSize: 12, color: C.b }}>
+        <div className={s.alertDetailRow}>
+          <span className={s.alertPrice}>
             ${alert.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
           {alert.repeating && (
-            <span style={{ fontSize: 8, color: C.t3, background: C.bd + '60', padding: '1px 4px', borderRadius: 2 }}>
+            <span className={s.alertBadge}>
               REPEAT
             </span>
           )}
           {alert.note && (
-            <span
-              style={{ fontSize: 9, color: C.t3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-            >
+            <span className={s.alertNote}>
               {alert.note}
             </span>
           )}
           {/* B1: Compound condition badges */}
           {alert.conditions && alert.conditions.length > 0 && (
-            <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', marginTop: 2 }}>
+            <div className={s.compoundBadges}>
               {alert.conditions.map((sub, i) => (
                 <span
                   key={i}
-                  style={{
-                    fontSize: 8,
-                    color: sub.type === 'indicator' ? '#FF9800' : C.b,
-                    background: (sub.type === 'indicator' ? '#FF9800' : C.b) + '15',
-                    padding: '1px 4px',
-                    borderRadius: 3,
-                    fontFamily: M,
-                    fontWeight: 600,
-                  }}
+                  className={s.compoundBadge}
+                  style={{ '--compound-color': sub.type === 'indicator' ? '#FF9800' : C.b }}
                 >
                   {sub.type === 'indicator' ? sub.indicator : 'Price'}
                   {' '}{sub.condition?.replace('_', ' ')}
@@ -706,47 +509,31 @@ function AlertRow({ alert, onToggle, onRemove, triggered = false }) {
           )}
           {/* B5: Expiration badge */}
           {alert.expiresAt && (
-            <span style={{ fontSize: 7, color: C.t3, background: C.bd + '40', padding: '1px 4px', borderRadius: 2 }}>
+            <span className={s.expireBadge}>
               ⏰ Expires {new Date(alert.expiresAt).toLocaleDateString()}
             </span>
           )}
         </div>
         {triggered && alert.triggeredAt && (
-          <div style={{ fontSize: 9, color: C.g, marginTop: 2, fontFamily: M }}>
+          <div className={s.triggeredInfo}>
             ✓ Triggered {formatTime(alert.triggeredAt)}
           </div>
         )}
       </div>
 
       {/* Actions */}
-      <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+      <div className={s.alertActions}>
         <button
-          className="tf-btn"
+          className={`tf-btn ${s.actionBtn} ${alert.active ? s.actionBtnToggle : s.actionBtnToggleOff}`}
           onClick={() => onToggle(alert.id)}
           title={alert.active ? 'Pause alert' : 'Re-arm alert'}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: alert.active ? C.t2 : C.t3,
-            fontSize: 12,
-            padding: '2px 4px',
-          }}
         >
           {alert.active ? '⏸' : '▶'}
         </button>
         <button
-          className="tf-btn"
+          className={`tf-btn ${s.actionBtn} ${s.actionBtnDelete}`}
           onClick={() => onRemove(alert.id)}
           title="Delete alert"
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: C.r + '80',
-            fontSize: 11,
-            padding: '2px 4px',
-          }}
         >
           ✕
         </button>

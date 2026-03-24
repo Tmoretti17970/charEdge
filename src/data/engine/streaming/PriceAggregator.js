@@ -265,7 +265,7 @@ export class PriceAggregator {
    * @param {number} [confidence=0] - Source-level confidence (e.g., Pyth confidence interval)
    */
   ingest(symbol, sourceId, price, timestamp, confidence = 0) {
-    if (!symbol || !price || price <= 0) return;
+    if (!symbol || !price || !isFinite(price) || price <= 0) return;
 
     const upper = symbol.toUpperCase();
     let state = this._symbols.get(upper);

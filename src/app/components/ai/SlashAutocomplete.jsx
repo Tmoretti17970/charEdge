@@ -5,7 +5,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { C, F, M } from '@/constants.js';
+import { C } from '@/constants.js';
+import st from './SlashAutocomplete.module.css';
 
 export default function SlashAutocomplete({ suggestions, selectedIdx, onSelect }) {
   if (suggestions.length === 0) return null;
@@ -27,7 +28,7 @@ export default function SlashAutocomplete({ suggestions, selectedIdx, onSelect }
             width: '100%', padding: '6px 10px',
             background: i === selectedIdx ? C.b + '15' : 'transparent',
             border: 'none', cursor: 'pointer',
-            textAlign: 'left', fontFamily: F,
+            textAlign: 'left', fontFamily: 'var(--tf-font)',
             borderBottom: i < Math.min(suggestions.length, 5) - 1 ? `1px solid ${C.bd}` : 'none',
           }}
         >
@@ -49,7 +50,7 @@ export default function SlashAutocomplete({ suggestions, selectedIdx, onSelect }
       {/* Keyboard hints */}
       <div style={{
         padding: '3px 10px', borderTop: `1px solid ${C.bd}`,
-        fontSize: 8, color: C.t3, fontFamily: M,
+        fontSize: 8, color: C.t3, fontFamily: 'var(--tf-mono)',
         display: 'flex', gap: 8,
       }}>
         <span>↑↓ navigate</span>

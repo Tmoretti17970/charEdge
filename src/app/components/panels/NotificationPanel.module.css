@@ -1,0 +1,224 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — NotificationPanel CSS Module
+   Migrated from inline styles
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Backdrop ─── */
+.backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 8000; backdrop-filter: blur(2px);
+}
+
+/* ─── Panel ─── */
+.panel {
+  position: fixed; top: 0; right: 0;
+  width: 400px; max-width: 92vw; height: 100vh;
+  z-index: 8001;
+  display: flex; flex-direction: column;
+  animation: scaleInSm 0.2s ease-out;
+}
+.headerWrap { padding: 16px 16px 0; }
+.headerRow { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.headerLeft { display: flex; align-items: center; gap: 8px; }
+.headerTitle { font-size: 15px; font-weight: 800; font-family: var(--tf-font); color: var(--tf-t1); }
+.headerBadge {
+  font-size: 10px; font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  color: #fff; padding: 2px 7px; border-radius: 10px; font-weight: 600;
+}
+.headerActions { display: flex; gap: 6px; align-items: center; }
+.clearAllBtn {
+  background: none; border-radius: var(--tf-radii-sm, 6px);
+  color: var(--tf-t3); font-size: 10px;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  cursor: pointer; padding: 3px 8px; transition: all 0.15s;
+}
+.closeBtn {
+  background: none; border: none; color: var(--tf-t3);
+  font-size: 18px; cursor: pointer; padding: 0 2px;
+}
+
+/* ─── Tabs ─── */
+.tabBar { display: flex; gap: 0; }
+.tabBtn {
+  flex: 1; padding: 8px 0; border: none; background: none;
+  font-size: 11px; font-family: var(--tf-font); cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+/* ─── Content ─── */
+.contentArea { flex: 1; overflow-y: auto; padding: 4px 0; }
+.emptyState {
+  padding: 48px 16px; text-align: center;
+  color: var(--tf-t3); font-size: 12px; font-family: var(--tf-font);
+}
+.emptyIcon { font-size: 32px; margin-bottom: 10px; opacity: 0.4; }
+.emptyTitle { font-weight: 600; color: var(--tf-t2); margin-bottom: 4px; }
+.emptyDesc { font-size: 11px; line-height: 1.5; }
+
+/* ─── Footer ─── */
+.footer {
+  padding: 10px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.settingsLink {
+  background: none; border: none;
+  font-size: 11px; font-family: var(--tf-font); font-weight: 500;
+  cursor: pointer; padding: 0;
+}
+.footerShortcut { font-size: 10px; color: var(--tf-t3); font-family: var(--tf-mono, 'JetBrains Mono', monospace); }
+
+/* ─── Alert Management ─── */
+.alertWrap { padding: 12px 16px 0; }
+.presetSection { margin-bottom: 12px; }
+.presetHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.presetLeft { display: flex; align-items: center; gap: 6px; }
+.presetLabel {
+  font-size: 10px; font-weight: 700; color: var(--tf-t3);
+  text-transform: uppercase; letter-spacing: 0.04em;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+}
+.proximityBadge {
+  font-size: 9px; font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  padding: 2px 8px; border-radius: var(--tf-radii-sm, 6px); font-weight: 600;
+}
+.presetGrid { display: flex; gap: 4px; flex-wrap: wrap; }
+.presetBtn {
+  flex: 1 1 calc(33% - 4px); padding: 6px 8px;
+  font-size: 10px; font-weight: 600; font-family: var(--tf-font);
+  cursor: pointer; border-radius: var(--tf-radii-sm, 6px);
+  transition: all 0.15s; white-space: nowrap;
+}
+.lowWarning { margin-top: 6px; font-size: 9px; color: #ef4444; font-family: var(--tf-mono, 'JetBrains Mono', monospace); font-weight: 500; }
+.createToggle {
+  width: 100%; padding: 8px 0; border-radius: var(--tf-radii-sm, 6px);
+  font-size: 11px; font-weight: 600; font-family: var(--tf-font);
+  cursor: pointer; transition: all 0.2s ease;
+}
+.alertForm {
+  padding: 12px; border-radius: 0 0 var(--tf-radii-sm, 6px) var(--tf-radii-sm, 6px);
+  border-top: none; margin-bottom: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.formRow { display: flex; gap: 6px; }
+.formRowCenter { display: flex; gap: 6px; align-items: center; }
+.repeatLabel {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 10px; color: var(--tf-t3); cursor: pointer; white-space: nowrap;
+}
+.addBtn {
+  color: #fff; border: none; border-radius: var(--tf-radii-sm, 6px);
+  padding: 6px 14px; font-size: 11px; font-weight: 600;
+  font-family: var(--tf-font); cursor: pointer;
+  transition: opacity 0.15s; white-space: nowrap;
+}
+
+/* ─── Alert Sections ─── */
+.alertSectionWrap { margin-bottom: 12px; }
+.sectionHeading {
+  font-size: 9px; font-weight: 700; color: var(--tf-t3); text-transform: uppercase;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace); letter-spacing: 0.5px; margin-bottom: 6px;
+}
+.colGapSm { display: flex; flex-direction: column; gap: 4px; }
+.triggeredHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.clearTriggeredBtn {
+  background: none; border: none; color: var(--tf-t3);
+  font-size: 10px; cursor: pointer; padding: 2px 4px;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+}
+.alertEmptyState {
+  text-align: center; padding: 20px 12px; color: var(--tf-t3);
+  font-size: 12px; font-family: var(--tf-font);
+}
+.alertEmptyIcon { font-size: 24px; margin-bottom: 6px; opacity: 0.4; }
+.alertEmptyTitle { font-weight: 600; color: var(--tf-t2); margin-bottom: 4px; }
+.alertEmptyDesc { font-size: 11px; line-height: 1.5; }
+
+/* ─── Alert Card ─── */
+.alertCard {
+  display: flex; gap: 10px; padding: 10px 12px;
+  border-radius: var(--tf-radii-sm, 6px);
+  transition: background 0.15s ease; position: relative;
+}
+.alertIcon {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0; margin-top: 1px;
+}
+.flex1 { flex: 1; min-width: 0; }
+.symbolRow { display: flex; align-items: center; gap: 4px; }
+.symbol { font-family: var(--tf-mono, 'JetBrains Mono', monospace); font-weight: 700; font-size: 12px; color: var(--tf-t1); }
+.condLabel { font-size: 10px; color: var(--tf-t3); font-family: var(--tf-font); }
+.detailRow { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+.priceVal { font-family: var(--tf-mono, 'JetBrains Mono', monospace); font-weight: 600; font-size: 12px; }
+.repeatBadge {
+  font-size: 8px; color: var(--tf-t3); padding: 1px 5px;
+  border-radius: 3px; font-family: var(--tf-mono, 'JetBrains Mono', monospace); font-weight: 600;
+}
+.noteText {
+  font-size: 9px; color: var(--tf-t3); overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; font-family: var(--tf-font);
+}
+.metaRow {
+  display: flex; gap: 6px; margin-top: 4px; font-size: 10px;
+  color: var(--tf-t3); font-family: var(--tf-mono, 'JetBrains Mono', monospace); align-items: center;
+}
+.catPill { padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: 600; }
+.dot { opacity: 0.7; }
+.alertActions {
+  display: flex; gap: 4px; flex-shrink: 0; align-items: center;
+  transition: opacity 0.15s;
+}
+.alertActionBtn {
+  background: none; border: none; cursor: pointer; padding: 2px 4px;
+}
+
+/* ─── Time Group ─── */
+.timeGroupLabel {
+  padding: 10px 16px 4px;
+  font-size: 9px; font-weight: 700; color: var(--tf-t3);
+  text-transform: uppercase;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  letter-spacing: 0.5px;
+}
+
+/* ─── Notification Entry ─── */
+.entryWrap {
+  display: flex; gap: 10px; padding: 10px 16px;
+  transition: background 0.15s ease; position: relative;
+}
+.entryIcon {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0; margin-top: 1px;
+}
+.entryMessage {
+  font-size: 12px; color: var(--tf-t1); font-family: var(--tf-font);
+  line-height: 1.45; word-break: break-word;
+}
+.entryMeta {
+  display: flex; gap: 6px; margin-top: 4px; font-size: 10px;
+  color: var(--tf-t3); font-family: var(--tf-mono, 'JetBrains Mono', monospace); align-items: center;
+}
+.dismissBtn {
+  position: absolute; top: 8px; right: 12px;
+  border-radius: var(--tf-radii-sm, 6px);
+  color: var(--tf-t3); font-size: 10px; cursor: pointer;
+  padding: 2px 6px; font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  transition: all 0.1s;
+}
+
+/* ─── Notification Bell ─── */
+.bellBtn {
+  position: relative; background: none; border: none;
+  color: var(--tf-t3); font-size: 16px; cursor: pointer;
+  padding: 4px; border-radius: 6px; transition: color 0.15s;
+}
+.bellBadge {
+  position: absolute; top: -2px; right: -4px;
+  min-width: 16px; height: 16px; border-radius: 50%;
+  color: #fff; font-size: 9px; font-weight: 700;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1; padding: 0 3px;
+}

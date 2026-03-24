@@ -14,11 +14,11 @@ import React from 'react';
 import { Search, X, ChevronDown, Layers, LayoutPanelTop, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useState, useCallback, useMemo } from 'react';
 import { INDICATORS } from '../../../charting_library/studies/indicators/registry.js';
-import { C, F, GLASS } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useChartToolsStore } from '../../../state/chart/useChartToolsStore';
-import { radii, transition } from '../../../theme/tokens.js';
 import { Tooltip } from '../ui/AppleHIG.jsx';
 import { alpha } from '@/shared/colorUtils';
+import st from './IndicatorPanel.module.css';
 
 // ─── Category Definitions (P2 3.3: consolidated 9→6) ────────────
 const CATEGORIES = [
@@ -31,49 +31,18 @@ const CATEGORIES = [
     id: 'trend-channels',
     label: 'Trend & Channels',
     ids: [
-      'bb',
-      'vwap',
-      'vrvp',
-      'ichimoku',
-      'keltner',
-      'donchian',
-      'linreg',
-      'supertrend',
-      'psar',
-      'sessionVwap',
-      'anchoredVwap',
-      'liquidationLevels',
+      'bb', 'vwap', 'vrvp', 'ichimoku', 'keltner', 'donchian', 'linreg',
+      'supertrend', 'psar', 'sessionVwap', 'anchoredVwap', 'liquidationLevels',
     ],
   },
   {
     id: 'oscillators-momentum',
     label: 'Oscillators & Momentum',
     ids: [
-      'rsi',
-      'macd',
-      'stochastic',
-      'cci',
-      'williamsR',
-      'roc',
-      'aroon',
-      'momentum',
-      'ppo',
-      'dpo',
-      'trix',
-      'kst',
-      'coppock',
-      'squeeze',
-      'awesomeOsc',
-      'acceleratorOsc',
-      'chandeMO',
-      'chaikin',
-      'tsi',
-      'vortex',
-      'ultimateOsc',
-      'klinger',
-      'fearGreed',
-      'vwRsi',
-      // merged from 'Advanced Oscillators'
+      'rsi', 'macd', 'stochastic', 'cci', 'williamsR', 'roc', 'aroon',
+      'momentum', 'ppo', 'dpo', 'trix', 'kst', 'coppock', 'squeeze',
+      'awesomeOsc', 'acceleratorOsc', 'chandeMO', 'chaikin', 'tsi', 'vortex',
+      'ultimateOsc', 'klinger', 'fearGreed', 'vwRsi',
       'connorsRsi', 'schaffTrendCycle', 'ehlersFisher', 'rvi', 'stochRsi', 'elderRay', 'adxr',
     ],
   },
@@ -92,7 +61,6 @@ const CATEGORIES = [
     label: 'Signals & Confluence',
     ids: [
       'rvolFilter', 'pivotPoints', 'autoFib', 'heikinAshi', 'marketProfile',
-      // merged from 'Smart Signals'
       'fvgDetector', 'wickRejection', 'confluenceScore', 'signalQuality',
     ],
   },
@@ -105,13 +73,6 @@ const CATEGORIES = [
 
 
 
-/**
- * IndicatorPanel — Progressive Disclosure indicator browser.
- *
- * @param {Object} props
- * @param {boolean} props.isOpen     - Panel visibility
- * @param {Function} props.onClose   - Close handler
- */
 function IndicatorPanel({ isOpen, _onClose }) {
   const indicators = useChartToolsStore((s) => s.indicators);
   const addIndicator = useChartToolsStore((s) => s.addIndicator);
@@ -123,12 +84,10 @@ function IndicatorPanel({ isOpen, _onClose }) {
   const [editingIdx, setEditingIdx] = useState(null);
   const [openSections, setOpenSections] = useState({});
 
-  // Toggle accordion section
   const toggleSection = useCallback((id) => {
     setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
   }, []);
 
-  // Filter indicators by search query
   const matchesSearch = useCallback(
     (def) => {
       if (!searchTerm) return true;
@@ -142,7 +101,6 @@ function IndicatorPanel({ isOpen, _onClose }) {
     [searchTerm],
   );
 
-  // Build filtered categories
   const filteredCategories = useMemo(() => {
     return CATEGORIES.map((cat) => {
       const defs = cat.ids.map((id) => INDICATORS[id]).filter((def) => def && matchesSearch(def));
@@ -150,7 +108,6 @@ function IndicatorPanel({ isOpen, _onClose }) {
     }).filter((cat) => cat.defs.length > 0);
   }, [matchesSearch]);
 
-  // When searching, auto-expand all matching categories
   const effectiveOpenSections = useMemo(() => {
     if (!searchTerm) return openSections;
     const expanded = {};
@@ -162,7 +119,6 @@ function IndicatorPanel({ isOpen, _onClose }) {
 
   const totalResults = filteredCategories.reduce((sum, c) => sum + c.defs.length, 0);
 
-  // Add indicator with defaults
   const handleAdd = useCallback(
     (def) => {
       const params = {};
@@ -179,7 +135,6 @@ function IndicatorPanel({ isOpen, _onClose }) {
     [addIndicator],
   );
 
-  // Update a parameter value
   const handleParamChange = useCallback(
     (id, paramKey, value) => {
       const ind = indicators.find(i => i.id === id);
@@ -193,77 +148,21 @@ function IndicatorPanel({ isOpen, _onClose }) {
 
   if (!isOpen) return null;
 
-  // Item 40: IndicatorPanel renders inside SlidePanel — no floating container needed
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        fontFamily: F,
-        overflow: 'hidden',
-        userSelect: 'none',
-        height: '100%',
-        margin: '-16px', // undo SlidePanel's content padding
-      }}
-    >
+    <div className={st.root}>
       {/* ── Search Header ─────────────────────────────────────── */}
-      <div
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 2,
-          background: GLASS.heavy,
-          backdropFilter: GLASS.blurXl,
-          WebkitBackdropFilter: GLASS.blurXl,
-          borderBottom: GLASS.border,
-          padding: '8px 10px',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '5px 8px',
-            background: alpha(C.bg, 0.5),
-            border: `1px solid ${alpha(C.bd, 0.5)}`,
-            borderRadius: radii.md,
-            transition: `border-color ${transition.base}`,
-          }}
-        >
+      <div className={st.searchHeader}>
+        <div className={st.searchBar}>
           <Search size={12} color={C.t3} strokeWidth={2} />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search indicators..."
-            style={{
-              flex: 1,
-              background: 'transparent',
-              border: 'none',
-              color: C.t1,
-              fontSize: 11,
-              outline: 'none',
-              fontFamily: F,
-              padding: 0,
-            }}
+            className={st.searchInput}
           />
           {searchTerm && (
-            <button
-              onClick={() => setSearchTerm('')}
-              style={{
-                background: alpha(C.t3, 0.2),
-                border: 'none',
-                borderRadius: '50%',
-                width: 14,
-                height: 14,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                padding: 0,
-              }}
-            >
+            <button onClick={() => setSearchTerm('')} className={st.searchClear}>
               <X size={9} color={C.t2} strokeWidth={3} />
             </button>
           )}
@@ -271,24 +170,15 @@ function IndicatorPanel({ isOpen, _onClose }) {
       </div>
 
       {/* ── Scrollable Content ────────────────────────────────── */}
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 0 6px' }}>
+      <div className={st.scrollArea}>
 
         {/* ── Active Indicators ─────────────────────────────── */}
         {indicators.length > 0 && (
-          <div style={{ marginBottom: 4 }}>
-            <div
-              style={{
-                padding: '6px 10px 3px',
-                fontSize: 9,
-                fontWeight: 650,
-                color: C.t3,
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-              }}
-            >
+          <div className={st.activeSection}>
+            <div className={st.activeSectionLabel}>
               Active · {indicators.length}
             </div>
-            <div style={{ padding: '0 6px' }}>
+            <div className={st.activeSectionList}>
               {indicators.map((ind) => (
                 <ActiveIndicatorRow
                   key={ind.id}
@@ -321,17 +211,10 @@ function IndicatorPanel({ isOpen, _onClose }) {
 
         {/* No results */}
         {totalResults === 0 && searchTerm && (
-          <div
-            style={{
-              padding: '32px 14px',
-              textAlign: 'center',
-              color: C.t3,
-              fontSize: 12,
-            }}
-          >
-            <Search size={20} color={C.t3} strokeWidth={1.5} style={{ marginBottom: 8, opacity: 0.5 }} />
+          <div className={st.noResults}>
+            <Search size={20} color={C.t3} strokeWidth={1.5} className={st.noResultsIcon} />
             <div>
-              No indicators match "<strong style={{ color: C.t2 }}>{searchTerm}</strong>"
+              No indicators match "<strong className={st.noResultsHighlight}>{searchTerm}</strong>"
             </div>
           </div>
         )}
@@ -347,63 +230,28 @@ function ActiveIndicatorRow({ ind, idx: _idx, isEditing, onToggleEdit, onToggleV
   const id = ind.indicatorId || ind.type;
   const def = INDICATORS[id];
   const paramStr = Object.values(ind.params || {}).join(', ');
+  const dotColor = ind.color || def?.outputs[0]?.color || C.b;
 
   return (
     <div
-      style={{
-        marginBottom: 2,
-        borderRadius: radii.md,
-        overflow: 'hidden',
-        background: hovered ? alpha(C.sf2, 0.6) : alpha(C.sf, 0.4),
-        transition: `background ${transition.fast}`,
-      }}
+      className={st.activeRow}
+      style={{ background: hovered ? alpha(C.sf2, 0.6) : alpha(C.sf, 0.4) }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div
-        style={{
-          padding: '7px 10px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          minHeight: 36,
-        }}
-      >
+      <div className={st.activeRowInner}>
         {/* Color dot */}
-        <div
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: '50%',
-            background: ind.color || def?.outputs[0]?.color || C.b,
-            flexShrink: 0,
-            boxShadow: `0 0 6px ${alpha(ind.color || def?.outputs[0]?.color || C.b, 0.4)}`,
-          }}
-        />
+        <div className={st.colorDot} style={{ '--dot-color': dotColor }} />
 
         {/* Name + params */}
-        <button
-          onClick={onToggleEdit}
-          style={{
-            flex: 1,
-            background: 'transparent',
-            border: 'none',
-            color: C.t1,
-            fontSize: 12,
-            fontWeight: 500,
-            cursor: 'pointer',
-            textAlign: 'left',
-            padding: 0,
-            fontFamily: F,
-          }}
-        >
+        <button onClick={onToggleEdit} className={st.nameBtn}>
           {def?.shortName || id}
-          {paramStr && <span style={{ color: C.t3, fontWeight: 400 }}> ({paramStr})</span>}
+          {paramStr && <span className={st.nameSuffix}> ({paramStr})</span>}
         </button>
 
         {/* Mode badge icon */}
         <Tooltip text={def?.mode === 'overlay' ? 'Overlay indicator' : 'Pane indicator'}>
-          <div style={{ color: C.t3, display: 'flex', alignItems: 'center', opacity: 0.6 }}>
+          <div className={st.modeIcon}>
             {def?.mode === 'overlay' ? (
               <Layers size={12} strokeWidth={2} />
             ) : (
@@ -416,18 +264,7 @@ function ActiveIndicatorRow({ ind, idx: _idx, isEditing, onToggleEdit, onToggleV
         <Tooltip text={ind.visible !== false ? 'Hide indicator' : 'Show indicator'}>
           <button
             onClick={onToggleVisibility}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: ind.visible !== false ? C.t2 : C.t3,
-              cursor: 'pointer',
-              padding: 2,
-              display: 'flex',
-              alignItems: 'center',
-              opacity: ind.visible !== false ? 0.8 : 0.4,
-              transition: `opacity ${transition.fast}`,
-              borderRadius: radii.xs,
-            }}
+            className={`${st.visBtn} ${ind.visible !== false ? st.visBtnOn : st.visBtnOff}`}
           >
             {ind.visible !== false ? <Eye size={13} strokeWidth={2} /> : <EyeOff size={13} strokeWidth={2} />}
           </button>
@@ -437,19 +274,7 @@ function ActiveIndicatorRow({ ind, idx: _idx, isEditing, onToggleEdit, onToggleV
         <Tooltip text="Remove indicator">
           <button
             onClick={onRemove}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: C.r,
-              cursor: 'pointer',
-              padding: 2,
-              display: 'flex',
-              alignItems: 'center',
-              opacity: hovered ? 0.8 : 0,
-              transition: `opacity ${transition.fast}`,
-              pointerEvents: hovered ? 'auto' : 'none',
-              borderRadius: radii.xs,
-            }}
+            className={`${st.deleteBtn} ${hovered ? st.deleteBtnVisible : st.deleteBtnHidden}`}
           >
             <Trash2 size={12} strokeWidth={2} />
           </button>
@@ -457,34 +282,13 @@ function ActiveIndicatorRow({ ind, idx: _idx, isEditing, onToggleEdit, onToggleV
       </div>
 
       {/* Parameter editor */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateRows: isEditing && def && Object.keys(def.params).length > 0 ? '1fr' : '0fr',
-          transition: 'grid-template-rows 200ms cubic-bezier(0.25, 0.1, 0.25, 1)',
-          overflow: 'hidden',
-        }}
-      >
-        <div style={{ minHeight: 0 }}>
+      <div className={`${st.paramToggle} ${isEditing && def && Object.keys(def.params).length > 0 ? st.paramToggleOpen : st.paramToggleClosed}`}>
+        <div className={st.paramInner}>
           {def && Object.keys(def.params).length > 0 && (
-            <div
-              style={{
-                padding: '2px 10px 8px 28px',
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 8,
-              }}
-            >
+            <div className={st.paramGrid}>
               {Object.entries(def.params).map(([key, config]) => (
-                <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <label
-                    style={{
-                      fontSize: 10,
-                      color: C.t3,
-                      fontFamily: F,
-                      fontWeight: 500,
-                    }}
-                  >
+                <div key={key} className={st.paramCol}>
+                  <label className={st.paramLabel}>
                     {config.label || key}
                   </label>
                   <input
@@ -494,18 +298,7 @@ function ActiveIndicatorRow({ ind, idx: _idx, isEditing, onToggleEdit, onToggleV
                     max={config.max}
                     step={config.step || 1}
                     onChange={(e) => onParamChange(key, e.target.value)}
-                    style={{
-                      width: 60,
-                      padding: '4px 6px',
-                      background: alpha(C.bg, 0.5),
-                      border: `1px solid ${alpha(C.bd, 0.5)}`,
-                      borderRadius: radii.sm,
-                      color: C.t1,
-                      fontSize: 11,
-                      fontFamily: F,
-                      outline: 'none',
-                      transition: `border-color ${transition.base}`,
-                    }}
+                    className={st.paramInput}
                   />
                 </div>
               ))}
@@ -521,83 +314,24 @@ function ActiveIndicatorRow({ ind, idx: _idx, isEditing, onToggleEdit, onToggleV
 
 function AccordionSection({ category, isOpen, onToggle, onAdd }) {
   return (
-    <div style={{ borderTop: `1px solid ${alpha(C.bd, 0.3)}` }}>
+    <div className={st.accordionSection}>
       {/* Accordion header */}
-      <button
-        onClick={onToggle}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          width: '100%',
-          padding: '10px 14px',
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          fontFamily: F,
-          transition: `background ${transition.fast}`,
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = alpha(C.sf2, 0.4);
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'transparent';
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            marginRight: 8,
-            color: C.t3,
-            transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
-            transition: 'transform 200ms cubic-bezier(0.25, 0.1, 0.25, 1)',
-          }}
-        >
+      <button onClick={onToggle} className={st.accordionBtn}>
+        <div className={`${st.chevronWrap} ${!isOpen ? st.chevronClosed : ''}`}>
           <ChevronDown size={13} strokeWidth={2.5} />
         </div>
 
-        <span
-          style={{
-            flex: 1,
-            textAlign: 'left',
-            fontSize: 12,
-            fontWeight: 600,
-            color: C.t1,
-            letterSpacing: '-0.01em',
-          }}
-        >
-          {category.label}
-        </span>
+        <span className={st.accordionLabel}>{category.label}</span>
 
         {/* Count badge */}
-        <span
-          style={{
-            fontSize: 10,
-            fontWeight: 600,
-            color: C.t3,
-            background: alpha(C.bd, 0.25),
-            padding: '2px 7px',
-            borderRadius: radii.pill,
-            minWidth: 20,
-            textAlign: 'center',
-          }}
-        >
-          {category.defs.length}
-        </span>
+        <span className={st.countBadge}>{category.defs.length}</span>
       </button>
 
       {/* Accordion body */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateRows: isOpen ? '1fr' : '0fr',
-          transition: 'grid-template-rows 250ms cubic-bezier(0.25, 0.1, 0.25, 1)',
-          overflow: 'hidden',
-        }}
-      >
-        <div style={{ minHeight: 0 }}>
+      <div className={`${st.accordionBody} ${isOpen ? st.accordionBodyOpen : st.accordionBodyClosed}`}>
+        <div className={st.accordionInner}>
           {isOpen && (
-            <div style={{ paddingBottom: 4 }}>
+            <div className={st.accordionInnerPad}>
               {category.defs.map((def) => (
                 <CatalogIndicatorRow key={def.id} def={def} onAdd={() => onAdd(def)} />
               ))}
@@ -612,61 +346,27 @@ function AccordionSection({ category, isOpen, onToggle, onAdd }) {
 // ─── Catalog Indicator Row ───────────────────────────────────────
 
 function CatalogIndicatorRow({ def, onAdd }) {
-  const [hovered, setHovered] = useState(false);
   const paramStr = Object.entries(def.params)
     .map(([, config]) => config.default)
     .join(', ');
 
   return (
-    <button
-      onClick={onAdd}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        width: '100%',
-        padding: '6px 14px 6px 36px',
-        background: hovered ? alpha(C.sf2, 0.5) : 'transparent',
-        border: 'none',
-        color: C.t1,
-        fontSize: 12,
-        cursor: 'pointer',
-        textAlign: 'left',
-        fontFamily: F,
-        transition: `background ${transition.fast}`,
-        minHeight: 32,
-      }}
-    >
+    <button onClick={onAdd} className={st.catalogRow}>
       {/* Color dot — column-aligned */}
       <div
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: '50%',
-          background: def.outputs[0]?.color || '#787B86',
-          flexShrink: 0,
-        }}
+        className={st.colorDot}
+        style={{ '--dot-color': def.outputs[0]?.color || '#787B86', boxShadow: 'none' }}
       />
 
       {/* Name + default params */}
-      <span style={{ flex: 1, fontWeight: 450 }}>
+      <span className={st.catalogName}>
         {def.name}
-        {paramStr && <span style={{ color: C.t3, fontSize: 11, fontWeight: 400 }}> ({paramStr})</span>}
+        {paramStr && <span className={st.catalogParamHint}> ({paramStr})</span>}
       </span>
 
       {/* Mode icon with tooltip */}
       <Tooltip text={def.mode === 'overlay' ? 'Overlay — draws on chart' : 'Pane — separate panel'}>
-        <div
-          style={{
-            color: C.t3,
-            opacity: hovered ? 0.8 : 0.4,
-            display: 'flex',
-            alignItems: 'center',
-            transition: `opacity ${transition.fast}`,
-          }}
-        >
+        <div className={st.catalogMode}>
           {def.mode === 'overlay' ? <Layers size={12} strokeWidth={2} /> : <LayoutPanelTop size={12} strokeWidth={2} />}
         </div>
       </Tooltip>

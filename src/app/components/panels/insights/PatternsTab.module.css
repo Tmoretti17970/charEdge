@@ -1,0 +1,33 @@
+/* PatternsTab — CSS Module */
+.root { padding: 10px; }
+.empty { padding: var(--sp-6); text-align: center; color: var(--tf-t3); }
+.emptyIcon { font-size: 32px; margin-bottom: var(--sp-2); }
+.emptyTitle { font-size: var(--fs-sm); }
+.emptyHint { font-size: var(--fs-2xs); margin-top: var(--sp-1); }
+
+.gradeCard {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px var(--sp-3); background: var(--tf-sf);
+  border-radius: var(--br-md); margin-bottom: 10px;
+}
+.gradeEmoji { font-size: 28px; }
+.gradeTitle { font-size: 16px; font-weight: 800; color: var(--tf-t1); font-family: var(--tf-mono); }
+.gradeSummary { font-size: var(--fs-2xs); color: var(--tf-t3); }
+.gradeCount { margin-left: auto; font-size: var(--fs-xs); color: var(--tf-t3); font-family: var(--tf-mono); }
+
+.insightCard {
+  padding: var(--sp-2) 10px; background: var(--tf-sf);
+  border-radius: var(--br-md); margin-bottom: var(--sp-1);
+  border-left: 3px solid var(--sev-color, var(--tf-accent));
+}
+.insightHeader { display: flex; align-items: center; gap: var(--sp-1_5); margin-bottom: 3px; }
+.insightEmoji { font-size: var(--fs-sm); }
+.insightTitle { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--tf-t1); flex: 1; }
+.catBadge {
+  font-size: 8px; padding: 1px 5px; border-radius: 3px;
+  background: color-mix(in srgb, var(--sev-color, var(--tf-accent)) 8%, transparent);
+  color: var(--sev-color, var(--tf-accent));
+  font-weight: var(--fw-bold); text-transform: uppercase;
+}
+.insightBody { font-size: var(--fs-2xs); color: var(--tf-t2); line-height: var(--lh-normal); }
+.insightMeta { display: flex; gap: var(--sp-2); margin-top: var(--sp-1); font-size: var(--fs-3xs); color: var(--tf-t3); font-family: var(--tf-mono); }

@@ -1,0 +1,139 @@
+/* ═══════════════════════════════════════════════════════════════════
+   TradeMarkerOverlay — CSS Module (Sprint 23)
+   Migrated from 17 inline styles → token-based CSS classes.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Dialog Container ─── */
+.overlay {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 50;
+  background: var(--tf-glass-2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--tf-glass-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  min-width: 220px;
+  max-width: 280px;
+  box-shadow: var(--tf-shadow-3);
+  animation: scaleInSm 0.25s ease-out;
+  font-family: var(--tf-font);
+}
+
+/* ─── Header ─── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.symbol {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--tf-t1);
+}
+.sideBadge {
+  font-size: 9px;
+  font-weight: 700;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.sideBadge[data-side="long"]  { background: #26A69A; }
+.sideBadge[data-side="short"] { background: #EF5350; }
+.dismissBtn {
+  background: none;
+  border: none;
+  color: var(--tf-t3);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0 2px;
+  line-height: 1;
+}
+
+/* ─── P&L Pill ─── */
+.pnlPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 8px;
+  padding: 5px 10px;
+  margin-bottom: 10px;
+}
+.pnlPill[data-win="true"] {
+  background: color-mix(in srgb, #10B981 9%, transparent);
+  border: 1px solid color-mix(in srgb, #10B981 25%, transparent);
+}
+.pnlPill[data-win="false"] {
+  background: color-mix(in srgb, #EF4444 9%, transparent);
+  border: 1px solid color-mix(in srgb, #EF4444 25%, transparent);
+}
+.pnlValue {
+  font-size: 18px;
+  font-weight: 800;
+  font-family: var(--tf-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.pnlValue[data-win="true"]  { color: #10B981; }
+.pnlValue[data-win="false"] { color: #EF4444; }
+
+/* ─── Entry/Exit Grid ─── */
+.levelsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.levelCard {
+  background: color-mix(in srgb, var(--tf-bd) 18%, transparent);
+  border-radius: 6px;
+  padding: 5px 8px;
+}
+.levelLabel {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.levelPrice {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tf-t1);
+  font-family: var(--tf-font-mono);
+}
+
+/* ─── Date ─── */
+.tradeDate {
+  font-size: 10px;
+  color: var(--tf-t3);
+  margin-bottom: 10px;
+  font-family: var(--tf-font-mono);
+}
+
+/* ─── Journal Button ─── */
+.journalBtn {
+  width: 100%;
+  padding: 7px 0;
+  background: color-mix(in srgb, var(--tf-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tf-accent) 25%, transparent);
+  border-radius: 6px;
+  color: var(--tf-accent);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--tf-font);
+  transition: all 0.15s;
+}
+.journalBtn:hover {
+  background: color-mix(in srgb, var(--tf-accent) 20%, transparent);
+}

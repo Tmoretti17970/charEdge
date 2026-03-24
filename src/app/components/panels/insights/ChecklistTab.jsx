@@ -1,18 +1,8 @@
 // Checklist Tab for InsightsPanel
 import { useState, useCallback } from 'react';
-import { C, F } from '@/constants.js';
+import { C } from '@/constants.js';
 import { useChecklistStore } from '../../../../state/useChecklistStore.js';
-
-const miniBtn = {
-  padding: '3px 8px',
-  background: C.sf,
-  border: `1px solid ${C.bd}`,
-  borderRadius: 4,
-  color: C.t3,
-  fontSize: 10,
-  cursor: 'pointer',
-  fontFamily: F,
-};
+import st from './ChecklistTab.module.css';
 
 export default function ChecklistTab() {
   const items = useChecklistStore((s) => s.items);
@@ -38,93 +28,79 @@ export default function ChecklistTab() {
   }, [newLabel, addItem]);
 
   return (
-    <div style={{ padding: 10 }}>
-      {/* Header + progress */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+    <div className={st.root}>
+      <div className={st.header}>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: C.t1 }}>
+          <div className={st.statusText}>
             {allPassed ? '✅ Ready to trade' : `${passedCount}/${requiredItems.length} required`}
           </div>
-          <div style={{ fontSize: 10, color: C.t3 }}>Complete all required items before entering</div>
+          <div className={st.statusHint}>Complete all required items before entering</div>
         </div>
-        <div style={{ display: 'flex', gap: 4 }}>
-          <button className="tf-btn" onClick={checkAll} style={miniBtn}>All ✓</button>
-          <button className="tf-btn" onClick={resetChecks} style={miniBtn}>Reset</button>
+        <div className={st.headerBtns}>
+          <button className={`tf-btn ${st.miniBtn}`} onClick={checkAll}>All ✓</button>
+          <button className={`tf-btn ${st.miniBtn}`} onClick={resetChecks}>Reset</button>
         </div>
       </div>
 
-      {/* Progress bar */}
-      <div style={{ height: 4, background: C.bd, borderRadius: 2, marginBottom: 12, overflow: 'hidden' }}>
+      <div className={st.progressTrack}>
         <div
+          className={st.progressFill}
           style={{
-            height: '100%',
             width: `${requiredItems.length > 0 ? (passedCount / requiredItems.length) * 100 : 0}%`,
             background: allPassed ? C.g : C.b,
-            borderRadius: 2,
-            transition: 'width 0.3s, background 0.3s',
           }}
         />
       </div>
 
-      {/* Required items */}
       {requiredItems.length > 0 && (
-        <div style={{ marginBottom: 10 }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>
-            Required
-          </div>
+        <div className={st.sectionGroup}>
+          <div className={st.sectionLabel}>Required</div>
           {requiredItems.map((item) => (
-            <ChecklistItem key={item.id} item={item} checked={!!checked[item.id]} onToggle={() => toggleCheck(item.id)} onRemove={showCustomize ? () => removeItem(item.id) : null} />
+            <ChecklistItem
+              key={item.id} item={item} checked={!!checked[item.id]}
+              onToggle={() => toggleCheck(item.id)}
+              onRemove={showCustomize ? () => removeItem(item.id) : null}
+            />
           ))}
         </div>
       )}
 
-      {/* Optional items */}
       {optionalItems.length > 0 && (
-        <div style={{ marginBottom: 10 }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>
-            Optional
-          </div>
+        <div className={st.sectionGroup}>
+          <div className={st.sectionLabel}>Optional</div>
           {optionalItems.map((item) => (
-            <ChecklistItem key={item.id} item={item} checked={!!checked[item.id]} onToggle={() => toggleCheck(item.id)} onRemove={showCustomize ? () => removeItem(item.id) : null} />
+            <ChecklistItem
+              key={item.id} item={item} checked={!!checked[item.id]}
+              onToggle={() => toggleCheck(item.id)}
+              onRemove={showCustomize ? () => removeItem(item.id) : null}
+            />
           ))}
         </div>
       )}
 
-      {/* Customize toggle */}
-      <div style={{ borderTop: `1px solid ${C.bd}`, paddingTop: 8 }}>
+      <div className={st.customizeArea}>
         <button
-          className="tf-btn"
+          className={`tf-btn ${st.miniBtn} ${st.customizeBtn}`}
           onClick={() => setShowCustomize(!showCustomize)}
-          style={{ ...miniBtn, width: '100%', fontSize: 11, padding: '6px 0', marginBottom: showCustomize ? 8 : 0 }}
+          style={{ marginBottom: showCustomize ? 8 : 0 }}
         >
           {showCustomize ? '✓ Done Customizing' : '⚙ Customize Checklist'}
         </button>
 
         {showCustomize && (
-          <div style={{ display: 'flex', gap: 4 }}>
+          <div className={st.addRow}>
             <input
               value={newLabel}
               onChange={(e) => setNewLabel(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleAddItem(); }}
               placeholder="Add checklist item..."
-              style={{
-                flex: 1, padding: '5px 8px', background: C.sf, border: `1px solid ${C.bd}`,
-                borderRadius: 4, color: C.t1, fontFamily: F, fontSize: 11, outline: 'none',
-              }}
+              className={st.addInput}
             />
             <button
-              className="tf-btn"
+              className={`tf-btn ${st.addBtn} ${!newLabel.trim() ? st.addBtnDisabled : ''}`}
               onClick={handleAddItem}
               disabled={!newLabel.trim()}
-              style={{
-                padding: '5px 12px', background: C.b, border: 'none', borderRadius: 4,
-                color: '#fff', fontSize: 11, fontWeight: 600,
-                cursor: newLabel.trim() ? 'pointer' : 'default',
-                opacity: newLabel.trim() ? 1 : 0.4,
-              }}
-            >
-              Add
-            </button>
+            >Add</button>
           </div>
         )}
       </div>
@@ -134,43 +110,20 @@ export default function ChecklistTab() {
 
 function ChecklistItem({ item, checked, onToggle, onRemove }) {
   return (
-    <div
-      onClick={onToggle}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 8, padding: '7px 8px',
-        cursor: 'pointer', background: checked ? C.g + '08' : 'transparent',
-        borderRadius: 5, marginBottom: 2, transition: 'background 0.15s',
-      }}
-    >
-      <div
-        style={{
-          width: 18, height: 18, borderRadius: 4, flexShrink: 0,
-          border: `2px solid ${checked ? C.g : C.bd}`,
-          background: checked ? C.g : 'transparent',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 11, color: '#fff', fontWeight: 700, transition: 'all 0.15s',
-        }}
-      >
+    <div onClick={onToggle} className={`${st.item} ${checked ? st.itemChecked : ''}`}>
+      <div className={`${st.checkbox} ${checked ? st.checkboxOn : st.checkboxOff}`}>
         {checked ? '✓' : ''}
       </div>
-      <span style={{ fontSize: 10, flexShrink: 0 }}>{item.emoji}</span>
-      <span
-        style={{
-          fontSize: 12, color: checked ? C.t3 : C.t1, flex: 1,
-          textDecoration: checked ? 'line-through' : 'none', transition: 'all 0.15s',
-        }}
-      >
+      <span className={st.itemEmoji}>{item.emoji}</span>
+      <span className={`${st.itemLabel} ${checked ? st.itemLabelChecked : st.itemLabelUnchecked}`}>
         {item.label}
       </span>
-      {item.required && !checked && <span style={{ fontSize: 8, color: C.r, fontWeight: 700 }}>REQ</span>}
+      {item.required && !checked && <span className={st.reqBadge}>REQ</span>}
       {onRemove && (
         <button
-          className="tf-btn"
+          className={`tf-btn ${st.removeItemBtn}`}
           onClick={(e) => { e.stopPropagation(); onRemove(); }}
-          style={{ background: 'none', border: 'none', color: C.t3, fontSize: 12, cursor: 'pointer', padding: '0 2px' }}
-        >
-          ×
-        </button>
+        >×</button>
       )}
     </div>
   );

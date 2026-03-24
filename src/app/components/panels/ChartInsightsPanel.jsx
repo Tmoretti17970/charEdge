@@ -24,32 +24,22 @@ import { localInsightEngine } from '../../../charting_library/ai/LocalInsightEng
 import { featureExtractor } from '../../../charting_library/ai/FeatureExtractor.js';
 import { anomalyDetector } from '../../../charting_library/ai/AnomalyDetector.js';
 import { entryQualityScorer } from '../../../charting_library/ai/EntryQualityScorer.js';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useChartToolsStore } from '../../../state/chart/useChartToolsStore';
 import { useChartFeaturesStore } from '../../../state/chart/useChartFeaturesStore';
 import AIOrb from '../design/AIOrb.jsx';
 import AILoadingSkeleton from '../design/AILoadingSkeleton.jsx';
+import st from './ChartInsightsPanel.module.css';
 
-/**
- * @param {Array} data - OHLCV data
- * @param {boolean} isOpen - Panel visibility
- * @param {Function} onClose - Close handler
- * @param {Function} onApplyAutoFib - Callback to add auto-fib drawing
- * @param {Function} onCreateAlert - Callback to create alert from S/R level
- * @param {string} symbol - Current trading symbol
- * @param {string} tf - Current timeframe
- */
 function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAlert, symbol, tf }) {
   const drawings = useChartToolsStore((s) => s.drawings);
   const _intelligence = useChartFeaturesStore((s) => s.intelligence);
 
-  // Run PriceActionEngine analysis (existing — S/R, patterns, fib, etc.)
   const analysis = useMemo(() => {
     if (!data?.length) return null;
     return analyzeAll(data);
   }, [data]);
 
-  // Run LocalInsightEngine v2 full analysis (NEW — momentum, volume, risk, observations)
   const aiAnalysis = useMemo(() => {
     if (!data?.length || data.length < 25) return null;
     try {
@@ -60,13 +50,11 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
     }
   }, [data, symbol, tf]);
 
-  // Drawing proximity check
   const proximityAlerts = useMemo(() => {
     if (!data?.length || !drawings?.length) return [];
     return checkDrawingProximity(drawings, data[data.length - 1]);
   }, [data, drawings]);
 
-  // AI candlestick + chart pattern detection
   const aiPatterns = useMemo(() => {
     if (!data?.length || data.length < 30) return { candlestick: [], chart: [] };
     try {
@@ -78,7 +66,6 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
     }
   }, [data]);
 
-  // Anomaly detection with historical context
   const anomalies = useMemo(() => {
     if (!data?.length || data.length < 30) return [];
     try {
@@ -88,7 +75,6 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
     }
   }, [data]);
 
-  // ML Entry Quality Score (Sprint 45)
   const [mlGrade, setMlGrade] = useState(null);
   useEffect(() => {
     if (!aiAnalysis || !data?.length || data.length < 25) { setMlGrade(null); return; }
@@ -103,7 +89,6 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
     return () => { cancelled = true; };
   }, [data, aiAnalysis]);
 
-  // Section collapse state
   const [collapsed, setCollapsed] = useState({
     observations: false,
     risk: false,
@@ -124,10 +109,9 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
 
   if (!isOpen) return null;
 
-  // Show loading skeleton while data is insufficient
   if (!analysis && !aiAnalysis) {
     return (
-      <div style={{ width: 260, background: C.bg, borderLeft: `1px solid ${C.bd}`, padding: 16 }}>
+      <div className={st.loadingWrap}>
         <AILoadingSkeleton variant="full" />
       </div>
     );
@@ -136,100 +120,50 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
   const { levels, patterns, swings, autoFib, divergences } = analysis || {};
   const recentPatterns = patterns?.filter((p) => p.idx >= data.length - 20) || [];
 
-  // AI analysis data
   const grade = aiAnalysis?.grade;
   const risk = aiAnalysis?.risk;
   const observations = aiAnalysis?.observations || [];
   const aiSections = aiAnalysis?.sections || [];
 
-  // Extract specific sections from AI analysis
   const momentumSection = aiSections.find((s) => s.title === 'Momentum');
   const volumeSection = aiSections.find((s) => s.title === 'Volume');
   const volatilitySection = aiSections.find((s) => s.title === 'Volatility');
 
   return (
-    <div
-      style={{
-        width: 260,
-        background: C.bg,
-        borderLeft: `1px solid ${C.bd}`,
-        overflowY: 'auto',
-        flexShrink: 0,
-        fontSize: 12,
-        fontFamily: F,
-      }}
-    >
+    <div className={st.root}>
       {/* ─── Header ─────────────────────────────────── */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '10px 12px',
-          borderBottom: `1px solid ${C.bd}`,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div className={st.header}>
+        <div className={st.headerLeft}>
           <AIOrb size={16} state={aiAnalysis ? 'idle' : 'thinking'} />
-          <span style={{ fontWeight: 700, color: C.t1, fontSize: 13 }}>Chart Intelligence</span>
+          <span className={st.headerTitle}>Chart Intelligence</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          {/* Grade badge */}
+        <div className={st.headerRight}>
           {grade && (
             <span
-              style={{
-                fontSize: 10,
-                fontWeight: 800,
-                fontFamily: M,
-                padding: '2px 6px',
-                borderRadius: 4,
-                background: grade.stars >= 4 ? `${C.g}20` : grade.stars >= 3 ? `${C.y}20` : `${C.r}20`,
-                color: grade.stars >= 4 ? C.g : grade.stars >= 3 ? C.y : C.r,
-              }}
+              className={st.gradeBadge}
+              style={{ '--grade-color': grade.stars >= 4 ? C.g : grade.stars >= 3 ? C.y : C.r }}
             >
               {grade.letter}
             </span>
           )}
-          {/* ML grade badge (Sprint 45) */}
           {mlGrade && mlGrade.source === 'ml' && (
             <span
-              style={{
-                fontSize: 10,
-                fontWeight: 800,
-                fontFamily: M,
-                padding: '2px 6px',
-                borderRadius: 4,
-                background: '#6e5ce620',
-                color: '#6e5ce6',
-              }}
+              className={st.mlBadge}
               title={`ML Grade: ${mlGrade.grade} (${mlGrade.score * 100}%) — ${mlGrade.desc}`}
             >
               ML:{mlGrade.grade}
             </span>
           )}
-          {/* Risk badge */}
           {risk && (
-            <span style={{ fontSize: 12 }} title={`Risk: ${risk.level} (${risk.score}/100)`}>
+            <span className={st.riskEmoji} title={`Risk: ${risk.level} (${risk.score}/100)`}>
               {risk.emoji}
             </span>
           )}
-          <button
-            className="tf-btn"
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: C.t3,
-              cursor: 'pointer',
-              fontSize: 14,
-            }}
-          >
-            ✕
-          </button>
+          <button className={`tf-btn ${st.closeBtn}`} onClick={onClose}>✕</button>
         </div>
       </div>
 
-      {/* ─── Key Observations (highest priority) ────── */}
+      {/* ─── Key Observations ────── */}
       {observations.length > 0 && (
         <CollapsibleSection
           title={`Key Observations (${observations.length})`}
@@ -238,20 +172,9 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
           onToggle={() => toggleSection('observations')}
         >
           {observations.map((obs, i) => (
-            <div
-              key={i}
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: 8,
-                padding: '5px 12px',
-                borderBottom: `1px solid ${C.bd}15`,
-              }}
-            >
+            <div key={i} className={st.obsRow}>
               <SeverityDot priority={obs.priority} />
-              <div style={{ flex: 1, fontSize: 11, color: C.t1, lineHeight: 1.4 }}>
-                {obs.text}
-              </div>
+              <div className={st.obsText}>{obs.text}</div>
             </div>
           ))}
         </CollapsibleSection>
@@ -265,36 +188,21 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
           isOpen={!collapsed.risk}
           onToggle={() => toggleSection('risk')}
         >
-          {/* Risk score bar */}
-          <div style={{ padding: '4px 12px 6px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <div
-                style={{
-                  flex: 1,
-                  height: 5,
-                  borderRadius: 999,
-                  background: C.bd,
-                  overflow: 'hidden',
-                }}
-              >
+          <div className={st.riskWrap}>
+            <div className={st.riskBarRow}>
+              <div className={st.riskTrack}>
                 <div
+                  className={st.riskFill}
                   style={{
                     width: `${risk.score}%`,
-                    height: '100%',
-                    borderRadius: 999,
-                    background: risk.score >= 50 ? C.r : risk.score >= 25 ? C.y : C.g,
-                    transition: 'width 0.5s ease',
+                    '--risk-color': risk.score >= 50 ? C.r : risk.score >= 25 ? C.y : C.g,
                   }}
                 />
               </div>
-              <span style={{ fontSize: 10, fontFamily: M, fontWeight: 700, color: C.t2 }}>
-                {risk.score}/100
-              </span>
+              <span className={st.riskScore}>{risk.score}/100</span>
             </div>
             {risk.risks.map((r, i) => (
-              <div key={i} style={{ fontSize: 10, color: C.t2, padding: '2px 0', lineHeight: 1.3 }}>
-                ⚠ {r}
-              </div>
+              <div key={i} className={st.riskItem}>⚠ {r}</div>
             ))}
           </div>
         </CollapsibleSection>
@@ -302,24 +210,14 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
 
       {/* ─── Momentum ────────────────────────────────── */}
       {momentumSection && (
-        <CollapsibleSection
-          title="Momentum"
-          color="#a855f7"
-          isOpen={!collapsed.momentum}
-          onToggle={() => toggleSection('momentum')}
-        >
+        <CollapsibleSection title="Momentum" color="#a855f7" isOpen={!collapsed.momentum} onToggle={() => toggleSection('momentum')}>
           <InsightBlock content={momentumSection.content} detail={momentumSection.detail} />
         </CollapsibleSection>
       )}
 
       {/* ─── Volume ──────────────────────────────────── */}
       {volumeSection && (
-        <CollapsibleSection
-          title="Volume"
-          color="#22d3ee"
-          isOpen={!collapsed.volume}
-          onToggle={() => toggleSection('volume')}
-        >
+        <CollapsibleSection title="Volume" color="#22d3ee" isOpen={!collapsed.volume} onToggle={() => toggleSection('volume')}>
           <InsightBlock content={volumeSection.content} detail={volumeSection.detail} />
         </CollapsibleSection>
       )}
@@ -335,42 +233,15 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
           <Empty>No significant levels detected</Empty>
         ) : (
           levels.map((level, i) => (
-            <div
-              key={i}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '5px 12px',
-                borderBottom: `1px solid ${C.bd}15`,
-              }}
-            >
+            <div key={i} className={st.levelRow}>
               <TypeBadge type={level.type} />
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontFamily: M, color: C.t1, fontSize: 12 }}>
-                  {level.price.toFixed(2)}
-                </div>
-                <div style={{ fontSize: 9, color: C.t3 }}>
-                  {level.touches} touches · {level.distancePct}% away
-                </div>
+                <div className={st.levelPrice}>{level.price.toFixed(2)}</div>
+                <div className={st.levelMeta}>{level.touches} touches · {level.distancePct}% away</div>
               </div>
               <StrengthBar strength={level.strength} maxStrength={Math.max(...levels.map((l) => l.strength))} />
               {onCreateAlert && (
-                <button
-                  className="tf-btn"
-                  onClick={() => onCreateAlert(level)}
-                  title="Create alert at this level"
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: C.t3,
-                    cursor: 'pointer',
-                    fontSize: 12,
-                    padding: '2px 4px',
-                  }}
-                >
-                  🔔
-                </button>
+                <button className={`tf-btn ${st.alertLevelBtn}`} onClick={() => onCreateAlert(level)} title="Create alert at this level">🔔</button>
               )}
             </div>
           ))
@@ -388,22 +259,11 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
           <Empty>No patterns in last 20 bars</Empty>
         ) : (
           recentPatterns.slice(0, 8).map((pat, i) => (
-            <div
-              key={i}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '5px 12px',
-                borderBottom: `1px solid ${C.bd}15`,
-              }}
-            >
-              <span style={{ fontSize: 14 }}>{pat.icon}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, color: C.t1, fontSize: 11 }}>{pat.label}</div>
-                <div style={{ fontSize: 9, color: C.t3 }}>
-                  Bar {pat.idx} · {Math.round(pat.confidence * 100)}% confidence
-                </div>
+            <div key={i} className={st.patRow}>
+              <span className={st.patIcon}>{pat.icon}</span>
+              <div className={st.patBody}>
+                <div className={st.patName}>{pat.label}</div>
+                <div className={st.patMeta}>Bar {pat.idx} · {Math.round(pat.confidence * 100)}% confidence</div>
               </div>
               <BiasBadge bias={pat.bias} />
             </div>
@@ -419,23 +279,17 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
           isOpen={!collapsed.aiPatterns}
           onToggle={() => toggleSection('aiPatterns')}
         >
-          {/* Candlestick sub-group */}
           {aiPatterns.candlestick.length > 0 && (
             <>
-              <div style={{ padding: '4px 12px 2px', fontSize: 8, fontWeight: 700, fontFamily: M, color: C.t3, textTransform: 'uppercase', letterSpacing: 0.6 }}>
-                Candlestick
-              </div>
+              <div className={st.subGroupLabel}>Candlestick</div>
               {aiPatterns.candlestick.map((p, i) => (
                 <PatternRow key={`cs-${i}`} emoji={p.emoji} name={p.name} type={p.type} desc={p.desc} />
               ))}
             </>
           )}
-          {/* Chart formations sub-group */}
           {aiPatterns.chart.length > 0 && (
             <>
-              <div style={{ padding: '4px 12px 2px', fontSize: 8, fontWeight: 700, fontFamily: M, color: C.t3, textTransform: 'uppercase', letterSpacing: 0.6 }}>
-                Formations
-              </div>
+              <div className={st.subGroupLabel}>Formations</div>
               {aiPatterns.chart.map((p, i) => (
                 <PatternRow key={`ch-${i}`} emoji={p.icon} name={p.label} type={p.bias} desc={p.desc} confidence={p.confidence} />
               ))}
@@ -453,37 +307,20 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
           onToggle={() => toggleSection('anomalies')}
         >
           {anomalies.map((a, i) => (
-            <div
-              key={i}
-              style={{
-                padding: '6px 12px',
-                borderBottom: `1px solid ${C.bd}15`,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-                <span style={{
-                  fontSize: 7, width: 7, height: 7, borderRadius: '50%',
-                  background: a.severity === 'high' ? C.r : a.severity === 'medium' ? '#f59e0b' : C.t3,
-                  flexShrink: 0,
-                }} />
-                <span style={{ fontSize: 11, fontWeight: 600, color: C.t1, flex: 1 }}>
+            <div key={i} className={st.anomalyRow}>
+              <div className={st.anomalyHeader}>
+                <span
+                  className={st.anomalyDot}
+                  style={{ '--dot-color': a.severity === 'high' ? C.r : a.severity === 'medium' ? '#f59e0b' : C.t3 }}
+                />
+                <span className={st.anomalyName}>
                   {a.type.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
                 </span>
-                <span style={{ fontSize: 9, fontFamily: M, fontWeight: 700, color: C.t2 }}>
-                  {a.zScore.toFixed(1)}σ
-                </span>
+                <span className={st.anomalyZ}>{a.zScore.toFixed(1)}σ</span>
               </div>
-              <div style={{ fontSize: 10, color: C.t2, lineHeight: 1.3, marginBottom: 3 }}>
-                {a.description}
-              </div>
+              <div className={st.anomalyDesc}>{a.description}</div>
               {a.historicalContext && a.historicalContext.similar > 0 && (
-                <div style={{
-                  fontSize: 9, color: '#6e5ce6', fontFamily: M, fontWeight: 600,
-                  padding: '3px 6px', background: '#6e5ce610', borderRadius: 4,
-                  marginTop: 2,
-                }}>
-                  📊 {a.historicalContext.narrative}
-                </div>
+                <div className={st.anomalyCtx}>📊 {a.historicalContext.narrative}</div>
               )}
             </div>
           ))}
@@ -501,24 +338,13 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
           <Empty>No RSI divergences detected</Empty>
         ) : (
           divergences.slice(-4).map((div, i) => (
-            <div
-              key={i}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '5px 12px',
-                borderBottom: `1px solid ${C.bd}15`,
-              }}
-            >
-              <span style={{ fontSize: 14, color: div.type === 'bullish' ? C.g : C.r }}>
+            <div key={i} className={st.divRow}>
+              <span className={st.divIcon} style={{ color: div.type === 'bullish' ? C.g : C.r }}>
                 {div.type === 'bullish' ? '↗' : '↘'}
               </span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, color: C.t1, fontSize: 11 }}>
-                  {div.type === 'bullish' ? 'Bullish' : 'Bearish'} Divergence
-                </div>
-                <div style={{ fontSize: 9, color: C.t3 }}>
+              <div className={st.divBody}>
+                <div className={st.divName}>{div.type === 'bullish' ? 'Bullish' : 'Bearish'} Divergence</div>
+                <div className={st.divMeta}>
                   Bars {div.startIdx}–{div.endIdx} · RSI {div.rsiStart.toFixed(0)}→{div.rsiEnd.toFixed(0)}
                 </div>
               </div>
@@ -528,37 +354,17 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
       </CollapsibleSection>
 
       {/* ─── Auto-Fib ────────────────────────────────── */}
-      <CollapsibleSection
-        title="Auto Fibonacci"
-        color="#22c55e"
-        isOpen={!collapsed.fib}
-        onToggle={() => toggleSection('fib')}
-      >
+      <CollapsibleSection title="Auto Fibonacci" color="#22c55e" isOpen={!collapsed.fib} onToggle={() => toggleSection('fib')}>
         {autoFib ? (
-          <div style={{ padding: '6px 12px' }}>
-            <div style={{ fontSize: 11, color: C.t2, marginBottom: 6 }}>
+          <div className={st.fibWrap}>
+            <div className={st.fibInfo}>
               Swing {swings?.direction === 'up' ? '↑ Up' : '↓ Down'}:{' '}
-              <span style={{ fontFamily: M, fontWeight: 700 }}>
+              <span className={st.fibMono}>
                 {swings.swingLow.price.toFixed(2)} → {swings.swingHigh.price.toFixed(2)}
               </span>
             </div>
             {onApplyAutoFib && (
-              <button
-                className="tf-btn"
-                onClick={() => onApplyAutoFib(autoFib)}
-                style={{
-                  width: '100%',
-                  padding: '6px 0',
-                  borderRadius: 6,
-                  border: `1px solid #22c55e40`,
-                  background: '#22c55e15',
-                  color: C.g,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  fontFamily: M,
-                }}
-              >
+              <button className={`tf-btn ${st.fibBtn}`} onClick={() => onApplyAutoFib(autoFib)}>
                 Apply Auto-Fib to Chart
               </button>
             )}
@@ -577,22 +383,12 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
           onToggle={() => toggleSection('drawingAlerts')}
         >
           {proximityAlerts.map((alert, i) => (
-            <div
-              key={i}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '5px 12px',
-                background: '#ec489910',
-                borderBottom: `1px solid ${C.bd}15`,
-              }}
-            >
-              <span style={{ color: C.pink, fontSize: 12 }}>⚠</span>
-              <div style={{ flex: 1, fontSize: 10, color: C.t2 }}>
+            <div key={i} className={st.drawingRow}>
+              <span className={st.drawingIcon}>⚠</span>
+              <div className={st.drawingText}>
                 Price {alert.direction} <strong>{alert.drawingType}</strong> at{' '}
-                <span style={{ fontFamily: M }}>{alert.level.toFixed(2)}</span>
-                <span style={{ color: C.t3 }}> ({alert.distancePct}%)</span>
+                <span className={st.drawingMono}>{alert.level.toFixed(2)}</span>
+                <span className={st.drawingDist}> ({alert.distancePct}%)</span>
               </div>
             </div>
           ))}
@@ -601,8 +397,8 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
 
       {/* ─── Volatility (footer) ─────────────────────── */}
       {volatilitySection && (
-        <div style={{ padding: '8px 12px', borderTop: `1px solid ${C.bd}`, fontSize: 10, color: C.t3 }}>
-          <span style={{ fontWeight: 600 }}>Vol: </span>
+        <div className={st.volFooter}>
+          <span className={st.volLabel}>Vol: </span>
           {volatilitySection.content}
         </div>
       )}
@@ -614,39 +410,17 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
 
 function CollapsibleSection({ title, color, children, isOpen, onToggle }) {
   return (
-    <div style={{ borderBottom: `1px solid ${C.bd}` }}>
+    <div className={st.section}>
       <div
         onClick={onToggle}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(); } }}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '8px 12px',
-          fontSize: 10,
-          fontWeight: 700,
-          color: color || C.t3,
-          textTransform: 'uppercase',
-          letterSpacing: 0.8,
-          fontFamily: M,
-          cursor: 'pointer',
-          userSelect: 'none',
-          transition: 'background 0.15s ease',
-        }}
+        className={st.sectionHeader}
+        style={{ '--section-color': color }}
       >
         <span>{title}</span>
-        <span
-          style={{
-            fontSize: 9,
-            color: C.t3,
-            transition: 'transform 0.2s ease',
-            transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
-          }}
-        >
-          ▾
-        </span>
+        <span className={`${st.sectionChevron} ${!isOpen ? st.sectionChevronClosed : ''}`}>▾</span>
       </div>
       {isOpen && children}
     </div>
@@ -655,37 +429,20 @@ function CollapsibleSection({ title, color, children, isOpen, onToggle }) {
 
 function InsightBlock({ content, detail }) {
   return (
-    <div style={{ padding: '4px 12px 8px' }}>
-      <div style={{ fontSize: 11, fontWeight: 600, color: C.t1, marginBottom: 4, lineHeight: 1.4 }}>
-        {content}
-      </div>
-      {detail && (
-        <div style={{ fontSize: 10, color: C.t2, lineHeight: 1.5, whiteSpace: 'pre-line' }}>
-          {detail}
-        </div>
-      )}
+    <div className={st.insightWrap}>
+      <div className={st.insightContent}>{content}</div>
+      {detail && <div className={st.insightDetail}>{detail}</div>}
     </div>
   );
 }
 
 function SeverityDot({ priority }) {
   const color = priority >= 8 ? C.r : priority >= 6 ? C.y : C.info;
-  return (
-    <span
-      style={{
-        width: 6,
-        height: 6,
-        borderRadius: '50%',
-        background: color,
-        flexShrink: 0,
-        marginTop: 4,
-      }}
-    />
-  );
+  return <span className={st.sevDot} style={{ '--dot-color': color }} />;
 }
 
 function Empty({ children }) {
-  return <div style={{ padding: '8px 12px', fontSize: 10, color: C.t3, fontStyle: 'italic' }}>{children}</div>;
+  return <div className={st.empty}>{children}</div>;
 }
 
 function TypeBadge({ type }) {
@@ -696,19 +453,7 @@ function TypeBadge({ type }) {
   };
   const c = colors[type] || colors.both;
   return (
-    <span
-      style={{
-        background: c.bg + '20',
-        color: c.bg,
-        fontSize: 8,
-        fontWeight: 800,
-        fontFamily: M,
-        padding: '2px 4px',
-        borderRadius: 3,
-        minWidth: 16,
-        textAlign: 'center',
-      }}
-    >
+    <span className={st.typeBadge} style={{ '--badge-color': c.bg }}>
       {c.label}
     </span>
   );
@@ -718,39 +463,21 @@ function PatternRow({ emoji, name, type, desc, confidence }) {
   const [expanded, setExpanded] = useState(false);
   const typeColor = type === 'bullish' ? C.g : type === 'bearish' ? C.r : C.y;
   return (
-    <div
-      onClick={() => setExpanded(!expanded)}
-      style={{
-        padding: '5px 12px',
-        borderBottom: `1px solid ${C.bd}15`,
-        cursor: 'pointer',
-        transition: 'background 0.15s ease',
-      }}
-    >
+    <div onClick={() => setExpanded(!expanded)} className={`${st.patRow} ${st.patRowClickable}`}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 14 }}>{emoji}</span>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 600, color: C.t1, fontSize: 11 }}>{name}</div>
+        <span className={st.patIcon}>{emoji}</span>
+        <div className={st.patBody}>
+          <div className={st.patName}>{name}</div>
           {confidence != null && (
-            <div style={{ fontSize: 9, fontFamily: M, color: C.t3 }}>
-              {Math.round(confidence * 100)}% confidence
-            </div>
+            <div className={st.patMetaMono}>{Math.round(confidence * 100)}% confidence</div>
           )}
         </div>
-        <span
-          style={{
-            fontSize: 8, fontWeight: 700, fontFamily: M,
-            color: typeColor, padding: '2px 5px', borderRadius: 3,
-            background: typeColor + '15', textTransform: 'uppercase',
-          }}
-        >
+        <span className={st.biasBadge} style={{ '--badge-color': typeColor }}>
           {type}
         </span>
       </div>
       {expanded && desc && (
-        <div style={{ fontSize: 10, color: C.t2, lineHeight: 1.4, marginTop: 4, paddingLeft: 22 }}>
-          {desc}
-        </div>
+        <div className={st.patDesc}>{desc}</div>
       )}
     </div>
   );
@@ -764,18 +491,7 @@ function BiasBadge({ bias }) {
     trend: C.info,
   };
   return (
-    <span
-      style={{
-        fontSize: 8,
-        fontWeight: 700,
-        fontFamily: M,
-        color: colors[bias] || C.t3,
-        padding: '2px 5px',
-        borderRadius: 3,
-        background: (colors[bias] || C.t3) + '15',
-        textTransform: 'uppercase',
-      }}
-    >
+    <span className={st.biasBadge} style={{ '--badge-color': colors[bias] || C.t3 }}>
       {bias}
     </span>
   );
@@ -783,22 +499,12 @@ function BiasBadge({ bias }) {
 
 function StrengthBar({ strength, maxStrength }) {
   const pct = maxStrength > 0 ? strength / maxStrength : 0;
+  const barColor = pct > 0.7 ? C.g : pct > 0.4 ? C.y : C.t3;
   return (
-    <div
-      style={{
-        width: 30,
-        height: 4,
-        borderRadius: 2,
-        background: C.bd,
-      }}
-    >
+    <div className={st.strengthTrack}>
       <div
-        style={{
-          width: `${Math.round(pct * 100)}%`,
-          height: '100%',
-          borderRadius: 2,
-          background: pct > 0.7 ? C.g : pct > 0.4 ? C.y : C.t3,
-        }}
+        className={st.strengthFill}
+        style={{ width: `${Math.round(pct * 100)}%`, '--bar-color': barColor }}
       />
     </div>
   );

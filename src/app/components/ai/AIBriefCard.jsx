@@ -5,8 +5,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import AIStreamText from './AIStreamText.jsx';
+import st from './AIBriefCard.module.css';
 
 const ACCENT = '#6e5ce6';
 
@@ -81,7 +82,7 @@ export default function AIBriefCard() {
           <span style={{
             fontSize: 13,
             fontWeight: 700,
-            fontFamily: F,
+            fontFamily: 'var(--tf-font)',
             color: C.t1,
           }}>
             Morning Brief
@@ -97,7 +98,7 @@ export default function AIBriefCard() {
             background: loading ? `${C.bd}20` : `${ACCENT}15`,
             color: ACCENT,
             fontSize: 10,
-            fontFamily: M,
+            fontFamily: 'var(--tf-mono)',
             cursor: loading ? 'wait' : 'pointer',
           }}
         >
@@ -112,7 +113,7 @@ export default function AIBriefCard() {
           padding: '12px 0',
           color: C.t3,
           fontSize: 11,
-          fontFamily: M,
+          fontFamily: 'var(--tf-mono)',
         }}>
           Click "Generate" for your pre-market AI briefing.
         </div>
@@ -131,7 +132,7 @@ export default function AIBriefCard() {
                   background: m.change > 0 ? '#4ade8020' : '#ef444420',
                   color: m.change > 0 ? '#4ade80' : '#ef4444',
                   fontSize: 10,
-                  fontFamily: M,
+                  fontFamily: 'var(--tf-mono)',
                 }}>
                   {m.symbol} {m.change > 0 ? '+' : ''}{m.change.toFixed(1)}%
                 </span>
@@ -141,7 +142,7 @@ export default function AIBriefCard() {
 
           {brief.focusTrades && (
             <div style={{ marginTop: 8 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, fontFamily: F, color: C.t2, marginBottom: 4 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-font)', color: C.t2, marginBottom: 4 }}>
                 🎯 Focus
               </div>
               <AIStreamText text={brief.focusTrades} />
@@ -149,7 +150,7 @@ export default function AIBriefCard() {
           )}
 
           {brief.tier && (
-            <div style={{ marginTop: 8, fontSize: 8, fontFamily: M, color: C.t3 }}>
+            <div style={{ marginTop: 8, fontSize: 8, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
               Via {brief.tier} · {new Date(brief.generatedAt).toLocaleTimeString()}
             </div>
           )}

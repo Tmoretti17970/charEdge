@@ -1,6 +1,7 @@
 // Section 3: Events Today for Morning Briefing
-import { C, F, M } from '@/constants.js';
+import { C } from '@/constants.js';
 import { alpha } from '@/shared/colorUtils';
+import st from './EventsToday.module.css';
 
 export default function EventsToday({ events }) {
   const impactColors = { high: C.r, medium: C.y, low: C.g };
@@ -25,7 +26,7 @@ export default function EventsToday({ events }) {
               fontSize: 11,
               fontWeight: 700,
               color: C.t2,
-              fontFamily: M,
+              fontFamily: 'var(--tf-mono)',
               minWidth: 44,
             }}
           >
@@ -33,7 +34,7 @@ export default function EventsToday({ events }) {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: C.t1, fontFamily: F }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: C.t1, fontFamily: 'var(--tf-font)' }}>
                 {evt.event}
               </span>
               <span
@@ -46,17 +47,17 @@ export default function EventsToday({ events }) {
                   borderRadius: 3,
                   textTransform: 'uppercase',
                   letterSpacing: 0.5,
-                  fontFamily: F,
+                  fontFamily: 'var(--tf-font)',
                 }}
               >
                 {evt.impact}
               </span>
-              <span style={{ fontSize: 9, color: C.t3, fontFamily: M }}>
+              <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>
                 {evt.country}
               </span>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 10, fontSize: 10, fontFamily: M, color: C.t3, flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 10, fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t3, flexShrink: 0 }}>
             {evt.previous !== '—' && (
               <span>
                 Prev: <span style={{ color: C.t2 }}>{evt.previous}</span>

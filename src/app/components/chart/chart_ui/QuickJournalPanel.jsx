@@ -7,11 +7,11 @@
 import { useState, useMemo } from 'react';
 import { captureChartState } from '../../../../charting_library/tools/ChartJournalPipeline.js';
 import { captureChartScreenshot } from '../../../../hooks/useAutoScreenshot.js';
-import { C, F, M, EMOJIS } from '@/constants.js';
+import { EMOJIS } from '@/constants.js';
 import { useJournalStore } from '../../../../state/useJournalStore';
 import { uid } from '../../../../utils.js';
 import toast from '../../ui/Toast.jsx';
-import css from './QuickJournalPanel.module.css';
+import s from './QuickJournalPanel.module.css';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 import { useChartTradeStore } from '../../../../state/chart/useChartTradeStore';
@@ -19,13 +19,13 @@ import { useChartTradeStore } from '../../../../state/chart/useChartTradeStore';
 const SIDES = ['long', 'short'];
 
 export default function QuickJournalPanel({ onClose }) {
-  const symbol = useChartCoreStore((s) => s.symbol);
-  const pendingEntry = useChartTradeStore((s) => s.pendingEntry);
-  const pendingSL = useChartTradeStore((s) => s.pendingSL);
-  const pendingTP = useChartTradeStore((s) => s.pendingTP);
-  const tradeSide = useChartFeaturesStore((s) => s.tradeSide);
-  const exitTradeMode = useChartFeaturesStore((s) => s.exitTradeMode);
-  const addTrade = useJournalStore((s) => s.addTrade);
+  const symbol = useChartCoreStore((st) => st.symbol);
+  const pendingEntry = useChartTradeStore((st) => st.pendingEntry);
+  const pendingSL = useChartTradeStore((st) => st.pendingSL);
+  const pendingTP = useChartTradeStore((st) => st.pendingTP);
+  const tradeSide = useChartFeaturesStore((st) => st.tradeSide);
+  const exitTradeMode = useChartFeaturesStore((st) => st.exitTradeMode);
+  const addTrade = useJournalStore((st) => st.addTrade);
 
   const [form, setForm] = useState({
     side: tradeSide || 'long',
@@ -84,7 +84,6 @@ export default function QuickJournalPanel({ onClose }) {
         } catch { return []; }
       })(),
       _source: 'chart-quick-journal',
-      // P2 2.3: Auto-capture chart context for journal entry
       chartContext: (() => {
         try {
           const chartState = useChartCoreStore.getState();
@@ -100,45 +99,38 @@ export default function QuickJournalPanel({ onClose }) {
   };
 
   return (
-    <div
-      className={css.panel}
-      style={{ background: C.bg, border: `1px solid ${C.bd}` }}
-    >
+    <div className={s.panel}>
       {/* Header */}
-      <div className={css.header} style={{ borderBottom: `1px solid ${C.bd}` }}>
-        <span className={css.headerTitle} style={{ color: C.t1, fontFamily: F }}>📝 Quick Journal — {symbol}</span>
-        <button className={`tf-btn ${css.closeBtn}`} onClick={onClose} style={{ color: C.t3 }}>✕</button>
+      <div className={s.header}>
+        <span className={s.headerTitle}>📝 Quick Journal — {symbol}</span>
+        <button className={s.closeBtn} onClick={onClose}>✕</button>
       </div>
 
-      <div className={css.body}>
+      <div className={s.body}>
         {/* Side */}
-        <div className={css.sideToggle}>
-          {SIDES.map((s) => (
+        <div className={s.sideToggle}>
+          {SIDES.map((side) => (
             <button
-              className={`tf-btn ${css.sideBtn}`}
-              key={s}
-              onClick={() => set('side', s)}
-              style={{
-                fontFamily: M,
-                border: `1px solid ${form.side === s ? (s === 'long' ? C.g : C.r) : C.bd}`,
-                background: form.side === s ? (s === 'long' ? C.g + '15' : C.r + '15') : 'transparent',
-                color: form.side === s ? (s === 'long' ? C.g : C.r) : C.t3,
-              }}
+              className={s.sideBtn}
+              key={side}
+              onClick={() => set('side', side)}
+              data-active={form.side === side || undefined}
+              data-side={side}
             >
-              {s}
+              {side}
             </button>
           ))}
         </div>
 
         {/* Levels (read-only from chart) */}
-        <div className={css.levelGrid}>
-          <LevelBadge label="Entry" value={pendingEntry?.price} color={C.info} />
-          <LevelBadge label="SL" value={pendingSL?.price} color={C.r} />
-          <LevelBadge label="TP" value={pendingTP?.price} color={C.g} />
+        <div className={s.levelGrid}>
+          <LevelBadge label="Entry" value={pendingEntry?.price} color="var(--tf-info)" />
+          <LevelBadge label="SL" value={pendingSL?.price} color="var(--tf-red)" />
+          <LevelBadge label="TP" value={pendingTP?.price} color="var(--tf-green)" />
         </div>
 
         {/* Qty + P&L */}
-        <div className={css.twoCol}>
+        <div className={s.twoCol}>
           <SmallInput label="Qty" value={form.qty} onChange={(v) => set('qty', v)} placeholder="100" type="number" />
           <SmallInput
             label="P&L"
@@ -158,7 +150,7 @@ export default function QuickJournalPanel({ onClose }) {
         />
 
         {/* Emotion chips */}
-        <div className={css.emotionRow}>
+        <div className={s.emotionRow}>
           {(
             EMOJIS || [
               { l: 'confident', e: '😎' },
@@ -170,14 +162,10 @@ export default function QuickJournalPanel({ onClose }) {
             ]
           ).map((em) => (
             <button
-              className={`tf-btn ${css.emotionBtn}`}
+              className={s.emotionBtn}
               key={em.l}
               onClick={() => set('emotion', form.emotion === em.l ? '' : em.l)}
-              style={{
-                border: `1px solid ${form.emotion === em.l ? C.b : C.bd}`,
-                background: form.emotion === em.l ? C.b + '15' : 'transparent',
-                color: form.emotion === em.l ? C.b : C.t3,
-              }}
+              data-active={form.emotion === em.l || undefined}
             >
               {em.e}
             </button>
@@ -188,24 +176,19 @@ export default function QuickJournalPanel({ onClose }) {
         <SmallInput label="Tags" value={form.tags} onChange={(v) => set('tags', v)} placeholder="comma-separated" />
 
         {/* Notes */}
-        <div className={css.notesWrap}>
-          <label className={css.notesLabel} style={{ color: C.t3, fontFamily: M }}>Notes</label>
+        <div className={s.notesWrap}>
+          <label className={s.notesLabel}>Notes</label>
           <textarea
             value={form.notes}
             onChange={(e) => set('notes', e.target.value)}
             placeholder="Quick notes..."
             rows={2}
-            className={css.notesArea}
-            style={{ border: `1px solid ${C.bd}`, background: C.sf, color: C.t1, fontFamily: M }}
+            className={s.notesArea}
           />
         </div>
 
         {/* Submit */}
-        <button
-          className={`tf-btn ${css.submitBtn}`}
-          onClick={handleSubmit}
-          style={{ background: C.b, fontFamily: F }}
-        >
+        <button className={s.submitBtn} onClick={handleSubmit}>
           Log Trade
         </button>
       </div>
@@ -216,16 +199,12 @@ export default function QuickJournalPanel({ onClose }) {
 function LevelBadge({ label, value, color }) {
   return (
     <div
-      style={{
-        padding: '3px 0',
-        textAlign: 'center',
-        borderRadius: 4,
-        background: value ? color + '10' : C.sf,
-        border: `1px solid ${value ? color + '30' : C.bd}`,
-      }}
+      className={s.levelBadge}
+      style={{ '--level-color': color }}
+      data-has-value={!!value || undefined}
     >
-      <div style={{ fontSize: 7, fontWeight: 700, color: C.t3, fontFamily: M }}>{label}</div>
-      <div style={{ fontSize: 10, fontWeight: 700, color: value ? color : C.t3, fontFamily: M }}>
+      <div className={s.levelBadgeLabel}>{label}</div>
+      <div className={s.levelBadgeValue} data-has-value={!!value || undefined}>
         {value ? value.toFixed(2) : '—'}
       </div>
     </div>
@@ -234,24 +213,14 @@ function LevelBadge({ label, value, color }) {
 
 function SmallInput({ label, value, onChange, placeholder, type = 'text' }) {
   return (
-    <div style={{ marginBottom: 4 }}>
-      <label style={{ fontSize: 8, fontWeight: 600, color: C.t3, fontFamily: M }}>{label}</label>
+    <div className={s.smallInputWrap}>
+      <label className={s.smallInputLabel}>{label}</label>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        style={{
-          width: '100%',
-          padding: '3px 6px',
-          fontSize: 10,
-          borderRadius: 3,
-          border: `1px solid ${C.bd}`,
-          background: C.sf,
-          color: C.t1,
-          fontFamily: M,
-          outline: 'none',
-        }}
+        className={s.smallInput}
       />
     </div>
   );

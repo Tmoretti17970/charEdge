@@ -16,8 +16,9 @@ import MsgBubble from './MsgBubble.jsx';
 import PresetChips from './PresetChips.jsx';
 import SlashAutocomplete from './SlashAutocomplete.jsx';
 import TypingDots from './TypingDots.jsx';
-import { C, F } from '@/constants.js';
+import { C } from '@/constants.js';
 import useCopilotChat from '@/hooks/useCopilotChat';
+import st from './CopilotChatInline.module.css';
 
 // ─── Mode Metadata ──────────────────────────────────────────────
 
@@ -438,7 +439,7 @@ export default function CopilotChatInline() {
                 cursor: 'pointer',
                 padding: '2px 6px',
                 borderRadius: 4,
-                fontFamily: F,
+                fontFamily: 'var(--tf-font)',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = C.sf2;
@@ -464,7 +465,7 @@ export default function CopilotChatInline() {
                 cursor: 'pointer',
                 padding: '2px 6px',
                 borderRadius: 4,
-                fontFamily: F,
+                fontFamily: 'var(--tf-font)',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = C.r + '12';
@@ -513,7 +514,7 @@ export default function CopilotChatInline() {
                 fontWeight: 600,
                 padding: '2px 6px',
                 cursor: 'pointer',
-                fontFamily: F,
+                fontFamily: 'var(--tf-font)',
               }}
             >
               Clear
@@ -528,7 +529,7 @@ export default function CopilotChatInline() {
                 fontSize: 10,
                 padding: '2px 6px',
                 cursor: 'pointer',
-                fontFamily: F,
+                fontFamily: 'var(--tf-font)',
               }}
             >
               Cancel
@@ -637,7 +638,7 @@ export default function CopilotChatInline() {
                         fontSize: 10,
                         fontWeight: 600,
                         cursor: 'pointer',
-                        fontFamily: F,
+                        fontFamily: 'var(--tf-font)',
                         transition: 'opacity 0.15s',
                       }}
                       onMouseEnter={(e) => {
@@ -659,7 +660,7 @@ export default function CopilotChatInline() {
                         border: `1px solid ${C.bd}`,
                         fontSize: 10,
                         cursor: 'pointer',
-                        fontFamily: F,
+                        fontFamily: 'var(--tf-font)',
                       }}
                     >
                       Skip
@@ -696,7 +697,7 @@ export default function CopilotChatInline() {
                     fontWeight: 600,
                     padding: '2px 8px',
                     cursor: 'pointer',
-                    fontFamily: F,
+                    fontFamily: 'var(--tf-font)',
                     whiteSpace: 'nowrap',
                   }}
                 >
@@ -741,7 +742,7 @@ export default function CopilotChatInline() {
             background: C.sf2,
             color: C.t1,
             fontSize: 12,
-            fontFamily: F,
+            fontFamily: 'var(--tf-font)',
             padding: '7px 10px',
             outline: 'none',
             lineHeight: 1.5,

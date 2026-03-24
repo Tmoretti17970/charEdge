@@ -182,3 +182,155 @@
   margin-left: auto;
   font-size: 12px;
 }
+
+/* ─── Semantic classes for inline style migration ─── */
+
+/* Speed pip (SpeedMeter) */
+.speedPip {
+  width: 2.5px;
+  border-radius: 1px;
+  background-color: var(--pip-color, rgba(148, 163, 184, 0.15));
+  transition: background-color 0.3s;
+}
+
+/* Health dot button */
+.healthDotBtn {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0 2px;
+  flex-shrink: 0;
+  transition: gap 0.2s ease;
+}
+.healthDotBtn[data-expanded="true"] { gap: 5px; }
+.healthDotBtn[data-expanded="false"] { gap: 0; }
+
+/* Health dot indicator */
+.healthDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--status-color);
+  flex-shrink: 0;
+  transition: background-color 0.3s;
+}
+.healthDot[data-healthy="true"] { animation: pulse 2s ease-in-out infinite; }
+
+/* Dynamic color spans via CSS custom props */
+.dynColor {
+  color: var(--dyn-color);
+  font-weight: 600;
+  font-size: 10px;
+}
+.dynColorTick {
+  color: var(--dyn-color);
+  font-weight: 600;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.dynColorLat {
+  color: var(--dyn-color);
+  font-weight: 600;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Speed label badge */
+.speedBadge {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--dyn-color);
+  background-color: color-mix(in srgb, var(--dyn-color) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--dyn-color) 19%, transparent);
+  border-radius: 3px;
+  padding: 0px 3px;
+}
+
+/* FPS value */
+.fpsValue {
+  font-weight: 600;
+  font-size: 10px;
+  color: var(--dyn-color);
+}
+
+/* Small emoji spans */
+.emoji { font-size: 9px; }
+.emojiSm { font-size: 8px; }
+
+/* Spacer */
+.spacer { flex: 1; }
+
+/* Issues inline span */
+.issuesSpan {
+  display: flex;
+  align-items: center;
+  color: var(--status-color);
+  font-size: 10px;
+  gap: 4px;
+}
+
+/* OHLCV value with dynamic color */
+.ohlcValue { color: var(--dyn-color); }
+.closeValue {
+  color: var(--dyn-color);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* Market status group */
+.marketGroup { gap: 3px; }
+.marketValue {
+  color: var(--dyn-color);
+  font-size: 9px;
+}
+.staleValue {
+  color: var(--tf-yellow, #f59e0b);
+  font-size: 9px;
+}
+
+/* Log entry */
+.logEntry {
+  padding: 4px 6px;
+  margin-bottom: 2px;
+  border-radius: 4px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+.logEntry[data-level="error"] {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+}
+.logEntry[data-level="warn"] {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #fcd34d;
+}
+.logTs { opacity: 0.6; }
+.logSource { font-weight: 600; }
+
+/* Countdown emoji */
+.countdownEmoji { font-size: 10px; }
+
+/* Live clock */
+.liveClock {
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--tf-t2);
+  font-family: var(--tf-font-mono);
+  letter-spacing: 0.3px;
+  opacity: 0.8;
+}
+
+/* Toolbar button (tz/scale) */
+.pickerBtn {
+  font-family: var(--tf-font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  gap: 3px;
+}
+
+/* Scale ref */
+.scaleWrap { position: relative; }

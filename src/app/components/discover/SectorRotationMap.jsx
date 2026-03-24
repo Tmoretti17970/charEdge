@@ -12,7 +12,7 @@
 
 import React from 'react';
 import { useState, useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
 import s from './SectorRotationMap.module.css';
 
@@ -192,47 +192,32 @@ function SectorRotationMap() {
   }, [sortBy, activeTF]);
 
   return (
-    <div
-      style={{
-        background: C.bg2,
-        border: `1px solid ${C.bd}`,
-        borderRadius: 16,
-        overflow: 'hidden',
-      }}
-    >
+    <div className={s.panelWrap}>
       {/* Header */}
       <button
         onClick={() => setCollapsed(!collapsed)}
         className={`tf-btn ${s.s0}`}
       >
         <div className={s.s1}>
-          <span style={{ fontSize: 18 }}>🗺️</span>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>
-            Sector Rotation Map
-          </h3>
+          <span className={s.headerIcon}>🗺️</span>
+          <h3 className={s.headerTitle}>Sector Rotation Map</h3>
           <span
-            style={{
-              fontSize: 10, fontWeight: 700, color: C.g,
-              background: alpha(C.g, 0.1), padding: '2px 7px',
-              borderRadius: 4, fontFamily: M,
-            }}
+            className={s.sectorBadge}
+            style={{ color: C.g, background: alpha(C.g, 0.1) }}
           >
             {SECTORS.length} sectors
           </span>
         </div>
         <span
-          style={{
-            color: C.t3, fontSize: 11,
-            transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)',
-            transition: 'transform 0.2s ease',
-          }}
+          className={s.chevron}
+          style={{ transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)' }}
         >
           ▾
         </span>
       </button>
 
       {!collapsed && (
-        <div style={{ padding: '0 20px 20px' }}>
+        <div className={s.contentPad}>
           {/* Controls Row */}
           <div className={s.s2}>
             {/* Timeframe Selector */}
@@ -241,13 +226,11 @@ function SectorRotationMap() {
                 <button
                   key={tf}
                   onClick={() => setActiveTF(tf)}
-                  className="tf-btn"
+                  className={`tf-btn ${s.tfBtn}`}
                   style={{
-                    padding: '4px 10px', borderRadius: 6,
                     border: `1px solid ${activeTF === tf ? C.b : 'transparent'}`,
                     background: activeTF === tf ? alpha(C.b, 0.08) : 'transparent',
                     color: activeTF === tf ? C.b : C.t3,
-                    cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: M,
                   }}
                 >
                   {tf}
@@ -265,13 +248,11 @@ function SectorRotationMap() {
                 <button
                   key={s.id}
                   onClick={() => setSortBy(s.id)}
-                  className="tf-btn"
+                  className={`tf-btn ${s.sortBtn}`}
                   style={{
-                    padding: '4px 10px', borderRadius: 6,
                     border: `1px solid ${sortBy === s.id ? C.p : 'transparent'}`,
                     background: sortBy === s.id ? alpha(C.p, 0.08) : 'transparent',
                     color: sortBy === s.id ? C.p : C.t3,
-                    cursor: 'pointer', fontSize: 10, fontWeight: 600, fontFamily: F,
                   }}
                 >
                   {s.label}
@@ -284,14 +265,7 @@ function SectorRotationMap() {
           {drillSector && (
             <button
               onClick={() => setDrillSector(null)}
-              className="tf-btn"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '5px 12px', marginBottom: 12,
-                background: 'transparent', border: `1px solid ${C.bd}`,
-                borderRadius: 8, cursor: 'pointer',
-                color: C.t2, fontSize: 11, fontFamily: F, fontWeight: 600,
-              }}
+              className={`tf-btn ${s.backBtn}`}
             >
               ← All Sectors
             </button>
@@ -303,26 +277,13 @@ function SectorRotationMap() {
           ) : (
             <div className={s.s5}>
               {/* Table Header */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '2fr repeat(5, 1fr) 80px 70px',
-                  gap: 4,
-                  padding: '6px 10px',
-                  fontSize: 9,
-                  fontWeight: 700,
-                  color: C.t3,
-                  fontFamily: F,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                }}
-              >
+              <div className={s.tableHeader}>
                 <span>Sector</span>
                 {TIMEFRAMES.map((tf) => (
-                  <span key={tf} style={{ textAlign: 'right', color: activeTF === tf ? C.b : C.t3 }}>{tf}</span>
+                  <span key={tf} className={s.textRight} style={{ color: activeTF === tf ? C.b : undefined }}>{tf}</span>
                 ))}
-                <span style={{ textAlign: 'right' }}>Flow</span>
-                <span style={{ textAlign: 'right' }}>Cycle</span>
+                <span className={s.textRight}>Flow</span>
+                <span className={s.textRight}>Cycle</span>
               </div>
 
               {/* Sector Rows */}
@@ -341,8 +302,8 @@ function SectorRotationMap() {
           <div className={s.s6}>
             {Object.entries(CYCLE_META).map(([key, meta]) => (
               <div key={key} className={s.s7}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: meta.color }} />
-                <span style={{ fontSize: 9, color: C.t3, fontFamily: F }}>{meta.label}</span>
+                <div className={s.legendDot} style={{ background: meta.color }} />
+                <span className={s.legendLabel}>{meta.label}</span>
               </div>
             ))}
           </div>
@@ -362,26 +323,18 @@ function SectorRow({ sector, activeTF, onClick }) {
   return (
     <div
       onClick={onClick}
+      className={`tf-btn ${s.sectorRow}`}
       style={{
-        display: 'grid',
-        gridTemplateColumns: '2fr repeat(5, 1fr) 80px 70px',
-        gap: 4,
-        padding: '10px 10px',
         background: alpha(C.sf, 0.5),
         border: `1px solid ${alpha(C.bd, 0.3)}`,
-        borderRadius: 8,
-        cursor: 'pointer',
-        transition: 'all 0.15s ease',
-        alignItems: 'center',
       }}
-      className="tf-btn"
     >
       {/* Sector Name */}
       <div className={s.s8}>
-        <span style={{ fontSize: 16 }}>{sector.icon}</span>
+        <span className={s.sectorNameIcon}>{sector.icon}</span>
         <div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: F }}>{sector.name}</div>
-          <div style={{ fontSize: 9, color: C.t3, fontFamily: M }}>{sector.weight}% of S&P</div>
+          <div className={s.sectorName}>{sector.name}</div>
+          <div className={s.sectorWeight}>{sector.weight}% of S&P</div>
         </div>
       </div>
 
@@ -397,7 +350,7 @@ function SectorRow({ sector, activeTF, onClick }) {
               fontSize: isActive ? 13 : 11,
               fontWeight: isActive ? 700 : 500,
               color: val >= 0 ? C.g : C.r,
-              fontFamily: M,
+              fontFamily: 'var(--tf-mono)',
               background: isActive ? alpha(val >= 0 ? C.g : C.r, 0.06) : 'transparent',
               padding: isActive ? '2px 6px' : 0,
               borderRadius: 4,
@@ -410,28 +363,19 @@ function SectorRow({ sector, activeTF, onClick }) {
 
       {/* Money Flow */}
       <div className={s.s9}>
-        <span style={{ fontSize: 10, color: sector.flow >= 0 ? C.g : C.r }}>
+        <span className={s.flowArrow} style={{ color: sector.flow >= 0 ? C.g : C.r }}>
           {sector.flow >= 0 ? '▲' : '▼'}
         </span>
-        <span
-          style={{
-            fontSize: 11, fontWeight: 600, fontFamily: M,
-            color: sector.flow >= 0 ? C.g : C.r,
-          }}
-        >
+        <span className={s.flowValue} style={{ color: sector.flow >= 0 ? C.g : C.r }}>
           ${Math.abs(sector.flow).toFixed(1)}B
         </span>
       </div>
 
       {/* Cycle Badge */}
-      <div style={{ textAlign: 'right' }}>
+      <div className={s.textRight}>
         <span
-          style={{
-            fontSize: 9, fontWeight: 600, fontFamily: F,
-            color: cycleMeta.color,
-            background: alpha(cycleMeta.color, 0.1),
-            padding: '2px 6px', borderRadius: 4,
-          }}
+          className={s.cycleBadge}
+          style={{ color: cycleMeta.color, background: alpha(cycleMeta.color, 0.1) }}
         >
           {cycleMeta.icon} {cycleMeta.label.slice(0, 4)}
         </span>
@@ -451,38 +395,28 @@ function DrillDown({ sector, activeTF }) {
   return (
     <div>
       {/* Sector Summary */}
-      <div
-        style={{
-          display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16,
-          padding: '14px 16px', background: alpha(C.sf, 0.5),
-          borderRadius: 10, border: `1px solid ${C.bd}`,
-        }}
-      >
-        <span style={{ fontSize: 28 }}>{sector.icon}</span>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>{sector.name}</div>
-          <div style={{ fontSize: 11, color: C.t3, fontFamily: F }}>
+      <div className={s.drillSummary} style={{ background: alpha(C.sf, 0.5) }}>
+        <span className={s.drillIcon}>{sector.icon}</span>
+        <div className={s.drillFlex}>
+          <div className={s.drillTitle}>{sector.name}</div>
+          <div className={s.drillSubtitle}>
             {sector.weight}% of S&P 500 · {cycleMeta.icon} {cycleMeta.label} phase
           </div>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 9, color: C.t3, fontFamily: F }}>{activeTF} Performance</div>
+        <div className={s.drillAlignRight}>
+          <div className={s.tinLabel}>{activeTF} Performance</div>
           <div
-            style={{
-              fontSize: 20, fontWeight: 700, fontFamily: M,
-              color: sector.perf[activeTF] >= 0 ? C.g : C.r,
-            }}
+            className={s.drillPerfValue}
+            style={{ color: sector.perf[activeTF] >= 0 ? C.g : C.r }}
           >
             {sector.perf[activeTF] >= 0 ? '+' : ''}{sector.perf[activeTF].toFixed(2)}%
           </div>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 9, color: C.t3, fontFamily: F }}>Net Flow</div>
+        <div className={s.drillAlignRight}>
+          <div className={s.tinLabel}>Net Flow</div>
           <div
-            style={{
-              fontSize: 16, fontWeight: 700, fontFamily: M,
-              color: sector.flow >= 0 ? C.g : C.r,
-            }}
+            className={s.drillFlowValue}
+            style={{ color: sector.flow >= 0 ? C.g : C.r }}
           >
             {sector.flow >= 0 ? '+' : ''}${sector.flow.toFixed(1)}B
           </div>
@@ -490,37 +424,27 @@ function DrillDown({ sector, activeTF }) {
       </div>
 
       {/* Top Movers */}
-      <div style={{ fontSize: 11, fontWeight: 700, color: C.t3, fontFamily: F, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-        Top Movers
-      </div>
+      <div className={s.topLabel}>Top Movers</div>
       <div className={s.s10}>
         {sector.topMovers.map((mover, i) => (
           <div
             key={mover.symbol}
+            className={s.moverRow}
             style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              padding: '10px 12px', background: alpha(C.sf, 0.4),
-              borderRadius: 8, border: `1px solid ${alpha(C.bd, 0.3)}`,
+              background: alpha(C.sf, 0.4),
+              border: `1px solid ${alpha(C.bd, 0.3)}`,
             }}
           >
-            <span
-              style={{
-                fontSize: 10, fontWeight: 700, color: C.t3,
-                fontFamily: M, width: 16, textAlign: 'center',
-              }}
-            >
-              {i + 1}
-            </span>
-            <div style={{ flex: 1 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F }}>{mover.symbol}</span>
+            <span className={s.moverRank}>{i + 1}</span>
+            <div className={s.moverFlex}>
+              <span className={s.moverSymbol}>{mover.symbol}</span>
             </div>
-            <span style={{ fontSize: 12, color: C.t2, fontFamily: M }}>${mover.price.toFixed(2)}</span>
+            <span className={s.moverPrice}>${mover.price.toFixed(2)}</span>
             <span
+              className={s.moverChange}
               style={{
-                fontSize: 12, fontWeight: 700, fontFamily: M,
                 color: mover.change >= 0 ? C.g : C.r,
                 background: alpha(mover.change >= 0 ? C.g : C.r, 0.08),
-                padding: '3px 8px', borderRadius: 5, minWidth: 60, textAlign: 'right',
               }}
             >
               {mover.change >= 0 ? '+' : ''}{mover.change.toFixed(1)}%

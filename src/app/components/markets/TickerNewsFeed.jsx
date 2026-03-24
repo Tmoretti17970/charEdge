@@ -15,7 +15,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo, useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
+import st from './TickerNewsFeed.module.css';
 
 const GREEN  = '#22c55e';
 const RED    = '#ef4444';
@@ -127,7 +128,7 @@ function TickerNewsFeed({ symbol, assetClass }) {
               style={{
                 margin: 0,
                 fontSize: 11,
-                fontFamily: F,
+                fontFamily: 'var(--tf-font)',
                 fontWeight: 500,
                 color: C.t1,
                 lineHeight: 1.4,
@@ -155,7 +156,7 @@ function TickerNewsFeed({ symbol, assetClass }) {
               style={{
                 fontSize: 9,
                 fontWeight: 600,
-                fontFamily: M,
+                fontFamily: 'var(--tf-mono)',
                 color: C.t3,
               }}
             >
@@ -165,7 +166,7 @@ function TickerNewsFeed({ symbol, assetClass }) {
             <span
               style={{
                 fontSize: 9,
-                fontFamily: M,
+                fontFamily: 'var(--tf-mono)',
                 color: `${C.t3}80`,
               }}
             >

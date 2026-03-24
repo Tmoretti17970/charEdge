@@ -6,9 +6,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useMemo, useRef, useEffect, memo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { radii, transition } from '../../../theme/tokens.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore';
+import st from './MarketsPerformancePanel.module.css';
 
 // ─── Performer Row ───────────────────────────────────────────────
 
@@ -22,11 +23,11 @@ function PerformerRow({ item, rank }) {
       background: C.bg2, marginBottom: 4,
     }}>
       <span style={{ fontSize: 13, width: 22, textAlign: 'center' }}>{medal}</span>
-      <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: F, flex: 1 }}>
+      <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)', flex: 1 }}>
         {item.symbol}
       </span>
       <span style={{
-        fontSize: 12, fontWeight: 700, fontFamily: M,
+        fontSize: 12, fontWeight: 700, fontFamily: 'var(--tf-mono)',
         color: isPositive ? C.g : C.r,
       }}>
         {isPositive ? '+' : ''}{(item.change || 0).toFixed(2)}%
@@ -86,10 +87,10 @@ function SectorDonut({ breakdown }) {
               width: 8, height: 8, borderRadius: '50%',
               background: COLORS[i % COLORS.length], flexShrink: 0,
             }} />
-            <span style={{ fontSize: 11, color: C.t2, fontFamily: F, flex: 1 }}>
+            <span style={{ fontSize: 11, color: C.t2, fontFamily: 'var(--tf-font)', flex: 1 }}>
               {sec.label}
             </span>
-            <span style={{ fontSize: 11, fontWeight: 700, color: C.t1, fontFamily: M }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-mono)' }}>
               {sec.count}
             </span>
           </div>
@@ -107,7 +108,7 @@ function CorrCell({ val }) {
   return (
     <td style={{
       padding: '4px 6px', fontSize: 10, fontWeight: 700,
-      fontFamily: M, color: C.t1, textAlign: 'center',
+      fontFamily: 'var(--tf-mono)', color: C.t1, textAlign: 'center',
       background: bg, borderRadius: 2,
     }}>
       {val.toFixed(2)}
@@ -181,7 +182,7 @@ function MarketsPerformancePanel({ open, onClose }) {
       boxShadow: '-8px 0 32px rgba(0,0,0,0.3)',
       display: 'flex', flexDirection: 'column',
       animation: 'tf-slide-left 0.25s ease-out',
-      fontFamily: F,
+      fontFamily: 'var(--tf-font)',
     }}>
       {/* Header */}
       <div style={{
@@ -212,7 +213,7 @@ function MarketsPerformancePanel({ open, onClose }) {
               background: timeframe === tf ? `${C.b}18` : 'transparent',
               border: `1px solid ${timeframe === tf ? C.b : C.bd}`,
               color: timeframe === tf ? C.b : C.t3,
-              fontSize: 11, fontWeight: 600, fontFamily: M,
+              fontSize: 11, fontWeight: 600, fontFamily: 'var(--tf-mono)',
               cursor: 'pointer', textTransform: 'uppercase',
               transition: transition.fast,
             }}
@@ -231,7 +232,7 @@ function MarketsPerformancePanel({ open, onClose }) {
         }}>
           <span style={{ fontSize: 12, color: C.t2 }}>Watchlist Avg Change</span>
           <span style={{
-            fontSize: 18, fontWeight: 800, fontFamily: M,
+            fontSize: 18, fontWeight: 800, fontFamily: 'var(--tf-mono)',
             color: avgChange >= 0 ? C.g : C.r,
           }}>
             {avgChange >= 0 ? '+' : ''}{avgChange.toFixed(2)}%
@@ -241,7 +242,7 @@ function MarketsPerformancePanel({ open, onClose }) {
         {/* Top Performers */}
         <div style={{
           fontSize: 10, fontWeight: 700, color: C.t3,
-          fontFamily: M, textTransform: 'uppercase', marginBottom: 6,
+          fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', marginBottom: 6,
         }}>
           🏆 Top Performers
         </div>
@@ -252,7 +253,7 @@ function MarketsPerformancePanel({ open, onClose }) {
         {/* Bottom Performers */}
         <div style={{
           fontSize: 10, fontWeight: 700, color: C.t3,
-          fontFamily: M, textTransform: 'uppercase', marginBottom: 6, marginTop: 14,
+          fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', marginBottom: 6, marginTop: 14,
         }}>
           📉 Bottom Performers
         </div>
@@ -263,7 +264,7 @@ function MarketsPerformancePanel({ open, onClose }) {
         {/* Sector Breakdown */}
         <div style={{
           fontSize: 10, fontWeight: 700, color: C.t3,
-          fontFamily: M, textTransform: 'uppercase', marginBottom: 8, marginTop: 16,
+          fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', marginBottom: 8, marginTop: 16,
         }}>
           🥧 Sector Breakdown
         </div>
@@ -279,7 +280,7 @@ function MarketsPerformancePanel({ open, onClose }) {
           <>
             <div style={{
               fontSize: 10, fontWeight: 700, color: C.t3,
-              fontFamily: M, textTransform: 'uppercase', marginBottom: 6, marginTop: 8,
+              fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', marginBottom: 6, marginTop: 8,
             }}>
               🔗 Correlation Matrix
             </div>
@@ -290,10 +291,10 @@ function MarketsPerformancePanel({ open, onClose }) {
               <table style={{ borderCollapse: 'separate', borderSpacing: 2, width: '100%' }}>
                 <thead>
                   <tr>
-                    <th style={{ fontSize: 9, fontFamily: M, color: C.t3, textAlign: 'left', padding: 4 }} />
+                    <th style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3, textAlign: 'left', padding: 4 }} />
                     {corrSymbols.map(sym => (
                       <th key={sym} style={{
-                        fontSize: 9, fontFamily: M, color: C.t2,
+                        fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t2,
                         textAlign: 'center', padding: 4, fontWeight: 700,
                       }}>
                         {sym}
@@ -305,7 +306,7 @@ function MarketsPerformancePanel({ open, onClose }) {
                   {corrSymbols.map((sym, i) => (
                     <tr key={sym}>
                       <td style={{
-                        fontSize: 9, fontFamily: M, color: C.t2,
+                        fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t2,
                         fontWeight: 700, padding: 4,
                       }}>
                         {sym}

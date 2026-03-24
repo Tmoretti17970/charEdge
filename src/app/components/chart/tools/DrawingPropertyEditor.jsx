@@ -106,7 +106,7 @@ export default function DrawingPropertyEditor() {
           title="Line Color"
           onClick={() => { setShowColorPicker(!showColorPicker); setShowFillPicker(false); }}
         >
-          <div className={s.colorSwatch} style={{ background: style.color || '#2962FF' }} />
+          <div className={s.colorSwatch} style={{ '--swatch-bg': style.color || '#2962FF' }} />
         </EditorBtn>
 
         {showColorPicker && (
@@ -129,7 +129,7 @@ export default function DrawingPropertyEditor() {
               title="Fill Color"
               onClick={() => { setShowFillPicker(!showFillPicker); setShowColorPicker(false); }}
             >
-              <div className={s.fillSwatch} style={{ background: style.fillColor || 'rgba(41, 98, 255, 0.1)' }}>
+              <div className={s.fillSwatch} style={{ '--swatch-bg': style.fillColor || 'rgba(41, 98, 255, 0.1)' }}>
                 <span className={s.fillIcon}>▧</span>
               </div>
             </EditorBtn>
@@ -176,7 +176,7 @@ export default function DrawingPropertyEditor() {
             title={dp.name}
             onClick={() => updateStyle('dash', dp.value)}
           >
-            <span style={{ fontSize: 10, letterSpacing: 1, color: JSON.stringify(style.dash || []) === JSON.stringify(dp.value) ? C.b : C.t2 }}>
+            <span className={s.dashLabel} data-active={JSON.stringify(style.dash || []) === JSON.stringify(dp.value) ? 'true' : undefined}>
               {dp.label}
             </span>
           </EditorBtn>
@@ -194,7 +194,7 @@ export default function DrawingPropertyEditor() {
         onClick={handleToggleVisibility}
         active={drawing.visible === false}
       >
-        <span className={s.actionEmoji} style={{ opacity: drawing.visible === false ? 0.4 : 1 }}>
+        <span className={`${s.actionEmoji} ${drawing.visible === false ? s.actionDimmed : ''}`}>
           {drawing.visible === false ? '🙈' : '👁'}
         </span>
       </EditorBtn>
@@ -206,7 +206,7 @@ export default function DrawingPropertyEditor() {
         <span className={s.actionEmoji}>{drawing.locked ? '🔒' : '🔓'}</span>
       </EditorBtn>
       <EditorBtn title="Delete" onClick={handleDelete}>
-        <span className={s.actionEmoji} style={{ color: C.r || '#EF5350' }}>🗑</span>
+        <span className={`${s.actionEmoji} ${s.actionDanger}`}>🗑</span>
       </EditorBtn>
     </div>
   );
@@ -236,10 +236,10 @@ function ColorPalette({ selected, onSelect, customColor, onCustomChange }) {
             onClick={() => onSelect(c)}
             className={s.paletteSwatch}
             style={{
-              background: c,
-              border: selected === c ? '2px solid #fff' : '2px solid transparent',
-              boxShadow: selected === c ? `0 0 0 2px ${c}40, inset 0 0 0 1px rgba(255,255,255,0.3)` : 'none',
+              '--swatch-bg': c,
+              ...(selected === c ? { '--swatch-glow': c + '40' } : {}),
             }}
+            data-active={selected === c ? 'true' : undefined}
           />
         ))}
       </div>

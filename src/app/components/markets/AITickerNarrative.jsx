@@ -15,9 +15,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo, useMemo, useState, useEffect, useRef, useCallback } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { radii, transition } from '../../../theme/tokens.js';
 import useHistoricalData from '../../../hooks/useHistoricalData.js';
+import st from './AITickerNarrative.module.css';
 
 const ACCENT = '#6e5ce6';
 const GREEN  = '#22c55e';
@@ -176,7 +177,7 @@ function AITickerNarrative({ symbol }) {
           style={{
             fontSize: 9,
             fontWeight: 600,
-            fontFamily: M,
+            fontFamily: 'var(--tf-mono)',
             color: streaming ? ACCENT : C.t3,
             textTransform: 'uppercase',
             letterSpacing: '0.04em',
@@ -191,7 +192,7 @@ function AITickerNarrative({ symbol }) {
         style={{
           margin: 0,
           fontSize: 12,
-          fontFamily: F,
+          fontFamily: 'var(--tf-font)',
           color: C.t2,
           lineHeight: 1.6,
           letterSpacing: '0.01em',
@@ -223,7 +224,7 @@ function AITickerNarrative({ symbol }) {
             borderRadius: radii.xs,
             fontSize: 9,
             fontWeight: 600,
-            fontFamily: M,
+            fontFamily: 'var(--tf-mono)',
             border: `1px solid ${C.bd}20`,
             background: 'transparent',
             color: C.t3,

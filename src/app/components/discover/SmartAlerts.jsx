@@ -1,9 +1,10 @@
 import React from 'react';
 import { useState, useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
 import { useAlertStore } from '../../../state/useAlertStore';
 import { useNotificationPreferences } from '../../../state/useNotificationStore';
+import st from './SmartAlerts.module.css';
 
 const ALERT_TYPES = {
   price: { icon: '💰', label: 'Price Level', color: C.g },
@@ -74,14 +75,14 @@ function SmartAlerts() {
         style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 18 }}>🔔</span>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>Smart Alerts</h3>
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>Smart Alerts</h3>
           {criticalCount > 0 && (
-            <span style={{ fontSize: 10, fontWeight: 700, color: C.r, background: alpha(C.r, 0.1), padding: '2px 7px', borderRadius: 4, fontFamily: M }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: C.r, background: alpha(C.r, 0.1), padding: '2px 7px', borderRadius: 4, fontFamily: 'var(--tf-mono)' }}>
               {criticalCount} critical
             </span>
           )}
           {quietMode && (
-            <span style={{ fontSize: 9, color: C.t3, fontFamily: F }}>🔇 Quiet</span>
+            <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>🔇 Quiet</span>
           )}
         </div>
         <span style={{ color: C.t3, fontSize: 11, transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.2s ease' }}>▾</span>
@@ -94,13 +95,13 @@ function SmartAlerts() {
             <div style={{ display: 'flex', gap: 4 }}>
               {['all', 'critical', 'unresolved', 'resolved'].map((f) => (
                 <button key={f} onClick={() => setFilter(f)} className="tf-btn"
-                  style={{ padding: '4px 10px', borderRadius: 6, border: `1px solid ${filter === f ? C.b : 'transparent'}`, background: filter === f ? alpha(C.b, 0.08) : 'transparent', color: filter === f ? C.b : C.t3, cursor: 'pointer', fontSize: 10, fontWeight: 600, fontFamily: F, textTransform: 'capitalize' }}>
+                  style={{ padding: '4px 10px', borderRadius: 6, border: `1px solid ${filter === f ? C.b : 'transparent'}`, background: filter === f ? alpha(C.b, 0.08) : 'transparent', color: filter === f ? C.b : C.t3, cursor: 'pointer', fontSize: 10, fontWeight: 600, fontFamily: 'var(--tf-font)', textTransform: 'capitalize' }}>
                   {f === 'all' ? '📋 All' : f === 'critical' ? '🔴 Critical' : f === 'unresolved' ? '⏳ Active' : '✅ Resolved'}
                 </button>
               ))}
             </div>
             <button onClick={() => toggleMute()} className="tf-btn"
-              style={{ padding: '4px 10px', borderRadius: 6, border: `1px solid ${quietMode ? C.y : 'transparent'}`, background: quietMode ? alpha(C.y, 0.08) : 'transparent', color: quietMode ? C.y : C.t3, cursor: 'pointer', fontSize: 10, fontWeight: 600, fontFamily: F }}>
+              style={{ padding: '4px 10px', borderRadius: 6, border: `1px solid ${quietMode ? C.y : 'transparent'}`, background: quietMode ? alpha(C.y, 0.08) : 'transparent', color: quietMode ? C.y : C.t3, cursor: 'pointer', fontSize: 10, fontWeight: 600, fontFamily: 'var(--tf-font)' }}>
               {quietMode ? '🔇 Quiet On' : '🔔 Alerts On'}
             </button>
           </div>
@@ -115,14 +116,14 @@ function SmartAlerts() {
                   <span style={{ fontSize: 16, marginTop: 2 }}>{at.icon}</span>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F }}>{alert.symbol}</span>
-                      <span style={{ fontSize: 8, fontWeight: 700, color: at.color, background: alpha(at.color, 0.1), padding: '1px 5px', borderRadius: 3, fontFamily: F }}>{at.label}</span>
-                      <span style={{ fontSize: 8, fontWeight: 600, color: pm.color, fontFamily: F }}>{pm.icon}</span>
-                      <span style={{ fontSize: 9, color: C.t3, fontFamily: F, marginLeft: 'auto' }}>{alert.time}</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>{alert.symbol}</span>
+                      <span style={{ fontSize: 8, fontWeight: 700, color: at.color, background: alpha(at.color, 0.1), padding: '1px 5px', borderRadius: 3, fontFamily: 'var(--tf-font)' }}>{at.label}</span>
+                      <span style={{ fontSize: 8, fontWeight: 600, color: pm.color, fontFamily: 'var(--tf-font)' }}>{pm.icon}</span>
+                      <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)', marginLeft: 'auto' }}>{alert.time}</span>
                     </div>
-                    <div style={{ fontSize: 11, color: C.t2, fontFamily: F, lineHeight: 1.4 }}>{alert.message}</div>
+                    <div style={{ fontSize: 11, color: C.t2, fontFamily: 'var(--tf-font)', lineHeight: 1.4 }}>{alert.message}</div>
                     {alert.outcome && (
-                      <div style={{ marginTop: 4, fontSize: 10, fontFamily: M }}>
+                      <div style={{ marginTop: 4, fontSize: 10, fontFamily: 'var(--tf-mono)' }}>
                         <span style={{ color: C.t3 }}>Outcome: </span>
                         <span style={{ fontWeight: 600, color: alert.outcome.startsWith('+') ? C.g : C.r }}>{alert.outcome}</span>
                       </div>

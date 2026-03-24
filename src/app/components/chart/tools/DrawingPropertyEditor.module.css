@@ -151,3 +151,23 @@
   cursor: pointer;
   background: rgba(30, 34, 45, 0.8);
 }
+
+/* ─── Inline style migration ─── */
+.dashLabel {
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.dashLabel[data-active="true"] { color: var(--tf-accent); }
+.dashLabel:not([data-active="true"]) { color: var(--tf-t2); }
+.actionDimmed { opacity: 0.4; }
+.actionDanger { color: var(--tf-red, #EF5350); }
+.colorSwatch { background: var(--swatch-bg); }
+.fillSwatch { background: var(--swatch-bg); }
+.paletteSwatch {
+  background: var(--swatch-bg);
+  border: 2px solid transparent;
+}
+.paletteSwatch[data-active="true"] {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px var(--swatch-glow), inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+}

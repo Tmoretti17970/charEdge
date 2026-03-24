@@ -14,8 +14,9 @@
 
 import React from 'react';
 import { useState, useEffect, useRef } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { depthEngine } from '../../../data/engine/orderflow/DepthEngine';
+import st from './DepthPanel.module.css';
 
 function fmtNum(n) {
   if (n == null) return '—';
@@ -44,7 +45,7 @@ function DepthRow({ level, maxCumQty, side, isWall }) {
       position: 'relative',
       padding: '2px 8px',
       fontSize: 11,
-      fontFamily: M,
+      fontFamily: 'var(--tf-mono)',
       minHeight: 22,
     }}>
       {/* Background fill */}
@@ -90,7 +91,7 @@ function DepthPanel({ symbol = 'BTCUSDT', levels = 15 }) {
 
   if (!depth) {
     return (
-      <div style={{ padding: 20, textAlign: 'center', color: C.t3, fontFamily: F, fontSize: 12 }}>
+      <div style={{ padding: 20, textAlign: 'center', color: C.t3, fontFamily: 'var(--tf-font)', fontSize: 12 }}>
         Connecting to order book…
       </div>
     );
@@ -110,7 +111,7 @@ function DepthPanel({ symbol = 'BTCUSDT', levels = 15 }) {
 
   return (
     <div ref={containerRef} style={{
-      fontFamily: F,
+      fontFamily: 'var(--tf-font)',
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
@@ -135,7 +136,7 @@ function DepthPanel({ symbol = 'BTCUSDT', levels = 15 }) {
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8,
         }}>
-          <span style={{ fontSize: 10, fontFamily: M, color: spreadColor }}>
+          <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: spreadColor }}>
             Spread: {depth.spread.toFixed(2)} ({depth.spreadPct.toFixed(4)}%)
           </span>
         </div>
@@ -144,7 +145,7 @@ function DepthPanel({ symbol = 'BTCUSDT', levels = 15 }) {
       {/* Imbalance Bar */}
       <div style={{ padding: '6px 12px', borderBottom: `1px solid ${C.bd}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 10, fontFamily: M, color: C.g, fontWeight: 700, width: 40 }}>
+          <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.g, fontWeight: 700, width: 40 }}>
             {buyPct}% B
           </span>
           <div style={{
@@ -156,7 +157,7 @@ function DepthPanel({ symbol = 'BTCUSDT', levels = 15 }) {
               transition: 'width 0.3s ease',
             }} />
           </div>
-          <span style={{ fontSize: 10, fontFamily: M, color: C.r, fontWeight: 700, width: 40, textAlign: 'right' }}>
+          <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.r, fontWeight: 700, width: 40, textAlign: 'right' }}>
             {100 - buyPct}% S
           </span>
         </div>
@@ -171,7 +172,7 @@ function DepthPanel({ symbol = 'BTCUSDT', levels = 15 }) {
         {/* Column Header */}
         <div style={{
           display: 'flex', padding: '4px 8px', fontSize: 9,
-          color: C.t3, fontFamily: M, textTransform: 'uppercase',
+          color: C.t3, fontFamily: 'var(--tf-mono)', textTransform: 'uppercase',
           borderBottom: `1px solid ${C.bd}`,
         }}>
           <span style={{ flex: 1 }}>Size</span>
@@ -199,7 +200,7 @@ function DepthPanel({ symbol = 'BTCUSDT', levels = 15 }) {
           background: `${C.bd}15`,
         }}>
           <span style={{
-            fontSize: 13, fontFamily: M, fontWeight: 800,
+            fontSize: 13, fontFamily: 'var(--tf-mono)', fontWeight: 800,
             color: C.t1,
           }}>
             ${fmtPrice(depth.midPrice)}
@@ -231,7 +232,7 @@ function DepthPanel({ symbol = 'BTCUSDT', levels = 15 }) {
           </div>
           {depth.spoofAlerts.slice(-3).map((alert, i) => (
             <div key={alert.time + '-' + i} style={{
-              fontSize: 10, fontFamily: M, color: C.t2, marginBottom: 2,
+              fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t2, marginBottom: 2,
             }}>
               Large {alert.side} removed @ ${fmtPrice(alert.price)} ({fmtNum(alert.quantity)})
             </div>
@@ -243,7 +244,7 @@ function DepthPanel({ symbol = 'BTCUSDT', levels = 15 }) {
       <div style={{
         padding: '6px 12px', borderTop: `1px solid ${C.bd}`,
         display: 'flex', justifyContent: 'space-between',
-        fontSize: 9, fontFamily: M, color: C.t3,
+        fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3,
       }}>
         <span>Bid wall: ${fmtPrice(depth.bidWallPrice)}</span>
         <span>Ask wall: ${fmtPrice(depth.askWallPrice)}</span>

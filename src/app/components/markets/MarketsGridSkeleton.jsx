@@ -6,9 +6,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { radii } from '../../../theme/tokens.js';
 import '../../../styles/markets-animations.css';
+import st from './MarketsGridSkeleton.module.css';
 
 const SKELETON_ROWS = 8;
 
@@ -102,7 +103,7 @@ function MarketsGridSkeleton({ rows = SKELETON_ROWS }) {
         padding: '14px 0',
         fontSize: 10,
         fontWeight: 600,
-        fontFamily: M,
+        fontFamily: 'var(--tf-mono)',
         color: C.t3,
         letterSpacing: 1,
         textTransform: 'uppercase',
@@ -126,7 +127,7 @@ export function MarketsGridError({ message, onRetry }) {
       alignItems: 'center',
       justifyContent: 'center',
       padding: 40,
-      fontFamily: F,
+      fontFamily: 'var(--tf-font)',
     }}>
       <div style={{ fontSize: 32, marginBottom: 12 }}>⚠️</div>
       <div style={{
@@ -150,7 +151,7 @@ export function MarketsGridError({ message, onRetry }) {
             color: '#fff',
             fontSize: 12,
             fontWeight: 700,
-            fontFamily: F,
+            fontFamily: 'var(--tf-font)',
             border: 'none',
             cursor: 'pointer',
           }}
@@ -175,7 +176,7 @@ export function MarketsGridEmpty() {
       alignItems: 'center',
       justifyContent: 'center',
       padding: 40,
-      fontFamily: F,
+      fontFamily: 'var(--tf-font)',
     }}>
       <div style={{ fontSize: 40, marginBottom: 12 }}>📈</div>
       <div style={{
@@ -202,7 +203,7 @@ export function MarketsGridEmpty() {
               color: C.b,
               fontSize: 11,
               fontWeight: 700,
-              fontFamily: M,
+              fontFamily: 'var(--tf-mono)',
             }}
           >
             {sym}

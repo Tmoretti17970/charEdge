@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { TOOL_LABELS } from '../../../../shared/drawingToolRegistry';
+import s from './ObjectTreePanel.module.css';
 
 // ─── Tool Icons ──────────────────────────────────────────────────
 
@@ -32,25 +33,6 @@ const TOOL_ICONS = {
   pricerange: '$↕',
   daterange: '📅',
   elliott: '〰',
-};
-
-// Frosted glass style
-const PANEL_STYLE = {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  width: 250,
-  height: '100%',
-  background: 'rgba(30, 33, 42, 0.92)',
-  backdropFilter: 'blur(24px)',
-  WebkitBackdropFilter: 'blur(24px)',
-  borderRight: '1px solid rgba(255,255,255,0.06)',
-  display: 'flex',
-  flexDirection: 'column',
-  fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
-  zIndex: 100,
-  overflow: 'hidden',
-  transition: 'transform 0.2s ease, opacity 0.2s ease',
 };
 
 export default function ObjectTreePanel({ engine, visible, onClose }) {
@@ -79,7 +61,6 @@ export default function ObjectTreePanel({ engine, visible, onClose }) {
   const handleSelect = useCallback((d) => {
     setSelectedId(d.id);
     if (engine) {
-      // Select drawing in engine
       engine.drawings?.forEach(dr => { dr.state = dr.id === d.id ? 'selected' : 'idle'; });
       engine._selectedDrawingId = d.id;
       engine._state = 'SELECTED';
@@ -129,44 +110,21 @@ export default function ObjectTreePanel({ engine, visible, onClose }) {
   if (!visible) return null;
 
   return (
-    <div ref={panelRef} style={PANEL_STYLE}>
+    <div ref={panelRef} className={s.panel}>
       {/* Header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '12px 14px 10px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-      }}>
-        <span style={{
-          fontSize: '12px', fontWeight: 600, color: '#D1D4DC',
-          textTransform: 'uppercase', letterSpacing: '0.5px',
-        }}>
+      <div className={s.header}>
+        <span className={s.headerTitle}>
           Objects ({drawings.length})
         </span>
-        <button
-          onClick={onClose}
-          style={{
-            width: 22, height: 22, borderRadius: '6px',
-            background: 'rgba(255,255,255,0.06)',
-            border: 'none', color: '#787B86',
-            cursor: 'pointer', fontSize: '12px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}
-        >
+        <button onClick={onClose} className={s.closeBtn}>
           ✕
         </button>
       </div>
 
       {/* Drawing list */}
-      <div style={{
-        flex: 1, overflowY: 'auto', padding: '4px 0',
-        scrollbarWidth: 'thin',
-        scrollbarColor: 'rgba(255,255,255,0.1) transparent',
-      }}>
+      <div className={s.list}>
         {sortedDrawings.length === 0 && (
-          <div style={{
-            padding: '40px 20px', textAlign: 'center',
-            color: '#787B86', fontSize: '12px',
-          }}>
+          <div className={s.emptyState}>
             No drawings on chart
           </div>
         )}
@@ -183,52 +141,30 @@ export default function ObjectTreePanel({ engine, visible, onClose }) {
               key={d.id}
               onClick={() => handleSelect(d)}
               onContextMenu={(e) => handleContextMenu(e, d)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '6px 14px',
-                background: isSelected ? 'rgba(41, 98, 255, 0.12)' : 'transparent',
-                cursor: 'pointer',
-                opacity: isHidden ? 0.4 : 1,
-                transition: 'background 0.12s ease',
-                borderLeft: isSelected ? '2px solid #2962FF' : '2px solid transparent',
-              }}
+              className={s.drawingRow}
+              data-selected={isSelected || undefined}
+              data-hidden={isHidden || undefined}
             >
               {/* Type icon */}
-              <span style={{
-                fontSize: '14px', width: 20, textAlign: 'center',
-                color: d.style?.color || '#787B86',
-              }}>
+              <span className={s.drawingIcon} style={{ color: d.style?.color || undefined }}>
                 {icon}
               </span>
 
               {/* Name */}
-              <span style={{
-                flex: 1, fontSize: '12px', color: '#D1D4DC',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              }}>
+              <span className={s.drawingName}>
                 {d.label || toolName}
               </span>
 
               {/* Group badge */}
               {d._groupId && (
-                <span style={{
-                  fontSize: '9px', padding: '1px 4px',
-                  background: 'rgba(255,255,255,0.06)',
-                  borderRadius: '3px', color: '#787B86',
-                }}>
-                  grp
-                </span>
+                <span className={s.groupBadge}>grp</span>
               )}
 
               {/* Visibility */}
               <button
                 onClick={(e) => { e.stopPropagation(); handleToggleVisibility(d); }}
-                style={{
-                  width: 20, height: 20, borderRadius: '4px',
-                  background: 'transparent', border: 'none',
-                  color: isHidden ? '#787B86' : '#D1D4DC',
-                  cursor: 'pointer', fontSize: '11px',
-                }}
+                className={s.rowActionBtn}
+                data-state={isHidden ? 'inactive' : 'active'}
                 title={isHidden ? 'Show' : 'Hide'}
               >
                 {isHidden ? '◻' : '👁'}
@@ -237,12 +173,8 @@ export default function ObjectTreePanel({ engine, visible, onClose }) {
               {/* Lock */}
               <button
                 onClick={(e) => { e.stopPropagation(); handleToggleLock(d); }}
-                style={{
-                  width: 20, height: 20, borderRadius: '4px',
-                  background: 'transparent', border: 'none',
-                  color: isLocked ? '#EF5350' : '#787B86',
-                  cursor: 'pointer', fontSize: '11px',
-                }}
+                className={s.rowActionBtn}
+                data-state={isLocked ? 'locked' : 'inactive'}
                 title={isLocked ? 'Unlock' : 'Lock'}
               >
                 {isLocked ? '🔒' : '🔓'}
@@ -253,32 +185,16 @@ export default function ObjectTreePanel({ engine, visible, onClose }) {
       </div>
 
       {/* Bottom toolbar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '8px 14px',
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-      }}>
+      <div className={s.toolbar}>
         <button
           onClick={() => engine?.drawings?.forEach(d => { d.visible = true; })}
-          style={{
-            padding: '4px 8px', fontSize: '10px',
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '6px', color: '#787B86',
-            cursor: 'pointer',
-          }}
+          className={s.toolbarBtn}
         >
           Show All
         </button>
         <button
           onClick={() => { if (confirm('Delete all drawings?')) { engine?.drawings?.splice(0); engine?._notify?.(); } }}
-          style={{
-            padding: '4px 8px', fontSize: '10px',
-            background: 'rgba(239,83,80,0.1)',
-            border: '1px solid rgba(239,83,80,0.15)',
-            borderRadius: '6px', color: '#EF5350',
-            cursor: 'pointer',
-          }}
+          className={`${s.toolbarBtn} ${s['toolbarBtn--danger']}`}
         >
           Clear All
         </button>
@@ -286,21 +202,7 @@ export default function ObjectTreePanel({ engine, visible, onClose }) {
 
       {/* Context menu */}
       {ctxMenu && (
-        <div
-          style={{
-            position: 'fixed',
-            top: ctxMenu.y,
-            left: ctxMenu.x,
-            background: 'rgba(30, 33, 42, 0.95)',
-            backdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '10px',
-            padding: '4px 0',
-            minWidth: 140,
-            boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
-            zIndex: 200,
-          }}
-        >
+        <div className={s.ctxMenu} style={{ top: ctxMenu.y, left: ctxMenu.x }}>
           {[
             { label: 'Edit', action: () => { handleSelect(ctxMenu.drawing); setCtxMenu(null); } },
             { label: 'Duplicate', action: () => handleDuplicate(ctxMenu.drawing) },
@@ -309,16 +211,8 @@ export default function ObjectTreePanel({ engine, visible, onClose }) {
             <button
               key={i}
               onClick={item.action}
-              style={{
-                display: 'block', width: '100%',
-                padding: '8px 14px', textAlign: 'left',
-                background: 'transparent', border: 'none',
-                color: item.danger ? '#EF5350' : '#D1D4DC',
-                fontSize: '12px', cursor: 'pointer',
-                transition: 'background 0.1s ease',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              className={s.ctxMenuItem}
+              data-danger={item.danger || undefined}
             >
               {item.label}
             </button>

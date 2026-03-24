@@ -1,0 +1,15 @@
+/* StorageDashboard — CSS Module */
+.cardPad { padding: var(--sp-5); margin-bottom: var(--sp-3); }
+.title { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--tf-t1); font-family: var(--tf-font); margin-bottom: var(--sp-1); }
+.subtitle { font-size: var(--fs-2xs); color: var(--tf-t3); font-family: var(--tf-font); margin-bottom: 14px; }
+.contentRow { display: flex; gap: var(--sp-4); align-items: center; margin-bottom: 14px; }
+.donut { width: 100px; height: 100px; flex-shrink: 0; }
+.breakdownList { flex: 1; display: flex; flex-direction: column; gap: var(--sp-1_5); }
+.catRow { display: flex; align-items: center; gap: var(--sp-2); }
+.catDot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.catName { flex: 1; font-size: var(--fs-2xs); color: var(--tf-t2); font-family: var(--tf-font); }
+.catSize { font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--tf-t1); font-family: var(--tf-mono); }
+.quotaWrap { margin-bottom: var(--sp-3); }
+.quotaTrack { height: 4px; border-radius: 2px; overflow: hidden; }
+.quotaFill { height: 100%; border-radius: 2px; transition: width var(--dur-normal); }
+.quotaWarn { font-size: var(--fs-xs); color: var(--tf-red); font-family: var(--tf-font); margin-top: var(--sp-1); font-weight: var(--fw-semibold); }

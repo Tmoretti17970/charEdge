@@ -9,6 +9,7 @@
 import React from 'react';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { logger } from '@/observability/logger';
+import st from './MicrostructureDashboard.module.css';
 
 // ─── Default Watchlist ─────────────────────────────────────────
 

@@ -1,0 +1,116 @@
+/* MTFConfluenceOverlay — CSS Module (Sprint 23) */
+
+.overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
+  user-select: none;
+}
+
+/* Collapsed badge */
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--tf-sf) 93%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--score-color) 18%, transparent);
+  font-size: 10px;
+  font-family: var(--tf-font-mono);
+  font-weight: 700;
+  color: var(--score-color);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.badgeEmoji { font-size: 11px; }
+.scorePill {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--score-color) 8%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Trend arrow */
+.trendArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+/* Expanded panel */
+.panel {
+  margin-top: 4px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tf-sf) 96%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid color-mix(in srgb, var(--tf-bd) 25%, transparent);
+  min-width: 200px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.panelTitle {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--tf-font-mono);
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.panelScore {
+  font-size: 16px;
+  font-weight: 800;
+  font-family: var(--tf-font-mono);
+  color: var(--score-color);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Signal row */
+.signalRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--tf-bd) 8%, transparent);
+}
+.signalTf {
+  width: 28px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--tf-font-mono);
+  color: var(--tf-t3);
+  text-align: right;
+}
+.signalInfo {
+  font-size: 10px;
+  font-family: var(--tf-font-mono);
+  color: var(--tf-t2);
+  flex: 1;
+}
+.signalRsi {
+  font-size: 9px;
+  font-family: var(--tf-font-mono);
+  color: var(--tf-t3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Summary */
+.summary {
+  margin-top: 8px;
+  font-size: 9px;
+  font-family: var(--tf-font-mono);
+  color: var(--tf-t3);
+  line-height: 1.4;
+}

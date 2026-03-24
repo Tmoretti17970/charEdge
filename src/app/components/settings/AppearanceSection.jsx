@@ -16,21 +16,10 @@ import s from './AppearanceSection.module.css';
 
 // ─── Shared Styles ───────────────────────────────────────────────
 
-function subLabel() { return { fontSize: 13, fontWeight: 700, color: C.t1, marginBottom: 4 }; }
-function subHint() { return { fontSize: 11, color: C.t3, marginBottom: 16 }; }
-const cardWrap = { padding: 20, marginBottom: 12 };
+// subLabel, subHint, cardWrap now in CSS module
 
 function SubSectionHeader({ title }) {
-  return (
-    <div style={{
-      fontSize: 10, fontWeight: 700, color: C.t3,
-      textTransform: 'uppercase', letterSpacing: 0.8,
-      padding: '16px 0 6px', marginBottom: 4,
-      borderBottom: `1px solid ${C.bd}15`,
-    }}>
-      {title}
-    </div>
-  );
+  return <div className={s.subSectionHeader}>{title}</div>;
 }
 
 // ─── Theme Picker ────────────────────────────────────────────────
@@ -47,12 +36,12 @@ function ThemePicker() {
   ];
 
   return (
-    <Card style={cardWrap}>
-      <div style={subLabel()}>
+    <Card className={s.cardWrap}>
+      <div className={s.subLabel}>
         <TFIcon name="layers" size={14} className={s.s0} />
         Theme Mode
       </div>
-      <div style={subHint()}>Choose your preferred interface theme</div>
+      <div className={s.subHint}>Choose your preferred interface theme</div>
       <div className={s.s1}>
         {options.map((opt) => {
           const active = theme === opt.value;
@@ -68,18 +57,12 @@ function ThemePicker() {
                   previousValue: prev, newValue: opt.value,
                 });
               }}
-              className="tf-btn"
-              style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-                padding: '16px 10px', borderRadius: 10,
-                border: `1.5px solid ${active ? C.b : C.bd}`,
-                background: active ? C.b + '12' : 'transparent',
-                cursor: 'pointer', textAlign: 'center',
-              }}
+              className={`tf-btn ${s.optionBtn}`}
+              data-active={active ? 'true' : undefined}
             >
               <TFIcon name={opt.icon} size={22} color={active ? C.b : C.t2} />
-              <span style={{ fontSize: 12, fontWeight: 700, color: active ? C.b : C.t1 }}>{opt.label}</span>
-              <span style={{ fontSize: 10, color: C.t3, lineHeight: 1.3 }}>{opt.desc}</span>
+              <span className={s.optionLabel} data-active={active ? 'true' : undefined}>{opt.label}</span>
+              <span className={s.optionHint}>{opt.desc}</span>
             </button>
           );
         })}
@@ -105,12 +88,12 @@ function AccentColorPicker() {
   };
 
   return (
-    <Card style={cardWrap}>
-      <div style={subLabel()}>
+    <Card className={s.cardWrap}>
+      <div className={s.subLabel}>
         <TFIcon name="palette" size={14} className={s.s2} />
         Accent Color
       </div>
-      <div style={subHint()}>Personalize buttons, links, and highlights</div>
+      <div className={s.subHint}>Personalize buttons, links, and highlights</div>
 
       <div className={s.s3}>
         {ACCENT_PRESETS.map((preset) => {
@@ -157,11 +140,7 @@ function AccentColorPicker() {
       </div>
 
       {showCustom && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          padding: '10px 12px', borderRadius: 8,
-          background: C.sf2, border: `1px solid ${C.bd}`,
-        }}>
+        <div className={s.customHexRow}>
           <input
             type="color"
             value={accentColor}
@@ -175,21 +154,11 @@ function AccentColorPicker() {
             onChange={(e) => setCustomHex(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleCustomSubmit()}
             maxLength={7}
-            style={{
-              flex: 1, padding: '6px 10px', borderRadius: 6,
-              background: C.bg2, border: `1px solid ${C.bd}`,
-              color: C.t1, fontSize: 12, fontFamily: "'JetBrains Mono', monospace",
-              outline: 'none',
-            }}
+            className={s.hexInput}
           />
           <button
             onClick={handleCustomSubmit}
-            className="tf-btn"
-            style={{
-              padding: '6px 14px', borderRadius: 6,
-              background: C.b, color: '#fff', border: 'none',
-              fontSize: 11, fontWeight: 700, cursor: 'pointer',
-            }}
+            className={`tf-btn ${s.applyBtn}`}
           >
             Apply
           </button>
@@ -206,18 +175,18 @@ function FontSizeSlider() {
   const setFontSize = useUserStore((s) => s.setFontSize);
 
   return (
-    <Card style={cardWrap}>
-      <div style={subLabel()}>
+    <Card className={s.cardWrap}>
+      <div className={s.subLabel}>
         <TFIcon name="edit" size={14} className={s.s6} />
         Font Size
       </div>
-      <div style={subHint()}>
+      <div className={s.subHint}>
         Adjust the base font size across the interface
       </div>
 
       <div className={s.s7}>
-        <span style={{ fontSize: 11, color: C.t3, fontFamily: "'JetBrains Mono', monospace", minWidth: 28 }}>
-          A<span style={{ fontSize: 9 }}>a</span>
+        <span className={s.sliderSmall}>
+          A<span className={s.sliderSmallSub}>a</span>
         </span>
 
         <input
@@ -231,27 +200,21 @@ function FontSizeSlider() {
           style={{ flex: 1, accentColor: C.b }}
         />
 
-        <span style={{ fontSize: 16, color: C.t1, fontFamily: "'JetBrains Mono', monospace", minWidth: 28, fontWeight: 600 }}>
-          A<span style={{ fontSize: 13 }}>a</span>
+        <span className={s.sliderLarge}>
+          A<span className={s.sliderLargeSub}>a</span>
         </span>
       </div>
 
-      <div style={{
-        textAlign: 'center', marginTop: 10,
-        fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: C.t2,
-      }}>
+      <div className={s.sliderDisplay}>
         {fontSize}px
       </div>
 
       {/* Live preview */}
-      <div style={{
-        marginTop: 12, padding: '12px 14px', borderRadius: 8,
-        background: C.bg2, border: `1px solid ${C.bd}`,
-      }}>
+      <div className={s.livePreview}>
         <div style={{ fontSize: fontSize, color: C.t1, marginBottom: 4 }}>
           The quick brown fox jumps over the lazy dog
         </div>
-        <div style={{ fontSize: Math.max(10, fontSize - 2), color: C.t3 }}>
+        <div style={{ fontSize: Math.max(10, fontSize - 2) }} className={s.previewSub}>
           0123456789 · OHLCV · $4,521.30
         </div>
       </div>
@@ -266,20 +229,20 @@ function ChartStylePicker() {
   const activePreset = CHART_COLOR_PRESETS.find((p) => p.id === chartColorPreset) || CHART_COLOR_PRESETS[0];
 
   return (
-    <Card style={cardWrap}>
-      <div style={subLabel()}>
+    <Card className={s.cardWrap}>
+      <div className={s.subLabel}>
         <TFIcon name="chart" size={14} className={s.s8} />
         Chart Colors
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
+      <div className={s.chartInfoRow}>
         <div style={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
           {[activePreset.bull, activePreset.bear, activePreset.bull, activePreset.bear].map((clr, i) => (
             <div key={i} style={{ width: 5, borderRadius: 1, height: [14, 18, 12, 16][i], background: clr }} />
           ))}
         </div>
         <div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: C.t1 }}>Current: {activePreset.label}</div>
-          <div style={{ fontSize: 11, color: C.t3 }}>🎨 Customize from the chart toolbar color picker</div>
+          <div className={s.chartInfoLabel}>Current: {activePreset.label}</div>
+          <div className={s.chartInfoHint}>🎨 Customize from the chart toolbar color picker</div>
         </div>
       </div>
     </Card>
@@ -317,27 +280,22 @@ function DensityPicker() {
   ];
 
   return (
-    <Card style={cardWrap}>
-      <div style={subLabel()}>
+    <Card className={s.cardWrap}>
+      <div className={s.subLabel}>
         <TFIcon name="settings" size={14} className={s.s12} />
         UI Density
       </div>
-      <div style={subHint()}>Controls spacing, font sizes, and control sizes across the app.</div>
+      <div className={s.subHint}>Controls spacing, font sizes, and control sizes across the app.</div>
       <div className={s.s13}>
         {options.map((opt) => {
           const isActive = densityMode === opt.value;
           return (
-            <button key={opt.value} onClick={() => setMode(opt.value)} className="tf-btn"
-              style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-                padding: '14px 10px', borderRadius: 10,
-                border: `1.5px solid ${isActive ? C.b : C.bd}`,
-                background: isActive ? C.b + '10' : 'transparent',
-                cursor: 'pointer', textAlign: 'center',
-              }}>
+            <button key={opt.value} onClick={() => setMode(opt.value)}
+              className={`tf-btn ${s.densityBtn}`}
+              data-active={isActive ? 'true' : undefined}>
               <TFIcon name={opt.icon} size={20} color={isActive ? C.b : C.t2} />
-              <span style={{ fontSize: 12, fontWeight: 700, color: isActive ? C.b : C.t1 }}>{opt.label}</span>
-              <span style={{ fontSize: 10, color: C.t3, lineHeight: 1.3 }}>{opt.hint}</span>
+              <span className={s.optionLabel} data-active={isActive ? 'true' : undefined}>{opt.label}</span>
+              <span className={s.optionHint}>{opt.hint}</span>
             </button>
           );
         })}
@@ -353,14 +311,14 @@ function SimpleModePicker() {
   const update = useUserStore((s) => s.update);
 
   return (
-    <Card style={cardWrap}>
+    <Card className={s.cardWrap}>
       <div className={s.s14}>
         <div style={{ flex: 1 }}>
-          <div style={subLabel()}>
+          <div className={s.subLabel}>
             <TFIcon name="layers" size={14} className={s.s15} />
             Simple Mode
           </div>
-          <div style={{ fontSize: 11, color: C.t3, lineHeight: 1.5 }}>
+          <div className={s.simpleDesc}>
             Hide advanced features like gamification, Smart Insights, and detailed analytics. Perfect for focused trading.
           </div>
         </div>
@@ -370,23 +328,10 @@ function SimpleModePicker() {
           role="switch"
           aria-checked={simpleMode}
           aria-label="Toggle Simple Mode"
-          className="tf-btn"
-          style={{
-            width: 48, height: 26, borderRadius: 13,
-            background: simpleMode ? C.b : C.bd,
-            border: 'none', cursor: 'pointer',
-            position: 'relative', flexShrink: 0,
-            transition: 'background 0.2s ease',
-          }}
+          className={`tf-btn ${s.toggleTrack}`}
+          data-on={simpleMode ? 'true' : undefined}
         >
-          <div style={{
-            width: 20, height: 20, borderRadius: '50%',
-            background: '#fff',
-            position: 'absolute', top: 3,
-            left: simpleMode ? 25 : 3,
-            transition: 'left 0.2s ease',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
-          }} />
+          <div className={s.toggleKnob} />
         </button>
       </div>
     </Card>
@@ -409,37 +354,24 @@ const QUICK_SHORTCUTS = [
 function KeyboardShortcutsCard() {
   const [expanded, setExpanded] = useState(false);
   return (
-    <Card style={cardWrap}>
+    <Card className={s.cardWrap}>
       <button
         onClick={() => setExpanded(!expanded)}
-        className="tf-btn"
-        style={{
-          display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-          background: 'transparent', border: 'none', cursor: 'pointer',
-          padding: 0, textAlign: 'left',
-        }}
+        className={`tf-btn ${s.shortcutHeader}`}
       >
         <TFIcon name="command" size={14} color={C.t3} />
-        <span style={{ ...subLabel(), marginBottom: 0, flex: 1 }}>Keyboard Shortcuts</span>
-        <span style={{ fontSize: 11, color: C.t3, transition: 'transform 0.2s', transform: expanded ? 'rotate(90deg)' : 'none' }}>›</span>
+        <span className={s.shortcutLabel}>Keyboard Shortcuts</span>
+        <span className={s.shortcutArrow} data-open={expanded ? 'true' : undefined}>›</span>
       </button>
       {expanded && (
-        <div style={{ marginTop: 12 }}>
+        <div className={s.shortcutList}>
           {QUICK_SHORTCUTS.map((sc) => (
-            <div key={sc.key} style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '5px 0', borderBottom: `1px solid ${C.bd}08`,
-            }}>
-              <span style={{ fontSize: 11, color: C.t2 }}>{sc.desc}</span>
-              <span style={{
-                fontSize: 10, fontWeight: 600, color: C.t2,
-                padding: '2px 7px', borderRadius: 4,
-                background: C.bg2, border: `1px solid ${C.bd}`,
-                fontFamily: "'JetBrains Mono', monospace",
-              }}>{sc.key}</span>
+            <div key={sc.key} className={s.shortcutRow}>
+              <span className={s.shortcutDesc}>{sc.desc}</span>
+              <span className={s.kbd}>{sc.key}</span>
             </div>
           ))}
-          <div style={{ fontSize: 10, color: C.t3, marginTop: 8, fontStyle: 'italic' }}>
+          <div className={s.shortcutHint}>
             Press <strong>?</strong> anywhere to see all shortcuts
           </div>
         </div>
@@ -458,16 +390,10 @@ function ResetDefaultsButton() {
     }
   };
   return (
-    <div style={{ textAlign: 'center', paddingTop: 8 }}>
+    <div className={s.resetWrap}>
       <button
         onClick={handleReset}
-        className="tf-btn"
-        style={{
-          padding: '8px 20px', borderRadius: 8,
-          border: `1px solid ${C.bd}`, background: 'transparent',
-          color: C.t3, fontSize: 11, fontWeight: 600,
-          cursor: 'pointer', transition: 'all 0.15s ease',
-        }}
+        className={`tf-btn ${s.resetBtn}`}
       >
         ↺ Reset to Defaults
       </button>
@@ -479,7 +405,7 @@ function ResetDefaultsButton() {
 
 function AppearanceSection() {
   return (
-    <section style={{ marginBottom: 40 }}>
+    <section className={s.sectionWrap}>
       <SectionHeader icon="palette" title="Appearance" description="Customize how the interface looks and feels" />
       <SimpleModePicker />
 

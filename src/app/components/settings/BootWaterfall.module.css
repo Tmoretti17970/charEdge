@@ -1,0 +1,19 @@
+/* BootWaterfall — CSS Module */
+.cardPad { padding: var(--sp-4); margin-top: var(--sp-3); }
+.headerBtn { all: unset; cursor: pointer; display: flex; align-items: center; justify-content: space-between; width: 100%; }
+.headerLeft { display: flex; align-items: center; gap: var(--sp-2); }
+.headerIcon { font-size: 14px; }
+.headerTitle { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--tf-t1); }
+.headerSub { font-size: var(--fs-2xs); color: var(--tf-t3); font-family: var(--tf-mono); }
+.chevron { font-size: var(--fs-2xs); color: var(--tf-t3); transition: transform 0.2s ease; }
+.body { margin-top: 14px; }
+.phase { margin-bottom: var(--sp-2); }
+.phaseHeader { display: flex; justify-content: space-between; margin-bottom: 3px; }
+.phaseName { font-size: var(--fs-2xs); color: var(--tf-t2); font-weight: var(--fw-semibold); }
+.phaseDuration { font-size: var(--fs-2xs); color: var(--tf-t3); font-family: var(--tf-mono); }
+.barTrack { height: 8px; border-radius: var(--sp-1); background: var(--tf-sf2); overflow: hidden; }
+.barFill { height: 100%; border-radius: var(--sp-1); transition: width 0.4s ease; }
+.summaryRow { display: flex; justify-content: space-between; padding: var(--sp-2) 0 0; margin-top: var(--sp-2); }
+.summaryLabel { font-size: var(--fs-2xs); font-weight: var(--fw-bold); color: var(--tf-t1); }
+.summaryValue { font-size: var(--fs-sm); font-weight: 800; font-family: var(--tf-mono); }
+.health { font-size: var(--fs-xs); color: var(--tf-t3); font-family: var(--tf-mono); margin-top: var(--sp-1_5); text-align: center; }

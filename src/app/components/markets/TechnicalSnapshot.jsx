@@ -15,9 +15,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo, useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { radii, transition } from '../../../theme/tokens.js';
 import useHistoricalData from '../../../hooks/useHistoricalData.js';
+import st from './TechnicalSnapshot.module.css';
 
 const ACCENT = '#6e5ce6';
 const GREEN  = '#22c55e';
@@ -123,7 +124,7 @@ function TechnicalSnapshot({ symbol }) {
 
   if (loading && !metrics) {
     return (
-      <div style={{ padding: '12px 20px', color: C.t3, fontSize: 11, fontFamily: F }}>
+      <div style={{ padding: '12px 20px', color: C.t3, fontSize: 11, fontFamily: 'var(--tf-font)' }}>
         Computing technicals…
       </div>
     );
@@ -131,7 +132,7 @@ function TechnicalSnapshot({ symbol }) {
 
   if (!metrics) {
     return (
-      <div style={{ padding: '12px 20px', color: C.t3, fontSize: 11, fontFamily: F }}>
+      <div style={{ padding: '12px 20px', color: C.t3, fontSize: 11, fontFamily: 'var(--tf-font)' }}>
         Insufficient data for technical analysis
       </div>
     );
@@ -182,7 +183,7 @@ function TechnicalSnapshot({ symbol }) {
             style={{
               fontSize: 10,
               fontWeight: 700,
-              fontFamily: M,
+              fontFamily: 'var(--tf-mono)',
               color: metrics.signalColor,
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
@@ -216,7 +217,7 @@ function TechnicalSnapshot({ symbol }) {
             justifyContent: 'space-between',
             marginBottom: 3,
             fontSize: 9,
-            fontFamily: M,
+            fontFamily: 'var(--tf-mono)',
             color: C.t3,
           }}
         >
@@ -264,15 +265,15 @@ function MetricRow({ label, value, color, sub }) {
         borderBottom: `1px solid ${C.bd}08`,
       }}
     >
-      <span style={{ fontSize: 9, color: C.t3, fontFamily: M, fontWeight: 500 }}>
+      <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)', fontWeight: 500 }}>
         {label}
       </span>
       <div style={{ textAlign: 'right' }}>
-        <span style={{ fontSize: 11, fontWeight: 700, fontFamily: M, color, fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ fontSize: 11, fontWeight: 700, fontFamily: 'var(--tf-mono)', color, fontVariantNumeric: 'tabular-nums' }}>
           {value}
         </span>
         {sub && (
-          <span style={{ fontSize: 8, color: C.t3, fontFamily: M, marginLeft: 4 }}>
+          <span style={{ fontSize: 8, color: C.t3, fontFamily: 'var(--tf-mono)', marginLeft: 4 }}>
             {sub}
           </span>
         )}

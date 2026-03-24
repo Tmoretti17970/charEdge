@@ -13,14 +13,15 @@
 
 import React from 'react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { C, F } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { logger } from '@/observability/logger';
+import st from './InstitutionalPanel.module.css';
 
 // ─── Styles ────────────────────────────────────────────────────
 
 const S = {
   container: {
-    fontFamily: F,
+    fontFamily: 'var(--tf-font)',
     color: C.t1,
     padding: '16px 20px',
     height: '100%',
@@ -512,7 +513,7 @@ function Holdings13F({ symbol }) {
               color: C.t1,
               padding: '6px 10px',
               fontSize: 12,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
               outline: 'none',
             }}
           />
@@ -554,7 +555,7 @@ function Holdings13F({ symbol }) {
                   fontSize: 12,
                   cursor: 'pointer',
                   borderRadius: 4,
-                  fontFamily: F,
+                  fontFamily: 'var(--tf-font)',
                 }}
               >
                 <div style={{ fontWeight: 600 }}>{inst.name}</div>

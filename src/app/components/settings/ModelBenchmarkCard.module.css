@@ -1,0 +1,17 @@
+/* ModelBenchmarkCard — CSS Module */
+.cardPad { padding: var(--sp-5); }
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.title { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--tf-t1); font-family: var(--tf-font); }
+.subtitle { font-size: var(--fs-2xs); color: var(--tf-t3); font-family: var(--tf-font); }
+.detailGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.detailBox { padding: 10px; border-radius: var(--br-sm); }
+.detailLabel { font-size: var(--fs-3xs); font-weight: var(--fw-semibold); color: var(--tf-t3); font-family: var(--tf-mono); }
+.detailValue { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--tf-t1); font-family: var(--tf-font); margin-top: 2px; }
+.benchGrid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--sp-2); margin-bottom: 14px; }
+.benchBox { padding: 10px; border-radius: var(--br-sm); text-align: center; }
+.benchIcon { font-size: 14px; margin-bottom: 2px; }
+.benchValue { font-size: 14px; font-weight: 800; color: var(--tf-t1); font-family: var(--tf-mono); }
+.benchLabel { font-size: var(--fs-3xs); color: var(--tf-t3); font-family: var(--tf-mono); }
+.capsTitle { font-size: var(--fs-2xs); font-weight: var(--fw-semibold); color: var(--tf-t3); font-family: var(--tf-font); margin-bottom: var(--sp-2); }
+.capsRow { display: flex; flex-wrap: wrap; gap: var(--sp-1_5); }
+.capsBadge { padding: 3px 10px; border-radius: 20px; font-size: var(--fs-xs); font-weight: var(--fw-semibold); font-family: var(--tf-font); }

@@ -6,10 +6,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useCallback } from 'react';
-import { C, F, M, GLASS } from '../../../constants.js';
+import { C, GLASS } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
 import { Card, Btn } from '../ui/UIKit.jsx';
 import BROKER_GUIDES from '../../../data/importExport/brokerGuideData.js';
+import st from './ConnectorWizard.module.css';
 
 const STEPS = ['select', 'credentials', 'testing', 'success'];
 
@@ -37,7 +38,7 @@ function BrokerSelect({ onSelect }) {
 
   return (
     <div>
-      <div style={{ fontSize: 14, fontWeight: 700, fontFamily: F, color: C.t1, marginBottom: 4 }}>
+      <div style={{ fontSize: 14, fontWeight: 700, fontFamily: 'var(--tf-font)', color: C.t1, marginBottom: 4 }}>
         Select Broker
       </div>
       <div style={{ fontSize: 11, color: C.t3, marginBottom: 16 }}>
@@ -73,7 +74,7 @@ function BrokerSelect({ onSelect }) {
                   }}
                 >
                   <span style={{ fontSize: 20 }}>{broker.logo}</span>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: C.t1, fontFamily: F }}>{broker.name}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: C.t1, fontFamily: 'var(--tf-font)' }}>{broker.name}</span>
                 </button>
               ))}
             </div>
@@ -109,7 +110,7 @@ function CredentialForm({ broker, values, onChange, onSubmit, onBack }) {
 
   return (
     <div>
-      <div style={{ fontSize: 14, fontWeight: 700, fontFamily: F, color: C.t1, marginBottom: 4 }}>
+      <div style={{ fontSize: 14, fontWeight: 700, fontFamily: 'var(--tf-font)', color: C.t1, marginBottom: 4 }}>
         {broker.logo} Connect {broker.name}
       </div>
 
@@ -127,7 +128,7 @@ function CredentialForm({ broker, values, onChange, onSubmit, onBack }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
         {broker.fields.map((field) => (
           <div key={field}>
-            <label style={{ fontSize: 10, fontWeight: 600, color: C.t2, fontFamily: M, marginBottom: 3, display: 'block' }}>
+            <label style={{ fontSize: 10, fontWeight: 600, color: C.t2, fontFamily: 'var(--tf-mono)', marginBottom: 3, display: 'block' }}>
               {fieldLabels[field] || field}
             </label>
             <input
@@ -143,7 +144,7 @@ function CredentialForm({ broker, values, onChange, onSubmit, onBack }) {
                 background: alpha(C.sf, 0.5),
                 color: C.t1,
                 fontSize: 12,
-                fontFamily: M,
+                fontFamily: 'var(--tf-mono)',
                 outline: 'none',
                 boxSizing: 'border-box',
               }}
@@ -153,7 +154,7 @@ function CredentialForm({ broker, values, onChange, onSubmit, onBack }) {
       </div>
 
       <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between' }}>
-        <button onClick={onBack} style={{ fontSize: 11, color: C.t3, background: 'none', border: 'none', cursor: 'pointer', fontFamily: F }}>
+        <button onClick={onBack} style={{ fontSize: 11, color: C.t3, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--tf-font)' }}>
           ← Back
         </button>
         <button
@@ -167,7 +168,7 @@ function CredentialForm({ broker, values, onChange, onSubmit, onBack }) {
             color: '#fff',
             fontSize: 12,
             fontWeight: 700,
-            fontFamily: F,
+            fontFamily: 'var(--tf-font)',
             cursor: broker.fields.every((f) => values[f]?.trim()) ? 'pointer' : 'not-allowed',
           }}
         >
@@ -184,7 +185,7 @@ function TestingStep({ broker }) {
   return (
     <div style={{ textAlign: 'center', padding: '30px 0' }}>
       <div style={{ fontSize: 32, marginBottom: 12, animation: 'spin 1.5s linear infinite' }}>{broker.logo}</div>
-      <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
         Testing connection to {broker.name}...
       </div>
       <div style={{ fontSize: 11, color: C.t3, marginTop: 4 }}>
@@ -201,7 +202,7 @@ function ResultStep({ broker, success, error, onFinish, onRetry }) {
   return (
     <div style={{ textAlign: 'center', padding: '24px 0' }}>
       <div style={{ fontSize: 40, marginBottom: 12 }}>{success ? '✅' : '❌'}</div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: success ? C.g : C.r, fontFamily: F, marginBottom: 6 }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: success ? C.g : C.r, fontFamily: 'var(--tf-font)', marginBottom: 6 }}>
         {success ? `${broker.name} Connected!` : 'Connection Failed'}
       </div>
       <div style={{ fontSize: 11, color: C.t3, marginBottom: 20, maxWidth: 300, margin: '0 auto 20px' }}>
@@ -212,13 +213,13 @@ function ResultStep({ broker, success, error, onFinish, onRetry }) {
       {success ? (
         <button
           onClick={onFinish}
-          style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: C.b, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: F, cursor: 'pointer' }}
+          style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: C.b, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: 'var(--tf-font)', cursor: 'pointer' }}
         >
           Done
         </button>
       ) : (
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-          <button onClick={onRetry} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${alpha(C.bd, 0.3)}`, background: 'transparent', color: C.t2, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: F }}>
+          <button onClick={onRetry} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${alpha(C.bd, 0.3)}`, background: 'transparent', color: C.t2, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--tf-font)' }}>
             Try Again
           </button>
         </div>

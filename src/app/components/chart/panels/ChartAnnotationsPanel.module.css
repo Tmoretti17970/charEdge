@@ -243,3 +243,13 @@
   border-color: #EF5350;
   color: #EF5350;
 }
+
+/* ─── Inline style migration ─── */
+.emojiBtn {
+  border: 1px solid transparent;
+  background: transparent;
+}
+.emojiBtn[data-active="true"] {
+  border-color: var(--tf-accent);
+  background: color-mix(in srgb, var(--tf-accent) 8%, transparent);
+}

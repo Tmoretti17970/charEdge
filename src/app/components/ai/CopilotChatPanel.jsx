@@ -6,10 +6,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import AIStreamText from './AIStreamText.jsx';
 import { useCopilotChat } from '../../../hooks/useCopilotChat.ts';
 import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
+import st from './CopilotChatPanel.module.css';
 
 const PANEL_WIDTH = 360;
 const ACCENT = '#6e5ce6';
@@ -107,14 +108,14 @@ export default function CopilotChatPanel() {
           <div style={{
             fontSize: 13,
             fontWeight: 700,
-            fontFamily: F,
+            fontFamily: 'var(--tf-font)',
             color: C.t1,
           }}>
             AI Copilot
           </div>
           <div style={{
             fontSize: 9,
-            fontFamily: M,
+            fontFamily: 'var(--tf-mono)',
             color: ACCENT,
           }}>
             {isStreaming ? 'Thinking…' : 'Ready'}
@@ -172,7 +173,7 @@ export default function CopilotChatPanel() {
             </div>
             <div style={{
               fontSize: 12,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
               fontWeight: 600,
               color: C.t2,
               marginBottom: 4,
@@ -181,7 +182,7 @@ export default function CopilotChatPanel() {
             </div>
             <div style={{
               fontSize: 10,
-              fontFamily: M,
+              fontFamily: 'var(--tf-mono)',
               color: C.t3,
               marginBottom: 16,
               lineHeight: 1.5,
@@ -201,7 +202,7 @@ export default function CopilotChatPanel() {
                     background: 'transparent',
                     color: C.t2,
                     fontSize: 10,
-                    fontFamily: M,
+                    fontFamily: 'var(--tf-mono)',
                     cursor: 'pointer',
                     transition: 'all 0.15s',
                   }}
@@ -244,7 +245,7 @@ export default function CopilotChatPanel() {
               ) : (
                 <div style={{
                   fontSize: 12,
-                  fontFamily: F,
+                  fontFamily: 'var(--tf-font)',
                   color: C.t1,
                   lineHeight: 1.5,
                 }}>
@@ -254,7 +255,7 @@ export default function CopilotChatPanel() {
             </div>
             <div style={{
               fontSize: 8,
-              fontFamily: M,
+              fontFamily: 'var(--tf-mono)',
               color: C.t3,
               marginTop: 2,
               padding: '0 4px',
@@ -288,7 +289,7 @@ export default function CopilotChatPanel() {
             background: `${C.r}10`,
             border: `1px solid ${C.r}20`,
             fontSize: 11,
-            fontFamily: M,
+            fontFamily: 'var(--tf-mono)',
             color: C.r,
           }}>
             ⚠️ {error}
@@ -322,7 +323,7 @@ export default function CopilotChatPanel() {
               background: `${C.bg}`,
               color: C.t1,
               fontSize: 12,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
               outline: 'none',
               maxHeight: 80,
               lineHeight: 1.4,

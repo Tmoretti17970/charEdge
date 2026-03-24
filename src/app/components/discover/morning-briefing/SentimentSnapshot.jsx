@@ -1,6 +1,7 @@
 // Section 4: Sentiment Snapshot for Morning Briefing
-import { C, F, M } from '@/constants.js';
+import { C } from '@/constants.js';
 import { alpha } from '@/shared/colorUtils';
+import st from './SentimentSnapshot.module.css';
 
 export default function SentimentSnapshot({ data }) {
   const fgColor = data.fearGreed > 70 ? C.g : data.fearGreed > 40 ? C.y : C.r;
@@ -27,14 +28,14 @@ function SentimentCard({ label, value, sub, color }) {
         textAlign: 'center',
       }}
     >
-      <div style={{ fontSize: 9, fontWeight: 600, color: C.t3, textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: F, marginBottom: 4 }}>
+      <div style={{ fontSize: 9, fontWeight: 600, color: C.t3, textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: 'var(--tf-font)', marginBottom: 4 }}>
         {label}
       </div>
-      <div style={{ fontSize: 20, fontWeight: 800, color, fontFamily: M, lineHeight: 1 }}>
+      <div style={{ fontSize: 20, fontWeight: 800, color, fontFamily: 'var(--tf-mono)', lineHeight: 1 }}>
         {value}
       </div>
       {sub && (
-        <div style={{ fontSize: 10, color: C.t3, fontFamily: F, marginTop: 2, fontWeight: 600 }}>
+        <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', marginTop: 2, fontWeight: 600 }}>
           {sub}
         </div>
       )}

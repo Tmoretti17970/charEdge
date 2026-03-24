@@ -50,7 +50,7 @@ export default function ReplayToolbar({
         <div className={s.toolbar}>
             {/* Replay badge */}
             <div className={s.replayBadge}>
-                <span className={s.replayDot} style={{ animation: isPlaying ? 'pulse 1.5s infinite' : 'none' }} />
+                <span className={s.replayDot} data-playing={isPlaying ? 'true' : undefined} />
                 REPLAY
             </div>
 
@@ -92,12 +92,7 @@ export default function ReplayToolbar({
                         key={sp.value}
                         onClick={() => onSpeedChange?.(sp.value)}
                         className={s.speedBtn}
-                        style={{
-                            background: speed === sp.value ? C.b + '25' : 'transparent',
-                            border: `1px solid ${speed === sp.value ? C.b + '50' : 'transparent'}`,
-                            color: speed === sp.value ? C.b : C.t3,
-                            fontWeight: speed === sp.value ? 700 : 500,
-                        }}
+                        data-active={speed === sp.value ? 'true' : undefined}
                     >
                         {sp.label}
                     </button>
@@ -170,14 +165,14 @@ export default function ReplayToolbar({
 
                     {stats && stats.trades.length > 0 && (
                         <div className={s.statsBox}>
-                            <span style={{ color: totalPnl >= 0 ? '#34d399' : '#f87171', fontWeight: 700 }}>
+                            <span className={s.statPnl} data-positive={totalPnl >= 0 ? 'true' : 'false'}>
                                 {totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(2)}
                             </span>
-                            <span style={{ color: C.t3 }}>
+                            <span className={s.statDim}>
                                 {stats.winCount}W / {stats.lossCount}L
                             </span>
                             {stats.winRate > 0 && (
-                                <span style={{ color: stats.winRate >= 0.5 ? '#34d399' : '#f87171' }}>
+                                <span className={s.statWr} data-good={stats.winRate >= 0.5 ? 'true' : 'false'}>
                                     {Math.round(stats.winRate * 100)}%
                                 </span>
                             )}
@@ -199,10 +194,6 @@ function ToolbarButton({ children, onClick, disabled, title, active }) {
             title={title}
             className={s.toolbarBtn}
             data-active={active || undefined}
-            style={{
-                cursor: disabled ? 'not-allowed' : 'pointer',
-                opacity: disabled ? 0.4 : 1,
-            }}
         >
             {children}
         </button>

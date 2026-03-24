@@ -7,7 +7,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useMemo, useCallback, memo, useRef, useLayoutEffect } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { radii, transition } from '../../../theme/tokens.js';
 import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
 import { useAlertStore } from '../../../state/useAlertStore';
@@ -17,6 +17,7 @@ import {
   getCategories,
   createAlertFromTemplate,
 } from '../../../charting_library/ai/SmartAlertTemplates.js';
+import st from './SmartAlertPicker.module.css';
 
 // ─── Watchlist Conditions & Templates ───────────────────────────
 
@@ -103,7 +104,7 @@ function SegmentedControl({ activeTab, onTabChange }) {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
               flex: 1, border: 'none', background: 'none', cursor: 'pointer',
               padding: '6px 14px', borderRadius: 8,
-              fontSize: 11, fontWeight: isActive ? 700 : 500, fontFamily: F,
+              fontSize: 11, fontWeight: isActive ? 700 : 500, fontFamily: 'var(--tf-font)',
               color: isActive ? C.t1 : C.t3,
               transition: 'color 0.2s ease',
             }}
@@ -126,7 +127,7 @@ function TemplatesTab({ symbol, categories, allTemplates, onCreate, created }) {
   return (
     <>
       {/* Subtitle */}
-      <div style={{ padding: '0 18px 6px', fontSize: 10, fontFamily: M, color: C.t3 }}>
+      <div style={{ padding: '0 18px 6px', fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
         for <span style={{ color: C.b, fontWeight: 700 }}>{symbol.replace('USDT', '')}</span>
       </div>
 
@@ -144,7 +145,7 @@ function TemplatesTab({ symbol, categories, allTemplates, onCreate, created }) {
               onClick={() => setActiveCategory(key)}
               style={{
                 padding: '4px 10px', borderRadius: 12,
-                fontSize: 9, fontWeight: 700, fontFamily: M,
+                fontSize: 9, fontWeight: 700, fontFamily: 'var(--tf-mono)',
                 border: isActive ? `1px solid ${cat.color}40` : `1px solid ${C.bd}20`,
                 background: isActive ? `${cat.color}12` : 'transparent',
                 color: isActive ? cat.color : C.t3,
@@ -176,12 +177,12 @@ function TemplatesTab({ symbol, categories, allTemplates, onCreate, created }) {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                 <span style={{ fontSize: 16 }}>{tmpl.icon}</span>
-                <span style={{ fontSize: 12, fontWeight: 800, fontFamily: F, color: C.t1 }}>{tmpl.label}</span>
+                <span style={{ fontSize: 12, fontWeight: 800, fontFamily: 'var(--tf-font)', color: C.t1 }}>{tmpl.label}</span>
               </div>
-              <p style={{ fontSize: 10, fontFamily: M, color: C.t2, margin: '0 0 6px', lineHeight: 1.5 }}>
+              <p style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t2, margin: '0 0 6px', lineHeight: 1.5 }}>
                 {tmpl.description}
               </p>
-              <p style={{ fontSize: 9, fontFamily: M, color: C.t3, fontStyle: 'italic', margin: '0 0 10px', lineHeight: 1.5 }}>
+              <p style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3, fontStyle: 'italic', margin: '0 0 10px', lineHeight: 1.5 }}>
                 💡 {tmpl.explanation}
               </p>
               <button
@@ -189,7 +190,7 @@ function TemplatesTab({ symbol, categories, allTemplates, onCreate, created }) {
                 disabled={isCreated}
                 style={{
                   width: '100%', padding: '6px 0', borderRadius: radii.sm,
-                  fontSize: 10, fontWeight: 700, fontFamily: M, border: 'none',
+                  fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-mono)', border: 'none',
                   background: isCreated ? '#34c75930' : categories[tmpl.category]?.color || C.b,
                   color: isCreated ? '#34c759' : '#fff',
                   cursor: isCreated ? 'default' : 'pointer',
@@ -242,14 +243,14 @@ function WatchlistTab() {
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px' }}>
       {/* Subtitle */}
-      <div style={{ fontSize: 10, fontFamily: M, color: C.t3, marginBottom: 10 }}>
+      <div style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t3, marginBottom: 10 }}>
         Apply to all <span style={{ color: C.b, fontWeight: 700 }}>{items.length} symbols</span>
       </div>
 
       {/* Quick Templates */}
       <div style={{
         fontSize: 10, fontWeight: 700, color: C.t3,
-        fontFamily: M, textTransform: 'uppercase', marginBottom: 8,
+        fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', marginBottom: 8,
       }}>
         Quick Templates
       </div>
@@ -266,7 +267,7 @@ function WatchlistTab() {
               background: conditionId === t.condition ? `${C.b}15` : C.bg2,
               border: `1px solid ${conditionId === t.condition ? C.b : C.bd}`,
               color: C.t1, fontSize: 10, fontWeight: 600,
-              fontFamily: F, cursor: 'pointer', textAlign: 'center',
+              fontFamily: 'var(--tf-font)', cursor: 'pointer', textAlign: 'center',
               transition: transition.fast,
             }}
           >
@@ -279,7 +280,7 @@ function WatchlistTab() {
       {/* Condition Selector */}
       <div style={{
         fontSize: 10, fontWeight: 700, color: C.t3,
-        fontFamily: M, textTransform: 'uppercase', marginBottom: 6,
+        fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', marginBottom: 6,
       }}>
         Condition
       </div>
@@ -290,7 +291,7 @@ function WatchlistTab() {
           width: '100%', padding: '8px 12px',
           borderRadius: radii.md, background: C.bg2,
           border: `1px solid ${C.bd}`, color: C.t1,
-          fontSize: 12, fontFamily: F, marginBottom: 12,
+          fontSize: 12, fontFamily: 'var(--tf-font)', marginBottom: 12,
           boxSizing: 'border-box',
         }}
       >
@@ -304,7 +305,7 @@ function WatchlistTab() {
         <>
           <div style={{
             fontSize: 10, fontWeight: 700, color: C.t3,
-            fontFamily: M, textTransform: 'uppercase', marginBottom: 6,
+            fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', marginBottom: 6,
           }}>
             Threshold {condition.unit && `(${condition.unit})`}
           </div>
@@ -316,7 +317,7 @@ function WatchlistTab() {
               width: '100%', padding: '8px 12px',
               borderRadius: radii.md, background: C.bg2,
               border: `1px solid ${C.bd}`, color: C.t1,
-              fontSize: 14, fontWeight: 700, fontFamily: M,
+              fontSize: 14, fontWeight: 700, fontFamily: 'var(--tf-mono)',
               textAlign: 'center', marginBottom: 14,
               boxSizing: 'border-box',
             }}
@@ -331,16 +332,16 @@ function WatchlistTab() {
         marginBottom: 14,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 12, color: C.t2, fontFamily: F }}>
+          <span style={{ fontSize: 12, color: C.t2, fontFamily: 'var(--tf-font)' }}>
             {condition.icon} {condition.label}
             {condition.type === 'number' && (
-              <span style={{ fontWeight: 700, color: C.t1, marginLeft: 6, fontFamily: M }}>
+              <span style={{ fontWeight: 700, color: C.t1, marginLeft: 6, fontFamily: 'var(--tf-mono)' }}>
                 {value}{condition.unit}
               </span>
             )}
           </span>
           <span style={{
-            fontSize: 11, fontWeight: 700, fontFamily: M, color: C.b,
+            fontSize: 11, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: C.b,
             padding: '2px 8px', borderRadius: 8, background: `${C.b}15`,
           }}>
             {items.length} symbols
@@ -354,7 +355,7 @@ function WatchlistTab() {
       {/* Symbol Preview */}
       <div style={{
         fontSize: 10, fontWeight: 700, color: C.t3,
-        fontFamily: M, textTransform: 'uppercase', marginBottom: 6,
+        fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', marginBottom: 6,
       }}>
         Symbols ({items.length})
       </div>
@@ -363,7 +364,7 @@ function WatchlistTab() {
           <span key={item.symbol} style={{
             padding: '3px 8px', borderRadius: radii.sm,
             background: C.bg2, fontSize: 10, fontWeight: 600,
-            fontFamily: M, color: C.t2,
+            fontFamily: 'var(--tf-mono)', color: C.t2,
           }}>
             {item.symbol}
           </span>
@@ -389,7 +390,7 @@ function WatchlistTab() {
               : `linear-gradient(135deg, ${C.p}, ${C.b})`,
           color: created ? '#fff' : (items.length === 0 ? C.t3 : '#fff'),
           fontSize: 13, fontWeight: 700,
-          fontFamily: F, border: 'none', cursor: 'pointer',
+          fontFamily: 'var(--tf-font)', border: 'none', cursor: 'pointer',
           transition: transition.base,
         }}
       >
@@ -442,7 +443,7 @@ function SmartAlertPicker() {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         borderBottom: `1px solid ${C.bd}20`,
       }}>
-        <div style={{ fontSize: 15, fontWeight: 800, fontFamily: F, color: C.t1 }}>
+        <div style={{ fontSize: 15, fontWeight: 800, fontFamily: 'var(--tf-font)', color: C.t1 }}>
           🔔 Alerts
         </div>
         <button

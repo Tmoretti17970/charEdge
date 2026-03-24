@@ -15,6 +15,7 @@
 import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { logger } from '@/observability/logger';
+import st from './DataHealthPanel.module.css';
 // ─── Styles ────────────────────────────────────────────────────
 
 const s = {

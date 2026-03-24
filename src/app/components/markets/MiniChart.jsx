@@ -12,9 +12,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { radii, transition } from '../../../theme/tokens.js';
 import useHistoricalData from '../../../hooks/useHistoricalData.js';
+import st from './MiniChart.module.css';
 
 const ACCENT = '#6e5ce6';
 const GREEN  = '#22c55e';
@@ -231,7 +232,7 @@ function MiniChart({ symbol }) {
                 borderRadius: radii.xs,
                 fontSize: 9,
                 fontWeight: 700,
-                fontFamily: M,
+                fontFamily: 'var(--tf-mono)',
                 border: 'none',
                 cursor: 'pointer',
                 transition: `all ${transition.fast}`,
@@ -255,7 +256,7 @@ function MiniChart({ symbol }) {
                 borderRadius: radii.xs,
                 fontSize: 9,
                 fontWeight: 600,
-                fontFamily: M,
+                fontFamily: 'var(--tf-mono)',
                 border: 'none',
                 cursor: 'pointer',
                 transition: `all ${transition.fast}`,
@@ -278,7 +279,7 @@ function MiniChart({ symbol }) {
           alignItems: 'center',
           gap: 8,
           fontSize: 9,
-          fontFamily: M,
+          fontFamily: 'var(--tf-mono)',
           color: C.t3,
           fontVariantNumeric: 'tabular-nums',
         }}
@@ -348,7 +349,7 @@ function MiniChart({ symbol }) {
               justifyContent: 'center',
               color: C.t3,
               fontSize: 11,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
             }}
           >
             {error}

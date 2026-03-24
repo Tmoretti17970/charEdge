@@ -1,0 +1,73 @@
+/* ChartInfoWindow — CSS Module (Sprint 23) */
+
+.pricePill {
+  position: absolute;
+  right: 4px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  background: rgba(14, 16, 22, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+.priceValue {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--tf-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.pipeSep {
+  width: 1px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.deltaValue {
+  font-size: 9px;
+  font-weight: 600;
+  font-family: var(--tf-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.deltaPct {
+  font-size: 8px;
+  font-weight: 500;
+  font-family: var(--tf-font-mono);
+  opacity: 0.7;
+}
+
+/* Indicator row */
+.indicatorPill {
+  position: absolute;
+  top: 28px;
+  left: 8px;
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px;
+  background: rgba(14, 16, 22, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  pointer-events: none;
+}
+.indItem { display: flex; align-items: center; gap: 3px; }
+.indDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.indLabel { font-size: 8px; color: var(--tf-t3); font-weight: 600; }
+.indValue {
+  font-size: 9px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--tf-font-mono);
+}

@@ -111,7 +111,7 @@ export default function WorkspacePresets() {
         onClick={() => setOpen(!open)}
         title="Workspace Presets"
       >
-        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.6 }}>
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" className={w.triggerSvg}>
           <rect x="1" y="1" width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.2" fill="none" />
           <rect x="8" y="1" width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.2" fill="none" />
           <rect x="1" y="8" width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.2" fill="none" />
@@ -135,7 +135,7 @@ export default function WorkspacePresets() {
               >
                 <span className={w.presetIcon}>{preset.icon}</span>
                 <div className={w.presetContent}>
-                  <div className={w.presetName} style={{ color: isActive ? C.b : C.t1 }}>
+                  <div className={w.presetName} data-active={isActive ? 'true' : undefined}>
                     {preset.name}
                   </div>
                   <div className={w.presetDesc}>
@@ -159,7 +159,7 @@ export default function WorkspacePresets() {
                 return (
                   <div key={ws.id} className={w.customRow}>
                     <button
-                      className="tf-chart-dropdown-item"
+                      className={`tf-chart-dropdown-item ${w.customItemBtn}`}
                       data-active={isActive || undefined}
                       onClick={() => handleLoadCustom(ws)}
                       onDoubleClick={(e) => {
@@ -167,7 +167,6 @@ export default function WorkspacePresets() {
                         setRenamingId(ws.id);
                         setRenameValue(ws.name);
                       }}
-                      style={{ flex: 1, textAlign: 'left' }}
                     >
                       <span className={w.customIcon}>📂</span>
                       {renamingId === ws.id ? (
@@ -185,10 +184,7 @@ export default function WorkspacePresets() {
                           className={w.renameInput}
                         />
                       ) : (
-                        <span className={w.customName} style={{
-                          fontWeight: isActive ? 600 : 500,
-                          color: isActive ? C.b : C.t1,
-                        }}>
+                        <span className={w.customName} data-active={isActive ? 'true' : undefined}>
                           {ws.name}
                         </span>
                       )}
@@ -227,9 +223,8 @@ export default function WorkspacePresets() {
             </div>
           ) : (
             <button
-              className="tf-chart-dropdown-item"
+              className={`tf-chart-dropdown-item ${w.savePresetBtn}`}
               onClick={() => setSaving(true)}
-              style={{ fontWeight: 600, color: C.b }}
             >
               <span className={w.addPresetIcon}>+</span>
               Save Current as Preset

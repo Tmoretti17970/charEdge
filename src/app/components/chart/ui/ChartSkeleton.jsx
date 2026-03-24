@@ -74,22 +74,22 @@ const ToolbarSkeleton = memo(function ToolbarSkeleton() {
   return (
     <div className={s.toolbar}>
       {/* Symbol pill */}
-      <div className="tf-skeleton" style={{ width: 64, height: 20, borderRadius: 6 }} />
+      <div className={`tf-skeleton ${s.skelSymbol}`} />
       {/* Divider */}
       <div className={s.toolbarDivider} />
       {/* Timeframe pills */}
       {[28, 24, 24, 28, 24, 28].map((w, i) => (
         <div
           key={i}
-          className="tf-skeleton"
-          style={{ width: w, height: 18, borderRadius: 5, animationDelay: `${i * 0.04}s` }}
+          className={`tf-skeleton ${s.skelTf}`}
+          style={{ width: w, '--d': `${i * 0.04}s` }}
         />
       ))}
       {/* Spacer */}
       <div className={s.toolbarSpacer} />
       {/* Right buttons */}
-      <div className="tf-skeleton" style={{ width: 24, height: 20, borderRadius: 6 }} />
-      <div className="tf-skeleton" style={{ width: 24, height: 20, borderRadius: 6, animationDelay: '0.1s' }} />
+      <div className={`tf-skeleton ${s.skelRightBtn}`} />
+      <div className={`tf-skeleton ${s.skelRightBtn}`} style={{ '--d': '0.1s' }} />
     </div>
   );
 });
@@ -99,7 +99,7 @@ const IndicatorPaneSkeleton = memo(function IndicatorPaneSkeleton() {
   return (
     <div className={s.indicatorPane}>
       {/* Simulated indicator line */}
-      <svg width="100%" height="40" viewBox="0 0 400 40" preserveAspectRatio="none" style={{ opacity: 0.15 }}>
+      <svg width="100%" height="40" viewBox="0 0 400 40" preserveAspectRatio="none" className={s.indicatorSvg}>
         <polyline
           points="0,30 30,22 60,28 90,15 120,20 150,10 180,18 210,12 240,25 270,8 300,20 330,15 360,22 400,18"
           fill="none"
@@ -112,7 +112,7 @@ const IndicatorPaneSkeleton = memo(function IndicatorPaneSkeleton() {
       {/* Y-axis labels */}
       <div className={s.indicatorYAxis}>
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="tf-skeleton" style={{ width: 28, height: 6, borderRadius: 3, animationDelay: `${i * 0.05}s` }} />
+          <div key={i} className={`tf-skeleton ${s.skelIndicatorTick}`} style={{ '--d': `${i * 0.05}s` }} />
         ))}
       </div>
     </div>
@@ -124,14 +124,14 @@ const PanelSkeleton = memo(function PanelSkeleton() {
   return (
     <div className={s.panel} role="progressbar" aria-label="Loading panel">
       {/* Header */}
-      <div className="tf-skeleton" style={{ width: '60%', height: 14, borderRadius: 4 }} />
+      <div className={`tf-skeleton ${s.skelPanelHeader}`} />
       {/* Content rows */}
       {[...Array(5)].map((_, i) => (
         <div key={i} className={s.panelRow}>
-          <div className="tf-skeleton" style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0, animationDelay: `${i * 0.06}s` }} />
+          <div className={`tf-skeleton ${s.skelPanelIcon}`} style={{ '--d': `${i * 0.06}s` }} />
           <div className={s.panelTextCol}>
-            <div className="tf-skeleton" style={{ width: '80%', height: 10, borderRadius: 3, animationDelay: `${i * 0.06 + 0.02}s` }} />
-            <div className="tf-skeleton" style={{ width: '50%', height: 8, borderRadius: 3, animationDelay: `${i * 0.06 + 0.04}s` }} />
+            <div className={`tf-skeleton ${s.skelPanelLine}`} style={{ width: '80%', '--d': `${i * 0.06 + 0.02}s` }} />
+            <div className={`tf-skeleton ${s.skelPanelSub}`} style={{ width: '50%', '--d': `${i * 0.06 + 0.04}s` }} />
           </div>
         </div>
       ))}
@@ -143,11 +143,11 @@ const PanelSkeleton = memo(function PanelSkeleton() {
 const MiniSkeleton = memo(function MiniSkeleton() {
   return (
     <div className={s.mini} role="progressbar" aria-label="Loading widget">
-      <div className="tf-skeleton" style={{ width: '40%', height: 10, borderRadius: 3 }} />
-      <div className="tf-skeleton" style={{ width: '100%', height: 40, borderRadius: 6, animationDelay: '0.05s' }} />
+      <div className={`tf-skeleton ${s.skelMiniLabel}`} />
+      <div className={`tf-skeleton ${s.skelMiniBar}`} />
       <div className={s.miniRow}>
-        <div className="tf-skeleton" style={{ flex: 1, height: 8, borderRadius: 3, animationDelay: '0.1s' }} />
-        <div className="tf-skeleton" style={{ flex: 1, height: 8, borderRadius: 3, animationDelay: '0.15s' }} />
+        <div className={`tf-skeleton ${s.skelMiniFlex}`} style={{ '--d': '0.1s' }} />
+        <div className={`tf-skeleton ${s.skelMiniFlex}`} style={{ '--d': '0.15s' }} />
       </div>
     </div>
   );
@@ -206,8 +206,8 @@ export default memo(function ChartSkeleton({ phase = 0, variant = 'chart' }) {
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
-              className="tf-skeleton"
-              style={{ width: 36, height: 8, borderRadius: 4, animationDelay: `${i * 0.06}s` }}
+              className={`tf-skeleton ${s.skelPriceTick}`}
+              style={{ '--d': `${i * 0.06}s` }}
             />
           ))}
         </div>
@@ -222,8 +222,8 @@ export default memo(function ChartSkeleton({ phase = 0, variant = 'chart' }) {
           {[...Array(8)].map((_, i) => (
             <div
               key={i}
-              className="tf-skeleton"
-              style={{ width: 28, height: 6, borderRadius: 3, animationDelay: `${i * 0.04}s` }}
+              className={`tf-skeleton ${s.skelTimeTick}`}
+              style={{ '--d': `${i * 0.04}s` }}
             />
           ))}
         </div>

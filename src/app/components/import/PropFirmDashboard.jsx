@@ -6,11 +6,12 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useMemo } from 'react';
-import { C, F, M, GLASS } from '../../../constants.js';
+import { C, GLASS } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
 import { Card } from '../ui/UIKit.jsx';
 import { PROP_FIRM_RULES, evaluatePhase } from '../../../data/connectors/brokers/PropFirmConnector.js';
 import { useJournalStore } from '../../../state/useJournalStore.js';
+import st from './PropFirmDashboard.module.css';
 
 // ─── Progress Ring ──────────────────────────────────────────────
 
@@ -36,10 +37,10 @@ function ProgressRing({ progress, color, size = 60, label, value }) {
           style={{ transition: 'stroke-dashoffset 0.6s ease' }}
         />
       </svg>
-      <div style={{ fontSize: 10, fontWeight: 700, fontFamily: M, color, marginTop: 4 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-mono)', color, marginTop: 4 }}>
         {value}
       </div>
-      <div style={{ fontSize: 9, color: C.t3, fontFamily: F }}>{label}</div>
+      <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>{label}</div>
     </div>
   );
 }
@@ -65,7 +66,7 @@ function PropFirmDashboard() {
 
   return (
     <div style={{ marginBottom: 24 }}>
-      <h2 style={{ fontSize: 14, fontWeight: 700, color: C.t1, fontFamily: F, margin: '0 0 12px' }}>
+      <h2 style={{ fontSize: 14, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)', margin: '0 0 12px' }}>
         🏆 Prop Firm Challenge Tracker
       </h2>
 
@@ -83,7 +84,7 @@ function PropFirmDashboard() {
               color: selectedFirm === id ? C.b : C.t2,
               fontSize: 11,
               fontWeight: 600,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
               cursor: 'pointer',
               transition: 'all 0.15s',
             }}
@@ -95,7 +96,7 @@ function PropFirmDashboard() {
 
       {/* Account size selector */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 12 }}>
-        <span style={{ fontSize: 10, color: C.t3, fontFamily: F, alignSelf: 'center', marginRight: 4 }}>Account:</span>
+        <span style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', alignSelf: 'center', marginRight: 4 }}>Account:</span>
         {firm.accountSizes.map((size) => (
           <button
             key={size}
@@ -108,7 +109,7 @@ function PropFirmDashboard() {
               color: accountSize === size ? C.b : C.t3,
               fontSize: 10,
               fontWeight: 600,
-              fontFamily: M,
+              fontFamily: 'var(--tf-mono)',
               cursor: 'pointer',
             }}
           >
@@ -132,7 +133,7 @@ function PropFirmDashboard() {
                 color: selectedPhase === i ? C.b : C.t3,
                 fontSize: 10,
                 fontWeight: 600,
-                fontFamily: F,
+                fontFamily: 'var(--tf-font)',
                 cursor: 'pointer',
               }}
             >
@@ -184,28 +185,28 @@ function PropFirmDashboard() {
               textAlign: 'center',
             }}
           >
-            <div style={{ fontSize: 12, fontWeight: 700, fontFamily: F, color: evaluation.passed ? C.g : evaluation.violations.length > 0 ? C.r : C.t1 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, fontFamily: 'var(--tf-font)', color: evaluation.passed ? C.g : evaluation.violations.length > 0 ? C.r : C.t1 }}>
               {evaluation.passed ? '✅ Phase Passed!' : evaluation.violations.length > 0 ? '🚨 Rule Violation' : '📊 In Progress'}
             </div>
             {evaluation.violations.length > 0 && (
-              <div style={{ fontSize: 10, color: C.r, marginTop: 4, fontFamily: M }}>
+              <div style={{ fontSize: 10, color: C.r, marginTop: 4, fontFamily: 'var(--tf-mono)' }}>
                 {evaluation.violations[0]}
               </div>
             )}
           </div>
 
           {/* Profit split info */}
-          <div style={{ marginTop: 10, fontSize: 10, color: C.t3, fontFamily: F, textAlign: 'center' }}>
+          <div style={{ marginTop: 10, fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', textAlign: 'center' }}>
             Profit split: {(firm.profitSplit * 100).toFixed(0)}% to you · Your payout: ${(evaluation.progress.totalPnl * firm.profitSplit).toFixed(2)}
           </div>
         </Card>
       ) : (
         <Card style={{ padding: 20, textAlign: 'center', background: GLASS.subtle }}>
           <div style={{ fontSize: 32, marginBottom: 8 }}>📊</div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: C.t2, fontFamily: F }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: C.t2, fontFamily: 'var(--tf-font)' }}>
             Import trades to track your {firm.name} challenge
           </div>
-          <div style={{ fontSize: 10, color: C.t3, fontFamily: F, marginTop: 4 }}>
+          <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', marginTop: 4 }}>
             Use CSV import or connect your broker above
           </div>
         </Card>

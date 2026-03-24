@@ -1,0 +1,186 @@
+/* ChartInsightsPanel — CSS Module */
+.root {
+  width: 260px; background: var(--tf-bg);
+  border-left: 1px solid var(--tf-bd);
+  overflow-y: auto; flex-shrink: 0;
+  font-size: var(--fs-sm); font-family: var(--tf-font);
+}
+.loadingWrap { width: 260px; background: var(--tf-bg); border-left: 1px solid var(--tf-bd); padding: var(--sp-4); }
+
+/* Header */
+.header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--tf-bd);
+}
+.headerLeft { display: flex; align-items: center; gap: var(--sp-1_5); }
+.headerTitle { font-weight: var(--fw-bold); color: var(--tf-t1); font-size: var(--fs-sm); }
+.headerRight { display: flex; align-items: center; gap: var(--sp-1_5); }
+.gradeBadge {
+  font-size: var(--fs-xs); font-weight: 800; font-family: var(--tf-mono);
+  padding: var(--sp-0_5) var(--sp-1_5); border-radius: var(--br-sm);
+  background: color-mix(in srgb, var(--grade-color) 12%, transparent);
+  color: var(--grade-color);
+}
+.mlBadge {
+  font-size: var(--fs-xs); font-weight: 800; font-family: var(--tf-mono);
+  padding: var(--sp-0_5) var(--sp-1_5); border-radius: var(--br-sm);
+  background: #6e5ce620; color: #6e5ce6;
+}
+.riskEmoji { font-size: var(--fs-sm); }
+.closeBtn {
+  background: none; border: none; color: var(--tf-t3);
+  cursor: pointer; font-size: 14px;
+}
+
+/* Collapsible Section */
+.section { border-bottom: 1px solid var(--tf-bd); }
+.sectionHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--sp-2) var(--sp-3); font-size: var(--fs-xs);
+  font-weight: var(--fw-bold); text-transform: uppercase;
+  letter-spacing: 0.8px; font-family: var(--tf-mono);
+  cursor: pointer; user-select: none;
+  transition: background var(--dur-fast) ease;
+  color: var(--section-color, var(--tf-t3));
+}
+.sectionChevron {
+  font-size: var(--fs-3xs); color: var(--tf-t3);
+  transition: transform var(--dur-normal) ease;
+}
+.sectionChevronClosed { transform: rotate(-90deg); }
+
+/* Observation row */
+.obsRow {
+  display: flex; align-items: flex-start; gap: var(--sp-2);
+  padding: 5px var(--sp-3); border-bottom: 1px solid color-mix(in srgb, var(--tf-bd) 8%, transparent);
+}
+.obsText { flex: 1; font-size: var(--fs-2xs); color: var(--tf-t1); line-height: var(--lh-snug); }
+
+/* SeverityDot */
+.sevDot {
+  width: 6px; height: 6px; border-radius: 50%;
+  flex-shrink: 0; margin-top: var(--sp-1);
+  background: var(--dot-color, var(--tf-t3));
+}
+
+/* Risk bar */
+.riskWrap { padding: var(--sp-1) var(--sp-3) var(--sp-1_5); }
+.riskBarRow { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-1); }
+.riskTrack { flex: 1; height: 5px; border-radius: var(--br-full); background: var(--tf-bd); overflow: hidden; }
+.riskFill {
+  height: 100%; border-radius: var(--br-full);
+  background: var(--risk-color); transition: width 0.5s ease;
+}
+.riskScore { font-size: var(--fs-xs); font-family: var(--tf-mono); font-weight: var(--fw-bold); color: var(--tf-t2); }
+.riskItem { font-size: var(--fs-xs); color: var(--tf-t2); padding: var(--sp-0_5) 0; line-height: var(--lh-snug); }
+
+/* InsightBlock */
+.insightWrap { padding: var(--sp-1) var(--sp-3) var(--sp-2); }
+.insightContent { font-size: var(--fs-2xs); font-weight: var(--fw-semibold); color: var(--tf-t1); margin-bottom: var(--sp-1); line-height: var(--lh-snug); }
+.insightDetail { font-size: var(--fs-xs); color: var(--tf-t2); line-height: var(--lh-normal); white-space: pre-line; }
+
+/* S/R level row */
+.levelRow {
+  display: flex; align-items: center; gap: var(--sp-1_5);
+  padding: 5px var(--sp-3); border-bottom: 1px solid color-mix(in srgb, var(--tf-bd) 8%, transparent);
+}
+.levelPrice { font-weight: var(--fw-bold); font-family: var(--tf-mono); color: var(--tf-t1); font-size: var(--fs-sm); }
+.levelMeta { font-size: var(--fs-3xs); color: var(--tf-t3); }
+.alertLevelBtn {
+  background: none; border: none; color: var(--tf-t3);
+  cursor: pointer; font-size: var(--fs-sm); padding: var(--sp-0_5) var(--sp-1);
+}
+
+/* Pattern row */
+.patRow {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: 5px var(--sp-3); border-bottom: 1px solid color-mix(in srgb, var(--tf-bd) 8%, transparent);
+}
+.patRowClickable { cursor: pointer; transition: background var(--dur-fast) ease; }
+.patIcon { font-size: 14px; }
+.patBody { flex: 1; }
+.patName { font-weight: var(--fw-semibold); color: var(--tf-t1); font-size: var(--fs-2xs); }
+.patMeta { font-size: var(--fs-3xs); color: var(--tf-t3); }
+.patMetaMono { font-size: var(--fs-3xs); font-family: var(--tf-mono); color: var(--tf-t3); }
+.patDesc { font-size: var(--fs-xs); color: var(--tf-t2); line-height: var(--lh-snug); margin-top: var(--sp-1); padding-left: 22px; }
+
+/* TypeBadge / BiasBadge */
+.typeBadge {
+  font-size: 8px; font-weight: 800; font-family: var(--tf-mono);
+  padding: var(--sp-0_5) var(--sp-1); border-radius: 3px;
+  min-width: 16px; text-align: center;
+  color: var(--badge-color);
+  background: color-mix(in srgb, var(--badge-color) 12%, transparent);
+}
+.biasBadge {
+  font-size: 8px; font-weight: var(--fw-bold); font-family: var(--tf-mono);
+  padding: var(--sp-0_5) 5px; border-radius: 3px;
+  text-transform: uppercase;
+  color: var(--badge-color);
+  background: color-mix(in srgb, var(--badge-color) 8%, transparent);
+}
+
+/* Sub-group label */
+.subGroupLabel {
+  padding: var(--sp-1) var(--sp-3) var(--sp-0_5);
+  font-size: 8px; font-weight: var(--fw-bold); font-family: var(--tf-mono);
+  color: var(--tf-t3); text-transform: uppercase; letter-spacing: 0.6px;
+}
+
+/* Anomaly row */
+.anomalyRow { padding: var(--sp-1_5) var(--sp-3); border-bottom: 1px solid color-mix(in srgb, var(--tf-bd) 8%, transparent); }
+.anomalyHeader { display: flex; align-items: center; gap: var(--sp-1_5); margin-bottom: 3px; }
+.anomalyDot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  background: var(--dot-color, var(--tf-t3));
+}
+.anomalyName { font-size: var(--fs-2xs); font-weight: var(--fw-semibold); color: var(--tf-t1); flex: 1; }
+.anomalyZ { font-size: var(--fs-3xs); font-family: var(--tf-mono); font-weight: var(--fw-bold); color: var(--tf-t2); }
+.anomalyDesc { font-size: var(--fs-xs); color: var(--tf-t2); line-height: var(--lh-snug); margin-bottom: 3px; }
+.anomalyCtx {
+  font-size: var(--fs-3xs); color: #6e5ce6; font-family: var(--tf-mono); font-weight: var(--fw-semibold);
+  padding: 3px var(--sp-1_5); background: #6e5ce610; border-radius: var(--br-sm); margin-top: var(--sp-0_5);
+}
+
+/* Divergence row */
+.divRow {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: 5px var(--sp-3); border-bottom: 1px solid color-mix(in srgb, var(--tf-bd) 8%, transparent);
+}
+.divIcon { font-size: 14px; }
+.divBody { flex: 1; }
+.divName { font-weight: var(--fw-semibold); color: var(--tf-t1); font-size: var(--fs-2xs); }
+.divMeta { font-size: var(--fs-3xs); color: var(--tf-t3); }
+
+/* Auto-fib */
+.fibWrap { padding: var(--sp-1_5) var(--sp-3); }
+.fibInfo { font-size: var(--fs-2xs); color: var(--tf-t2); margin-bottom: var(--sp-1_5); }
+.fibMono { font-family: var(--tf-mono); font-weight: var(--fw-bold); }
+.fibBtn {
+  width: 100%; padding: var(--sp-1_5) 0; border-radius: var(--br-md);
+  border: 1px solid #22c55e40; background: #22c55e15;
+  color: var(--tf-green); font-size: var(--fs-2xs);
+  font-weight: var(--fw-bold); cursor: pointer; font-family: var(--tf-mono);
+}
+
+/* Drawing proximity */
+.drawingRow {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: 5px var(--sp-3); background: #ec489910;
+  border-bottom: 1px solid color-mix(in srgb, var(--tf-bd) 8%, transparent);
+}
+.drawingIcon { color: var(--tf-pink, #ec4899); font-size: var(--fs-sm); }
+.drawingText { flex: 1; font-size: var(--fs-xs); color: var(--tf-t2); }
+.drawingMono { font-family: var(--tf-mono); }
+.drawingDist { color: var(--tf-t3); }
+
+/* Volatility footer */
+.volFooter { padding: var(--sp-2) var(--sp-3); border-top: 1px solid var(--tf-bd); font-size: var(--fs-xs); color: var(--tf-t3); }
+.volLabel { font-weight: var(--fw-semibold); }
+
+/* Empty */
+.empty { padding: var(--sp-2) var(--sp-3); font-size: var(--fs-xs); color: var(--tf-t3); font-style: italic; }
+
+/* StrengthBar */
+.strengthTrack { width: 30px; height: 4px; border-radius: 2px; background: var(--tf-bd); }
+.strengthFill { height: 100%; border-radius: 2px; background: var(--bar-color); }

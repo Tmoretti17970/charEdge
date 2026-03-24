@@ -1,0 +1,72 @@
+/* GhostBoxTooltip — CSS Module (Sprint 23) */
+
+.tooltip {
+  position: fixed;
+  min-width: 200px;
+  max-width: 280px;
+  z-index: 10000;
+  background: var(--tf-glass-2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--tf-glass-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-shadow: var(--tf-shadow-3);
+  pointer-events: none;
+  animation: scaleInSm 0.15s ease-out;
+  font-family: var(--tf-font);
+}
+.pnlRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.pnlValue {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--tf-font-mono);
+}
+.rBadge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-family: var(--tf-font-mono);
+}
+.rBadge[data-win="true"] {
+  color: var(--tf-green);
+  background: color-mix(in srgb, var(--tf-green) 12%, transparent);
+}
+.rBadge[data-win="false"] {
+  color: var(--tf-red);
+  background: color-mix(in srgb, var(--tf-red) 12%, transparent);
+}
+.sideRow { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+.sideLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.sideLabel[data-side="short"] { color: var(--tf-red); }
+.sideLabel[data-side="long"] { color: var(--tf-green); }
+.setupLabel { font-size: 11px; color: var(--tf-t2); }
+.label {
+  font-size: 10px;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 6px;
+}
+.value { font-size: 13px; color: var(--tf-t1); font-weight: 500; }
+.priceValue { composes: value; font-family: var(--tf-font-mono); }
+.noteValue { composes: value; font-size: 11px; opacity: 0.8; }
+.tagsRow { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+.tag {
+  font-size: 9px;
+  color: var(--tf-t2);
+  background: color-mix(in srgb, var(--tf-t3) 6%, transparent);
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid color-mix(in srgb, var(--tf-t3) 6%, transparent);
+}

@@ -6,9 +6,10 @@
 
 import React from 'react';
 import { useState, useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { alpha } from '@/shared/colorUtils';
+import st from './InsiderTracker.module.css';
 
 const MOCK_INSIDER = [
   { id: 1, date: '2026-02-24', symbol: 'NVDA', name: 'Jensen Huang', role: 'CEO', action: 'Sell', shares: 120000, price: 890.20, value: 106824000, pctHoldings: 0.3, cluster: false },
@@ -58,9 +59,9 @@ function InsiderTracker() {
         style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 18 }}>🏛️</span>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>Insider & Institutional Tracker</h3>
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>Insider & Institutional Tracker</h3>
           {clusterCount > 0 && (
-            <span style={{ fontSize: 10, fontWeight: 700, color: C.g, background: alpha(C.g, 0.1), padding: '2px 7px', borderRadius: 4, fontFamily: M }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: C.g, background: alpha(C.g, 0.1), padding: '2px 7px', borderRadius: 4, fontFamily: 'var(--tf-mono)' }}>
               {clusterCount} cluster buys
             </span>
           )}
@@ -74,7 +75,7 @@ function InsiderTracker() {
           <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
             {[{ id: 'insider', label: '👤 Insider Trades' }, { id: 'congress', label: '🏛️ Congress Trades' }].map((t) => (
               <button key={t.id} onClick={() => setTab(t.id)} className="tf-btn"
-                style={{ padding: '5px 14px', borderRadius: 8, border: `1px solid ${tab === t.id ? C.b : 'transparent'}`, background: tab === t.id ? alpha(C.b, 0.08) : 'transparent', color: tab === t.id ? C.b : C.t3, cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: F }}>
+                style={{ padding: '5px 14px', borderRadius: 8, border: `1px solid ${tab === t.id ? C.b : 'transparent'}`, background: tab === t.id ? alpha(C.b, 0.08) : 'transparent', color: tab === t.id ? C.b : C.t3, cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: 'var(--tf-font)' }}>
                 {t.label}
               </button>
             ))}
@@ -86,7 +87,7 @@ function InsiderTracker() {
               <div style={{ display: 'flex', gap: 4, marginBottom: 12, flexWrap: 'wrap' }}>
                 {['all', 'buys', 'sells', 'clusters', 'watchlist'].map((f) => (
                   <button key={f} onClick={() => setFilter(f)} className="tf-btn"
-                    style={{ padding: '4px 10px', borderRadius: 6, border: `1px solid ${filter === f ? C.p : 'transparent'}`, background: filter === f ? alpha(C.p, 0.08) : 'transparent', color: filter === f ? C.p : C.t3, cursor: 'pointer', fontSize: 10, fontWeight: 600, fontFamily: F, textTransform: 'capitalize' }}>
+                    style={{ padding: '4px 10px', borderRadius: 6, border: `1px solid ${filter === f ? C.p : 'transparent'}`, background: filter === f ? alpha(C.p, 0.08) : 'transparent', color: filter === f ? C.p : C.t3, cursor: 'pointer', fontSize: 10, fontWeight: 600, fontFamily: 'var(--tf-font)', textTransform: 'capitalize' }}>
                     {f === 'clusters' ? '🔥 Clusters' : f === 'watchlist' ? '⭐ Watchlist' : f === 'buys' ? '📈 Buys' : f === 'sells' ? '📉 Sells' : '📋 All'}
                   </button>
                 ))}
@@ -95,25 +96,25 @@ function InsiderTracker() {
               {/* Insider Trades List */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 360, overflowY: 'auto' }}>
                 {filtered.length === 0 ? (
-                  <div style={{ padding: 24, textAlign: 'center', color: C.t3, fontSize: 12, fontFamily: F }}>No insider trades match your filter.</div>
+                  <div style={{ padding: 24, textAlign: 'center', color: C.t3, fontSize: 12, fontFamily: 'var(--tf-font)' }}>No insider trades match your filter.</div>
                 ) : filtered.map((trade) => (
                   <div key={trade.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: alpha(C.sf, trade.cluster ? 0.8 : 0.4), border: `1px solid ${trade.cluster ? alpha(C.g, 0.2) : alpha(C.bd, 0.3)}`, borderRadius: 8 }}>
                     <div style={{ minWidth: 55 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F }}>{trade.symbol}</div>
-                      <div style={{ fontSize: 9, color: C.t3, fontFamily: M }}>{trade.date.slice(5)}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>{trade.symbol}</div>
+                      <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>{trade.date.slice(5)}</div>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: C.t1, fontFamily: F }}>{trade.name}</div>
-                      <div style={{ fontSize: 9, color: C.t3, fontFamily: F }}>{trade.role}</div>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: C.t1, fontFamily: 'var(--tf-font)' }}>{trade.name}</div>
+                      <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>{trade.role}</div>
                     </div>
-                    <span style={{ fontSize: 10, fontWeight: 700, fontFamily: F, color: trade.action === 'Buy' ? C.g : C.r, background: alpha(trade.action === 'Buy' ? C.g : C.r, 0.1), padding: '2px 8px', borderRadius: 4 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-font)', color: trade.action === 'Buy' ? C.g : C.r, background: alpha(trade.action === 'Buy' ? C.g : C.r, 0.1), padding: '2px 8px', borderRadius: 4 }}>
                       {trade.action}
                     </span>
                     <div style={{ textAlign: 'right', minWidth: 80 }}>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: C.t1, fontFamily: M }}>${(trade.value / 1e6).toFixed(1)}M</div>
-                      <div style={{ fontSize: 9, color: C.t3, fontFamily: M }}>{trade.shares.toLocaleString()} sh</div>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: C.t1, fontFamily: 'var(--tf-mono)' }}>${(trade.value / 1e6).toFixed(1)}M</div>
+                      <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>{trade.shares.toLocaleString()} sh</div>
                     </div>
-                    {trade.cluster && <span style={{ fontSize: 9, fontWeight: 700, color: C.g, background: alpha(C.g, 0.12), padding: '2px 6px', borderRadius: 4, fontFamily: F }}>CLUSTER</span>}
+                    {trade.cluster && <span style={{ fontSize: 9, fontWeight: 700, color: C.g, background: alpha(C.g, 0.12), padding: '2px 6px', borderRadius: 4, fontFamily: 'var(--tf-font)' }}>CLUSTER</span>}
                   </div>
                 ))}
               </div>
@@ -124,15 +125,15 @@ function InsiderTracker() {
               {CONGRESS_TRADES.map((ct) => (
                 <div key={ct.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: alpha(C.sf, 0.4), border: `1px solid ${alpha(C.bd, 0.3)}`, borderRadius: 8 }}>
                   <div style={{ minWidth: 55 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F }}>{ct.symbol}</div>
-                    <div style={{ fontSize: 9, color: C.t3, fontFamily: M }}>{ct.date.slice(5)}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>{ct.symbol}</div>
+                    <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>{ct.date.slice(5)}</div>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: C.t1, fontFamily: F }}>{ct.member}</div>
-                    <span style={{ fontSize: 9, fontWeight: 600, color: ct.party === 'D' ? C.info : C.r, fontFamily: F }}>({ct.party})</span>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: C.t1, fontFamily: 'var(--tf-font)' }}>{ct.member}</div>
+                    <span style={{ fontSize: 9, fontWeight: 600, color: ct.party === 'D' ? C.info : C.r, fontFamily: 'var(--tf-font)' }}>({ct.party})</span>
                   </div>
-                  <span style={{ fontSize: 10, fontWeight: 700, fontFamily: F, color: ct.action === 'Buy' ? C.g : C.r, background: alpha(ct.action === 'Buy' ? C.g : C.r, 0.1), padding: '2px 8px', borderRadius: 4 }}>{ct.action}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: C.t2, fontFamily: M }}>{ct.amount}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-font)', color: ct.action === 'Buy' ? C.g : C.r, background: alpha(ct.action === 'Buy' ? C.g : C.r, 0.1), padding: '2px 8px', borderRadius: 4 }}>{ct.action}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: C.t2, fontFamily: 'var(--tf-mono)' }}>{ct.amount}</span>
                 </div>
               ))}
             </div>

@@ -14,7 +14,7 @@
 
 import React from 'react';
 import { useEffect } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useBriefingStore } from '../../../state/useBriefingStore.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
@@ -31,6 +31,7 @@ import SentimentSnapshot from './morning-briefing/SentimentSnapshot.jsx';
 import WatchlistDigest from './morning-briefing/WatchlistDigest.jsx';
 import { fetchBriefingData } from '@/journal/briefingService.js';
 import { alpha } from '@/shared/colorUtils';
+import st from './MorningBriefing.module.css';
 
 function MorningBriefing() {
   const watchlistItems = useWatchlistStore((s) => s.items);
@@ -70,7 +71,7 @@ function MorningBriefing() {
           cursor: 'pointer',
           fontSize: 12,
           fontWeight: 600,
-          fontFamily: F,
+          fontFamily: 'var(--tf-font)',
           marginBottom: 20,
           transition: 'all 0.2s ease',
         }}
@@ -108,7 +109,7 @@ function MorningBriefing() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
             <span style={{ fontSize: 22 }}>🌅</span>
-            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: C.t1, fontFamily: F }}>
+            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: C.t1, fontFamily: 'var(--tf-font)' }}>
               {briefing.greeting}, Trader
             </h2>
             <LabsBadge />
@@ -120,13 +121,13 @@ function MorningBriefing() {
                 background: alpha(C.t3, 0.1),
                 padding: '3px 8px',
                 borderRadius: 6,
-                fontFamily: M,
+                fontFamily: 'var(--tf-mono)',
               }}
             >
               ~{briefing.readTimeMinutes} min read
             </span>
           </div>
-          <p style={{ margin: 0, fontSize: 13, color: C.t2, fontFamily: F, lineHeight: 1.6, maxWidth: 600 }}>
+          <p style={{ margin: 0, fontSize: 13, color: C.t2, fontFamily: 'var(--tf-font)', lineHeight: 1.6, maxWidth: 600 }}>
             {briefing.marketNarrative}
           </p>
         </div>

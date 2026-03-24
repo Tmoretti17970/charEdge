@@ -15,7 +15,7 @@
 
 import React from 'react';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { F, M } from '../../../constants.js';
+
 import { binanceFuturesAdapter } from '../../../data/adapters/BinanceFuturesAdapter.js';
 import { bybitFuturesAdapter } from '../../../data/adapters/BybitFuturesAdapter.js';
 import { fundingScanner } from '../../../data/engine/market/FundingArbitrageScanner.js';
@@ -74,7 +74,7 @@ function FundingCell({ rate, label }) {
   return (
     <div style={{
       background: bg, borderRadius: 6, padding: '4px 8px', textAlign: 'center',
-      minWidth: 60, fontFamily: M, fontSize: 11, fontWeight: 600, color,
+      minWidth: 60, fontFamily: 'var(--tf-mono)', fontSize: 11, fontWeight: 600, color,
     }}>
       <div className={s.s0}>
         {label}
@@ -92,7 +92,7 @@ function OIBar({ binanceOI, bybitOI }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, fontFamily: M, color: 'var(--tf-t2, #ccc)', marginBottom: 4 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, fontFamily: 'var(--tf-mono)', color: 'var(--tf-t2, #ccc)', marginBottom: 4 }}>
         <span style={{ color: '#f0b90b' }}>Binance · {fmtNum(binanceOI)}</span>
         <span style={{ color: '#6366f1' }}>Bybit · {fmtNum(bybitOI)}</span>
       </div>
@@ -115,7 +115,7 @@ function LiquidationRow({ liq }) {
 
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontFamily: M,
+      display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontFamily: 'var(--tf-mono)',
       padding: '3px 6px', borderRadius: 4,
       background: value > 100000 ? `${isLong ? '#ef4444' : '#22c55e'}08` : 'transparent',
     }}>
@@ -211,7 +211,7 @@ function CrossExchangePanel({ symbol = 'BTCUSDT' }) {
 
   return (
     <div style={{
-      padding: 14, fontFamily: F,
+      padding: 14, fontFamily: 'var(--tf-font)',
       display: 'flex', flexDirection: 'column', gap: 12,
       height: '100%', overflowY: 'auto',
     }}>
@@ -235,7 +235,7 @@ function CrossExchangePanel({ symbol = 'BTCUSDT' }) {
             onClick={() => setActiveTab(tab.id)}
             style={{
               flex: 1, padding: '5px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
-              fontSize: 10, fontWeight: 700, fontFamily: F, textTransform: 'uppercase',
+              fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-font)', textTransform: 'uppercase',
               background: activeTab === tab.id ? 'var(--tf-b, #6366f1)' : 'transparent',
               color: activeTab === tab.id ? '#fff' : 'var(--tf-t3, #888)',
               transition: 'all 0.2s ease',
@@ -253,7 +253,7 @@ function CrossExchangePanel({ symbol = 'BTCUSDT' }) {
           <div style={cardStyle}>
             <div style={labelStyle}>Open Interest Comparison</div>
             <OIBar binanceOI={binanceOI} bybitOI={bybitOI} />
-            <div style={{ fontSize: 10, fontFamily: M, color: 'var(--tf-t3, #888)', marginTop: 4, textAlign: 'center' }}>
+            <div style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: 'var(--tf-t3, #888)', marginTop: 4, textAlign: 'center' }}>
               Total: <span className={s.s10}>{fmtNum(binanceOI + bybitOI)}</span>
             </div>
           </div>
@@ -273,7 +273,7 @@ function CrossExchangePanel({ symbol = 'BTCUSDT' }) {
             <div style={cardStyle}>
               <div style={labelStyle}>Long/Short Ratio (Binance Top Traders)</div>
               <div className={s.s12}>
-                <span style={{ fontSize: 10, fontFamily: M, color: '#22c55e', fontWeight: 700, width: 35 }}>
+                <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: '#22c55e', fontWeight: 700, width: 35 }}>
                   {lsr.longPct || 50}%
                 </span>
                 <div className={s.s13}>
@@ -282,7 +282,7 @@ function CrossExchangePanel({ symbol = 'BTCUSDT' }) {
                     background: '#22c55e', transition: 'width 0.3s ease',
                   }} />
                 </div>
-                <span style={{ fontSize: 10, fontFamily: M, color: '#ef4444', fontWeight: 700, width: 35, textAlign: 'right' }}>
+                <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: '#ef4444', fontWeight: 700, width: 35, textAlign: 'right' }}>
                   {lsr.shortPct || 50}%
                 </span>
               </div>
@@ -300,7 +300,7 @@ function CrossExchangePanel({ symbol = 'BTCUSDT' }) {
               <div className={s.s14}>
                 {oiDivergence.signal}
               </div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 6, fontSize: 10, fontFamily: M, color: 'var(--tf-t3, #888)' }}>
+              <div style={{ display: 'flex', gap: 8, marginTop: 6, fontSize: 10, fontFamily: 'var(--tf-mono)', color: 'var(--tf-t3, #888)' }}>
                 <span>OI: {oiDivergence.oiChange > 0 ? '+' : ''}{oiDivergence.oiChange}%</span>
                 <span>Funding: {oiDivergence.fundingRate}%</span>
                 <span>Strength: {(oiDivergence.strength * 100).toFixed(0)}%</span>
@@ -336,7 +336,7 @@ function CrossExchangePanel({ symbol = 'BTCUSDT' }) {
               <div className={s.s17}>
                 {opportunities.map((opp, i) => (
                   <div key={opp.symbol + '-' + i} style={{
-                    display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontFamily: M,
+                    display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontFamily: 'var(--tf-mono)',
                     padding: '4px 8px', borderRadius: 6,
                     background: opp.type === 'extreme_funding' ? '#ef444410' : 'var(--tf-sf, #1a1d26)',
                     border: '1px solid var(--tf-bd, #2a2d36)',
@@ -383,7 +383,7 @@ function CrossExchangePanel({ symbol = 'BTCUSDT' }) {
           {/* Scanner Stats */}
           <div style={cardStyle}>
             <div style={labelStyle}>Scanner Status</div>
-            <div style={{ display: 'flex', gap: 12, fontSize: 10, fontFamily: M, color: 'var(--tf-t2, #ccc)' }}>
+            <div style={{ display: 'flex', gap: 12, fontSize: 10, fontFamily: 'var(--tf-mono)', color: 'var(--tf-t2, #ccc)' }}>
               <span>Scans: {fundingScanner.getStats().scanCount}</span>
               <span>Tracked: {fundingScanner.getStats().trackedSymbols} pairs</span>
               <span>Alerts: {opportunities.length}</span>

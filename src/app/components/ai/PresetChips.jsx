@@ -5,7 +5,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useCallback } from 'react';
-import { C, F } from '@/constants.js';
+import { C } from '@/constants.js';
+import st from './PresetChips.module.css';
 
 const PRESETS = [
   { id: 'best', label: 'Best trade this week', emoji: '🏆' },
@@ -32,7 +33,7 @@ export default function PresetChips({ onPreset, disabled }) {
               display: 'flex', alignItems: 'center', gap: 5,
               padding: '6px 8px', borderRadius: 8,
               border: `1px solid ${C.bd}`, background: C.sf2,
-              color: C.t2, fontSize: 10, fontWeight: 500, fontFamily: F,
+              color: C.t2, fontSize: 10, fontWeight: 500, fontFamily: 'var(--tf-font)',
               cursor: disabled ? 'default' : 'pointer',
               transition: 'all 0.15s', textAlign: 'left',
               opacity: disabled ? 0.5 : 1,

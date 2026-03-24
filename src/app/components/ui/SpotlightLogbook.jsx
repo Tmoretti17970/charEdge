@@ -17,7 +17,7 @@
 
 import { useVirtualizer } from '@tanstack/react-virtual';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
+// C, F, M constants removed — using CSS module tokens (Sprint 24)
 import { useJournalStore } from '../../../state/useJournalStore';
 import { fmtD } from '../../../utils.js';
 import { useBulkSelection, BulkActionBar } from '../../features/journal/journal_ui/BulkOperations.jsx';
@@ -130,15 +130,6 @@ function fmtDate(dateStr) {
 }
 
 function TradeDetail({ trade: t, onClose }) {
-  const detailStyle = { fontSize: 11, color: C.t2, fontFamily: M };
-  const labelStyle = {
-    fontSize: 9,
-    fontWeight: 700,
-    color: C.t3,
-    textTransform: 'uppercase',
-    letterSpacing: '0.06em',
-    marginBottom: 2,
-  };
 
   const handleEdit = () => window.dispatchEvent(new CustomEvent('charEdge:edit-trade', { detail: t }));
   const handleDelete = () => window.dispatchEvent(new CustomEvent('charEdge:delete-confirm', { detail: t.id }));
@@ -152,108 +143,69 @@ function TradeDetail({ trade: t, onClose }) {
   };
 
   return (
-    <div className={css.detailPanel} style={{ borderTop: `1px solid ${C.bd}30` }}>
+    <div className={css.detailPanel}>
       {/* Detail Grid */}
       <div className={css.detailGrid}>
         <div>
-          <div style={labelStyle}>Entry</div>
-          <div style={detailStyle}>{t.entry || '—'}</div>
+          <div className={css.detailLabel}>Entry</div>
+          <div className={css.detailValue}>{t.entry || '—'}</div>
         </div>
         <div>
-          <div style={labelStyle}>Exit</div>
-          <div style={detailStyle}>{t.exit || '—'}</div>
+          <div className={css.detailLabel}>Exit</div>
+          <div className={css.detailValue}>{t.exit || '—'}</div>
         </div>
         <div>
-          <div style={labelStyle}>Stop Loss</div>
-          <div style={detailStyle}>{t.stopLoss || '—'}</div>
+          <div className={css.detailLabel}>Stop Loss</div>
+          <div className={css.detailValue}>{t.stopLoss || '—'}</div>
         </div>
         <div>
-          <div style={labelStyle}>Size</div>
-          <div style={detailStyle}>{t.size || t.qty || '—'}</div>
+          <div className={css.detailLabel}>Size</div>
+          <div className={css.detailValue}>{t.size || t.qty || '—'}</div>
         </div>
         <div>
-          <div style={labelStyle}>R-Multiple</div>
-          <div style={{ ...detailStyle, color: t.rMultiple > 0 ? C.g : t.rMultiple < 0 ? C.r : C.t2 }}>
+          <div className={css.detailLabel}>R-Multiple</div>
+            <div className={css.detailValue} style={{ color: t.rMultiple > 0 ? 'var(--tf-g)' : t.rMultiple < 0 ? 'var(--tf-r)' : 'var(--tf-t2)' }}>
             {t.rMultiple != null ? `${t.rMultiple >= 0 ? '+' : ''}${t.rMultiple}R` : '—'}
           </div>
         </div>
         <div>
-          <div style={labelStyle}>Duration</div>
-          <div style={detailStyle}>{fmtDuration(t.duration)}</div>
+          <div className={css.detailLabel}>Duration</div>
+          <div className={css.detailValue}>{fmtDuration(t.duration)}</div>
         </div>
         <div>
-          <div style={labelStyle}>Emotion</div>
-          <div style={detailStyle}>{t.emotion || '—'}</div>
+          <div className={css.detailLabel}>Emotion</div>
+          <div className={css.detailValue}>{t.emotion || '—'}</div>
         </div>
         <div>
-          <div style={labelStyle}>Fees</div>
-          <div style={detailStyle}>{t.fees ? `$${t.fees.toFixed(2)}` : '—'}</div>
+          <div className={css.detailLabel}>Fees</div>
+          <div className={css.detailValue}>{t.fees ? `$${t.fees.toFixed(2)}` : '—'}</div>
         </div>
       </div>
 
       {/* Notes */}
       {t.notes && (
-        <div
-          style={{
-            marginTop: 8,
-            padding: '8px 12px',
-            background: C.sf,
-            borderRadius: 8,
-            fontSize: 11,
-            color: C.t2,
-            lineHeight: 1.5,
-          }}
-        >
-          {t.notes}
-        </div>
+        <div className={css.notesBlock}>{t.notes}</div>
       )}
 
       {/* Chart Screenshots */}
       {t.screenshots?.length > 0 && (
-        <div style={{ marginTop: 10 }}>
-          <div
-            style={{
-              fontSize: 9,
-              fontWeight: 700,
-              color: C.t3,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              marginBottom: 6,
-              fontFamily: M,
-            }}
-          >
+        <div className={css.screenshotSection}>
+          <div className={css.screenshotLabel}>
             📸 Chart Snapshot ({t.screenshots.length})
           </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div className={css.screenshotGrid}>
             {t.screenshots.map((shot, i) => (
               <a
                 key={i}
                 href={shot.data}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{
-                  display: 'block',
-                  width: 140,
-                  height: 90,
-                  borderRadius: 8,
-                  overflow: 'hidden',
-                  border: `1px solid ${C.bd}`,
-                  cursor: 'zoom-in',
-                  transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.03)';
-                  e.currentTarget.style.boxShadow = `0 4px 16px rgba(0,0,0,0.3)`;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
+                className={css.screenshotThumb}
               >
                 <img
                   src={shot.data}
                   alt={shot.name || `Chart snapshot ${i + 1}`}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  className={css.screenshotImg}
                 />
               </a>
             ))}
@@ -263,17 +215,17 @@ function TradeDetail({ trade: t, onClose }) {
 
       {/* Action Buttons */}
       <div className={css.detailActions}>
-        <button className={css.detailBtn} onClick={handleEdit} style={{ color: C.b }}>
+        <button className={`${css.detailBtn} ${css.detailBtnEdit}`} onClick={handleEdit}>
           ✏️ Edit
         </button>
-        <button className={css.detailBtn} onClick={handleViewOnChart} style={{ color: C.t2 }}>
+        <button className={`${css.detailBtn} ${css.detailBtnDefault}`} onClick={handleViewOnChart}>
           📊 View on Chart
         </button>
-        <button className={css.detailBtn} onClick={handleReplay} style={{ color: C.t2 }}>
+        <button className={`${css.detailBtn} ${css.detailBtnDefault}`} onClick={handleReplay}>
           ▶ Replay
         </button>
-        <div style={{ flex: 1 }} />
-        <button className={css.detailBtn} onClick={handleDelete} style={{ color: C.r }}>
+        <div className={css.flexSpacer} />
+        <button className={`${css.detailBtn} ${css.detailBtnDelete}`} onClick={handleDelete}>
           🗑 Delete
         </button>
       </div>
@@ -330,8 +282,8 @@ function VirtualTradeList({
               onMouseLeave={() => setHoveredId(null)}
               onClick={() => setExpandedId(expandedId === t.id ? null : t.id)}
               style={{
-                borderLeft: expandedId === t.id ? `3px solid ${C.b}` : '3px solid transparent',
-                background: bulk.isSelected(t.id) ? C.b + '08' : expandedId === t.id ? C.sf : undefined,
+                borderLeft: expandedId === t.id ? '3px solid var(--tf-brand)' : '3px solid transparent',
+                background: bulk.isSelected(t.id) ? 'var(--tf-brand-08, rgba(59,130,246,0.05))' : expandedId === t.id ? 'var(--tf-sf)' : undefined,
               }}
             >
               {/* Bulk Checkbox */}
@@ -346,26 +298,26 @@ function VirtualTradeList({
                   <div
                     className={css.checkbox}
                     style={{
-                      border: `2px solid ${bulk.isSelected(t.id) ? C.b : C.bd}`,
-                      background: bulk.isSelected(t.id) ? C.b : 'transparent',
+                      border: `2px solid ${bulk.isSelected(t.id) ? 'var(--tf-brand)' : 'var(--tf-bd)'}`,
+                      background: bulk.isSelected(t.id) ? 'var(--tf-brand)' : 'transparent',
                     }}
                   >
-                    {bulk.isSelected(t.id) && <span style={{ color: '#fff', fontSize: 9, fontWeight: 800 }}>✓</span>}
+                    {bulk.isSelected(t.id) && <span className={css.checkMark}>✓</span>}
                   </div>
                 </div>
               )}
 
               {/* Date + Session Tag */}
-              <span className={css.tradeDate} style={{ fontFamily: M, color: C.t3 }}>
+              <span className={css.tradeDate}>
                 {fmtDate(t.date)}
-                {t.sessionTag && <span style={{ fontSize: 8, opacity: 0.5, marginLeft: 4 }}>{t.sessionTag}</span>}
+                {t.sessionTag && <span className={css.sessionTag}>{t.sessionTag}</span>}
               </span>
 
               {/* Asset icon */}
               <span className={css.tradeIcon}>{getAssetIcon(t.symbol)}</span>
 
               {/* Symbol + AI Grade */}
-              <div className={css.tradeSymbol} style={{ color: C.t1 }}>
+              <div className={css.tradeSymbol}>
                 {t.symbol || '—'}
                 {showAIGrades &&
                   (() => {
@@ -376,13 +328,13 @@ function VirtualTradeList({
                         style={{
                           background:
                             g.score >= 4
-                              ? C.g + '15'
+                              ? 'rgba(49,209,88,0.08)'
                               : g.score >= 3
-                                ? C.b + '15'
+                                ? 'rgba(59,130,246,0.08)'
                                 : g.score >= 2
-                                  ? C.y + '15'
-                                  : C.r + '15',
-                          color: g.score >= 4 ? C.g : g.score >= 3 ? C.b : g.score >= 2 ? C.y : C.r,
+                                  ? 'rgba(240,182,78,0.08)'
+                                  : 'rgba(255,69,58,0.08)',
+                          color: g.score >= 4 ? 'var(--tf-g)' : g.score >= 3 ? 'var(--tf-brand)' : g.score >= 2 ? 'var(--tf-y)' : 'var(--tf-r)',
                         }}
                       >
                         {g.grade}
@@ -395,8 +347,8 @@ function VirtualTradeList({
               <span
                 className={css.tradeSide}
                 style={{
-                  color: t.side === 'long' ? C.g : C.r,
-                  background: (t.side === 'long' ? C.g : C.r) + '15',
+                  color: t.side === 'long' ? 'var(--tf-g)' : 'var(--tf-r)',
+                  background: t.side === 'long' ? 'rgba(49,209,88,0.08)' : 'rgba(255,69,58,0.08)',
                 }}
               >
                 {t.side || '—'}
@@ -405,7 +357,6 @@ function VirtualTradeList({
               {/* Strategy + Leak Pills */}
               <span
                 className={css.tradeStrategy}
-                style={{ fontFamily: F, color: C.t2, display: 'flex', alignItems: 'center', gap: 4 }}
               >
                 {sanitizeStrategy(t.playbook || t.strategy)}
                 {t.tags
@@ -413,16 +364,10 @@ function VirtualTradeList({
                   .map((tag) => (
                     <span
                       key={tag}
+                      className={css.leakPill}
                       style={{
-                        fontSize: 8,
-                        fontWeight: 700,
-                        fontFamily: M,
-                        padding: '1px 5px',
-                        borderRadius: 3,
                         background: LEAK_TAG_COLORS[tag].bg,
                         color: LEAK_TAG_COLORS[tag].color,
-                        letterSpacing: '0.02em',
-                        whiteSpace: 'nowrap',
                       }}
                     >
                       {LEAK_TAG_COLORS[tag].label}
@@ -433,12 +378,12 @@ function VirtualTradeList({
               {/* Emotion — compressed to color dot */}
               <span
                 className={css.emotionDot}
-                style={{ background: EMOTION_COLORS[t.emotion] || C.t3 + '30' }}
+                style={{ background: EMOTION_COLORS[t.emotion] || 'rgba(78,82,102,0.19)' }}
                 title={t.emotion || 'None'}
               />
 
               {/* P&L */}
-              <span className={css.tradePnl} style={{ fontFamily: M, color: (t.pnl || 0) >= 0 ? C.g : C.r }}>
+              <span className={css.tradePnl} style={{ color: (t.pnl || 0) >= 0 ? 'var(--tf-g)' : 'var(--tf-r)' }}>
                 {fmtD(t.pnl)}
               </span>
 
@@ -450,7 +395,7 @@ function VirtualTradeList({
                   if (!sparkData) return null;
                   return (
                     <div className={css.sparklineTooltip}>
-                      <div className={css.sparklineLabel} style={{ fontFamily: M, color: C.t3 }}>
+                      <div className={css.sparklineLabel}>
                         {t.symbol} Equity
                       </div>
                       <Sparkline data={sparkData} width={100} height={32} />
@@ -730,15 +675,15 @@ function SpotlightLogbook({ isOpen, onClose, filterDate = null }) {
       <div className={css.backdrop} onClick={handleClose} />
 
       {/* Panel */}
-      <div className={css.panel} style={{ background: C.sf + 'e6', color: C.t1 }}>
+      <div className={css.panel}>
         {/* ─── Search Bar ──────────────────────────────────── */}
-        <div className={css.searchBar} style={{ borderBottomColor: C.bd + '40' }}>
+        <div className={css.searchBar}>
           <svg
             width="18"
             height="18"
             viewBox="0 0 24 24"
             fill="none"
-            stroke={C.b}
+            stroke="var(--tf-brand)"
             strokeWidth="2"
             strokeLinecap="round"
             style={{ opacity: 0.7, flexShrink: 0 }}
@@ -752,32 +697,22 @@ function SpotlightLogbook({ isOpen, onClose, filterDate = null }) {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search symbols, strategies, or dates..."
             className={css.searchInput}
-            style={{ color: C.t1, fontFamily: F, background: C.sf, colorScheme: 'dark' }}
+
           />
           {query && (
-            <button className={css.clearBtn} onClick={() => setQuery('')} style={{ color: C.t3 }}>
+            <button className={css.clearBtn} onClick={() => setQuery('')}>
               ✕
             </button>
           )}
           {filterDate && (
-            <span
-              style={{
-                fontSize: 10,
-                fontFamily: M,
-                color: C.b,
-                padding: '3px 8px',
-                background: C.b + '15',
-                borderRadius: 6,
-                flexShrink: 0,
-              }}
-            >
+            <span className={css.filterDateBadge}>
               📅 {filterDate}
             </span>
           )}
         </div>
 
         {/* ─── Toolbar ─────────────────────────────────────── */}
-        <div className={css.toolbar} style={{ background: C.bg2 + '60' }}>
+        <div className={css.toolbar}>
           {/* Filter Pills */}
           <div className={css.toolbarLeft}>
             {/* Side Filter */}
@@ -791,20 +726,20 @@ function SpotlightLogbook({ isOpen, onClose, filterDate = null }) {
                   background:
                     sideFilter === s
                       ? s === 'long'
-                        ? C.g + '18'
+                        ? 'rgba(49,209,88,0.09)'
                         : s === 'short'
-                          ? C.r + '18'
-                          : C.b + '15'
+                          ? 'rgba(255,69,58,0.09)'
+                          : 'var(--tf-brand-15, rgba(59,130,246,0.09))'
                       : 'transparent',
-                  color: sideFilter === s ? (s === 'long' ? C.g : s === 'short' ? C.r : C.b) : C.t3,
-                  border: `1px solid ${sideFilter === s ? 'transparent' : C.bd + '40'}`,
+                  color: sideFilter === s ? (s === 'long' ? 'var(--tf-g)' : s === 'short' ? 'var(--tf-r)' : 'var(--tf-brand)') : 'var(--tf-t3)',
+                  border: `1px solid ${sideFilter === s ? 'transparent' : 'var(--tf-bd-40, rgba(128,128,128,0.25))'}`,
                 }}
               >
                 {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
               </button>
             ))}
 
-            <div className={css.toolbarDivider} style={{ background: C.bd }} />
+            <div className={css.toolbarDivider} />
 
             {/* Date Range */}
             {DATE_RANGES.map((dr) => (
@@ -814,9 +749,9 @@ function SpotlightLogbook({ isOpen, onClose, filterDate = null }) {
                 data-active={dateRange === dr.id || undefined}
                 onClick={() => setDateRange(dr.id)}
                 style={{
-                  background: dateRange === dr.id ? C.b + '15' : 'transparent',
-                  color: dateRange === dr.id ? C.b : C.t3,
-                  border: `1px solid ${dateRange === dr.id ? 'transparent' : C.bd + '40'}`,
+                  background: dateRange === dr.id ? 'var(--tf-brand-15, rgba(59,130,246,0.09))' : 'transparent',
+                  color: dateRange === dr.id ? 'var(--tf-brand)' : 'var(--tf-t3)',
+                  border: `1px solid ${dateRange === dr.id ? 'transparent' : 'var(--tf-bd-40, rgba(128,128,128,0.25))'}`,
                 }}
               >
                 {dr.label}
@@ -831,7 +766,6 @@ function SpotlightLogbook({ isOpen, onClose, filterDate = null }) {
               className={css.toolbarBtn}
               onClick={() => setShowContextPerf(true)}
               title="Context Performance"
-              style={{ color: C.t3 }}
             >
               🧠
             </button>
@@ -841,10 +775,7 @@ function SpotlightLogbook({ isOpen, onClose, filterDate = null }) {
               className={css.toolbarBtn}
               onClick={() => setDensity((d) => (d === 'compact' ? 'comfortable' : 'compact'))}
               title={density === 'compact' ? 'Comfortable view' : 'Compact view'}
-              style={{
-                color: density === 'compact' ? C.b : C.t3,
-                background: density === 'compact' ? C.b + '15' : 'transparent',
-              }}
+              data-active={density === 'compact' || undefined}
             >
               {density === 'compact' ? '▤' : '▥'}
             </button>
@@ -854,10 +785,7 @@ function SpotlightLogbook({ isOpen, onClose, filterDate = null }) {
               className={css.toolbarBtn}
               onClick={() => setShowAIGrades(!showAIGrades)}
               title="AI Grades"
-              style={{
-                color: showAIGrades ? C.b : C.t3,
-                background: showAIGrades ? C.b + '15' : 'transparent',
-              }}
+              data-active={showAIGrades || undefined}
             >
               ✨
             </button>
@@ -870,16 +798,13 @@ function SpotlightLogbook({ isOpen, onClose, filterDate = null }) {
                 if (bulkMode) bulk.selectNone();
               }}
               title={bulkMode ? 'Exit Bulk Mode' : 'Bulk Select'}
-              style={{
-                color: bulkMode ? C.b : C.t3,
-                background: bulkMode ? C.b + '15' : 'transparent',
-              }}
+              data-active={bulkMode || undefined}
             >
               {bulkMode ? '✓' : '☐'}
             </button>
 
             {/* Trade Count */}
-            <span className={css.tradeCount} style={{ color: C.t3, fontFamily: M }}>
+            <span className={css.tradeCount}>
               {filteredTrades.length} trade{filteredTrades.length !== 1 ? 's' : ''}
             </span>
           </div>
@@ -887,7 +812,7 @@ function SpotlightLogbook({ isOpen, onClose, filterDate = null }) {
 
         {/* ─── Bulk Action Bar ─────────────────────────────── */}
         {bulkMode && bulk.count > 0 && (
-          <div style={{ padding: '0 16px' }}>
+          <div className={css.bulkBarWrap}>
             <BulkActionBar
               count={bulk.count}
               allSelected={bulk.allSelected}
@@ -904,19 +829,19 @@ function SpotlightLogbook({ isOpen, onClose, filterDate = null }) {
 
         {/* ─── Filter Summary ─────────────────────────────── */}
         {isFiltered && (
-          <div className={css.filterSummary} style={{ background: C.b + '08', borderBottom: `1px solid ${C.bd}40` }}>
-            <span style={{ fontSize: 11, color: C.t2, fontFamily: M }}>
-              <span style={{ opacity: 0.6 }}>▼</span> Showing{' '}
-              <strong style={{ color: C.b }}>{filteredTrades.length}</strong> of {trades?.length || 0} trades
+          <div className={css.filterSummary}>
+            <span className={css.filterSummaryText}>
+              <span className={css.filterSummaryArrow}>▼</span> Showing{' '}
+              <strong className={css.filterSummaryCount}>{filteredTrades.length}</strong> of {trades?.length || 0} trades
             </span>
-            <button className={css.clearAllBtn} onClick={clearAllFilters} style={{ color: C.b }}>
+            <button className={css.clearAllBtn} onClick={clearAllFilters}>
               Clear all
             </button>
           </div>
         )}
 
         {/* ─── Table Header ────────────────────────────────── */}
-        <div className={css.tableHeader} style={{ fontFamily: M, color: C.t3, background: C.bg2 + '80' }}>
+        <div className={css.tableHeader}>
           {bulkMode && <span className={css.checkCol} />}
           {COLUMNS.map((col) => (
             <span
@@ -928,7 +853,6 @@ function SpotlightLogbook({ isOpen, onClose, filterDate = null }) {
               style={{
                 textAlign: col.align || 'left',
                 justifyContent: col.align === 'right' ? 'flex-end' : 'flex-start',
-                color: sortCol === col.id ? C.b : undefined,
                 cursor: col.sortable ? 'pointer' : 'default',
               }}
             >
@@ -958,10 +882,10 @@ function SpotlightLogbook({ isOpen, onClose, filterDate = null }) {
           ) : (
             <div className={css.emptyState}>
               <div className={css.emptyIcon}>🔍</div>
-              <div className={css.emptyTitle} style={{ color: C.t1, fontFamily: F }}>
+              <div className={css.emptyTitle}>
                 {query ? `No trades matching "${query}"` : 'No trades logged yet'}
               </div>
-              <div className={css.emptyDesc} style={{ color: C.t3 }}>
+              <div className={css.emptyDesc}>
                 {query ? 'Try a different search term' : 'Add your first trade to see it here'}
               </div>
             </div>
@@ -969,23 +893,17 @@ function SpotlightLogbook({ isOpen, onClose, filterDate = null }) {
         </div>
 
         {/* ─── Action Bar ──────────────────────────────────── */}
-        <div className={css.actionBar} style={{ fontFamily: M, color: C.t3, background: C.bg2 + '60' }}>
+        <div className={css.actionBar}>
           <div className={css.actionHint}>
-            <kbd className={css.kbd} style={{ background: C.sf2, border: `1px solid ${C.bd}` }}>
-              ↵
-            </kbd>
+            <kbd className={css.kbd}>↵</kbd>
             <span>Expand</span>
           </div>
           <div className={css.actionHint}>
-            <kbd className={css.kbd} style={{ background: C.sf2, border: `1px solid ${C.bd}` }}>
-              ⌘E
-            </kbd>
+            <kbd className={css.kbd}>⌘E</kbd>
             <span>Export</span>
           </div>
-          <div className={css.actionHint} style={{ marginLeft: 'auto' }}>
-            <kbd className={css.kbd} style={{ background: C.sf2, border: `1px solid ${C.bd}` }}>
-              ESC
-            </kbd>
+          <div className={`${css.actionHint} ${css.actionHintRight}`}>
+            <kbd className={css.kbd}>ESC</kbd>
             <span>Close</span>
           </div>
         </div>

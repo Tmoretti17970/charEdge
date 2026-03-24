@@ -232,3 +232,15 @@
   color: var(--tf-t2);
   font-weight: 600;
 }
+
+/* ─── Semantic classes for inline style migration ─── */
+.lineStyleBtn[data-active="true"] {
+  border: 1px solid var(--tf-accent);
+  background: color-mix(in srgb, var(--tf-accent) 9%, transparent);
+  color: var(--tf-accent);
+}
+.lineStyleBtn[data-active="false"] {
+  border: 1px solid var(--tf-bd);
+  background: transparent;
+  color: var(--tf-t3);
+}

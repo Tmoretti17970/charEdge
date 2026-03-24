@@ -102,8 +102,8 @@ export class CoinGeckoAdapter extends BaseAdapter {
       if (!Array.isArray(raw) || raw.length < 2) return null;
 
       // CoinGecko OHLC format: [timestamp_ms, open, high, low, close]
-      // Note: CoinGecko OHLC does NOT include volume
-      return raw.map(([time, open, high, low, close]) => ({
+      // Note: CoinGecko OHLC does NOT include volume — flag for downstream consumers
+      const bars = raw.map(([time, open, high, low, close]) => ({
         time: new Date(time).toISOString(),
         open,
         high,
@@ -111,6 +111,9 @@ export class CoinGeckoAdapter extends BaseAdapter {
         close,
         volume: 0,
       }));
+      // Mark the dataset so volume-dependent indicators can warn instead of showing flat lines
+      if (bars.length > 0) bars._noVolume = true;
+      return bars;
     // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return null;

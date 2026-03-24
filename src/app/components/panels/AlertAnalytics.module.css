@@ -1,0 +1,59 @@
+/* AlertAnalytics — CSS Module */
+.root {
+  height: 100%; overflow: auto; padding: var(--sp-3);
+  font-family: var(--tf-font); background: var(--tf-bg); color: var(--tf-t2);
+}
+.title { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--tf-t1); margin-bottom: var(--sp-3); }
+
+/* Empty */
+.empty { text-align: center; padding: var(--sp-6) var(--sp-3); color: var(--tf-t3); font-size: var(--fs-sm); }
+.emptyIcon { font-size: 24px; margin-bottom: var(--sp-2); }
+.emptyHint { font-size: var(--fs-xs); margin-top: var(--sp-1); }
+
+/* Hero Stats */
+.heroRow { display: flex; gap: var(--sp-1); margin-bottom: var(--sp-3); }
+.heroCard {
+  background: var(--tf-sf); border-radius: var(--br-md);
+  padding: var(--sp-2) 10px; text-align: center; flex: 1;
+}
+.heroValue { font-size: 18px; font-weight: 800; font-family: var(--tf-mono); color: var(--tf-t1); }
+.heroLabel { font-size: 8px; color: var(--tf-t3); margin-top: 2px; }
+
+/* OutcomePill */
+.outcomePill { font-size: var(--fs-xs); font-weight: var(--fw-bold); font-family: var(--tf-mono); }
+.outcomeNull { color: var(--tf-t3); font-size: var(--fs-xs); }
+
+/* Histogram */
+.histSection { margin-bottom: var(--sp-3); }
+.histLabel { font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--tf-t2); margin-bottom: var(--sp-1); }
+.histBars { display: flex; align-items: flex-end; gap: 1px; height: 40px; }
+.histBar {
+  flex: 1; border-radius: 2px 2px 0 0; opacity: 0.7;
+  transition: opacity var(--dur-fast); cursor: default;
+}
+.histBar:hover { opacity: 1; }
+
+/* Symbol breakdown */
+.breakdownSection { margin-bottom: var(--sp-3); }
+.breakdownLabel { font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--tf-t2); margin-bottom: var(--sp-1); }
+.breakdownTable { border-radius: var(--br-md); overflow: hidden; border: 1px solid var(--tf-bd); }
+.breakdownRow {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: var(--sp-1) var(--sp-2); font-size: var(--fs-xs); font-family: var(--tf-mono);
+}
+.breakdownRowAlt { background: var(--tf-sf); }
+.breakdownSym { font-weight: var(--fw-bold); color: var(--tf-t1); width: 50px; }
+.breakdownMeta { color: var(--tf-t3); }
+
+/* Condition effectiveness */
+.condSection { }
+.condLabel { font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--tf-t2); margin-bottom: var(--sp-1); }
+.condGrid { display: flex; gap: var(--sp-1); flex-wrap: wrap; }
+.condCard {
+  background: var(--tf-sf); border-radius: var(--br-sm);
+  padding: var(--sp-1) var(--sp-2); border: 1px solid var(--tf-bd);
+  font-size: var(--fs-3xs); font-family: var(--tf-mono);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.condName { font-weight: var(--fw-bold); color: var(--tf-t1); text-transform: capitalize; }
+.condCount { color: var(--tf-t3); }

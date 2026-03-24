@@ -8,8 +8,9 @@
 
 import React from 'react';
 import { useState, useRef, useEffect } from 'react';
-import { C, F } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
+import st from './WidgetWrapper.module.css';
 
 function WidgetWrapper({
   id,
@@ -95,7 +96,7 @@ function WidgetWrapper({
                 fontSize: 13,
                 fontWeight: 700,
                 color: C.t1,
-                fontFamily: F,
+                fontFamily: 'var(--tf-font)',
               }}
             >
               {title}

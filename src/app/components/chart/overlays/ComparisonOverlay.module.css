@@ -1,0 +1,47 @@
+/* ComparisonOverlay — CSS Module (Sprint 23) */
+
+.panel {
+  position: absolute;
+  top: 52px;
+  right: 80px;
+  z-index: 500;
+  background: var(--tf-glass-2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--tf-glass-border);
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: var(--tf-shadow-2);
+  font-family: var(--tf-font);
+  min-width: 240px;
+  animation: tfDropdownIn 0.15s ease-out;
+}
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.headerTitle { font-size: 11px; font-weight: 600; color: var(--tf-t2); letter-spacing: 0.5px; }
+.closeBtn { background: none; border: none; color: var(--tf-t3); cursor: pointer; font-size: 16px; }
+.activeRow { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.colorDot { width: 10px; height: 10px; border-radius: 3px; }
+.symbolName { color: var(--tf-t1); font-size: 13px; font-weight: 600; }
+.removeBtn {
+  margin-left: auto;
+  padding: 3px 8px;
+  background: color-mix(in srgb, var(--tf-red) 12%, transparent);
+  border: none;
+  border-radius: 6px;
+  color: var(--tf-red);
+  font-size: 11px;
+  cursor: pointer;
+  font-family: var(--tf-font);
+}
+.changeBtn {
+  width: 100%;
+  padding: 8px 12px;
+  background: color-mix(in srgb, var(--tf-accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tf-accent) 18%, transparent);
+  border-radius: 8px;
+  color: var(--tf-accent);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: var(--tf-font);
+  font-weight: 600;
+}

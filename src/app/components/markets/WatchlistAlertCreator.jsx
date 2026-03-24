@@ -6,10 +6,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useMemo, useCallback, memo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { radii, transition } from '../../../theme/tokens.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore';
 import useAlertStore from '../../../state/useAlertStore';
+import st from './WatchlistAlertCreator.module.css';
 
 // ─── Condition Types ─────────────────────────────────────────────
 
@@ -87,7 +88,7 @@ function WatchlistAlertCreator({ open, onClose }) {
       boxShadow: '-8px 0 32px rgba(0,0,0,0.3)',
       display: 'flex', flexDirection: 'column',
       animation: 'tf-slide-left 0.25s ease-out',
-      fontFamily: F,
+      fontFamily: 'var(--tf-font)',
     }}>
       {/* Header */}
       <div style={{
@@ -98,7 +99,7 @@ function WatchlistAlertCreator({ open, onClose }) {
           <div style={{ fontSize: 15, fontWeight: 800, color: C.t1 }}>
             🔔 Watchlist Alerts
           </div>
-          <div style={{ fontSize: 10, color: C.t3, fontFamily: M, marginTop: 2 }}>
+          <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-mono)', marginTop: 2 }}>
             Apply to all {items.length} symbols
           </div>
         </div>
@@ -113,7 +114,7 @@ function WatchlistAlertCreator({ open, onClose }) {
         {/* Templates */}
         <div style={{
           fontSize: 10, fontWeight: 700, color: C.t3,
-          fontFamily: M, textTransform: 'uppercase', marginBottom: 8,
+          fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', marginBottom: 8,
         }}>
           Quick Templates
         </div>
@@ -130,7 +131,7 @@ function WatchlistAlertCreator({ open, onClose }) {
                 background: conditionId === t.condition ? `${C.b}15` : C.bg2,
                 border: `1px solid ${conditionId === t.condition ? C.b : C.bd}`,
                 color: C.t1, fontSize: 10, fontWeight: 600,
-                fontFamily: F, cursor: 'pointer', textAlign: 'center',
+                fontFamily: 'var(--tf-font)', cursor: 'pointer', textAlign: 'center',
                 transition: transition.fast,
               }}
             >
@@ -143,7 +144,7 @@ function WatchlistAlertCreator({ open, onClose }) {
         {/* Condition Selector */}
         <div style={{
           fontSize: 10, fontWeight: 700, color: C.t3,
-          fontFamily: M, textTransform: 'uppercase', marginBottom: 6,
+          fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', marginBottom: 6,
         }}>
           Condition
         </div>
@@ -154,7 +155,7 @@ function WatchlistAlertCreator({ open, onClose }) {
             width: '100%', padding: '8px 12px',
             borderRadius: radii.md, background: C.bg2,
             border: `1px solid ${C.bd}`, color: C.t1,
-            fontSize: 12, fontFamily: F, marginBottom: 12,
+            fontSize: 12, fontFamily: 'var(--tf-font)', marginBottom: 12,
             boxSizing: 'border-box',
           }}
         >
@@ -168,7 +169,7 @@ function WatchlistAlertCreator({ open, onClose }) {
           <>
             <div style={{
               fontSize: 10, fontWeight: 700, color: C.t3,
-              fontFamily: M, textTransform: 'uppercase', marginBottom: 6,
+              fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', marginBottom: 6,
             }}>
               Threshold {condition.unit && `(${condition.unit})`}
             </div>
@@ -180,7 +181,7 @@ function WatchlistAlertCreator({ open, onClose }) {
                 width: '100%', padding: '8px 12px',
                 borderRadius: radii.md, background: C.bg2,
                 border: `1px solid ${C.bd}`, color: C.t1,
-                fontSize: 14, fontWeight: 700, fontFamily: M,
+                fontSize: 14, fontWeight: 700, fontFamily: 'var(--tf-mono)',
                 textAlign: 'center', marginBottom: 14,
                 boxSizing: 'border-box',
               }}
@@ -197,16 +198,16 @@ function WatchlistAlertCreator({ open, onClose }) {
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
-            <span style={{ fontSize: 12, color: C.t2, fontFamily: F }}>
+            <span style={{ fontSize: 12, color: C.t2, fontFamily: 'var(--tf-font)' }}>
               {condition.icon} {condition.label}
               {condition.type === 'number' && (
-                <span style={{ fontWeight: 700, color: C.t1, marginLeft: 6, fontFamily: M }}>
+                <span style={{ fontWeight: 700, color: C.t1, marginLeft: 6, fontFamily: 'var(--tf-mono)' }}>
                   {value}{condition.unit}
                 </span>
               )}
             </span>
             <span style={{
-              fontSize: 11, fontWeight: 700, fontFamily: M, color: C.b,
+              fontSize: 11, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: C.b,
               padding: '2px 8px', borderRadius: 8, background: `${C.b}15`,
             }}>
               {items.length} symbols
@@ -220,7 +221,7 @@ function WatchlistAlertCreator({ open, onClose }) {
         {/* Symbol Preview */}
         <div style={{
           fontSize: 10, fontWeight: 700, color: C.t3,
-          fontFamily: M, textTransform: 'uppercase', marginBottom: 6,
+          fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', marginBottom: 6,
         }}>
           Symbols ({items.length})
         </div>
@@ -231,7 +232,7 @@ function WatchlistAlertCreator({ open, onClose }) {
             <span key={item.symbol} style={{
               padding: '3px 8px', borderRadius: radii.sm,
               background: C.bg2, fontSize: 10, fontWeight: 600,
-              fontFamily: M, color: C.t2,
+              fontFamily: 'var(--tf-mono)', color: C.t2,
             }}>
               {item.symbol}
             </span>
@@ -257,7 +258,7 @@ function WatchlistAlertCreator({ open, onClose }) {
                 : `linear-gradient(135deg, ${C.p}, ${C.b})`,
             color: created ? '#fff' : (items.length === 0 ? C.t3 : '#fff'),
             fontSize: 13, fontWeight: 700,
-            fontFamily: F, border: 'none', cursor: 'pointer',
+            fontFamily: 'var(--tf-font)', border: 'none', cursor: 'pointer',
             transition: transition.base,
           }}
         >

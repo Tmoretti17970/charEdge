@@ -6,9 +6,10 @@
 
 import React from 'react';
 import { useState, useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { alpha } from '@/shared/colorUtils';
+import st from './CorrelationMatrix.module.css';
 
 const SYMBOLS = ['NVDA', 'AAPL', 'MSFT', 'TSLA', 'META', 'AMZN', 'GOOGL', 'SPY'];
 const MACRO = ['SPY', 'DXY', 'VIX', 'TLT'];
@@ -57,9 +58,9 @@ function CorrelationMatrix() {
         style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 18 }}>🔗</span>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>Correlation Matrix</h3>
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>Correlation Matrix</h3>
           {warnings.length > 0 && (
-            <span style={{ fontSize: 10, fontWeight: 700, color: C.y, background: alpha(C.y, 0.1), padding: '2px 7px', borderRadius: 4, fontFamily: M }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: C.y, background: alpha(C.y, 0.1), padding: '2px 7px', borderRadius: 4, fontFamily: 'var(--tf-mono)' }}>
               ⚠ {warnings.length} high corr
             </span>
           )}
@@ -74,13 +75,13 @@ function CorrelationMatrix() {
             <div style={{ display: 'flex', gap: 4 }}>
               {TF_OPTIONS.map((t) => (
                 <button key={t} onClick={() => setTf(t)} className="tf-btn"
-                  style={{ padding: '4px 10px', borderRadius: 6, border: `1px solid ${tf === t ? C.b : 'transparent'}`, background: tf === t ? alpha(C.b, 0.08) : 'transparent', color: tf === t ? C.b : C.t3, cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: M }}>
+                  style={{ padding: '4px 10px', borderRadius: 6, border: `1px solid ${tf === t ? C.b : 'transparent'}`, background: tf === t ? alpha(C.b, 0.08) : 'transparent', color: tf === t ? C.b : C.t3, cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: 'var(--tf-mono)' }}>
                   {t}
                 </button>
               ))}
             </div>
             <button onClick={() => setShowMacro(!showMacro)} className="tf-btn"
-              style={{ padding: '4px 10px', borderRadius: 6, border: `1px solid ${showMacro ? C.p : 'transparent'}`, background: showMacro ? alpha(C.p, 0.08) : 'transparent', color: showMacro ? C.p : C.t3, cursor: 'pointer', fontSize: 10, fontWeight: 600, fontFamily: F }}>
+              style={{ padding: '4px 10px', borderRadius: 6, border: `1px solid ${showMacro ? C.p : 'transparent'}`, background: showMacro ? alpha(C.p, 0.08) : 'transparent', color: showMacro ? C.p : C.t3, cursor: 'pointer', fontSize: 10, fontWeight: 600, fontFamily: 'var(--tf-font)' }}>
               {showMacro ? '🌐 Macro On' : '🌐 Macro Off'}
             </button>
           </div>
@@ -88,10 +89,10 @@ function CorrelationMatrix() {
           {/* Warnings */}
           {warnings.length > 0 && (
             <div style={{ padding: '8px 12px', background: alpha(C.y, 0.06), border: `1px solid ${alpha(C.y, 0.15)}`, borderRadius: 8, marginBottom: 12 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: C.y, fontFamily: F, marginBottom: 4 }}>⚠ Hidden Correlation Risk</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: C.y, fontFamily: 'var(--tf-font)', marginBottom: 4 }}>⚠ Hidden Correlation Risk</div>
               {warnings.map((w, i) => (
-                <div key={i} style={{ fontSize: 10, color: C.t2, fontFamily: F }}>
-                  <span style={{ fontWeight: 600 }}>{w.a}</span> ↔ <span style={{ fontWeight: 600 }}>{w.b}</span>: <span style={{ color: C.r, fontWeight: 700, fontFamily: M }}>{w.corr}</span> — your portfolio may be less diversified than you think
+                <div key={i} style={{ fontSize: 10, color: C.t2, fontFamily: 'var(--tf-font)' }}>
+                  <span style={{ fontWeight: 600 }}>{w.a}</span> ↔ <span style={{ fontWeight: 600 }}>{w.b}</span>: <span style={{ color: C.r, fontWeight: 700, fontFamily: 'var(--tf-mono)' }}>{w.corr}</span> — your portfolio may be less diversified than you think
                 </div>
               ))}
             </div>
@@ -103,13 +104,13 @@ function CorrelationMatrix() {
               {/* Header row */}
               <div />
               {rows.map((s) => (
-                <div key={s} style={{ fontSize: 9, fontWeight: 700, color: MACRO.includes(s) ? C.p : C.t2, fontFamily: M, textAlign: 'center', padding: '4px 2px' }}>{s}</div>
+                <div key={s} style={{ fontSize: 9, fontWeight: 700, color: MACRO.includes(s) ? C.p : C.t2, fontFamily: 'var(--tf-mono)', textAlign: 'center', padding: '4px 2px' }}>{s}</div>
               ))}
 
               {/* Data rows */}
               {rows.map((rowSym) => (
                 <div key={rowSym} style={{ display: 'contents' }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: MACRO.includes(rowSym) ? C.p : C.t1, fontFamily: F, display: 'flex', alignItems: 'center', paddingRight: 4 }}>{rowSym}</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: MACRO.includes(rowSym) ? C.p : C.t1, fontFamily: 'var(--tf-font)', display: 'flex', alignItems: 'center', paddingRight: 4 }}>{rowSym}</div>
                   {rows.map((colSym) => {
                     const val = simCorr(rowSym, colSym, tf);
                     const absVal = Math.abs(val);
@@ -119,7 +120,7 @@ function CorrelationMatrix() {
                         style={{
                           textAlign: 'center', padding: '6px 2px', borderRadius: 4,
                           background: rowSym === colSym ? alpha(C.t3, 0.1) : alpha(col, absVal * 0.15),
-                          fontSize: 10, fontWeight: rowSym === colSym ? 400 : 600, fontFamily: M,
+                          fontSize: 10, fontWeight: rowSym === colSym ? 400 : 600, fontFamily: 'var(--tf-mono)',
                           color: rowSym === colSym ? C.t3 : col,
                         }}>
                         {rowSym === colSym ? '—' : val.toFixed(2)}
@@ -135,15 +136,15 @@ function CorrelationMatrix() {
           <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <div style={{ width: 12, height: 8, borderRadius: 2, background: C.g }} />
-              <span style={{ fontSize: 9, color: C.t3, fontFamily: F }}>Positive</span>
+              <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>Positive</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <div style={{ width: 12, height: 8, borderRadius: 2, background: C.t3 }} />
-              <span style={{ fontSize: 9, color: C.t3, fontFamily: F }}>Neutral</span>
+              <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>Neutral</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <div style={{ width: 12, height: 8, borderRadius: 2, background: C.r }} />
-              <span style={{ fontSize: 9, color: C.t3, fontFamily: F }}>Negative</span>
+              <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>Negative</span>
             </div>
           </div>
         </div>

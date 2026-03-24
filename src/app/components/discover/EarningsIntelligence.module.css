@@ -1,0 +1,40 @@
+/* EarningsIntelligence — CSS Module */
+.card { border-radius: 16px; overflow: hidden; }
+.headerBtn { all: unset; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; cursor: pointer; box-sizing: border-box; }
+.headerLeft { display: flex; align-items: center; gap: 10px; }
+.headerIcon { font-size: 18px; }
+.headerTitle { margin: 0; font-size: 16px; font-weight: 700; color: var(--tf-t1); font-family: var(--tf-font); }
+.badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; font-family: var(--tf-mono); }
+.chevron { font-size: 11px; transition: transform 0.2s ease; }
+.body { padding: 0 20px 20px; }
+/* Filter */
+.filterRow { display: flex; gap: 6px; margin-bottom: 14px; }
+.filterBtn { padding: 5px 12px; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 600; font-family: var(--tf-font); text-transform: capitalize; }
+.empty { padding: 24px; text-align: center; font-size: 12px; font-family: var(--tf-font); }
+.dateGroup { display: flex; flex-direction: column; gap: 16px; }
+/* Date header */
+.dateHeader { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--tf-font); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.dateBubble { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; font-family: var(--tf-mono); }
+.cardList { display: flex; flex-direction: column; gap: 6px; }
+/* Earnings card */
+.earningsCard { padding: 12px 14px; border-radius: 10px; cursor: pointer; transition: all 0.15s ease; }
+.earningsMain { display: flex; align-items: center; gap: 12px; }
+.symCol { min-width: 80px; }
+.symName { font-size: 14px; font-weight: 700; color: var(--tf-t1); font-family: var(--tf-font); }
+.symSub { font-size: 10px; font-family: var(--tf-font); }
+.timeBadge { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; font-family: var(--tf-mono); }
+.metricCol { flex: 1; text-align: center; }
+.metricLabel { font-size: 9px; font-family: var(--tf-font); margin-bottom: 1px; }
+.metricValue { font-size: 13px; font-weight: 700; font-family: var(--tf-mono); }
+.ivBox { text-align: right; padding: 4px 8px; border-radius: 6px; }
+.ivLabel { font-size: 9px; font-family: var(--tf-font); }
+.ivValue { font-size: 14px; font-weight: 700; font-family: var(--tf-mono); }
+.rowChevron { font-size: 10px; transition: transform 0.15s; }
+/* Expanded */
+.detail { margin-top: 12px; padding-top: 12px; }
+.detailGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.detailLabel { font-size: 10px; font-weight: 600; font-family: var(--tf-font); margin-bottom: 6px; }
+.barChart { display: flex; gap: 3px; align-items: flex-end; height: 40px; }
+.bar { flex: 1; border-radius: 2px; }
+.avgText { font-size: 9px; font-family: var(--tf-mono); margin-top: 4px; }
+.reactionChart { display: flex; gap: 3px; align-items: center; height: 40px; }

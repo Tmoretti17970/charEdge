@@ -29,6 +29,7 @@ import ChartCanvas from './ChartCanvas.jsx';
 import crosshairBus from '@/charting_library/utils/CrosshairBus';
 import { logger } from '@/observability/logger';
 import { safeClone } from '@/shared/safeJSON';
+import s from './ChartPane.module.css';
 
 const DEFAULT_INDICATORS = [];
 
@@ -215,91 +216,39 @@ export default function ChartPane({
 
   // ─── Render ───────────────────────────────────────────────
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        width: '100%',
-        background: C.bg,
-        overflow: 'hidden',
-      }}
-    >
+    <div className={s.root}>
       {/* ─── Mini Toolbar ─────────────────────────────────── */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 4,
-          padding: '3px 6px',
-          background: C.bg2,
-          borderBottom: `1px solid ${C.bd}`,
-          flexShrink: 0,
-          minHeight: 32,
-        }}
-      >
+      <div className={s.toolbar}>
         {/* Link Group Dot */}
-        <div style={{ position: 'relative' }}>
+        <div className={s.linkWrap}>
           <button
-            className="tf-btn"
+            className={`tf-btn ${s.linkDotBtn}`}
             onClick={() => setShowLinkMenu((v) => !v)}
             title={`Link group: ${linkGroup}`}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 22,
-              height: 22,
-              background: 'transparent',
-              border: linkGroup !== 'none' ? `1.5px solid ${LINK_GROUP_COLORS[linkGroup]}` : `1px solid ${C.bd}`,
-              borderRadius: '50%',
-              padding: 0,
-              cursor: 'pointer',
-            }}
+            data-linked={linkGroup !== 'none' ? 'true' : undefined}
+            style={linkGroup !== 'none' ? { '--link-color': LINK_GROUP_COLORS[linkGroup] } : undefined}
           >
-            <span style={{
-              width: 10,
-              height: 10,
-              borderRadius: '50%',
-              background: linkGroup !== 'none' ? LINK_GROUP_COLORS[linkGroup] : C.t3 + '40',
-            }} />
+            <span
+              className={s.linkDotInner}
+              style={linkGroup !== 'none' ? { '--link-dot-bg': LINK_GROUP_COLORS[linkGroup] } : undefined}
+            />
           </button>
           {showLinkMenu && (
             <div
-              style={{
-                position: 'absolute',
-                top: '100%',
-                left: 0,
-                zIndex: 999,
-                background: C.sf,
-                border: `1px solid ${C.bd}`,
-                borderRadius: 6,
-                marginTop: 3,
-                padding: 6,
-                display: 'flex',
-                gap: 4,
-                boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-              }}
+              className={s.linkMenu}
               onMouseLeave={() => setShowLinkMenu(false)}
             >
               {LINK_GROUPS.map((g) => (
                 <button
                   key={g}
-                  className="tf-btn"
+                  className={`tf-btn ${s.linkSwatch}`}
                   onClick={() => {
                     setLinkGroup(paneIdRef.current, g);
                     setShowLinkMenu(false);
                   }}
                   title={g === 'none' ? 'Independent' : `Link: ${g}`}
-                  style={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: '50%',
-                    background: g === 'none' ? C.bg2 : LINK_GROUP_COLORS[g],
-                    border: linkGroup === g ? '2px solid white' : `1px solid ${C.bd}`,
-                    cursor: 'pointer',
-                    padding: 0,
-                  }}
+                  data-active={linkGroup === g ? 'true' : undefined}
+                  style={{ '--swatch-bg': g === 'none' ? undefined : LINK_GROUP_COLORS[g] }}
                 />
               ))}
             </div>
@@ -310,24 +259,13 @@ export default function ChartPane({
         <SymbolSearch onSelect={handleSymbolSelect} currentSymbol={symbol} width={140} />
 
         {/* Timeframe buttons */}
-        <div style={{ display: 'flex', gap: 1, marginLeft: 4 }}>
+        <div className={s.tfRow}>
           {TFS.map((t) => (
             <button
-              className="tf-btn"
+              className={`tf-btn ${s.tfBtn}`}
               key={t.id}
               onClick={() => setTf(t.id)}
-              style={{
-                background: tf === t.id ? C.b + '28' : 'transparent',
-                color: tf === t.id ? C.b : C.t3,
-                border: tf === t.id ? `1px solid ${C.b}40` : '1px solid transparent',
-                borderRadius: 4,
-                padding: '2px 7px',
-                fontSize: 11,
-                fontFamily: M,
-                cursor: 'pointer',
-                fontWeight: tf === t.id ? 600 : 400,
-                transition: 'all 0.1s',
-              }}
+              data-active={tf === t.id ? 'true' : undefined}
             >
               {t.label}
             </button>
@@ -335,38 +273,15 @@ export default function ChartPane({
         </div>
 
         {/* Chart Type Dropdown */}
-        <div style={{ position: 'relative', marginLeft: 4 }}>
+        <div className={s.typeWrap}>
           <button
-            className="tf-btn"
+            className={`tf-btn ${s.typeBtn}`}
             onClick={() => setShowTypeMenu((v) => !v)}
-            style={{
-              background: 'transparent',
-              color: C.t2,
-              border: `1px solid ${C.bd}`,
-              borderRadius: 4,
-              padding: '2px 8px',
-              fontSize: 11,
-              fontFamily: M,
-              cursor: 'pointer',
-            }}
           >
             {CHART_TYPES.find((ct) => ct.id === chartType)?.label || 'Candles'} ▾
           </button>
           {showTypeMenu && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '100%',
-                left: 0,
-                zIndex: 999,
-                background: C.sf,
-                border: `1px solid ${C.bd}`,
-                borderRadius: 6,
-                marginTop: 2,
-                overflow: 'hidden',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-              }}
-            >
+            <div className={s.typeMenu}>
               {CHART_TYPES.map((ct) => (
                 <div
                   key={ct.id}
@@ -374,14 +289,8 @@ export default function ChartPane({
                     setChartType(ct.id);
                     setShowTypeMenu(false);
                   }}
-                  style={{
-                    padding: '6px 16px 6px 10px',
-                    cursor: 'pointer',
-                    fontSize: 12,
-                    color: chartType === ct.id ? C.b : C.t2,
-                    background: chartType === ct.id ? C.b + '12' : 'transparent',
-                    whiteSpace: 'nowrap',
-                  }}
+                  className={s.typeMenuItem}
+                  data-active={chartType === ct.id ? 'true' : undefined}
                 >
                   {ct.label}
                 </div>
@@ -391,49 +300,22 @@ export default function ChartPane({
         </div>
 
         {/* Source badge */}
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div className={s.badgeRow}>
           {/* Template selector */}
           <TemplateSelector indicators={indicators} chartType={chartType} onApply={handleApplyTemplate} />
           {dataWarning && (
-            <span
-              style={{
-                fontSize: 10,
-                color: C.y,
-                maxWidth: 200,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
+            <span className={s.warningBadge}>
               ⚠ {dataWarning}
             </span>
           )}
           {source && !loading && (
-            <span
-              style={{
-                fontSize: 10,
-                color: source === 'simulated' ? C.y : C.t3,
-                fontFamily: M,
-                padding: '1px 5px',
-                borderRadius: 3,
-                background: source === 'simulated' ? C.y + '15' : 'transparent',
-              }}
-            >
+            <span className={s.sourceBadge} data-simulated={source === 'simulated' ? 'true' : undefined}>
               {source}
             </span>
           )}
           {/* Indicator count badge */}
           {indicators.length > 0 && (
-            <span
-              style={{
-                fontSize: 10,
-                color: C.p,
-                fontFamily: M,
-                padding: '1px 5px',
-                borderRadius: 3,
-                background: C.p + '15',
-              }}
-            >
+            <span className={s.indBadge}>
               {indicators.length} ind
             </span>
           )}
@@ -441,30 +323,10 @@ export default function ChartPane({
       </div>
 
       {/* ─── Chart Area ───────────────────────────────────── */}
-      <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
+      <div className={s.chartArea}>
         {loading ? (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-              color: C.t3,
-              fontSize: 13,
-              fontFamily: M,
-              gap: 8,
-            }}
-          >
-            <span
-              style={{
-                width: 14,
-                height: 14,
-                border: `2px solid ${C.bd}`,
-                borderTopColor: C.b,
-                borderRadius: '50%',
-                animation: 'spin 0.8s linear infinite',
-              }}
-            />
+          <div className={s.loader}>
+            <span className={s.spinner} />
             Loading {symbol}...
           </div>
         ) : data?.length > 0 ? (
@@ -481,16 +343,7 @@ export default function ChartPane({
             onCrosshairMove={handleCrosshairMove}
           />
         ) : (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-              color: C.t3,
-              fontSize: 13,
-            }}
-          >
+          <div className={s.noData}>
             No data available for {symbol}
           </div>
         )}

@@ -1,0 +1,120 @@
+/* DrawingUndoToast — CSS Module (Sprint 23) */
+
+.toast {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--tf-glass-2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--tf-glass-border);
+  border-radius: 12px;
+  box-shadow: var(--tf-shadow-2);
+  z-index: 600;
+  animation: drawingToastIn 0.2s ease-out;
+  overflow: hidden;
+}
+.label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--tf-t1);
+  font-family: var(--tf-font);
+  white-space: nowrap;
+}
+.undoBtn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--tf-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tf-accent) 20%, transparent);
+  color: var(--tf-accent);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--tf-font);
+  white-space: nowrap;
+}
+.dismissBtn {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--tf-t3) 6%, transparent);
+  border: none;
+  color: var(--tf-t3);
+  cursor: pointer;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.progressBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: color-mix(in srgb, var(--tf-accent) 50%, transparent);
+  border-radius: 0 0 12px 12px;
+  transition: width 0.05s linear;
+}
+
+/* Clear all dialog */
+.clearBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+.clearDialog {
+  background: var(--tf-glass-2);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--tf-glass-border);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 320px;
+  box-shadow: var(--tf-shadow-3);
+}
+.clearTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--tf-t1);
+  font-family: var(--tf-font);
+  margin: 0 0 8px;
+}
+.clearDesc {
+  font-size: 13px;
+  color: var(--tf-t3);
+  margin: 0 0 20px;
+  font-family: var(--tf-font);
+  line-height: 1.4;
+}
+.clearActions { display: flex; gap: 8px; justify-content: flex-end; }
+.cancelBtn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tf-t3) 6%, transparent);
+  border: 1px solid var(--tf-glass-border);
+  color: var(--tf-t1);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--tf-font);
+}
+.deleteBtn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tf-red) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tf-red) 20%, transparent);
+  color: var(--tf-red);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--tf-font);
+}

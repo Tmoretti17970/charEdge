@@ -1,0 +1,72 @@
+/* CompoundAlertBuilder — CSS Module */
+.root {
+  padding: var(--sp-2); background: var(--tf-sf);
+  border-radius: var(--br-md); border: 1px solid var(--tf-bd);
+  margin-bottom: var(--sp-3);
+}
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--sp-2); }
+.headerTitle { font-size: var(--fs-2xs); font-weight: var(--fw-bold); color: var(--tf-t1); }
+.headerSymbol { font-size: var(--fs-xs); color: var(--tf-t3); font-family: var(--tf-mono); }
+
+/* Condition rows */
+.condList { display: flex; flex-direction: column; gap: var(--sp-1); }
+.condRow { display: flex; gap: var(--sp-1); align-items: center; }
+.input {
+  background: var(--tf-sf); border: 1px solid var(--tf-bd);
+  color: var(--tf-t1); border-radius: var(--br-sm);
+  padding: var(--sp-1) var(--sp-1_5); font-family: var(--tf-mono);
+  font-size: var(--fs-2xs); outline: none;
+}
+.selectType { width: 70px; cursor: pointer; appearance: none; }
+.selectInd { width: 65px; cursor: pointer; appearance: none; font-weight: var(--fw-bold); }
+.selectCond { flex: 1; cursor: pointer; appearance: none; }
+.inputPrice { width: 62px; text-align: right; }
+.inputWindow { width: 32px; text-align: center; font-size: var(--fs-xs); }
+.removeCondBtn {
+  background: none; border: none;
+  color: color-mix(in srgb, var(--tf-red) 50%, transparent);
+  font-size: var(--fs-sm); cursor: pointer; padding: 2px var(--sp-1); flex-shrink: 0;
+}
+
+/* Logic toggle */
+.logicRow { display: flex; justify-content: center; padding: 2px 0; }
+.logicBar { display: flex; border-radius: var(--br-sm); overflow: hidden; border: 1px solid var(--tf-bd); }
+.logicBtn {
+  border: none; font-size: var(--fs-3xs); font-weight: var(--fw-bold);
+  padding: 2px var(--sp-3); cursor: pointer; font-family: var(--tf-mono);
+  letter-spacing: 0.05em; transition: all var(--dur-fast);
+}
+.logicBtnActive { background: color-mix(in srgb, var(--tf-accent) 19%, transparent); color: var(--tf-accent); }
+.logicBtnInactive { background: transparent; color: var(--tf-t3); }
+
+/* Add condition */
+.addCondBtn {
+  width: 100%; background: none; border: 1px dashed var(--tf-bd);
+  border-radius: var(--br-sm); color: var(--tf-t3);
+  font-size: var(--fs-xs); padding: var(--sp-1) 0;
+  cursor: pointer; margin-top: var(--sp-1_5); transition: color var(--dur-fast);
+}
+.addCondBtn:hover { color: var(--tf-accent); }
+
+/* Expires / Cooldown row */
+.extraRow { display: flex; gap: var(--sp-1_5); margin-top: var(--sp-2); align-items: center; }
+.extraCol { flex: 1; }
+.extraLabel { font-size: var(--fs-3xs); color: var(--tf-t3); display: block; margin-bottom: 2px; }
+.extraInput { width: 100%; font-size: var(--fs-xs); }
+.extraSelect { width: 100%; cursor: pointer; appearance: none; }
+
+/* Bottom row */
+.bottomRow { display: flex; gap: var(--sp-1); margin-top: var(--sp-1_5); align-items: center; }
+.noteInput { flex: 1; font-size: var(--fs-xs); }
+.repeatLabel {
+  display: flex; align-items: center; gap: 3px;
+  font-size: var(--fs-xs); color: var(--tf-t3); cursor: pointer; white-space: nowrap;
+}
+.checkbox { width: 12px; height: 12px; }
+.submitBtn {
+  background: var(--tf-accent); color: #fff; border: none;
+  border-radius: var(--br-sm); padding: var(--sp-1) var(--sp-3);
+  font-size: var(--fs-2xs); font-weight: var(--fw-semibold);
+  cursor: pointer; transition: opacity var(--dur-fast);
+}
+.submitBtnDisabled { opacity: 0.4; }

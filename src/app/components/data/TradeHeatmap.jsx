@@ -10,8 +10,9 @@
 
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { C, M, F } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { getTradeHeatmapEngine } from '../../../data/engine/orderflow/TradeHeatmapEngine.js';
+import st from './TradeHeatmap.module.css';
 
 // ─── Color Gradient ─────────────────────────────────────────────
 
@@ -82,10 +83,10 @@ function TradeHeatmap({ symbol, priceMin, priceMax, _height = 400 }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 12, lineHeight: 1 }}>🔥</span>
           <div>
-            <div style={{ fontSize: 10, fontWeight: 700, fontFamily: F, color: C.t1 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-font)', color: C.t1 }}>
               Trade Heatmap
             </div>
-            <div style={{ fontSize: 9, fontFamily: M, color: C.t3, marginTop: 1 }}>
+            <div style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3, marginTop: 1 }}>
               See where traders are entering and exiting
             </div>
           </div>
@@ -96,7 +97,7 @@ function TradeHeatmap({ symbol, priceMin, priceMax, _height = 400 }) {
           style={{
             padding: '4px 10px', borderRadius: 5,
             border: `1px solid ${C.b}30`, background: C.b + '12',
-            color: C.b, fontSize: 9, fontWeight: 700, fontFamily: M,
+            color: C.b, fontSize: 9, fontWeight: 700, fontFamily: 'var(--tf-mono)',
             cursor: 'pointer',
           }}
         >
@@ -121,13 +122,13 @@ function TradeHeatmap({ symbol, priceMin, priceMax, _height = 400 }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 10, lineHeight: 1 }}>🔥</span>
           <span style={{
-            fontSize: 8, fontWeight: 700, fontFamily: M, color: C.t3,
+            fontSize: 8, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: C.t3,
             letterSpacing: '0.05em', textTransform: 'uppercase',
           }}>
             Trade Heatmap
           </span>
           {profile?.totalEvents > 0 && (
-            <span style={{ fontSize: 8, fontFamily: M, color: C.t3 }}>
+            <span style={{ fontSize: 8, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
               {profile.totalEvents} trades
             </span>
           )}
@@ -142,7 +143,7 @@ function TradeHeatmap({ symbol, priceMin, priceMax, _height = 400 }) {
               border: `1px solid ${showEntries ? C.g + '60' : C.bd}`,
               background: showEntries ? C.g + '15' : 'transparent',
               color: showEntries ? C.g : C.t3,
-              fontSize: 8, fontWeight: 600, fontFamily: M,
+              fontSize: 8, fontWeight: 600, fontFamily: 'var(--tf-mono)',
               cursor: 'pointer',
             }}
           >
@@ -155,7 +156,7 @@ function TradeHeatmap({ symbol, priceMin, priceMax, _height = 400 }) {
               border: `1px solid ${showExits ? C.r + '60' : C.bd}`,
               background: showExits ? C.r + '15' : 'transparent',
               color: showExits ? C.r : C.t3,
-              fontSize: 8, fontWeight: 600, fontFamily: M,
+              fontSize: 8, fontWeight: 600, fontFamily: 'var(--tf-mono)',
               cursor: 'pointer',
             }}
           >
@@ -179,7 +180,7 @@ function TradeHeatmap({ symbol, priceMin, priceMax, _height = 400 }) {
       {bins.length === 0 ? (
         <div style={{
           padding: '16px 0', textAlign: 'center',
-          fontSize: 9, fontFamily: M, color: C.t3,
+          fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3,
         }}>
           Waiting for trade data…
         </div>
@@ -200,7 +201,7 @@ function TradeHeatmap({ symbol, priceMin, priceMax, _height = 400 }) {
               >
                 {/* Price label */}
                 <span style={{
-                  width: 50, fontSize: 7, fontFamily: M, color: C.t3,
+                  width: 50, fontSize: 7, fontFamily: 'var(--tf-mono)', color: C.t3,
                   textAlign: 'right', flexShrink: 0,
                 }}>
                   {bin.priceMid.toFixed(2)}
@@ -236,7 +237,7 @@ function TradeHeatmap({ symbol, priceMin, priceMax, _height = 400 }) {
         <div style={{
           marginTop: 6, padding: '4px 8px', borderRadius: 4,
           background: C.y + '12', border: `1px solid ${C.y}30`,
-          fontSize: 9, fontFamily: M, color: C.y,
+          fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.y,
           textAlign: 'center',
         }}>
           🎯 Hot zone: ${profile.hotZone.price.toFixed(2)}

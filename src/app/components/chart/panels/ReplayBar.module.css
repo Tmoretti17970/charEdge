@@ -184,3 +184,11 @@
   max-height: 40px;
   overflow: hidden;
 }
+
+/* ─── Semantic classes for inline style migration ─── */
+.dynColor { color: var(--dyn-color); }
+.exitReplayBtn { font-size: 10px; padding: 4px 10px; }
+.annotationBorder {
+  border: 1px solid color-mix(in srgb, var(--ann-color) 25%, transparent);
+  border-left: 3px solid var(--ann-color);
+}

@@ -6,9 +6,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, memo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { radii, transition } from '../../../theme/tokens.js';
 import { fetchEarnings, fmtRevenue } from '../../../services/EarningsService.js';
+import st from './EarningsBadge.module.css';
 
 function EarningsBadge({ symbol }) {
   const [earnings, setEarnings] = useState(null);
@@ -39,7 +40,7 @@ function EarningsBadge({ symbol }) {
       onMouseLeave={() => setHover(false)}
     >
       <span style={{
-        fontSize: 10, fontWeight: 700, fontFamily: M,
+        fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-mono)',
         padding: '1px 5px', borderRadius: 4,
         background: C.y + '20', color: C.y,
         cursor: 'help', transition: transition.fast,
@@ -56,7 +57,7 @@ function EarningsBadge({ symbol }) {
           borderRadius: radii.md, background: C.bg,
           border: `1px solid ${C.bd}`,
           boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-          zIndex: 9999, fontFamily: F,
+          zIndex: 9999, fontFamily: 'var(--tf-font)',
         }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, marginBottom: 6 }}>
             📅 Earnings — {earnings.symbol}

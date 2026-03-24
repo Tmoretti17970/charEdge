@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { C, M } from '../../../constants.js';
+import st from './CommunitySignals.module.css';
 
 function CommunitySignals() {
   return (
@@ -18,10 +19,10 @@ function CommunitySignals() {
       textAlign: 'center',
     }}>
       <span style={{ fontSize: 20, display: 'block', marginBottom: 6 }}>📡</span>
-      <div style={{ fontSize: 11, fontWeight: 700, fontFamily: M, color: C.t2, marginBottom: 4 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: C.t2, marginBottom: 4 }}>
         Community Signals
       </div>
-      <div style={{ fontSize: 10, fontFamily: M, color: C.t3 }}>
+      <div style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
         Coming soon — requires peer network
       </div>
     </div>

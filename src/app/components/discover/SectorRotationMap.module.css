@@ -74,3 +74,143 @@
   flex-direction: column;
   gap: 4px;
 }
+
+/* ─── Inline style migration ─── */
+.panelWrap {
+  background: var(--tf-bg2);
+  border: 1px solid var(--tf-bd);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.headerIcon { font-size: 18px; }
+.headerTitle { margin: 0; font-size: 16px; font-weight: 700; color: var(--tf-t1); font-family: var(--tf-font); }
+.sectorBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+}
+.chevron { color: var(--tf-t3); font-size: 11px; transition: transform 0.2s ease; }
+.contentPad { padding: 0 20px 20px; }
+.tfBtn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+}
+.sortBtn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--tf-font);
+}
+.backBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  margin-bottom: 12px;
+  background: transparent;
+  border: 1px solid var(--tf-bd);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--tf-t2);
+  font-size: 11px;
+  font-family: var(--tf-font);
+  font-weight: 600;
+}
+.tableHeader {
+  display: grid;
+  grid-template-columns: 2fr repeat(5, 1fr) 80px 70px;
+  gap: 4px;
+  padding: 6px 10px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.textRight { text-align: right; }
+.sectorRow {
+  display: grid;
+  grid-template-columns: 2fr repeat(5, 1fr) 80px 70px;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  align-items: center;
+}
+.sectorNameIcon { font-size: 16px; }
+.sectorName { font-size: 12px; font-weight: 700; color: var(--tf-t1); font-family: var(--tf-font); }
+.sectorWeight { font-size: 9px; color: var(--tf-t3); font-family: var(--tf-mono, 'JetBrains Mono', monospace); }
+.flowArrow { font-size: 10px; }
+.flowValue { font-size: 11px; font-weight: 600; font-family: var(--tf-mono, 'JetBrains Mono', monospace); }
+.cycleBadge {
+  font-size: 9px;
+  font-weight: 600;
+  font-family: var(--tf-font);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.legendDot { width: 8px; height: 8px; border-radius: 50%; }
+.legendLabel { font-size: 9px; color: var(--tf-t3); font-family: var(--tf-font); }
+.drillSummary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--tf-bd);
+}
+.drillIcon { font-size: 28px; }
+.drillFlex { flex: 1; }
+.drillTitle { font-size: 16px; font-weight: 700; color: var(--tf-t1); font-family: var(--tf-font); }
+.drillSubtitle { font-size: 11px; color: var(--tf-t3); font-family: var(--tf-font); }
+.drillAlignRight { text-align: right; }
+.tinLabel { font-size: 9px; color: var(--tf-t3); font-family: var(--tf-font); }
+.drillPerfValue { font-size: 20px; font-weight: 700; font-family: var(--tf-mono, 'JetBrains Mono', monospace); }
+.drillFlowValue { font-size: 16px; font-weight: 700; font-family: var(--tf-mono, 'JetBrains Mono', monospace); }
+.topLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.moverRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+.moverRank {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--tf-t3);
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  width: 16px;
+  text-align: center;
+}
+.moverFlex { flex: 1; }
+.moverSymbol { font-size: 13px; font-weight: 700; color: var(--tf-t1); font-family: var(--tf-font); }
+.moverPrice { font-size: 12px; color: var(--tf-t2); font-family: var(--tf-mono, 'JetBrains Mono', monospace); }
+.moverChange {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  padding: 3px 8px;
+  border-radius: 5px;
+  min-width: 60px;
+  text-align: right;
+}

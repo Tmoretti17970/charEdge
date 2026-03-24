@@ -4,8 +4,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback } from 'react';
-import { C, F } from '@/constants.js';
 import { logger } from '@/observability/logger';
+import s from './HotkeyCustomizationPanel.module.css';
 
 const STORAGE_KEY = 'charEdge-hotkeys';
 
@@ -35,10 +35,7 @@ function loadHotkeys() {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      return DEFAULT_HOTKEYS.map((hk) => ({
-        ...hk,
-        key: parsed[hk.id] || hk.defaultKey,
-      }));
+      return DEFAULT_HOTKEYS.map((hk) => ({ ...hk, key: parsed[hk.id] || hk.defaultKey }));
     }
   } catch (e) { logger.ui.warn('Operation failed', e); }
   return DEFAULT_HOTKEYS.map((hk) => ({ ...hk }));
@@ -56,129 +53,51 @@ export default function HotkeyCustomizationPanel({ onClose }) {
   const [listening, setListening] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
-  const handleRebind = useCallback((id) => {
-    setEditingId(id);
-    setListening(true);
-  }, []);
+  const handleRebind = useCallback((id) => { setEditingId(id); setListening(true); }, []);
 
   useEffect(() => {
     if (!listening || !editingId) return;
-
-    // P2 4.2: Start 5-second countdown timer
     setCountdown(5);
     const countdownTimer = setInterval(() => {
-      setCountdown((c) => {
-        if (c <= 1) {
-          // Auto-cancel capture on timeout
-          setEditingId(null);
-          setListening(false);
-          return 0;
-        }
-        return c - 1;
-      });
+      setCountdown((c) => { if (c <= 1) { setEditingId(null); setListening(false); return 0; } return c - 1; });
     }, 1000);
-
     const handler = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-
+      e.preventDefault(); e.stopPropagation();
       let keyStr = '';
       if (e.ctrlKey || e.metaKey) keyStr += 'Ctrl+';
       if (e.shiftKey) keyStr += 'Shift+';
       if (e.altKey) keyStr += 'Alt+';
-
       const key = e.key === ' ' ? 'Space' : e.key.length === 1 ? e.key.toUpperCase() : e.key;
       if (!['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) {
         keyStr += key;
-        setHotkeys((prev) => {
-          const updated = prev.map((hk) => hk.id === editingId ? { ...hk, key: keyStr } : hk);
-          saveHotkeys(updated);
-          return updated;
-        });
-        setEditingId(null);
-        setListening(false);
-        setCountdown(0);
+        setHotkeys((prev) => { const updated = prev.map((hk) => hk.id === editingId ? { ...hk, key: keyStr } : hk); saveHotkeys(updated); return updated; });
+        setEditingId(null); setListening(false); setCountdown(0);
       }
     };
     window.addEventListener('keydown', handler, true);
-    return () => {
-      window.removeEventListener('keydown', handler, true);
-      clearInterval(countdownTimer);
-    };
+    return () => { window.removeEventListener('keydown', handler, true); clearInterval(countdownTimer); };
   }, [listening, editingId]);
 
-  const resetAll = useCallback(() => {
-    const reset = DEFAULT_HOTKEYS.map((hk) => ({ ...hk }));
-    setHotkeys(reset);
-    saveHotkeys(reset);
-  }, []);
-
+  const resetAll = useCallback(() => { const reset = DEFAULT_HOTKEYS.map((hk) => ({ ...hk })); setHotkeys(reset); saveHotkeys(reset); }, []);
   const categories = [...new Set(hotkeys.map((hk) => hk.category))];
 
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', height: '100%',
-      fontFamily: F, color: C.t1,
-    }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '12px 16px',
-        borderBottom: `1px solid ${C.bd}`,
-      }}>
-        <span style={{ fontSize: 13, fontWeight: 600 }}>⌨️ Keyboard Shortcuts</span>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button
-            onClick={resetAll}
-            style={{
-              padding: '4px 10px', background: `${C.t3}15`, border: 'none',
-              borderRadius: 6, color: C.t2, fontSize: 11, cursor: 'pointer', fontFamily: F,
-            }}
-          >
-            Reset All
-          </button>
-          <button
-            onClick={onClose}
-            style={{ background: 'none', border: 'none', color: C.t3, cursor: 'pointer', fontSize: 16 }}
-          >×</button>
+    <div className={s.root}>
+      <div className={s.header}>
+        <span className={s.headerTitle}>⌨️ Keyboard Shortcuts</span>
+        <div className={s.headerActions}>
+          <button onClick={resetAll} className={s.resetBtn}>Reset All</button>
+          <button onClick={onClose} className={s.closeBtn}>×</button>
         </div>
       </div>
-
-      <div style={{ flex: 1, overflow: 'auto', padding: '8px 0' }}>
+      <div className={s.body}>
         {categories.map((cat) => (
           <div key={cat}>
-            <div style={{
-              padding: '8px 16px 4px',
-              fontSize: 10, fontWeight: 600, color: C.t3,
-              letterSpacing: '0.5px',
-            }}>
-              {cat.toUpperCase()}
-            </div>
+            <div className={s.catLabel}>{cat.toUpperCase()}</div>
             {hotkeys.filter((hk) => hk.category === cat).map((hk) => (
-              <div
-                key={hk.id}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '6px 16px',
-                  fontSize: 12,
-                }}
-              >
-                <span style={{ color: C.t2 }}>{hk.label}</span>
-                <button
-                  onClick={() => handleRebind(hk.id)}
-                  style={{
-                    padding: '3px 10px',
-                    background: editingId === hk.id ? `${C.b}30` : C.sf,
-                    border: `1px solid ${editingId === hk.id ? C.b : C.bd}`,
-                    borderRadius: 6,
-                    color: editingId === hk.id ? C.b : C.t1,
-                    fontSize: 11,
-                    fontFamily: 'monospace',
-                    cursor: 'pointer',
-                    minWidth: 60,
-                    textAlign: 'center',
-                    animation: editingId === hk.id ? 'pulse 1s infinite' : 'none',
-                  }}
-                >
+              <div key={hk.id} className={s.hotkeyRow}>
+                <span className={s.hotkeyLabel}>{hk.label}</span>
+                <button onClick={() => handleRebind(hk.id)} className={s.hotkeyBtn} data-editing={editingId === hk.id || undefined}>
                   {editingId === hk.id ? `Press key... ${countdown}s` : hk.key}
                 </button>
               </div>
@@ -186,7 +105,6 @@ export default function HotkeyCustomizationPanel({ onClose }) {
           </div>
         ))}
       </div>
-
     </div>
   );
 }

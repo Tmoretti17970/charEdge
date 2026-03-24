@@ -6,9 +6,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useCallback } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
 import BROKER_GUIDES from '../../../data/importExport/brokerGuideData.js';
+import st from './BrokerGuides.module.css';
 
 function BrokerGuideCard({ guide, onClick, expanded }) {
   const [hovered, setHovered] = useState(false);
@@ -37,8 +38,8 @@ function BrokerGuideCard({ guide, onClick, expanded }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: expanded ? 10 : 0 }}>
         <span style={{ fontSize: 20 }}>{guide.logo}</span>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: F }}>{guide.name}</div>
-          <div style={{ fontSize: 9, color: C.t3, fontFamily: M }}>{guide.format}</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>{guide.name}</div>
+          <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>{guide.format}</div>
         </div>
         <span style={{ fontSize: 10, color: C.t3, transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
       </div>
@@ -89,7 +90,7 @@ function BrokerGuides({ searchFilter = '' }) {
 
   return (
     <div>
-      <h2 style={{ fontSize: 14, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 10 }}>
+      <h2 style={{ fontSize: 14, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)', marginBottom: 10 }}>
         Export Guides
       </h2>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>

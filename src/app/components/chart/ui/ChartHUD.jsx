@@ -58,35 +58,18 @@ function ChartHUD({ _symbol, _timeframe, lastPrice, data }) {
         {/* Price change pill */}
         {lastPrice != null && (
           <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '3px 8px',
-              borderRadius: 8,
-              background: isPositive
-                ? 'rgba(45, 212, 160, 0.08)'
-                : 'rgba(242, 92, 92, 0.08)',
-              border: `1px solid ${isPositive ? 'rgba(45, 212, 160, 0.15)' : 'rgba(242, 92, 92, 0.15)'}`,
-            }}
+            className={h.pricePill}
+            data-positive={isPositive ? 'true' : 'false'}
           >
             <span
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                fontFamily: "'JetBrains Mono', monospace",
-                fontVariantNumeric: 'tabular-nums',
-                color: isPositive ? C.g : C.r,
-              }}
+              className={h.priceChange}
+              data-positive={isPositive ? 'true' : 'false'}
             >
               {isPositive ? '+' : ''}{priceChange.toFixed(2)}
             </span>
             <span
-              style={{
-                fontSize: 10,
-                color: isPositive ? C.g : C.r,
-                opacity: 0.7,
-              }}
+              className={h.pricePercent}
+              data-positive={isPositive ? 'true' : 'false'}
             >
               ({isPositive ? '+' : ''}{priceChangePercent.toFixed(2)}%)
             </span>
@@ -95,33 +78,15 @@ function ChartHUD({ _symbol, _timeframe, lastPrice, data }) {
       </div>
 
       {/* Phase 3 Task #50: Connection status pill */}
-      <div style={{
-        position: 'absolute',
-        top: 4,
-        right: 8,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 4,
-      }}>
+      <div className={h.statusWrap}>
         {(() => {
           const st = STATUS_CONFIG[wsService.status] || STATUS_CONFIG.disconnected;
           return (
             <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                padding: '2px 7px',
-                borderRadius: 6,
-                background: st.bg,
-                border: `1px solid ${st.border}`,
-                fontSize: 9,
-                fontWeight: 600,
-                color: C.t2,
-                letterSpacing: '0.02em',
-              }}
+              className={h.statusPill}
+              style={{ '--status-bg': st.bg, '--status-border': st.border }}
             >
-              <span style={{ fontSize: 6 }}>{st.dot}</span>
+              <span className={h.statusDot}>{st.dot}</span>
               {st.label}
             </div>
           );
@@ -131,47 +96,17 @@ function ChartHUD({ _symbol, _timeframe, lastPrice, data }) {
       {/* Bottom-left: Active indicators count + drawings count */}
       <div className={h.bottomLeft}>
         {indicators.length > 0 && (
-          <div
-            style={{
-              fontSize: 10,
-              color: C.t3,
-              padding: '2px 6px',
-              borderRadius: 6,
-              background: 'rgba(22, 24, 29, 0.6)',
-              backdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255,255,255,0.04)',
-            }}
-          >
+          <div className={h.badge}>
             {indicators.length} indicator{indicators.length !== 1 ? 's' : ''}
           </div>
         )}
         {drawings.length > 0 && (
-          <div
-            style={{
-              fontSize: 10,
-              color: C.t3,
-              padding: '2px 6px',
-              borderRadius: 6,
-              background: 'rgba(22, 24, 29, 0.6)',
-              backdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255,255,255,0.04)',
-            }}
-          >
+          <div className={h.badge}>
             {drawings.length} drawing{drawings.length !== 1 ? 's' : ''}
           </div>
         )}
         {replayMode && (
-          <div
-            style={{
-              fontSize: 10,
-              color: C.y,
-              padding: '2px 6px',
-              borderRadius: 6,
-              background: 'rgba(240, 182, 78, 0.08)',
-              border: '1px solid rgba(240, 182, 78, 0.15)',
-              fontWeight: 600,
-            }}
-          >
+          <div className={h.replayBadge}>
             ⏪ REPLAY
           </div>
         )}

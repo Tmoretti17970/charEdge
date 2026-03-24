@@ -21,6 +21,7 @@ import { useNotificationStore } from '../../../state/useNotificationStore';
 import { usePriceTracker } from '../../../state/usePriceTracker';
 import { radii } from '../../../theme/tokens.js';
 import { useHotkeys } from '@/hooks/useHotkeys';
+import css from './NotificationPanel.module.css';
 
 // ─── Constants ────────────────────────────────────────────────────
 
@@ -184,118 +185,49 @@ function NotificationPanel({ initialTab = null }) {
   return (
     <>
       {/* Backdrop */}
-      <div
-        onClick={closePanel}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,.35)',
-          zIndex: 8000,
-          backdropFilter: 'blur(2px)',
-        }}
-      />
+      <div onClick={closePanel} className={css.backdrop} />
 
       {/* Panel */}
       <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          right: 0,
-          width: 400,
-          maxWidth: '92vw',
-          height: '100vh',
-          background: C.bg2 || C.sf,
-          borderLeft: `1px solid ${C.bd}`,
-          zIndex: 8001,
-          display: 'flex',
-          flexDirection: 'column',
-          animation: 'scaleInSm 0.2s ease-out',
-        }}
+        className={css.panel}
+        style={{ background: C.bg2 || C.sf, borderLeft: `1px solid ${C.bd}` }}
       >
         {/* Header */}
-        <div
-          style={{
-            padding: '16px 16px 0',
-            borderBottom: `1px solid ${C.bd}`,
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 15, fontWeight: 800, fontFamily: F, color: C.t1 }}>Notifications</span>
+        <div className={css.headerWrap} style={{ borderBottom: `1px solid ${C.bd}` }}>
+          <div className={css.headerRow}>
+            <div className={css.headerLeft}>
+              <span className={css.headerTitle}>Notifications</span>
               {entries.length > 0 && (
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontFamily: M,
-                    color: '#fff',
-                    background: C.b,
-                    padding: '2px 7px',
-                    borderRadius: 10,
-                    fontWeight: 600,
-                  }}
-                >
-                  {entries.length}
-                </span>
+                <span className={css.headerBadge} style={{ background: C.b }}>{entries.length}</span>
               )}
             </div>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <div className={css.headerActions}>
               {entries.length > 0 && (
                 <button
-                  className="tf-btn"
+                  className={`tf-btn ${css.clearAllBtn}`}
                   onClick={clearLog}
-                  style={{
-                    background: 'none',
-                    border: `1px solid ${C.bd}`,
-                    borderRadius: radii.sm,
-                    color: C.t3,
-                    fontSize: 10,
-                    fontFamily: M,
-                    cursor: 'pointer',
-                    padding: '3px 8px',
-                    transition: 'all 0.15s',
-                  }}
+                  style={{ border: `1px solid ${C.bd}` }}
                 >
                   Clear All
                 </button>
               )}
-              <button
-                className="tf-btn"
-                onClick={closePanel}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: C.t3,
-                  fontSize: 18,
-                  cursor: 'pointer',
-                  padding: '0 2px',
-                }}
-              >
-                ✕
-              </button>
+              <button className={`tf-btn ${css.closeBtn}`} onClick={closePanel}>✕</button>
             </div>
           </div>
 
           {/* Tab Bar */}
-          <div style={{ display: 'flex', gap: 0 }}>
+          <div className={css.tabBar}>
             {TABS.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
-                  className="tf-btn"
+                  className={`tf-btn ${css.tabBtn}`}
                   onClick={() => setActiveTab(tab.id)}
                   style={{
-                    flex: 1,
-                    padding: '8px 0',
-                    border: 'none',
-                    background: 'none',
                     color: isActive ? C.b : C.t3,
-                    fontSize: 11,
                     fontWeight: isActive ? 700 : 500,
-                    fontFamily: F,
-                    cursor: 'pointer',
                     borderBottom: isActive ? `2px solid ${C.b}` : '2px solid transparent',
-                    transition: 'all 0.15s ease',
                   }}
                 >
                   {tab.label}
@@ -306,33 +238,16 @@ function NotificationPanel({ initialTab = null }) {
         </div>
 
         {/* Content Area */}
-        <div
-          ref={panelRef}
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '4px 0',
-          }}
-        >
-          {/* Alerts Tab: Show alert management ABOVE the notification feed */}
+        <div ref={panelRef} className={css.contentArea}>
           {activeTab === 'alerts' && <AlertManagementSection />}
 
-          {/* Notification Feed */}
           {totalFiltered === 0 && activeTab !== 'alerts' ? (
-            <div
-              style={{
-                padding: '48px 16px',
-                textAlign: 'center',
-                color: C.t3,
-                fontSize: 12,
-                fontFamily: F,
-              }}
-            >
-              <div style={{ fontSize: 32, marginBottom: 10, opacity: 0.4 }}>🔔</div>
-              <div style={{ fontWeight: 600, color: C.t2, marginBottom: 4 }}>
+            <div className={css.emptyState}>
+              <div className={css.emptyIcon}>🔔</div>
+              <div className={css.emptyTitle}>
                 {activeTab === 'all' ? 'No notifications yet' : `No ${activeTab} notifications`}
               </div>
-              <div style={{ fontSize: 11, lineHeight: 1.5 }}>
+              <div className={css.emptyDesc}>
                 {activeTab === 'all'
                   ? 'Price alerts, trade activity, and system events will appear here.'
                   : 'Try switching tabs to see other notification types.'}
@@ -344,16 +259,7 @@ function NotificationPanel({ initialTab = null }) {
               {activeTab === 'alerts' && totalFiltered === 0 ? null : (
                 <>
                   {activeTab === 'alerts' && totalFiltered > 0 && (
-                    <div style={{
-                      padding: '10px 16px 4px',
-                      fontSize: 9,
-                      fontWeight: 700,
-                      color: C.t3,
-                      textTransform: 'uppercase',
-                      fontFamily: M,
-                      letterSpacing: '0.5px',
-                      borderTop: `1px solid ${C.bd}20`,
-                    }}>
+                    <div className={css.timeGroupLabel} style={{ borderTop: `1px solid ${C.bd}20` }}>
                       Alert History
                     </div>
                   )}
@@ -367,38 +273,18 @@ function NotificationPanel({ initialTab = null }) {
         </div>
 
         {/* Footer */}
-        <div
-          style={{
-            padding: '10px 16px',
-            borderTop: `1px solid ${C.bd}`,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
+        <div className={css.footer} style={{ borderTop: `1px solid ${C.bd}` }}>
           <button
-            className="tf-btn"
+            className={`tf-btn ${css.settingsLink}`}
             onClick={() => {
               closePanel();
-              // Navigate to Settings > Notifications
               window.dispatchEvent(new CustomEvent('charEdge:navigate', { detail: { page: 'settings', section: 'notifications' } }));
             }}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: C.b,
-              fontSize: 11,
-              fontFamily: F,
-              fontWeight: 500,
-              cursor: 'pointer',
-              padding: 0,
-            }}
+            style={{ color: C.b }}
           >
             ⚙ Notification Settings
           </button>
-          <span style={{ fontSize: 10, color: C.t3, fontFamily: M }}>
-            Ctrl+. to toggle
-          </span>
+          <span className={css.footerShortcut}>Ctrl+. to toggle</span>
         </div>
       </div>
     </>
@@ -475,15 +361,13 @@ function AlertManagementSection() {
   };
 
   return (
-    <div style={{ padding: '12px 16px 0' }}>
+    <div className={css.alertWrap}>
 
       {/* ─── Quick Presets ─────────────────────────── */}
-      <div style={{ marginBottom: 12 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: M }}>
-              ⚡ Quick Alerts
-            </span>
+      <div className={css.presetSection}>
+        <div className={css.presetHeader}>
+          <div className={css.presetLeft}>
+            <span className={css.presetLabel}>⚡ Quick Alerts</span>
             <input
               value={symbol}
               onChange={(e) => setSymbol(e.target.value.toUpperCase())}
@@ -499,34 +383,22 @@ function AlertManagementSection() {
             />
           </div>
           {highProximity != null && Math.abs(highProximity) < 3 && (
-            <span style={{
-              fontSize: 9, fontFamily: M, padding: '2px 8px', borderRadius: radii.sm,
-              background: '#10b98115',
-              color: '#10b981',
-              fontWeight: 600,
-            }}>
+            <span className={css.proximityBadge}
+              style={{ background: '#10b98115', color: '#10b981' }}>
               🌟 {Math.abs(highProximity).toFixed(1)}% from 52W High
             </span>
           )}
         </div>
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+        <div className={css.presetGrid}>
           {PRESETS.map((preset) => (
             <button
               key={preset.id}
               onClick={() => handlePresetClick(preset.id)}
+              className={css.presetBtn}
               style={{
-                flex: '1 1 calc(33% - 4px)',
-                padding: '6px 8px',
-                fontSize: 10,
-                fontWeight: 600,
-                fontFamily: F,
-                cursor: 'pointer',
                 border: `1px solid ${preset.color}25`,
-                borderRadius: radii.sm,
                 background: `${preset.color}08`,
                 color: preset.color,
-                transition: 'all 0.15s',
-                whiteSpace: 'nowrap',
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = `${preset.color}20`; e.currentTarget.style.borderColor = `${preset.color}50`; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = `${preset.color}08`; e.currentTarget.style.borderColor = `${preset.color}25`; }}
@@ -536,7 +408,7 @@ function AlertManagementSection() {
           ))}
         </div>
         {lowProximity != null && Math.abs(lowProximity) < 5 && (
-          <div style={{ marginTop: 6, fontSize: 9, color: '#ef4444', fontFamily: M, fontWeight: 500 }}>
+          <div className={css.lowWarning}>
             ⚠️ Within {lowProximity.toFixed(1)}% of 52-Week Low
           </div>
         )}
@@ -545,19 +417,12 @@ function AlertManagementSection() {
       {/* ─── Create Alert Toggle ───────────────────── */}
       <button
         onClick={() => setShowForm(!showForm)}
+        className={css.createToggle}
         style={{
-          width: '100%',
-          padding: '8px 0',
           border: `1px solid ${showForm ? C.b + '30' : C.bd}`,
-          borderRadius: radii.sm,
           background: showForm ? `${C.b}08` : 'transparent',
           color: showForm ? C.b : C.t2,
-          fontSize: 11,
-          fontWeight: 600,
-          fontFamily: F,
-          cursor: 'pointer',
           marginBottom: showForm ? 0 : 12,
-          transition: 'all 0.2s ease',
         }}
       >
         {showForm ? '✕ Close' : '+ Create Price Alert'}
@@ -565,18 +430,9 @@ function AlertManagementSection() {
 
       {/* ─── Alert Creation Form ───────────────────── */}
       {showForm && (
-        <div style={{
-          padding: 12,
-          background: C.sf,
-          borderRadius: `0 0 ${radii.sm}px ${radii.sm}px`,
-          border: `1px solid ${C.bd}`,
-          borderTop: 'none',
-          marginBottom: 12,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8,
-        }}>
-          <div style={{ display: 'flex', gap: 6 }}>
+        <div className={css.alertForm}
+          style={{ background: C.sf, border: `1px solid ${C.bd}` }}>
+          <div className={css.formRow}>
             <input
               aria-label="Alert symbol"
               value={symbol}
@@ -605,7 +461,7 @@ function AlertManagementSection() {
               style={{ ...inputStyle, width: 90, textAlign: 'right' }}
             />
           </div>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <div className={css.formRowCenter}>
             <input
               value={note}
               onChange={(e) => setNote(e.target.value)}
@@ -613,10 +469,7 @@ function AlertManagementSection() {
               placeholder="Note (optional)"
               style={{ ...inputStyle, flex: 1, fontSize: 11 }}
             />
-            <label style={{
-              display: 'flex', alignItems: 'center', gap: 4,
-              fontSize: 10, color: C.t3, cursor: 'pointer', whiteSpace: 'nowrap',
-            }}>
+            <label className={css.repeatLabel}>
               <input
                 type="checkbox"
                 checked={repeating}
@@ -626,22 +479,12 @@ function AlertManagementSection() {
               Repeat
             </label>
             <button
-              className="tf-btn"
+              className={`tf-btn ${css.addBtn}`}
               onClick={handleAdd}
               disabled={!symbol.trim() || !price || isNaN(parseFloat(price))}
               style={{
                 background: C.b,
-                color: '#fff',
-                border: 'none',
-                borderRadius: radii.sm,
-                padding: '6px 14px',
-                fontSize: 11,
-                fontWeight: 600,
-                fontFamily: F,
-                cursor: 'pointer',
                 opacity: !symbol.trim() || !price ? 0.4 : 1,
-                transition: 'opacity 0.15s',
-                whiteSpace: 'nowrap',
               }}
             >
               + Add
@@ -652,14 +495,9 @@ function AlertManagementSection() {
 
       {/* ─── Active Alerts ─────────────────────────── */}
       {activeAlerts.length > 0 && (
-        <div style={{ marginBottom: 12 }}>
-          <div style={{
-            fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase',
-            fontFamily: M, letterSpacing: '0.5px', marginBottom: 6,
-          }}>
-            Active ({activeAlerts.length})
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div className={css.alertSectionWrap}>
+          <div className={css.sectionHeading}>Active ({activeAlerts.length})</div>
+          <div className={css.colGapSm}>
             {activeAlerts.map((alert) => (
               <AlertCard key={alert.id} alert={alert} onToggle={toggleAlert} onRemove={removeAlert} />
             ))}
@@ -670,28 +508,13 @@ function AlertManagementSection() {
       {/* ─── Triggered Alerts ──────────────────────── */}
       {triggeredAlerts.length > 0 && (
         <div style={{ marginBottom: 8 }}>
-          <div style={{
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6,
-          }}>
-            <span style={{
-              fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase',
-              fontFamily: M, letterSpacing: '0.5px',
-            }}>
+          <div className={css.triggeredHeader}>
+            <span className={css.sectionHeading} style={{ marginBottom: 0 }}>
               Triggered ({triggeredAlerts.length})
             </span>
-            <button
-              className="tf-btn"
-              onClick={clearTriggered}
-              style={{
-                background: 'none', border: 'none', color: C.t3,
-                fontSize: 10, cursor: 'pointer', padding: '2px 4px',
-                fontFamily: M,
-              }}
-            >
-              Clear all
-            </button>
+            <button className={`tf-btn ${css.clearTriggeredBtn}`} onClick={clearTriggered}>Clear all</button>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div className={css.colGapSm}>
             {triggeredAlerts.map((alert) => (
               <AlertCard key={alert.id} alert={alert} onToggle={toggleAlert} onRemove={removeAlert} triggered />
             ))}
@@ -701,12 +524,10 @@ function AlertManagementSection() {
 
       {/* ─── Empty State ──────────────────────────── */}
       {alerts.length === 0 && (
-        <div style={{
-          textAlign: 'center', padding: '20px 12px', color: C.t3, fontSize: 12, fontFamily: F,
-        }}>
-          <div style={{ fontSize: 24, marginBottom: 6, opacity: 0.4 }}>🔔</div>
-          <div style={{ fontWeight: 600, color: C.t2, marginBottom: 4 }}>No alerts yet</div>
-          <div style={{ fontSize: 11, lineHeight: 1.5 }}>
+        <div className={css.alertEmptyState}>
+          <div className={css.alertEmptyIcon}>🔔</div>
+          <div className={css.alertEmptyTitle}>No alerts yet</div>
+          <div className={css.alertEmptyDesc}>
             Use quick presets above or create a custom alert to get started.
           </div>
         </div>
@@ -731,111 +552,63 @@ function AlertCard({ alert, onToggle, onRemove, triggered = false }) {
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      className={css.alertCard}
       style={{
-        display: 'flex',
-        gap: 10,
-        padding: '10px 12px',
         background: hovered ? `${C.b}06` : C.sf,
-        borderRadius: radii.sm,
         border: `1px solid ${C.bd}20`,
-        transition: 'background 0.15s ease',
-        position: 'relative',
         opacity: triggered ? 0.7 : 1,
       }}
     >
-      {/* Icon — same rounded badge as notification entries */}
-      <div style={{
-        width: 28,
-        height: 28,
-        borderRadius: 8,
-        background: severityColor + '12',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: 13,
-        color: severityColor,
-        flexShrink: 0,
-        marginTop: 1,
-      }}>
+      <div className={css.alertIcon}
+        style={{ background: severityColor + '12', color: severityColor }}>
         {iconChar}
       </div>
 
-      {/* Content */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <span style={{ fontFamily: M, fontWeight: 700, fontSize: 12, color: C.t1 }}>{alert.symbol}</span>
-          <span style={{ fontSize: 10, color: C.t3, fontFamily: F }}>
+      <div className={css.flex1}>
+        <div className={css.symbolRow}>
+          <span className={css.symbol}>{alert.symbol}</span>
+          <span className={css.condLabel}>
             {condIcons[alert.condition] || ''} {alert.condition.replace('_', ' ')}
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+        <div className={css.detailRow}>
           {alert.price > 0 && (
-            <span style={{ fontFamily: M, fontWeight: 600, fontSize: 12, color: C.b }}>
+            <span className={css.priceVal} style={{ color: C.b }}>
               ${alert.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           )}
           {alert.repeating && (
-            <span style={{
-              fontSize: 8, color: C.t3, background: C.bd + '40',
-              padding: '1px 5px', borderRadius: 3, fontFamily: M, fontWeight: 600,
-            }}>
-              REPEAT
-            </span>
+            <span className={css.repeatBadge} style={{ background: C.bd + '40' }}>REPEAT</span>
           )}
           {alert.note && (
-            <span style={{
-              fontSize: 9, color: C.t3, overflow: 'hidden',
-              textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: F,
-            }}>
-              {alert.note}
-            </span>
+            <span className={css.noteText}>{alert.note}</span>
           )}
         </div>
-        {/* Category pill + time — matching notification entry style */}
-        <div style={{
-          display: 'flex', gap: 6, marginTop: 4, fontSize: 10,
-          color: C.t3, fontFamily: M, alignItems: 'center',
-        }}>
-          <span style={{
-            background: severityColor + '10',
-            color: severityColor,
-            padding: '1px 6px',
-            borderRadius: 4,
-            fontSize: 9,
-            fontWeight: 600,
-          }}>
+        <div className={css.metaRow}>
+          <span className={css.catPill}
+            style={{ background: severityColor + '10', color: severityColor }}>
             {alert.alertCategory === '52w_range' ? '🌟 52W Range'
               : alert.alertCategory === 'percent_change' ? '📊 % Change'
                 : '💰 Price'}
           </span>
-          <span style={{ opacity: 0.7 }}>·</span>
+          <span className={css.dot}>·</span>
           <span>{triggered ? `Triggered ${formatAlertTime(alert.triggeredAt)}` : `Created ${formatAlertTime(alert.createdAt)}`}</span>
         </div>
       </div>
 
-      {/* Actions */}
-      <div style={{
-        display: 'flex', gap: 4, flexShrink: 0, alignItems: 'center',
-        opacity: hovered ? 1 : 0.5,
-        transition: 'opacity 0.15s',
-      }}>
+      <div className={css.alertActions}
+        style={{ opacity: hovered ? 1 : 0.5 }}>
         <button
-          className="tf-btn"
+          className={`tf-btn ${css.alertActionBtn}`}
           onClick={() => onToggle(alert.id)}
           title={alert.active ? 'Pause' : 'Re-arm'}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: alert.active ? C.t2 : C.g, fontSize: 12, padding: '2px 4px',
-          }}
+          style={{ color: alert.active ? C.t2 : C.g, fontSize: 12 }}
         >{alert.active ? '⏸' : '▶'}</button>
         <button
-          className="tf-btn"
+          className={`tf-btn ${css.alertActionBtn}`}
           onClick={() => onRemove(alert.id)}
           title="Delete"
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: C.r + '80', fontSize: 11, padding: '2px 4px',
-          }}
+          style={{ color: C.r + '80', fontSize: 11 }}
         >✕</button>
       </div>
     </div>
@@ -848,19 +621,7 @@ function TimeGroup({ label, entries, onDismiss }) {
   return (
     <div>
       {label && (
-        <div
-          style={{
-            padding: '10px 16px 4px',
-            fontSize: 9,
-            fontWeight: 700,
-            color: C.t3,
-            textTransform: 'uppercase',
-            fontFamily: M,
-            letterSpacing: '0.5px',
-          }}
-        >
-          {label}
-        </div>
+        <div className={css.timeGroupLabel}>{label}</div>
       )}
       {entries.map((entry) => (
         <NotificationEntry key={entry.id} entry={entry} onDismiss={onDismiss} />
@@ -880,98 +641,37 @@ function NotificationEntry({ entry, onDismiss }) {
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      className={css.entryWrap}
       style={{
-        display: 'flex',
-        gap: 10,
-        padding: '10px 16px',
         borderBottom: `1px solid ${C.bd}15`,
         background: hovered ? `${C.b}06` : 'transparent',
-        transition: 'background 0.15s ease',
-        position: 'relative',
       }}
     >
-      {/* Icon */}
-      <div
-        style={{
-          width: 28,
-          height: 28,
-          borderRadius: 8,
-          background: style.color + '12',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 13,
-          color: style.color,
-          flexShrink: 0,
-          marginTop: 1,
-        }}
-      >
+      <div className={css.entryIcon}
+        style={{ background: style.color + '12', color: style.color }}>
         {style.icon}
       </div>
 
-      {/* Content */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontSize: 12,
-            color: C.t1,
-            fontFamily: F,
-            lineHeight: 1.45,
-            wordBreak: 'break-word',
-          }}
-        >
-          {entry.message}
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            gap: 6,
-            marginTop: 4,
-            fontSize: 10,
-            color: C.t3,
-            fontFamily: M,
-            alignItems: 'center',
-          }}
-        >
-          <span
-            style={{
-              background: style.color + '10',
-              color: style.color,
-              padding: '1px 6px',
-              borderRadius: 4,
-              fontSize: 9,
-              fontWeight: 600,
-            }}
-          >
+      <div className={css.flex1}>
+        <div className={css.entryMessage}>{entry.message}</div>
+        <div className={css.entryMeta}>
+          <span className={css.catPill}
+            style={{ background: style.color + '10', color: style.color }}>
             {catLabel}
           </span>
-          <span style={{ opacity: 0.7 }}>·</span>
+          <span className={css.dot}>·</span>
           <span>{timeAgo(entry.ts)}</span>
         </div>
       </div>
 
-      {/* Dismiss button (appears on hover) */}
       {hovered && (
         <button
-          className="tf-btn"
+          className={`tf-btn ${css.dismissBtn}`}
           onClick={(e) => {
             e.stopPropagation();
             onDismiss(entry.id);
           }}
-          style={{
-            position: 'absolute',
-            top: 8,
-            right: 12,
-            background: C.sf,
-            border: `1px solid ${C.bd}30`,
-            borderRadius: radii.sm,
-            color: C.t3,
-            fontSize: 10,
-            cursor: 'pointer',
-            padding: '2px 6px',
-            fontFamily: M,
-            transition: 'all 0.1s',
-          }}
+          style={{ background: C.sf, border: `1px solid ${C.bd}30` }}
         >
           ✕
         </button>
@@ -988,43 +688,13 @@ export function NotificationBell() {
 
   return (
     <button
-      className="tf-btn"
+      className={`tf-btn ${css.bellBtn}`}
       onClick={toggle}
       title="Notifications (Ctrl+.)"
-      style={{
-        position: 'relative',
-        background: 'none',
-        border: 'none',
-        color: C.t3,
-        fontSize: 16,
-        cursor: 'pointer',
-        padding: 4,
-        borderRadius: 6,
-        transition: 'color 0.15s',
-      }}
     >
       🔔
       {unreadCount > 0 && (
-        <span
-          style={{
-            position: 'absolute',
-            top: -2,
-            right: -4,
-            minWidth: 16,
-            height: 16,
-            borderRadius: '50%',
-            background: C.r,
-            color: '#fff',
-            fontSize: 9,
-            fontWeight: 700,
-            fontFamily: M,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            lineHeight: 1,
-            padding: '0 3px',
-          }}
-        >
+        <span className={css.bellBadge} style={{ background: C.r }}>
           {unreadCount > 9 ? '9+' : unreadCount}
         </span>
       )}

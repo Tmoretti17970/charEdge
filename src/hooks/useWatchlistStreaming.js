@@ -32,6 +32,8 @@ export default function useWatchlistStreaming(symbols, enabled = true, visibleSy
   const pollTimerRef = useRef(null);
   const mountedRef = useRef(true);
   const cacheLoadedRef = useRef(false);
+  // Stores 24h ticker baselines for computing changePercent from WS ticks
+  const tickerBaselineRef = useRef({});
 
   // Separate crypto vs non-crypto symbols
   const cryptoSymbols = symbols.filter(s =>
@@ -71,6 +73,51 @@ export default function useWatchlistStreaming(symbols, enabled = true, visibleSy
     }).catch(() => { /* best-effort */ });
   }, []);
 
+  // ─── Crypto: Fetch 24h ticker baseline for change % ──────────
+  useEffect(() => {
+    if (!enabled || cryptoSymbols.length === 0) return;
+
+    import('../data/FetchService').then(({ fetch24hTicker }) => {
+      if (!mountedRef.current) return;
+      fetch24hTicker(cryptoSymbols).then(results => {
+        if (!mountedRef.current) return;
+        const baselines = {};
+        const initialPrices = {};
+        for (const t of results) {
+          if (!t?.symbol) continue;
+          const sym = t.symbol.replace(/(USDT|BUSD|USDC|USD)$/, '');
+          const price = parseFloat(t.lastPrice);
+          const change = parseFloat(t.priceChange);
+          const changePercent = parseFloat(t.priceChangePercent);
+          const open24h = price - change;
+          baselines[sym] = { open24h, change, changePercent };
+          initialPrices[sym] = {
+            price,
+            change,
+            changePercent,
+            volume: parseFloat(t.volume),
+            high: parseFloat(t.highPrice),
+            low: parseFloat(t.lowPrice),
+            lastUpdate: Date.now(),
+            source: 'ticker',
+          };
+        }
+        tickerBaselineRef.current = { ...tickerBaselineRef.current, ...baselines };
+        setPrices(prev => {
+          const merged = { ...prev };
+          for (const [sym, data] of Object.entries(initialPrices)) {
+            // Only set if we don't already have live WS data
+            if (!merged[sym] || merged[sym].source === 'cache') {
+              merged[sym] = data;
+            }
+          }
+          return merged;
+        });
+      }).catch(() => { /* best-effort */ });
+    }).catch(() => { /* best-effort */ });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, cryptoSymbols.join(',')]);
+
   // ─── Crypto: WebSocket streaming via Binance kline ────────────
   useEffect(() => {
     if (!enabled || cryptoSymbols.length === 0) return;
@@ -92,10 +139,20 @@ export default function useWatchlistStreaming(symbols, enabled = true, visibleSy
         return wsService.subscribeKlineOnly(sym, tf, {
           onBar: (bar) => {
             if (!mountedRef.current) return;
+            // Compute changePercent from 24h ticker baseline
+            const baseline = tickerBaselineRef.current[sym];
+            let change = null;
+            let changePercent = null;
+            if (baseline?.open24h && baseline.open24h > 0) {
+              change = bar.close - baseline.open24h;
+              changePercent = (change / baseline.open24h) * 100;
+            }
             const priceData = {
               price: bar.close,
               high: bar.high,
               low: bar.low,
+              change,
+              changePercent,
               volume: bar.volume,
               lastUpdate: Date.now(),
               source: 'ws',

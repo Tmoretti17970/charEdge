@@ -292,6 +292,9 @@
   background: rgba(255,255,255,0.06);
   border-color: rgba(255,255,255,0.08);
 }
+.actionBtn[data-hidden="true"] { opacity: 0.5; }
+.actionBtn[data-synced="true"] { color: #42A5F5; }
+.actionBtn[data-danger="true"] { color: #EF5350; }
 
 /* ─── Color Grid ─── */
 .colorGrid {

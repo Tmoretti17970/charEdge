@@ -96,12 +96,8 @@ function CSVImportModal({ isOpen, onClose }) {
     <ModalOverlay isOpen={isOpen} onClose={handleClose} width={640}>
       {/* Header */}
       <div className={s.s0}>
-        <h2 style={{ fontSize: 16, fontWeight: 800, fontFamily: F, color: C.t1, margin: 0 }}>Import CSV</h2>
-        <button
-          className="tf-btn"
-          onClick={handleClose}
-          style={{ background: 'none', border: 'none', color: C.t3, fontSize: 18, cursor: 'pointer' }}
-        >
+        <h2 className={s.headerTitle}>Import CSV</h2>
+        <button className={`tf-btn ${s.closeBtn}`} onClick={handleClose}>
           ✕
         </button>
       </div>
@@ -110,75 +106,37 @@ function CSVImportModal({ isOpen, onClose }) {
       {stage === 'upload' && (
         <div>
           {/* Sprint 20: Connection Status Indicators */}
-          <div
-            style={{
-              display: 'flex',
-              gap: 8,
-              marginBottom: 14,
-              flexWrap: 'wrap',
-            }}
-          >
+          <div className={s.connRow}>
             {[
               { label: 'CSV File', status: 'ready', icon: '⚙️', hint: 'Drop or browse' },
               { label: 'Auto-Detect', status: 'ready', icon: '✅', hint: 'Headers & delimiters' },
               { label: 'Dedup Engine', status: 'ready', icon: '✅', hint: 'Active' },
               { label: 'Reconciliation', status: 'ready', icon: '✅', hint: 'Quality grading' },
             ].map((conn, i) => (
-              <div
-                key={i}
-                style={{
-                  flex: 1,
-                  minWidth: 100,
-                  padding: '8px 10px',
-                  background: C.sf,
-                  border: `1px solid ${C.bd}50`,
-                  borderRadius: 8,
-                  fontSize: 10,
-                  fontFamily: M,
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 2 }}>
-                  <span style={{ fontSize: 12 }}>{conn.icon}</span>
-                  <span style={{ fontWeight: 700, color: C.t1 }}>{conn.label}</span>
+              <div key={i} className={s.connCard}>
+                <div className={s.connHeader}>
+                  <span className={s.connIcon}>{conn.icon}</span>
+                  <span className={s.connLabel}>{conn.label}</span>
                 </div>
-                <div style={{ color: C.t3, fontSize: 9 }}>{conn.hint}</div>
+                <div className={s.connHint}>{conn.hint}</div>
               </div>
             ))}
           </div>
 
           {/* Drop zone */}
           <div
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragOver(true);
-            }}
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={onDrop}
             onClick={() => fileRef.current?.click()}
-            style={{
-              border: `2px dashed ${dragOver ? C.b : C.bd}`,
-              borderRadius: 12,
-              padding: '48px 24px',
-              textAlign: 'center',
-              cursor: 'pointer',
-              background: dragOver ? C.b + '08' : 'transparent',
-              transition: 'all 0.15s',
-            }}
+            className={s.dropZone}
+            data-active={dragOver ? 'true' : undefined}
           >
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".csv,.tsv,.txt"
-              style={{ display: 'none' }}
-              onChange={(e) => processFile(e.target.files[0])}
-            />
+            <input ref={fileRef} type="file" accept=".csv,.tsv,.txt" style={{ display: 'none' }}
+              onChange={(e) => processFile(e.target.files[0])} />
             <div className={s.s1}>📁</div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: C.t1, marginBottom: 4 }}>
-              Drop CSV file here or click to browse
-            </div>
-            <div style={{ fontSize: 11, color: C.t3, fontFamily: M }}>
-              Supports .csv, .tsv, .txt · Auto-detects delimiters and headers
-            </div>
+            <div className={s.dropInstruction}>Drop CSV file here or click to browse</div>
+            <div className={s.dropHint}>Supports .csv, .tsv, .txt · Auto-detects delimiters and headers</div>
           </div>
         </div>
       )}
@@ -187,51 +145,33 @@ function CSVImportModal({ isOpen, onClose }) {
       {stage === 'preview' && result && (
         <div>
           {/* File info bar */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '8px 12px',
-              background: C.sf,
-              borderRadius: 8,
-              marginBottom: 12,
-              fontSize: 11,
-            }}
-          >
-            <span style={{ color: C.t2, fontFamily: M }}>{fileName}</span>
+          <div className={s.fileBar}>
+            <span className={s.fileName}>{fileName}</span>
             <div className={s.s2}>
-              <span style={{ color: C.g }}>{result.valid} valid</span>
-              {result.warnings > 0 && <span style={{ color: C.y }}>{result.warnings} warnings</span>}
-              {result.errors > 0 && <span style={{ color: C.r }}>{result.errors} errors</span>}
-              {result.duplicates > 0 && <span style={{ color: C.t3 }}>{result.duplicates} dupes</span>}
-              <span style={{ color: totalPnl >= 0 ? C.g : C.r, fontWeight: 700 }}>{fmtD(totalPnl)}</span>
+              <span className={s.countGreen}>{result.valid} valid</span>
+              {result.warnings > 0 && <span className={s.countYellow}>{result.warnings} warnings</span>}
+              {result.errors > 0 && <span className={s.countRed}>{result.errors} errors</span>}
+              {result.duplicates > 0 && <span className={s.countMuted}>{result.duplicates} dupes</span>}
+              <span className={s.pnlValue} style={{ color: totalPnl >= 0 ? C.g : C.r }}>{fmtD(totalPnl)}</span>
             </div>
           </div>
 
           {/* Broker detection badge */}
           {result.broker && (
             <div
+              className={s.brokerBadge}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '6px 12px',
                 background: result.broker.broker ? C.b + '10' : C.sf,
                 border: `1px solid ${result.broker.broker ? C.b + '30' : C.bd}`,
-                borderRadius: 6,
-                marginBottom: 12,
-                fontSize: 11,
-                color: C.t2,
               }}
             >
               {(() => {
                 const badge = brokerBadge(result.broker);
                 return (
                   <>
-                    <span style={{ fontSize: 14 }}>{badge.icon}</span>
-                    <span style={{ fontWeight: 700, color: C.t1 }}>{badge.label}</span>
-                    <span style={{ fontSize: 10, color: C.t3 }}>{badge.detail}</span>
+                    <span className={s.badgeIcon}>{badge.icon}</span>
+                    <span className={s.badgeLabel}>{badge.label}</span>
+                    <span className={s.badgeDetail}>{badge.detail}</span>
                   </>
                 );
               })()}
@@ -239,32 +179,8 @@ function CSVImportModal({ isOpen, onClose }) {
           )}
 
           {/* Preview table */}
-          <div
-            style={{
-              maxHeight: 300,
-              overflowY: 'auto',
-              border: `1px solid ${C.bd}`,
-              borderRadius: 8,
-              marginBottom: 12,
-            }}
-          >
-            {/* Header */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '28px 65px 55px 1fr 80px 70px',
-                padding: '8px 10px',
-                background: C.bg2,
-                borderBottom: `1px solid ${C.bd}`,
-                fontSize: 9,
-                fontWeight: 700,
-                color: C.t3,
-                textTransform: 'uppercase',
-                fontFamily: M,
-                position: 'sticky',
-                top: 0,
-              }}
-            >
+          <div className={s.tableWrap}>
+            <div className={s.tableHeader}>
               <div>#</div>
               <div>Symbol</div>
               <div>Side</div>
@@ -273,46 +189,25 @@ function CSVImportModal({ isOpen, onClose }) {
               <div>Date</div>
             </div>
 
-            {/* Rows */}
             {result.trades.map((t, i) => (
-              <div
-                key={i}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '28px 65px 55px 1fr 80px 70px',
-                  padding: '6px 10px',
-                  borderBottom: `1px solid ${C.bd}50`,
-                  fontSize: 11,
-                }}
-              >
-                <div style={{ color: C.t3, fontFamily: M, fontSize: 9 }}>{i + 1}</div>
-                <div style={{ fontWeight: 700, color: C.t1 }}>{t.symbol || '—'}</div>
-                <div
-                  style={{
-                    color: t.side === 'long' ? C.g : C.r,
-                    fontSize: 10,
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                  }}
-                >
+              <div key={i} className={s.tableRow}>
+                <div className={s.cellNum}>{i + 1}</div>
+                <div className={s.cellSymbol}>{t.symbol || '—'}</div>
+                <div className={s.cellSide} style={{ color: t.side === 'long' ? C.g : C.r }}>
                   {t.side || '—'}
                 </div>
-                <div style={{ color: C.t2, fontSize: 10 }}>{t.playbook || '—'}</div>
-                <div
-                  style={{ textAlign: 'right', fontFamily: M, fontWeight: 700, color: (t.pnl || 0) >= 0 ? C.g : C.r }}
-                >
+                <div className={s.cellStrategy}>{t.playbook || '—'}</div>
+                <div className={s.cellPnl} style={{ color: (t.pnl || 0) >= 0 ? C.g : C.r }}>
                   {fmtD(t.pnl)}
                 </div>
-                <div style={{ fontSize: 9, color: C.t3, fontFamily: M }}>
+                <div className={s.cellDate}>
                   {t.date ? new Date(t.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '—'}
                 </div>
               </div>
             ))}
 
             {result.trades.length === 0 && (
-              <div style={{ padding: 24, textAlign: 'center', color: C.t3, fontSize: 12 }}>
-                No valid trades found in this file.
-              </div>
+              <div className={s.emptyState}>No valid trades found in this file.</div>
             )}
           </div>
 
@@ -320,20 +215,17 @@ function CSVImportModal({ isOpen, onClose }) {
           {result.issues.length > 0 && (
             <div className={s.s3}>
               {result.issues.slice(0, 10).map((issue, i) => (
-                <div key={i} style={{ fontSize: 10, color: C.y, fontFamily: M, padding: '2px 0' }}>
-                  ⚠ {issue}
-                </div>
+                <div key={i} className={s.issueLine}>⚠ {issue}</div>
               ))}
               {result.issues.length > 10 && (
-                <div style={{ fontSize: 10, color: C.t3, fontFamily: M }}>...and {result.issues.length - 10} more</div>
+                <div className={s.issueMore}>...and {result.issues.length - 10} more</div>
               )}
             </div>
           )}
 
           {/* ─── Reconciliation Panel ──────────────────── */}
           {recon && recon.summary.total > 0 && (
-            <div style={{ marginBottom: 12 }}>
-              {/* Header bar — clickable to expand/collapse */}
+            <div className={s.reconWrap}>
               <div
                 onClick={() => setReconOpen(!reconOpen)}
                 style={{
@@ -351,72 +243,44 @@ function CSVImportModal({ isOpen, onClose }) {
                 }}
               >
                 <div className={s.s4}>
-                  <span style={{ fontSize: 14 }}>
+                  <span className={s.reconIcon}>
                     {recon.summary.errors > 0 ? '🔴' : recon.summary.warnings > 0 ? '🟡' : '🔵'}
                   </span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: C.t1, fontFamily: F }}>
-                    Data Quality: Grade {recon.summary.grade}
-                  </span>
-                  <span style={{ fontSize: 10, color: C.t3, fontFamily: M }}>
-                    {recon.summary.completeness}% complete
-                  </span>
+                  <span className={s.reconTitle}>Data Quality: Grade {recon.summary.grade}</span>
+                  <span className={s.reconPct}>{recon.summary.completeness}% complete</span>
                 </div>
                 <div className={s.s5}>
                   {recon.summary.errors > 0 && (
-                    <span style={{ fontSize: 10, color: C.r, fontWeight: 700, fontFamily: M }}>
+                    <span className={s.reconCount} style={{ color: C.r }}>
                       {recon.summary.errors} error{recon.summary.errors !== 1 ? 's' : ''}
                     </span>
                   )}
                   {recon.summary.warnings > 0 && (
-                    <span style={{ fontSize: 10, color: C.y, fontWeight: 700, fontFamily: M }}>
+                    <span className={s.reconCount} style={{ color: C.y }}>
                       {recon.summary.warnings} warning{recon.summary.warnings !== 1 ? 's' : ''}
                     </span>
                   )}
                   {recon.summary.infos > 0 && (
-                    <span style={{ fontSize: 10, color: C.b, fontFamily: M }}>{recon.summary.infos} info</span>
+                    <span className={s.reconCountInfo} style={{ color: C.b }}>{recon.summary.infos} info</span>
                   )}
-                  <span
-                    style={{
-                      fontSize: 10,
-                      color: C.t3,
-                      transition: 'transform 0.15s',
-                      transform: reconOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                    }}
-                  >
-                    ▼
-                  </span>
+                  <span className={s.reconChevron} data-open={reconOpen ? 'true' : undefined}>▼</span>
                 </div>
               </div>
 
-              {/* Issue list — collapsible */}
               {reconOpen && (
-                <div
-                  style={{
-                    maxHeight: 180,
-                    overflowY: 'auto',
-                    border: `1px solid ${C.bd}`,
-                    borderTop: 'none',
-                    borderRadius: '0 0 8px 8px',
-                    background: C.sf,
-                  }}
-                >
+                <div className={s.reconIssueList}>
                   {recon.issues.map((issue, i) => (
                     <div
                       key={i}
-                      style={{
-                        display: 'flex',
-                        gap: 8,
-                        padding: '6px 12px',
-                        borderBottom: i < recon.issues.length - 1 ? `1px solid ${C.bd}50` : 'none',
-                        alignItems: 'flex-start',
-                      }}
+                      className={s.reconIssueRow}
+                      style={{ borderBottom: i < recon.issues.length - 1 ? `1px solid ${C.bd}50` : 'none' }}
                     >
                       <span className={s.s6}>
                         {issue.severity === 'error' ? '🔴' : issue.severity === 'warning' ? '🟡' : '🔵'}
                       </span>
                       <div>
-                        <div style={{ fontSize: 10, color: C.t1, fontFamily: M, lineHeight: 1.4 }}>{issue.message}</div>
-                        <div style={{ fontSize: 9, color: C.t3, fontFamily: M, marginTop: 1 }}>
+                        <div className={s.reconIssueMsg}>{issue.message}</div>
+                        <div className={s.reconIssueCode}>
                           {issue.code.replace(/_/g, ' ').toLowerCase()}
                         </div>
                       </div>
@@ -429,22 +293,9 @@ function CSVImportModal({ isOpen, onClose }) {
 
           {/* Reconciliation: clean badge (no issues) */}
           {recon && recon.summary.total === 0 && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '8px 12px',
-                background: C.g + '12',
-                border: `1px solid ${C.g}30`,
-                borderRadius: 8,
-                marginBottom: 12,
-              }}
-            >
-              <span style={{ fontSize: 14 }}>✅</span>
-              <span style={{ fontSize: 11, fontWeight: 600, color: C.g, fontFamily: F }}>
-                Data quality check passed — no issues detected
-              </span>
+            <div className={s.cleanBadge}>
+              <span className={s.cleanIcon}>✅</span>
+              <span className={s.cleanLabel}>Data quality check passed — no issues detected</span>
             </div>
           )}
 
@@ -472,11 +323,11 @@ function CSVImportModal({ isOpen, onClose }) {
       {stage === 'done' && (
         <div className={s.s8}>
           <div className={s.s9}>✅</div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: C.t1, marginBottom: 4 }}>
+          <div className={s.doneTitle}>
             Imported {importCount} trade{importCount !== 1 ? 's' : ''}
           </div>
-          <div style={{ fontSize: 12, color: C.t3, marginBottom: 20, fontFamily: M }}>
-            Total P&L: <span style={{ color: totalPnl >= 0 ? C.g : C.r, fontWeight: 700 }}>{fmtD(totalPnl)}</span>
+          <div className={s.doneSummary}>
+            Total P&L: <span className={s.donePnl} style={{ color: totalPnl >= 0 ? C.g : C.r }}>{fmtD(totalPnl)}</span>
             {result && result.duplicates > 0 && <span> · {result.duplicates} duplicates skipped</span>}
             {result && result.errors > 0 && <span> · {result.errors} errors skipped</span>}
             {recon && <span> · Data quality: Grade {recon.summary.grade}</span>}

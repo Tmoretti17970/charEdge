@@ -6,8 +6,9 @@
 
 import React from 'react';
 import { useState, useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
+import st from './ConfluenceView.module.css';
 
 const TIMEFRAMES = ['5m', '15m', '1H', '4H', '1D', '1W'];
 
@@ -61,7 +62,7 @@ function ConfluenceView() {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 18 }}>🔭</span>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
             Multi-Timeframe Confluence
           </h3>
           <span
@@ -72,7 +73,7 @@ function ConfluenceView() {
               background: alpha(C.g, 0.1),
               padding: '2px 7px',
               borderRadius: 4,
-              fontFamily: M,
+              fontFamily: 'var(--tf-mono)',
             }}
           >
             {highConfCount} high confluence
@@ -106,7 +107,7 @@ function ConfluenceView() {
                 cursor: 'pointer',
                 fontSize: 11,
                 fontWeight: 600,
-                fontFamily: F,
+                fontFamily: 'var(--tf-font)',
               }}
             >
               📋 All Symbols
@@ -123,7 +124,7 @@ function ConfluenceView() {
                 cursor: 'pointer',
                 fontSize: 11,
                 fontWeight: 600,
-                fontFamily: F,
+                fontFamily: 'var(--tf-font)',
               }}
             >
               🎯 High Confluence Only (70%+)
@@ -140,7 +141,7 @@ function ConfluenceView() {
               fontSize: 9,
               fontWeight: 700,
               color: C.t3,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
               textTransform: 'uppercase',
             }}
           >
@@ -169,12 +170,12 @@ function ConfluenceView() {
                   border: `1px solid ${item.score >= 70 ? alpha(C.g, 0.15) : alpha(C.bd, 0.3)}`,
                 }}
               >
-                <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: F }}>{item.symbol}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>{item.symbol}</span>
                 {TIMEFRAMES.map((tf) => {
                   const sig = item.signals[tf];
                   return (
                     <div key={tf} style={{ textAlign: 'center' }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: getSignalColor(sig), fontFamily: M }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: getSignalColor(sig), fontFamily: 'var(--tf-mono)' }}>
                         {SIGNAL_ICONS[sig]}
                       </span>
                     </div>
@@ -185,7 +186,7 @@ function ConfluenceView() {
                     style={{
                       fontSize: 14,
                       fontWeight: 700,
-                      fontFamily: M,
+                      fontFamily: 'var(--tf-mono)',
                       color: item.score >= 70 ? C.g : item.score >= 50 ? C.y : C.r,
                       background: alpha(item.score >= 70 ? C.g : item.score >= 50 ? C.y : C.r, 0.08),
                       padding: '2px 8px',
@@ -207,8 +208,8 @@ function ConfluenceView() {
               ['neutral', 'Neutral'],
             ].map(([key, label]) => (
               <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 11, color: getSignalColor(key), fontFamily: M }}>{SIGNAL_ICONS[key]}</span>
-                <span style={{ fontSize: 9, color: C.t3, fontFamily: F, textTransform: 'capitalize' }}>{label}</span>
+                <span style={{ fontSize: 11, color: getSignalColor(key), fontFamily: 'var(--tf-mono)' }}>{SIGNAL_ICONS[key]}</span>
+                <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)', textTransform: 'capitalize' }}>{label}</span>
               </div>
             ))}
           </div>

@@ -485,13 +485,23 @@ describe('Dead code & logger fix', () => {
   });
 });
 
-describe('useWebSocket — array optimization', () => {
-  it('uses spread [...currentData] for open candle updates', () => {
+describe('ADR-001 chart data authority guardrails', () => {
+  it('useWebSocket does not write bars via store.setData', () => {
     const source = readSource('data/useWebSocket.js');
-    const openCandleSection = source.slice(
-      source.indexOf('Candle still open'),
-      source.indexOf('liveBarRef.current !== candle.time')
-    );
-    expect(openCandleSection).toContain('[...currentData]');
+    expect(source).not.toContain('setData(');
+    expect(source).toContain('No-op: canonical bar updates flow through DatafeedService + TickChannel.');
+  });
+
+  it('useChartDataLoader uses metadata-only updates (setDataMeta)', () => {
+    const source = readSource('pages/charts/useChartDataLoader.js');
+    expect(source).toContain('setDataMeta(');
+    expect(source).not.toContain('.setData(newData');
+    expect(source).not.toContain(".setData([], 'none')");
+  });
+
+  it('ChartCanvas compat wrapper does not write legacy bar data', () => {
+    const source = readSource('app/components/chart/core/ChartCanvas.jsx');
+    expect(source).not.toContain("setData(data, 'legacy')");
+    expect(source).toContain('this compat wrapper no longer writes chart bars');
   });
 });

@@ -1,0 +1,54 @@
+/* NoDataState — CSS Module (Sprint 23) */
+
+.root {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  text-align: center;
+  padding: 32px;
+  background: radial-gradient(circle at center, color-mix(in srgb, var(--tf-sf) 50%, transparent) 0%, transparent 70%);
+}
+.iconBox {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: var(--tf-sf2);
+  border: 1px solid var(--tf-bd);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+.textBlock { display: flex; flex-direction: column; gap: 6px; }
+.title { font-size: 16px; font-weight: 700; color: var(--tf-t1); font-family: var(--tf-font-mono); letter-spacing: -0.02em; }
+.symbol { font-size: 12px; font-weight: 600; color: var(--tf-accent); font-family: var(--tf-font-mono); }
+.desc { font-size: 12px; line-height: 1.5; max-width: 280px; opacity: 0.8; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tf-yellow) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tf-yellow) 18%, transparent);
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--tf-font-mono);
+  color: var(--tf-yellow);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.pulseDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tf-yellow);
+  animation: pulse 2s ease-in-out infinite;
+}

@@ -4,7 +4,7 @@
 // charEdge's Forge palette.
 // ═══════════════════════════════════════════════════════════════════
 
-import { C, F } from '../../../constants.js';
+import { C } from '../../../constants.js';
 
 const THEME_OVERRIDES = `
   .flexlayout__layout {
@@ -24,7 +24,7 @@ const THEME_OVERRIDES = `
     --color-tabset-background: ${C.bg2};
     --color-tabset-header-background: ${C.bg};
     --color-tabset-background-selected: ${C.bg};
-    --font-family: ${F};
+    --font-family: var(--tf-font);
     --font-size: 12px;
   }
   .flexlayout__tab_button--selected {
@@ -33,7 +33,7 @@ const THEME_OVERRIDES = `
   }
   .flexlayout__tab_button {
     color: ${C.t3} !important;
-    font-family: ${F} !important;
+    font-family: var(--tf-font) !important;
     font-size: 12px !important;
   }
   .flexlayout__tab_button:hover {

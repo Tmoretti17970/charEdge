@@ -1,0 +1,66 @@
+/* PipelineDashboard — CSS Module */
+.card { padding: var(--sp-4); margin-top: var(--sp-3); }
+.toggleBtn {
+  all: unset; cursor: pointer; display: flex; align-items: center;
+  justify-content: space-between; width: 100%;
+}
+.toggleLeft { display: flex; align-items: center; gap: var(--sp-2); }
+.toggleIcon { font-size: 14px; }
+.toggleTitle { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--tf-t1); }
+.toggleSub { font-size: var(--fs-2xs); color: var(--tf-t3); font-family: var(--tf-mono); }
+.chevron { font-size: var(--fs-2xs); color: var(--tf-t3); transition: transform 0.2s ease; }
+.chevronOpen { transform: rotate(180deg); }
+.content { margin-top: 14px; }
+
+/* DashSection */
+.dashSection { margin-bottom: 14px; }
+.dashSectionHeader {
+  font-size: var(--fs-2xs); font-weight: var(--fw-bold); color: var(--tf-t3);
+  text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: var(--sp-1_5);
+  display: flex; align-items: center; gap: var(--sp-1_5);
+}
+.dashSectionIcon { font-size: var(--fs-sm); }
+
+/* StatRow */
+.statRow {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 3px 0; font-size: var(--fs-2xs);
+}
+.statLabel { color: var(--tf-t3); }
+.statValue { font-weight: var(--fw-semibold); font-family: var(--tf-mono); }
+
+/* MiniBar */
+.miniBar {
+  width: 60px; height: 5px; border-radius: 3px;
+  background: var(--tf-sf2); overflow: hidden;
+  display: inline-block; margin-left: var(--sp-2); vertical-align: middle;
+}
+.miniBarFill { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
+
+/* Cache meta */
+.cacheMeta { display: flex; gap: var(--sp-3); margin-top: var(--sp-1); font-size: var(--fs-xs); color: var(--tf-t3); font-family: var(--tf-mono); }
+
+/* Provider row */
+.provRow { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; font-size: var(--fs-2xs); }
+.provName { color: var(--tf-t2); }
+.provRight { display: flex; align-items: center; gap: var(--sp-2); }
+.stateBadge {
+  display: inline-block; padding: 1px var(--sp-1_5);
+  border-radius: 3px; font-size: var(--fs-3xs); font-weight: var(--fw-bold); font-family: var(--tf-mono);
+}
+.stateMeta { font-size: var(--fs-3xs); color: var(--tf-t3); font-family: var(--tf-mono); }
+.apiValue { font-family: var(--tf-mono); color: var(--tf-t1); font-weight: var(--fw-semibold); }
+.rlPct { font-size: var(--fs-3xs); font-family: var(--tf-mono); }
+
+/* Latency */
+.latencyRow { display: flex; gap: var(--sp-4); font-size: var(--fs-2xs); font-family: var(--tf-mono); }
+.latencyLabel { color: var(--tf-t3); font-size: var(--fs-3xs); }
+.latencyValue { font-weight: var(--fw-bold); }
+
+/* Error budget */
+.budgetRate { font-family: var(--tf-mono); font-weight: var(--fw-semibold); }
+.budgetThreshold { font-size: var(--fs-3xs); color: var(--tf-t3); font-family: var(--tf-mono); }
+.budgetWarn { font-size: var(--fs-xs); color: #ef5350; }
+
+/* Loading */
+.loading { text-align: center; padding: var(--sp-4); font-size: var(--fs-2xs); color: var(--tf-t3); }

@@ -1,0 +1,115 @@
+/* ═══════════════════════════════════════════════════════════════════
+   PositionSizer — CSS Module (Sprint 23)
+   Migrated from 20 inline styles → token-based CSS classes.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Row ─── */
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+}
+.rowLabel {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  font-family: var(--tf-font-mono);
+}
+
+/* ─── Divider ─── */
+.divider {
+  height: 1px;
+  background: var(--tf-bd);
+  margin: 6px 0;
+}
+
+/* ─── Risk Mode Toggle ─── */
+.riskModeGroup {
+  display: flex;
+  gap: 2px;
+}
+.riskModeBtn {
+  flex: 1;
+  padding: 3px 0;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: var(--tf-font-mono);
+  transition: all 0.12s;
+  border: 1px solid var(--tf-bd);
+  background: transparent;
+  color: var(--tf-t3);
+}
+.riskModeBtn[data-active="true"] {
+  border-color: var(--tf-accent);
+  background: color-mix(in srgb, var(--tf-accent) 8%, transparent);
+  color: var(--tf-accent);
+}
+
+/* ─── Computed Values ─── */
+.riskValue {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tf-red);
+  font-family: var(--tf-font-mono);
+}
+.positionSize {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--tf-t1);
+  font-family: var(--tf-font-mono);
+}
+.notionalValue {
+  font-size: 10px;
+  color: var(--tf-t2);
+  font-family: var(--tf-font-mono);
+}
+.riskPerShare {
+  font-size: 10px;
+  color: var(--tf-red);
+  font-family: var(--tf-font-mono);
+}
+.rrRatio {
+  font-size: 13px;
+  font-weight: 800;
+  font-family: var(--tf-font-mono);
+}
+.rrRatio[data-quality="good"]     { color: var(--tf-green); }
+.rrRatio[data-quality="neutral"]  { color: var(--tf-yellow); }
+.rrRatio[data-quality="bad"]      { color: var(--tf-red); }
+
+/* ─── Level Display ─── */
+.levelValue {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--tf-font-mono);
+}
+.levelValue[data-empty="true"] {
+  color: var(--tf-t3);
+}
+
+/* ─── Number Input ─── */
+.numberInputWrap {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.numberInputAffix {
+  font-size: 9px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font-mono);
+}
+.numberInput {
+  width: 70px;
+  padding: 2px 6px;
+  font-size: 10px;
+  border-radius: 3px;
+  border: 1px solid var(--tf-bd);
+  background: var(--tf-sf);
+  color: var(--tf-t1);
+  font-family: var(--tf-font-mono);
+  outline: none;
+  text-align: right;
+}

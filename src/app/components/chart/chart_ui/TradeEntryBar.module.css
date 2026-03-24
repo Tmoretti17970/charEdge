@@ -1,0 +1,139 @@
+/* TradeEntryBar — CSS Module (Sprint 23) */
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  background: var(--tf-bg2);
+  border-bottom: 1px solid var(--tf-bd);
+  flex-wrap: wrap;
+  min-height: 36px;
+}
+
+/* Side toggle */
+.sideGroup { display: flex; gap: 2px; }
+.sideBtn {
+  padding: 3px 10px;
+  font-size: 9px;
+  font-weight: 800;
+  border-radius: 4px;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-family: var(--tf-font-mono);
+  border: 1px solid var(--tf-bd);
+  background: transparent;
+  color: var(--tf-t3);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.12s;
+}
+.sideBtn[data-active="true"][data-side="long"] {
+  border-color: var(--tf-green);
+  background: color-mix(in srgb, var(--tf-green) 8%, transparent);
+  color: var(--tf-green);
+}
+.sideBtn[data-active="true"][data-side="short"] {
+  border-color: var(--tf-red);
+  background: color-mix(in srgb, var(--tf-red) 8%, transparent);
+  color: var(--tf-red);
+}
+
+.divider { width: 1px; height: 20px; background: var(--tf-bd); }
+
+/* Step indicators */
+.stepChip {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: transparent;
+  border: 1px solid transparent;
+}
+.stepChip[data-state="current"] {
+  background: color-mix(in srgb, var(--tf-accent) 8%, transparent);
+  border-color: color-mix(in srgb, var(--tf-accent) 25%, transparent);
+}
+.stepChip[data-state="done"] {
+  background: color-mix(in srgb, var(--tf-green) 5%, transparent);
+  border-color: color-mix(in srgb, var(--tf-green) 12%, transparent);
+}
+.stepIcon { font-size: 10px; }
+.stepLabel {
+  font-size: 9px;
+  font-weight: 600;
+  font-family: var(--tf-font-mono);
+  color: var(--tf-t3);
+}
+.stepLabel[data-state="current"] { color: var(--tf-accent); }
+.stepLabel[data-state="done"]    { color: var(--tf-green); }
+
+/* Level chips */
+.levelChip {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--tf-font-mono);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.levelChip[data-has-value="true"] {
+  background: color-mix(in srgb, var(--level-color) 7%, transparent);
+  color: var(--level-color);
+}
+.levelChip[data-has-value="false"] {
+  background: transparent;
+  color: var(--tf-t3);
+}
+
+/* R:R ratio */
+.rrValue {
+  font-size: 12px;
+  font-weight: 800;
+  font-family: var(--tf-font-mono);
+}
+.rrValue[data-quality="good"]    { color: var(--tf-green); }
+.rrValue[data-quality="neutral"] { color: var(--tf-yellow); }
+.rrValue[data-quality="bad"]     { color: var(--tf-red); }
+
+/* Position info */
+.posInfo {
+  font-size: 9px;
+  font-weight: 600;
+  font-family: var(--tf-font-mono);
+  color: var(--tf-t2);
+}
+.spacer { flex: 1; }
+
+/* Instruction hint */
+.hint {
+  font-size: 9px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font-mono);
+  font-style: italic;
+}
+
+/* Skip / Cancel buttons */
+.skipBtn {
+  padding: 2px 8px;
+  font-size: 9px;
+  font-weight: 600;
+  border-radius: 3px;
+  border: 1px solid var(--tf-bd);
+  background: transparent;
+  color: var(--tf-t3);
+  cursor: pointer;
+  font-family: var(--tf-font-mono);
+}
+.cancelBtn {
+  padding: 3px 10px;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--tf-red) 18%, transparent);
+  background: color-mix(in srgb, var(--tf-red) 6%, transparent);
+  color: var(--tf-red);
+  cursor: pointer;
+  font-family: var(--tf-font-mono);
+}

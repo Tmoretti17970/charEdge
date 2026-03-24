@@ -5,7 +5,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { C, F, M } from '@/constants.js';
+import { C } from '@/constants.js';
+import st from './ModelCTA.module.css';
 
 export default function ModelCTA({ onDownload, onDismiss, loading, progress }) {
   return (
@@ -16,7 +17,7 @@ export default function ModelCTA({ onDownload, onDismiss, loading, progress }) {
       animation: 'copilotInlineMsgIn 0.3s ease forwards',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: C.t1, fontFamily: F }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
           ✨ Want smarter answers?
         </div>
         <button
@@ -26,11 +27,11 @@ export default function ModelCTA({ onDownload, onDismiss, loading, progress }) {
           ✕
         </button>
       </div>
-      <div style={{ fontSize: 10, color: C.t2, fontFamily: F, marginBottom: 8, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 10, color: C.t2, fontFamily: 'var(--tf-font)', marginBottom: 8, lineHeight: 1.5 }}>
         Download SmolLM2 (80MB) for in-browser AI. Runs locally, no API key needed.
       </div>
       {loading ? (
-        <div style={{ fontSize: 9, color: C.b, fontFamily: M }}>
+        <div style={{ fontSize: 9, color: C.b, fontFamily: 'var(--tf-mono)' }}>
           {progress || 'Downloading…'}
         </div>
       ) : (
@@ -41,7 +42,7 @@ export default function ModelCTA({ onDownload, onDismiss, loading, progress }) {
             padding: '5px 14px', borderRadius: 6,
             border: 'none',
             background: `linear-gradient(135deg, ${C.b}, ${C.bH})`,
-            color: '#fff', fontSize: 10, fontWeight: 600, fontFamily: F,
+            color: '#fff', fontSize: 10, fontWeight: 600, fontFamily: 'var(--tf-font)',
             cursor: 'pointer', transition: 'all 0.15s ease',
           }}
         >

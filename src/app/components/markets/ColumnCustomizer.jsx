@@ -11,9 +11,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef, memo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useMarketsPrefsStore, ALL_COLUMNS, DEFAULT_COLUMNS } from '../../../state/useMarketsPrefsStore';
 import { radii, transition, zIndex } from '../../../theme/tokens.js';
+import st from './ColumnCustomizer.module.css';
 
 function ColumnCustomizer() {
   const [isOpen, setIsOpen] = useState(false);
@@ -87,7 +88,7 @@ function ColumnCustomizer() {
               fontSize: 11,
               fontWeight: 700,
               color: C.t3,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
               borderBottom: `1px solid ${C.bd}30`,
@@ -106,7 +107,7 @@ function ColumnCustomizer() {
                   color: C.b,
                   fontSize: 9,
                   fontWeight: 700,
-                  fontFamily: M,
+                  fontFamily: 'var(--tf-mono)',
                   cursor: 'pointer',
                   textTransform: 'uppercase',
                 }}
@@ -164,7 +165,7 @@ function ColumnCustomizer() {
                     fontSize: 12,
                     fontWeight: 500,
                     color: C.t1,
-                    fontFamily: F,
+                    fontFamily: 'var(--tf-font)',
                   }}
                 >
                   {col.label}

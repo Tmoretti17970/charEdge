@@ -34,11 +34,11 @@ import { reportError } from '@/shared/globalErrorHandler';
 export default function useChartDataLoader() {
   const symbol = useChartCoreStore((s) => s.symbol);
   const tf = useChartCoreStore((s) => s.tf);
-  const data = useChartCoreStore((s) => s.data);
   const setSymbol = useChartCoreStore((s) => s.setSymbol);
   const historyLoading = useChartCoreStore((s) => s.historyLoading);
   const historyExhausted = useChartCoreStore((s) => s.historyExhausted);
   const _oldestTime = useChartCoreStore((s) => s.oldestTime);
+  const barCount = useChartCoreStore((s) => s.barCount);
 
   const [dataWarning, setDataWarning] = useState(null);
 
@@ -46,15 +46,15 @@ export default function useChartDataLoader() {
   const ttiMountRef = useRef(performance.now());
   const ttiReportedRef = useRef(false);
   useEffect(() => {
-    if (data?.length > 0 && !ttiReportedRef.current) {
+    if (barCount > 0 && !ttiReportedRef.current) {
       ttiReportedRef.current = true;
       const tti = Math.round(performance.now() - ttiMountRef.current);
       if (import.meta.env?.DEV) {
-        logger.ui.info(`[charEdge] TTI: ${tti}ms (${data.length} bars)`);
+        logger.ui.info(`[charEdge] TTI: ${tti}ms (${barCount} bars)`);
       }
       if (typeof window !== 'undefined') window.__charEdge_tti = tti;
     }
-  }, [data]);
+  }, [barCount]);
 
   const watchlistItems = useWatchlistStore((s) => s.items);
   const watchlistSymbols = useMemo(() => watchlistItems.map((i) => i.symbol), [watchlistItems]);
@@ -149,7 +149,13 @@ export default function useChartDataLoader() {
             symbolSwitchTracker.record(durationMs, { symbol, source: `${tier}:${source}` });
             try { track('symbol_switch', { symbol, durationMs, source: tier, provider: source }); } catch (_) { /* */ }
           }
-          useChartCoreStore.getState().setData(newData, source);
+          // ADR-001 Phase B: loader no longer writes canonical bars.
+          // It only updates metadata while DatafeedService/ChartEngineWidget own bar data.
+          useChartCoreStore.getState().setDataMeta(
+            newData?.length ?? 0,
+            source,
+            newData?.[0]?.time ?? null
+          );
           if (newData?.length > 0) {
             const last = newData[newData.length - 1].close;
             if (last != null) queueMicrotask(() => checkSymbolAlerts(symbol, last));
@@ -164,7 +170,9 @@ export default function useChartDataLoader() {
           if (cancelled || err?.name === 'AbortError') return;
           reportError(err, { source: 'ChartDataLoader.fetchOHLC' });
           // Phase 0.4: Show empty state instead of fake simulated data
-          useChartCoreStore.getState().setData([], 'none');
+          // ADR-001 Phase B: metadata-only fallback state.
+          useChartCoreStore.getState().setDataMeta(0, 'none', null);
+          useChartCoreStore.getState().setLoading(false);
           setDataWarning(`Could not load data for ${symbol}. Check your connection or try a different symbol.`);
         });
     }, 10);
@@ -267,8 +275,20 @@ export default function useChartDataLoader() {
         await timeSeriesStore.init();
 
         // Look back 3× viewport duration (matches DataWindow lookahead=3)
-        const viewportDuration = (state.data?.[state.data.length - 1]?.time ?? oldest) - (state.data?.[0]?.time ?? oldest);
-        const lookbackMs = Math.max(viewportDuration * 3, 86_400_000); // at least 1 day
+        // ADR-001 Phase B: do not depend on store.data (bars are canonical in DatafeedService).
+        const TF_MS = {
+          '1m': 60_000,
+          '3m': 180_000,
+          '5m': 300_000,
+          '15m': 900_000,
+          '30m': 1_800_000,
+          '1h': 3_600_000,
+          '4h': 14_400_000,
+          '1D': 86_400_000,
+          '1W': 604_800_000,
+        };
+        const barMs = TF_MS[tf] || 3_600_000;
+        const lookbackMs = Math.max(barMs * 500, 86_400_000); // roughly 500 bars, at least 1 day
         const startT = oldest - lookbackMs;
 
         const cachedBars = await timeSeriesStore.read(symbol, tf, startT, oldest - 1);
@@ -344,7 +364,7 @@ export default function useChartDataLoader() {
   }, [symbol, tf]);
   useEffect(() => {
     const state = useChartCoreStore.getState();
-    if (!state.data?.length || adjacentPrefetchedRef.current.has(`${symbol}:${tf}`)) return;
+    if (!(state.barCount > 0) || adjacentPrefetchedRef.current.has(`${symbol}:${tf}`)) return;
 
     const ADJACENT_TFS = {
       '1m': ['5m'], '5m': ['15m', '1m'], '15m': ['1h', '5m'],

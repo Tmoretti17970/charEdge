@@ -1,0 +1,15 @@
+/* AutoBackupScheduler — CSS Module */
+.cardPad { padding: var(--sp-5); margin-bottom: var(--sp-3); }
+.header { display: flex; align-items: center; justify-content: space-between; }
+.title { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--tf-t1); font-family: var(--tf-font); }
+.subtitle { font-size: var(--fs-2xs); color: var(--tf-t3); font-family: var(--tf-font); }
+.toggleTrack { width: 46px; height: 26px; border-radius: 13px; position: relative; border: none; cursor: pointer; transition: background var(--dur-normal); }
+.toggleKnob { width: 20px; height: 20px; border-radius: 50%; background: #fff; position: absolute; top: 3px; transition: left var(--dur-normal); box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+.optionBlock { margin-bottom: var(--sp-3); }
+.optionLabel { font-size: var(--fs-2xs); font-weight: var(--fw-semibold); color: var(--tf-t3); font-family: var(--tf-font); margin-bottom: var(--sp-1_5); }
+.optionRow { display: flex; gap: var(--sp-1_5); }
+.optionBtn {
+  flex: 1; padding: var(--sp-1_5) var(--sp-2); border-radius: var(--br-sm);
+  font-size: var(--fs-2xs); font-weight: var(--fw-semibold); font-family: var(--tf-font);
+  cursor: pointer; transition: all var(--dur-normal);
+}

@@ -1,0 +1,51 @@
+/* AICopilotBar — CSS Module (Sprint 23) */
+
+.root {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  max-width: 90%;
+  z-index: 9999;
+  background: var(--tf-bg);
+  border: 1px solid var(--tf-bd);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: scaleInSm 0.2s ease-out;
+}
+.form { display: flex; align-items: center; padding: 12px 16px; gap: 12px; }
+.input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--tf-t1);
+  font-family: var(--tf-font);
+  font-size: 16px;
+  outline: none;
+}
+.feedback { flex: 1; font-family: var(--tf-font); font-size: 16px; }
+.feedback[data-type="error"] { color: var(--tf-red); }
+.feedback[data-type="success"] { color: var(--tf-green); }
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--tf-bd);
+  border-top-color: var(--tf-accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.footer {
+  padding: 8px 16px;
+  background: var(--tf-sf2);
+  border-top: 1px solid var(--tf-bd);
+  font-size: 12px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  display: flex;
+  justify-content: space-between;
+}
+.escKbd { background: var(--tf-bd); padding: 2px 6px; border-radius: 4px; margin-right: 4px; }

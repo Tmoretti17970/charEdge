@@ -85,7 +85,7 @@ export default function DrawingToolSelector({ open, onClose, activeTool, setActi
       {/* ─── Search ─── */}
       <div className={s.searchWrap}>
         <div className={s.searchBar}>
-          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.5, flexShrink: 0, color: 'var(--tf-t3)' }}>
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" className={s.searchSvg}>
             <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.3" />
             <line x1="9.5" y1="9.5" x2="13" y2="13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
           </svg>
@@ -151,7 +151,7 @@ export default function DrawingToolSelector({ open, onClose, activeTool, setActi
       {/* ─── Sticky Mode Toggle ─── */}
       <div className={s.stickyFooter}>
         <span className={s.stickyLabel}>
-          <svg width="11" height="11" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.5 }}>
+          <svg width="11" height="11" viewBox="0 0 14 14" fill="none" className={s.stickySvg}>
             <rect x="4" y="1" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.2" fill="none" />
             <path d="M4 5H2.5A1.5 1.5 0 001 6.5v5A1.5 1.5 0 002.5 13h5a1.5 1.5 0 001.5-1.5V10" stroke="currentColor" strokeWidth="1.2" fill="none" />
           </svg>
@@ -174,7 +174,7 @@ function TierSection({ title, badge, children, open, onToggle, alwaysOpen }) {
       <button
         onClick={alwaysOpen ? undefined : onToggle}
         className={s.tierHeader}
-        style={{ cursor: alwaysOpen ? 'default' : 'pointer' }}
+        data-always-open={alwaysOpen ? 'true' : undefined}
       >
         {!alwaysOpen && (
           <span className={s.tierArrow} data-open={isOpen || undefined}>▸</span>

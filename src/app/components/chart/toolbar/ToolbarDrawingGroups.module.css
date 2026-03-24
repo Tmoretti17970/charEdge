@@ -79,3 +79,54 @@
     width: 18px;
   }
 }
+
+/* ─── Inline style migration ─── */
+.expandBtn { color: var(--tf-t3); }
+.expandBtn:hover { color: var(--tf-t1); }
+.checkMark { color: var(--tf-accent); }
+.magnetWrap { position: relative; }
+.toolbarBtnPad { padding: 4px 6px; }
+.magnetIcon {
+  display: block;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.magnetIcon[data-active="true"] {
+  filter: drop-shadow(0 0 4px rgba(41, 98, 255, 0.5));
+}
+.magnetPopover {
+  position: absolute;
+  left: 100%;
+  top: -4px;
+  margin-left: 6px;
+  background: rgba(24, 26, 32, 0.97);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 6px 0;
+  z-index: 9999;
+  min-width: 140px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  animation: scaleInSm 0.12s ease-out;
+}
+.popoverItem {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 7px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  text-align: left;
+}
+.popoverItem[data-active="true"] {
+  color: #2962FF;
+  font-weight: 600;
+}
+.popoverItem:not([data-active="true"]) {
+  color: #D1D4DC;
+  font-weight: 400;
+}
+.popoverItem:hover { background: rgba(41, 98, 255, 0.12); }
+.popoverCheck { margin-right: 8px; }

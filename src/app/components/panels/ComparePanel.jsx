@@ -38,40 +38,19 @@ function ComparePanel({ trades = [] }) {
   const [tab, setTab] = useState('compare');
 
   return (
-    <div
-      style={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        background: C.bg,
-        fontFamily: F,
-        color: C.t2,
-        overflow: 'hidden',
-      }}
-    >
+    <div className={s.panelRoot}>
       {/* Tab bar */}
-      <div style={{ display: 'flex', borderBottom: `1px solid ${C.bd}`, flexShrink: 0 }}>
+      <div className={s.tabBar}>
         {[
           { id: 'compare', label: '📊 Compare' },
           { id: 'goals', label: '🎯 Goals' },
           { id: 'equity', label: '📈 Equity' },
         ].map((t) => (
           <button
-            className="tf-btn"
+            className={`tf-btn ${s.tabBtn}`}
             key={t.id}
             onClick={() => setTab(t.id)}
-            style={{
-              flex: 1,
-              padding: '8px 4px',
-              background: tab === t.id ? C.bg : C.bg2,
-              border: 'none',
-              borderBottom: tab === t.id ? `2px solid ${C.b}` : '2px solid transparent',
-              color: tab === t.id ? C.t1 : C.t3,
-              fontSize: 12,
-              fontWeight: 600,
-              fontFamily: F,
-              cursor: 'pointer',
-            }}
+            data-active={tab === t.id ? 'true' : undefined}
           >
             {t.label}
           </button>
@@ -128,25 +107,15 @@ function CompareTab({ trades }) {
   ];
 
   return (
-    <div style={{ padding: 10 }}>
+    <div className={s.padded}>
       {/* Period selector */}
       <div className={s.s1}>
         {PERIOD_OPTIONS.map((p) => (
           <button
-            className="tf-btn"
+            className={`tf-btn ${s.periodBtn}`}
             key={p.id}
             onClick={() => setPeriod(p.id)}
-            style={{
-              flex: 1,
-              padding: '5px 8px',
-              borderRadius: 4,
-              fontSize: 11,
-              fontWeight: 600,
-              background: period === p.id ? C.b + '20' : 'transparent',
-              border: `1px solid ${period === p.id ? C.b : C.bd}`,
-              color: period === p.id ? C.b : C.t3,
-              cursor: 'pointer',
-            }}
+            data-active={period === p.id ? 'true' : undefined}
           >
             {p.label}
           </button>
@@ -154,75 +123,34 @@ function CompareTab({ trades }) {
       </div>
 
       {/* Comparison header */}
-      <div
-        className={s.s2}
-      >
-        <div
-          style={{
-            padding: '10px 12px',
-            background: C.sf,
-            borderRadius: 8,
-            borderLeft: `3px solid ${C.b}`,
-          }}
-        >
-          <div style={{ fontSize: 9, color: C.t3, textTransform: 'uppercase', fontWeight: 700 }}>{curr.label}</div>
-          <div
-            style={{
-              fontSize: 18,
-              fontWeight: 800,
-              fontFamily: M,
-              marginTop: 4,
-              color: curr.pnl >= 0 ? C.g : C.r,
-            }}
-          >
+      <div className={s.s2}>
+        <div className={s.compareCard} style={{ borderLeft: `3px solid ${C.b}` }}>
+          <div className={s.cardLabel}>{curr.label}</div>
+          <div className={s.cardPnl} style={{ color: curr.pnl >= 0 ? C.g : C.r }}>
             {fmtD(curr.pnl)}
           </div>
-          <div style={{ fontSize: 10, color: C.t3, marginTop: 2 }}>
-            {curr.trades} trades · {curr.winRate.toFixed(0)}% WR
-          </div>
+          <div className={s.cardMeta}>{curr.trades} trades · {curr.winRate.toFixed(0)}% WR</div>
         </div>
 
-        <div
-          style={{
-            padding: '10px 12px',
-            background: C.sf,
-            borderRadius: 8,
-            borderLeft: `3px solid ${C.t3}`,
-          }}
-        >
-          <div style={{ fontSize: 9, color: C.t3, textTransform: 'uppercase', fontWeight: 700 }}>{prev.label}</div>
-          <div
-            style={{
-              fontSize: 18,
-              fontWeight: 800,
-              fontFamily: M,
-              marginTop: 4,
-              color: prev.pnl >= 0 ? C.g : C.r,
-            }}
-          >
+        <div className={s.compareCard} style={{ borderLeft: `3px solid ${C.t3}` }}>
+          <div className={s.cardLabel}>{prev.label}</div>
+          <div className={s.cardPnl} style={{ color: prev.pnl >= 0 ? C.g : C.r }}>
             {fmtD(prev.pnl)}
           </div>
-          <div style={{ fontSize: 10, color: C.t3, marginTop: 2 }}>
-            {prev.trades} trades · {prev.winRate.toFixed(0)}% WR
-          </div>
+          <div className={s.cardMeta}>{prev.trades} trades · {prev.winRate.toFixed(0)}% WR</div>
         </div>
       </div>
 
       {/* Delta P&L badge */}
       <div
+        className={s.deltaBadge}
         style={{
-          padding: '8px 12px',
-          borderRadius: 6,
-          marginBottom: 10,
           background: deltas.pnl >= 0 ? C.g + '10' : C.r + '10',
           borderLeft: `3px solid ${deltas.pnl >= 0 ? C.g : C.r}`,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
         }}
       >
-        <span style={{ fontSize: 16 }}>{deltas.pnl >= 0 ? '📈' : '📉'}</span>
-        <span style={{ fontSize: 12, fontWeight: 700, color: deltas.pnl >= 0 ? C.g : C.r }}>
+        <span className={s.deltaIcon}>{deltas.pnl >= 0 ? '📈' : '📉'}</span>
+        <span className={s.deltaLabel} style={{ color: deltas.pnl >= 0 ? C.g : C.r }}>
           {fmtD(deltas.pnl)} vs {prev.label.toLowerCase()}
         </span>
       </div>
@@ -231,30 +159,16 @@ function CompareTab({ trades }) {
       {STATS.map((stat, i) => (
         <div
           key={i}
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '90px 1fr 1fr 60px',
-            padding: '5px 0',
-            borderBottom: i < STATS.length - 1 ? `1px solid ${C.bd}20` : 'none',
-            alignItems: 'center',
-            fontSize: 11,
-          }}
+          className={s.statRow}
+          style={{ borderBottom: i < STATS.length - 1 ? `1px solid ${C.bd}20` : 'none' }}
         >
-          <span style={{ color: C.t3, fontSize: 10 }}>{stat.label}</span>
-          <span style={{ color: stat.isPnl ? (curr.pnl >= 0 ? C.g : C.r) : C.t1, fontFamily: M, fontWeight: 600 }}>
+          <span className={s.statLabel}>{stat.label}</span>
+          <span className={s.statCurr} style={{ color: stat.isPnl ? (curr.pnl >= 0 ? C.g : C.r) : C.t1 }}>
             {stat.curr}
           </span>
-          <span style={{ color: C.t3, fontFamily: M }}>{stat.prev}</span>
+          <span className={s.statPrev}>{stat.prev}</span>
           {stat.delta !== undefined && (
-            <span
-              style={{
-                color: stat.delta >= 0 ? C.g : C.r,
-                fontFamily: M,
-                fontSize: 10,
-                fontWeight: 600,
-                textAlign: 'right',
-              }}
-            >
+            <span className={s.statDelta} style={{ color: stat.delta >= 0 ? C.g : C.r }}>
               {stat.delta >= 0 ? '▲' : '▼'} {typeof stat.fmt === 'function' ? stat.fmt(stat.delta) : stat.delta}
             </span>
           )}
@@ -288,37 +202,18 @@ function GoalsTab({ trades }) {
   ];
 
   return (
-    <div style={{ padding: 10 }}>
-      <div
-        style={{
-          fontSize: 10,
-          fontWeight: 700,
-          color: C.t3,
-          textTransform: 'uppercase',
-          letterSpacing: '0.04em',
-          marginBottom: 8,
-        }}
-      >
-        P&L Targets
-      </div>
+    <div className={s.padded}>
+      <div className={s.sectionLabel}>P&L Targets</div>
 
       {GOAL_ROWS.map((row) => {
         const goal = goals[row.period];
         const prog = progress[row.period];
 
         return (
-          <div
-            key={row.key}
-            style={{
-              background: C.sf,
-              borderRadius: 6,
-              padding: '8px 10px',
-              marginBottom: 4,
-            }}
-          >
+          <div key={row.key} className={s.goalCard}>
             <div className={s.s3}>
-              <span style={{ fontSize: 12 }}>{row.emoji}</span>
-              <span style={{ fontSize: 11, fontWeight: 600, color: C.t1, flex: 1 }}>{row.label}</span>
+              <span className={s.goalEmoji}>{row.emoji}</span>
+              <span className={s.goalLabel}>{row.label}</span>
               <label className={s.s4}>
                 <input
                   aria-label="Compare symbol"
@@ -333,57 +228,28 @@ function GoalsTab({ trades }) {
             {goal.enabled && (
               <>
                 <div className={s.s6}>
-                  <span style={{ fontSize: 10, color: C.t3 }}>Target: $</span>
+                  <span className={s.goalTarget}>Target: $</span>
                   <input
                     type="number"
                     value={goal.target || ''}
                     onChange={(e) => setGoal(row.period, parseFloat(e.target.value) || 0)}
                     placeholder="0"
-                    style={{
-                      width: 80,
-                      padding: '3px 6px',
-                      background: C.bg,
-                      border: `1px solid ${C.bd}`,
-                      borderRadius: 4,
-                      color: C.t1,
-                      fontFamily: M,
-                      fontSize: 11,
-                      outline: 'none',
-                      textAlign: 'right',
-                    }}
+                    className={s.goalInput}
                   />
                 </div>
 
                 {prog && (
                   <>
-                    {/* Progress bar */}
-                    <div
-                      style={{
-                        height: 6,
-                        background: C.bd,
-                        borderRadius: 3,
-                        overflow: 'hidden',
-                        marginBottom: 4,
-                      }}
-                    >
+                    <div className={s.progressTrack}>
                       <div
+                        className={s.progressFill}
                         style={{
-                          height: '100%',
-                          borderRadius: 3,
                           width: `${Math.min(100, Math.max(0, prog.pct))}%`,
                           background: prog.hit ? C.g : prog.pct > 50 ? C.b : C.y,
-                          transition: 'width 0.3s',
                         }}
                       />
                     </div>
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        fontSize: 10,
-                        fontFamily: M,
-                      }}
-                    >
+                    <div className={s.progressLabel}>
                       <span style={{ color: prog.current >= 0 ? C.g : C.r }}>{fmtD(prog.current)}</span>
                       <span style={{ color: C.t3 }}>
                         {prog.pct.toFixed(0)}% of ${prog.target.toLocaleString()}
@@ -399,24 +265,12 @@ function GoalsTab({ trades }) {
       })}
 
       {/* Daily loss limit */}
-      <div
-        style={{
-          fontSize: 10,
-          fontWeight: 700,
-          color: C.t3,
-          textTransform: 'uppercase',
-          letterSpacing: '0.04em',
-          marginTop: 12,
-          marginBottom: 6,
-        }}
-      >
-        Risk Limits
-      </div>
+      <div className={s.sectionLabelRisk}>Risk Limits</div>
 
-      <div style={{ background: C.sf, borderRadius: 6, padding: '8px 10px' }}>
+      <div className={s.riskCard}>
         <div className={s.s7}>
-          <span style={{ fontSize: 12 }}>🚫</span>
-          <span style={{ fontSize: 11, fontWeight: 600, color: C.t1, flex: 1 }}>Daily Loss Limit</span>
+          <span className={s.goalEmoji}>🚫</span>
+          <span className={s.goalLabel}>Daily Loss Limit</span>
           <label className={s.s8}>
             <input
               type="checkbox"
@@ -428,33 +282,18 @@ function GoalsTab({ trades }) {
         </div>
         {dailyLossEnabled && (
           <div className={s.s10}>
-            <span style={{ fontSize: 10, color: C.t3 }}>Max loss: $</span>
+            <span className={s.goalTarget}>Max loss: $</span>
             <input
               type="number"
               value={dailyLossLimit || ''}
               onChange={(e) => setDailyLossLimit(parseFloat(e.target.value) || 0)}
               placeholder="0"
-              style={{
-                width: 80,
-                padding: '3px 6px',
-                background: C.bg,
-                border: `1px solid ${C.bd}`,
-                borderRadius: 4,
-                color: C.t1,
-                fontFamily: M,
-                fontSize: 11,
-                outline: 'none',
-                textAlign: 'right',
-              }}
+              className={s.goalInput}
             />
             {progress.dailyLoss && (
               <span
-                style={{
-                  fontSize: 10,
-                  fontFamily: M,
-                  fontWeight: 600,
-                  color: progress.dailyLoss.breached ? C.r : C.t3,
-                }}
+                className={s.riskStatus}
+                style={{ color: progress.dailyLoss.breached ? C.r : C.t3 }}
               >
                 {progress.dailyLoss.breached ? '⚠ BREACHED' : `${progress.dailyLoss.pct.toFixed(0)}% used`}
               </span>
@@ -476,9 +315,9 @@ function EquityTab({ trades }) {
 
   if (curve.length === 0) {
     return (
-      <div style={{ padding: 24, textAlign: 'center', color: C.t3 }}>
+      <div className={s.emptyState}>
         <div className={s.s11}>📈</div>
-        <div style={{ fontSize: 12 }}>No trades to chart</div>
+        <div className={s.emptyText}>No trades to chart</div>
       </div>
     );
   }
@@ -503,11 +342,9 @@ function EquityTab({ trades }) {
   });
 
   return (
-    <div style={{ padding: 10 }}>
+    <div className={s.padded}>
       {/* Summary stats */}
-      <div
-        className={s.s12}
-      >
+      <div className={s.s12}>
         {[
           { label: 'Final Equity', value: fmtD(last.equity), color: last.equity >= 0 ? C.g : C.r },
           { label: 'Peak Equity', value: fmtD(last.peak), color: C.b },
@@ -524,9 +361,9 @@ function EquityTab({ trades }) {
             color: C.r,
           },
         ].map((stat, i) => (
-          <div key={i} style={{ padding: '8px 10px', background: C.sf, borderRadius: 6 }}>
-            <div style={{ fontSize: 9, color: C.t3, textTransform: 'uppercase' }}>{stat.label}</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: stat.color, fontFamily: M, marginTop: 2 }}>
+          <div key={i} className={s.statCard}>
+            <div className={s.statCardLabel}>{stat.label}</div>
+            <div className={s.statCardValue} style={{ color: stat.color }}>
               {stat.value}
             </div>
           </div>
@@ -534,74 +371,32 @@ function EquityTab({ trades }) {
       </div>
 
       {/* Text sparkline */}
-      <div
-        style={{
-          padding: '8px 10px',
-          background: C.sf,
-          borderRadius: 6,
-          marginBottom: 10,
-        }}
-      >
-        <div style={{ fontSize: 9, color: C.t3, textTransform: 'uppercase', fontWeight: 700, marginBottom: 4 }}>
-          Last {recentDays.length} Days
-        </div>
-        <div style={{ fontFamily: M, fontSize: 14, letterSpacing: 2 }}>
+      <div className={s.sparkWrap}>
+        <div className={s.sparkLabel}>Last {recentDays.length} Days</div>
+        <div className={s.sparkChars}>
           {recentDays.map((c, i) => (
-            <span key={i} style={{ color: c.dayPnl >= 0 ? C.g : C.r }}>
-              {sparkline[i]}
-            </span>
+            <span key={i} style={{ color: c.dayPnl >= 0 ? C.g : C.r }}>{sparkline[i]}</span>
           ))}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: C.t3, marginTop: 4 }}>
+        <div className={s.sparkRange}>
           <span>{recentDays[0]?.date}</span>
           <span>{recentDays[recentDays.length - 1]?.date}</span>
         </div>
       </div>
 
       {/* Recent day-by-day P&L */}
-      <div
-        style={{
-          fontSize: 9,
-          fontWeight: 700,
-          color: C.t3,
-          textTransform: 'uppercase',
-          letterSpacing: '0.04em',
-          marginBottom: 4,
-        }}
-      >
-        Day-by-Day (Last 15)
-      </div>
+      <div className={s.dayLabel}>Day-by-Day (Last 15)</div>
       {curve
         .slice(-15)
         .reverse()
         .map((day, _i) => (
-          <div
-            key={day.date}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '4px 6px',
-              fontSize: 11,
-              fontFamily: M,
-              borderBottom: `1px solid ${C.bd}20`,
-            }}
-          >
-            <span style={{ color: C.t3, fontSize: 10, minWidth: 72 }}>{day.date}</span>
-            <span style={{ color: C.t3, fontSize: 10 }}>
-              {day.trades} trade{day.trades !== 1 ? 's' : ''}
-            </span>
-            <span
-              style={{
-                fontWeight: 600,
-                color: day.dayPnl >= 0 ? C.g : C.r,
-                minWidth: 60,
-                textAlign: 'right',
-              }}
-            >
+          <div key={day.date} className={s.dayRow}>
+            <span className={s.dayDate}>{day.date}</span>
+            <span className={s.dayCount}>{day.trades} trade{day.trades !== 1 ? 's' : ''}</span>
+            <span className={s.dayPnl} style={{ color: day.dayPnl >= 0 ? C.g : C.r }}>
               {fmtD(day.dayPnl)}
             </span>
-            <span style={{ color: C.t3, fontSize: 10, minWidth: 60, textAlign: 'right' }}>Eq: {fmtD(day.equity)}</span>
+            <span className={s.dayEquity}>Eq: {fmtD(day.equity)}</span>
           </div>
         ))}
     </div>

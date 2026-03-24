@@ -1,0 +1,41 @@
+/* DNDScheduleBuilder — CSS Module */
+.cardPad { padding: var(--sp-5); margin-top: var(--sp-4); }
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.title { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--tf-t1); font-family: var(--tf-font); }
+.subtitle { font-size: var(--fs-2xs); color: var(--tf-t3); font-family: var(--tf-font); }
+.toggleTrack {
+  width: 46px; height: 26px; border-radius: 13px;
+  position: relative; border: none; cursor: pointer;
+  transition: background var(--dur-normal);
+}
+.toggleKnob {
+  width: 20px; height: 20px; border-radius: 50%; background: #fff;
+  position: absolute; top: 3px;
+  transition: left var(--dur-normal); box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.presetRow { display: flex; gap: var(--sp-1_5); margin-bottom: 14px; }
+.presetBtn {
+  flex: 1; padding: var(--sp-1_5) var(--sp-1); border-radius: var(--br-sm);
+  border: 1px solid color-mix(in srgb, var(--tf-bd) 19%, transparent);
+  background: transparent; color: var(--tf-t2);
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold); font-family: var(--tf-font);
+  cursor: pointer;
+}
+.gridScroll { overflow-x: auto; }
+.grid { display: grid; grid-template-columns: 50px repeat(7, 1fr); gap: 3px; }
+.dayHeader {
+  text-align: center; font-size: var(--fs-xs); font-weight: var(--fw-bold);
+  color: var(--tf-t3); font-family: var(--tf-mono); padding: var(--sp-1) 0;
+}
+.blockLabel {
+  font-size: var(--fs-3xs); font-weight: var(--fw-semibold); color: var(--tf-t3);
+  font-family: var(--tf-mono); display: flex; align-items: center; padding-right: var(--sp-1);
+}
+.blockCell {
+  height: 24px; border-radius: var(--br-sm); border: none;
+  cursor: pointer; transition: background var(--dur-normal);
+}
+.legend { display: flex; gap: var(--sp-3); margin-top: var(--sp-2); }
+.legendItem { display: flex; align-items: center; gap: var(--sp-1); }
+.legendDot { width: 10px; height: 10px; border-radius: 2px; }
+.legendLabel { font-size: var(--fs-3xs); color: var(--tf-t3); font-family: var(--tf-font); }

@@ -34,23 +34,21 @@ function ProgressBar({ label, current, limit, progress, color, inverse }) {
         : C.t3;
 
   return (
-    <div style={{ marginBottom: 10 }}>
+    <div className={s.progressWrap}>
       <div className={s.s0}>
-        <span style={{ fontSize: 10, fontWeight: 700, color: C.t3, fontFamily: M, textTransform: 'uppercase' }}>
+        <span className={s.progressLabel}>
           {label}
         </span>
-        <span style={{ fontSize: 12, fontWeight: 700, fontFamily: M, color: color || barColor }}>
-          {fmtD(current)} <span style={{ color: C.t3, fontWeight: 400 }}>/ {fmtD(limit)}</span>
+        <span className={s.progressValue} style={{ color: color || barColor }}>
+          {fmtD(current)} <span className={s.progressValueSub}>/ {fmtD(limit)}</span>
         </span>
       </div>
-      <div style={{ height: 6, background: C.bg2, borderRadius: 3, overflow: 'hidden' }}>
+      <div className={s.barTrack}>
         <div
+          className={s.barFill}
           style={{
-            height: '100%',
             width: `${Math.min(100, progress)}%`,
             background: barColor,
-            borderRadius: 3,
-            transition: 'width 0.3s, background 0.3s',
           }}
         />
       </div>
@@ -90,28 +88,24 @@ function DayCounter({ profile, evaluation }) {
       <div className={s.s1}>
         {maxDays > 0 && (
           <div>
-            <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, fontFamily: M }}>CALENDAR</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: C.t1 }}>
-              Day {calendarDays} <span style={{ fontSize: 12, color: C.t3, fontWeight: 400 }}>of {maxDays}</span>
+            <div className={s.counterLabel}>CALENDAR</div>
+            <div className={s.counterValue} style={{ color: C.t1 }}>
+              Day {calendarDays} <span className={s.counterValueSub}>of {maxDays}</span>
             </div>
           </div>
         )}
         <div>
-          <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, fontFamily: M }}>TRADING DAYS</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: daysTraded >= minDays ? C.g : C.t1 }}>
+          <div className={s.counterLabel}>TRADING DAYS</div>
+          <div className={s.counterValue} style={{ color: daysTraded >= minDays ? C.g : C.t1 }}>
             {daysTraded}
-            {minDays > 0 && <span style={{ fontSize: 12, color: C.t3, fontWeight: 400 }}> / {minDays} min</span>}
+            {minDays > 0 && <span className={s.counterValueSub}> / {minDays} min</span>}
           </div>
         </div>
-        <div style={{ marginLeft: 'auto' }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, fontFamily: M }}>STATUS</div>
+        <div className={s.counterStatus}>
+          <div className={s.counterLabel}>STATUS</div>
           <div
-            style={{
-              fontSize: 12,
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              color: status === 'passed' ? C.g : status === 'failed' ? C.r : C.b,
-            }}
+            className={s.statusLabel}
+            style={{ color: status === 'passed' ? C.g : status === 'failed' ? C.r : C.b }}
           >
             {status === 'passed' ? '✅ PASSED' : status === 'failed' ? '❌ FAILED' : '⏳ Active'}
           </div>
@@ -124,10 +118,7 @@ function DayCounter({ profile, evaluation }) {
           className={s.s2}
         >
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-            <div
-              key={i}
-              style={{ fontSize: 8, fontWeight: 700, color: C.t3, textAlign: 'center', fontFamily: M, padding: 2 }}
-            >
+            <div key={i} className={s.calDayHeader}>
               {d}
             </div>
           ))}
@@ -150,19 +141,12 @@ function DayCounter({ profile, evaluation }) {
               <div
                 key={cell.date}
                 title={cell.traded ? `${cell.date}: ${fmtD(cell.pnl)}` : cell.date}
+                className={s.calCell}
                 style={{
-                  width: '100%',
-                  aspectRatio: '1',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 3,
                   background: bg,
                   border: cell.isToday ? `1px solid ${C.b}` : '1px solid transparent',
-                  fontSize: 9,
                   fontWeight: cell.isToday ? 800 : 600,
                   color,
-                  fontFamily: M,
                 }}
               >
                 {cell.day}
@@ -183,28 +167,8 @@ function PropFirmSetup({ onSelect }) {
   if (!showSetup) {
     return (
       <button
-        className="tf-btn"
+        className={`tf-btn ${s.setupBtn}`}
         onClick={() => setShowSetup(true)}
-        style={{
-          width: '100%',
-          padding: '10px 16px',
-          borderRadius: 8,
-          border: `1px dashed ${C.bd}`,
-          background: 'transparent',
-          color: C.t3,
-          fontSize: 12,
-          fontFamily: F,
-          cursor: 'pointer',
-          transition: 'all 0.15s',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = C.p;
-          e.currentTarget.style.color = C.p;
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = C.bd;
-          e.currentTarget.style.color = C.t3;
-        }}
       >
         🏢 Track Prop Firm Evaluation
       </button>
@@ -221,46 +185,27 @@ function PropFirmSetup({ onSelect }) {
   const firmLabels = { ftmo: 'FTMO', topstep: 'Topstep', apex: 'Apex', myfundedfx: 'MyFundedFX' };
 
   return (
-    <Card style={{ padding: 14 }}>
+    <Card className={s.setupCardWrap}>
       <div className={s.s3}>
-        <div style={{ fontSize: 13, fontWeight: 800, color: C.t1 }}>Select Prop Firm</div>
+        <div className={s.setupTitle}>Select Prop Firm</div>
         <button
-          className="tf-btn"
+          className={`tf-btn ${s.closeBtn}`}
           onClick={() => setShowSetup(false)}
-          style={{ background: 'none', border: 'none', color: C.t3, cursor: 'pointer', fontSize: 14, padding: 4 }}
         >
           ✕
         </button>
       </div>
       {Object.entries(grouped).map(([firm, presets]) => (
-        <div key={firm} style={{ marginBottom: 10 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, fontFamily: M, marginBottom: 4 }}>
+        <div key={firm} className={s.firmGroup}>
+          <div className={s.firmLabel}>
             {firmLabels[firm] || firm}
           </div>
           <div className={s.s4}>
             {presets.map((p) => (
               <button
-                className="tf-btn"
+                className={`tf-btn ${s.presetBtn}`}
                 key={p.id}
                 onClick={() => onSelect(p.id)}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: 6,
-                  border: `1px solid ${C.bd}`,
-                  background: C.sf,
-                  color: C.t1,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  fontFamily: F,
-                  cursor: 'pointer',
-                  transition: 'all 0.1s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = C.p;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = C.bd;
-                }}
               >
                 {p.name}
               </button>
@@ -297,7 +242,7 @@ function PropFirmWidget() {
   // No active profile — show setup prompt
   if (!activeProfile || !evaluation) {
     return (
-      <div style={{ marginBottom: 16 }}>
+      <div className={s.setupWrap}>
         <PropFirmSetup onSelect={(presetId) => createFromPreset(presetId)} />
       </div>
     );
@@ -311,23 +256,14 @@ function PropFirmWidget() {
       {/* Header */}
       <div className={s.s5}>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 800, color: C.t1 }}>🏢 {activeProfile.name}</div>
-          <div style={{ fontSize: 10, color: C.t3, fontFamily: M }}>
+          <div className={s.headerTitle}>🏢 {activeProfile.name}</div>
+          <div className={s.headerSub}>
             {fmtD(activeProfile.accountSize)} account · Started {new Date(activeProfile.startDate).toLocaleDateString()}
           </div>
         </div>
         <button
-          className="tf-btn"
+          className={`tf-btn ${s.clearBtn}`}
           onClick={clearActive}
-          style={{
-            padding: '4px 10px',
-            borderRadius: 4,
-            border: `1px solid ${C.bd}`,
-            background: 'transparent',
-            color: C.t3,
-            fontSize: 10,
-            cursor: 'pointer',
-          }}
         >
           ✕ Clear
         </button>
@@ -335,36 +271,14 @@ function PropFirmWidget() {
 
       {/* Fail banner */}
       {status === 'failed' && failReason && (
-        <div
-          style={{
-            padding: '8px 12px',
-            borderRadius: 6,
-            background: C.r + '12',
-            borderLeft: `3px solid ${C.r}`,
-            fontSize: 11,
-            color: C.r,
-            fontFamily: M,
-            marginBottom: 12,
-          }}
-        >
+        <div className={`${s.banner} ${s.bannerFail}`}>
           ❌ {failReason}
         </div>
       )}
 
       {/* Pass banner */}
       {status === 'passed' && (
-        <div
-          style={{
-            padding: '8px 12px',
-            borderRadius: 6,
-            background: C.g + '12',
-            borderLeft: `3px solid ${C.g}`,
-            fontSize: 11,
-            color: C.g,
-            fontFamily: M,
-            marginBottom: 12,
-          }}
-        >
+        <div className={`${s.banner} ${s.bannerPass}`}>
           ✅ Evaluation passed! Profit target reached with {evaluation.daysTraded} trading days.
         </div>
       )}
@@ -407,29 +321,19 @@ function PropFirmWidget() {
       </div>
 
       {/* Quick stats row */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 16,
-          fontSize: 11,
-          fontFamily: M,
-          color: C.t3,
-          borderTop: `1px solid ${C.bd}`,
-          paddingTop: 10,
-        }}
-      >
+      <div className={s.statsRow}>
         <span>
-          Equity: <strong style={{ color: C.t1 }}>{fmtD(evaluation.currentEquity)}</strong>
+          Equity: <strong className={`${s.statVal} ${s.statT1}`}>{fmtD(evaluation.currentEquity)}</strong>
         </span>
         <span>
-          High: <strong style={{ color: C.g }}>{fmtD(evaluation.equityHigh)}</strong>
+          High: <strong className={`${s.statVal} ${s.statGreen}`}>{fmtD(evaluation.equityHigh)}</strong>
         </span>
         <span>
-          Cum P&L: <strong style={{ color: evaluation.cumPnl >= 0 ? C.g : C.r }}>{fmtD(evaluation.cumPnl)}</strong>
+          Cum P&L: <strong className={s.statVal} style={{ color: evaluation.cumPnl >= 0 ? C.g : C.r }}>{fmtD(evaluation.cumPnl)}</strong>
         </span>
         <span>
           Today:{' '}
-          <strong style={{ color: evaluation.dailyPnl >= 0 ? C.g : evaluation.dailyPnl < 0 ? C.r : C.t3 }}>
+          <strong className={s.statVal} style={{ color: evaluation.dailyPnl >= 0 ? C.g : evaluation.dailyPnl < 0 ? C.r : C.t3 }}>
             {fmtD(evaluation.dailyPnl)}
           </strong>
         </span>
@@ -437,52 +341,40 @@ function PropFirmWidget() {
 
       {/* P1.6: MC Pass/Fail Prediction */}
       {prediction && !prediction.insufficient && (
-        <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 6, background: C.bg2 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, fontFamily: M, marginBottom: 6 }}>
+        <div className={s.mcBlock}>
+          <div className={s.mcTitle}>
             MONTE CARLO PREDICTION ({prediction.runs.toLocaleString()} sims · {prediction.confidence} confidence)
           </div>
           <div className={s.s7}>
             {/* Pass probability */}
-            <div style={{ textAlign: 'center' }}>
+            <div className={s.mcCenter}>
               <div
-                style={{
-                  fontSize: 22,
-                  fontWeight: 800,
-                  color: prediction.passRate >= 60 ? C.g : prediction.passRate >= 40 ? C.y : C.r,
-                }}
+                className={s.mcPassRate}
+                style={{ color: prediction.passRate >= 60 ? C.g : prediction.passRate >= 40 ? C.y : C.r }}
               >
                 {prediction.passRate.toFixed(0)}%
               </div>
-              <div style={{ fontSize: 9, color: C.t3, fontFamily: M }}>PASS</div>
+              <div className={s.mcLabel}>PASS</div>
             </div>
             {/* Fail probability */}
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: C.r + 'cc' }}>{prediction.failRate.toFixed(0)}%</div>
-              <div style={{ fontSize: 9, color: C.t3, fontFamily: M }}>FAIL</div>
+            <div className={s.mcCenter}>
+              <div className={s.mcFailRate} style={{ color: C.r + 'cc' }}>{prediction.failRate.toFixed(0)}%</div>
+              <div className={s.mcLabel}>FAIL</div>
             </div>
             {/* Visual bar */}
-            <div
-              style={{
-                flex: 1,
-                height: 10,
-                borderRadius: 5,
-                background: C.r + '30',
-                overflow: 'hidden',
-                display: 'flex',
-              }}
-            >
+            <div className={s.mcBar} style={{ background: C.r + '30' }}>
               <div
+                className={s.mcBarFill}
                 style={{
                   width: `${prediction.passRate}%`,
                   background: C.g,
                   borderRadius: '5px 0 0 5px',
-                  transition: 'width 0.3s',
                 }}
               />
               <div style={{ width: `${prediction.activeRate}%`, background: C.y }} />
             </div>
             {/* Details */}
-            <div style={{ fontSize: 10, fontFamily: M, color: C.t3, whiteSpace: 'nowrap' }}>
+            <div className={s.mcDetails}>
               {prediction.avgDaysToPass > 0 && <div>~{prediction.avgDaysToPass}d to pass</div>}
               <div>P50: {fmtD(prediction.p50)}</div>
             </div>

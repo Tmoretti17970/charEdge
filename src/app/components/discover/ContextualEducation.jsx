@@ -6,8 +6,9 @@
 
 import React from 'react';
 import { useState } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
+import st from './ContextualEducation.module.css';
 
 const TIPS = [
   {
@@ -128,7 +129,7 @@ function ContextualEducation() {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 18 }}>📚</span>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>Trading Education</h3>
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>Trading Education</h3>
           <span
             style={{
               fontSize: 10,
@@ -137,7 +138,7 @@ function ContextualEducation() {
               background: alpha(C.cyan, 0.1),
               padding: '2px 7px',
               borderRadius: 4,
-              fontFamily: M,
+              fontFamily: 'var(--tf-mono)',
             }}
           >
             Tip {tipIndex + 1}/{TIPS.length}
@@ -171,7 +172,7 @@ function ContextualEducation() {
                 cursor: 'pointer',
                 fontSize: 11,
                 fontWeight: 600,
-                fontFamily: F,
+                fontFamily: 'var(--tf-font)',
               }}
             >
               💡 Daily Tip
@@ -191,7 +192,7 @@ function ContextualEducation() {
                 cursor: 'pointer',
                 fontSize: 11,
                 fontWeight: 600,
-                fontFamily: F,
+                fontFamily: 'var(--tf-font)',
               }}
             >
               🧩 Challenge
@@ -219,18 +220,18 @@ function ContextualEducation() {
                       background: alpha(cat.color, 0.1),
                       padding: '2px 6px',
                       borderRadius: 3,
-                      fontFamily: F,
+                      fontFamily: 'var(--tf-font)',
                       textTransform: 'capitalize',
                     }}
                   >
                     {tip.category}
                   </span>
-                  <span style={{ fontSize: 9, fontWeight: 600, color: diff.color, fontFamily: F }}>{diff.label}</span>
+                  <span style={{ fontSize: 9, fontWeight: 600, color: diff.color, fontFamily: 'var(--tf-font)' }}>{diff.label}</span>
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 8 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)', marginBottom: 8 }}>
                   {tip.title}
                 </div>
-                <div style={{ fontSize: 12, color: C.t2, fontFamily: F, lineHeight: 1.6, marginBottom: 10 }}>
+                <div style={{ fontSize: 12, color: C.t2, fontFamily: 'var(--tf-font)', lineHeight: 1.6, marginBottom: 10 }}>
                   {tip.tip}
                 </div>
                 <div
@@ -241,10 +242,10 @@ function ContextualEducation() {
                     borderLeft: `3px solid ${cat.color}`,
                   }}
                 >
-                  <div style={{ fontSize: 9, fontWeight: 600, color: C.t3, fontFamily: F, marginBottom: 3 }}>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: C.t3, fontFamily: 'var(--tf-font)', marginBottom: 3 }}>
                     💡 Real Example
                   </div>
-                  <div style={{ fontSize: 11, color: C.t1, fontFamily: F, lineHeight: 1.5 }}>{tip.example}</div>
+                  <div style={{ fontSize: 11, color: C.t1, fontFamily: 'var(--tf-font)', lineHeight: 1.5 }}>{tip.example}</div>
                 </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10 }}>
@@ -259,7 +260,7 @@ function ContextualEducation() {
                     color: C.t3,
                     cursor: 'pointer',
                     fontSize: 11,
-                    fontFamily: F,
+                    fontFamily: 'var(--tf-font)',
                   }}
                 >
                   ← Previous
@@ -276,7 +277,7 @@ function ContextualEducation() {
                     cursor: 'pointer',
                     fontSize: 11,
                     fontWeight: 600,
-                    fontFamily: F,
+                    fontFamily: 'var(--tf-font)',
                   }}
                 >
                   Next Tip →
@@ -294,7 +295,7 @@ function ContextualEducation() {
                   borderRadius: 10,
                 }}
               >
-                <div style={{ fontSize: 10, fontWeight: 700, color: C.p, fontFamily: F, marginBottom: 6 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: C.p, fontFamily: 'var(--tf-font)', marginBottom: 6 }}>
                   🧩 What Would You Do?
                 </div>
                 <div
@@ -302,7 +303,7 @@ function ContextualEducation() {
                     fontSize: 13,
                     fontWeight: 600,
                     color: C.t1,
-                    fontFamily: F,
+                    fontFamily: 'var(--tf-font)',
                     lineHeight: 1.5,
                     marginBottom: 12,
                   }}
@@ -342,7 +343,7 @@ function ContextualEducation() {
                           color: C.t1,
                           cursor: quizAnswer ? 'default' : 'pointer',
                           fontSize: 11,
-                          fontFamily: F,
+                          fontFamily: 'var(--tf-font)',
                         }}
                       >
                         <span style={{ fontWeight: 700, color: C.t3, marginRight: 6 }}>{opt.id.toUpperCase()}.</span>
@@ -367,10 +368,10 @@ function ContextualEducation() {
                       borderLeft: `3px solid ${C.g}`,
                     }}
                   >
-                    <div style={{ fontSize: 10, fontWeight: 700, color: C.g, fontFamily: F, marginBottom: 3 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: C.g, fontFamily: 'var(--tf-font)', marginBottom: 3 }}>
                       📖 Explanation
                     </div>
-                    <div style={{ fontSize: 11, color: C.t2, fontFamily: F, lineHeight: 1.5 }}>{QUIZ.explanation}</div>
+                    <div style={{ fontSize: 11, color: C.t2, fontFamily: 'var(--tf-font)', lineHeight: 1.5 }}>{QUIZ.explanation}</div>
                   </div>
                 )}
               </div>

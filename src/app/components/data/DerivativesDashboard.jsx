@@ -11,9 +11,10 @@
 
 import React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { binanceFuturesAdapter } from '../../../data/adapters/BinanceFuturesAdapter.js';
 import { logger } from '@/observability/logger';
+import st from './DerivativesDashboard.module.css';
 
 // ─── Formatters ────────────────────────────────────────────────
 
@@ -47,14 +48,14 @@ function MetricCard({ label, value, sub, color, icon }) {
       flex: 1,
       minWidth: 120,
     }}>
-      <div style={{ fontSize: 10, color: C.t3, fontFamily: F, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>
+      <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>
         {icon && <span style={{ marginRight: 4 }}>{icon}</span>}
         {label}
       </div>
-      <div style={{ fontSize: 20, fontWeight: 800, fontFamily: M, color: color || C.t1 }}>
+      <div style={{ fontSize: 20, fontWeight: 800, fontFamily: 'var(--tf-mono)', color: color || C.t1 }}>
         {value}
       </div>
-      {sub && <div style={{ fontSize: 10, color: C.t3, fontFamily: F, marginTop: 2 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', marginTop: 2 }}>{sub}</div>}
     </div>
   );
 }
@@ -77,7 +78,7 @@ function FundingPill({ rate }) {
       border: `1px solid ${color}30`,
       fontSize: 10,
       fontWeight: 600,
-      fontFamily: M,
+      fontFamily: 'var(--tf-mono)',
       color,
     }}>
       <span style={{ width: 6, height: 6, borderRadius: '50%', background: color }} />
@@ -110,7 +111,7 @@ function Sparkline({ data, width = 100, height = 28, color = C.b }) {
 function LiquidationFeed({ liquidations }) {
   if (!liquidations?.length) {
     return (
-      <div style={{ fontSize: 11, color: C.t3, fontFamily: F, textAlign: 'center', padding: 16 }}>
+      <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)', textAlign: 'center', padding: 16 }}>
         Waiting for liquidation events…
       </div>
     );
@@ -127,7 +128,7 @@ function LiquidationFeed({ liquidations }) {
           borderRadius: 6,
           background: i === 0 ? `${liq.type === 'long_liquidation' ? C.r : C.g}08` : 'transparent',
           fontSize: 11,
-          fontFamily: M,
+          fontFamily: 'var(--tf-mono)',
         }}>
           <span style={{ fontSize: 14 }}>{liq.type === 'long_liquidation' ? '🔴' : '🟢'}</span>
           <span style={{ color: C.t1, fontWeight: 600, width: 80 }}>{liq.symbol?.replace('USDT', '')}</span>
@@ -197,7 +198,7 @@ function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
   return (
     <div style={{
       padding: 16,
-      fontFamily: F,
+      fontFamily: 'var(--tf-font)',
       display: 'flex',
       flexDirection: 'column',
       gap: 14,
@@ -221,7 +222,7 @@ function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
           style={{
             fontSize: 10, padding: '5px 10px', borderRadius: 6,
             border: `1px solid ${C.bd}`, background: C.sf, color: C.t2,
-            cursor: 'pointer', fontFamily: M,
+            cursor: 'pointer', fontFamily: 'var(--tf-mono)',
           }}
         >
           ↻ Refresh
@@ -280,12 +281,12 @@ function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
               flex: 1,
               minWidth: 120,
             }}>
-              <div style={{ fontSize: 10, color: C.t3, fontFamily: F, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>
+              <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>
                 Funding <FundingPill rate={funding?.rate} />
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <Sparkline data={fundingHistory} width={90} height={24} color={C.y} />
-                <span style={{ fontSize: 10, color: C.t3, fontFamily: M }}>20 periods</span>
+                <span style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-mono)' }}>20 periods</span>
               </div>
             </div>
           </div>
@@ -295,7 +296,7 @@ function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
             <div style={{
               background: C.sf, border: `1px solid ${C.bd}`, borderRadius: 10, padding: '10px 14px', flex: 1,
             }}>
-              <div style={{ fontSize: 10, color: C.t3, fontFamily: F, fontWeight: 600, textTransform: 'uppercase', marginBottom: 6 }}>
+              <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', fontWeight: 600, textTransform: 'uppercase', marginBottom: 6 }}>
                 Open Interest Trend (24h)
               </div>
               <Sparkline data={oiHistory} width={200} height={32} color={C.b} />
@@ -303,7 +304,7 @@ function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
             <div style={{
               background: C.sf, border: `1px solid ${C.bd}`, borderRadius: 10, padding: '10px 14px', flex: 1,
             }}>
-              <div style={{ fontSize: 10, color: C.t3, fontFamily: F, fontWeight: 600, textTransform: 'uppercase', marginBottom: 6 }}>
+              <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', fontWeight: 600, textTransform: 'uppercase', marginBottom: 6 }}>
                 Long/Short Ratio (24h)
               </div>
               <Sparkline data={lsrHistory} width={200} height={32} color={C.cyan} />
@@ -317,7 +318,7 @@ function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
             borderRadius: 10,
             padding: '12px 14px',
           }}>
-            <div style={{ fontSize: 10, color: C.t3, fontFamily: F, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+            <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
               🔥 Live Liquidations
             </div>
             <LiquidationFeed liquidations={liquidations} />

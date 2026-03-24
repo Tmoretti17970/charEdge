@@ -1,0 +1,11 @@
+/* AlertSoundPicker — CSS Module */
+.cardPad { padding: var(--sp-5); margin-top: var(--sp-3); }
+.title { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--tf-t1); font-family: var(--tf-font); margin-bottom: var(--sp-1); }
+.hint { font-size: var(--fs-2xs); color: var(--tf-t3); font-family: var(--tf-font); margin-bottom: 14px; }
+.soundGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-1_5); margin-bottom: 14px; }
+.soundBtn { padding: 10px var(--sp-1_5); border-radius: var(--br-sm); text-align: center; cursor: pointer; transition: all var(--dur-normal); }
+.soundEmoji { font-size: 18px; margin-bottom: var(--sp-1); }
+.soundLabel { font-size: var(--fs-xs); font-weight: var(--fw-semibold); font-family: var(--tf-font); }
+.volumeRow { display: flex; align-items: center; gap: 10px; }
+.volumeIcon { font-size: 14px; }
+.volumePercent { font-size: var(--fs-xs); color: var(--tf-t3); font-family: var(--tf-mono); min-width: 30px; text-align: right; }

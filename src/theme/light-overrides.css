@@ -1,17 +1,12 @@
 /* ═══════════════════════════════════════════════════════════════════
  * charEdge — Light Theme Comprehensive Overrides
  *
- * Fixes all inline-styled components that use hardcoded dark-mode
- * rgba values for backgrounds, borders, shadows, and overlays.
+ * Sprint 26: Cleaned after inline-style removal (Sprint 25).
+ * All style-attribute selectors removed — components now use
+ * CSS Modules + tokens, so class-based overrides are sufficient.
  * ═══════════════════════════════════════════════════════════════════ */
 
-/* ─── Modal / Overlay Backdrops ────────────────────────────────── */
-/* Dark backdrops (rgba(0,0,0,0.5-0.65)) are acceptable in both themes
-   for focus dimming — no override needed. */
-
 /* ─── Glass Card Surfaces ──────────────────────────────────────── */
-/* Components using .tf-glass-card, .tf-glass-btn, .tf-glass classes
-   already use CSS vars. This ensures any inline-styled glass cards adapt. */
 html.theme-light .tf-glass-card {
   background: rgba(255, 255, 255, 0.75) !important;
   border-color: rgba(0, 0, 0, 0.08) !important;
@@ -49,9 +44,6 @@ html.theme-light .tf-skeleton::after {
   background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.04), transparent) !important;
 }
 
-/* ─── Settings Modal / Tab Shell ───────────────────────────────── */
-/* Handled via GLASS tokens in theme.js refreshThemeCache() */
-
 /* ─── Command Palette ──────────────────────────────────────────── */
 html.theme-light .tf-command-palette,
 html.theme-light [data-component="command-palette"] {
@@ -61,8 +53,6 @@ html.theme-light [data-component="command-palette"] {
 }
 
 /* ─── Card & Panel Surfaces ────────────────────────────────────── */
-/* All .tf-card components use CSS vars from UIKit, but some inline
-   styles add glass/depth on top. Ensure they adapt. */
 html.theme-light .tf-card {
   border-color: rgba(0, 0, 0, 0.08);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 0 1px rgba(0, 0, 0, 0.02);
@@ -115,57 +105,6 @@ html.theme-light kbd {
   color: var(--tf-t1) !important;
 }
 
-/* ─── Inline Hover Backgrounds (white→dark tint swap) ──────────── */
-/* Components that use rgba(255,255,255,0.03-0.08) for subtle backgrounds
-   on dark theme need rgba(0,0,0,...) equivalents on light. */
-html.theme-light [style*="rgba(255,255,255,0.02)"],
-html.theme-light [style*="rgba(255, 255, 255, 0.02)"] {
-  background: rgba(0, 0, 0, 0.02) !important;
-}
-
-html.theme-light [style*="rgba(255,255,255,0.03)"],
-html.theme-light [style*="rgba(255, 255, 255, 0.03)"] {
-  background: rgba(0, 0, 0, 0.02) !important;
-}
-
-html.theme-light [style*="rgba(255,255,255,0.04)"],
-html.theme-light [style*="rgba(255, 255, 255, 0.04)"] {
-  background: rgba(0, 0, 0, 0.03) !important;
-}
-
-html.theme-light [style*="rgba(255,255,255,0.05)"],
-html.theme-light [style*="rgba(255, 255, 255, 0.05)"] {
-  background: rgba(0, 0, 0, 0.03) !important;
-}
-
-html.theme-light [style*="rgba(255,255,255,0.06)"],
-html.theme-light [style*="rgba(255, 255, 255, 0.06)"] {
-  background: rgba(0, 0, 0, 0.04) !important;
-}
-
-html.theme-light [style*="rgba(255,255,255,0.08)"],
-html.theme-light [style*="rgba(255, 255, 255, 0.08)"] {
-  background: rgba(0, 0, 0, 0.05) !important;
-}
-
-/* ─── Inline Border Overrides ──────────────────────────────────── */
-/* Borders using white rgba are invisible on light backgrounds */
-html.theme-light [style*="border"][style*="rgba(255,255,255,0.0"],
-html.theme-light [style*="border"][style*="rgba(255, 255, 255, 0.0"] {
-  border-color: rgba(0, 0, 0, 0.08) !important;
-}
-
-/* ─── Box Shadow Overrides ─────────────────────────────────────── */
-/* Heavy dark shadows are too intense on light background */
-html.theme-light [style*="box-shadow"][style*="rgba(0,0,0,0.4)"],
-html.theme-light [style*="box-shadow"][style*="rgba(0, 0, 0, 0.4)"],
-html.theme-light [style*="box-shadow"][style*="rgba(0,0,0,0.5)"],
-html.theme-light [style*="box-shadow"][style*="rgba(0, 0, 0, 0.5)"],
-html.theme-light [style*="box-shadow"][style*="rgba(0,0,0,0.6)"],
-html.theme-light [style*="box-shadow"][style*="rgba(0, 0, 0, 0.6)"] {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.04) !important;
-}
-
 /* ─── DashboardPanel Module Overrides ──────────────────────────── */
 html.theme-light .tf-glow-positive {
   border-color: rgba(5, 150, 105, 0.25) !important;
@@ -182,9 +121,6 @@ html.theme-light .tf-narrative-divider {
   background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.08), transparent) !important;
 }
 
-/* ─── Section Enter Animation ──────────────────────────────────── */
-/* Uses theme-correct colors via CSS custom properties. */
-
 /* ─── Hero Sparkline & Orb ─────────────────────────────────────── */
 html.theme-light .tf-hero-orb {
   opacity: 0.6;
@@ -193,11 +129,6 @@ html.theme-light .tf-hero-orb {
 /* ─── Progress Bars ────────────────────────────────────────────── */
 html.theme-light progress::-webkit-progress-bar {
   background: rgba(0, 0, 0, 0.05);
-}
-
-/* ─── Ambient Border Glow (Dashboard) ──────────────────────────── */
-html.theme-light [style*="inset 0 0 80px"] {
-  box-shadow: none !important;
 }
 
 /* ─── Bottom Sheet / Mobile Modals ─────────────────────────────── */

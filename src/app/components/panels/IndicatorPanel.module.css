@@ -1,0 +1,167 @@
+/* IndicatorPanel — CSS Module */
+.root {
+  display: flex; flex-direction: column;
+  font-family: var(--tf-font); overflow: hidden;
+  user-select: none; height: 100%; margin: -16px;
+}
+
+/* Search Header */
+.searchHeader {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--glass-heavy, rgba(15,17,22,0.82));
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: var(--sp-2) 10px;
+}
+.searchBar {
+  display: flex; align-items: center; gap: var(--sp-1_5);
+  padding: 5px var(--sp-2);
+  background: color-mix(in srgb, var(--tf-bg) 50%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tf-bd) 50%, transparent);
+  border-radius: var(--br-md);
+  transition: border-color var(--dur-normal);
+}
+.searchInput {
+  flex: 1; background: transparent; border: none;
+  color: var(--tf-t1); font-size: var(--fs-2xs); outline: none;
+  font-family: var(--tf-font); padding: 0;
+}
+.searchClear {
+  background: color-mix(in srgb, var(--tf-t3) 20%, transparent);
+  border: none; border-radius: 50%;
+  width: 14px; height: 14px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; padding: 0;
+}
+
+/* Scroll area */
+.scrollArea { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0 0 var(--sp-1_5); }
+
+/* Active section */
+.activeSection { margin-bottom: var(--sp-1); }
+.activeSectionLabel {
+  padding: var(--sp-1_5) 10px 3px;
+  font-size: var(--fs-3xs); font-weight: 650;
+  color: var(--tf-t3); text-transform: uppercase; letter-spacing: 0.06em;
+}
+.activeSectionList { padding: 0 var(--sp-1_5); }
+
+/* Active Indicator Row */
+.activeRow {
+  margin-bottom: 2px; border-radius: var(--br-md);
+  overflow: hidden; transition: background var(--dur-fast);
+}
+.activeRowInner {
+  padding: 7px 10px;
+  display: flex; align-items: center; gap: 10px; min-height: 36px;
+}
+.colorDot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  background: var(--dot-color, var(--tf-accent));
+  box-shadow: 0 0 6px color-mix(in srgb, var(--dot-color, var(--tf-accent)) 40%, transparent);
+}
+.nameBtn {
+  flex: 1; background: transparent; border: none;
+  color: var(--tf-t1); font-size: var(--fs-sm); font-weight: var(--fw-medium);
+  cursor: pointer; text-align: left; padding: 0; font-family: var(--tf-font);
+}
+.nameSuffix { color: var(--tf-t3); font-weight: var(--fw-normal); }
+.modeIcon { color: var(--tf-t3); display: flex; align-items: center; opacity: 0.6; }
+.visBtn {
+  background: transparent; border: none; cursor: pointer;
+  padding: 2px; display: flex; align-items: center;
+  transition: opacity var(--dur-fast); border-radius: var(--br-sm);
+}
+.visBtnOn { color: var(--tf-t2); opacity: 0.8; }
+.visBtnOff { color: var(--tf-t3); opacity: 0.4; }
+.deleteBtn {
+  background: transparent; border: none; color: var(--tf-red);
+  cursor: pointer; padding: 2px; display: flex; align-items: center;
+  transition: opacity var(--dur-fast); border-radius: var(--br-sm);
+}
+.deleteBtnHidden { opacity: 0; pointer-events: none; }
+.deleteBtnVisible { opacity: 0.8; pointer-events: auto; }
+
+/* Parameter editor */
+.paramToggle {
+  display: grid; overflow: hidden;
+  transition: grid-template-rows 200ms cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.paramToggleOpen { grid-template-rows: 1fr; }
+.paramToggleClosed { grid-template-rows: 0fr; }
+.paramInner { min-height: 0; }
+.paramGrid {
+  padding: 2px 10px var(--sp-2) 28px;
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+}
+.paramCol { display: flex; flex-direction: column; gap: 2px; }
+.paramLabel {
+  font-size: var(--fs-xs); color: var(--tf-t3);
+  font-family: var(--tf-font); font-weight: var(--fw-medium);
+}
+.paramInput {
+  width: 60px; padding: var(--sp-1) var(--sp-1_5);
+  background: color-mix(in srgb, var(--tf-bg) 50%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tf-bd) 50%, transparent);
+  border-radius: var(--br-sm); color: var(--tf-t1);
+  font-size: var(--fs-2xs); font-family: var(--tf-font);
+  outline: none; transition: border-color var(--dur-normal);
+}
+
+/* Accordion Section */
+.accordionSection { border-top: 1px solid color-mix(in srgb, var(--tf-bd) 30%, transparent); }
+.accordionBtn {
+  display: flex; align-items: center; width: 100%;
+  padding: 10px 14px; background: transparent;
+  border: none; cursor: pointer; font-family: var(--tf-font);
+  transition: background var(--dur-fast);
+}
+.accordionBtn:hover { background: color-mix(in srgb, var(--tf-sf2) 40%, transparent); }
+.chevronWrap {
+  display: flex; align-items: center; margin-right: var(--sp-2);
+  color: var(--tf-t3);
+  transition: transform 200ms cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.chevronClosed { transform: rotate(-90deg); }
+.accordionLabel {
+  flex: 1; text-align: left; font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold); color: var(--tf-t1); letter-spacing: -0.01em;
+}
+.countBadge {
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+  color: var(--tf-t3);
+  background: color-mix(in srgb, var(--tf-bd) 25%, transparent);
+  padding: 2px 7px; border-radius: var(--br-full);
+  min-width: 20px; text-align: center;
+}
+.accordionBody {
+  display: grid; overflow: hidden;
+  transition: grid-template-rows 250ms cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.accordionBodyOpen { grid-template-rows: 1fr; }
+.accordionBodyClosed { grid-template-rows: 0fr; }
+.accordionInner { min-height: 0; }
+.accordionInnerPad { padding-bottom: var(--sp-1); }
+
+/* Catalog indicator row */
+.catalogRow {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: var(--sp-1_5) 14px var(--sp-1_5) 36px;
+  border: none; color: var(--tf-t1); font-size: var(--fs-sm);
+  cursor: pointer; text-align: left; font-family: var(--tf-font);
+  transition: background var(--dur-fast); min-height: 32px;
+  background: transparent;
+}
+.catalogRow:hover { background: color-mix(in srgb, var(--tf-sf2) 50%, transparent); }
+.catalogName { flex: 1; font-weight: 450; }
+.catalogParamHint { color: var(--tf-t3); font-size: var(--fs-2xs); font-weight: var(--fw-normal); }
+.catalogMode {
+  color: var(--tf-t3); opacity: 0.4; display: flex; align-items: center;
+  transition: opacity var(--dur-fast);
+}
+.catalogRow:hover .catalogMode { opacity: 0.8; }
+
+/* No Results */
+.noResults { padding: var(--sp-8) 14px; text-align: center; color: var(--tf-t3); font-size: var(--fs-sm); }
+.noResultsIcon { margin-bottom: var(--sp-2); opacity: 0.5; }
+.noResultsHighlight { color: var(--tf-t2); }

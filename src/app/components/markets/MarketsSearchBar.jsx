@@ -14,9 +14,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef, useCallback, memo, forwardRef, useImperativeHandle } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { radii, transition, zIndex } from '../../../theme/tokens.js';
+import st from './MarketsSearchBar.module.css';
 
 // ─── Asset class colors ────────────────────────────────────────
 
@@ -191,7 +192,7 @@ const MarketsSearchBar = forwardRef(function MarketsSearchBar(_props, ref) {
             outline: 'none',
             color: C.t1,
             fontSize: 12,
-            fontFamily: F,
+            fontFamily: 'var(--tf-font)',
             width: 160,
           }}
         />
@@ -216,7 +217,7 @@ const MarketsSearchBar = forwardRef(function MarketsSearchBar(_props, ref) {
               background: `${C.bd}80`,
               borderRadius: 4,
               padding: '1px 5px',
-              fontFamily: M,
+              fontFamily: 'var(--tf-mono)',
             }}
           >
             /
@@ -279,11 +280,11 @@ const MarketsSearchBar = forwardRef(function MarketsSearchBar(_props, ref) {
                   />
                   <div style={{ minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: M }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-mono)' }}>
                         {sym}
                       </span>
                       {item.exchange && (
-                        <span style={{ fontSize: 9, color: C.t3, fontFamily: M }}>
+                        <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>
                           {item.exchange}
                         </span>
                       )}
@@ -311,7 +312,7 @@ const MarketsSearchBar = forwardRef(function MarketsSearchBar(_props, ref) {
                       fontSize: 9,
                       fontWeight: 600,
                       color: C.t3,
-                      fontFamily: M,
+                      fontFamily: 'var(--tf-mono)',
                       flexShrink: 0,
                     }}
                   >
@@ -326,7 +327,7 @@ const MarketsSearchBar = forwardRef(function MarketsSearchBar(_props, ref) {
                       background: `${C.b}12`,
                       padding: '2px 8px',
                       borderRadius: radii.xs,
-                      fontFamily: M,
+                      fontFamily: 'var(--tf-mono)',
                       flexShrink: 0,
                     }}
                   >
@@ -357,7 +358,7 @@ const MarketsSearchBar = forwardRef(function MarketsSearchBar(_props, ref) {
             textAlign: 'center',
           }}
         >
-          <div style={{ fontSize: 12, color: C.t3, fontFamily: F }}>
+          <div style={{ fontSize: 12, color: C.t3, fontFamily: 'var(--tf-font)' }}>
             No results for "<strong style={{ color: C.t1 }}>{query}</strong>"
           </div>
           <button
@@ -372,7 +373,7 @@ const MarketsSearchBar = forwardRef(function MarketsSearchBar(_props, ref) {
               borderRadius: radii.sm,
               fontSize: 11,
               fontWeight: 700,
-              fontFamily: M,
+              fontFamily: 'var(--tf-mono)',
               background: `${C.b}12`,
               color: C.b,
               border: `1px solid ${C.b}25`,

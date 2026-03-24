@@ -5,7 +5,6 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 import ChartEngineWidget from './ChartEngineWidget.jsx';
 
 /**
@@ -54,15 +53,8 @@ const ChartCanvas = React.forwardRef(function ChartCanvas(
   },
   ref,
 ) {
-  // If data is passed directly (from ChartsPage), sync to store
-  React.useEffect(() => {
-    if (data?.length) {
-      const store = useChartFeaturesStore.getState();
-      if (!store.data || store.data.length !== data.length) {
-        setTimeout(() => store.setData(data, 'legacy'), 0);
-      }
-    }
-  }, [data]);
+  // ADR-001 Phase B: this compat wrapper no longer writes chart bars to any store.
+  // Canonical bars are owned by DatafeedService and consumed by ChartEngineWidget.
 
   return (
     <ChartEngineWidget

@@ -271,7 +271,6 @@ function TradePLPill({ showAutoFit, onAutoFit }) {
         {expanded && (
           <div
             className={`tf-fade-in ${s.dropdown}`}
-            style={{ background: `${C.sf2}F5` }}
           >
             {/* ── View Toggle: This Chart / All Positions ── */}
             <div className={s.viewToggle}>

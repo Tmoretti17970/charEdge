@@ -538,16 +538,16 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
               onClick={handleToggleVisibility}
               title={drawing.visible === false ? 'Show' : 'Hide'}
               icon={drawing.visible === false ? '🙈' : '👁'}
-              style={{ opacity: drawing.visible === false ? 0.5 : 1 }}
+              data-hidden={drawing.visible === false || undefined}
             />
             <ActionBtn
               onClick={handleToggleSync}
               title={drawing.syncAcrossTimeframes ? 'Synced' : 'Sync all TFs'}
               icon="🔗"
-              style={{ color: drawing.syncAcrossTimeframes ? '#42A5F5' : undefined }}
+              data-synced={drawing.syncAcrossTimeframes || undefined}
             />
             <div className={s.actionSpacer} />
-            <ActionBtn onClick={handleDelete} title="Delete" icon="🗑" style={{ color: '#EF5350' }} />
+            <ActionBtn onClick={handleDelete} title="Delete" icon="🗑" data-danger />
             <ActionBtn
               onClick={() => {
                 setToolStyleMemory(drawing.type, null);
@@ -584,13 +584,13 @@ function QBtn({ children, onClick, title, active, danger, disabled }) {
   );
 }
 
-function ActionBtn({ onClick, title, icon, style = {} }) {
+function ActionBtn({ onClick, title, icon, ...rest }) {
   return (
     <button
       onClick={onClick}
       title={title}
       className={s.actionBtn}
-      style={style}
+      {...rest}
     >
       {icon}
     </button>

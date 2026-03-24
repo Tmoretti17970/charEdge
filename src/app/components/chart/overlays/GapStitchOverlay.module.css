@@ -1,0 +1,75 @@
+/* GapStitchOverlay — CSS Module (Sprint 23) */
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  pointer-events: none;
+}
+.overlay[data-phase="disconnect"] { pointer-events: auto; }
+
+.center { text-align: center; }
+.pulseIcon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  border: 2px solid var(--tf-yellow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: tf-alert-pulse 2s ease-in-out infinite;
+}
+.pulseEmoji { font-size: 22px; }
+.disconnectTitle {
+  font: var(--tf-type-sm);
+  color: var(--tf-yellow);
+  font-weight: 600;
+}
+.disconnectSub {
+  font: var(--tf-type-xs);
+  color: var(--tf-t3);
+  margin-top: 4px;
+}
+
+/* Sync phase */
+.syncWrap {
+  text-align: center;
+  width: 60%;
+  max-width: 240px;
+}
+.syncTitle {
+  font: var(--tf-type-sm);
+  color: var(--tf-t2);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.syncTrack {
+  height: 3px;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-bd);
+  overflow: hidden;
+}
+.syncFill {
+  height: 100%;
+  background: var(--tf-accent);
+  border-radius: inherit;
+  transition: width 0.3s ease;
+}
+.syncPct {
+  font: var(--tf-type-mono-sm);
+  color: var(--tf-t3);
+  margin-top: 6px;
+  font-size: 10px;
+}
+
+/* Stitch phase */
+.stitchLabel {
+  font: var(--tf-type-xs);
+  color: var(--tf-t3);
+  font-weight: 500;
+}

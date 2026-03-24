@@ -1,0 +1,300 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — SettingsControls CSS Module (Sprint 24)
+   Shared form controls: swatches, toggles, sliders, inputs, pickers
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Common Row Layout ─── */
+.controlRow {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 0; font-size: 13px;
+  font-family: var(--tf-font); color: var(--tf-t1);
+}
+.controlRowPointer {
+  composes: controlRow;
+  cursor: pointer;
+}
+.flex1 { flex: 1; }
+.flex1Min { flex: 1; min-width: 80px; }
+
+/* ─── Color Swatch ─── */
+.swatchWrap { position: relative; width: 28px; height: 28px; }
+.swatchWrapLg { position: relative; width: 32px; height: 32px; }
+.swatchPreview {
+  width: 28px; height: 28px; border-radius: 6px;
+  border: 1px solid var(--tf-bd);
+  cursor: pointer;
+}
+.swatchPreviewLg {
+  width: 32px; height: 32px; border-radius: 6px;
+  border: 1px solid var(--tf-bd);
+  cursor: pointer;
+}
+.swatchInput {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%; opacity: 0; cursor: pointer;
+}
+.swatchInputInset {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; opacity: 0; cursor: pointer;
+}
+
+/* ─── Toggle Switch ─── */
+.toggleTrack {
+  width: 36px; height: 20px; border-radius: 10px;
+  border: none; padding: 2px;
+  cursor: pointer; transition: background 0.2s ease;
+  position: relative;
+  background: var(--tf-bd);
+}
+.toggleTrack[data-checked="true"] { background: var(--tf-brand); }
+.toggleThumb {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; transition: transform 0.2s ease;
+  transform: translateX(0);
+}
+.toggleTrack[data-checked="true"] .toggleThumb { transform: translateX(16px); }
+
+/* ─── Number Input ─── */
+.numInput {
+  width: 64px; padding: 5px 8px; border-radius: 6px;
+  font-family: var(--tf-mono); font-size: 12px;
+  text-align: right; outline: none;
+  border: 1px solid var(--tf-bd);
+  background: var(--tf-sf); color: var(--tf-t1);
+}
+.numInputSm {
+  width: 48px; padding: 3px 6px; border-radius: 6px;
+  font-family: var(--tf-mono); font-size: 11px;
+  text-align: right; outline: none;
+  border: 1px solid var(--tf-bd);
+  background: var(--tf-sf); color: var(--tf-t1);
+}
+
+/* ─── Range Slider ─── */
+.rangeInput { width: 90px; accent-color: var(--tf-brand); }
+
+/* ─── Select Dropdown ─── */
+.selectInput {
+  padding: 5px 8px; border-radius: 6px;
+  font-family: var(--tf-font); font-size: 12px;
+  outline: none; cursor: pointer; min-width: 100px;
+  border: 1px solid var(--tf-bd);
+  background: var(--tf-sf); color: var(--tf-t1);
+}
+.selectInput option {
+  background: var(--tf-sf); color: var(--tf-t1);
+}
+
+/* ─── Radio / Segmented Buttons ─── */
+.segmentPad { padding: 6px 0; }
+.segmentLabel { font-size: 13px; font-family: var(--tf-font); color: var(--tf-t1); margin-bottom: 6px; }
+.segmentRow { display: flex; gap: 4px; }
+.segmentBtn {
+  flex: 1; padding: 5px 8px; border-radius: 6px;
+  font-family: var(--tf-font); font-size: 11px;
+  cursor: pointer; transition: all 0.12s ease;
+  border: 1px solid var(--tf-bd);
+  background: transparent; color: var(--tf-t2);
+  font-weight: 400;
+}
+.segmentBtn[data-active="true"] {
+  border-color: var(--tf-brand-60, rgba(59,130,246,0.6));
+  background: var(--tf-brand-15, rgba(59,130,246,0.09));
+  color: var(--tf-brand); font-weight: 600;
+}
+
+/* ─── Line Style Buttons ─── */
+.lineStyleBtn {
+  flex: 1; padding: 5px 10px; border-radius: 6px;
+  font-family: var(--tf-mono); font-size: 13px;
+  cursor: pointer; transition: all 0.12s ease;
+  letter-spacing: 2px;
+  border: 1px solid var(--tf-bd);
+  background: transparent; color: var(--tf-t2);
+  font-weight: 400;
+}
+.lineStyleBtn[data-active="true"] {
+  border-color: var(--tf-brand-60, rgba(59,130,246,0.6));
+  background: var(--tf-brand-15, rgba(59,130,246,0.09));
+  color: var(--tf-brand); font-weight: 600;
+}
+
+/* ─── Section Label ─── */
+.sectionLabel {
+  font-size: 10px; font-weight: 700; color: var(--tf-t3);
+  font-family: var(--tf-font); letter-spacing: 0.8px;
+  margin-top: 16px; margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+/* ─── Checkbox ─── */
+.checkRow {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 0; font-size: 13px;
+  font-family: var(--tf-font); transition: opacity 0.15s ease;
+  cursor: pointer; color: var(--tf-t1);
+}
+.checkRow[data-disabled="true"] {
+  color: var(--tf-t3); cursor: default; opacity: 0.5;
+}
+.checkBox {
+  width: 18px; height: 18px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s ease; flex-shrink: 0; padding: 0;
+  border: 1.5px solid var(--tf-bd);
+  background: transparent; cursor: pointer;
+}
+.checkBox[data-checked="true"] {
+  border-color: var(--tf-brand);
+  background: var(--tf-brand);
+}
+.checkBox[data-disabled="true"] { cursor: default; }
+
+/* ─── Line Compound ─── */
+.linePreviewBox {
+  flex: 1; height: 32px; border-radius: 6px;
+  display: flex; align-items: center; padding: 0 10px;
+  border: 1px solid var(--tf-bd); background: var(--tf-sf);
+}
+.dashBtnRow { display: flex; gap: 2px; }
+.dashBtn {
+  padding: 5px 6px; border-radius: 5px;
+  font-family: var(--tf-mono); font-size: 11px;
+  cursor: pointer; transition: all 0.12s ease;
+  letter-spacing: 1px;
+  border: 1px solid transparent;
+  background: transparent; color: var(--tf-t3);
+}
+.dashBtn[data-active="true"] {
+  border-color: var(--tf-brand-60, rgba(59,130,246,0.6));
+  background: var(--tf-brand-15, rgba(59,130,246,0.09));
+  color: var(--tf-brand);
+}
+.widthSliderRow { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.widthValue { font-size: 10px; color: var(--tf-t3); font-family: var(--tf-mono); min-width: 14px; text-align: right; }
+.widthSlider { flex: 1; accent-color: var(--tf-brand); height: 4px; }
+
+/* ─── Line End Picker ─── */
+.endGroup { display: flex; gap: 12px; }
+.endBtnRow { display: flex; gap: 2px; }
+.endBtn {
+  padding: 4px 8px; border-radius: 5px;
+  font-size: 12px; font-family: var(--tf-mono);
+  cursor: pointer; transition: all 0.12s ease;
+  border: 1px solid var(--tf-bd);
+  background: transparent; color: var(--tf-t3);
+}
+.endBtn[data-active="true"] {
+  border-color: var(--tf-brand-60, rgba(59,130,246,0.6));
+  background: var(--tf-brand-15, rgba(59,130,246,0.09));
+  color: var(--tf-brand);
+}
+
+/* ─── Font Toolbar ─── */
+.fontToolbarRow { display: flex; align-items: center; gap: 6px; padding: 6px 0; }
+.fontSizeSelect {
+  padding: 5px 8px; border-radius: 6px;
+  font-family: var(--tf-font); font-size: 12px;
+  outline: none; cursor: pointer; min-width: 56px;
+  border: 1px solid var(--tf-bd);
+  background: var(--tf-sf); color: var(--tf-t1);
+}
+.fontSizeSelect option {
+  background: var(--tf-sf); color: var(--tf-t1);
+}
+.formatBtn {
+  width: 32px; height: 32px; border-radius: 6px;
+  font-size: 14px; font-family: var(--tf-font);
+  cursor: pointer; transition: all 0.12s ease;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--tf-bd);
+  background: transparent; color: var(--tf-t2);
+}
+.formatBtn[data-active="true"] {
+  border-color: var(--tf-brand-60, rgba(59,130,246,0.6));
+  background: var(--tf-brand-15, rgba(59,130,246,0.09));
+  color: var(--tf-brand);
+}
+
+/* ─── Styled TextArea ─── */
+.textArea {
+  width: 100%; padding: 10px 12px; border-radius: 8px;
+  font-family: var(--tf-font); font-size: 13px;
+  line-height: 1.5; resize: vertical; outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box; min-height: 80px;
+  border: 1.5px solid var(--tf-bd);
+  background: var(--tf-sf); color: var(--tf-t1);
+}
+.textArea:focus {
+  border-color: var(--tf-brand);
+  box-shadow: 0 0 0 2px var(--tf-brand-30, rgba(59,130,246,0.19));
+}
+
+/* ─── Text Alignment Picker ─── */
+.alignRow { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+.alignLabel { font-size: 13px; font-family: var(--tf-font); color: var(--tf-t1); min-width: 90px; }
+.alignSelect {
+  padding: 5px 8px; border-radius: 6px;
+  font-family: var(--tf-font); font-size: 12px;
+  outline: none; cursor: pointer; flex: 1;
+  border: 1px solid var(--tf-bd);
+  background: var(--tf-sf); color: var(--tf-t1);
+}
+.alignSelect option {
+  background: var(--tf-sf); color: var(--tf-t1);
+}
+
+/* ─── Stepper Input ─── */
+.stepperRow { display: flex; align-items: center; gap: 8px; flex: 1; }
+.stepperLabel { font-size: 12px; font-family: var(--tf-font); color: var(--tf-t2); white-space: nowrap; }
+.stepperWrap {
+  display: flex; align-items: center; border-radius: 6px;
+  overflow: hidden; flex: 1; transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  border: 1px solid var(--tf-bd); background: var(--tf-sf);
+}
+.stepperWrap:focus-within {
+  border-color: var(--tf-brand);
+  box-shadow: 0 0 0 2px var(--tf-brand-30, rgba(59,130,246,0.19));
+}
+.stepperField {
+  flex: 1; padding: 6px 8px; border: none;
+  background: transparent; font-family: var(--tf-mono);
+  font-size: 12px; outline: none; min-width: 0;
+  color: var(--tf-t1);
+}
+.stepperSuffix { font-size: 10px; color: var(--tf-t3); padding-right: 4px; }
+.stepperBtnCol {
+  display: flex; flex-direction: column;
+  border-left: 1px solid var(--tf-bd);
+}
+.stepperBtn {
+  width: 20px; height: 14px; border: none;
+  background: transparent; font-size: 8px;
+  cursor: pointer; display: flex;
+  align-items: center; justify-content: center; padding: 0;
+  color: var(--tf-t3); transition: all 0.12s ease;
+}
+.stepperBtn:first-child { border-bottom: 1px solid var(--tf-bd); }
+.stepperBtn:hover {
+  background: var(--tf-brand-15, rgba(59,130,246,0.09));
+  color: var(--tf-brand);
+}
+
+/* ─── Timeframe Visibility Row ─── */
+.tfVisRow {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 0; transition: opacity 0.15s ease;
+}
+.tfVisRow[data-disabled="true"] { opacity: 0.4; }
+.tfLabel { font-size: 12px; font-family: var(--tf-font); color: var(--tf-t1); min-width: 56px; flex-shrink: 0; }
+.tfNumInput {
+  width: 44px; padding: 4px 6px; border-radius: 5px;
+  font-family: var(--tf-mono); font-size: 11px;
+  text-align: center; outline: none;
+  border: 1px solid var(--tf-bd);
+  background: var(--tf-sf); color: var(--tf-t1);
+}
+.tfNumInput[data-disabled="true"] { background: transparent; }
+.tfRange { flex: 1; height: 4px; accent-color: var(--tf-brand); }
+.tfRange[data-disabled="true"] { cursor: default; }

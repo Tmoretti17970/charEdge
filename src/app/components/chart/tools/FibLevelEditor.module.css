@@ -1,0 +1,147 @@
+/* ═══════════════════════════════════════════════════════════════════
+   FibLevelEditor — CSS Module (Sprint 23)
+   Migrated from 19 inline styles → token-based CSS classes.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.container { margin-top: 8px; }
+
+/* ─── Header ─── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: var(--tf-font);
+}
+.presetSelect {
+  padding: 2px 6px;
+  font-size: 10px;
+  background: color-mix(in srgb, var(--tf-sf2) 60%, transparent);
+  border: 1px solid var(--tf-bd);
+  border-radius: 4px;
+  color: var(--tf-t1);
+  cursor: pointer;
+  outline: none;
+}
+
+/* ─── Level Rows ─── */
+.levelList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.levelRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  transition: opacity 0.15s ease;
+}
+.levelRow[data-disabled="true"] { opacity: 0.5; }
+
+.levelCheckbox {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: var(--tf-accent);
+}
+.levelValue {
+  font-family: var(--tf-font-mono);
+  font-size: 12px;
+  color: var(--tf-t1);
+  min-width: 50px;
+}
+.levelColorInput {
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: transparent;
+  padding: 0;
+}
+.removeBtn {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--tf-t3);
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+/* ─── Action Buttons ─── */
+.actionRow {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  align-items: center;
+}
+.btn {
+  padding: 4px 10px;
+  background: color-mix(in srgb, var(--tf-sf2) 40%, transparent);
+  border: 1px solid var(--tf-bd);
+  border-radius: 6px;
+  color: var(--tf-t3);
+  font-size: 11px;
+  cursor: pointer;
+  font-family: var(--tf-font);
+  transition: all 0.12s;
+}
+.btn:hover {
+  background: color-mix(in srgb, var(--tf-sf2) 70%, transparent);
+}
+.btnPrimary {
+  composes: btn;
+  color: var(--tf-accent);
+  background: color-mix(in srgb, var(--tf-accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--tf-accent) 20%, transparent);
+  font-weight: 600;
+}
+.btnGhost {
+  composes: btn;
+  border: none;
+}
+
+/* ─── Custom Level Input ─── */
+.customInput {
+  width: 80px;
+  padding: 4px 8px;
+  background: color-mix(in srgb, var(--tf-sf2) 60%, transparent);
+  border: 1px solid var(--tf-bd);
+  border-radius: 6px;
+  color: var(--tf-t1);
+  font-size: 12px;
+  outline: none;
+  font-family: var(--tf-font-mono);
+}
+
+/* ─── Preset Name Input ─── */
+.presetInput {
+  width: 120px;
+  padding: 4px 8px;
+  background: color-mix(in srgb, var(--tf-sf2) 60%, transparent);
+  border: 1px solid var(--tf-bd);
+  border-radius: 6px;
+  color: var(--tf-t1);
+  font-size: 11px;
+  outline: none;
+}
+
+.saveRow {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  align-items: center;
+}

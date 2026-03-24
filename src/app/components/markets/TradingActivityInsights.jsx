@@ -7,9 +7,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo, useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useJournalStore } from '../../../state/useJournalStore.js';
 import { radii } from '../../../theme/tokens.js';
+import st from './TradingActivityInsights.module.css';
 
 function fmtPnl(val) {
   if (val == null || isNaN(val)) return '—';
@@ -63,7 +64,7 @@ function TradingActivityInsights({ symbol }) {
   if (!stats) {
     return (
       <div style={{ padding: '8px 20px' }}>
-        <div style={{ fontSize: 11, color: C.t3, fontFamily: F }}>
+        <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)' }}>
           No trades recorded for this symbol.
         </div>
       </div>
@@ -100,10 +101,10 @@ function TradingActivityInsights({ symbol }) {
               padding: '8px 10px',
             }}
           >
-            <div style={{ fontSize: 9, fontFamily: F, color: C.t3, marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <div style={{ fontSize: 9, fontFamily: 'var(--tf-font)', color: C.t3, marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               {s.label}
             </div>
-            <div style={{ fontSize: 14, fontWeight: 800, fontFamily: M, color: s.color || C.t1 }}>
+            <div style={{ fontSize: 14, fontWeight: 800, fontFamily: 'var(--tf-mono)', color: s.color || C.t1 }}>
               {s.value}
             </div>
           </div>
@@ -122,11 +123,11 @@ function TradingActivityInsights({ symbol }) {
       }}>
         <span style={{ fontSize: 14 }}>{statusIcon}</span>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, fontFamily: M, color: statusColor }}>
+          <div style={{ fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: statusColor }}>
             {stats.holdingStatus}
           </div>
           {stats.openCount > 0 && (
-            <div style={{ fontSize: 9, fontFamily: M, color: C.t3 }}>
+            <div style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
               {stats.openCount} open position{stats.openCount > 1 ? 's' : ''}
             </div>
           )}
@@ -138,7 +139,7 @@ function TradingActivityInsights({ symbol }) {
         <div style={{
           marginTop: 8,
           fontSize: 10,
-          fontFamily: M,
+          fontFamily: 'var(--tf-mono)',
           color: C.t3,
           display: 'flex',
           justifyContent: 'space-between',

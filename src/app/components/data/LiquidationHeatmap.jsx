@@ -16,10 +16,11 @@
 
 import React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { F, M } from '../../../constants.js';
+
 import { binanceFuturesAdapter } from '../../../data/adapters/BinanceFuturesAdapter.js';
 import { bybitFuturesAdapter } from '../../../data/adapters/BybitFuturesAdapter.js';
 import { logger } from '@/observability/logger';
+import st from './LiquidationHeatmap.module.css';
 
 // ─── Constants ─────────────────────────────────────────────────
 
@@ -107,13 +108,13 @@ function HeatmapBar({ zone, maxValue, side }) {
       padding: '3px 0',
     }}>
       <span style={{
-        fontSize: 9, fontFamily: M, color: 'var(--tf-t3, #888)',
+        fontSize: 9, fontFamily: 'var(--tf-mono)', color: 'var(--tf-t3, #888)',
         width: 24, textAlign: 'right',
       }}>
         {zone.leverage}×
       </span>
       <span style={{
-        fontSize: 10, fontFamily: M, color: 'var(--tf-t1, #fff)',
+        fontSize: 10, fontFamily: 'var(--tf-mono)', color: 'var(--tf-t1, #fff)',
         width: 60, fontWeight: 600,
       }}>
         ${fmtPrice(zone.price)}
@@ -134,14 +135,14 @@ function HeatmapBar({ zone, maxValue, side }) {
         }} />
       </div>
       <span style={{
-        fontSize: 9, fontFamily: M,
+        fontSize: 9, fontFamily: 'var(--tf-mono)',
         color: isLong ? '#ef4444' : '#22c55e',
         width: 45, textAlign: 'right',
       }}>
         ${fmtNum(zone.estimatedLiquidations)}
       </span>
       <span style={{
-        fontSize: 8, fontFamily: M, color: 'var(--tf-t3, #888)',
+        fontSize: 8, fontFamily: 'var(--tf-mono)', color: 'var(--tf-t3, #888)',
         width: 30, textAlign: 'right',
       }}>
         {zone.distancePct}%
@@ -162,7 +163,7 @@ function LiquidationFlash({ events }) {
         const value = (ev.price || 0) * (ev.quantity || ev.qty || 0);
         return (
           <div key={`${ev.time || ev.timestamp}-${i}`} style={{
-            display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, fontFamily: M,
+            display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, fontFamily: 'var(--tf-mono)',
             padding: '2px 6px', borderRadius: 4,
             background: `${isLong ? '#ef4444' : '#22c55e'}08`,
             animation: i === 0 ? 'fadeIn 0.3s ease' : undefined,
@@ -242,7 +243,7 @@ function LiquidationHeatmap({ symbol = 'BTCUSDT', currentPrice }) {
 
   return (
     <div style={{
-      padding: 14, fontFamily: F,
+      padding: 14, fontFamily: 'var(--tf-font)',
       display: 'flex', flexDirection: 'column', gap: 10,
       height: '100%', overflowY: 'auto',
     }}>
@@ -288,7 +289,7 @@ function LiquidationHeatmap({ symbol = 'BTCUSDT', currentPrice }) {
         border: '1px solid #6366f140',
       }}>
         <span style={{ fontSize: 12 }}>📍</span>
-        <span style={{ fontSize: 12, fontFamily: M, fontWeight: 800, color: '#6366f1' }}>
+        <span style={{ fontSize: 12, fontFamily: 'var(--tf-mono)', fontWeight: 800, color: '#6366f1' }}>
           ${fmtPrice(effectivePrice)}
         </span>
         <span style={{ fontSize: 10, color: 'var(--tf-t3, #888)' }}>Current Price</span>

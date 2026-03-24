@@ -6,8 +6,9 @@
 
 import React from 'react';
 import { useState, useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
+import st from './SentimentNewsFeed.module.css';
 
 const MOCK_NEWS = [
   { id: 1, time: '2m ago', headline: 'NVIDIA beats Q4 earnings expectations, guides higher for AI demand', source: 'Reuters', sentiment: 'bullish', confidence: 92, impact: 'high', symbols: ['NVDA'], keywords: ['earnings', 'AI', 'guidance'] },
@@ -44,7 +45,6 @@ function SentimentNewsFeed({ compact }) {
     return MOCK_NEWS;
   }, [filter]);
 
-  // Aggregate sentiment
   const aggSentiment = useMemo(() => {
     let bull = 0, bear = 0, neut = 0;
     for (const n of MOCK_NEWS) {
@@ -56,34 +56,31 @@ function SentimentNewsFeed({ compact }) {
   }, []);
 
   if (compact) {
-    // Compact sidebar mode
     return (
-      <div style={{ background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 14, padding: '14px 16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          <span style={{ fontSize: 14 }}>📰</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F }}>Sentiment News</span>
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
-            <span style={{ fontSize: 9, color: SENTIMENT_META.bullish.color, fontFamily: M, fontWeight: 600 }}>{aggSentiment.bull}🟢</span>
-            <span style={{ fontSize: 9, color: SENTIMENT_META.bearish.color, fontFamily: M, fontWeight: 600 }}>{aggSentiment.bear}🔴</span>
+      <div className={st.compactCard} style={{ background: C.bg2, border: `1px solid ${C.bd}` }}>
+        <div className={st.headerCompact}>
+          <span className={st.headerIconSm}>📰</span>
+          <span className={st.headerTitleSm}>Sentiment News</span>
+          <div className={st.sentCountsSm}>
+            <span className={st.sentCountSm} style={{ color: SENTIMENT_META.bullish.color }}>{aggSentiment.bull}🟢</span>
+            <span className={st.sentCountSm} style={{ color: SENTIMENT_META.bearish.color }}>{aggSentiment.bear}🔴</span>
           </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className={st.newsListSm}>
           {MOCK_NEWS.slice(0, 5).map((n) => {
             const sm = SENTIMENT_META[n.sentiment];
             const im = IMPACT_META[n.impact];
             return (
-              <div key={n.id} style={{ paddingBottom: 6, borderBottom: `1px solid ${alpha(C.bd, 0.5)}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 3 }}>
-                  <span style={{ fontSize: 8, color: sm.color }}>{sm.icon}</span>
-                  <span style={{ fontSize: 8, fontWeight: 700, color: im.color, fontFamily: M }}>{im.label}</span>
-                  <span style={{ fontSize: 8, color: C.t3, marginLeft: 'auto', fontFamily: F }}>{n.time}</span>
+              <div key={n.id} className={st.compactRow} style={{ borderBottom: `1px solid ${alpha(C.bd, 0.5)}` }}>
+                <div className={st.newsMetaSm}>
+                  <span className={st.sentIconSm} style={{ color: sm.color }}>{sm.icon}</span>
+                  <span className={st.impactBadge} style={{ color: im.color }}>{im.label}</span>
+                  <span className={st.timeTextSm} style={{ color: C.t3 }}>{n.time}</span>
                 </div>
-                <div style={{ fontSize: 10, color: C.t1, fontFamily: F, lineHeight: 1.4, fontWeight: 500 }}>{n.headline}</div>
-                <div style={{ display: 'flex', gap: 4, marginTop: 3 }}>
-                  {n.symbols.map((s) => (
-                    <span key={s} style={{ fontSize: 8, fontWeight: 700, color: C.b, fontFamily: M }}>${s}</span>
-                  ))}
-                  <span style={{ fontSize: 8, color: C.t3, fontFamily: F, marginLeft: 'auto' }}>{n.source}</span>
+                <div className={st.headlineSm}>{n.headline}</div>
+                <div className={st.tagsSm}>
+                  {n.symbols.map((s) => <span key={s} className={st.symTagSm} style={{ color: C.b }}>${s}</span>)}
+                  <span className={st.sourceTextSm} style={{ color: C.t3 }}>{n.source}</span>
                 </div>
               </div>
             );
@@ -93,52 +90,46 @@ function SentimentNewsFeed({ compact }) {
     );
   }
 
-  // Full mode
   return (
-    <div style={{ background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 16, overflow: 'hidden' }}>
-      <div style={{ padding: '16px 20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-          <span style={{ fontSize: 18 }}>📰</span>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>Sentiment News Feed</h3>
-          <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
-            <span style={{ fontSize: 10, color: SENTIMENT_META.bullish.color, fontFamily: M, fontWeight: 600 }}>{aggSentiment.bull} 🟢</span>
-            <span style={{ fontSize: 10, color: SENTIMENT_META.bearish.color, fontFamily: M, fontWeight: 600 }}>{aggSentiment.bear} 🔴</span>
-            <span style={{ fontSize: 10, color: SENTIMENT_META.neutral.color, fontFamily: M, fontWeight: 600 }}>{aggSentiment.neut} 🟡</span>
+    <div className={st.card} style={{ background: C.bg2, border: `1px solid ${C.bd}` }}>
+      <div className={st.headerFull}>
+        <div className={st.headerRow}>
+          <span className={st.headerIcon}>📰</span>
+          <h3 className={st.headerTitle}>Sentiment News Feed</h3>
+          <div className={st.sentCounts}>
+            <span className={st.sentCount} style={{ color: SENTIMENT_META.bullish.color }}>{aggSentiment.bull} 🟢</span>
+            <span className={st.sentCount} style={{ color: SENTIMENT_META.bearish.color }}>{aggSentiment.bear} 🔴</span>
+            <span className={st.sentCount} style={{ color: SENTIMENT_META.neutral.color }}>{aggSentiment.neut} 🟡</span>
           </div>
         </div>
 
-        {/* Filters */}
-        <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
+        <div className={st.filterRow}>
           {['all', 'bullish', 'bearish', 'breaking'].map((f) => (
-            <button key={f} onClick={() => setFilter(f)} className="tf-btn"
-              style={{ padding: '4px 10px', borderRadius: 6, border: `1px solid ${filter === f ? C.b : 'transparent'}`, background: filter === f ? alpha(C.b, 0.08) : 'transparent', color: filter === f ? C.b : C.t3, cursor: 'pointer', fontSize: 10, fontWeight: 600, fontFamily: F, textTransform: 'capitalize' }}>
+            <button key={f} onClick={() => setFilter(f)} className={`tf-btn ${st.filterBtn}`}
+              style={{ border: `1px solid ${filter === f ? C.b : 'transparent'}`, background: filter === f ? alpha(C.b, 0.08) : 'transparent', color: filter === f ? C.b : C.t3 }}>
               {f === 'all' ? '📋 All' : f === 'bullish' ? '🟢 Bull' : f === 'bearish' ? '🔴 Bear' : '🔥 Breaking'}
             </button>
           ))}
         </div>
 
-        {/* News List */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 400, overflowY: 'auto' }}>
+        <div className={st.newsList}>
           {news.map((n) => {
             const sm = SENTIMENT_META[n.sentiment];
             const im = IMPACT_META[n.impact];
             return (
-              <div key={n.id} style={{ padding: '10px 12px', background: alpha(C.sf, 0.5), border: `1px solid ${n.impact === 'high' ? alpha(C.r, 0.15) : alpha(C.bd, 0.3)}`, borderRadius: 8 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                  <span style={{ fontSize: 10 }}>{sm.icon}</span>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: sm.color, fontFamily: F }}>{sm.label} {n.confidence}%</span>
-                  <span style={{ fontSize: 8, fontWeight: 700, color: im.color, background: alpha(im.color, 0.1), padding: '1px 5px', borderRadius: 3, fontFamily: M }}>{im.label}</span>
-                  <span style={{ fontSize: 9, color: C.t3, fontFamily: F, marginLeft: 'auto' }}>{n.time}</span>
+              <div key={n.id} className={st.newsRow}
+                style={{ background: alpha(C.sf, 0.5), border: `1px solid ${n.impact === 'high' ? alpha(C.r, 0.15) : alpha(C.bd, 0.3)}` }}>
+                <div className={st.newsMeta}>
+                  <span className={st.sentIcon}>{sm.icon}</span>
+                  <span className={st.sentLabel} style={{ color: sm.color }}>{sm.label} {n.confidence}%</span>
+                  <span className={st.impactBadge} style={{ color: im.color, background: alpha(im.color, 0.1) }}>{im.label}</span>
+                  <span className={st.timeText} style={{ color: C.t3 }}>{n.time}</span>
                 </div>
-                <div style={{ fontSize: 12, color: C.t1, fontFamily: F, lineHeight: 1.5, fontWeight: 500, marginBottom: 6 }}>{n.headline}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-                  {n.symbols.map((s) => (
-                    <span key={s} style={{ fontSize: 9, fontWeight: 700, color: C.b, background: alpha(C.b, 0.08), padding: '1px 5px', borderRadius: 3, fontFamily: M }}>${s}</span>
-                  ))}
-                  {n.keywords.map((k) => (
-                    <span key={k} style={{ fontSize: 8, color: C.t3, background: alpha(C.t3, 0.08), padding: '1px 5px', borderRadius: 3, fontFamily: F }}>#{k}</span>
-                  ))}
-                  <span style={{ fontSize: 9, color: C.t3, fontFamily: F, marginLeft: 'auto' }}>{n.source}</span>
+                <div className={st.headline}>{n.headline}</div>
+                <div className={st.tagsRow}>
+                  {n.symbols.map((s) => <span key={s} className={st.symTag} style={{ color: C.b, background: alpha(C.b, 0.08) }}>${s}</span>)}
+                  {n.keywords.map((k) => <span key={k} className={st.kwTag} style={{ color: C.t3, background: alpha(C.t3, 0.08) }}>#{k}</span>)}
+                  <span className={st.sourceText} style={{ color: C.t3 }}>{n.source}</span>
                 </div>
               </div>
             );
@@ -150,5 +141,4 @@ function SentimentNewsFeed({ compact }) {
 }
 
 export { SentimentNewsFeed };
-
 export default React.memo(SentimentNewsFeed);

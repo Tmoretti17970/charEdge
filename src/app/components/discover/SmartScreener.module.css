@@ -1,0 +1,45 @@
+/* SmartScreener — CSS Module */
+.card { border-radius: 16px; overflow: hidden; }
+.headerBtn { all: unset; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; cursor: pointer; box-sizing: border-box; }
+.headerLeft { display: flex; align-items: center; gap: 10px; }
+.headerIcon { font-size: 18px; }
+.headerTitle { margin: 0; font-size: 16px; font-weight: 700; color: var(--tf-t1); font-family: var(--tf-font); }
+.badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; font-family: var(--tf-mono); }
+.chevron { font-size: 11px; transition: transform 0.2s ease; }
+.body { padding: 0 20px 20px; }
+/* Presets */
+.presetRow { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.presetBtn { display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 11px; font-weight: 600; font-family: var(--tf-font); white-space: nowrap; transition: all 0.2s ease; flex-shrink: 0; }
+.presetIcon { font-size: 13px; }
+/* Filters */
+.filterRow { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.filterGroup { display: flex; gap: 4px; }
+.filterBtn { padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; font-family: var(--tf-font); transition: all 0.15s; }
+.sortGroup { display: flex; gap: 4px; align-items: center; }
+.sortLabel { font-size: 10px; font-family: var(--tf-font); margin-right: 4px; }
+.sortBtn { padding: 3px 8px; border-radius: 4px; border: none; cursor: pointer; font-size: 10px; font-family: var(--tf-font); transition: all 0.15s; display: flex; align-items: center; gap: 2px; }
+.sortIcon { font-size: 8px; }
+/* Loading / Empty */
+.loading { padding: 24px; text-align: center; font-size: 12px; }
+.emptyState { padding: 32px 20px; text-align: center; font-size: 13px; font-family: var(--tf-font); }
+.resetBtn { background: none; border: none; cursor: pointer; font-weight: 600; font-size: 13px; font-family: var(--tf-font); }
+/* Table */
+.tableWrap { display: flex; flex-direction: column; gap: 4px; }
+.tableHeader { display: grid; grid-template-columns: 140px 90px 80px 80px 70px 80px 1fr; gap: 8px; padding: 6px 12px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--tf-font); }
+.colRight { text-align: right; }
+/* Row */
+.row { display: grid; grid-template-columns: 140px 90px 80px 80px 70px 80px 1fr; gap: 8px; padding: 10px 12px; border-radius: 8px; cursor: pointer; transition: all 0.15s ease; align-items: center; }
+.symNameRow { display: flex; align-items: center; gap: 6px; }
+.symText { font-size: 13px; font-weight: 700; color: var(--tf-t1); font-family: var(--tf-font); }
+.classBadge { font-size: 8px; font-weight: 600; padding: 1px 4px; border-radius: 3px; text-transform: uppercase; font-family: var(--tf-font); }
+.subText { font-size: 10px; font-family: var(--tf-font); margin-top: 1px; }
+.priceText { text-align: right; font-size: 12px; font-weight: 700; color: var(--tf-t1); font-family: var(--tf-mono); }
+.changeText { text-align: right; font-size: 12px; font-weight: 700; font-family: var(--tf-mono); }
+.rsiText { font-size: 12px; font-weight: 600; font-family: var(--tf-mono); }
+.volText { font-size: 11px; font-weight: 600; font-family: var(--tf-mono); }
+.signalBadge { font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 4px; font-family: var(--tf-font); white-space: nowrap; }
+.maCol { text-align: right; display: flex; justify-content: flex-end; gap: 4px; }
+.maBadge { font-size: 9px; font-weight: 600; padding: 2px 4px; border-radius: 3px; font-family: var(--tf-mono); }
+/* RSI Bar */
+.rsiTrack { width: 100%; height: 3px; border-radius: 2px; margin-top: 3px; overflow: hidden; }
+.rsiFill { height: 100%; border-radius: 2px; transition: width 0.3s ease; }

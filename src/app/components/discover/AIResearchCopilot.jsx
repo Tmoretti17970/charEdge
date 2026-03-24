@@ -11,10 +11,11 @@
 
 import React from 'react';
 import { useState, useRef, useEffect } from 'react';
-import { C, F } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { alpha } from '@/shared/colorUtils';
+import st from './AIResearchCopilot.module.css';
 
 // ─── Quick Prompts ──────────────────────────────────────────────
 
@@ -203,10 +204,10 @@ function AIResearchCopilot() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 18 }}>🤖</span>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: C.t1, fontFamily: F }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
               Research Copilot
             </div>
-            <div style={{ fontSize: 10, color: C.t3, fontFamily: F }}>
+            <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)' }}>
               {trades.length} trades · {watchlist.length} symbols
             </div>
           </div>
@@ -243,7 +244,7 @@ function AIResearchCopilot() {
       >
         {messages.length === 0 && (
           <div style={{ padding: '20px 0' }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 12 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)', marginBottom: 12 }}>
               What can I help with?
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -264,7 +265,7 @@ function AIResearchCopilot() {
                     cursor: 'pointer',
                     fontSize: 11,
                     fontWeight: 600,
-                    fontFamily: F,
+                    fontFamily: 'var(--tf-font)',
                     transition: 'all 0.15s',
                   }}
                 >
@@ -292,7 +293,7 @@ function AIResearchCopilot() {
                 borderTopColor: C.p,
               }}
             />
-            <span style={{ fontSize: 11, color: C.t3, fontFamily: F }}>Analyzing...</span>
+            <span style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)' }}>Analyzing...</span>
           </div>
         )}
       </div>
@@ -321,7 +322,7 @@ function AIResearchCopilot() {
             background: C.sf,
             color: C.t1,
             fontSize: 12,
-            fontFamily: F,
+            fontFamily: 'var(--tf-font)',
             outline: 'none',
           }}
         />
@@ -373,7 +374,7 @@ function MessageBubble({ message, onFollowUp }) {
           border: `1px solid ${isUser ? alpha(C.b, 0.2) : C.bd}`,
           color: C.t1,
           fontSize: 12,
-          fontFamily: F,
+          fontFamily: 'var(--tf-font)',
           lineHeight: 1.7,
           whiteSpace: 'pre-wrap',
         }}
@@ -412,7 +413,7 @@ function MessageBubble({ message, onFollowUp }) {
                 cursor: 'pointer',
                 fontSize: 10,
                 fontWeight: 600,
-                fontFamily: F,
+                fontFamily: 'var(--tf-font)',
                 transition: 'all 0.15s',
               }}
             >

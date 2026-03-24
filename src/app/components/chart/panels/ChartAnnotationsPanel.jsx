@@ -97,10 +97,7 @@ export default function ChartAnnotationsPanel({ _onClose }) {
               type="button"
               onClick={() => setEmoji(em)}
               className={s.emojiBtn}
-              style={{
-                border: `1px solid ${emoji === em ? C.b : 'transparent'}`,
-                background: emoji === em ? `${C.b}15` : 'transparent',
-              }}
+              data-active={emoji === em ? 'true' : undefined}
             >
               {em}
             </button>

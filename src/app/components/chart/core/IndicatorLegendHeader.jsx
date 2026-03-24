@@ -287,11 +287,7 @@ function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator, removeIn
               onClick={() => handleLineStyleChange(ls.id)}
               title={ls.title}
               className={s.lineStyleBtn}
-              style={{
-                border: `1px solid ${lineStyle === ls.id ? C.b : C.bd}`,
-                background: lineStyle === ls.id ? `${C.b}18` : 'transparent',
-                color: lineStyle === ls.id ? C.b : C.t3,
-              }}
+              data-active={lineStyle === ls.id ? 'true' : 'false'}
             >
               {ls.label}
             </button>

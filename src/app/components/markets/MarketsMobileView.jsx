@@ -6,11 +6,12 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useRef, useCallback, memo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming';
 import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
 import { useWatchlistStore } from '../../../state/useWatchlistStore';
 import { radii, transition } from '../../../theme/tokens.js';
+import st from './MarketsMobileView.module.css';
 
 // ─── Asset class colors ──────────────────────────────────────────
 
@@ -132,12 +133,12 @@ function MobileCard({ item, liveData, onTap, onRemove, index }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{
-              fontSize: 14, fontWeight: 800, color: C.t1, fontFamily: F,
+              fontSize: 14, fontWeight: 800, color: C.t1, fontFamily: 'var(--tf-font)',
             }}>
               {item.symbol}
             </span>
             <span style={{
-              fontSize: 8, fontWeight: 700, fontFamily: M,
+              fontSize: 8, fontWeight: 700, fontFamily: 'var(--tf-mono)',
               padding: '1px 5px', borderRadius: 4,
               background: `${assetColor}18`, color: assetColor,
               textTransform: 'uppercase',
@@ -146,7 +147,7 @@ function MobileCard({ item, liveData, onTap, onRemove, index }) {
             </span>
           </div>
           <div style={{
-            fontSize: 10, color: C.t3, fontFamily: F,
+            fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
             {item.name || item.symbol}
@@ -159,7 +160,7 @@ function MobileCard({ item, liveData, onTap, onRemove, index }) {
         {/* Price + Change */}
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
           <div style={{
-            fontSize: 14, fontWeight: 800, fontFamily: M, color: C.t1,
+            fontSize: 14, fontWeight: 800, fontFamily: 'var(--tf-mono)', color: C.t1,
           }}>
             {price != null ? (price >= 1000
               ? `$${price.toLocaleString('en-US', { maximumFractionDigits: 2 })}`
@@ -169,7 +170,7 @@ function MobileCard({ item, liveData, onTap, onRemove, index }) {
               : '—'}
           </div>
           <div style={{
-            fontSize: 11, fontWeight: 700, fontFamily: M, color: changeColor,
+            fontSize: 11, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: changeColor,
           }}>
             {change != null ? `${isUp ? '+' : ''}${change.toFixed(2)}%` : '—'}
           </div>
@@ -228,19 +229,19 @@ function MobileDetailSheet({ symbol, onClose }) {
           justifyContent: 'space-between', marginBottom: 16,
         }}>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: C.t1, fontFamily: F }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: C.t1, fontFamily: 'var(--tf-font)' }}>
               {item.symbol}
             </div>
-            <div style={{ fontSize: 11, color: C.t3, fontFamily: F }}>
+            <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)' }}>
               {item.name || item.symbol}
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 22, fontWeight: 800, fontFamily: M, color: C.t1 }}>
+            <div style={{ fontSize: 22, fontWeight: 800, fontFamily: 'var(--tf-mono)', color: C.t1 }}>
               {price != null ? `$${price.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : '—'}
             </div>
             <div style={{
-              fontSize: 13, fontWeight: 700, fontFamily: M,
+              fontSize: 13, fontWeight: 700, fontFamily: 'var(--tf-mono)',
               color: change != null ? (isUp ? C.g : C.r) : C.t3,
             }}>
               {change != null ? `${isUp ? '+' : ''}${change.toFixed(2)}%` : '—'}
@@ -262,10 +263,10 @@ function MobileDetailSheet({ symbol, onClose }) {
               padding: '10px 8px', borderRadius: radii.md,
               background: C.bg2, textAlign: 'center',
             }}>
-              <div style={{ fontSize: 9, color: C.t3, fontFamily: M, textTransform: 'uppercase', marginBottom: 2 }}>
+              <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', marginBottom: 2 }}>
                 {stat.label}
               </div>
-              <div style={{ fontSize: 13, fontWeight: 700, fontFamily: M, color: C.t1 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: C.t1 }}>
                 {stat.value}
               </div>
             </div>
@@ -279,7 +280,7 @@ function MobileDetailSheet({ symbol, onClose }) {
             borderRadius: radii.md,
             background: `linear-gradient(135deg, ${C.p}, ${C.b})`,
             color: '#fff', fontSize: 13, fontWeight: 700,
-            fontFamily: F, border: 'none', cursor: 'pointer',
+            fontFamily: 'var(--tf-font)', border: 'none', cursor: 'pointer',
             transition: transition.base,
           }}
         >
@@ -319,7 +320,7 @@ function MarketsMobileView() {
       <div style={{
         flex: 1, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        padding: 32, color: C.t3, fontFamily: F,
+        padding: 32, color: C.t3, fontFamily: 'var(--tf-font)',
       }}>
         <div style={{ fontSize: 40, marginBottom: 12 }}>📱</div>
         <div style={{ fontSize: 14, fontWeight: 700, color: C.t1, marginBottom: 4 }}>

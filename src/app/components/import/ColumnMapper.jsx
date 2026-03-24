@@ -7,9 +7,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
 import { autoMapColumns, getTargetFields } from '../../data/importExport/columnMatcher.js';
+import st from './ColumnMapper.module.css';
 
 // ─── Confidence Badge ───────────────────────────────────────────
 
@@ -21,7 +22,7 @@ function ConfBadge({ score }) {
       style={{
         fontSize: 8,
         fontWeight: 700,
-        fontFamily: M,
+        fontFamily: 'var(--tf-mono)',
         padding: '1px 5px',
         borderRadius: 4,
         background: alpha(color, 0.12),
@@ -61,7 +62,7 @@ function SourceColumn({ header, mapped, active, onClick, confidence }) {
         textAlign: 'left',
       }}
     >
-      <span style={{ fontSize: 11, fontWeight: 600, fontFamily: M, color: C.t1 }}>{header}</span>
+      <span style={{ fontSize: 11, fontWeight: 600, fontFamily: 'var(--tf-mono)', color: C.t1 }}>{header}</span>
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         {mapped && <span style={{ fontSize: 10, color: C.g }}>✓</span>}
         {confidence > 0 && <ConfBadge score={confidence} />}
@@ -99,7 +100,7 @@ function TargetField({ field, mappedFrom, active, onClick }) {
       }}
     >
       <div>
-        <span style={{ fontSize: 11, fontWeight: 600, fontFamily: F, color: C.t1 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, fontFamily: 'var(--tf-font)', color: C.t1 }}>
           {field.label}
         </span>
         {field.required && (
@@ -107,7 +108,7 @@ function TargetField({ field, mappedFrom, active, onClick }) {
         )}
       </div>
       {mappedFrom && (
-        <span style={{ fontSize: 9, fontFamily: M, color: C.t3, maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3, maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           ← {mappedFrom}
         </span>
       )}
@@ -206,10 +207,10 @@ function ColumnMapper({ headers, onMappingComplete, initialMapping }) {
       {/* ─── Header ──────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, fontFamily: F, color: C.t1 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'var(--tf-font)', color: C.t1 }}>
             Column Mapping
           </div>
-          <div style={{ fontSize: 10, color: C.t3, fontFamily: M, marginTop: 2 }}>
+          <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-mono)', marginTop: 2 }}>
             {mappedCount} of {(headers || []).length} columns mapped
             {selectedSource && (
               <span style={{ color: C.b, marginLeft: 6 }}>
@@ -223,7 +224,7 @@ function ColumnMapper({ headers, onMappingComplete, initialMapping }) {
           style={{
             fontSize: 10,
             fontWeight: 600,
-            fontFamily: F,
+            fontFamily: 'var(--tf-font)',
             padding: '4px 10px',
             borderRadius: 6,
             border: `1px solid ${alpha(C.b, 0.2)}`,
@@ -289,7 +290,7 @@ function ColumnMapper({ headers, onMappingComplete, initialMapping }) {
           style={{
             fontSize: 11,
             fontWeight: 700,
-            fontFamily: F,
+            fontFamily: 'var(--tf-font)',
             padding: '6px 16px',
             borderRadius: 8,
             border: 'none',

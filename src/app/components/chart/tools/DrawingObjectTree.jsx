@@ -33,17 +33,13 @@ function getGroupForTool(type) {
 }
 
 // ─── Reusable icon button ─────────────────────────────────────
-function IconBtn({ onClick, title, active, children, style: extraStyle }) {
+function IconBtn({ onClick, title, active, children, danger }) {
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onClick(); }}
       title={title}
-      className={s.iconBtn}
-      style={{
-        color: active ? '#2962FF' : '#787B86',
-        opacity: active ? 1 : 0.6,
-        ...extraStyle,
-      }}
+      className={`${s.iconBtn} ${danger ? s.iconBtnDanger : ''}`}
+      data-active={active ? 'true' : undefined}
     >
       {children}
     </button>
@@ -76,7 +72,7 @@ function DrawingRow({ drawing, drawingEngine, isSelected, onSelect }) {
       onClick={() => onSelect(drawing.id)}
       className={s.drawingRow}
       data-selected={isSelected || undefined}
-      style={{ borderLeft: `3px solid ${color}` }}
+      style={{ '--row-color': color }}
     >
       <span className={s.rowIcon}>{icon}</span>
 
@@ -125,7 +121,7 @@ function DrawingRow({ drawing, drawingEngine, isSelected, onSelect }) {
       <IconBtn
         onClick={() => drawingEngine.removeDrawing(drawing.id)}
         title="Delete"
-        style={{ color: '#EF5350' }}
+        danger
       >
         ✕
       </IconBtn>
@@ -193,7 +189,7 @@ export default function DrawingObjectTree({ drawingEngine, drawings, selectedDra
         </span>
         <div className={s.headerActions}>
           <IconBtn onClick={() => drawingEngine?.selectAll()} title="Select All">☑</IconBtn>
-          <IconBtn onClick={() => drawingEngine?.clearAll()} title="Clear All" style={{ color: '#EF5350' }}>🗑</IconBtn>
+          <IconBtn onClick={() => drawingEngine?.clearAll()} title="Clear All" danger>🗑</IconBtn>
           {onClose && <IconBtn onClick={onClose} title="Close">✕</IconBtn>}
         </div>
       </div>

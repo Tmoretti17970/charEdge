@@ -159,7 +159,18 @@ async function _doFetch(sym, tfId, _tf, _key) {
       const candles = await cg.fetchOHLCV(sym, cgTf.interval, { days: cgTf.days });
       return (candles && candles.length > 1) ? candles : null;
     });
-    if (data) source = 'coingecko';
+    if (data) {
+      source = 'coingecko';
+      // Propagate no-volume flag so volume indicators can warn users
+      if (data._noVolume) {
+        _lastWarning = `${sym} data from CoinGecko has no volume. Volume indicators may be inaccurate.`;
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('charEdge:data-warning', {
+            detail: { message: _lastWarning, symbol: sym, type: 'no-volume' },
+          }));
+        }
+      }
+    }
   }
 
   // ── Step 1.6: Crypto → CryptoCompare (free, 2000 daily candles) ──
@@ -177,20 +188,29 @@ async function _doFetch(sym, tfId, _tf, _key) {
     if (data) source = 'cryptocompare';
   }
 
-  // ── Step 2: Equities → Race providers (first success wins) ─────
+  // ── Step 2: Equities → Premium first, then Yahoo fallback ──────
   if (!data && !isCrypto(sym)) {
-    const equityProviders = [
-      // Premium providers (Polygon, FMP, Alpaca, Tiingo)
-      withCircuitBreaker('equity-premium', async () => {
+    // 2a: Try premium providers first (Polygon, FMP, Alpaca, Tiingo)
+    try {
+      const premiumResult = await withCircuitBreaker('equity-premium', async () => {
         const { fetchEquityPremium } = await import('./DataProvider.js');
         const result = await fetchEquityPremium(sym, tfId);
         if (result && result.data) {
           return { data: result.data, source: result.source || 'polygon' };
         }
         return Promise.reject('no premium data');
-      }),
-      // Yahoo Finance (free, no key required)
-      withCircuitBreaker('yahoo', async () => {
+      });
+      if (premiumResult) {
+        data = premiumResult.data;
+        source = premiumResult.source;
+      }
+    } catch {
+      // Premium providers failed — try Yahoo
+    }
+
+    // 2b: Yahoo Finance fallback (free, no key required, outside circuit breaker)
+    if (!data) {
+      try {
         const yahoo = _yahooAdapter;
         const YAHOO_TF_MAP: Record<string, { interval: string; range: string }> = {
           '1m': { interval: '1m', range: '1d' },
@@ -203,28 +223,15 @@ async function _doFetch(sym, tfId, _tf, _key) {
           '1w': { interval: '1wk', range: '5y' },
         };
         const yahooTf = YAHOO_TF_MAP[tfId] || { interval: '1d', range: '1y' };
-        // Map futures (ES→ES=F) and forex (EURUSD→EURUSD=X) to Yahoo format
         const yahooSym = toYahooSymbol(sym);
         const candles = await yahoo.fetchOHLCV(yahooSym, yahooTf.interval, { range: yahooTf.range });
         if (candles && candles.length > 1) {
-          // Sprint 8: Don't pre-convert timestamps — let normalizeTimestamps() at line 240 handle it
-          // consistently across ALL adapters. Previously was converting to ISO here, causing inconsistency.
-          return {
-            data: candles,
-            source: 'yahoo',
-          };
+          data = candles;
+          source = 'yahoo';
         }
-        return Promise.reject('no yahoo data');
-      }),
-    ];
-    try {
-      const winner = await Promise.any(equityProviders);
-      if (winner) {
-        data = winner.data;
-        source = winner.source;
+      } catch {
+        // Yahoo also failed — falls through to OPFS
       }
-    } catch {
-      // All equity providers failed — falls through to OPFS
     }
   }
 

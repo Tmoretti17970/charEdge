@@ -9,6 +9,7 @@
 import { memo, useState } from 'react';
 import { C, M } from '../../../constants.js';
 import { transition } from '../../../theme/tokens.js';
+import st from './WeekRangeBar.module.css';
 
 function fmtPrice(val) {
   if (val == null || isNaN(val)) return '—';
@@ -22,7 +23,7 @@ function WeekRangeBar({ low52w, high52w, currentPrice, expanded = false }) {
 
   if (low52w == null || high52w == null || currentPrice == null) {
     return (
-      <div style={{ fontSize: 10, color: C.t3, fontFamily: M }}>—</div>
+      <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-mono)' }}>—</div>
     );
   }
 
@@ -51,13 +52,13 @@ function WeekRangeBar({ low52w, high52w, currentPrice, expanded = false }) {
           display: 'flex', justifyContent: 'space-between',
           marginBottom: 6,
         }}>
-          <span style={{ fontSize: 10, fontFamily: M, color: C.t3 }}>
+          <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
             {fmtPrice(low52w)}
           </span>
-          <span style={{ fontSize: 10, fontFamily: M, color: dotColor, fontWeight: 700 }}>
+          <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: dotColor, fontWeight: 700 }}>
             {pctLabel} of range
           </span>
-          <span style={{ fontSize: 10, fontFamily: M, color: C.t3 }}>
+          <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
             {fmtPrice(high52w)}
           </span>
         </div>
@@ -125,15 +126,15 @@ function WeekRangeBar({ low52w, high52w, currentPrice, expanded = false }) {
             boxShadow: `0 4px 16px ${C.bd}20`,
           }}
         >
-          <div style={{ fontSize: 9, fontFamily: M, color: C.t3, marginBottom: 3 }}>
+          <div style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3, marginBottom: 3 }}>
             52-Week Range
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{ fontSize: 10, fontFamily: M, color: C.g }}>{fmtPrice(low52w)}</span>
-            <span style={{ fontSize: 10, fontFamily: M, color: dotColor, fontWeight: 700 }}>
+            <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.g }}>{fmtPrice(low52w)}</span>
+            <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: dotColor, fontWeight: 700 }}>
               → {fmtPrice(currentPrice)} ({pctLabel})
             </span>
-            <span style={{ fontSize: 10, fontFamily: M, color: C.r }}>{fmtPrice(high52w)}</span>
+            <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.r }}>{fmtPrice(high52w)}</span>
           </div>
         </div>
       )}

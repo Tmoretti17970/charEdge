@@ -18,20 +18,19 @@ import ModelBenchmarkCard from './ModelBenchmarkCard.jsx';
 import { C, F, M } from '../../../constants.js';
 import { Card } from '../ui/UIKit.jsx';
 import { StatusBadge } from './SettingsHelpers.jsx';
+import css from './IntelligenceSection.module.css';
 
 // ─── Shared Sub-components ──────────────────────────────────────
 
 function GroupHeader({ emoji, title, subtitle }) {
   return (
-    <div style={{ marginBottom: 14 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 16 }}>{emoji}</span>
-        <span style={{ fontSize: 14, fontWeight: 700, color: C.t1, fontFamily: F }}>{title}</span>
+    <div className={css.groupHdr}>
+      <div className={css.groupHdrRow}>
+        <span className={css.groupEmoji}>{emoji}</span>
+        <span className={css.groupTitle}>{title}</span>
       </div>
       {subtitle && (
-        <div style={{ fontSize: 11, color: C.t3, fontFamily: F, marginTop: 2, paddingLeft: 24 }}>
-          {subtitle}
-        </div>
+        <div className={css.groupSub}>{subtitle}</div>
       )}
     </div>
   );
@@ -45,25 +44,16 @@ function Toggle({ checked, onChange, label, disabled = false }) {
       aria-label={label || 'Toggle'}
       disabled={disabled}
       onClick={onChange}
+      className={css.toggleTrack}
       style={{
-        width: 36, height: 20, borderRadius: 10,
-        border: 'none', padding: 2,
         background: checked ? C.g : C.bd,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.4 : 1,
-        transition: 'background 0.2s ease',
-        display: 'flex', alignItems: 'center',
-        flexShrink: 0,
       }}
     >
       <div
-        style={{
-          width: 16, height: 16, borderRadius: '50%',
-          background: '#fff',
-          transition: 'transform 0.2s ease',
-          transform: checked ? 'translateX(16px)' : 'translateX(0)',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
-        }}
+        className={css.toggleThumb}
+        style={{ transform: checked ? 'translateX(16px)' : 'translateX(0)' }}
       />
     </button>
   );
@@ -71,23 +61,16 @@ function Toggle({ checked, onChange, label, disabled = false }) {
 
 function PillSelector({ options, value, onChange }) {
   return (
-    <div style={{ display: 'flex', gap: 4 }}>
+    <div className={css.pillRow}>
       {options.map((opt) => (
         <button
           key={opt.value}
           onClick={() => onChange(opt.value)}
-          className="tf-btn"
+          className={`tf-btn ${css.pillBtn}`}
           style={{
-            padding: '5px 12px',
-            borderRadius: 8,
             border: `1px solid ${value === opt.value ? C.b + '40' : C.bd}`,
             background: value === opt.value ? C.b + '12' : 'transparent',
             color: value === opt.value ? C.b : C.t2,
-            fontSize: 11,
-            fontWeight: 600,
-            fontFamily: F,
-            cursor: 'pointer',
-            transition: 'all 0.15s ease',
           }}
         >
           {opt.label}
@@ -99,21 +82,12 @@ function PillSelector({ options, value, onChange }) {
 
 function ToggleRow({ label, hint, checked, onChange, preview, disabled }) {
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 10,
-      padding: '10px 0',
-      borderBottom: `1px solid ${C.bd}10`,
-    }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: C.t1, fontFamily: F }}>{label}</div>
-        {hint && <div style={{ fontSize: 10, color: C.t3, fontFamily: F, marginTop: 1 }}>{hint}</div>}
+    <div className={css.toggleRow} style={{ borderBottom: `1px solid ${C.bd}10` }}>
+      <div className={css.flex1}>
+        <div className={css.toggleRowLabel}>{label}</div>
+        {hint && <div className={css.toggleRowHint}>{hint}</div>}
         {preview && checked && (
-          <div style={{
-            fontSize: 9, color: C.t3, fontFamily: M, fontStyle: 'italic',
-            marginTop: 4, padding: '4px 8px',
-            background: C.b + '06', borderRadius: 4,
-            maxHeight: 40, overflow: 'hidden',
-          }}>
+          <div className={css.toggleRowPreview} style={{ background: C.b + '06' }}>
             {preview}
           </div>
         )}
@@ -227,30 +201,22 @@ function EngineGroup() {
       <GroupHeader emoji="⚡" title="Engine" subtitle="In-browser AI model and ML pipeline" />
 
       {/* WebLLM Model Picker */}
-      <div style={{ fontSize: 11, fontWeight: 700, color: C.t2, fontFamily: F, marginBottom: 8 }}>
-        WebLLM Model
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+      <div className={css.subLabel}>WebLLM Model</div>
+      <div className={css.modelList}>
         {models.map((m) => (
           <div
             key={m.id}
             id={`webllm-model-${m.tier}`}
+            className={css.modelRow}
             style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '10px 12px', borderRadius: 10,
               background: m.loaded ? `${C.g}08` : 'transparent',
               border: `1px solid ${m.loaded ? `${C.g}30` : C.bd}`,
-              transition: 'all 0.2s ease',
             }}
           >
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: C.t1, fontFamily: F }}>{m.label}</div>
-              <div style={{ fontSize: 9, color: C.t3, fontFamily: M, marginTop: 2 }}>
-                {m.size} · {m.speed} · {m.contextWindow} ctx
-              </div>
-              <div style={{ fontSize: 9, color: C.t3, fontFamily: F, marginTop: 1 }}>
-                {m.description}
-              </div>
+            <div className={css.flex1}>
+              <div className={css.modelName}>{m.label}</div>
+              <div className={css.modelMeta}>{m.size} · {m.speed} · {m.contextWindow} ctx</div>
+              <div className={css.modelDesc}>{m.description}</div>
             </div>
             {m.loaded ? (
               <StatusBadge ok label="Loaded" />
@@ -258,11 +224,8 @@ function EngineGroup() {
               <button
                 onClick={() => handleLoadModel(m.id)}
                 disabled={webLLMStatus?.loading}
-                className="tf-btn"
+                className={`tf-btn ${css.downloadBtn}`}
                 style={{
-                  padding: '4px 12px', borderRadius: 6,
-                  border: 'none', background: C.b, color: '#fff',
-                  fontSize: 10, fontWeight: 600, fontFamily: F,
                   cursor: webLLMStatus?.loading ? 'not-allowed' : 'pointer',
                   opacity: webLLMStatus?.loading ? 0.5 : 1,
                 }}
@@ -275,48 +238,25 @@ function EngineGroup() {
       </div>
 
       {/* Status + Progress */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '8px 0', borderBottom: `1px solid ${C.bd}10`,
-        marginBottom: 10,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12 }}>{statusEmoji}</span>
-          <span style={{ fontSize: 11, color: C.t2, fontFamily: F }}>{statusLabel}</span>
+      <div className={css.statusRow} style={{ borderBottom: `1px solid ${C.bd}10` }}>
+        <div className={css.statusInner}>
+          <span className={css.statusEmoji}>{statusEmoji}</span>
+          <span className={css.statusLabel}>{statusLabel}</span>
           {webLLMStatus?.modelId && webLLMStatus?.loaded && (
-            <span style={{ fontSize: 9, color: C.t3, fontFamily: M }}>({webLLMStatus.modelId.split('-')[0]})</span>
+            <span className={css.statusModelId}>({webLLMStatus.modelId.split('-')[0]})</span>
           )}
         </div>
         {webLLMStatus?.loaded && (
-          <button
-            onClick={handleUnload}
-            className="tf-btn"
-            style={{
-              padding: '3px 10px', borderRadius: 5,
-              border: `1px solid ${C.bd}`, background: 'transparent',
-              color: C.t3, fontSize: 9, fontFamily: M, cursor: 'pointer',
-            }}
-          >
-            Unload
-          </button>
+          <button onClick={handleUnload} className={`tf-btn ${css.unloadBtn}`}>Unload</button>
         )}
       </div>
 
       {/* Download Progress Bar */}
       {webLLMStatus?.loading && (
-        <div style={{ marginBottom: 10 }}>
-          <div style={{ fontSize: 9, color: C.t3, fontFamily: M, marginBottom: 3 }}>
-            {webLLMStatus.progressText}
-          </div>
-          <div style={{
-            height: 4, borderRadius: 2, background: `${C.bd}30`, overflow: 'hidden',
-          }}>
-            <div style={{
-              height: '100%', borderRadius: 2,
-              width: `${webLLMStatus.progress}%`,
-              background: C.b,
-              transition: 'width 0.3s ease',
-            }} />
+        <div className={css.progressWrap}>
+          <div className={css.progressText}>{webLLMStatus.progressText}</div>
+          <div className={css.progressTrack} style={{ background: `${C.bd}30` }}>
+            <div className={css.progressFill} style={{ width: `${webLLMStatus.progress}%`, background: C.b }} />
           </div>
         </div>
       )}
@@ -330,17 +270,12 @@ function EngineGroup() {
       />
 
       {/* ONNX ML Pipeline */}
-      <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.bd}15` }}>
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          marginBottom: 8,
-        }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: C.t2, fontFamily: F }}>
-            🤖 ONNX ML Pipeline
-          </div>
+      <div className={css.mlSection} style={{ borderTop: `1px solid ${C.bd}15` }}>
+        <div className={css.mlHeaderRow}>
+          <div className={css.mlLabel}>🤖 ONNX ML Pipeline</div>
           <Toggle checked={mlEnabled} onChange={handleToggleMl} label="ML Engine" />
         </div>
-        <div style={{ fontSize: 9, color: C.t3, fontFamily: M, marginBottom: 4 }}>
+        <div className={css.mlHint}>
           In-browser pattern detection and market regime classification via ONNX Runtime.
         </div>
       </div>
@@ -396,20 +331,15 @@ function PersonalityGroup() {
 
       {/* Adapted badge */}
       {isAdapted && (
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 4,
-          padding: '3px 10px', borderRadius: 12,
-          background: `${C.b}10`, border: `1px solid ${C.b}25`,
-          fontSize: 9, fontWeight: 600, color: C.b, fontFamily: M,
-          marginBottom: 12,
-        }}>
+        <div className={css.adaptedBadge}
+          style={{ background: `${C.b}10`, border: `1px solid ${C.b}25`, color: C.b }}>
           ✦ Auto-learned from {totalInteractions} interactions
         </div>
       )}
 
       {/* Tone */}
-      <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: C.t2, fontFamily: F, marginBottom: 6 }}>Tone</div>
+      <div className={css.prefBlock}>
+        <div className={css.prefLabel}>Tone</div>
         <PillSelector
           options={[
             { value: 'direct', label: '⚡ Direct' },
@@ -422,8 +352,8 @@ function PersonalityGroup() {
       </div>
 
       {/* Verbosity */}
-      <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: C.t2, fontFamily: F, marginBottom: 6 }}>Verbosity</div>
+      <div className={css.prefBlock}>
+        <div className={css.prefLabel}>Verbosity</div>
         <PillSelector
           options={[
             { value: 'brief', label: 'Brief' },
@@ -436,8 +366,8 @@ function PersonalityGroup() {
       </div>
 
       {/* Frequency */}
-      <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: C.t2, fontFamily: F, marginBottom: 6 }}>Coaching Frequency</div>
+      <div className={css.prefBlock}>
+        <div className={css.prefLabel}>Coaching Frequency</div>
         <PillSelector
           options={[
             { value: 'high', label: 'High' },
@@ -450,16 +380,7 @@ function PersonalityGroup() {
       </div>
 
       {/* Reset */}
-      <button
-        onClick={handleReset}
-        className="tf-btn"
-        style={{
-          padding: '6px 14px', borderRadius: 6,
-          border: `1px solid ${C.bd}`, background: 'transparent',
-          color: C.t3, fontSize: 10, fontFamily: M,
-          cursor: 'pointer', transition: 'all 0.15s ease',
-        }}
-      >
+      <button onClick={handleReset} className={`tf-btn ${css.resetBtn}`}>
         Reset Learned Preferences
       </button>
     </Card>
@@ -594,12 +515,8 @@ function CloudAIGroup() {
       <GroupHeader emoji="☁️" title="Cloud AI" subtitle="Optional — copilot works entirely offline without these" />
 
       {/* Optional banner */}
-      <div style={{
-        padding: '6px 10px', borderRadius: 6,
-        background: `${C.y}08`, border: `1px solid ${C.y}20`,
-        fontSize: 9, color: C.t2, fontFamily: F,
-        marginBottom: 12,
-      }}>
+      <div className={css.optionalBanner}
+        style={{ background: `${C.y}08`, border: `1px solid ${C.y}20` }}>
         ⚡ Optional — Add API keys for faster, smarter responses. Free tiers available.
       </div>
 
@@ -612,21 +529,16 @@ function CloudAIGroup() {
         return (
           <div
             key={prov.id}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '10px 0', borderBottom: `1px solid ${C.bd}10`,
-            }}
+            className={css.providerRow}
+            style={{ borderBottom: `1px solid ${C.bd}10` }}
           >
-            <div style={{
-              width: 8, height: 8, borderRadius: '50%',
-              background: hasKey ? '#4ade80' : `${C.bd}40`,
-              flexShrink: 0,
-            }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: C.t1, fontFamily: F }}>{prov.name}</div>
-              <div style={{ fontSize: 9, color: C.t3, fontFamily: M }}>{prov.desc}</div>
+            <div className={css.provDot}
+              style={{ background: hasKey ? '#4ade80' : `${C.bd}40` }} />
+            <div className={css.flex1}>
+              <div className={css.provName}>{prov.name}</div>
+              <div className={css.provDesc}>{prov.desc}</div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div className={css.provActions}>
               {isEditing ? (
                 <>
                   <input
@@ -636,55 +548,33 @@ function CloudAIGroup() {
                     onChange={(e) => setEditValue(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && saveKey(prov.id)}
                     placeholder={prov.hint}
-                    style={{
-                      width: 160, padding: '4px 8px', borderRadius: 4,
-                      border: `1px solid ${C.bd}`, background: C.bg,
-                      color: C.t1, fontSize: 10, fontFamily: M, outline: 'none',
-                    }}
+                    className={css.apiInput}
                   />
-                  <button onClick={() => saveKey(prov.id)} className="tf-btn" style={{
-                    padding: '3px 8px', borderRadius: 4, border: 'none',
-                    background: C.b, color: '#fff', fontSize: 9, cursor: 'pointer',
-                  }}>✓</button>
-                  <button onClick={() => { setEditing(null); setEditValue(''); }} className="tf-btn" style={{
-                    padding: '3px 6px', borderRadius: 4, border: `1px solid ${C.bd}`,
-                    background: 'transparent', color: C.t3, fontSize: 9, cursor: 'pointer',
-                  }}>✕</button>
+                  <button onClick={() => saveKey(prov.id)} className={`tf-btn ${css.miniBtnPrimary}`}>✓</button>
+                  <button onClick={() => { setEditing(null); setEditValue(''); }} className={`tf-btn ${css.miniBtnCancel}`}>✕</button>
                 </>
               ) : (
                 <>
-                  {hasKey && <span style={{ fontSize: 9, fontFamily: M, color: C.t3 }}>{maskKey(keys[prov.id])}</span>}
+                  {hasKey && <span className={css.maskedKey}>{maskKey(keys[prov.id])}</span>}
                   {hasKey && (
                     <button
                       onClick={() => testConnection(prov.id)}
                       disabled={testing === prov.id}
-                      className="tf-btn"
-                      style={{
-                        padding: '3px 8px', borderRadius: 4,
-                        border: `1px solid ${C.bd}`, background: 'transparent',
-                        color: result === true ? C.g : result === false ? C.r : C.t2,
-                        fontSize: 9, fontFamily: M, cursor: 'pointer',
-                      }}
+                      className={`tf-btn ${css.miniBtn}`}
+                      style={{ color: result === true ? C.g : result === false ? C.r : C.t2 }}
                     >
                       {testing === prov.id ? '…' : result === true ? '✓ OK' : result === false ? '✗ Fail' : 'Test'}
                     </button>
                   )}
                   <button
                     onClick={() => { setEditing(prov.id); setEditValue(keys[prov.id] || ''); }}
-                    className="tf-btn"
-                    style={{
-                      padding: '3px 8px', borderRadius: 4,
-                      border: `1px solid ${C.bd}`, background: 'transparent',
-                      color: C.t2, fontSize: 9, fontFamily: M, cursor: 'pointer',
-                    }}
+                    className={`tf-btn ${css.miniBtn}`}
                   >
                     {hasKey ? 'Edit' : '+ Add'}
                   </button>
                   {hasKey && (
-                    <button onClick={() => deleteKey(prov.id)} className="tf-btn" style={{
-                      padding: '3px 6px', borderRadius: 4, border: 'none',
-                      background: `${C.r}15`, color: C.r, fontSize: 9, cursor: 'pointer',
-                    }}>🗑</button>
+                    <button onClick={() => deleteKey(prov.id)} className={`tf-btn ${css.miniBtnDelete}`}
+                      style={{ background: `${C.r}15`, color: C.r }}>🗑</button>
                   )}
                 </>
               )}
@@ -694,23 +584,11 @@ function CloudAIGroup() {
       })}
 
       {/* Why add an API key? */}
-      <button
-        onClick={() => setShowWhy((p) => !p)}
-        className="tf-btn"
-        style={{
-          display: 'block', marginTop: 10, padding: 0,
-          border: 'none', background: 'transparent',
-          color: C.b, fontSize: 10, fontFamily: F,
-          cursor: 'pointer', textDecoration: 'underline',
-        }}
-      >
+      <button onClick={() => setShowWhy((p) => !p)} className={`tf-btn ${css.whyBtn}`}>
         {showWhy ? 'Hide' : 'Why add an API key?'}
       </button>
       {showWhy && (
-        <div style={{
-          marginTop: 6, padding: '8px 10px', borderRadius: 6,
-          background: `${C.b}06`, fontSize: 10, color: C.t2, fontFamily: F, lineHeight: 1.6,
-        }}>
+        <div className={css.whyBox} style={{ background: `${C.b}06` }}>
           <strong>Gemini:</strong> Longer, more nuanced analysis. Great for multi-step reasoning and coaching narratives.<br />
           <strong>Groq:</strong> Ultra-fast inference. Best for real-time chart queries and quick responses.
           Both have generous free tiers — no credit card needed.
@@ -758,27 +636,21 @@ function PrivacyGroup() {
       <GroupHeader emoji="🛡️" title="Privacy" subtitle="Your data stays on your device" />
 
       {/* Shield banner */}
-      <div style={{
-        padding: '10px 12px', borderRadius: 8,
-        background: `${C.g}08`, border: `1px solid ${C.g}20`,
-        fontSize: 11, color: C.t1, fontFamily: F,
-        marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8,
-      }}>
-        <span style={{ fontSize: 16 }}>🛡️</span>
+      <div className={css.shieldBanner}
+        style={{ background: `${C.g}08`, border: `1px solid ${C.g}20` }}>
+        <span className={css.shieldIcon}>🛡️</span>
         <div>
-          <div style={{ fontWeight: 700 }}>All AI processing happens in your browser</div>
-          <div style={{ fontSize: 9, color: C.t3, marginTop: 1 }}>
+          <div className={css.shieldTitle}>All AI processing happens in your browser</div>
+          <div className={css.shieldSubtitle}>
             No data is sent to external servers unless you add a Cloud AI key.
           </div>
         </div>
       </div>
 
       {/* Data summary */}
-      <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: C.t2, fontFamily: F, marginBottom: 6 }}>
-          What the AI can access
-        </div>
-        <div style={{ fontSize: 10, color: C.t3, fontFamily: F, lineHeight: 1.7, paddingLeft: 4 }}>
+      <div className={css.prefBlock}>
+        <div className={css.dataAccessLabel}>What the AI can access</div>
+        <div className={css.dataAccessList}>
           • Journal trades and trade history<br />
           • Chart context (symbol, timeframe, indicators)<br />
           • Trader DNA personality profile<br />
@@ -788,39 +660,27 @@ function PrivacyGroup() {
       </div>
 
       {/* Clear buttons */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+      <div className={css.clearRow}>
         <button
           onClick={handleClearMemory}
-          className="tf-btn"
-          style={{
-            flex: 1, padding: '8px 0', borderRadius: 6,
-            border: `1px solid ${C.r}30`, background: `${C.r}06`,
-            color: C.r, fontSize: 10, fontWeight: 600, fontFamily: F,
-            cursor: 'pointer', transition: 'all 0.15s ease',
-          }}
+          className={`tf-btn ${css.clearBtn}`}
+          style={{ border: `1px solid ${C.r}30`, background: `${C.r}06`, color: C.r }}
         >
           Clear AI Memory
         </button>
         <button
           onClick={handleClearPrefs}
-          className="tf-btn"
-          style={{
-            flex: 1, padding: '8px 0', borderRadius: 6,
-            border: `1px solid ${C.y}30`, background: `${C.y}06`,
-            color: C.y, fontSize: 10, fontWeight: 600, fontFamily: F,
-            cursor: 'pointer', transition: 'all 0.15s ease',
-          }}
+          className={`tf-btn ${css.clearBtn}`}
+          style={{ border: `1px solid ${C.y}30`, background: `${C.y}06`, color: C.y }}
         >
           Clear Learned Preferences
         </button>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
+      <div className={css.statusFooter}>
         <StatusBadge ok label="Local-only processing" />
         {memoryCount > 0 && (
-          <span style={{ fontSize: 9, color: C.t3, fontFamily: M }}>
-            {memoryCount} messages in memory
-          </span>
+          <span className={css.memoryCount}>{memoryCount} messages in memory</span>
         )}
       </div>
     </Card>
@@ -833,20 +693,16 @@ function PrivacyGroup() {
 
 function IntelligenceSection() {
   return (
-    <section id="intelligence-settings" style={{ marginBottom: 40 }}>
+    <section id="intelligence-settings" className={css.sectionWrap}>
       {/* Local-processing reassurance banner */}
-      <div style={{
-        padding: '10px 14px', borderRadius: 10,
-        background: `${C.g}08`, border: `1px solid ${C.g}20`,
-        display: 'flex', alignItems: 'center', gap: 10,
-        marginBottom: 16,
-      }}>
-        <span style={{ fontSize: 18 }}>🛡️</span>
+      <div className={css.heroBanner}
+        style={{ background: `${C.g}08`, border: `1px solid ${C.g}20` }}>
+        <span className={css.heroBannerIcon}>🛡️</span>
         <div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: F }}>
+          <div className={css.heroBannerTitle}>
             All AI processing happens locally in your browser
           </div>
-          <div style={{ fontSize: 10, color: C.t3, fontFamily: F, marginTop: 1 }}>
+          <div className={css.heroBannerSub}>
             No data leaves your machine. Models run on-device via WebLLM and ONNX Runtime.
           </div>
         </div>
@@ -858,20 +714,14 @@ function IntelligenceSection() {
       <ModelBenchmarkCard />
 
       {/* Advanced: Engine & ML — collapsed by default */}
-      <details style={{ marginTop: 8 }}>
-        <summary style={{
-          fontSize: 12, fontWeight: 700, color: C.t2, fontFamily: F,
-          cursor: 'pointer', padding: '12px 0',
-          borderTop: `1px solid ${C.bd}20`,
-          listStyle: 'none', display: 'flex', alignItems: 'center', gap: 8,
-        }}>
-          <span style={{ fontSize: 11 }}>⚙️</span>
+      <details className={css.advancedDetails}>
+        <summary className={css.advancedSummary}
+          style={{ borderTop: `1px solid ${C.bd}20` }}>
+          <span className={css.advancedIcon}>⚙️</span>
           Advanced: Engine & ML
-          <span style={{ fontSize: 10, color: C.t3, fontFamily: F, marginLeft: 'auto' }}>
-            Model management & technical controls
-          </span>
+          <span className={css.advancedHint}>Model management & technical controls</span>
         </summary>
-        <div style={{ padding: '8px 0' }}>
+        <div className={css.advancedBody}>
           <EngineGroup />
         </div>
       </details>

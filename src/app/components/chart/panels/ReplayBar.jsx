@@ -239,9 +239,9 @@ export default function ReplayBar() {
           {activeGhost.side.toUpperCase()} @ {activeGhost.entry.toFixed(2)}
           {' → '}
           <span
-            className={s.ghostPL}
+            className={`${s.ghostPL} ${s.dynColor}`}
             style={{
-              color:
+              '--dyn-color':
                 (activeGhost.side === 'long'
                   ? currentBar.close - activeGhost.entry
                   : activeGhost.entry - currentBar.close) >= 0
@@ -268,11 +268,11 @@ export default function ReplayBar() {
           </span>
           <span>
             <span className={s.statLabel}>P&L: </span>
-            <span className={s.statValue} style={{ color: stats.totalPnl >= 0 ? C.g : C.r }}>{fmtD(stats.totalPnl)}</span>
+            <span className={`${s.statValue} ${s.dynColor}`} style={{ '--dyn-color': stats.totalPnl >= 0 ? C.g : C.r }}>{fmtD(stats.totalPnl)}</span>
           </span>
           <span>
             <span className={s.statLabel}>Win: </span>
-            <span className={s.statValue} style={{ color: stats.wr >= 50 ? C.g : C.r }}>{stats.wr.toFixed(0)}%</span>
+            <span className={`${s.statValue} ${s.dynColor}`} style={{ '--dyn-color': stats.wr >= 50 ? C.g : C.r }}>{stats.wr.toFixed(0)}%</span>
           </span>
         </div>
       )}
@@ -295,20 +295,17 @@ export default function ReplayBar() {
           {currentAnnotations.map((trade, i) => (
             <div
               key={trade.id || i}
-              className={s.annotationCard}
-              style={{
-                border: `1px solid ${trade.pnl >= 0 ? C.g : C.r}40`,
-                borderLeft: `3px solid ${trade.pnl >= 0 ? C.g : C.r}`,
-              }}
+              className={`${s.annotationCard} ${s.annotationBorder}`}
+              style={{ '--ann-color': trade.pnl >= 0 ? C.g : C.r }}
             >
               <div className={s.annotationHeader}>
-                <span className={s.annotationPL} style={{ color: trade.pnl >= 0 ? C.g : C.r }}>
+                <span className={`${s.annotationPL} ${s.dynColor}`} style={{ '--dyn-color': trade.pnl >= 0 ? C.g : C.r }}>
                   {trade.side?.toUpperCase() || '—'} {fmtD(trade.pnl)}
                 </span>
                 {trade.playbook && <span className={s.annotationPlaybook}>{trade.playbook}</span>}
                 {trade.emotion && <span className={s.annotationEmotion}>{trade.emotion}</span>}
                 {trade.rMultiple != null && (
-                  <span className={s.annotationR} style={{ color: trade.rMultiple >= 0 ? C.g : C.r }}>
+                  <span className={`${s.annotationR} ${s.dynColor}`} style={{ '--dyn-color': trade.rMultiple >= 0 ? C.g : C.r }}>
                     {trade.rMultiple > 0 ? '+' : ''}{trade.rMultiple.toFixed(1)}R
                   </span>
                 )}

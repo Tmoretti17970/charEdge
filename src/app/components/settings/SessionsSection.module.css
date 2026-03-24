@@ -1,0 +1,19 @@
+/* SessionsSection — CSS Module */
+.cardPad { padding: var(--sp-5); margin-bottom: var(--sp-3); }
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-4); }
+.headerTitle { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--tf-t1); font-family: var(--tf-font); }
+.headerHint { font-size: var(--fs-2xs); color: var(--tf-t3); font-family: var(--tf-font); }
+.sessionList { display: flex; flex-direction: column; gap: var(--sp-2); }
+.sessionRow { display: flex; align-items: center; gap: var(--sp-3); padding: 10px var(--sp-3); border-radius: var(--br-sm); transition: all var(--dur-normal); }
+.deviceIcon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.deviceInfo { flex: 1; min-width: 0; }
+.deviceNameRow { display: flex; align-items: center; gap: var(--sp-1_5); }
+.deviceName { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--tf-t1); font-family: var(--tf-font); }
+.currentBadge { font-size: var(--fs-3xs); font-weight: var(--fw-bold); padding: 1px var(--sp-1_5); border-radius: var(--br-sm); font-family: var(--tf-mono); }
+.deviceMeta { font-size: var(--fs-xs); color: var(--tf-t3); font-family: var(--tf-mono); margin-top: 2px; }
+.signOutBtn {
+  background: none; border-radius: var(--br-xs); padding: var(--sp-1) 10px;
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold); font-family: var(--tf-font);
+  cursor: pointer; flex-shrink: 0;
+}
+.localNotice { margin-top: var(--sp-3); padding: var(--sp-2) var(--sp-3); border-radius: var(--br-sm); font-size: var(--fs-xs); color: var(--tf-t3); font-family: var(--tf-font); }

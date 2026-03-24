@@ -8,9 +8,10 @@
 
 import React from 'react';
 import { useState } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useDataStore } from '../../../state/useDataStore.js';
 import { alpha } from '@/shared/colorUtils';
+import st from './DiscoverMetrics.module.css';
 
 function DiscoverMetrics() {
   const [expanded, setExpanded] = useState(false);
@@ -66,7 +67,7 @@ function DiscoverMetrics() {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 18 }}>📊</span>
-          <span style={{ fontSize: 14, fontWeight: 700, fontFamily: F }}>
+          <span style={{ fontSize: 14, fontWeight: 700, fontFamily: 'var(--tf-font)' }}>
             Discover Engagement Metrics
           </span>
         </div>
@@ -88,7 +89,7 @@ function DiscoverMetrics() {
           {/* Top Widgets by Engagement */}
           {topWidgets.length > 0 && (
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: C.t2, fontFamily: F, marginBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: C.t2, fontFamily: 'var(--tf-font)', marginBottom: 8 }}>
                 🏆 Most Engaged Widgets
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -103,13 +104,13 @@ function DiscoverMetrics() {
                       background: alpha(C.g, 0.04 + i * 0.01),
                       borderRadius: 8,
                       fontSize: 12,
-                      fontFamily: F,
+                      fontFamily: 'var(--tf-font)',
                     }}
                   >
                     <span style={{ color: C.t1, fontWeight: 600 }}>
                       #{i + 1} {w.id}
                     </span>
-                    <span style={{ color: C.t3, fontFamily: M, fontSize: 11 }}>
+                    <span style={{ color: C.t3, fontFamily: 'var(--tf-mono)', fontSize: 11 }}>
                       {w.clicks} clicks · {w.impressions} views
                     </span>
                   </div>
@@ -121,7 +122,7 @@ function DiscoverMetrics() {
           {/* Least Used Widgets */}
           {bottomWidgets.length > 0 && rankings.length > 5 && (
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: C.t2, fontFamily: F, marginBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: C.t2, fontFamily: 'var(--tf-font)', marginBottom: 8 }}>
                 💤 Least Engaged Widgets
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -136,11 +137,11 @@ function DiscoverMetrics() {
                       background: alpha(C.t3, 0.04),
                       borderRadius: 8,
                       fontSize: 12,
-                      fontFamily: F,
+                      fontFamily: 'var(--tf-font)',
                     }}
                   >
                     <span style={{ color: C.t3 }}>{w.id}</span>
-                    <span style={{ color: C.t3, fontFamily: M, fontSize: 11 }}>
+                    <span style={{ color: C.t3, fontFamily: 'var(--tf-mono)', fontSize: 11 }}>
                       {w.clicks} clicks
                     </span>
                   </div>
@@ -151,7 +152,7 @@ function DiscoverMetrics() {
 
           {/* Funnel Conversion Rates */}
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: C.t2, fontFamily: F, marginBottom: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.t2, fontFamily: 'var(--tf-font)', marginBottom: 8 }}>
               📈 Funnel Conversions
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -197,14 +198,14 @@ function MetricCard({ label, value, sub, color }) {
         textAlign: 'center',
       }}
     >
-      <div style={{ fontSize: 18, fontWeight: 800, color: color || C.t1, fontFamily: M }}>
+      <div style={{ fontSize: 18, fontWeight: 800, color: color || C.t1, fontFamily: 'var(--tf-mono)' }}>
         {value}
       </div>
-      <div style={{ fontSize: 11, color: C.t2, fontWeight: 600, fontFamily: F, marginTop: 2 }}>
+      <div style={{ fontSize: 11, color: C.t2, fontWeight: 600, fontFamily: 'var(--tf-font)', marginTop: 2 }}>
         {label}
       </div>
       {sub && (
-        <div style={{ fontSize: 9, color: C.t3, fontFamily: F, marginTop: 2 }}>
+        <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)', marginTop: 2 }}>
           {sub}
         </div>
       )}
@@ -223,18 +224,18 @@ function FunnelRow({ label, rate, numerator, denominator }) {
         background: alpha(C.t3, 0.04),
         borderRadius: 8,
         fontSize: 11,
-        fontFamily: F,
+        fontFamily: 'var(--tf-font)',
       }}
     >
       <span style={{ color: C.t2 }}>{label}</span>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span style={{ color: C.t3, fontFamily: M, fontSize: 10 }}>
+        <span style={{ color: C.t3, fontFamily: 'var(--tf-mono)', fontSize: 10 }}>
           {numerator || 0}/{denominator || 0}
         </span>
         <span
           style={{
             fontWeight: 700,
-            fontFamily: M,
+            fontFamily: 'var(--tf-mono)',
             fontSize: 11,
             color: rate > 0.5 ? C.g : rate > 0.2 ? C.w : C.r,
           }}

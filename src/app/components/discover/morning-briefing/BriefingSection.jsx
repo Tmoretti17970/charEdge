@@ -1,6 +1,7 @@
 // Collapsible Section Wrapper for Morning Briefing
-import { C, F, M } from '@/constants.js';
+import { C } from '@/constants.js';
 import { alpha } from '@/shared/colorUtils';
+import st from './BriefingSection.module.css';
 
 export default function BriefingSection({ title, icon, count, expanded, onToggle, accent, children }) {
   return (
@@ -35,7 +36,7 @@ export default function BriefingSection({ title, icon, count, expanded, onToggle
               fontSize: 13,
               fontWeight: 700,
               color: C.t1,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
             }}
           >
             {title}
@@ -49,7 +50,7 @@ export default function BriefingSection({ title, icon, count, expanded, onToggle
                 background: alpha(C.t3, 0.1),
                 padding: '2px 6px',
                 borderRadius: 4,
-                fontFamily: M,
+                fontFamily: 'var(--tf-mono)',
               }}
             >
               {count}

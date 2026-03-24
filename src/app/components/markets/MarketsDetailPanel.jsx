@@ -17,7 +17,7 @@
 
 import { useEffect, useRef, memo, useMemo, useCallback } from 'react';
 import DetailJournalSection from './DetailJournalSection.jsx';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
 import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming.js';
@@ -34,6 +34,7 @@ import TickerNotes from './TickerNotes.jsx';
 import { usePriceTracker } from '../../../state/usePriceTracker';
 import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
 import { useUIStore } from '../../../state/useUIStore';
+import st from './MarketsDetailPanel.module.css';
 
 // ─── Asset class colors (shared with grid) ─────────────────────
 
@@ -187,7 +188,7 @@ function MarketsDetailPanel() {
                 style={{
                   fontSize: 18,
                   fontWeight: 800,
-                  fontFamily: M,
+                  fontFamily: 'var(--tf-mono)',
                   color: C.t1,
                   letterSpacing: '-0.01em',
                 }}
@@ -205,7 +206,7 @@ function MarketsDetailPanel() {
                     padding: '2px 6px',
                     borderRadius: radii.xs,
                     letterSpacing: '0.04em',
-                    fontFamily: M,
+                    fontFamily: 'var(--tf-mono)',
                   }}
                 >
                   {item.assetClass}
@@ -217,7 +218,7 @@ function MarketsDetailPanel() {
                 style={{
                   fontSize: 12,
                   color: C.t2,
-                  fontFamily: F,
+                  fontFamily: 'var(--tf-font)',
                   marginTop: 3,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -275,7 +276,7 @@ function MarketsDetailPanel() {
             style={{
               fontSize: 26,
               fontWeight: 800,
-              fontFamily: M,
+              fontFamily: 'var(--tf-mono)',
               color: C.t1,
               fontVariantNumeric: 'tabular-nums',
               letterSpacing: '-0.02em',
@@ -288,7 +289,7 @@ function MarketsDetailPanel() {
               style={{
                 fontSize: 13,
                 fontWeight: 700,
-                fontFamily: M,
+                fontFamily: 'var(--tf-mono)',
                 color: changeColor,
                 fontVariantNumeric: 'tabular-nums',
                 padding: '2px 8px',
@@ -304,7 +305,7 @@ function MarketsDetailPanel() {
               style={{
                 fontSize: 11,
                 color: C.t3,
-                fontFamily: M,
+                fontFamily: 'var(--tf-mono)',
               }}
             >
               Vol {volume >= 1_000_000 ? `${(volume / 1_000_000).toFixed(1)}M` : volume >= 1_000 ? `${(volume / 1_000).toFixed(1)}K` : volume.toFixed(0)}
@@ -419,7 +420,7 @@ function DetailSection({ title, icon, children }) {
           padding: '12px 20px 6px',
           fontSize: 10,
           fontWeight: 700,
-          fontFamily: M,
+          fontFamily: 'var(--tf-mono)',
           textTransform: 'uppercase',
           letterSpacing: '0.06em',
           color: C.t3,
@@ -451,7 +452,7 @@ function ActionButton({ label, onClick, variant = 'primary' }) {
         borderRadius: radii.sm,
         fontSize: 11,
         fontWeight: 700,
-        fontFamily: M,
+        fontFamily: 'var(--tf-mono)',
         cursor: 'pointer',
         transition: `all ${transition.fast}`,
         border: isPrimary ? 'none' : `1px solid ${C.bd}`,
@@ -507,15 +508,15 @@ function SimilarAssets({ symbol, items }) {
             onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
           >
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, fontFamily: F, color: C.t1 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, fontFamily: 'var(--tf-font)', color: C.t1 }}>
                 {peer.symbol.replace('USDT', '')}
               </div>
-              <div style={{ fontSize: 9, fontFamily: M, color: C.t3 }}>
+              <div style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
                 {(peer.similarity * 100).toFixed(0)}% similar
               </div>
             </div>
             <span style={{
-              fontSize: 10, fontWeight: 700, fontFamily: M,
+              fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-mono)',
               color: (peer.change ?? 0) >= 0 ? C.g : C.r,
             }}>
               {(peer.change ?? 0) >= 0 ? '+' : ''}{(peer.change ?? 0).toFixed(2)}%
@@ -529,7 +530,7 @@ function SimilarAssets({ symbol, items }) {
               title="Compare"
               style={{
                 background: 'transparent', border: `1px solid ${C.bd}30`,
-                borderRadius: 4, fontSize: 8, fontFamily: M,
+                borderRadius: 4, fontSize: 8, fontFamily: 'var(--tf-mono)',
                 color: C.t3, cursor: 'pointer', padding: '2px 6px',
               }}
             >

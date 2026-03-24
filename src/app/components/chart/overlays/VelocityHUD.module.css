@@ -1,0 +1,39 @@
+/* VelocityHUD — CSS Module (Sprint 23) */
+
+.hud {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 6px 10px;
+  border-radius: var(--tf-radius-sm);
+  border: var(--tf-glass-border);
+  font-family: var(--tf-font-mono);
+  font-size: 10px;
+  line-height: 1.5;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 100px;
+  pointer-events: auto;
+  transition: opacity 0.6s ease;
+}
+.hud[data-dimmed="true"] { opacity: 0.3; }
+.title {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+.row { display: flex; justify-content: space-between; gap: 8px; }
+.rowLabel { color: var(--tf-t3); }
+.rowValue { font-weight: 600; font-variant-numeric: tabular-nums; }
+.accelDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  align-self: center;
+  margin-top: 2px;
+}

@@ -6,11 +6,12 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, memo, useRef } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { radii, transition } from '../../../theme/tokens.js';
 import { useAlertStore } from '../../../state/useAlertStore';
 import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
 import { useWatchlistStore } from '../../../state/useWatchlistStore';
+import st from './MarketsRowContextMenu.module.css';
 
 // ─── Component ──────────────────────────────────────────────────
 
@@ -73,7 +74,7 @@ function MarketsRowContextMenu({ x, y, symbol, price, onClose }) {
   const itemStyle = {
     display: 'flex', alignItems: 'center', gap: 8,
     padding: '6px 10px', borderRadius: 4,
-    fontSize: 11, fontWeight: 600, fontFamily: F,
+    fontSize: 11, fontWeight: 600, fontFamily: 'var(--tf-font)',
     color: C.t2, background: 'transparent',
     border: 'none', cursor: 'pointer',
     width: '100%', textAlign: 'left',
@@ -84,7 +85,7 @@ function MarketsRowContextMenu({ x, y, symbol, price, onClose }) {
     <div ref={menuRef} style={menuStyle}>
       {/* ── Symbol header ─────────────────────────────── */}
       <div style={{
-        padding: '4px 10px 6px', fontSize: 9, fontWeight: 700, fontFamily: M,
+        padding: '4px 10px 6px', fontSize: 9, fontWeight: 700, fontFamily: 'var(--tf-mono)',
         color: C.t3, textTransform: 'uppercase', letterSpacing: '0.08em',
         borderBottom: `1px solid ${C.bd}15`, marginBottom: 4,
       }}>

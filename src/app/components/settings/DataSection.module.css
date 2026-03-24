@@ -132,3 +132,238 @@
   font-size: 10px;
   padding: 4px 10px;
 }
+
+/* ─── Inline style migration ─── */
+.sectionWrap { margin-bottom: 40px; }
+.tabBar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--tf-sf2);
+}
+.tabBtn {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 8px;
+  border: none;
+  font-family: var(--tf-font);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.tabBtn[data-active="true"] {
+  background: var(--tf-bg);
+  color: var(--tf-t1);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.tabBtn:not([data-active="true"]) {
+  background: transparent;
+  color: var(--tf-t3);
+  font-weight: 500;
+}
+.tabHint { font-size: 9px; color: var(--tf-t3); margin-top: 1px; }
+.cardWrap { padding: 20px; }
+.statsSummary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--tf-sf2);
+  border-radius: var(--radius-md, 8px);
+  margin-bottom: 20px;
+}
+.statsIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--tf-accent) 8%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+.statsCount {
+  font-size: 18px;
+  font-weight: 800;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  color: var(--tf-t1);
+}
+.statsHint { font-size: 11px; color: var(--tf-t3); }
+.sectionLabel { font-size: 12px; font-weight: 600; color: var(--tf-t2); margin-bottom: 4px; }
+.sectionLabelMb10 { font-size: 12px; font-weight: 600; color: var(--tf-t2); margin-bottom: 10px; }
+.sectionHint {
+  font-size: 11px;
+  color: var(--tf-t3);
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  margin-bottom: 10px;
+}
+.sectionHint8 { composes: sectionHint; margin-bottom: 8px; }
+.fileInput {
+  font-size: 12px;
+  font-family: var(--tf-font);
+  color: var(--tf-t2);
+  padding: 8px 0;
+}
+.parseMsg {
+  font-size: 12px;
+  color: var(--tf-accent);
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  margin-bottom: 8px;
+}
+.dupLabel { font-size: 11px; font-weight: 600; color: var(--tf-t3); margin-bottom: 6px; }
+.dupMsg {
+  font-size: 11px;
+  color: var(--tf-yellow, #fbbf24);
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.statusPane {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--tf-sf2);
+  border-radius: var(--radius-md, 8px);
+  margin-bottom: 10px;
+}
+.statusDot { width: 10px; height: 10px; border-radius: 50%; }
+.statusTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tf-t1);
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+}
+.statusSubtitle {
+  font-size: 10px;
+  color: var(--tf-t3);
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+}
+.statusIcon { font-size: 14px; }
+.statusMsg {
+  margin-top: 8px;
+  font-size: 11px;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  padding: 8px 12px;
+  border-radius: var(--radius-md, 8px);
+}
+.statusMsgOk {
+  background: color-mix(in srgb, var(--tf-green, #34d399) 8%, transparent);
+  color: var(--tf-green, #34d399);
+}
+.statusMsgErr {
+  background: color-mix(in srgb, var(--tf-red, #f87171) 8%, transparent);
+  color: var(--tf-red, #f87171);
+}
+.cloudDivider {
+  padding-top: 20px;
+  margin-top: 20px;
+  border-top: 1px solid var(--tf-bd);
+}
+.sectionTitle { font-size: 13px; font-weight: 700; color: var(--tf-t1); }
+.sectionSubtitle {
+  font-size: 11px;
+  color: var(--tf-t3);
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+}
+.passLabel { font-size: 11px; font-weight: 600; color: var(--tf-t3); margin-bottom: 4px; }
+.passHint {
+  font-size: 10px;
+  color: var(--tf-t3);
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  margin-top: 4px;
+}
+.backupListWrap {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: var(--tf-sf2);
+  border-radius: var(--radius-md, 8px);
+}
+.backupListHeader { font-size: 11px; font-weight: 600; color: var(--tf-t2); margin-bottom: 8px; }
+.backupRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--tf-bd);
+}
+.backupName {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tf-t1);
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+}
+.backupDetail {
+  font-size: 10px;
+  color: var(--tf-t3);
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+}
+.cloudLabel { font-size: 13px; font-weight: 700; color: var(--tf-t1); margin-bottom: 4px; }
+.cloudHint { font-size: 11px; color: var(--tf-t3); margin-bottom: 14px; }
+.formCol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.formColBorder {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--tf-bd);
+}
+.btnRow { display: flex; gap: 8px; }
+.statusRowLarge {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--tf-sf);
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+.authUserLabel { font-size: 13px; font-weight: 600; color: var(--tf-t1); }
+.authStatusHint {
+  font-size: 11px;
+  color: var(--tf-t3);
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+}
+.authMsg {
+  margin-top: 8px;
+  font-size: 11px;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+}
+.authMsgOk { color: var(--tf-green, #34d399); }
+.authMsgErr { color: var(--tf-red, #f87171); }
+.syncMsg { composes: authMsg; margin-top: 4px; }
+.cloudCardWrap { padding: 20px; margin-top: 12px; }
+.wrapMb12 { margin-bottom: 12px; }
+.iconEmoji { font-size: 16px; }
+.importWrap { margin-top: 10px; }
+.statusPaneCloud {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--tf-sf2);
+  border-radius: var(--radius-md, 8px);
+  margin-bottom: 10px;
+}
+.cloudStatusTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tf-t1);
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+}
+.cloudStatusSub {
+  font-size: 10px;
+  color: var(--tf-t3);
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+}
+.passWrap { margin-bottom: 10px; }

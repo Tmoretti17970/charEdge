@@ -13,14 +13,15 @@
 
 import React from 'react';
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { logger } from '@/observability/logger';
+import st from './OptionsPanel.module.css';
 
 // ─── Styles ────────────────────────────────────────────────────
 
 const S = {
   container: {
-    fontFamily: F,
+    fontFamily: 'var(--tf-font)',
     color: C.t1,
     padding: '16px 20px',
     height: '100%',
@@ -65,7 +66,7 @@ const S = {
     fontSize: 13,
   },
   label: { color: C.t3, fontSize: 12 },
-  val: { fontWeight: 600, fontFamily: M, fontVariantNumeric: 'tabular-nums', fontSize: 13 },
+  val: { fontWeight: 600, fontFamily: 'var(--tf-mono)', fontVariantNumeric: 'tabular-nums', fontSize: 13 },
   badge: (bg, color) => ({
     display: 'inline-flex',
     alignItems: 'center',
@@ -76,7 +77,7 @@ const S = {
     borderRadius: 6,
     background: bg,
     color,
-    fontFamily: M,
+    fontFamily: 'var(--tf-mono)',
   }),
   empty: {
     textAlign: 'center',
@@ -93,7 +94,7 @@ const S = {
     background: C.sf || 'transparent',
     color: C.t2,
     cursor: 'pointer',
-    fontFamily: M,
+    fontFamily: 'var(--tf-mono)',
   },
 };
 
@@ -137,7 +138,7 @@ function TermStructureChart({ data }) {
         const isVIX = d.month.includes('VIX') && !d.month.includes('9-Day');
         return (
           <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, fontFamily: M, color: C.t1 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: C.t1 }}>
               {d.price?.toFixed(1) || '—'}
             </span>
             <div style={{
@@ -147,7 +148,7 @@ function TermStructureChart({ data }) {
               background: isVIX ? C.b : `${C.b}60`,
               transition: 'height 0.4s ease',
             }} />
-            <span style={{ fontSize: 9, color: C.t3, textAlign: 'center', lineHeight: 1.2, fontFamily: F }}>
+            <span style={{ fontSize: 9, color: C.t3, textAlign: 'center', lineHeight: 1.2, fontFamily: 'var(--tf-font)' }}>
               {d.month}
             </span>
           </div>
@@ -280,14 +281,14 @@ function OptionsPanel({ _symbol = 'SPY' }) {
           <div style={S.section}>
             <div style={S.sectionTitle}>🌡️ VIX — Fear Gauge</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-              <span style={{ fontSize: 28, fontWeight: 800, fontFamily: M, color: C.t1 }}>
+              <span style={{ fontSize: 28, fontWeight: 800, fontFamily: 'var(--tf-mono)', color: C.t1 }}>
                 {vix?.value?.toFixed(1) || '—'}
               </span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {vixRegime && <RegimeBadge regime={vixRegime.regime} />}
                 <span style={{
                   fontSize: 12,
-                  fontFamily: M,
+                  fontFamily: 'var(--tf-mono)',
                   fontWeight: 600,
                   color: (vix?.change || 0) >= 0 ? '#f44336' : '#4CAF50'
                 }}>
@@ -332,7 +333,7 @@ function OptionsPanel({ _symbol = 'SPY' }) {
           <div style={S.section}>
             <div style={S.sectionTitle}>⚖️ Equity Put/Call Ratio</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-              <span style={{ fontSize: 24, fontWeight: 800, fontFamily: M, color: C.t1 }}>
+              <span style={{ fontSize: 24, fontWeight: 800, fontFamily: 'var(--tf-mono)', color: C.t1 }}>
                 {latestPC?.pcRatio?.toFixed(2) || '—'}
               </span>
               <div style={{ flex: 1 }}>
@@ -379,15 +380,15 @@ function OptionsPanel({ _symbol = 'SPY' }) {
                 <div style={{ display: 'flex', gap: 16, marginTop: 10, fontSize: 11 }}>
                   <div>
                     <span style={{ color: C.t3 }}>Calls: </span>
-                    <span style={{ fontWeight: 600, fontFamily: M, color: '#4CAF50' }}>{fmtNum(latestPC.callVolume)}</span>
+                    <span style={{ fontWeight: 600, fontFamily: 'var(--tf-mono)', color: '#4CAF50' }}>{fmtNum(latestPC.callVolume)}</span>
                   </div>
                   <div>
                     <span style={{ color: C.t3 }}>Puts: </span>
-                    <span style={{ fontWeight: 600, fontFamily: M, color: '#f44336' }}>{fmtNum(latestPC.putVolume)}</span>
+                    <span style={{ fontWeight: 600, fontFamily: 'var(--tf-mono)', color: '#f44336' }}>{fmtNum(latestPC.putVolume)}</span>
                   </div>
                   <div>
                     <span style={{ color: C.t3 }}>Total: </span>
-                    <span style={{ fontWeight: 600, fontFamily: M }}>{fmtNum(latestPC.totalVolume)}</span>
+                    <span style={{ fontWeight: 600, fontFamily: 'var(--tf-mono)' }}>{fmtNum(latestPC.totalVolume)}</span>
                   </div>
                 </div>
               )}

@@ -11,11 +11,12 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo, useRef, useEffect, useCallback, useState, useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useWatchlistStore, enrichWithTradeStats } from '../../../state/useWatchlistStore.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
 import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming.js';
+import st from './MarketsHeatMap.module.css';
 
 // ─── Squarified Treemap Layout ────────────────────────────────
 
@@ -322,10 +323,10 @@ function MarketsHeatMap() {
             minWidth: 120,
           }}
         >
-          <div style={{ fontSize: 12, fontWeight: 800, fontFamily: F, color: C.t1 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, fontFamily: 'var(--tf-font)', color: C.t1 }}>
             {hoveredRect.symbol}
           </div>
-          <div style={{ fontSize: 11, fontFamily: M, color: C.t2, marginTop: 2 }}>
+          <div style={{ fontSize: 11, fontFamily: 'var(--tf-mono)', color: C.t2, marginTop: 2 }}>
             ${hoveredRect.price >= 1000
               ? hoveredRect.price.toLocaleString('en-US', { maximumFractionDigits: 0 })
               : hoveredRect.price >= 1
@@ -333,7 +334,7 @@ function MarketsHeatMap() {
               : hoveredRect.price.toFixed(4)}
           </div>
           <div style={{
-            fontSize: 11, fontWeight: 700, fontFamily: M, marginTop: 2,
+            fontSize: 11, fontWeight: 700, fontFamily: 'var(--tf-mono)', marginTop: 2,
             color: hoveredRect.change >= 0 ? C.g : C.r,
           }}>
             {hoveredRect.change >= 0 ? '+' : ''}{hoveredRect.change.toFixed(2)}%

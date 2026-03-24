@@ -5,8 +5,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useCallback } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import AIStreamText from './AIStreamText.jsx';
+import st from './SessionReviewPanel.module.css';
 
 const ACCENT = '#6e5ce6';
 
@@ -48,7 +49,7 @@ export default function SessionReviewPanel() {
           <span style={{
             fontSize: 13,
             fontWeight: 700,
-            fontFamily: F,
+            fontFamily: 'var(--tf-font)',
             color: C.t1,
           }}>
             Session Review
@@ -64,7 +65,7 @@ export default function SessionReviewPanel() {
             background: loading ? `${C.bd}20` : `${ACCENT}15`,
             color: ACCENT,
             fontSize: 10,
-            fontFamily: M,
+            fontFamily: 'var(--tf-mono)',
             cursor: loading ? 'wait' : 'pointer',
             transition: 'all 0.15s',
           }}
@@ -80,7 +81,7 @@ export default function SessionReviewPanel() {
           padding: '12px 0',
           color: C.t3,
           fontSize: 11,
-          fontFamily: M,
+          fontFamily: 'var(--tf-mono)',
         }}>
           Click "Generate" after your trading session for an AI-powered review.
         </div>
@@ -102,7 +103,7 @@ export default function SessionReviewPanel() {
                   background: 'transparent',
                   color: C.t3,
                   fontSize: 9,
-                  fontFamily: M,
+                  fontFamily: 'var(--tf-mono)',
                   cursor: 'pointer',
                 }}
               >
@@ -120,7 +121,7 @@ export default function SessionReviewPanel() {
             <div style={{
               marginTop: 8,
               fontSize: 8,
-              fontFamily: M,
+              fontFamily: 'var(--tf-mono)',
               color: C.t3,
             }}>
               Via {review.tier} · {new Date(review.timestamp).toLocaleTimeString()}

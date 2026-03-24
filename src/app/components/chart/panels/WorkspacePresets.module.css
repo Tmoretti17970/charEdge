@@ -141,3 +141,15 @@
   text-align: center;
   flex-shrink: 0;
 }
+
+/* ─── Inline style migration ─── */
+.triggerSvg { opacity: 0.6; }
+.presetName[data-active="true"] { color: var(--tf-accent); }
+.presetName:not([data-active="true"]) { color: var(--tf-t1); }
+.customItemBtn { flex: 1; text-align: left; }
+.customName[data-active="true"] { font-weight: 600; color: var(--tf-accent); }
+.customName:not([data-active="true"]) { font-weight: 500; color: var(--tf-t1); }
+.savePresetBtn {
+  font-weight: 600;
+  color: var(--tf-accent);
+}

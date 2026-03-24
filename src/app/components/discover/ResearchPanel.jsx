@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { alpha } from '@/shared/colorUtils';
@@ -174,7 +174,7 @@ function ResearchPanel({ onCompose }) {
           flexShrink: 0,
         }}
       >
-        <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
           Research
         </span>
         <div className={s.s4}>
@@ -184,7 +184,7 @@ function ResearchPanel({ onCompose }) {
               style={{
                 padding: '4px 10px', borderRadius: 8, border: 'none',
                 background: `linear-gradient(135deg, ${C.b}, ${C.bH})`,
-                color: '#fff', fontSize: 11, fontWeight: 700, fontFamily: F,
+                color: '#fff', fontSize: 11, fontWeight: 700, fontFamily: 'var(--tf-font)',
                 cursor: 'pointer', transition: 'all 0.15s',
               }}
             >
@@ -209,7 +209,7 @@ function ResearchPanel({ onCompose }) {
       <div className={s.s5}>
         {/* ── Watchlist Mini-Prices ──────────────────────────── */}
         <div style={{ padding: '12px 14px', borderBottom: `1px solid ${alpha(C.bd, 0.5)}` }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, fontFamily: F }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, fontFamily: 'var(--tf-font)' }}>
             Watchlist
           </div>
           <div className={s.s6}>
@@ -224,14 +224,14 @@ function ResearchPanel({ onCompose }) {
                   onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 >
                   <div>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: M }}>{item.symbol}</span>
-                    <span style={{ fontSize: 10, color: C.t3, marginLeft: 6, fontFamily: F }}>{item.name}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-mono)' }}>{item.symbol}</span>
+                    <span style={{ fontSize: 10, color: C.t3, marginLeft: 6, fontFamily: 'var(--tf-font)' }}>{item.name}</span>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: M }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-mono)' }}>
                       {p.price > 1000 ? p.price.toLocaleString() : p.price.toFixed(4)}
                     </div>
-                    <div style={{ fontSize: 10, fontWeight: 600, color: changeColor, fontFamily: M }}>
+                    <div style={{ fontSize: 10, fontWeight: 600, color: changeColor, fontFamily: 'var(--tf-mono)' }}>
                       {p.change >= 0 ? '+' : ''}{p.change.toFixed(2)}%
                     </div>
                   </div>
@@ -239,7 +239,7 @@ function ResearchPanel({ onCompose }) {
               );
             })}
             {watchlist.length === 0 && (
-              <div style={{ fontSize: 11, color: C.t3, fontFamily: F, textAlign: 'center', padding: 12 }}>
+              <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)', textAlign: 'center', padding: 12 }}>
                 No symbols in watchlist
               </div>
             )}
@@ -248,7 +248,7 @@ function ResearchPanel({ onCompose }) {
 
         {/* ── Fear & Greed Mini ──────────────────────────────── */}
         <div style={{ padding: '12px 14px', borderBottom: `1px solid ${alpha(C.bd, 0.5)}` }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, fontFamily: F }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, fontFamily: 'var(--tf-font)' }}>
             Market Sentiment
           </div>
           <div
@@ -277,24 +277,24 @@ function ResearchPanel({ onCompose }) {
                   background: C.bg2,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 13, fontWeight: 800, color: getGradientColor(MOCK_FG.value),
-                  fontFamily: M,
+                  fontFamily: 'var(--tf-mono)',
                 }}
               >
                 {MOCK_FG.value}
               </div>
             </div>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: getGradientColor(MOCK_FG.value), fontFamily: F }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: getGradientColor(MOCK_FG.value), fontFamily: 'var(--tf-font)' }}>
                 {MOCK_FG.label}
               </div>
-              <div style={{ fontSize: 10, color: C.t3, fontFamily: F }}>Fear & Greed Index</div>
+              <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)' }}>Fear & Greed Index</div>
             </div>
           </div>
         </div>
 
         {/* ── Quick Notes ────────────────────────────────────── */}
         <div style={{ padding: '12px 14px', borderBottom: `1px solid ${alpha(C.bd, 0.5)}` }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, fontFamily: F }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, fontFamily: 'var(--tf-font)' }}>
             Quick Notes
           </div>
           <textarea
@@ -310,7 +310,7 @@ function ResearchPanel({ onCompose }) {
               background: alpha(C.sf, 0.4),
               color: C.t1,
               fontSize: 11,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
               lineHeight: 1.5,
               resize: 'vertical',
               outline: 'none',
@@ -321,7 +321,7 @@ function ResearchPanel({ onCompose }) {
 
         {/* ── AI Copilot ─────────────────────────────────────── */}
         <div className={s.s8}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, fontFamily: F }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, fontFamily: 'var(--tf-font)' }}>
             AI Copilot
           </div>
 
@@ -331,7 +331,7 @@ function ResearchPanel({ onCompose }) {
             className={s.s9}
           >
             {copilotMessages.length === 0 && (
-              <div style={{ fontSize: 11, color: C.t3, fontFamily: F, textAlign: 'center', padding: '16px 8px' }}>
+              <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)', textAlign: 'center', padding: '16px 8px' }}>
                 Ask about markets, your trades, or setups...
               </div>
             )}
@@ -345,7 +345,7 @@ function ResearchPanel({ onCompose }) {
                   border: `1px solid ${msg.role === 'user' ? alpha(C.b, 0.2) : C.bd}`,
                   fontSize: 11,
                   color: C.t1,
-                  fontFamily: F,
+                  fontFamily: 'var(--tf-font)',
                   lineHeight: 1.6,
                   alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
                   maxWidth: '92%',
@@ -358,7 +358,7 @@ function ResearchPanel({ onCompose }) {
             {isTyping && (
               <div className={s.s10}>
                 <div className="tf-spin" style={{ width: 10, height: 10, borderRadius: '50%', border: `2px solid ${C.bd}`, borderTopColor: C.p }} />
-                <span style={{ fontSize: 10, color: C.t3, fontFamily: F }}>Analyzing...</span>
+                <span style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)' }}>Analyzing...</span>
               </div>
             )}
           </div>
@@ -375,7 +375,7 @@ function ResearchPanel({ onCompose }) {
                     border: `1px solid ${C.bd}`,
                     background: alpha(C.sf, 0.4),
                     color: C.t2, fontSize: 10, fontWeight: 600,
-                    fontFamily: F, cursor: 'pointer',
+                    fontFamily: 'var(--tf-font)', cursor: 'pointer',
                     transition: 'all 0.15s',
                   }}
                 >
@@ -400,7 +400,7 @@ function ResearchPanel({ onCompose }) {
                 background: alpha(C.sf, 0.4),
                 color: C.t1,
                 fontSize: 11,
-                fontFamily: F,
+                fontFamily: 'var(--tf-font)',
                 outline: 'none',
               }}
             />

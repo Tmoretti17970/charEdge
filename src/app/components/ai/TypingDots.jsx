@@ -5,6 +5,7 @@
 import React from 'react';
 import { C } from '@/constants.js';
 import AIOrb from '../design/AIOrb.jsx';
+import st from './TypingDots.module.css';
 
 export default function TypingDots() {
   return (

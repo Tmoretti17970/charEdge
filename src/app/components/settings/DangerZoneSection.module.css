@@ -1,0 +1,9 @@
+/* DangerZoneSection — CSS Module */
+.section { margin-bottom: 40px; }
+.actionRow { display: flex; justify-content: space-between; align-items: center; padding: var(--sp-3) 0; }
+.actionBody { flex: 1; margin-right: var(--sp-3); }
+.actionHeader { display: flex; align-items: center; gap: var(--sp-1_5); }
+.actionIcon { font-size: 14px; }
+.actionTitle { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--tf-t1); font-family: var(--tf-font); }
+.actionDesc { font-size: var(--fs-2xs); color: var(--tf-t3); font-family: var(--tf-font); margin-top: 2px; padding-left: var(--sp-5); }
+.divider { border-top: 1px solid color-mix(in srgb, var(--tf-bd) 12%, transparent); }

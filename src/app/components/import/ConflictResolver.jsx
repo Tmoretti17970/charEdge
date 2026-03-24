@@ -6,8 +6,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useCallback } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
+import st from './ConflictResolver.module.css';
 
 function ConflictRow({ existing, incoming, onResolve }) {
   const [hovered, setHovered] = useState(false);
@@ -31,7 +32,7 @@ function ConflictRow({ existing, incoming, onResolve }) {
             Existing
           </div>
           {fields.map((f) => (
-            <div key={f} style={{ fontSize: 10, fontFamily: M, color: C.t2, marginBottom: 1 }}>
+            <div key={f} style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t2, marginBottom: 1 }}>
               <span style={{ color: C.t3, fontWeight: 600, width: 60, display: 'inline-block' }}>{f}:</span>
               {existing[f] ?? '—'}
             </div>
@@ -50,7 +51,7 @@ function ConflictRow({ existing, incoming, onResolve }) {
                 key={f}
                 style={{
                   fontSize: 10,
-                  fontFamily: M,
+                  fontFamily: 'var(--tf-mono)',
                   color: diff ? C.y : C.t2,
                   fontWeight: diff ? 700 : 400,
                   marginBottom: 1,
@@ -76,7 +77,7 @@ function ConflictRow({ existing, incoming, onResolve }) {
               color: C.t2,
               fontSize: 9,
               fontWeight: 600,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
               cursor: 'pointer',
             }}
           >
@@ -92,7 +93,7 @@ function ConflictRow({ existing, incoming, onResolve }) {
               color: C.b,
               fontSize: 9,
               fontWeight: 600,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
               cursor: 'pointer',
             }}
           >
@@ -108,7 +109,7 @@ function ConflictRow({ existing, incoming, onResolve }) {
               color: C.t3,
               fontSize: 9,
               fontWeight: 600,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
               cursor: 'pointer',
             }}
           >
@@ -151,29 +152,29 @@ function ConflictResolver({ conflicts, onResolveAll }) {
     <div style={{ marginTop: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, fontFamily: F, color: C.y }}>
+          <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'var(--tf-font)', color: C.y }}>
             ⚠ {conflicts.length} Conflict{conflicts.length !== 1 ? 's' : ''} Found
           </div>
-          <div style={{ fontSize: 10, color: C.t3, fontFamily: M }}>
+          <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-mono)' }}>
             {resolvedCount} of {conflicts.length} resolved
           </div>
         </div>
         <div style={{ display: 'flex', gap: 4 }}>
           <button
             onClick={() => handleBulkAction('keep')}
-            style={{ fontSize: 9, padding: '3px 8px', borderRadius: 4, border: `1px solid ${alpha(C.bd, 0.3)}`, background: 'transparent', color: C.t2, cursor: 'pointer', fontFamily: F, fontWeight: 600 }}
+            style={{ fontSize: 9, padding: '3px 8px', borderRadius: 4, border: `1px solid ${alpha(C.bd, 0.3)}`, background: 'transparent', color: C.t2, cursor: 'pointer', fontFamily: 'var(--tf-font)', fontWeight: 600 }}
           >
             Keep All
           </button>
           <button
             onClick={() => handleBulkAction('replace')}
-            style={{ fontSize: 9, padding: '3px 8px', borderRadius: 4, border: `1px solid ${alpha(C.b, 0.2)}`, background: alpha(C.b, 0.06), color: C.b, cursor: 'pointer', fontFamily: F, fontWeight: 600 }}
+            style={{ fontSize: 9, padding: '3px 8px', borderRadius: 4, border: `1px solid ${alpha(C.b, 0.2)}`, background: alpha(C.b, 0.06), color: C.b, cursor: 'pointer', fontFamily: 'var(--tf-font)', fontWeight: 600 }}
           >
             Replace All
           </button>
           <button
             onClick={() => handleBulkAction('skip')}
-            style={{ fontSize: 9, padding: '3px 8px', borderRadius: 4, border: `1px solid ${alpha(C.r, 0.2)}`, background: 'transparent', color: C.t3, cursor: 'pointer', fontFamily: F, fontWeight: 600 }}
+            style={{ fontSize: 9, padding: '3px 8px', borderRadius: 4, border: `1px solid ${alpha(C.r, 0.2)}`, background: 'transparent', color: C.t3, cursor: 'pointer', fontFamily: 'var(--tf-font)', fontWeight: 600 }}
           >
             Skip All
           </button>
@@ -203,7 +204,7 @@ function ConflictResolver({ conflicts, onResolveAll }) {
               color: '#fff',
               fontSize: 11,
               fontWeight: 700,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
               cursor: 'pointer',
             }}
           >

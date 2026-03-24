@@ -33,99 +33,35 @@ function EmptyState({
     <Card className={`tf-fade-scale ${s.s0}`}>
       {/* Aspirational preview (blurred mockup) */}
       {preview && (
-        <div
-          style={{
-            position: 'relative',
-            height: 160,
-            overflow: 'hidden',
-            borderBottom: `1px solid ${C.bd}`,
-          }}
-        >
+        <div className={s.previewWrap}>
+          <div className={s.s1}>{preview}</div>
           <div
-            className={s.s1}
-          >
-            {preview}
-          </div>
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: `linear-gradient(to bottom, transparent 40%, ${C.bg})`,
-            }}
+            className={s.previewOverlay}
+            style={{ background: `linear-gradient(to bottom, transparent 40%, ${C.bg})` }}
           />
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 12,
-              left: 0,
-              right: 0,
-              fontSize: 11,
-              fontWeight: 600,
-              color: C.t3,
-              letterSpacing: '0.5px',
-              textTransform: 'uppercase',
-            }}
-          >
-            Preview
-          </div>
+          <div className={s.previewBadge}>Preview</div>
         </div>
       )}
 
-      <div style={{ padding: `${space[8]}px ${space[6]}px ${space[6]}px` }}>
-        {/* Icon */}
+      <div className={s.contentPad}>
         {icon && (
           <div
+            className={s.iconWrap}
             style={{
-              width: 56,
-              height: 56,
-              margin: '0 auto',
-              borderRadius: 16,
               background: `linear-gradient(135deg, ${C.b}15, ${C.y}10)`,
               border: `1px solid ${C.b}20`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 24,
-              marginBottom: space[4],
             }}
           >
             {icon}
           </div>
         )}
 
-        {/* Title */}
-        <h3
-          style={{
-            ...text.h2,
-            marginBottom: space[2],
-          }}
-        >
-          {title}
-        </h3>
+        <h3 className={s.title} style={{ ...text.h2 }}>{title}</h3>
 
-        {/* Message */}
-        <p
-          style={{
-            ...text.body,
-            color: C.t2,
-            maxWidth: 380,
-            margin: `0 auto ${space[5]}px`,
-            lineHeight: 1.6,
-          }}
-        >
-          {message}
-        </p>
+        <p className={s.message} style={{ ...text.body }}>{message}</p>
 
-        {/* Actions */}
         {(actionLabel || secondaryLabel) && (
-          <div
-            style={{
-              display: 'flex',
-              gap: space[3],
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-            }}
-          >
+          <div className={s.actionRow}>
             {actionLabel && <Btn onClick={onAction}>{actionLabel}</Btn>}
             {secondaryLabel && (
               <Btn onClick={onSecondary} variant="ghost">
@@ -182,19 +118,8 @@ export function JournalEmptyState({ onAddTrade, onImportCSV }) {
       onSecondary={onImportCSV}
       preview={<JournalPreview />}
     >
-      <div
-        style={{
-          marginTop: space[6],
-          padding: space[4],
-          background: C.sf2,
-          borderRadius: radii.md,
-          textAlign: 'left',
-          maxWidth: 380,
-          margin: `${space[6]}px auto 0`,
-          border: `1px solid ${C.bd}40`,
-        }}
-      >
-        <div style={{ ...text.label, marginBottom: space[2], color: C.b }}>Quick Start Tips</div>
+      <div className={s.tipsBox}>
+        <div className={s.tipsLabel} style={{ ...text.label }}>Quick Start Tips</div>
         <TipItem text="Log trades right after closing — emotions are freshest" />
         <TipItem text="Add your strategy name to unlock pattern detection" />
         <TipItem text="Track emotional state to spot tilt before it costs you" />
@@ -258,29 +183,10 @@ export function NotesEmptyState({ onNewNote }) {
 
 export function WidgetEmptyState({ message, actionLabel, onAction }) {
   return (
-    <div
-      style={{
-        padding: '24px 16px',
-        textAlign: 'center',
-        color: C.t3,
-        fontSize: 13,
-        lineHeight: 1.6,
-      }}
-    >
+    <div className={s.widgetWrap}>
       <div style={{ marginBottom: actionLabel ? 12 : 0 }}>{message}</div>
       {actionLabel && onAction && (
-        <button
-          onClick={onAction}
-          className="tf-link"
-          style={{
-            background: 'none',
-            border: 'none',
-            fontSize: 12,
-            fontWeight: 600,
-            fontFamily: F,
-            cursor: 'pointer',
-          }}
-        >
+        <button onClick={onAction} className={`tf-link ${s.widgetBtn}`}>
           {actionLabel}
         </button>
       )}
@@ -306,35 +212,19 @@ export function MilestoneBar({ tradeCount }) {
   const progress = Math.min(((tradeCount - prevCount) / (nextMilestone.count - prevCount)) * 100, 100);
 
   return (
-    <div
-      style={{
-        padding: '10px 16px',
-        background: C.sf,
-        borderRadius: radii.md,
-        border: `1px solid ${C.bd}`,
-      }}
-    >
+    <div className={s.milestoneWrap}>
       <div className={s.s2}>
-        <span style={{ fontSize: 12, color: C.t2, fontWeight: 500 }}>
+        <span className={s.milestoneCount}>
           {tradeCount} / {nextMilestone.count} trades
         </span>
-        <span style={{ fontSize: 11, color: C.b, fontWeight: 600 }}>{nextMilestone.label}</span>
+        <span className={s.milestoneLabel}>{nextMilestone.label}</span>
       </div>
-      <div
-        style={{
-          height: 4,
-          borderRadius: 2,
-          background: C.bd,
-          overflow: 'hidden',
-        }}
-      >
+      <div className={s.milestoneTrack}>
         <div
+          className={s.milestoneFill}
           style={{
-            height: '100%',
             width: `${progress}%`,
-            borderRadius: 2,
             background: `linear-gradient(90deg, ${C.b}, ${C.y})`,
-            transition: 'width 0.5s ease',
           }}
         />
       </div>
@@ -346,68 +236,33 @@ export function MilestoneBar({ tradeCount }) {
 
 function FeatureRoadmap({ items, current }) {
   return (
-    <div
-      style={{
-        marginTop: space[6],
-        maxWidth: 360,
-        margin: `${space[6]}px auto 0`,
-      }}
-    >
-      <div style={{ ...text.label, marginBottom: space[3], textAlign: 'left', color: C.t3 }}>
-        What unlocks as you trade
-      </div>
+    <div className={s.roadmapWrap}>
+      <div className={s.roadmapLabel} style={{ ...text.label }}>What unlocks as you trade</div>
       {items.map((item, i) => {
         const unlocked = current >= item.trades;
         return (
           <div
             key={i}
-            className={`tf-stagger-${i + 1}`}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              padding: '10px 12px',
-              borderRadius: radii.md,
-              background: unlocked ? C.b + '08' : 'transparent',
-              marginBottom: 2,
-            }}
+            className={`tf-stagger-${i + 1} ${s.roadmapItem}`}
+            style={{ background: unlocked ? C.b + '08' : 'transparent' }}
           >
             <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                background: unlocked ? C.b + '20' : C.bd + '30',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 14,
-                flexShrink: 0,
-              }}
+              className={s.roadmapIcon}
+              style={{ background: unlocked ? C.b + '20' : C.bd + '30' }}
             >
               {unlocked ? '✓' : item.icon}
             </div>
             <div className={s.s3}>
               <div
-                style={{
-                  fontSize: 13,
-                  fontWeight: unlocked ? 600 : 500,
-                  color: unlocked ? C.t1 : C.t3,
-                }}
+                className={s.roadmapItemLabel}
+                style={{ fontWeight: unlocked ? 600 : 500, color: unlocked ? C.t1 : C.t3 }}
               >
                 {item.label}
               </div>
             </div>
             <div
-              style={{
-                fontSize: 10,
-                fontFamily: M,
-                fontWeight: 600,
-                color: unlocked ? C.g : C.t3,
-                padding: '2px 8px',
-                borderRadius: 10,
-                background: unlocked ? C.g + '15' : C.bd + '20',
-              }}
+              className={s.roadmapBadge}
+              style={{ color: unlocked ? C.g : C.t3, background: unlocked ? C.g + '15' : C.bd + '20' }}
             >
               {item.trades}+
             </div>
@@ -425,35 +280,22 @@ function FeatureRoadmap({ items, current }) {
 function DashboardPreview() {
   return (
     <div className={s.s4}>
-      {/* Hero stat */}
-      <div
-        style={{
-          flex: 2,
-          background: C.g + '15',
-          borderRadius: 8,
-          padding: 12,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-        }}
-      >
-        <div style={{ fontSize: 8, color: C.t3, marginBottom: 4 }}>Today's P&L</div>
-        <div style={{ fontSize: 22, fontWeight: 800, fontFamily: M, color: C.g }}>+$1,247.50</div>
+      <div className={s.heroStat} style={{ background: C.g + '15' }}>
+        <div className={s.heroLabel}>Today's P&L</div>
+        <div className={s.heroValue} style={{ color: C.g }}>+$1,247.50</div>
       </div>
-      {/* Secondary stats */}
       <div className={s.s5}>
-        <div style={{ flex: 1, background: C.sf, borderRadius: 6, padding: 8 }}>
-          <div style={{ fontSize: 7, color: C.t3 }}>Win Rate</div>
-          <div style={{ fontSize: 14, fontWeight: 700, fontFamily: M, color: C.t1 }}>68%</div>
+        <div className={s.secondaryStat}>
+          <div className={s.secondaryLabel}>Win Rate</div>
+          <div className={s.secondaryValue}>68%</div>
         </div>
-        <div style={{ flex: 1, background: C.sf, borderRadius: 6, padding: 8 }}>
-          <div style={{ fontSize: 7, color: C.t3 }}>Trades</div>
-          <div style={{ fontSize: 14, fontWeight: 700, fontFamily: M, color: C.t1 }}>12</div>
+        <div className={s.secondaryStat}>
+          <div className={s.secondaryLabel}>Trades</div>
+          <div className={s.secondaryValue}>12</div>
         </div>
       </div>
-      {/* Equity curve mockup */}
-      <div style={{ flex: 3, background: C.sf, borderRadius: 8, padding: 8, position: 'relative' }}>
-        <div style={{ fontSize: 7, color: C.t3, marginBottom: 4 }}>Equity Curve</div>
+      <div className={s.equityWrap}>
+        <div className={s.equityLabel}>Equity Curve</div>
         <svg width="100%" height="80" viewBox="0 0 200 80" preserveAspectRatio="none">
           <path
             d="M0 60 L20 55 L40 58 L60 45 L80 42 L100 30 L120 35 L140 22 L160 18 L180 25 L200 10"
@@ -481,29 +323,16 @@ function JournalPreview() {
     { sym: 'SPY', side: 'long', pnl: '+$89.00', color: C.g },
   ];
   return (
-    <div style={{ padding: '12px 16px' }}>
+    <div className={s.journalWrap}>
       {rows.map((r, i) => (
-        <div
-          key={i}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '8px 12px',
-            background: C.sf,
-            borderRadius: 6,
-            marginBottom: 4,
-          }}
-        >
+        <div key={i} className={s.journalRow}>
           <div className={s.s6}>
-            <span style={{ fontWeight: 700, fontFamily: M, fontSize: 12, color: C.t1 }}>{r.sym}</span>
-            <span
-              style={{ fontSize: 9, color: r.side === 'long' ? C.g : C.r, fontWeight: 600, textTransform: 'uppercase' }}
-            >
+            <span className={s.journalSym}>{r.sym}</span>
+            <span className={s.journalSide} style={{ color: r.side === 'long' ? C.g : C.r }}>
               {r.side}
             </span>
           </div>
-          <span style={{ fontWeight: 700, fontFamily: M, fontSize: 12, color: r.color }}>{r.pnl}</span>
+          <span className={s.journalPnl} style={{ color: r.color }}>{r.pnl}</span>
         </div>
       ))}
     </div>
@@ -514,41 +343,18 @@ function JournalPreview() {
 
 function TipItem({ text: label }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: space[2],
-        alignItems: 'flex-start',
-        padding: `${space[1] + 1}px 0`,
-      }}
-    >
-      <span style={{ color: C.b, fontSize: 10, lineHeight: '18px', flexShrink: 0 }}>●</span>
-      <span style={{ fontSize: 13, color: C.t2, lineHeight: '18px' }}>{label}</span>
+    <div className={s.tipRow}>
+      <span className={s.tipDot}>●</span>
+      <span className={s.tipText}>{label}</span>
     </div>
   );
 }
 
 function _MetricPreview({ label }) {
   return (
-    <div
-      style={{
-        padding: `${space[2]}px ${space[3]}px`,
-        background: C.sf2,
-        borderRadius: radii.md,
-        border: `1px solid ${C.bd}40`,
-      }}
-    >
+    <div className={s.metricWrap}>
       <div style={{ ...text.captionSm, marginBottom: 2 }}>{label}</div>
-      <div
-        style={{
-          fontFamily: M,
-          fontSize: 16,
-          fontWeight: 700,
-          color: C.t3 + '50',
-        }}
-      >
-        —
-      </div>
+      <div className={s.metricValue}>—</div>
     </div>
   );
 }

@@ -13,7 +13,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import '../../../styles/markets-animations.css';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useWatchlistStore, enrichWithTradeStats, groupByAssetClass } from '../../../state/useWatchlistStore.js';
@@ -30,6 +30,7 @@ import EarningsBadge from './EarningsBadge.jsx';
 import { useAlertStore } from '../../../state/useAlertStore';
 import { useDragReorder } from '../../../hooks/useDragReorder';
 import { useVirtualScroll } from '../../../hooks/useVirtualScroll';
+import st from './MarketsWatchlistGrid.module.css';
 
 // ─── Format helpers ────────────────────────────────────────────
 
@@ -372,7 +373,7 @@ export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedInde
               style={{
                 fontSize: 10,
                 fontWeight: 700,
-                fontFamily: M,
+                fontFamily: 'var(--tf-mono)',
                 color: isActive ? C.b : C.t3,
                 textTransform: 'uppercase',
                 letterSpacing: '0.06em',
@@ -411,7 +412,7 @@ export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedInde
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
                   color: ASSET_COLORS[cls] || C.t3,
-                  fontFamily: M,
+                  fontFamily: 'var(--tf-mono)',
                   background: `${ASSET_COLORS[cls] || C.bd}06`,
                   borderBottom: `1px solid ${C.bd}20`,
                 }}
@@ -466,7 +467,7 @@ export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedInde
               textAlign: 'center',
               color: C.t3,
               fontSize: 13,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
             }}
           >
             No assets match your filters.
@@ -557,12 +558,12 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
           />
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: M }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-mono)' }}>
                 {item.symbol}
               </span>
               {hasAlert && <span style={{ fontSize: 10 }} title="Active alert">🔔</span>}
               <EarningsBadge symbol={item.symbol} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: M, display: 'none' }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-mono)', display: 'none' }}>
               </span>
               {item.assetClass && item.assetClass !== 'other' && (
                 <span
@@ -619,7 +620,7 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
     ),
     price: (
       <div style={{ textAlign: 'right' }}>
-        <div style={{ fontSize: 13, fontWeight: 700, fontFamily: M, color: C.t1, fontVariantNumeric: 'tabular-nums' }}>
+        <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: C.t1, fontVariantNumeric: 'tabular-nums' }}>
           {fmtPrice(item.livePrice)}
         </div>
       </div>
@@ -630,7 +631,7 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
           style={{
             fontSize: 12,
             fontWeight: 700,
-            fontFamily: M,
+            fontFamily: 'var(--tf-mono)',
             color: changeColor,
             fontVariantNumeric: 'tabular-nums',
             padding: '2px 8px',
@@ -644,7 +645,7 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
     ),
     volume: (
       <div style={{ textAlign: 'right' }}>
-        <span style={{ fontSize: 12, fontWeight: 500, fontFamily: M, color: C.t2, fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, fontFamily: 'var(--tf-mono)', color: C.t2, fontVariantNumeric: 'tabular-nums' }}>
           {fmtVolume(item.volume)}
         </span>
       </div>
@@ -653,10 +654,10 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
       <div style={{ textAlign: 'right' }}>
         {hasTrades ? (
           <>
-            <div style={{ fontSize: 12, fontWeight: 700, fontFamily: M, color: item.totalPnl >= 0 ? C.g : C.r, fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: item.totalPnl >= 0 ? C.g : C.r, fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
               {fmtPnl(item.totalPnl)}
             </div>
-            <div style={{ fontSize: 9, color: C.t3, fontFamily: M }}>
+            <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>
               {item.tradeCount} trade{item.tradeCount !== 1 ? 's' : ''}
             </div>
           </>
@@ -666,39 +667,39 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
       </div>
     ),
     tradeCount: (
-      <div style={{ textAlign: 'right', fontSize: 12, fontFamily: M, color: C.t2 }}>
+      <div style={{ textAlign: 'right', fontSize: 12, fontFamily: 'var(--tf-mono)', color: C.t2 }}>
         {item.tradeCount || '—'}
       </div>
     ),
     lastTraded: (
-      <div style={{ textAlign: 'right', fontSize: 11, fontFamily: M, color: C.t3 }}>
+      <div style={{ textAlign: 'right', fontSize: 11, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
         {fmtDate(item.lastTraded)}
       </div>
     ),
     weekRange: (
       <div style={{ overflow: 'visible', position: 'relative' }}>
-        <div style={{ fontSize: 10, color: C.t3, fontFamily: M }}>—</div>
+        <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-mono)' }}>—</div>
       </div>
     ),
     volProfile: (
       <div style={{ overflow: 'visible', position: 'relative' }}>
-        <div style={{ fontSize: 10, color: C.t3, fontFamily: M }}>—</div>
+        <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-mono)' }}>—</div>
       </div>
     ),
     marketCap: (
       <div style={{ textAlign: 'right' }}>
-        <span style={{ fontSize: 12, fontWeight: 500, fontFamily: M, color: C.t2, fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, fontFamily: 'var(--tf-mono)', color: C.t2, fontVariantNumeric: 'tabular-nums' }}>
           {item.marketCap ? fmtCompact(item.marketCap) : '—'}
         </span>
       </div>
     ),
     supply: (
       <div style={{ textAlign: 'right' }}>
-        <span style={{ fontSize: 12, fontWeight: 500, fontFamily: M, color: C.t2, fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, fontFamily: 'var(--tf-mono)', color: C.t2, fontVariantNumeric: 'tabular-nums' }}>
           {item.supply ? fmtCompact(item.supply, 0) : '—'}
         </span>
         {item.maxSupply && (
-          <div style={{ fontSize: 9, color: C.t3, fontFamily: M }}>
+          <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>
             / {fmtCompact(item.maxSupply, 0)}
           </div>
         )}
@@ -706,11 +707,11 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
     ),
     ath: (
       <div style={{ textAlign: 'right' }}>
-        <span style={{ fontSize: 12, fontWeight: 500, fontFamily: M, color: C.t2, fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, fontFamily: 'var(--tf-mono)', color: C.t2, fontVariantNumeric: 'tabular-nums' }}>
           {item.ath ? fmtPrice(item.ath) : '—'}
         </span>
         {item.athChange != null && (
-          <div style={{ fontSize: 9, fontFamily: M, color: item.athChange < -50 ? C.r : C.t3 }}>
+          <div style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: item.athChange < -50 ? C.r : C.t3 }}>
             {item.athChange > 0 ? '+' : ''}{item.athChange?.toFixed(1)}%
           </div>
         )}
@@ -727,7 +728,7 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
             background: `${assetColor}12`,
             padding: '2px 6px',
             borderRadius: radii.xs,
-            fontFamily: M,
+            fontFamily: 'var(--tf-mono)',
           }}
         >
           {item.assetClass || 'other'}
@@ -796,7 +797,7 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
             fontWeight: 700,
             padding: '3px 10px',
             cursor: 'pointer',
-            fontFamily: M,
+            fontFamily: 'var(--tf-mono)',
             transition: `background ${transition.fast}`,
           }}
           title="Remove from watchlist"

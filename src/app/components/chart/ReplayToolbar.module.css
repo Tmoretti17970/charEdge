@@ -181,3 +181,24 @@
   font-size: 10px;
   font-family: var(--tf-mono);
 }
+
+/* ─── Inline style migration ─── */
+.replayDot[data-playing="true"] { animation: pulse 1.5s infinite; }
+.speedBtn[data-active="true"] {
+  background: color-mix(in srgb, var(--tf-accent) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tf-accent) 31%, transparent);
+  color: var(--tf-accent);
+  font-weight: 700;
+}
+.speedBtn:not([data-active="true"]) {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--tf-t3);
+  font-weight: 500;
+}
+.statPnl { font-weight: 700; }
+.statPnl[data-positive="true"] { color: #34d399; }
+.statPnl[data-positive="false"] { color: #f87171; }
+.statDim { color: var(--tf-t3); }
+.statWr[data-good="true"] { color: #34d399; }
+.statWr[data-good="false"] { color: #f87171; }

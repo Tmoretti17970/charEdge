@@ -11,10 +11,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo, useState, useRef, useCallback, useEffect } from 'react';
-import { C, F } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { radii, transition } from '../../../theme/tokens.js';
+import st from './MarketsWatchlistTabs.module.css';
 
 const ACCENT = '#6e5ce6';
 
@@ -126,7 +127,7 @@ function MarketsWatchlistTabs() {
               }}
               autoFocus
               style={{
-                fontSize: 11, fontFamily: F, fontWeight: 600,
+                fontSize: 11, fontFamily: 'var(--tf-font)', fontWeight: 600,
                 background: `${C.bd}20`, color: C.t1,
                 border: `1px solid ${ACCENT}50`,
                 borderRadius: radii.sm, padding: '4px 10px',
@@ -198,7 +199,7 @@ function TabButton({ label, active, onClick, onDoubleClick, onContextMenu, color
       onDoubleClick={onDoubleClick}
       onContextMenu={onContextMenu}
       style={{
-        fontSize: 11, fontFamily: F, fontWeight: active ? 700 : 500,
+        fontSize: 11, fontFamily: 'var(--tf-font)', fontWeight: active ? 700 : 500,
         color: active ? C.t1 : C.t3,
         background: active ? `${ACCENT}18` : 'transparent',
         border: active ? `1px solid ${ACCENT}30` : '1px solid transparent',
@@ -223,7 +224,7 @@ function MenuButton({ label, onClick, danger }) {
       onClick={onClick}
       style={{
         display: 'block', width: '100%', textAlign: 'left',
-        fontSize: 11, fontFamily: F, fontWeight: 500,
+        fontSize: 11, fontFamily: 'var(--tf-font)', fontWeight: 500,
         color: danger ? C.r : C.t2,
         background: 'transparent', border: 'none',
         padding: '6px 12px', borderRadius: 4,

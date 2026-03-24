@@ -1,0 +1,17 @@
+/* IntegrationsSection — CSS Module */
+.section { margin-bottom: 40px; }
+.cardPad { padding: var(--sp-5); }
+.cardGap { margin-top: var(--sp-4); }
+.cardTitle { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--tf-t1); margin-bottom: var(--sp-1); }
+.cardHint { font-size: var(--fs-2xs); color: var(--tf-t3); margin-bottom: 14px; }
+.badgeRow { display: flex; flex-wrap: wrap; gap: var(--sp-1_5); margin-bottom: var(--sp-4); }
+.saveRow { display: flex; gap: var(--sp-2); align-items: center; }
+.savedBadge { font-size: var(--fs-sm); color: var(--tf-green); font-weight: var(--fw-semibold); }
+
+/* Cloud sync */
+.syncCard { display: flex; gap: var(--sp-3); align-items: center; padding: var(--sp-3) var(--sp-4); background: var(--tf-sf2); border-radius: var(--br-md); margin-bottom: var(--sp-4); }
+.syncDot { width: 10px; height: 10px; border-radius: 50%; }
+.syncBody { flex: 1; }
+.syncTitle { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--tf-t1); }
+.syncMeta { font-size: var(--fs-2xs); color: var(--tf-t3); font-family: var(--tf-mono); }
+.btnRow { display: flex; gap: var(--sp-2); }

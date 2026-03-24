@@ -419,7 +419,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
               {item.symbol}
             </span>
             {item.tradeCount > 0 && !isCompact && (
-              <span className={s.tradeStats} style={{ color: item.totalPnl >= 0 ? C.g : C.r }}>
+              <span className={s.tradeStats} style={{ '--stat-color': item.totalPnl >= 0 ? C.g : C.r }}>
                 {item.totalPnl >= 0 ? '+' : ''}${item.totalPnl.toFixed(0)}
               </span>
             )}
@@ -448,7 +448,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
           {changePercent !== null && (
             <div
               className={s.changeBadge}
-              style={{ color: changeColor, background: changeColor + '14' }}
+              style={{ '--change-color': changeColor, '--change-bg': changeColor + '14' }}
             >
               {isPositive ? '+' : ''}{changePercent.toFixed(2)}%
             </div>
@@ -550,8 +550,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
           width="10" height="10" viewBox="0 0 24 24"
           fill="none" stroke="currentColor"
           strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
-          className={s.handleIcon}
-          style={{ marginTop: 2 }}
+          className={s.handleChevron}
         >
           <polyline points={isOpen ? '9 18 15 12 9 6' : '15 18 9 12 15 6'} />
         </svg>
@@ -641,7 +640,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
               📁
             </button>
             {/* Smart folder button */}
-            <div style={{ position: 'relative' }}>
+            <div className={s.smartFolderWrap}>
               <button
                 onClick={() => setShowSmartPresets(!showSmartPresets)}
                 title="Create smart folder"
@@ -716,10 +715,10 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
             {/* ─── Table Header (table mode only) ─── */}
             {viewMode === 'table' && filteredItems.length > 0 && (
               <div className={s.tableHeader}>
-                <div className={s.tableHeaderCol} style={{ width: 60 }}>Symbol</div>
-                <div className={s.tableHeaderCol} style={{ flex: 1, textAlign: 'center' }}>Chart</div>
-                <div className={s.tableHeaderCol} style={{ minWidth: 65, textAlign: 'right' }}>Price</div>
-                <div className={s.tableHeaderCol} style={{ minWidth: 50, textAlign: 'right' }}>Volume</div>
+                <div className={`${s.tableHeaderCol} ${s['tableHeaderCol--symbol']}`}>Symbol</div>
+                <div className={`${s.tableHeaderCol} ${s['tableHeaderCol--chart']}`}>Chart</div>
+                <div className={`${s.tableHeaderCol} ${s['tableHeaderCol--price']}`}>Price</div>
+                <div className={`${s.tableHeaderCol} ${s['tableHeaderCol--vol']}`}>Volume</div>
               </div>
             )}
 

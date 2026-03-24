@@ -1,0 +1,54 @@
+/* AutoTrendlineOverlay — CSS Module (Sprint 23) */
+
+.svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+.hoverLabel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: var(--tf-glass-2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: var(--tf-font);
+}
+.aiBadge {
+  font-size: 7px;
+  font-weight: 800;
+  padding: 1px 3px;
+  border-radius: 3px;
+}
+.dirLabel {
+  font-size: 10px;
+  color: var(--tf-t1);
+  font-weight: 500;
+}
+.touchesLabel {
+  font-size: 8px;
+  color: var(--tf-t3);
+}
+.acceptBtn {
+  font-size: 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-weight: 600;
+  border: none;
+}
+.dismissBtn {
+  background: color-mix(in srgb, var(--tf-t3) 4%, transparent);
+  border: 1px solid var(--tf-glass-border);
+  color: var(--tf-t3);
+  font-size: 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 1px 4px;
+}

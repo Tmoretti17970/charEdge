@@ -6,12 +6,13 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo, useCallback, useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useWatchlistStore, enrichWithTradeStats } from '../../../state/useWatchlistStore.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
 import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming.js';
 import { transition } from '../../../theme/tokens.js';
+import st from './MarketsCompactView.module.css';
 
 function fmtPrice(val) {
   if (val == null || isNaN(val)) return '—';
@@ -84,7 +85,7 @@ function MarketsCompactView() {
             <span style={{
               fontSize: 11,
               fontWeight: 700,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
               color: C.t1,
               minWidth: 60,
             }}>
@@ -95,7 +96,7 @@ function MarketsCompactView() {
             <span style={{
               fontSize: 11,
               fontWeight: 600,
-              fontFamily: M,
+              fontFamily: 'var(--tf-mono)',
               color: C.t1,
               flex: 1,
               textAlign: 'right',
@@ -108,7 +109,7 @@ function MarketsCompactView() {
             <span style={{
               fontSize: 10,
               fontWeight: 700,
-              fontFamily: M,
+              fontFamily: 'var(--tf-mono)',
               color: isUp ? C.g : C.r,
               minWidth: 55,
               textAlign: 'right',

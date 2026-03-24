@@ -1,0 +1,103 @@
+/* DrawingRecoveryPanel — CSS Module (Sprint 23) */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: tfDropdownIn 0.18s ease-out;
+}
+.dialog {
+  width: 340px;
+  max-height: 420px;
+  overflow: auto;
+  border-radius: 16px;
+  background: var(--tf-glass-2);
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  border: 1px solid var(--tf-glass-border);
+  box-shadow: var(--tf-shadow-3);
+  font-family: var(--tf-font);
+  color: var(--tf-t1);
+}
+.header {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--tf-glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.headerTitle { font-size: 14px; font-weight: 700; }
+.headerSub { font-size: 10px; color: var(--tf-t3); margin-top: 2px; }
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--tf-t3);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+/* Session revert */
+.sessionRevert { padding: 8px 12px; border-bottom: 1px solid var(--tf-glass-border); }
+.revertBtn {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--tf-red) 15%, transparent);
+  background: color-mix(in srgb, var(--tf-red) 6%, transparent);
+  cursor: pointer;
+  color: var(--tf-red);
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s;
+}
+.revertBtn:hover {
+  background: color-mix(in srgb, var(--tf-red) 12%, transparent);
+}
+
+/* Version list */
+.versionList { padding: 6px 0; }
+.emptyState {
+  padding: 20px 16px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--tf-t3);
+}
+.versionRow {
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid color-mix(in srgb, var(--tf-bd) 12%, transparent);
+  transition: background 0.12s;
+}
+.versionRow:hover {
+  background: color-mix(in srgb, var(--tf-sf2) 40%, transparent);
+}
+.versionTime { font-size: 12px; font-weight: 500; }
+.versionCount { font-size: 10px; color: var(--tf-t3); margin-top: 1px; }
+.restoreBtn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--tf-accent) 15%, transparent);
+  background: color-mix(in srgb, var(--tf-accent) 6%, transparent);
+  color: var(--tf-accent);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.restoreBtn:hover {
+  background: color-mix(in srgb, var(--tf-accent) 12%, transparent);
+}
+.restoreBtn:disabled { cursor: wait; }

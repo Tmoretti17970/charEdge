@@ -1,0 +1,52 @@
+/* TimeframeSwitcher — CSS Module (Sprint 23) */
+
+.compactBar { display: flex; align-items: center; gap: 2px; }
+.tfBtn {
+  background: transparent;
+  color: var(--tf-t3);
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: normal;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-width: 28px;
+}
+.tfBtn[data-active="true"] {
+  background: var(--tf-accent);
+  color: #fff;
+  font-weight: bold;
+}
+.moreWrap { position: relative; }
+.moreBtn {
+  background: transparent;
+  color: var(--tf-t3);
+  border: none;
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--tf-bg);
+  border: 1px solid var(--tf-bd);
+  border-radius: 8px;
+  box-shadow: var(--tf-shadow-2);
+  z-index: 1000;
+  padding: 8px;
+  min-width: 160px;
+}
+.groupLabel {
+  padding: 4px 8px;
+  font-size: 10px;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.groupRow { display: flex; flex-wrap: wrap; gap: 2px; margin-bottom: 4px; }
+.fullBar { display: flex; gap: 2px; flex-wrap: wrap; }

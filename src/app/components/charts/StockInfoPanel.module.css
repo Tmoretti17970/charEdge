@@ -1,0 +1,282 @@
+/* ═══════════════════════════════════════════════════════════════════
+   StockInfoPanel — CSS Module (Sprint 23)
+   Migrated from 50 inline styles → token-based CSS classes.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Crypto Fallback ─── */
+.cryptoFallback {
+  padding: 24px;
+  text-align: center;
+  color: var(--tf-t3);
+}
+.cryptoIcon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+.cryptoMsg {
+  font-size: 13px;
+}
+.cryptoSub {
+  font-size: 11px;
+  margin-top: 6px;
+  opacity: 0.6;
+}
+
+/* ─── Container ─── */
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 12px;
+}
+
+/* ─── Tab Bar ─── */
+.tabBar {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--tf-bd);
+  padding-bottom: 8px;
+}
+.tabBtn {
+  flex: 1;
+  padding: 6px 0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 400;
+  background: transparent;
+  color: var(--tf-t3);
+  transition: all 0.15s;
+  font-family: var(--tf-font);
+}
+.tabBtn[data-active="true"] {
+  font-weight: 700;
+  background: color-mix(in srgb, var(--tf-accent) 12%, transparent);
+  color: var(--tf-accent);
+}
+
+/* ─── Content Area ─── */
+.content {
+  flex: 1;
+  overflow: auto;
+  font-size: 12px;
+  color: var(--tf-t2);
+}
+.loading {
+  padding: 24px;
+  text-align: center;
+  color: var(--tf-t3);
+  font-size: 11px;
+}
+
+/* ─── InfoRow ─── */
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--tf-bd) 13%, transparent);
+}
+.infoRowLabel {
+  color: var(--tf-t3);
+  font-size: 11px;
+}
+.infoRowValue {
+  font-weight: 500;
+  font-size: 11px;
+  text-align: right;
+  max-width: 60%;
+}
+
+/* ─── Profile View ─── */
+.profileWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.profileHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.profileLogo {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+}
+.profileName {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--tf-t1);
+}
+.profileExchange {
+  font-size: 10px;
+  color: var(--tf-t3);
+}
+.profileLink {
+  font-size: 11px;
+  color: var(--tf-accent);
+  margin-top: 8px;
+  text-decoration: none;
+}
+
+/* ─── Analysts View ─── */
+.analystsWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.analystsPeriod {
+  font-size: 11px;
+  color: var(--tf-t3);
+  text-align: center;
+}
+.analystsBar {
+  display: flex;
+  border-radius: 6px;
+  overflow: hidden;
+  height: 20px;
+}
+.analystsSegment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #fff;
+}
+.analystsLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--tf-t3);
+}
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+/* ─── Earnings View ─── */
+.earningsWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.earningsHeader {
+  display: flex;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--tf-t3);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--tf-bd);
+}
+.earningsRow {
+  display: flex;
+  padding: 5px 0;
+  font-size: 11px;
+  border-bottom: 1px solid color-mix(in srgb, var(--tf-bd) 13%, transparent);
+}
+.earningsCol {
+  flex: 1;
+}
+.earningsCol--right {
+  text-align: right;
+}
+.earningsCol--date {
+  color: var(--tf-t3);
+}
+.earningsCol--actual {
+  font-weight: 600;
+}
+.earningsCol--surprise {
+  font-weight: 600;
+}
+
+/* ─── News View ─── */
+.newsWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.newsCard {
+  display: block;
+  padding: 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tf-bd) 8%, transparent);
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.newsCard:hover {
+  background: color-mix(in srgb, var(--tf-bd) 18%, transparent);
+}
+.newsHeadline {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tf-t1);
+  line-height: 1.4;
+}
+.newsMeta {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--tf-t3);
+}
+
+/* ─── Insiders View ─── */
+.insidersWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.insiderRow {
+  padding: 6px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--tf-bd) 13%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.insiderTop {
+  display: flex;
+  justify-content: space-between;
+}
+.insiderName {
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--tf-t1);
+}
+.insiderBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.insiderBadge[data-buy="true"] {
+  background: color-mix(in srgb, #00c853 12%, transparent);
+  color: #00c853;
+}
+.insiderBadge[data-buy="false"] {
+  background: color-mix(in srgb, #ef5350 12%, transparent);
+  color: #ef5350;
+}
+.insiderBottom {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--tf-t3);
+}
+
+/* ─── Empty States ─── */
+.emptyState {
+  color: var(--tf-t3);
+  padding: 12px;
+}

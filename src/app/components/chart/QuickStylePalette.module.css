@@ -1,0 +1,201 @@
+/* ═══════════════════════════════════════════════════════════════════
+   QuickStylePalette — CSS Module (Sprint 23)
+   Migrated from 18 inline styles → token-based CSS classes.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Palette Container ─── */
+.palette {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--tf-glass-2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 12px;
+  padding: 6px 10px;
+  border: 1px solid var(--tf-glass-border);
+  box-shadow: var(--tf-shadow-2);
+  z-index: 1000;
+  user-select: none;
+  animation: scaleInSm 0.2s ease-out;
+}
+
+/* ─── Sticky Mode Toggle ─── */
+.stickyBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--tf-sf2) 60%, transparent);
+  color: var(--tf-t3);
+}
+.stickyBtn[data-active="true"] {
+  background: color-mix(in srgb, var(--tf-accent) 20%, transparent);
+  color: var(--tf-accent);
+}
+
+/* ─── Divider ─── */
+.divider {
+  width: 1px;
+  height: 20px;
+  background: var(--tf-glass-border);
+  flex-shrink: 0;
+}
+
+/* ─── Swatch ─── */
+.swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  box-shadow: none;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.swatch[data-active="true"] {
+  border-color: #fff;
+  outline: 1px solid color-mix(in srgb, var(--tf-accent) 60%, transparent);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--tf-accent) 40%, transparent);
+}
+
+/* ─── Width Dot ─── */
+.widthDotBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.widthDotBtn[data-active="true"] {
+  border-color: color-mix(in srgb, var(--tf-t1) 50%, transparent);
+  background: color-mix(in srgb, var(--tf-t1) 10%, transparent);
+}
+.widthDotInner {
+  border-radius: 50%;
+  background: var(--tf-t1);
+  display: block;
+}
+
+/* ─── Edit Button ─── */
+.editBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px dashed color-mix(in srgb, var(--tf-t1) 20%, transparent);
+  background: transparent;
+  color: var(--tf-t3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+/* ─── Editor Popover ─── */
+.editorPopover {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  background: var(--tf-glass-2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 12px;
+  padding: 14px;
+  border: 1px solid var(--tf-glass-border);
+  box-shadow: var(--tf-shadow-3);
+  width: 200px;
+  z-index: 1001;
+}
+.editorLabel {
+  font-size: 11px;
+  color: var(--tf-t3);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.editorLabel--width {
+  composes: editorLabel;
+  margin-bottom: 4px;
+}
+.colorGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.customColorRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.customColorInput {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 0;
+  background: none;
+}
+.customColorLabel {
+  font-size: 11px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font-mono);
+}
+.widthRow {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+/* ─── Editor Actions ─── */
+.editorActions {
+  display: flex;
+  gap: 6px;
+}
+.saveBtn {
+  flex: 1;
+  padding: 6px;
+  border-radius: 6px;
+  border: none;
+  background: var(--tf-accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.cancelBtn {
+  flex: 1;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--tf-t1) 15%, transparent);
+  background: transparent;
+  color: var(--tf-t3);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}

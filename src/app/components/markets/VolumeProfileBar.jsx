@@ -9,6 +9,7 @@
 import { memo, useState } from 'react';
 import { C, M } from '../../../constants.js';
 import { transition } from '../../../theme/tokens.js';
+import st from './VolumeProfileBar.module.css';
 
 function fmtVol(v) {
   if (v == null || isNaN(v)) return '—';
@@ -22,7 +23,7 @@ function VolumeProfileBar({ currentVolume, avgVolume, expanded = false }) {
   const [hovered, setHovered] = useState(false);
 
   if (currentVolume == null || avgVolume == null || avgVolume <= 0) {
-    return <div style={{ fontSize: 10, color: C.t3, fontFamily: M }}>—</div>;
+    return <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-mono)' }}>—</div>;
   }
 
   const ratio = currentVolume / avgVolume;
@@ -51,13 +52,13 @@ function VolumeProfileBar({ currentVolume, avgVolume, expanded = false }) {
           display: 'flex', justifyContent: 'space-between',
           marginBottom: 6,
         }}>
-          <span style={{ fontSize: 10, fontFamily: M, color: C.t3 }}>
+          <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
             Avg: {fmtVol(avgVolume)}
           </span>
-          <span style={{ fontSize: 10, fontFamily: M, color: barColor, fontWeight: 700 }}>
+          <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: barColor, fontWeight: 700 }}>
             {ratioLabel} avg {badge}
           </span>
-          <span style={{ fontSize: 10, fontFamily: M, color: C.t3 }}>
+          <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
             Now: {fmtVol(currentVolume)}
           </span>
         </div>
@@ -102,7 +103,7 @@ function VolumeProfileBar({ currentVolume, avgVolume, expanded = false }) {
 
         {/* Compact labels */}
         {!expanded && (
-          <span style={{ fontSize: 9, fontFamily: M, color: barColor, fontWeight: 700, minWidth: 26, textAlign: 'right' }}>
+          <span style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: barColor, fontWeight: 700, minWidth: 26, textAlign: 'right' }}>
             {badge || ratioLabel}
           </span>
         )}
@@ -127,10 +128,10 @@ function VolumeProfileBar({ currentVolume, avgVolume, expanded = false }) {
             boxShadow: `0 4px 16px ${C.bd}20`,
           }}
         >
-          <div style={{ fontSize: 9, fontFamily: M, color: C.t3, marginBottom: 2 }}>
+          <div style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3, marginBottom: 2 }}>
             Volume vs 20d Avg
           </div>
-          <div style={{ fontSize: 10, fontFamily: M, color: barColor, fontWeight: 700 }}>
+          <div style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: barColor, fontWeight: 700 }}>
             {fmtVol(currentVolume)} / {fmtVol(avgVolume)} = {ratioLabel} {badge}
           </div>
         </div>

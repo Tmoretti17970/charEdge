@@ -1,0 +1,140 @@
+/* VoiceNoteOverlay — CSS Module (Sprint 23) */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15%;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.panel {
+  background: var(--tf-glass-2);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--tf-glass-border);
+  border-radius: 16px;
+  padding: 20px 24px;
+  width: 340px;
+  max-width: 90%;
+  box-shadow: var(--tf-shadow-3);
+}
+
+/* Recording indicator row */
+.recRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.recDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--tf-red);
+  animation: pulse 1.2s ease-in-out infinite;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--tf-red) 50%, transparent);
+}
+.recLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tf-red);
+  font-family: var(--tf-font);
+}
+.recDuration {
+  font-size: 12px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Waveform */
+.waveRow {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  margin-bottom: 12px;
+}
+.waveBar {
+  width: 3px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--tf-red) 50%, transparent);
+}
+
+/* Live transcript */
+.liveTranscript {
+  font-size: 12px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  font-style: italic;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+/* Preview */
+.previewTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+  font-family: var(--tf-font);
+}
+.editArea {
+  width: 100%;
+  background: color-mix(in srgb, var(--tf-sf2) 4%, transparent);
+  border: 1px solid var(--tf-glass-border);
+  border-radius: 8px;
+  color: var(--tf-t1);
+  font-family: var(--tf-font);
+  font-size: 13px;
+  padding: 8px 12px;
+  resize: vertical;
+  outline: none;
+  margin-bottom: 12px;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+/* Buttons */
+.btnRow { display: flex; gap: 8px; }
+.btnPrimary {
+  flex: 1;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tf-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tf-accent) 25%, transparent);
+  color: var(--tf-accent);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--tf-font);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btnSecondary {
+  flex: 1;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid var(--tf-glass-border);
+  color: var(--tf-t3);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--tf-font);
+  cursor: pointer;
+}
+
+/* Error */
+.errorMsg {
+  color: var(--tf-red);
+  font-size: 13px;
+  font-family: var(--tf-font);
+  text-align: center;
+}

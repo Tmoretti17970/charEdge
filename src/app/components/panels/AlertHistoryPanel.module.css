@@ -1,0 +1,53 @@
+/* AlertHistoryPanel — CSS Module */
+.root {
+  height: 100%; overflow: auto; padding: var(--sp-3);
+  font-family: var(--tf-font); background: var(--tf-bg); color: var(--tf-t2);
+}
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.title { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--tf-t1); }
+.headerRight { display: flex; gap: var(--sp-1); align-items: center; }
+.entryCount { font-size: var(--fs-xs); color: var(--tf-t3); font-family: var(--tf-mono); }
+.clearBtn { background: none; border: none; color: var(--tf-t3); font-size: var(--fs-xs); cursor: pointer; padding: 2px var(--sp-1); }
+
+.filterRow { display: flex; gap: var(--sp-1); margin-bottom: var(--sp-2); }
+.input {
+  background: var(--tf-sf); border: 1px solid var(--tf-bd); color: var(--tf-t1);
+  border-radius: var(--br-sm); padding: 3px var(--sp-1_5);
+  font-family: var(--tf-mono); font-size: var(--fs-xs); outline: none;
+}
+.filterInput { flex: 1; }
+.filterSelect { cursor: pointer; appearance: none; }
+
+.summary {
+  display: flex; gap: var(--sp-3); padding: var(--sp-1_5) var(--sp-2);
+  background: var(--tf-sf); border-radius: var(--br-md);
+  margin-bottom: 10px; font-size: var(--fs-xs); font-family: var(--tf-mono);
+  color: var(--tf-t2); justify-content: center;
+}
+.summaryBold { color: var(--tf-t1); }
+
+.empty { text-align: center; padding: var(--sp-6) var(--sp-3); color: var(--tf-t3); font-size: var(--fs-sm); }
+.emptyIcon { font-size: 24px; margin-bottom: var(--sp-2); }
+.emptyHint { font-size: var(--fs-xs); margin-top: var(--sp-1); line-height: var(--lh-normal); }
+
+.entryCard {
+  padding: var(--sp-1_5) var(--sp-2); background: var(--tf-sf);
+  border-radius: var(--br-md); margin-bottom: 3px;
+  border-left: 3px solid var(--entry-color, var(--tf-accent));
+}
+.entryHeader { display: flex; justify-content: space-between; align-items: center; }
+.entryLeft { display: flex; align-items: center; gap: var(--sp-1); }
+.entrySymbol { font-family: var(--tf-mono); font-weight: var(--fw-bold); font-size: var(--fs-sm); color: var(--tf-t1); }
+.entryCond { font-size: var(--fs-3xs); color: var(--tf-t3); }
+.entryTime { font-size: 8px; color: var(--tf-t3); font-family: var(--tf-mono); }
+.outcomeRow { display: flex; gap: var(--sp-1); margin-top: 3px; align-items: center; }
+.entryPrice { font-size: var(--fs-xs); font-family: var(--tf-mono); color: var(--tf-accent); }
+.entryArrow { font-size: 8px; color: var(--tf-t3); }
+.entryNote { font-size: 8px; color: var(--tf-t3); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* OutcomeBadge */
+.outcomeBadge {
+  font-size: 8px; font-family: var(--tf-mono); font-weight: var(--fw-bold);
+  padding: 1px var(--sp-1); border-radius: 3px;
+}
+.outcomeNull { font-size: 8px; color: color-mix(in srgb, var(--tf-t3) 31%, transparent); font-family: var(--tf-mono); }

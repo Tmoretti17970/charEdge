@@ -6,8 +6,9 @@
 
 import React from 'react';
 import { useState, useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
+import st from './OptionsFlowScanner.module.css';
 
 const MOCK_FLOWS = [
   { id: 1, time: '14:32', symbol: 'NVDA', strike: 900, expiry: '03/07', type: 'Call', premium: 2850000, size: 1200, side: 'Buy', sweep: true },
@@ -54,8 +55,8 @@ function OptionsFlowScanner() {
         style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 18 }}>⚡</span>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>Options Flow Scanner</h3>
-          <span style={{ fontSize: 10, fontWeight: 700, color: C.y, background: alpha(C.y, 0.1), padding: '2px 7px', borderRadius: 4, fontFamily: M }}>
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>Options Flow Scanner</h3>
+          <span style={{ fontSize: 10, fontWeight: 700, color: C.y, background: alpha(C.y, 0.1), padding: '2px 7px', borderRadius: 4, fontFamily: 'var(--tf-mono)' }}>
             ${(totalPremium / 1e6).toFixed(1)}M today
           </span>
         </div>
@@ -67,8 +68,8 @@ function OptionsFlowScanner() {
           {/* Sentiment Bar */}
           <div style={{ marginBottom: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 10, fontWeight: 600, color: C.g, fontFamily: F }}>🟢 Bullish {sentiment.bullPct.toFixed(0)}%</span>
-              <span style={{ fontSize: 10, fontWeight: 600, color: C.r, fontFamily: F }}>Bearish {(100 - sentiment.bullPct).toFixed(0)}% 🔴</span>
+              <span style={{ fontSize: 10, fontWeight: 600, color: C.g, fontFamily: 'var(--tf-font)' }}>🟢 Bullish {sentiment.bullPct.toFixed(0)}%</span>
+              <span style={{ fontSize: 10, fontWeight: 600, color: C.r, fontFamily: 'var(--tf-font)' }}>Bearish {(100 - sentiment.bullPct).toFixed(0)}% 🔴</span>
             </div>
             <div style={{ height: 6, borderRadius: 3, background: alpha(C.r, 0.3), overflow: 'hidden' }}>
               <div style={{ height: '100%', width: `${sentiment.bullPct}%`, background: `linear-gradient(90deg, ${C.g}, ${alpha(C.g, 0.7)})`, borderRadius: 3 }} />
@@ -79,14 +80,14 @@ function OptionsFlowScanner() {
           <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
             {FILTERS.map((f) => (
               <button key={f} onClick={() => setFilter(f)} className="tf-btn"
-                style={{ padding: '5px 12px', borderRadius: 8, border: `1px solid ${filter === f ? C.b : 'transparent'}`, background: filter === f ? alpha(C.b, 0.08) : 'transparent', color: filter === f ? C.b : C.t3, cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: F, textTransform: 'capitalize' }}>
+                style={{ padding: '5px 12px', borderRadius: 8, border: `1px solid ${filter === f ? C.b : 'transparent'}`, background: filter === f ? alpha(C.b, 0.08) : 'transparent', color: filter === f ? C.b : C.t3, cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: 'var(--tf-font)', textTransform: 'capitalize' }}>
                 {f === 'all' ? '📋 All' : f === 'calls' ? '📈 Calls' : f === 'puts' ? '📉 Puts' : '🔥 Sweeps'}
               </button>
             ))}
           </div>
 
           {/* Table Header */}
-          <div style={{ display: 'grid', gridTemplateColumns: '50px 55px 65px 50px 50px 1fr 50px', gap: 4, padding: '6px 10px', fontSize: 9, fontWeight: 700, color: C.t3, fontFamily: F, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '50px 55px 65px 50px 50px 1fr 50px', gap: 4, padding: '6px 10px', fontSize: 9, fontWeight: 700, color: C.t3, fontFamily: 'var(--tf-font)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
             <span>Time</span><span>Symbol</span><span>Strike</span><span>Exp</span><span>Type</span><span>Premium</span><span style={{ textAlign: 'right' }}>Signal</span>
           </div>
 
@@ -96,21 +97,21 @@ function OptionsFlowScanner() {
               const isBull = (flow.type === 'Call' && flow.side === 'Buy') || (flow.type === 'Put' && flow.side === 'Sell');
               const tier = flow.premium >= 1e6 ? '🐋' : flow.premium >= 250000 ? '🔷' : '•';
               return (
-                <div key={flow.id} style={{ display: 'grid', gridTemplateColumns: '50px 55px 65px 50px 50px 1fr 50px', gap: 4, padding: '8px 10px', background: alpha(C.sf, flow.sweep ? 0.8 : 0.4), border: `1px solid ${flow.sweep ? alpha(C.y, 0.2) : alpha(C.bd, 0.3)}`, borderRadius: 6, alignItems: 'center', fontSize: 11, fontFamily: M }}>
+                <div key={flow.id} style={{ display: 'grid', gridTemplateColumns: '50px 55px 65px 50px 50px 1fr 50px', gap: 4, padding: '8px 10px', background: alpha(C.sf, flow.sweep ? 0.8 : 0.4), border: `1px solid ${flow.sweep ? alpha(C.y, 0.2) : alpha(C.bd, 0.3)}`, borderRadius: 6, alignItems: 'center', fontSize: 11, fontFamily: 'var(--tf-mono)' }}>
                   <span style={{ color: C.t3, fontSize: 10 }}>{flow.time}</span>
-                  <span style={{ fontWeight: 700, color: C.t1, fontFamily: F, fontSize: 12 }}>{flow.symbol}</span>
+                  <span style={{ fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)', fontSize: 12 }}>{flow.symbol}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                     <span style={{ color: C.t1 }}>${flow.strike}</span>
-                    {flow.sweep && <span style={{ fontSize: 7, fontWeight: 700, color: C.y, background: alpha(C.y, 0.15), padding: '1px 3px', borderRadius: 2, fontFamily: F }}>SWEEP</span>}
+                    {flow.sweep && <span style={{ fontSize: 7, fontWeight: 700, color: C.y, background: alpha(C.y, 0.15), padding: '1px 3px', borderRadius: 2, fontFamily: 'var(--tf-font)' }}>SWEEP</span>}
                   </div>
                   <span style={{ color: C.t3, fontSize: 10 }}>{flow.expiry}</span>
-                  <span style={{ fontSize: 10, fontWeight: 600, color: flow.type === 'Call' ? C.g : C.r, fontFamily: F }}>{flow.type}</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: flow.type === 'Call' ? C.g : C.r, fontFamily: 'var(--tf-font)' }}>{flow.type}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <span style={{ fontSize: 10 }}>{tier}</span>
                     <span style={{ fontWeight: 600, color: C.t1 }}>${flow.premium >= 1e6 ? (flow.premium / 1e6).toFixed(2) + 'M' : (flow.premium / 1e3).toFixed(0) + 'K'}</span>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontSize: 9, fontWeight: 700, fontFamily: F, color: isBull ? C.g : C.r, background: alpha(isBull ? C.g : C.r, 0.1), padding: '2px 6px', borderRadius: 4 }}>
+                    <span style={{ fontSize: 9, fontWeight: 700, fontFamily: 'var(--tf-font)', color: isBull ? C.g : C.r, background: alpha(isBull ? C.g : C.r, 0.1), padding: '2px 6px', borderRadius: 4 }}>
                       {isBull ? 'BULL' : 'BEAR'}
                     </span>
                   </div>

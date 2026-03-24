@@ -100,6 +100,7 @@
   animation: tfDropdownIn 0.15s ease-out;
   z-index: 90;
   overflow: hidden;
+  background: color-mix(in srgb, var(--tf-sf2) 96%, transparent);
 }
 
 /* ─── View Toggle ─── */

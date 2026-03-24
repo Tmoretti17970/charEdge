@@ -92,6 +92,10 @@
   margin-top: 3px;
   transition: stroke 0.15s;
 }
+.handleChevron {
+  margin-top: 5px;
+  transition: stroke 0.15s;
+}
 
 /* ─── Panel Body ─── */
 .panelBody {
@@ -245,6 +249,7 @@
 .iconBtn.addBtn { font-size: 16px; }
 .iconBtn.folderBtn { font-size: 13px; }
 .iconBtn.smartBtn { font-size: 12px; }
+.smartFolderWrap { position: relative; }
 
 /* ─── Smart Folder Dropdown ─── */
 .smartDropdown {
@@ -360,6 +365,10 @@
   color: var(--tf-t3);
   font-family: var(--tf-font);
 }
+.tableHeaderCol--symbol { width: 60px; }
+.tableHeaderCol--chart  { flex: 1; text-align: center; }
+.tableHeaderCol--price  { min-width: 65px; text-align: right; }
+.tableHeaderCol--vol    { min-width: 50px; text-align: right; }
 
 /* ─── Symbol List ─── */
 .symbolList {
@@ -453,6 +462,7 @@
   font-size: 8px;
   font-family: var(--tf-font-mono);
   font-weight: 600;
+  color: var(--stat-color);
 }
 .symbolName {
   font-size: 9px;
@@ -494,6 +504,8 @@
   display: inline-block;
   font-size: 9px;
   margin-top: 1px;
+  color: var(--change-color);
+  background: var(--change-bg);
 }
 .symbolRow[data-compact="true"] .changeBadge { font-size: 8px; margin-top: 0; }
 

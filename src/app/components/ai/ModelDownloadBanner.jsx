@@ -6,9 +6,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { webLLMProvider, MODEL_CATALOG } from '@/WebLLMProvider.ts';
 import { useWebGPUCapability } from '../../../hooks/useWebGPUCapability.ts';
+import st from './ModelDownloadBanner.module.css';
 
 const ACCENT = '#6e5ce6';
 const DISMISSED_KEY = 'charEdge:aiModelDismissed';
@@ -57,7 +58,7 @@ export default function ModelDownloadBanner() {
         <div style={{ flex: 1 }}>
           <div style={{
             fontSize: 11,
-            fontFamily: F,
+            fontFamily: 'var(--tf-font)',
             fontWeight: 600,
             color: C.t1,
             marginBottom: 4,
@@ -82,7 +83,7 @@ export default function ModelDownloadBanner() {
           </div>
           <div style={{
             fontSize: 9,
-            fontFamily: M,
+            fontFamily: 'var(--tf-mono)',
             color: C.t3,
             marginTop: 2,
           }}>
@@ -106,10 +107,10 @@ export default function ModelDownloadBanner() {
       }}>
         <span style={{ fontSize: 16 }}>⚠️</span>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 11, fontFamily: F, fontWeight: 600, color: C.t1 }}>
+          <div style={{ fontSize: 11, fontFamily: 'var(--tf-font)', fontWeight: 600, color: C.t1 }}>
             AI model failed to load
           </div>
-          <div style={{ fontSize: 9, fontFamily: M, color: C.t3 }}>
+          <div style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
             {status.error}
           </div>
         </div>
@@ -123,7 +124,7 @@ export default function ModelDownloadBanner() {
             color: C.r,
             fontSize: 10,
             fontWeight: 700,
-            fontFamily: M,
+            fontFamily: 'var(--tf-mono)',
             cursor: 'pointer',
           }}
         >
@@ -160,7 +161,7 @@ export default function ModelDownloadBanner() {
       <div style={{ flex: 1 }}>
         <div style={{
           fontSize: 11,
-          fontFamily: F,
+          fontFamily: 'var(--tf-font)',
           fontWeight: 600,
           color: C.t1,
         }}>
@@ -168,7 +169,7 @@ export default function ModelDownloadBanner() {
         </div>
         <div style={{
           fontSize: 9,
-          fontFamily: M,
+          fontFamily: 'var(--tf-mono)',
           color: C.t3,
         }}>
           Download {model.label} ({model.size}) · {model.speed} · runs entirely in your browser
@@ -184,7 +185,7 @@ export default function ModelDownloadBanner() {
           color: '#fff',
           fontSize: 10,
           fontWeight: 700,
-          fontFamily: M,
+          fontFamily: 'var(--tf-mono)',
           cursor: 'pointer',
           transition: 'all 0.15s',
         }}

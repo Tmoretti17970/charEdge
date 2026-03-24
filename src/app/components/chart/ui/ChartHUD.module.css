@@ -64,3 +64,41 @@
   background: rgba(240, 182, 78, 0.08);
   border: 1px solid rgba(240, 182, 78, 0.15);
 }
+
+/* ─── Inline style migration ─── */
+.pricePill[data-positive="true"] {
+  background: rgba(45, 212, 160, 0.08);
+  border: 1px solid rgba(45, 212, 160, 0.15);
+}
+.pricePill[data-positive="false"] {
+  background: rgba(242, 92, 92, 0.08);
+  border: 1px solid rgba(242, 92, 92, 0.15);
+}
+.priceChange[data-positive="true"] { color: var(--tf-green, #34d399); }
+.priceChange[data-positive="false"] { color: var(--tf-red, #f87171); }
+.pricePercent[data-positive="true"] { color: var(--tf-green, #34d399); }
+.pricePercent[data-positive="false"] { color: var(--tf-red, #f87171); }
+.statusWrap {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.statusPill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--status-bg);
+  border: 1px solid var(--status-border);
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--tf-t2);
+  letter-spacing: 0.02em;
+}
+.statusDot { font-size: 6px; }
+.badge { color: var(--tf-t3); }
+.replayBadge { color: var(--tf-yellow, #fbbf24); }

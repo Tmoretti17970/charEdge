@@ -4,13 +4,12 @@
 // Multi-condition alert form: "Price > $200 AND RSI < 30"
 // Features: condition rows, AND/OR toggle, indicator selector,
 // expiration picker, cooldown dropdown.
-//
-// Usage: <CompoundAlertBuilder symbol="AAPL" onClose={() => {}} />
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useCallback } from 'react';
-import { C, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useAlertStore } from '../../../state/useAlertStore';
+import st from './CompoundAlertBuilder.module.css';
 
 const CONDITIONS = [
   { id: 'above', label: '↑ Above' },
@@ -32,27 +31,25 @@ const COOLDOWN_OPTIONS = [
 
 // ─── Condition Row ──────────────────────────────────────────────
 
-function ConditionRow({ condition, onChange, onRemove, canRemove, inputStyle }) {
+function ConditionRow({ condition, onChange, onRemove, canRemove }) {
   const isIndicator = condition.type === 'indicator';
 
   return (
-    <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-      {/* Type selector */}
+    <div className={st.condRow}>
       <select
         value={condition.type}
         onChange={(e) => onChange({ ...condition, type: e.target.value, indicator: e.target.value === 'indicator' ? 'RSI' : undefined })}
-        style={{ ...inputStyle, width: 70, cursor: 'pointer', appearance: 'none' }}
+        className={`${st.input} ${st.selectType}`}
       >
         <option value="price">Price</option>
         <option value="indicator">Indicator</option>
       </select>
 
-      {/* B2: Indicator selector (only when type=indicator) */}
       {isIndicator && (
         <select
           value={condition.indicator || 'RSI'}
           onChange={(e) => onChange({ ...condition, indicator: e.target.value })}
-          style={{ ...inputStyle, width: 65, cursor: 'pointer', appearance: 'none', fontWeight: 700 }}
+          className={`${st.input} ${st.selectInd}`}
         >
           {INDICATORS.map((ind) => (
             <option key={ind} value={ind}>{ind}</option>
@@ -60,28 +57,25 @@ function ConditionRow({ condition, onChange, onRemove, canRemove, inputStyle }) 
         </select>
       )}
 
-      {/* Condition dropdown */}
       <select
         value={condition.condition}
         onChange={(e) => onChange({ ...condition, condition: e.target.value })}
-        style={{ ...inputStyle, flex: 1, cursor: 'pointer', appearance: 'none' }}
+        className={`${st.input} ${st.selectCond}`}
       >
         {CONDITIONS.map((c) => (
           <option key={c.id} value={c.id}>{c.label}</option>
         ))}
       </select>
 
-      {/* Value input */}
       <input
         type="number"
         step="any"
         value={condition.price ?? ''}
         onChange={(e) => onChange({ ...condition, price: e.target.value ? parseFloat(e.target.value) : undefined })}
         placeholder={isIndicator ? 'Value' : 'Price'}
-        style={{ ...inputStyle, width: 62, textAlign: 'right' }}
+        className={`${st.input} ${st.inputPrice}`}
       />
 
-      {/* D5: Temporal window */}
       <input
         type="number"
         min="1"
@@ -90,24 +84,11 @@ function ConditionRow({ condition, onChange, onRemove, canRemove, inputStyle }) 
         onChange={(e) => onChange({ ...condition, windowBars: e.target.value ? parseInt(e.target.value) : undefined })}
         placeholder="∞"
         title="Within N bars"
-        style={{ ...inputStyle, width: 32, textAlign: 'center', fontSize: 10 }}
+        className={`${st.input} ${st.inputWindow}`}
       />
 
-      {/* Remove button */}
       {canRemove && (
-        <button
-          onClick={onRemove}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: C.r + '80',
-            fontSize: 12,
-            cursor: 'pointer',
-            padding: '2px 4px',
-            flexShrink: 0,
-          }}
-          title="Remove condition"
-        >✕</button>
+        <button onClick={onRemove} className={st.removeCondBtn} title="Remove condition">✕</button>
       )}
     </div>
   );
@@ -117,31 +98,13 @@ function ConditionRow({ condition, onChange, onRemove, canRemove, inputStyle }) 
 
 function LogicToggle({ value, onChange }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', padding: '2px 0' }}>
-      <div
-        style={{
-          display: 'flex',
-          borderRadius: 4,
-          overflow: 'hidden',
-          border: `1px solid ${C.bd}`,
-        }}
-      >
+    <div className={st.logicRow}>
+      <div className={st.logicBar}>
         {['AND', 'OR'].map((logic) => (
           <button
             key={logic}
             onClick={() => onChange(logic)}
-            style={{
-              background: value === logic ? C.b + '30' : 'transparent',
-              border: 'none',
-              color: value === logic ? C.b : C.t3,
-              fontSize: 9,
-              fontWeight: 700,
-              padding: '2px 12px',
-              cursor: 'pointer',
-              fontFamily: M,
-              letterSpacing: '0.05em',
-              transition: 'all 0.15s',
-            }}
+            className={`${st.logicBtn} ${value === logic ? st.logicBtnActive : st.logicBtnInactive}`}
           >{logic}</button>
         ))}
       </div>
@@ -163,17 +126,6 @@ function CompoundAlertBuilder({ symbol = '', onClose }) {
   const [expiresAt, setExpiresAt] = useState('');
   const [cooldownMs, setCooldownMs] = useState(0);
 
-  const inputStyle = {
-    background: C.sf,
-    border: `1px solid ${C.bd}`,
-    color: C.t1,
-    borderRadius: 4,
-    padding: '4px 6px',
-    fontFamily: M,
-    fontSize: 11,
-    outline: 'none',
-  };
-
   const addCondition = useCallback(() => {
     setConditions((prev) => [
       ...prev,
@@ -190,7 +142,6 @@ function CompoundAlertBuilder({ symbol = '', onClose }) {
   }, []);
 
   const handleSubmit = useCallback(() => {
-    // Validate: at least 1 condition with a value
     const validConditions = conditions.filter((c) => c.price != null && c.price > 0);
     if (validConditions.length === 0) return;
 
@@ -212,7 +163,6 @@ function CompoundAlertBuilder({ symbol = '', onClose }) {
       cooldownMs: cooldownMs || null,
     });
 
-    // Reset
     setConditions([{ type: 'price', condition: 'above', price: undefined, indicator: undefined }]);
     setNote('');
     setExpiresAt('');
@@ -223,23 +173,15 @@ function CompoundAlertBuilder({ symbol = '', onClose }) {
   const isValid = conditions.some((c) => c.price != null && c.price > 0);
 
   return (
-    <div
-      style={{
-        padding: 8,
-        background: C.sf,
-        borderRadius: 8,
-        border: `1px solid ${C.bd}`,
-        marginBottom: 12,
-      }}
-    >
+    <div className={st.root}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: C.t1 }}>⚙ Compound Alert</span>
-        <span style={{ fontSize: 10, color: C.t3, fontFamily: M }}>{symbol}</span>
+      <div className={st.header}>
+        <span className={st.headerTitle}>⚙ Compound Alert</span>
+        <span className={st.headerSymbol}>{symbol}</span>
       </div>
 
       {/* Condition rows */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div className={st.condList}>
         {conditions.map((cond, i) => (
           <React.Fragment key={i}>
             <ConditionRow
@@ -247,7 +189,6 @@ function CompoundAlertBuilder({ symbol = '', onClose }) {
               onChange={(updated) => updateCondition(i, updated)}
               onRemove={() => removeCondition(i)}
               canRemove={conditions.length > 1}
-              inputStyle={inputStyle}
             />
             {i < conditions.length - 1 && (
               <LogicToggle value={logic} onChange={setLogic} />
@@ -257,41 +198,25 @@ function CompoundAlertBuilder({ symbol = '', onClose }) {
       </div>
 
       {/* Add condition button */}
-      <button
-        onClick={addCondition}
-        style={{
-          width: '100%',
-          background: 'none',
-          border: `1px dashed ${C.bd}`,
-          borderRadius: 4,
-          color: C.t3,
-          fontSize: 10,
-          padding: '4px 0',
-          cursor: 'pointer',
-          marginTop: 6,
-          transition: 'color 0.15s',
-        }}
-        onMouseEnter={(e) => { e.currentTarget.style.color = C.b; }}
-        onMouseLeave={(e) => { e.currentTarget.style.color = C.t3; }}
-      >+ Add condition</button>
+      <button onClick={addCondition} className={st.addCondBtn}>+ Add condition</button>
 
       {/* Expiration + Cooldown */}
-      <div style={{ display: 'flex', gap: 6, marginTop: 8, alignItems: 'center' }}>
-        <div style={{ flex: 1 }}>
-          <label style={{ fontSize: 9, color: C.t3, display: 'block', marginBottom: 2 }}>Expires</label>
+      <div className={st.extraRow}>
+        <div className={st.extraCol}>
+          <label className={st.extraLabel}>Expires</label>
           <input
             type="datetime-local"
             value={expiresAt}
             onChange={(e) => setExpiresAt(e.target.value)}
-            style={{ ...inputStyle, width: '100%', fontSize: 10 }}
+            className={`${st.input} ${st.extraInput}`}
           />
         </div>
-        <div style={{ flex: 1 }}>
-          <label style={{ fontSize: 9, color: C.t3, display: 'block', marginBottom: 2 }}>Cooldown</label>
+        <div className={st.extraCol}>
+          <label className={st.extraLabel}>Cooldown</label>
           <select
             value={cooldownMs}
             onChange={(e) => setCooldownMs(Number(e.target.value))}
-            style={{ ...inputStyle, width: '100%', cursor: 'pointer', appearance: 'none' }}
+            className={`${st.input} ${st.extraSelect}`}
           >
             {COOLDOWN_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -301,47 +226,26 @@ function CompoundAlertBuilder({ symbol = '', onClose }) {
       </div>
 
       {/* Note + submit */}
-      <div style={{ display: 'flex', gap: 4, marginTop: 6, alignItems: 'center' }}>
+      <div className={st.bottomRow}>
         <input
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Note (optional)"
-          style={{ ...inputStyle, flex: 1, fontSize: 10 }}
+          className={`${st.input} ${st.noteInput}`}
         />
-        <label
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 3,
-            fontSize: 10,
-            color: C.t3,
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-          }}
-        >
+        <label className={st.repeatLabel}>
           <input
             type="checkbox"
             checked={repeating}
             onChange={(e) => setRepeating(e.target.checked)}
-            style={{ width: 12, height: 12 }}
+            className={st.checkbox}
           />
           🔁
         </label>
         <button
           onClick={handleSubmit}
           disabled={!isValid}
-          style={{
-            background: C.b,
-            color: '#fff',
-            border: 'none',
-            borderRadius: 4,
-            padding: '4px 12px',
-            fontSize: 11,
-            fontWeight: 600,
-            cursor: 'pointer',
-            opacity: isValid ? 1 : 0.4,
-            transition: 'opacity 0.15s',
-          }}
+          className={`${st.submitBtn} ${!isValid ? st.submitBtnDisabled : ''}`}
         >Create</button>
       </div>
     </div>

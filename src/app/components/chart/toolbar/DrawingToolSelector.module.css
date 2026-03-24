@@ -224,3 +224,9 @@
   left: 2px;
   background: var(--tf-t2);
 }
+
+/* ─── Inline style migration ─── */
+.searchSvg { opacity: 0.5; flex-shrink: 0; color: var(--tf-t3); }
+.stickySvg { opacity: 0.5; }
+.tierHeader[data-always-open="true"] { cursor: default; }
+.tierHeader:not([data-always-open="true"]) { cursor: pointer; }

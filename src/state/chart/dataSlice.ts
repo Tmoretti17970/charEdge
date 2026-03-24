@@ -7,6 +7,8 @@
 // for rendering (bar count, timestamps, source label, etc.).
 // ═══════════════════════════════════════════════════════════════════
 
+import { warnIfNonCanonicalChartDataWrite } from './dataAuthorityGuard';
+
 export const createDataSlice = (set, get) => ({
   // ── Bar metadata (no array — engine / DatafeedService own the data) ──
   barCount: 0,
@@ -37,6 +39,7 @@ export const createDataSlice = (set, get) => ({
 
   // Legacy compat: setData still works but only extracts metadata
   setData: (data, source) => {
+    warnIfNonCanonicalChartDataWrite(source);
     const barCount = data?.length ?? 0;
     const oldestTime = data?.[0]?.time ?? null;
     set({ barCount, source, loading: false, oldestTime, historyExhausted: false });

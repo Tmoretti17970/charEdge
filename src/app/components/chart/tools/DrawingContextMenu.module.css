@@ -1,0 +1,78 @@
+/* DrawingContextMenu — CSS Module (Sprint 23) */
+
+.menu {
+  position: fixed;
+  z-index: 9999;
+  min-width: 200px;
+  background: var(--tf-glass-2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--tf-glass-border);
+  border-radius: 10px;
+  padding: 4px 0;
+  box-shadow: var(--tf-shadow-3);
+  font-family: var(--tf-font);
+  font-size: 13px;
+  color: var(--tf-t1);
+  animation: scaleInSm 0.15s ease-out;
+}
+.divider {
+  height: 1px;
+  background: var(--tf-glass-border);
+  margin: 4px 8px;
+}
+.itemWrap { position: relative; }
+.item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 7px 12px;
+  background: transparent;
+  border: none;
+  color: var(--tf-t1);
+  cursor: pointer;
+  text-align: left;
+  font-size: 13px;
+  border-radius: 6px;
+  margin: 0 4px;
+  box-sizing: border-box;
+  transition: background 0.1s;
+}
+.item:hover {
+  background: color-mix(in srgb, var(--tf-accent) 15%, transparent);
+}
+.item[data-danger="true"] { color: var(--tf-red); }
+.itemIcon {
+  width: 24px;
+  text-align: center;
+  margin-right: 8px;
+  font-size: 14px;
+}
+.itemLabel { flex: 1; }
+.itemShortcut {
+  font-size: 11px;
+  color: var(--tf-t3);
+  margin-left: 16px;
+}
+.itemArrow {
+  font-size: 10px;
+  color: var(--tf-t3);
+  margin-left: 8px;
+}
+
+/* Submenu */
+.submenu {
+  position: absolute;
+  left: 100%;
+  top: -4px;
+  min-width: 170px;
+  background: var(--tf-glass-2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--tf-glass-border);
+  border-radius: 10px;
+  padding: 4px 0;
+  box-shadow: var(--tf-shadow-3);
+  z-index: 10000;
+  animation: scaleInSm 0.12s ease-out;
+}

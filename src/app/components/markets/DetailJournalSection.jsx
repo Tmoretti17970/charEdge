@@ -6,10 +6,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useMemo, memo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useUIStore } from '../../../state/useUIStore';
 import { radii } from '../../../theme/tokens.js';
+import st from './DetailJournalSection.module.css';
 
 // ─── Mini Equity Curve (SVG) ─────────────────────────────────────
 
@@ -64,7 +65,7 @@ function TradeRow({ trade }) {
       display: 'flex', alignItems: 'center', gap: 8,
       padding: '5px 0',
       borderBottom: `1px solid ${C.bd}20`,
-      fontSize: 11, fontFamily: M,
+      fontSize: 11, fontFamily: 'var(--tf-mono)',
     }}>
       <span style={{
         width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
@@ -110,7 +111,7 @@ function DetailJournalSection({ symbol }) {
     return (
       <div style={{
         padding: '12px 0', textAlign: 'center',
-        fontSize: 11, color: C.t3, fontFamily: F,
+        fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)',
       }}>
         No trades recorded for {symbol}
       </div>
@@ -138,10 +139,10 @@ function DetailJournalSection({ symbol }) {
             borderRadius: radii.sm, background: C.bg2,
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: 8, color: C.t3, fontFamily: M, textTransform: 'uppercase', marginBottom: 2 }}>
+            <div style={{ fontSize: 8, color: C.t3, fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', marginBottom: 2 }}>
               {stat.label}
             </div>
-            <div style={{ fontSize: 13, fontWeight: 700, fontFamily: M, color: stat.color || C.t1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: stat.color || C.t1 }}>
               {stat.value}
             </div>
           </div>
@@ -166,7 +167,7 @@ function DetailJournalSection({ symbol }) {
       {symbolTrades.length > 5 && (
         <div style={{
           textAlign: 'center', paddingTop: 8,
-          fontSize: 10, color: C.b, fontFamily: F,
+          fontSize: 10, color: C.b, fontFamily: 'var(--tf-font)',
           cursor: 'pointer', fontWeight: 600,
         }}
           onClick={() => setPage('journal')}

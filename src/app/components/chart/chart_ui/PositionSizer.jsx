@@ -1,24 +1,24 @@
 import { useMemo } from 'react';
-import { C, F, M } from '@/constants.js';
 import { calcRiskReward, calcPositionSize } from '../../../../state/chart/tradeSlice';
 import { useLayoutStore } from '../../../../state/useLayoutStore';
 import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 import { useChartTradeStore } from '../../../../state/chart/useChartTradeStore';
+import s from './PositionSizer.module.css';
 
 export default function PositionSizer() {
-  const closePanel = useLayoutStore((s) => s.closePanel);
-  const accountSize = useChartTradeStore((s) => s.accountSize) ?? 25000;
-  const riskPercent = useChartTradeStore((s) => s.riskPercent) ?? 1;
-  const riskAmount = useChartTradeStore((s) => s.riskAmount) ?? (accountSize * (riskPercent / 100));
-  const riskMode = useChartTradeStore((s) => s.riskMode) ?? 'percent';
-  const setAccountSize = useChartTradeStore((s) => s.setAccountSize) ?? (() => {});
-  const setRiskPercent = useChartTradeStore((s) => s.setRiskPercent) ?? (() => {});
-  const setRiskAmount = useChartTradeStore((s) => s.setRiskAmount) ?? (() => {});
-  const setRiskMode = useChartTradeStore((s) => s.setRiskMode) ?? (() => {});
-  const pendingEntry = useChartTradeStore((s) => s.pendingEntry);
-  const pendingSL = useChartTradeStore((s) => s.pendingSL ?? s.pendingStopLoss);
-  const pendingTP = useChartTradeStore((s) => s.pendingTP ?? s.pendingTakeProfit);
-  const tradeSide = useChartFeaturesStore((s) => s.tradeSide);
+  const closePanel = useLayoutStore((st) => st.closePanel);
+  const accountSize = useChartTradeStore((st) => st.accountSize) ?? 25000;
+  const riskPercent = useChartTradeStore((st) => st.riskPercent) ?? 1;
+  const riskAmount = useChartTradeStore((st) => st.riskAmount) ?? (accountSize * (riskPercent / 100));
+  const riskMode = useChartTradeStore((st) => st.riskMode) ?? 'percent';
+  const setAccountSize = useChartTradeStore((st) => st.setAccountSize) ?? (() => {});
+  const setRiskPercent = useChartTradeStore((st) => st.setRiskPercent) ?? (() => {});
+  const setRiskAmount = useChartTradeStore((st) => st.setRiskAmount) ?? (() => {});
+  const setRiskMode = useChartTradeStore((st) => st.setRiskMode) ?? (() => {});
+  const pendingEntry = useChartTradeStore((st) => st.pendingEntry);
+  const pendingSL = useChartTradeStore((st) => st.pendingSL ?? st.pendingStopLoss);
+  const pendingTP = useChartTradeStore((st) => st.pendingTP ?? st.pendingTakeProfit);
+  const tradeSide = useChartFeaturesStore((st) => st.tradeSide);
 
   const entry = pendingEntry?.price ?? pendingEntry;
   const sl = pendingSL?.price ?? pendingSL;
@@ -35,30 +35,19 @@ export default function PositionSizer() {
   return (
     <div>
       {/* Account + Risk */}
-      <div style={{ padding: '0' }}>
+      <div>
         <Row label="Account">
           <NumberInput value={accountSize} onChange={setAccountSize} prefix="$" step={1000} />
         </Row>
 
         <Row label="Risk Mode">
-          <div style={{ display: 'flex', gap: 2 }}>
+          <div className={s.riskModeGroup}>
             {['percent', 'fixed'].map((m) => (
               <button
-                className="tf-btn"
+                className={s.riskModeBtn}
                 key={m}
                 onClick={() => setRiskMode(m)}
-                style={{
-                  flex: 1,
-                  padding: '3px 0',
-                  fontSize: 9,
-                  fontWeight: 700,
-                  borderRadius: 3,
-                  border: `1px solid ${riskMode === m ? C.b : C.bd}`,
-                  background: riskMode === m ? C.b + '15' : 'transparent',
-                  color: riskMode === m ? C.b : C.t3,
-                  cursor: 'pointer',
-                  fontFamily: M,
-                }}
+                data-active={riskMode === m || undefined}
               >
                 {m === 'percent' ? '%' : '$'}
               </button>
@@ -76,56 +65,52 @@ export default function PositionSizer() {
           </Row>
         )}
 
-        <div style={{ height: 1, background: C.bd, margin: '6px 0' }} />
+        <div className={s.divider} />
 
         {/* Calculated risk amount */}
         <Row label="Risk Amount">
-          <span style={{ fontSize: 11, fontWeight: 700, color: C.r, fontFamily: M }}>${(riskAmount ?? 0).toFixed(0)}</span>
+          <span className={s.riskValue}>${(riskAmount ?? 0).toFixed(0)}</span>
         </Row>
 
         {/* Levels display */}
-        <div style={{ height: 1, background: C.bd, margin: '6px 0' }} />
+        <div className={s.divider} />
 
         <Row label="Entry">
-          <LevelDisplay value={entry} color={C.info} />
+          <LevelDisplay value={entry} color="var(--tf-info)" />
         </Row>
         <Row label="Stop Loss">
-          <LevelDisplay value={sl} color={C.r} />
+          <LevelDisplay value={sl} color="var(--tf-red)" />
         </Row>
         <Row label="Target">
-          <LevelDisplay value={tp} color={C.g} />
+          <LevelDisplay value={tp} color="var(--tf-green)" />
         </Row>
 
         {/* Computed results */}
         {pos != null && (
           <>
-            <div style={{ height: 1, background: C.bd, margin: '6px 0' }} />
+            <div className={s.divider} />
             <Row label="Position Size">
-              <span style={{ fontSize: 12, fontWeight: 800, color: C.t1, fontFamily: M }}>{pos} shares</span>
+              <span className={s.positionSize}>{pos} shares</span>
             </Row>
             <Row label="Notional">
-              <span style={{ fontSize: 10, color: C.t2, fontFamily: M }}>${notionalValue.toLocaleString()}</span>
+              <span className={s.notionalValue}>${notionalValue.toLocaleString()}</span>
             </Row>
             <Row label="Risk/Share">
-              <span style={{ fontSize: 10, color: C.r, fontFamily: M }}>${riskPerUnit.toFixed(2)}</span>
+              <span className={s.riskPerShare}>${riskPerUnit.toFixed(2)}</span>
             </Row>
             <Row label="Actual Risk">
-              <span style={{ fontSize: 10, color: C.r, fontFamily: M }}>${actualRiskValue.toFixed(0)}</span>
+              <span className={s.riskPerShare}>${actualRiskValue.toFixed(0)}</span>
             </Row>
           </>
         )}
 
         {rr != null && isFinite(rr) && (
           <>
-            <div style={{ height: 1, background: C.bd, margin: '6px 0' }} />
+            <div className={s.divider} />
             <Row label="R:R Ratio">
               <span
-                style={{
-                  fontSize: 13,
-                  fontWeight: 800,
-                  fontFamily: M,
-                  color: rr >= 2 ? C.g : rr >= 1 ? C.y : C.r,
-                }}
+                className={s.rrRatio}
+                data-quality={rr >= 2 ? 'good' : rr >= 1 ? 'neutral' : 'bad'}
               >
                 {rr > 0 ? `${rr}:1` : '—'}
               </span>
@@ -141,15 +126,8 @@ export default function PositionSizer() {
 
 function Row({ label, children }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '3px 0',
-      }}
-    >
-      <span style={{ fontSize: 9, fontWeight: 600, color: C.t3, fontFamily: M }}>{label}</span>
+    <div className={s.row}>
+      <span className={s.rowLabel}>{label}</span>
       {children}
     </div>
   );
@@ -157,8 +135,8 @@ function Row({ label, children }) {
 
 function NumberInput({ value, onChange, prefix, suffix, step = 1, min, max }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-      {prefix && <span style={{ fontSize: 9, color: C.t3, fontFamily: M }}>{prefix}</span>}
+    <div className={s.numberInputWrap}>
+      {prefix && <span className={s.numberInputAffix}>{prefix}</span>}
       <input
         type="number"
         value={value}
@@ -169,20 +147,9 @@ function NumberInput({ value, onChange, prefix, suffix, step = 1, min, max }) {
           onChange(v);
         }}
         step={step}
-        style={{
-          width: 70,
-          padding: '2px 6px',
-          fontSize: 10,
-          borderRadius: 3,
-          border: `1px solid ${C.bd}`,
-          background: C.sf,
-          color: C.t1,
-          fontFamily: M,
-          outline: 'none',
-          textAlign: 'right',
-        }}
+        className={s.numberInput}
       />
-      {suffix && <span style={{ fontSize: 9, color: C.t3, fontFamily: M }}>{suffix}</span>}
+      {suffix && <span className={s.numberInputAffix}>{suffix}</span>}
     </div>
   );
 }
@@ -190,12 +157,9 @@ function NumberInput({ value, onChange, prefix, suffix, step = 1, min, max }) {
 function LevelDisplay({ value, color }) {
   return (
     <span
-      style={{
-        fontSize: 11,
-        fontWeight: 700,
-        fontFamily: M,
-        color: value ? color : C.t3,
-      }}
+      className={s.levelValue}
+      style={value ? { color } : undefined}
+      data-empty={!value || undefined}
     >
       {value ? `$${value.toFixed(2)}` : '—'}
     </span>

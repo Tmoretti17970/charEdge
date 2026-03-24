@@ -15,6 +15,7 @@ import { C, M } from '../../../constants.js';
 import { useMarketsPrefsStore, ASSET_CLASSES } from '../../../state/useMarketsPrefsStore';
 import { radii, transition } from '../../../theme/tokens.js';
 import ColumnCustomizer from './ColumnCustomizer.jsx';
+import st from './MarketsToolbar.module.css';
 
 // ─── Asset class display info ──────────────────────────────────
 
@@ -110,7 +111,7 @@ function CompareButton() {
       style={{
         display: 'flex', alignItems: 'center', gap: 4,
         padding: '4px 10px', borderRadius: radii.sm,
-        fontSize: 10, fontWeight: 600, fontFamily: M,
+        fontSize: 10, fontWeight: 600, fontFamily: 'var(--tf-mono)',
         border: count > 0 ? '1px solid #6e5ce640' : `1px solid ${C.bd}30`,
         background: count > 0 ? '#6e5ce612' : 'transparent',
         color: count > 0 ? '#6e5ce6' : C.t3,
@@ -137,7 +138,7 @@ function AlertsButton() {
       style={{
         display: 'flex', alignItems: 'center', gap: 4,
         padding: '4px 10px', borderRadius: radii.sm,
-        fontSize: 10, fontWeight: 600, fontFamily: M,
+        fontSize: 10, fontWeight: 600, fontFamily: 'var(--tf-mono)',
         border: alertPickerOpen ? '1px solid #f0b64e40' : `1px solid ${C.bd}30`,
         background: alertPickerOpen ? '#f0b64e12' : 'transparent',
         color: alertPickerOpen ? '#f0b64e' : C.t3,
@@ -163,7 +164,7 @@ function SmartFolderButton() {
       style={{
         display: 'flex', alignItems: 'center', gap: 4,
         padding: '4px 10px', borderRadius: radii.sm,
-        fontSize: 10, fontWeight: 600, fontFamily: M,
+        fontSize: 10, fontWeight: 600, fontFamily: 'var(--tf-mono)',
         border: smartFolderOpen ? `1px solid ${C.y}40` : `1px solid ${C.bd}30`,
         background: smartFolderOpen ? `${C.y}12` : 'transparent',
         color: smartFolderOpen ? C.y : C.t3,
@@ -187,7 +188,7 @@ function ScreenerButton() {
       style={{
         display: 'flex', alignItems: 'center', gap: 4,
         padding: '4px 10px', borderRadius: radii.sm,
-        fontSize: 10, fontWeight: 600, fontFamily: M,
+        fontSize: 10, fontWeight: 600, fontFamily: 'var(--tf-mono)',
         border: screenerPanelOpen ? `1px solid ${C.p}40` : `1px solid ${C.bd}30`,
         background: screenerPanelOpen ? `${C.p}12` : 'transparent',
         color: screenerPanelOpen ? C.p : C.t3,
@@ -213,7 +214,7 @@ function AnalyticsButton() {
       style={{
         display: 'flex', alignItems: 'center', gap: 4,
         padding: '4px 10px', borderRadius: radii.sm,
-        fontSize: 10, fontWeight: 600, fontFamily: M,
+        fontSize: 10, fontWeight: 600, fontFamily: 'var(--tf-mono)',
         border: performancePanelOpen ? `1px solid ${C.cyan}40` : `1px solid ${C.bd}30`,
         background: performancePanelOpen ? `${C.cyan}12` : 'transparent',
         color: performancePanelOpen ? C.cyan : C.t3,
@@ -259,7 +260,7 @@ function MarketsToolbar() {
             borderRadius: radii.pill,
             fontSize: 10,
             fontWeight: 700,
-            fontFamily: M,
+            fontFamily: 'var(--tf-mono)',
             border: `1px solid ${!hasFilters ? C.b : C.bd}40`,
             background: !hasFilters ? `${C.b}12` : 'transparent',
             color: !hasFilters ? C.b : C.t3,
@@ -284,7 +285,7 @@ function MarketsToolbar() {
                 borderRadius: radii.pill,
                 fontSize: 10,
                 fontWeight: 600,
-                fontFamily: M,
+                fontFamily: 'var(--tf-mono)',
                 border: `1px solid ${isActive ? info.color : C.bd}40`,
                 background: isActive ? `${info.color}15` : 'transparent',
                 color: isActive ? info.color : C.t3,
@@ -326,7 +327,7 @@ function MarketsToolbar() {
               borderRadius: radii.pill,
               fontSize: 9,
               fontWeight: 700,
-              fontFamily: M,
+              fontFamily: 'var(--tf-mono)',
               background: `${C.r}12`,
               color: C.r,
               border: 'none',
@@ -372,7 +373,7 @@ function MarketsToolbar() {
             borderRadius: radii.sm,
             fontSize: 10,
             fontWeight: 600,
-            fontFamily: M,
+            fontFamily: 'var(--tf-mono)',
             border: `1px solid ${groupBy ? C.b : C.bd}40`,
             background: groupBy ? `${C.b}10` : 'transparent',
             color: groupBy ? C.b : C.t3,

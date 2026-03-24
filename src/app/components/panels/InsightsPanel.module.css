@@ -1,0 +1,24 @@
+/* InsightsPanel — CSS Module */
+.root {
+  height: 100%; display: flex; flex-direction: column;
+  background: var(--tf-bg); font-family: var(--tf-font);
+  color: var(--tf-t2); overflow: hidden;
+}
+.tabBar {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--tf-bd); flex-shrink: 0;
+}
+.tabBtn {
+  flex: 1; padding: var(--sp-2) var(--sp-1);
+  border: none; font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold); font-family: var(--tf-font);
+  cursor: pointer; transition: all 0.1s;
+}
+.tabBtnActive { background: var(--tf-bg); border-bottom: 2px solid var(--tf-accent); color: var(--tf-t1); }
+.tabBtnInactive { background: var(--tf-bg2); border-bottom: 2px solid transparent; color: var(--tf-t3); }
+.disclaimer {
+  padding: var(--sp-1_5) 10px; font-size: var(--fs-3xs);
+  color: var(--tf-t3); font-family: var(--tf-font);
+  border-bottom: 1px solid var(--tf-bd); flex-shrink: 0;
+}
+.content { flex: 1; overflow: auto; min-height: 0; }

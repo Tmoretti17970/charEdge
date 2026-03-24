@@ -1,0 +1,13 @@
+/* TradingSetupSection — CSS Module */
+.section { margin-bottom: 40px; }
+.cardPad { margin-bottom: var(--sp-4); padding: var(--sp-5); }
+.cardTitle { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--tf-t1); margin-bottom: var(--sp-4); }
+.formGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--sp-4); }
+.presetsWrap { margin-top: var(--sp-4); padding-top: var(--sp-4); }
+.presetsLabel { font-size: var(--fs-2xs); font-weight: var(--fw-semibold); color: var(--tf-t3); margin-bottom: 10px; }
+.presetsRow { display: flex; gap: var(--sp-1_5); flex-wrap: wrap; }
+.presetBtn {
+  padding: 7px var(--sp-3); border-radius: var(--br-md);
+  font-size: var(--fs-sm); font-weight: var(--fw-semibold); font-family: var(--tf-font);
+  cursor: pointer;
+}

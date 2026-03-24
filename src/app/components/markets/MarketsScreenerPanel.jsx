@@ -7,10 +7,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { radii, transition } from '../../../theme/tokens.js';
 import { fetchScreenerResults, SCAN_PRESETS } from '../../../services/screenerService.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore';
+import st from './MarketsScreenerPanel.module.css';
 
 // ─── Result Row ──────────────────────────────────────────────────
 
@@ -26,29 +27,29 @@ function ResultRow({ item, onAdd, added }) {
       {/* Symbol */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: F }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
             {item.symbol}
           </span>
           <span style={{
-            fontSize: 9, fontFamily: M, color: C.t3,
+            fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3,
             padding: '1px 5px', borderRadius: 4,
             background: C.bg, textTransform: 'uppercase',
           }}>
             {item.assetClass}
           </span>
         </div>
-        <div style={{ fontSize: 10, color: C.t3, fontFamily: F, marginTop: 1 }}>
+        <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', marginTop: 1 }}>
           {item.name}
         </div>
       </div>
 
       {/* Price & Change */}
       <div style={{ textAlign: 'right', minWidth: 60 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, fontFamily: M, color: C.t1 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: C.t1 }}>
           ${typeof item.price === 'number' ? item.price.toLocaleString() : item.price}
         </div>
         <div style={{
-          fontSize: 10, fontWeight: 600, fontFamily: M,
+          fontSize: 10, fontWeight: 600, fontFamily: 'var(--tf-mono)',
           color: item.change >= 0 ? C.g : C.r,
         }}>
           {item.change >= 0 ? '+' : ''}{item.change?.toFixed(1)}%
@@ -58,7 +59,7 @@ function ResultRow({ item, onAdd, added }) {
       {/* Signal */}
       {signal.label && (
         <span style={{
-          fontSize: 9, fontWeight: 700, fontFamily: M,
+          fontSize: 9, fontWeight: 700, fontFamily: 'var(--tf-mono)',
           padding: '2px 6px', borderRadius: 8,
           background: (signal.color || C.t3) + '18',
           color: signal.color || C.t3,
@@ -70,9 +71,9 @@ function ResultRow({ item, onAdd, added }) {
 
       {/* RSI */}
       <div style={{ textAlign: 'center', minWidth: 32 }}>
-        <div style={{ fontSize: 9, color: C.t3, fontFamily: M }}>RSI</div>
+        <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>RSI</div>
         <div style={{
-          fontSize: 11, fontWeight: 700, fontFamily: M,
+          fontSize: 11, fontWeight: 700, fontFamily: 'var(--tf-mono)',
           color: item.rsi > 70 ? C.r : item.rsi < 30 ? C.g : C.t1,
         }}>
           {item.rsi}
@@ -81,9 +82,9 @@ function ResultRow({ item, onAdd, added }) {
 
       {/* Vol Ratio */}
       <div style={{ textAlign: 'center', minWidth: 32 }}>
-        <div style={{ fontSize: 9, color: C.t3, fontFamily: M }}>VOL</div>
+        <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>VOL</div>
         <div style={{
-          fontSize: 11, fontWeight: 700, fontFamily: M,
+          fontSize: 11, fontWeight: 700, fontFamily: 'var(--tf-mono)',
           color: parseFloat(item.volumeRatio) > 1.5 ? C.y : C.t1,
         }}>
           {item.volumeRatio}×
@@ -99,7 +100,7 @@ function ResultRow({ item, onAdd, added }) {
           background: added ? C.g + '18' : `${C.b}12`,
           border: `1px solid ${added ? C.g : C.b}`,
           color: added ? C.g : C.b,
-          fontSize: 10, fontWeight: 700, fontFamily: M,
+          fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-mono)',
           cursor: added ? 'default' : 'pointer',
           transition: transition.fast, whiteSpace: 'nowrap',
         }}
@@ -121,7 +122,7 @@ function PresetCard({ preset, active, count, onClick }) {
         background: active ? (preset.color || C.b) + '18' : C.bg2,
         border: `1px solid ${active ? (preset.color || C.b) : C.bd}`,
         color: C.t1, textAlign: 'left', cursor: 'pointer',
-        transition: transition.fast, fontFamily: F,
+        transition: transition.fast, fontFamily: 'var(--tf-font)',
         width: '100%',
       }}
     >
@@ -131,7 +132,7 @@ function PresetCard({ preset, active, count, onClick }) {
         </span>
         {count !== undefined && (
           <span style={{
-            fontSize: 10, fontWeight: 700, fontFamily: M,
+            fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-mono)',
             color: preset.color || C.b,
             padding: '2px 6px', borderRadius: 8,
             background: (preset.color || C.b) + '15',
@@ -206,7 +207,7 @@ function MarketsScreenerPanel({ open, onClose }) {
       boxShadow: '-8px 0 32px rgba(0,0,0,0.3)',
       display: 'flex', flexDirection: 'column',
       animation: 'tf-slide-left 0.25s ease-out',
-      fontFamily: F,
+      fontFamily: 'var(--tf-font)',
     }}>
       {/* Header */}
       <div style={{
@@ -237,7 +238,7 @@ function MarketsScreenerPanel({ open, onClose }) {
               background: assetClass === ac ? `${C.b}18` : 'transparent',
               border: `1px solid ${assetClass === ac ? C.b : C.bd}`,
               color: assetClass === ac ? C.b : C.t3,
-              fontSize: 11, fontWeight: 600, fontFamily: M,
+              fontSize: 11, fontWeight: 600, fontFamily: 'var(--tf-mono)',
               cursor: 'pointer', textTransform: 'capitalize',
               transition: transition.fast,
             }}
@@ -251,7 +252,7 @@ function MarketsScreenerPanel({ open, onClose }) {
         {/* Scan Presets */}
         <div style={{
           fontSize: 10, fontWeight: 700, color: C.t3,
-          fontFamily: M, textTransform: 'uppercase', marginBottom: 8,
+          fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', marginBottom: 8,
         }}>
           Scan Presets
         </div>
@@ -276,7 +277,7 @@ function MarketsScreenerPanel({ open, onClose }) {
         }}>
           <span style={{
             fontSize: 10, fontWeight: 700, color: C.t3,
-            fontFamily: M, textTransform: 'uppercase',
+            fontFamily: 'var(--tf-mono)', textTransform: 'uppercase',
           }}>
             Results ({results.length})
           </span>
@@ -286,7 +287,7 @@ function MarketsScreenerPanel({ open, onClose }) {
               style={{
                 fontSize: 10, color: C.b, background: `${C.b}12`,
                 border: `1px solid ${C.b}`, borderRadius: radii.sm,
-                padding: '3px 10px', cursor: 'pointer', fontFamily: M,
+                padding: '3px 10px', cursor: 'pointer', fontFamily: 'var(--tf-mono)',
                 fontWeight: 700, transition: transition.fast,
               }}
             >

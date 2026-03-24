@@ -13,7 +13,6 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useChartCoreStore } from '../state/chart/useChartCoreStore';
 import { wsService, WS_STATUS, WebSocketService } from './WebSocketService';
 
 /**
@@ -25,44 +24,13 @@ export default function useWebSocket(symbol, tf) {
   const [tick, setTick] = useState(null);
   const [wsStatus, setWsStatus] = useState(WS_STATUS.DISCONNECTED);
 
-  // Track whether we've received the first kline to avoid updating stale data
-  const liveBarRef = useRef(null); // current open bar's start time (ISO)
+  const liveBarRef = useRef(null);
 
+  // ADR-001 Phase B: bar authority is DatafeedService/ChartEngineWidget.
+  // Keep onCandle callback only to satisfy wsService subscription contract.
   const onCandle = useCallback((candle) => {
-    const store = useChartCoreStore.getState();
-    const currentData = store.data;
-    if (!currentData?.length) return;
-
-    // Reusable bar shape — avoids allocating a new object on every tick
-    const barFields = { time: candle.time, open: candle.open, high: candle.high, low: candle.low, close: candle.close, volume: candle.volume };
-
-    if (candle.isClosed) {
-      // ─── Candle closed: finalize and append ─────────────────
-      const lastBar = currentData[currentData.length - 1];
-
-      if (lastBar?.time === candle.time) {
-        // Update last bar in-place, then create new array reference for Zustand
-        Object.assign(lastBar, barFields);
-        store.setData([...currentData], 'binance:live');
-      } else {
-        // Candle for a new time slot — append
-        store.setData(currentData.concat(barFields), 'binance:live');
-      }
-      liveBarRef.current = null; // reset — next update starts a new bar
-    } else {
-      // ─── Candle still open: update last bar in-place ────────
-      const lastBar = currentData[currentData.length - 1];
-
-      if (lastBar?.time === candle.time) {
-        // Same bar — mutate fields in-place, new array ref for Zustand
-        Object.assign(lastBar, barFields);
-        store.setData([...currentData], 'binance:live');
-      } else if (liveBarRef.current !== candle.time) {
-        // New bar opened — append
-        liveBarRef.current = candle.time;
-        store.setData(currentData.concat(barFields), 'binance:live');
-      }
-    }
+    // No-op: canonical bar updates flow through DatafeedService + TickChannel.
+    if (candle?.isClosed) liveBarRef.current = null;
   }, []);
 
   const onTick = useCallback((tickData) => {

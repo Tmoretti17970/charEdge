@@ -83,3 +83,151 @@
   gap: 6px;
   margin-bottom: 10px;
 }
+
+/* ─── Inline style migration ─── */
+.panelRoot {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--tf-bg);
+  font-family: var(--tf-font);
+  color: var(--tf-t2);
+  overflow: hidden;
+}
+.tabBar { display: flex; border-bottom: 1px solid var(--tf-bd); flex-shrink: 0; }
+.tabBtn {
+  flex: 1;
+  padding: 8px 4px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--tf-font);
+  cursor: pointer;
+}
+.tabBtn[data-active="true"] {
+  background: var(--tf-bg);
+  border-bottom-color: var(--tf-accent);
+  color: var(--tf-t1);
+}
+.tabBtn:not([data-active="true"]) {
+  background: var(--tf-bg2);
+  color: var(--tf-t3);
+}
+.padded { padding: 10px; }
+.periodBtn {
+  flex: 1;
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.periodBtn[data-active="true"] {
+  background: color-mix(in srgb, var(--tf-accent) 12%, transparent);
+  border: 1px solid var(--tf-accent);
+  color: var(--tf-accent);
+}
+.periodBtn:not([data-active="true"]) {
+  background: transparent;
+  border: 1px solid var(--tf-bd);
+  color: var(--tf-t3);
+}
+.compareCard {
+  padding: 10px 12px;
+  background: var(--tf-sf);
+  border-radius: 8px;
+}
+.cardLabel { font-size: 9px; color: var(--tf-t3); text-transform: uppercase; font-weight: 700; }
+.cardPnl { font-size: 18px; font-weight: 800; font-family: var(--tf-mono, 'JetBrains Mono', monospace); margin-top: 4px; }
+.cardMeta { font-size: 10px; color: var(--tf-t3); margin-top: 2px; }
+.deltaBadge {
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.deltaIcon { font-size: 16px; }
+.deltaLabel { font-size: 12px; font-weight: 700; }
+.statRow {
+  display: grid;
+  grid-template-columns: 90px 1fr 1fr 60px;
+  padding: 5px 0;
+  align-items: center;
+  font-size: 11px;
+}
+.statLabel { color: var(--tf-t3); font-size: 10px; }
+.statCurr { font-family: var(--tf-mono, 'JetBrains Mono', monospace); font-weight: 600; }
+.statPrev { color: var(--tf-t3); font-family: var(--tf-mono, 'JetBrains Mono', monospace); }
+.statDelta {
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  font-weight: 600;
+  text-align: right;
+}
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+.sectionLabelRisk { composes: sectionLabel; margin-top: 12px; margin-bottom: 6px; }
+.goalCard { background: var(--tf-sf); border-radius: 6px; padding: 8px 10px; margin-bottom: 4px; }
+.goalEmoji { font-size: 12px; }
+.goalLabel { font-size: 11px; font-weight: 600; color: var(--tf-t1); flex: 1; }
+.goalTarget { font-size: 10px; color: var(--tf-t3); }
+.goalInput {
+  width: 80px;
+  padding: 3px 6px;
+  background: var(--tf-bg);
+  border: 1px solid var(--tf-bd);
+  border-radius: 4px;
+  color: var(--tf-t1);
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  font-size: 11px;
+  outline: none;
+  text-align: right;
+}
+.progressTrack {
+  height: 6px;
+  background: var(--tf-bd);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.progressFill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.progressLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+}
+.riskCard { background: var(--tf-sf); border-radius: 6px; padding: 8px 10px; }
+.riskStatus { font-size: 10px; font-family: var(--tf-mono, 'JetBrains Mono', monospace); font-weight: 600; }
+.statCard { padding: 8px 10px; background: var(--tf-sf); border-radius: 6px; }
+.statCardLabel { font-size: 9px; color: var(--tf-t3); text-transform: uppercase; }
+.statCardValue { font-size: 14px; font-weight: 700; font-family: var(--tf-mono, 'JetBrains Mono', monospace); margin-top: 2px; }
+.sparkWrap { padding: 8px 10px; background: var(--tf-sf); border-radius: 6px; margin-bottom: 10px; }
+.sparkLabel { font-size: 9px; color: var(--tf-t3); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
+.sparkChars { font-family: var(--tf-mono, 'JetBrains Mono', monospace); font-size: 14px; letter-spacing: 2px; }
+.sparkRange { display: flex; justify-content: space-between; font-size: 9px; color: var(--tf-t3); margin-top: 4px; }
+.dayRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  border-bottom: 1px solid color-mix(in srgb, var(--tf-bd) 12%, transparent);
+}
+.dayDate { color: var(--tf-t3); font-size: 10px; min-width: 72px; }
+.dayCount { color: var(--tf-t3); font-size: 10px; }
+.dayPnl { font-weight: 600; min-width: 60px; text-align: right; }
+.dayEquity { color: var(--tf-t3); font-size: 10px; min-width: 60px; text-align: right; }
+.emptyState { padding: 24px; text-align: center; color: var(--tf-t3); }
+.emptyText { font-size: 12px; }
+.dayLabel { composes: sectionLabel; margin-bottom: 4px; font-size: 9px; }

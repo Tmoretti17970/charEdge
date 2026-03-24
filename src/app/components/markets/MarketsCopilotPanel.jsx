@@ -6,10 +6,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, memo, useCallback } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { radii, transition } from '../../../theme/tokens.js';
 import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
 import { parseChartCommand, getContextualSuggestions } from '../../../charting_library/ai/AICopilotEngine.js';
+import st from './MarketsCopilotPanel.module.css';
 
 // ─── Intent mode styling ────────────────────────────────────────
 
@@ -70,13 +71,13 @@ function MarketsCopilotPanel() {
         borderBottom: `1px solid ${C.bd}20`,
       }}>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 800, fontFamily: F, color: C.t1 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, fontFamily: 'var(--tf-font)', color: C.t1 }}>
             🤖 AI Copilot
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
             <span style={{
               padding: '2px 8px', borderRadius: 8,
-              fontSize: 8, fontWeight: 700, fontFamily: M,
+              fontSize: 8, fontWeight: 700, fontFamily: 'var(--tf-mono)',
               background: `${modeStyle.color}15`,
               color: modeStyle.color,
               border: `1px solid ${modeStyle.color}30`,
@@ -98,7 +99,7 @@ function MarketsCopilotPanel() {
 
       {/* ── Quick Actions ─────────────────────────────────── */}
       <div style={{ padding: '12px 16px' }}>
-        <div style={{ fontSize: 9, fontWeight: 700, fontFamily: M, color: C.t3, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+        <div style={{ fontSize: 9, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: C.t3, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
           Suggested Actions
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -112,7 +113,7 @@ function MarketsCopilotPanel() {
                 border: `1px solid ${C.bd}15`,
                 background: 'transparent',
                 color: C.t1,
-                fontSize: 11, fontWeight: 600, fontFamily: F,
+                fontSize: 11, fontWeight: 600, fontFamily: 'var(--tf-font)',
                 cursor: 'pointer',
                 transition: `all ${transition.fast}`,
                 textAlign: 'left',
@@ -135,10 +136,10 @@ function MarketsCopilotPanel() {
           background: lastResult.action === 'unknown' ? `${C.r}08` : `${C.g}08`,
           border: `1px solid ${lastResult.action === 'unknown' ? C.r : C.g}20`,
         }}>
-          <div style={{ fontSize: 9, fontWeight: 700, fontFamily: M, color: C.t3, marginBottom: 2 }}>
+          <div style={{ fontSize: 9, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: C.t3, marginBottom: 2 }}>
             {lastResult.action === 'unknown' ? '❌ Unrecognized' : '✅ Parsed'}
           </div>
-          <div style={{ fontSize: 10, fontFamily: M, color: C.t2 }}>
+          <div style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t2 }}>
             {lastResult.action}: {JSON.stringify(lastResult.payload || '')}
           </div>
         </div>
@@ -146,11 +147,11 @@ function MarketsCopilotPanel() {
 
       {/* ── Command History ───────────────────────────────── */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 12px' }}>
-        <div style={{ fontSize: 9, fontWeight: 700, fontFamily: M, color: C.t3, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+        <div style={{ fontSize: 9, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: C.t3, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
           History
         </div>
         {history.length === 0 ? (
-          <div style={{ fontSize: 10, fontFamily: M, color: C.t3, fontStyle: 'italic' }}>
+          <div style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t3, fontStyle: 'italic' }}>
             No actions yet — try a command below
           </div>
         ) : (
@@ -159,7 +160,7 @@ function MarketsCopilotPanel() {
               <div key={i} style={{
                 padding: '6px 8px', borderRadius: 4,
                 background: `${C.bd}06`,
-                fontSize: 9, fontFamily: M, color: C.t2,
+                fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t2,
               }}>
                 <span style={{ color: C.b, fontWeight: 700 }}>{h.action}</span>
                 {' — '}
@@ -188,7 +189,7 @@ function MarketsCopilotPanel() {
               border: `1px solid ${C.bd}30`,
               background: `${C.bd}08`,
               color: C.t1,
-              fontSize: 11, fontFamily: M,
+              fontSize: 11, fontFamily: 'var(--tf-mono)',
               outline: 'none',
             }}
           />
@@ -200,7 +201,7 @@ function MarketsCopilotPanel() {
               border: 'none',
               background: C.b,
               color: '#fff',
-              fontSize: 10, fontWeight: 700, fontFamily: M,
+              fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-mono)',
               cursor: 'pointer',
             }}
           >

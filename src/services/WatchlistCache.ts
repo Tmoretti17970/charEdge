@@ -60,7 +60,13 @@ export async function getCached(storeName, symbols) {
         req.onsuccess = () => {
           const record = req.result;
           if (record && (now - record.ts) < ttl) {
-            results[sym] = record.data || record;
+            const data = record.data || record;
+            // Normalize: ensure change/changePercent fields exist (handles legacy cache entries)
+            if (storeName === 'prices' && data.price != null) {
+              if (data.change === undefined) data.change = null;
+              if (data.changePercent === undefined) data.changePercent = null;
+            }
+            results[sym] = data;
           }
           resolve(undefined);
         };

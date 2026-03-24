@@ -94,20 +94,20 @@ function CloudSyncCard() {
   };
 
   return (
-    <Card style={{ padding: 20, marginTop: 12 }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, marginBottom: 4 }}>☁️ Cloud Sync</div>
-      <div style={{ fontSize: 11, color: C.t3, marginBottom: 14 }}>Connect your own Supabase project to sync trades across devices. Everything works locally without this.</div>
+    <Card className={s.cloudCardWrap}>
+      <div className={s.cloudLabel}>☁️ Cloud Sync</div>
+      <div className={s.cloudHint}>Connect your own Supabase project to sync trades across devices. Everything works locally without this.</div>
       {!auth.isAuthenticated ? (
         <>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+          <div className={s.formCol}>
             <input type="text" value={supaUrl} onChange={e => setSupaUrl(e.target.value)} placeholder="Supabase Project URL" style={inputStyle} />
             <input type="password" value={supaKey} onChange={e => setSupaKey(e.target.value)} placeholder="Supabase Anon Key" style={inputStyle} />
             <Btn onClick={handleConfigure} disabled={!supaUrl.trim()} style={{ fontSize: 12, padding: '7px 14px', alignSelf: 'flex-start' }}>Configure</Btn>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 12, borderTop: `1px solid ${C.bd}` }}>
+          <div className={s.formColBorder}>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" style={inputStyle} />
             <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" style={inputStyle} />
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className={s.btnRow}>
               <Btn onClick={handleSignIn} disabled={busy} style={{ fontSize: 12, padding: '8px 14px' }}>{busy ? '...' : 'Sign In'}</Btn>
               <Btn variant="ghost" onClick={handleSignUp} disabled={busy} style={{ fontSize: 12, padding: '8px 14px' }}>Sign Up</Btn>
             </div>
@@ -115,24 +115,24 @@ function CloudSyncCard() {
         </>
       ) : (
         <>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '12px 16px', background: C.sf, borderRadius: 10, marginBottom: 12 }}>
-            <div style={{ width: 10, height: 10, borderRadius: '50%', background: syncStatus.isCloudEnabled ? C.g : C.t3 }} />
+          <div className={s.statusRowLarge}>
+            <div className={s.statusDot} style={{ background: syncStatus.isCloudEnabled ? C.g : C.t3 }} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: C.t1 }}>{auth.user?.email || 'Authenticated'}</div>
-              <div style={{ fontSize: 11, color: C.t3, fontFamily: M }}>
+              <div className={s.authUserLabel}>{auth.user?.email || 'Authenticated'}</div>
+              <div className={s.authStatusHint}>
                 {syncStatus.pending > 0 ? `${syncStatus.pending} pending writes` : 'All synced'}
                 {syncStatus.lastSync && ` · Last sync: ${new Date(syncStatus.lastSync).toLocaleTimeString()}`}
               </div>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className={s.btnRow}>
             <Btn onClick={handleSync} disabled={busy} style={{ fontSize: 12, padding: '8px 14px' }}>{busy ? 'Syncing...' : '🔄 Sync Now'}</Btn>
             <Btn variant="ghost" onClick={handleSignOut} disabled={false} style={{ fontSize: 12, padding: '8px 14px' }}>Sign Out</Btn>
           </div>
         </>
       )}
-      {authMsg && <div style={{ marginTop: 8, fontSize: 11, color: authMsg.ok ? C.g : C.r, fontFamily: M }}>{authMsg.text}</div>}
-      {syncMsg && <div style={{ marginTop: 4, fontSize: 11, color: syncMsg.ok ? C.g : C.r, fontFamily: M }}>{syncMsg.text}</div>}
+      {authMsg && <div className={`${s.authMsg} ${authMsg.ok ? s.authMsgOk : s.authMsgErr}`}>{authMsg.text}</div>}
+      {syncMsg && <div className={`${s.syncMsg} ${syncMsg.ok ? s.authMsgOk : s.authMsgErr}`}>{syncMsg.text}</div>}
     </Card>
   );
 }
@@ -407,65 +407,53 @@ function DataSection() {
   ];
 
   return (
-    <section style={{ marginBottom: 40 }}>
+    <section className={s.sectionWrap}>
       <SectionHeader icon="folder" title="Data" description="Import trades, export backups, and generate reports" />
 
       {/* ─── Sub-tab bar ───────────────────────────────────────── */}
-      <div style={{
-        display: 'flex', gap: 4, marginBottom: 16,
-        padding: 4, borderRadius: 10, background: C.sf2,
-      }}>
+      <div className={s.tabBar}>
         {DATA_TABS.map((tab) => {
           const isActive = dataTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => setDataTab(tab.id)}
-              className="tf-btn"
-              style={{
-                flex: 1, padding: '10px 0', borderRadius: 8,
-                border: 'none', fontFamily: F,
-                background: isActive ? C.bg : 'transparent',
-                color: isActive ? C.t1 : C.t3,
-                fontWeight: isActive ? 700 : 500,
-                fontSize: 12, cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-              }}
+              className={`tf-btn ${s.tabBtn}`}
+              data-active={isActive ? 'true' : undefined}
             >
               {tab.label}
-              <div style={{ fontSize: 9, color: C.t3, marginTop: 1 }}>{tab.hint}</div>
+              <div className={s.tabHint}>{tab.hint}</div>
             </button>
           );
         })}
       </div>
 
-      <Card style={{ padding: 20 }}>
+      <Card className={s.cardWrap}>
         {/* Trade count summary — always visible */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: C.sf2, borderRadius: radii.md, marginBottom: 20 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: C.b + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>📊</div>
+        <div className={s.statsSummary}>
+          <div className={s.statsIcon}>📊</div>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 800, fontFamily: M, color: C.t1 }}>{trades.length}</div>
-            <div style={{ fontSize: 11, color: C.t3 }}>trade{trades.length !== 1 ? 's' : ''} stored locally</div>
+            <div className={s.statsCount}>{trades.length}</div>
+            <div className={s.statsHint}>trade{trades.length !== 1 ? 's' : ''} stored locally</div>
           </div>
         </div>
 
         {/* ═══ IMPORT TAB ═══ */}
         {dataTab === 'import' && (
           <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: C.t2, marginBottom: 4 }}>Import</div>
-            <div style={{ fontSize: 11, color: C.t3, marginBottom: 10, fontFamily: M }}>
+            <div className={s.sectionLabel}>Import</div>
+            <div className={s.sectionHint}>
               Supports Tradovate, NinjaTrader, ThinkorSwim, TradeStation, IBKR, Robinhood, Webull, MT5, Binance, Coinbase, Kraken, Bybit, Fidelity, or generic CSV/JSON
             </div>
             <SettingRow label="Choose file">
               <input type="file" accept=".csv,.json,.txt" onChange={handleImport} disabled={importing} className="tf-input"
-                style={{ fontSize: 12, fontFamily: F, color: C.t2, padding: '8px 0' }} />
+                style={inputStyle} />
             </SettingRow>
-            {importing && <div style={{ fontSize: 12, color: C.b, fontFamily: M, marginBottom: 8 }}>Parsing file...</div>}
+            {importing && <div className={s.parseMsg}>Parsing file...</div>}
             {importResult && <AlertBanner ok={importResult.ok} message={importResult.message} />}
             {importResult?.trades?.length > 0 && (
-              <div style={{ marginTop: 10 }}>
-                <div style={{ fontSize: 11, fontWeight: 600, color: C.t3, marginBottom: 6 }}>Duplicate handling</div>
+              <div className={s.importWrap}>
+                <div className={s.dupLabel}>Duplicate handling</div>
                 <div className={s.s4}>
                   {[
                     { id: 'skip', label: '🛡️ Skip duplicates', hint: 'Default — existing trades are preserved' },
@@ -495,7 +483,7 @@ function DataSection() {
                   ))}
                 </div>
                 {importResult.duplicates > 0 && (
-                  <div style={{ fontSize: 11, color: C.w, fontFamily: M, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div className={s.dupMsg}>
                     ⚠️ {importResult.duplicates} duplicate{importResult.duplicates !== 1 ? 's' : ''} detected
                   </div>
                 )}
@@ -508,7 +496,7 @@ function DataSection() {
         {/* ═══ EXPORT TAB ═══ */}
         {dataTab === 'export' && (
           <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: C.t2, marginBottom: 10 }}>Export</div>
+            <div className={s.sectionLabelMb10}>Export</div>
             <div className={s.s0}>
               <Btn onClick={handleExportCSV} className={s.s1}>📥 Export CSV</Btn>
               <Btn onClick={handleExportJSON} className={s.s2}>📥 Export JSON</Btn>
@@ -523,20 +511,20 @@ function DataSection() {
             {/* ─── File System Backup & Sync ────────────────────── */}
             <div>
               <div className={s.s6}>
-                <span style={{ fontSize: 16 }}>🔒</span>
+                <span className={s.iconEmoji}>🔒</span>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: C.t1 }}>Backup & Sync</div>
-                  <div style={{ fontSize: 11, color: C.t3, fontFamily: M }}>
+                  <div className={s.sectionTitle}>Backup & Sync</div>
+                  <div className={s.sectionSubtitle}>
                     Your data stays on your device. Back up to a folder you control.
                   </div>
                 </div>
               </div>
 
               {fsSupported ? (
-                <div style={{ marginBottom: 12 }}>
+                <div className={s.wrapMb12}>
                   {!backupStatus.isConfigured ? (
                     <div>
-                      <div style={{ fontSize: 11, color: C.t3, marginBottom: 8, fontFamily: M }}>
+                      <div className={s.sectionHint8}>
                         Pick a folder on your computer. charEdge will auto-save all your data there every 60 seconds.
                         {' '}If the folder is inside Dropbox, OneDrive, or Google Drive — it syncs to the cloud automatically. You own it.
                       </div>
@@ -546,11 +534,11 @@ function DataSection() {
                     </div>
                   ) : (
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: C.sf2, borderRadius: radii.md, marginBottom: 10 }}>
-                        <span style={{ fontSize: 14 }}>📁</span>
+                      <div className={s.statusPane}>
+                        <span className={s.statusIcon}>📁</span>
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: M }}>{backupStatus.folderName}</div>
-                          <div style={{ fontSize: 10, color: C.t3, fontFamily: M }}>
+                          <div className={s.statusTitle}>{backupStatus.folderName}</div>
+                          <div className={s.statusSubtitle}>
                             {backupStatus.isAutoSaving ? '🟢 Auto-saving every 60s' : '⏸️ Auto-save paused'}
                             {backupStatus.lastBackup && ` · Last: ${new Date(backupStatus.lastBackup).toLocaleTimeString()}`}
                             {backupStatus.backupCount > 0 && ` · ${backupStatus.backupCount} backup${backupStatus.backupCount !== 1 ? 's' : ''} this session`}
@@ -575,8 +563,8 @@ function DataSection() {
                   )}
                 </div>
               ) : (
-                <div style={{ marginBottom: 12 }}>
-                  <div style={{ fontSize: 11, color: C.t3, marginBottom: 8, fontFamily: M }}>
+                <div className={s.wrapMb12}>
+                  <div className={s.sectionHint8}>
                     Your browser doesn't support auto-save to a folder. Use manual backup & restore instead.
                   </div>
                   <div className={s.s12}>
@@ -600,27 +588,19 @@ function DataSection() {
               )}
 
               {backupMsg && (
-                <div style={{
-                  marginTop: 8,
-                  fontSize: 11,
-                  fontFamily: M,
-                  padding: '8px 12px',
-                  borderRadius: radii.md,
-                  background: backupMsg.ok ? (C.g + '15') : (C.r + '15'),
-                  color: backupMsg.ok ? C.g : C.r,
-                }}>
+                <div className={`${s.statusMsg} ${backupMsg.ok ? s.statusMsgOk : s.statusMsgErr}`}>
                   {backupMsg.text}
                 </div>
               )}
             </div>
 
             {/* ─── Cloud Backup ─────────────────────────────────── */}
-            <div style={{ paddingTop: 20, marginTop: 20, borderTop: `1px solid ${C.bd}` }}>
+            <div className={s.cloudDivider}>
               <div className={s.s15}>
-                <span style={{ fontSize: 16 }}>☁️</span>
+                <span className={s.iconEmoji}>☁️</span>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: C.t1 }}>Cloud Backup</div>
-                  <div style={{ fontSize: 11, color: C.t3, fontFamily: M }}>
+                  <div className={s.sectionTitle}>Cloud Backup</div>
+                  <div className={s.sectionSubtitle}>
                     Back up to YOUR Google Drive or Dropbox. Encrypted end-to-end — we never see your data.
                   </div>
                 </div>
@@ -628,37 +608,37 @@ function DataSection() {
 
               {!cloudStatus.connected ? (
                 <div>
-                  <div style={{ fontSize: 11, color: C.t3, marginBottom: 10, fontFamily: M }}>
+                  <div className={s.sectionHint}>
                     Connect your own cloud storage. All backups are encrypted with your passphrase before upload.
                   </div>
                   <div className={s.s16}>
                     <Btn onClick={() => handleCloudConnect('google-drive')} disabled={cloudBusy}
                       className={s.s17}>
-                      <span style={{ fontSize: 14 }}>🔵</span> Connect Google Drive
+                      <span className={s.statusIcon}>🔵</span> Connect Google Drive
                     </Btn>
                     <Btn onClick={() => handleCloudConnect('dropbox')} disabled={cloudBusy}
                       className={s.s18}>
-                      <span style={{ fontSize: 14 }}>🔷</span> Connect Dropbox
+                      <span className={s.statusIcon}>🔷</span> Connect Dropbox
                     </Btn>
                   </div>
                 </div>
               ) : (
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: C.sf2, borderRadius: radii.md, marginBottom: 10 }}>
-                    <span style={{ fontSize: 14 }}>{cloudStatus.provider === 'google-drive' ? '🔵' : '🔷'}</span>
+                  <div className={s.statusPaneCloud}>
+                    <span className={s.statusIcon}>{cloudStatus.provider === 'google-drive' ? '🔵' : '🔷'}</span>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: M }}>
+                      <div className={s.cloudStatusTitle}>
                         {getProviderDisplayName(cloudStatus.provider)}
                       </div>
-                      <div style={{ fontSize: 10, color: C.t3, fontFamily: M }}>
+                      <div className={s.cloudStatusSub}>
                         🟢 Connected
                         {cloudStatus.lastSync && ` · Last sync: ${new Date(cloudStatus.lastSync).toLocaleTimeString()}`}
                       </div>
                     </div>
                   </div>
 
-                  <div style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: C.t3, marginBottom: 4 }}>Encryption passphrase</div>
+                  <div className={s.passWrap}>
+                    <div className={s.passLabel}>Encryption passphrase</div>
                     <input
                       type="password"
                       value={cloudPassphrase}
@@ -673,7 +653,7 @@ function DataSection() {
                         padding: '8px 12px',
                       }}
                     />
-                    <div style={{ fontSize: 10, color: C.t3, fontFamily: M, marginTop: 4 }}>
+                    <div className={s.passHint}>
                       🔐 Remember this passphrase — it's needed to restore your backups
                     </div>
                   </div>
@@ -691,22 +671,13 @@ function DataSection() {
                   </div>
 
                   {showBackupList && cloudBackups.length > 0 && (
-                    <div style={{ marginTop: 8, padding: '10px 14px', background: C.sf2, borderRadius: radii.md }}>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: C.t2, marginBottom: 8 }}>Available backups</div>
+                    <div className={s.backupListWrap}>
+                      <div className={s.backupListHeader}>Available backups</div>
                       {cloudBackups.map((bk) => (
-                        <div
-                          key={bk.name}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '6px 0',
-                            borderBottom: `1px solid ${C.bd}`,
-                          }}
-                        >
+                        <div key={bk.name} className={s.backupRow}>
                           <div>
-                            <div style={{ fontSize: 11, fontWeight: 600, color: C.t1, fontFamily: M }}>{bk.name}</div>
-                            <div style={{ fontSize: 10, color: C.t3, fontFamily: M }}>
+                            <div className={s.backupName}>{bk.name}</div>
+                            <div className={s.backupDetail}>
                               {bk.modified && new Date(bk.modified).toLocaleString()}
                               {bk.size > 0 && ` · ${(bk.size / 1024).toFixed(1)} KB`}
                             </div>
@@ -726,15 +697,7 @@ function DataSection() {
               )}
 
               {cloudMsg && (
-                <div style={{
-                  marginTop: 8,
-                  fontSize: 11,
-                  fontFamily: M,
-                  padding: '8px 12px',
-                  borderRadius: radii.md,
-                  background: cloudMsg.ok ? (C.g + '15') : (C.r + '15'),
-                  color: cloudMsg.ok ? C.g : C.r,
-                }}>
+                <div className={`${s.statusMsg} ${cloudMsg.ok ? s.statusMsgOk : s.statusMsgErr}`}>
                   {cloudMsg.text}
                 </div>
               )}

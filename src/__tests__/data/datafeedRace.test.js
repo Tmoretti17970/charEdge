@@ -10,10 +10,22 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // ─── Mock dependencies ──────────────────────────────────────────
 
+const setDataMetaMock = vi.fn();
+
 // Mock useChartStore
 vi.mock('../../state/useChartStore', () => ({
   useChartStore: {
     getState: () => ({
+      setWsStatus: vi.fn(),
+    }),
+  },
+}));
+
+// Mock focused chart core store metadata writer
+vi.mock('../../state/chart/useChartCoreStore', () => ({
+  useChartCoreStore: {
+    getState: () => ({
+      setDataMeta: setDataMetaMock,
       setWsStatus: vi.fn(),
     }),
   },
@@ -66,6 +78,7 @@ describe('DatafeedService — Race Condition Guard', () => {
 
     // Reset global fetch mock
     vi.restoreAllMocks();
+    setDataMetaMock.mockReset();
   });
 
   it('bumps generation counter on each subscribe call for the same key', () => {
@@ -254,5 +267,50 @@ describe('DatafeedService — Race Condition Guard', () => {
     expect(datafeedService.sockets.has('BNBUSDT_1h')).toBe(false);
 
     global.WebSocket = OriginalWebSocket;
+  });
+
+  it('sets canonical metadata source for crypto historical load', async () => {
+    global.fetch = vi.fn(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve([
+        [1000, '100', '110', '90', '105', '1000'],
+        [2000, '105', '120', '95', '115', '1500'],
+      ]),
+    }));
+
+    const onHistorical = vi.fn();
+    const unsub = datafeedService.subscribe('BTCUSDT', '1h', {
+      onHistorical,
+      onTick: vi.fn(),
+      onError: vi.fn(),
+    });
+
+    await new Promise((r) => setTimeout(r, 30));
+
+    expect(onHistorical).toHaveBeenCalled();
+    expect(setDataMetaMock).toHaveBeenCalledWith(2, 'datafeed:crypto', 1000);
+    unsub();
+  });
+
+  it('marks entry as error and notifies subscriber on fetch failure', async () => {
+    global.fetch = vi.fn(() => Promise.resolve({
+      ok: false,
+      json: () => Promise.resolve({}),
+    }));
+
+    const onError = vi.fn();
+    const unsub = datafeedService.subscribe('BTCUSDT', '1h', {
+      onHistorical: vi.fn(),
+      onTick: vi.fn(),
+      onError,
+    });
+
+    await new Promise((r) => setTimeout(r, 30));
+
+    const entry = datafeedService.cache.get('BTCUSDT_1h');
+    expect(entry?.status).toBe('error');
+    expect(onError).toHaveBeenCalled();
+    expect(setDataMetaMock).not.toHaveBeenCalled();
+    unsub();
   });
 });

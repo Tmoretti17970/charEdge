@@ -1,0 +1,21 @@
+/* PipelineDevTools — CSS Module */
+.card { border-radius: 16px; overflow: hidden; }
+.headerBtn { all: unset; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; cursor: pointer; box-sizing: border-box; }
+.headerLeft { display: flex; align-items: center; gap: 10px; }
+.headerIcon { font-size: 18px; }
+.headerTitle { margin: 0; font-size: 16px; font-weight: 700; color: var(--tf-t1); font-family: var(--tf-font); }
+.badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; font-family: var(--tf-mono); }
+.chevron { font-size: 11px; transition: transform 0.2s ease; }
+.body { padding: 0 20px 20px; }
+.list { display: flex; flex-direction: column; gap: 6px; }
+.filterRow { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.filterBtn { padding: 5px 14px; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 600; font-family: var(--tf-font); }
+.empty { padding: 24px; text-align: center; font-size: 12px; font-family: var(--tf-font); }
+.row { padding: 10px 12px; border-radius: 8px; display: flex; align-items: center; gap: 10px; }
+.grid { display: grid; gap: 8px; }
+.label { font-size: 10px; font-weight: 600; font-family: var(--tf-font); }
+.valText { font-size: 11px; font-weight: 600; color: var(--tf-t1); font-family: var(--tf-mono); }
+.tabBtn { padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 10px; font-weight: 600; font-family: var(--tf-font); }
+.section { margin-bottom: 16px; }
+.sectionTitle { font-size: 12px; font-weight: 700; color: var(--tf-t1); font-family: var(--tf-font); margin-bottom: 8px; }
+.input { font-family: var(--tf-font); font-size: 12px; }

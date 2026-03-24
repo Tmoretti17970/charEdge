@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import s from './VelocityHUD.module.css';
 
 const WINDOWS = [
   { label: '5s', ms: 5_000 },
@@ -30,45 +31,26 @@ function formatVelocity(v) {
   return `${sign}$${abs.toFixed(4)}/s`;
 }
 
-/**
- * VelocityHUD — real-time price velocity display.
- *
- * @param {Object} props
- * @param {Array<{price: number, timestamp: number}>} props.ticks - recent tick data
- * @param {boolean} props.visible - whether to show the HUD
- */
 function VelocityHUD({ ticks = [], visible = true }) {
   const [velocities, setVelocities] = useState({});
   const prevVelocityRef = useRef(0);
-  // P2 2.5: Dimmed auto-fade after 10s of no data change
   const [dimmed, setDimmed] = useState(false);
   const fadeTimerRef = useRef(null);
 
   const computeVelocities = useCallback(() => {
     if (!ticks.length) return;
-
     const now = ticks[ticks.length - 1]?.timestamp || Date.now();
     const result = {};
-
     for (const window of WINDOWS) {
       const cutoff = now - window.ms;
       const windowTicks = ticks.filter((t) => t.timestamp >= cutoff);
-
-      if (windowTicks.length < 2) {
-        result[window.label] = 0;
-        continue;
-      }
-
-      const first = windowTicks[0];
-      const last = windowTicks[windowTicks.length - 1];
-      const dt = (last.timestamp - first.timestamp) / 1000; // seconds
+      if (windowTicks.length < 2) { result[window.label] = 0; continue; }
+      const first = windowTicks[0]; const last = windowTicks[windowTicks.length - 1];
+      const dt = (last.timestamp - first.timestamp) / 1000;
       const dp = last.price - first.price;
-
       result[window.label] = dt > 0 ? dp / dt : 0;
     }
-
     setVelocities(result);
-    // P2 2.5: Reset fade on new data
     setDimmed(false);
     if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current);
     fadeTimerRef.current = setTimeout(() => setDimmed(true), 10_000);
@@ -86,65 +68,21 @@ function VelocityHUD({ ticks = [], visible = true }) {
   prevVelocityRef.current = primaryVelocity;
 
   return (
-    <div
-      className="tf-depth-surface"
+    <div className={`tf-depth-surface ${s.hud}`} data-dimmed={dimmed || undefined}
       onMouseEnter={() => setDimmed(false)}
-      onMouseLeave={() => {
-        if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current);
-        fadeTimerRef.current = setTimeout(() => setDimmed(true), 10_000);
-      }}
-      style={{
-        position: 'absolute',
-        top: 8,
-        right: 8,
-        padding: '6px 10px',
-        borderRadius: 'var(--tf-radius-sm)',
-        border: 'var(--tf-glass-border)',
-        fontFamily: 'var(--tf-mono)',
-        fontSize: 10,
-        lineHeight: 1.5,
-        zIndex: 20,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 2,
-        minWidth: 100,
-        pointerEvents: 'auto',
-        opacity: dimmed ? 0.3 : 1,
-        transition: 'opacity 0.6s ease',
-      }}
-    >
-      <div style={{
-        fontSize: 9,
-        fontWeight: 600,
-        color: 'var(--tf-t3)',
-        textTransform: 'uppercase',
-        letterSpacing: '0.5px',
-        marginBottom: 2,
-      }}>
-        Velocity
-      </div>
+      onMouseLeave={() => { if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current); fadeTimerRef.current = setTimeout(() => setDimmed(true), 10_000); }}>
+      <div className={s.title}>Velocity</div>
       {WINDOWS.map(({ label }) => {
         const v = velocities[label] || 0;
         const color = v > 0 ? 'var(--tf-green)' : v < 0 ? 'var(--tf-red)' : 'var(--tf-t3)';
         return (
-          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-            <span style={{ color: 'var(--tf-t3)' }}>{label}</span>
-            <span style={{ color, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-              {formatVelocity(v)}
-            </span>
+          <div key={label} className={s.row}>
+            <span className={s.rowLabel}>{label}</span>
+            <span className={s.rowValue} style={{ color }}>{formatVelocity(v)}</span>
           </div>
         );
       })}
-      {/* Acceleration dot */}
-      <div style={{
-        width: 4,
-        height: 4,
-        borderRadius: '50%',
-        background: accelColor,
-        alignSelf: 'center',
-        marginTop: 2,
-        boxShadow: `0 0 6px ${accelColor}`,
-      }} />
+      <div className={s.accelDot} style={{ background: accelColor, boxShadow: `0 0 6px ${accelColor}` }} />
     </div>
   );
 }

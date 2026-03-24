@@ -6,6 +6,7 @@
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { createDrawingAlert } from '../../../../charting_library/tools/DrawingAlertEngine.js';
+import s from './DrawingContextMenu.module.css';
 
 const MENU_ITEMS = [
   { id: 'duplicate', label: 'Duplicate', icon: '⊕', shortcut: 'Ctrl+D' },
@@ -35,13 +36,11 @@ export default function DrawingContextMenu({ x, y, drawing, engine, onClose }) {
   const menuRef = useRef(null);
   const [alertSubmenuOpen, setAlertSubmenuOpen] = useState(false);
 
-  // Close on click outside or Escape
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) onClose();
     };
     const handleEscape = (e) => { if (e.key === 'Escape') onClose(); };
-
     document.addEventListener('mousedown', handleClickOutside, true);
     document.addEventListener('keydown', handleEscape, true);
     return () => {
@@ -53,30 +52,17 @@ export default function DrawingContextMenu({ x, y, drawing, engine, onClose }) {
   const handleAction = useCallback((id) => {
     if (!drawing || !engine) return;
     switch (id) {
-      case 'duplicate':
-        engine.duplicateDrawing(drawing.id);
-        break;
-      case 'lock':
-        engine.toggleLock(drawing.id);
-        break;
-      case 'hide':
-        engine.toggleVisibility(drawing.id);
-        break;
-      case 'bringToFront':
-        engine.bringToFront(drawing.id);
-        break;
-      case 'sendToBack':
-        engine.sendToBack(drawing.id);
-        break;
+      case 'duplicate': engine.duplicateDrawing(drawing.id); break;
+      case 'lock': engine.toggleLock(drawing.id); break;
+      case 'hide': engine.toggleVisibility(drawing.id); break;
+      case 'bringToFront': engine.bringToFront(drawing.id); break;
+      case 'sendToBack': engine.sendToBack(drawing.id); break;
       case 'addLabel': {
         const label = prompt('Enter label for this drawing:', drawing.meta?.label || '');
         if (label !== null) engine.setDrawingLabel(drawing.id, label);
         break;
       }
-      case 'syncTimeframes':
-        engine.toggleSyncAcrossTimeframes(drawing.id);
-        break;
-      // B3: Drawing alert trigger types
+      case 'syncTimeframes': engine.toggleSyncAcrossTimeframes(drawing.id); break;
       case 'alert_cross':
       case 'alert_enter':
       case 'alert_exit': {
@@ -85,174 +71,60 @@ export default function DrawingContextMenu({ x, y, drawing, engine, onClose }) {
         if (engine.enableAlert) engine.enableAlert(drawing.id, { trigger: triggerMap[id] });
         break;
       }
-      case 'groupSelected':
-        if (engine.groupSelected) engine.groupSelected();
-        break;
-      case 'ungroupSelected':
-        if (engine.ungroupSelected) engine.ungroupSelected();
-        break;
-      case 'selectAll':
-        if (engine.selectAll) engine.selectAll();
-        break;
-      case 'delete':
-        engine.removeDrawing(drawing.id);
-        break;
+      case 'groupSelected': if (engine.groupSelected) engine.groupSelected(); break;
+      case 'ungroupSelected': if (engine.ungroupSelected) engine.ungroupSelected(); break;
+      case 'selectAll': if (engine.selectAll) engine.selectAll(); break;
+      case 'delete': engine.removeDrawing(drawing.id); break;
     }
     onClose();
   }, [drawing, engine, onClose]);
 
   if (!drawing) return null;
 
-  // Build dynamic labels
   const items = MENU_ITEMS.map((item) => {
-    if (item.id === 'lock') {
-      return { ...item, label: drawing.locked ? 'Unlock' : 'Lock', icon: drawing.locked ? '🔓' : '🔒' };
-    }
-    if (item.id === 'hide') {
-      return { ...item, label: drawing.visible ? 'Hide' : 'Show', icon: drawing.visible ? '👁‍🗨' : '👁' };
-    }
-    if (item.id === 'addLabel') {
-      return { ...item, label: drawing.meta?.label ? `Edit Label "${drawing.meta.label}"` : 'Add Label' };
-    }
-    if (item.id === 'syncTimeframes') {
-      return { ...item, label: drawing.syncAcrossTimeframes ? '✓ Synced Across TFs' : 'Sync Across Timeframes' };
-    }
+    if (item.id === 'lock') return { ...item, label: drawing.locked ? 'Unlock' : 'Lock', icon: drawing.locked ? '🔓' : '🔒' };
+    if (item.id === 'hide') return { ...item, label: drawing.visible ? 'Hide' : 'Show', icon: drawing.visible ? '👁‍🗨' : '👁' };
+    if (item.id === 'addLabel') return { ...item, label: drawing.meta?.label ? `Edit Label "${drawing.meta.label}"` : 'Add Label' };
+    if (item.id === 'syncTimeframes') return { ...item, label: drawing.syncAcrossTimeframes ? '✓ Synced Across TFs' : 'Sync Across Timeframes' };
     return item;
   });
 
   return (
-    <div
-      ref={menuRef}
-      style={{
-        position: 'fixed',
-        left: x,
-        top: y,
-        zIndex: 9999,
-        minWidth: 200,
-        background: 'rgba(24, 26, 32, 0.95)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: 10,
-        padding: '4px 0',
-        boxShadow: '0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)',
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif",
-        fontSize: 13,
-        color: '#D1D4DC',
-        animation: 'scaleInSm 0.15s ease-out',
-      }}
-    >
+    <div ref={menuRef} className={s.menu} style={{ left: x, top: y }}>
       {items.map((item, i) => {
         if (item.id?.startsWith('divider')) {
-          return (
-            <div
-              key={i}
-              style={{
-                height: 1,
-                background: 'rgba(255,255,255,0.06)',
-                margin: '4px 8px',
-              }}
-            />
-          );
+          return <div key={i} className={s.divider} />;
         }
-
-          return (
-            <div
-              key={item.id}
-              style={{ position: 'relative' }}
-              onMouseEnter={() => item.hasSubmenu && setAlertSubmenuOpen(true)}
-              onMouseLeave={() => item.hasSubmenu && setAlertSubmenuOpen(false)}
-            >
+        return (
+          <div
+            key={item.id}
+            className={s.itemWrap}
+            onMouseEnter={() => item.hasSubmenu && setAlertSubmenuOpen(true)}
+            onMouseLeave={() => item.hasSubmenu && setAlertSubmenuOpen(false)}
+          >
             <button
-              key={item.id}
+              className={s.item}
               onClick={() => !item.hasSubmenu && handleAction(item.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                width: '100%',
-                padding: '7px 12px',
-                background: 'transparent',
-                border: 'none',
-                color: item.danger ? '#EF5350' : '#D1D4DC',
-                cursor: 'pointer',
-                textAlign: 'left',
-                fontSize: 13,
-                borderRadius: 6,
-                margin: '0 4px',
-                boxSizing: 'border-box',
-                transition: 'background 0.1s',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(41, 98, 255, 0.2)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              data-danger={item.danger || undefined}
             >
-              <span style={{ width: 24, textAlign: 'center', marginRight: 8, fontSize: 14 }}>
-                {item.icon}
-              </span>
-              <span style={{ flex: 1 }}>{item.label}</span>
-              {item.shortcut && (
-                <span style={{ fontSize: 11, color: '#787B86', marginLeft: 16 }}>
-                  {item.shortcut}
-                </span>
-              )}
-              {item.hasSubmenu && (
-                <span style={{ fontSize: 10, color: '#787B86', marginLeft: 8 }}>▸</span>
-              )}
+              <span className={s.itemIcon}>{item.icon}</span>
+              <span className={s.itemLabel}>{item.label}</span>
+              {item.shortcut && <span className={s.itemShortcut}>{item.shortcut}</span>}
+              {item.hasSubmenu && <span className={s.itemArrow}>▸</span>}
             </button>
-
-            {/* B3: Alert trigger type sub-menu */}
             {item.hasSubmenu && alertSubmenuOpen && (
-              <div
-                style={{
-                  position: 'absolute',
-                  left: '100%',
-                  top: -4,
-                  minWidth: 170,
-                  background: 'rgba(24, 26, 32, 0.95)',
-                  backdropFilter: 'blur(16px)',
-                  WebkitBackdropFilter: 'blur(16px)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  borderRadius: 10,
-                  padding: '4px 0',
-                  boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
-                  zIndex: 10000,
-                  animation: 'scaleInSm 0.12s ease-out',
-                }}
-              >
+              <div className={s.submenu}>
                 {ALERT_SUBMENU.map((sub) => (
-                  <button
-                    key={sub.id}
-                    onClick={() => handleAction(sub.id)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      width: '100%',
-                      padding: '7px 12px',
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#D1D4DC',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      fontSize: 13,
-                      borderRadius: 6,
-                      margin: '0 4px',
-                      boxSizing: 'border-box',
-                      transition: 'background 0.1s',
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(41, 98, 255, 0.2)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                  >
-                    <span style={{ width: 24, textAlign: 'center', marginRight: 8, fontSize: 14 }}>
-                      {sub.icon}
-                    </span>
-                    <span>{sub.label}</span>
+                  <button key={sub.id} onClick={() => handleAction(sub.id)} className={s.item}>
+                    <span className={s.itemIcon}>{sub.icon}</span>
+                    <span className={s.itemLabel}>{sub.label}</span>
                   </button>
                 ))}
               </div>
             )}
-            </div>
-          );
+          </div>
+        );
       })}
-
     </div>
   );
 }

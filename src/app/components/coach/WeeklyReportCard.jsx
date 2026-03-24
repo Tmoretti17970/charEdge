@@ -6,7 +6,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
+import st from './WeeklyReportCard.module.css';
 
 const GRADE_COLORS = {
   A: '#00E676', B: '#66BB6A', C: '#FFCA28', D: '#FF7043', F: '#EF5350',
@@ -34,15 +35,15 @@ export default function WeeklyReportCard({ report }) {
             background: `${gradeColor}15`,
             border: `2px solid ${gradeColor}40`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 22, fontWeight: 800, fontFamily: F, color: gradeColor,
+            fontSize: 22, fontWeight: 800, fontFamily: 'var(--tf-font)', color: gradeColor,
           }}>
             {report.grade}
           </div>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: C.t1, fontFamily: F }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
               Weekly Report
             </div>
-            <div style={{ fontSize: 11, color: C.t3, fontFamily: M }}>
+            <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-mono)' }}>
               Week of {report.weekOf} • Score: {report.score}/100
             </div>
           </div>
@@ -56,7 +57,7 @@ export default function WeeklyReportCard({ report }) {
           border: `1px solid ${report.comparison.trend === 'improving' ? '#00E67640' : report.comparison.trend === 'declining' ? '#EF535040' : `${C.t3}30`}`,
         }}>
           <span style={{
-            fontSize: 10, fontWeight: 700, fontFamily: M,
+            fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-mono)',
             color: report.comparison.trend === 'improving' ? '#00E676' : report.comparison.trend === 'declining' ? '#EF5350' : C.t3,
           }}>
             {report.comparison.trend === 'improving' ? '📈 Improving' : report.comparison.trend === 'declining' ? '📉 Declining' : '→ Flat'}
@@ -75,10 +76,10 @@ export default function WeeklyReportCard({ report }) {
       }}>
         <span style={{ fontSize: 14 }}>💡</span>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 800, fontFamily: M, color: C.b, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
+          <div style={{ fontSize: 10, fontWeight: 800, fontFamily: 'var(--tf-mono)', color: C.b, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
             Focus Area: {report.focusArea}
           </div>
-          <div style={{ fontSize: 12, color: C.t2, fontFamily: M, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 12, color: C.t2, fontFamily: 'var(--tf-mono)', lineHeight: 1.5 }}>
             {report.topInsight}
           </div>
         </div>
@@ -129,11 +130,11 @@ function ReportSection({ section }) {
         }}
       >
         <span style={{ fontSize: 16 }}>{section.icon}</span>
-        <span style={{ flex: 1, textAlign: 'left', fontSize: 13, fontWeight: 600, color: C.t1, fontFamily: F }}>
+        <span style={{ flex: 1, textAlign: 'left', fontSize: 13, fontWeight: 600, color: C.t1, fontFamily: 'var(--tf-font)' }}>
           {section.title}
         </span>
         <span style={{
-          fontSize: 11, fontWeight: 800, fontFamily: M,
+          fontSize: 11, fontWeight: 800, fontFamily: 'var(--tf-mono)',
           color: gradeColor,
           padding: '2px 8px', borderRadius: 100,
           background: `${gradeColor}15`,
@@ -145,10 +146,10 @@ function ReportSection({ section }) {
 
       {open && (
         <div style={{ padding: '0 14px 14px' }}>
-          <div style={{ fontSize: 11, color: C.t3, fontFamily: M, marginBottom: 6 }}>
+          <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-mono)', marginBottom: 6 }}>
             {section.summary}
           </div>
-          <div style={{ fontSize: 12, color: C.t2, fontFamily: M, lineHeight: 1.6, marginBottom: 10 }}>
+          <div style={{ fontSize: 12, color: C.t2, fontFamily: 'var(--tf-mono)', lineHeight: 1.6, marginBottom: 10 }}>
             {section.details}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -160,7 +161,7 @@ function ReportSection({ section }) {
                 border: `1px solid ${C.y}20`,
               }}>
                 <span style={{ fontSize: 10, marginTop: 1 }}>→</span>
-                <span style={{ fontSize: 11, color: C.t2, fontFamily: M, lineHeight: 1.4 }}>{rec}</span>
+                <span style={{ fontSize: 11, color: C.t2, fontFamily: 'var(--tf-mono)', lineHeight: 1.4 }}>{rec}</span>
               </div>
             ))}
           </div>
@@ -173,8 +174,8 @@ function ReportSection({ section }) {
 function ComparisonStat({ label, value, color }) {
   return (
     <div style={{ flex: 1, textAlign: 'center' }}>
-      <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, fontFamily: M, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
-      <div style={{ fontSize: 14, fontWeight: 700, color: color || C.t1, fontFamily: F, marginTop: 2 }}>{value}</div>
+      <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, fontFamily: 'var(--tf-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: color || C.t1, fontFamily: 'var(--tf-font)', marginTop: 2 }}>{value}</div>
     </div>
   );
 }

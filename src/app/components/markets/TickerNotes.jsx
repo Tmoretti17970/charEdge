@@ -7,9 +7,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo, useState, useCallback, useRef, useEffect } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { radii, transition } from '../../../theme/tokens.js';
+import st from './TickerNotes.module.css';
 
 function TickerNotes({ symbol }) {
   const notes = useWatchlistStore((s) => s.notes || {});
@@ -78,7 +79,7 @@ function TickerNotes({ symbol }) {
             border: `1px solid ${C.bd}50`,
             background: `${C.sf}`,
             color: C.t1,
-            fontFamily: F,
+            fontFamily: 'var(--tf-font)',
             fontSize: 12,
             lineHeight: 1.6,
             resize: 'vertical',
@@ -90,7 +91,7 @@ function TickerNotes({ symbol }) {
           display: 'flex', justifyContent: 'space-between',
           marginTop: 5, alignItems: 'center',
         }}>
-          <span style={{ fontSize: 9, fontFamily: M, color: C.t3 }}>
+          <span style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
             {draft.length}/{MAX_CHARS} · ⌘Enter to save
           </span>
           <div style={{ display: 'flex', gap: 6 }}>
@@ -99,7 +100,7 @@ function TickerNotes({ symbol }) {
               style={{
                 background: 'transparent', border: `1px solid ${C.bd}30`,
                 borderRadius: radii.xs, padding: '3px 10px',
-                color: C.t3, fontSize: 10, fontFamily: M, cursor: 'pointer',
+                color: C.t3, fontSize: 10, fontFamily: 'var(--tf-mono)', cursor: 'pointer',
               }}
             >
               Cancel
@@ -109,7 +110,7 @@ function TickerNotes({ symbol }) {
               style={{
                 background: '#6e5ce6', border: 'none',
                 borderRadius: radii.xs, padding: '3px 10px',
-                color: '#fff', fontSize: 10, fontWeight: 700, fontFamily: M, cursor: 'pointer',
+                color: '#fff', fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-mono)', cursor: 'pointer',
               }}
             >
               Save
@@ -128,7 +129,7 @@ function TickerNotes({ symbol }) {
             onClick={handleEdit}
             style={{
               fontSize: 12,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
               color: C.t2,
               lineHeight: 1.6,
               cursor: 'pointer',
@@ -148,7 +149,7 @@ function TickerNotes({ symbol }) {
             marginTop: 4, alignItems: 'center',
           }}>
             {lastEdited && (
-              <span style={{ fontSize: 9, fontFamily: M, color: C.t3 }}>
+              <span style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
                 Edited {lastEdited}
               </span>
             )}
@@ -156,7 +157,7 @@ function TickerNotes({ symbol }) {
               onClick={handleEdit}
               style={{
                 background: 'transparent', border: 'none',
-                color: C.t3, fontSize: 10, fontFamily: M, cursor: 'pointer',
+                color: C.t3, fontSize: 10, fontFamily: 'var(--tf-mono)', cursor: 'pointer',
                 padding: '2px 6px',
               }}
             >
@@ -169,7 +170,7 @@ function TickerNotes({ symbol }) {
           onClick={handleEdit}
           style={{
             fontSize: 11,
-            fontFamily: F,
+            fontFamily: 'var(--tf-font)',
             color: C.t3,
             cursor: 'pointer',
             padding: '10px 12px',

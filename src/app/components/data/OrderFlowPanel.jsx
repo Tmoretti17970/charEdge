@@ -14,9 +14,10 @@
 
 import React from 'react';
 import { useState, useEffect, useRef } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { orderFlowBridge } from '../../../data/engine/orderflow/OrderFlowBridge.js';
 import { orderFlowEngine } from '../../../data/engine/orderflow/OrderFlowEngine';
+import st from './OrderFlowPanel.module.css';
 
 // ─── Formatters ────────────────────────────────────────────────
 
@@ -92,7 +93,7 @@ function AggressorGauge({ ratio }) {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%' }}>
-      <span style={{ fontSize: 10, fontFamily: M, color: C.g, fontWeight: 700, width: 30 }}>{buyPct}%</span>
+      <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.g, fontWeight: 700, width: 30 }}>{buyPct}%</span>
       <div style={{ flex: 1, height: 6, borderRadius: 3, background: C.r, overflow: 'hidden', position: 'relative' }}>
         <div style={{
           width: `${buyPct}%`,
@@ -102,7 +103,7 @@ function AggressorGauge({ ratio }) {
           transition: 'width 0.3s ease',
         }} />
       </div>
-      <span style={{ fontSize: 10, fontFamily: M, color: C.r, fontWeight: 700, width: 30, textAlign: 'right' }}>{sellPct}%</span>
+      <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.r, fontWeight: 700, width: 30, textAlign: 'right' }}>{sellPct}%</span>
     </div>
   );
 }
@@ -146,7 +147,7 @@ function OrderFlowPanel({ symbol = 'BTCUSDT' }) {
   return (
     <div style={{
       padding: 14,
-      fontFamily: F,
+      fontFamily: 'var(--tf-font)',
       display: 'flex',
       flexDirection: 'column',
       gap: 12,
@@ -165,7 +166,7 @@ function OrderFlowPanel({ symbol = 'BTCUSDT' }) {
         </div>
         <div style={{
           padding: '3px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700,
-          fontFamily: M, background: `${C.b}15`, color: C.b,
+          fontFamily: 'var(--tf-mono)', background: `${C.b}15`, color: C.b,
         }}>
           {stats?.totalTicks?.toLocaleString() || 0} ticks
         </div>
@@ -201,7 +202,7 @@ function OrderFlowPanel({ symbol = 'BTCUSDT' }) {
           </div>
           {cvd.length > 0 && (
             <span style={{
-              fontSize: 11, fontFamily: M, fontWeight: 700,
+              fontSize: 11, fontFamily: 'var(--tf-mono)', fontWeight: 700,
               color: cvd[cvd.length - 1]?.cvd >= 0 ? C.g : C.r,
             }}>
               {fmtNum(cvd[cvd.length - 1]?.cvd)}
@@ -226,7 +227,7 @@ function OrderFlowPanel({ symbol = 'BTCUSDT' }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxHeight: 120, overflowY: 'auto' }}>
             {largeTrades.slice(-10).reverse().map((t, i) => (
               <div key={t.time + '-' + i} style={{
-                display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontFamily: M,
+                display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontFamily: 'var(--tf-mono)',
                 padding: '3px 6px', borderRadius: 4,
                 background: i === 0 ? `${t.side === 'buy' ? C.g : C.r}08` : 'transparent',
               }}>
@@ -258,7 +259,7 @@ function OrderFlowPanel({ symbol = 'BTCUSDT' }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {stats.clusters.slice(-5).reverse().map((cl, i) => (
               <div key={cl.startTime + '-' + i} style={{
-                display: 'flex', gap: 8, fontSize: 10, fontFamily: M, color: C.t2,
+                display: 'flex', gap: 8, fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t2,
               }}>
                 <span style={{ fontWeight: 600, color: C.t1 }}>${fmtNum(cl.avgPrice)}</span>
                 <span>×{cl.count} trades</span>

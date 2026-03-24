@@ -1,0 +1,60 @@
+/* AvatarUpload — CSS Module */
+.root { margin-bottom: var(--sp-5); }
+.label { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--tf-t2); margin-bottom: 10px; font-family: var(--tf-font); }
+.previewRow { display: flex; align-items: center; gap: var(--sp-4); margin-bottom: 14px; }
+.previewType { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--tf-t1); font-family: var(--tf-font); }
+.previewHint { font-size: var(--fs-xs); color: var(--tf-t3); font-family: var(--tf-font); }
+.tabBar {
+  display: flex; gap: 2px;
+  background: color-mix(in srgb, var(--tf-bd) 12%, transparent);
+  border-radius: var(--br-sm); padding: 2px; margin-bottom: var(--sp-3);
+}
+.tabBtn {
+  flex: 1; padding: var(--sp-1_5) 0; border-radius: var(--br-xs); border: none;
+  font-size: var(--fs-2xs); font-weight: var(--fw-semibold); font-family: var(--tf-font);
+  cursor: pointer; transition: all var(--dur-normal);
+}
+.tabBtnActive { background: var(--tf-sf); color: var(--tf-t1); }
+.tabBtnInactive { background: transparent; color: var(--tf-t3); }
+
+/* Emoji grid */
+.emojiGrid { display: flex; gap: var(--sp-1_5); flex-wrap: wrap; }
+.emojiBtn {
+  width: 40px; height: 40px; border-radius: 50%;
+  font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--dur-normal);
+}
+
+/* Upload */
+.uploadBtn {
+  width: 100%; padding: var(--sp-5) var(--sp-4);
+  border-radius: var(--br-sm); border: 2px dashed var(--tf-bd);
+  background: transparent; color: var(--tf-t2); font-size: var(--fs-sm);
+  font-family: var(--tf-font); text-align: center; transition: all var(--dur-normal);
+}
+.uploadIcon { font-size: 24px; margin-bottom: var(--sp-1); }
+.uploadText { font-weight: var(--fw-semibold); }
+.uploadHint { font-size: var(--fs-xs); color: var(--tf-t3); margin-top: 2px; }
+.uploadError { font-size: var(--fs-2xs); color: var(--tf-red); margin-top: var(--sp-1_5); font-family: var(--tf-font); }
+.uploadSuccess {
+  font-size: var(--fs-xs); color: var(--tf-green); margin-top: var(--sp-1_5);
+  font-family: var(--tf-font); display: flex; align-items: center; gap: var(--sp-1);
+}
+
+/* Initials */
+.initialsRow { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-3); }
+.initialsPreview {
+  width: 48px; height: 48px; border-radius: var(--sp-3);
+  color: #fff; font-size: 18px; font-weight: var(--fw-bold);
+  display: flex; align-items: center; justify-content: center;
+  letter-spacing: 1px;
+}
+.initialsLabel { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--tf-t1); font-family: var(--tf-font); }
+.initialsHint { font-size: var(--fs-xs); color: var(--tf-t3); font-family: var(--tf-font); }
+.colorLabel { font-size: var(--fs-2xs); font-weight: var(--fw-semibold); color: var(--tf-t3); margin-bottom: var(--sp-1_5); font-family: var(--tf-font); }
+.colorGrid { display: flex; gap: var(--sp-1_5); flex-wrap: wrap; }
+.colorSwatch {
+  width: 32px; height: 32px; border-radius: 50%;
+  cursor: pointer; transition: all var(--dur-normal);
+}

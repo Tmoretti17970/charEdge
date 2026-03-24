@@ -1,0 +1,89 @@
+/* ProfileSection — CSS Module */
+.section { margin-bottom: var(--sp-6); }
+.sectionSm { margin-bottom: 24px; }
+
+/* Edit mode */
+.editHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--sp-5); padding-bottom: var(--sp-4);
+  border-bottom: 1px solid color-mix(in srgb, var(--tf-bd) 19%, transparent);
+}
+.editTitle { font-size: 15px; font-weight: 800; color: var(--tf-t1); font-family: var(--tf-font); }
+.editBtns { display: flex; gap: var(--sp-2); }
+.nameGrid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); margin-bottom: var(--sp-4); }
+.fieldLabel { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--tf-t2); font-family: var(--tf-font); display: block; margin-bottom: var(--sp-1); }
+.bioWrap { margin-bottom: var(--sp-5); }
+.bioCount { font-size: var(--fs-xs); color: var(--tf-t3); text-align: right; margin-top: 2px; font-family: var(--tf-mono); }
+.identitySection { padding-top: var(--sp-4); border-top: 1px solid color-mix(in srgb, var(--tf-bd) 19%, transparent); }
+.identityTitle { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--tf-t1); margin-bottom: var(--sp-3); font-family: var(--tf-font); }
+.fieldGroup { margin-bottom: var(--sp-4); }
+.fieldLabelSm { font-size: var(--fs-2xs); font-weight: var(--fw-semibold); color: var(--tf-t3); margin-bottom: var(--sp-1_5); font-family: var(--tf-font); }
+.chipRow { display: flex; gap: var(--sp-1_5); flex-wrap: wrap; }
+.chipBtn {
+  padding: var(--sp-1_5) 14px; border-radius: var(--br-sm);
+  font-size: var(--fs-sm); font-weight: var(--fw-semibold); font-family: var(--tf-font);
+  cursor: pointer; transition: all var(--dur-normal);
+}
+.chipBtnActive { border: 1px solid var(--tf-accent); background: color-mix(in srgb, var(--tf-accent) 7%, transparent); color: var(--tf-accent); }
+.chipBtnInactive { border: 1px solid var(--tf-bd); background: transparent; color: var(--tf-t2); }
+
+/* Hero display */
+.heroCard { padding: 0; overflow: hidden; }
+.heroPad { padding: 24px 24px 20px; }
+.heroRow { display: flex; align-items: flex-start; gap: var(--sp-4); }
+.identity { flex: 1; min-width: 0; }
+.displayName {
+  font-size: 20px; font-weight: 800; font-family: var(--tf-font); color: var(--tf-t1);
+  line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.metaRow {
+  font-size: var(--fs-sm); color: var(--tf-t3); font-family: var(--tf-mono); margin-top: 2px;
+  display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap;
+}
+.dotSep { width: 3px; height: 3px; border-radius: 50%; background: color-mix(in srgb, var(--tf-t3) 38%, transparent); }
+.bio { font-size: var(--fs-sm); color: var(--tf-t2); font-family: var(--tf-font); margin-top: var(--sp-2); line-height: 1.4; }
+.tagRow { display: flex; gap: var(--sp-1_5); flex-wrap: wrap; margin-top: 10px; }
+.tag {
+  padding: 2px var(--sp-2); border-radius: var(--br-pill);
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold); font-family: var(--tf-mono);
+}
+.tagAccent { background: color-mix(in srgb, var(--tf-accent) 7%, transparent); color: var(--tf-accent); }
+.tagMuted { background: color-mix(in srgb, var(--tf-bd) 12%, transparent); color: var(--tf-t2); }
+.editBtn {
+  padding: var(--sp-1_5) 14px; border-radius: var(--br-sm);
+  border: 1px solid var(--tf-bd); background: transparent;
+  color: var(--tf-t2); font-size: var(--fs-sm); font-weight: var(--fw-semibold); font-family: var(--tf-font);
+  cursor: pointer; display: flex; align-items: center; gap: var(--sp-1);
+  transition: all var(--dur-normal); flex-shrink: 0;
+}
+
+/* Completeness */
+.completenessWrap { margin-top: var(--sp-4); }
+.completenessHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--sp-1); }
+.completenessLabel { font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--tf-t3); font-family: var(--tf-mono); }
+.completenessLink {
+  background: none; border: none; padding: 0;
+  color: var(--tf-accent); font-size: var(--fs-xs); font-weight: var(--fw-semibold); font-family: var(--tf-font);
+  cursor: pointer;
+}
+.progressTrack { height: 4px; border-radius: 2px; background: color-mix(in srgb, var(--tf-bd) 19%, transparent); overflow: hidden; }
+.progressFill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+
+/* Trader Card */
+.traderCardHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-3); }
+.traderCardTitle { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--tf-t1); font-family: var(--tf-font); }
+.traderCardHint { font-size: var(--fs-2xs); color: var(--tf-t3); font-family: var(--tf-font); }
+.traderPreview {
+  padding: var(--sp-4); border-radius: var(--br-md);
+  border: 1px solid color-mix(in srgb, var(--tf-accent) 8%, transparent);
+}
+.traderPreviewRow { display: flex; align-items: center; gap: var(--sp-3); }
+.traderName { font-size: 14px; font-weight: var(--fw-bold); color: var(--tf-t1); font-family: var(--tf-font); }
+.traderMeta { font-size: var(--fs-2xs); color: var(--tf-t3); font-family: var(--tf-mono); }
+.traderBio { font-size: var(--fs-2xs); color: var(--tf-t2); font-family: var(--tf-font); margin-top: 10px; line-height: 1.4; font-style: italic; }
+.traderTags { display: flex; gap: var(--sp-1_5); margin-top: 10px; flex-wrap: wrap; }
+.traderTag {
+  padding: 1px var(--sp-1_5); border-radius: var(--br-sm);
+  background: color-mix(in srgb, var(--tf-accent) 6%, transparent); color: var(--tf-accent);
+  font-size: var(--fs-3xs); font-weight: var(--fw-semibold); font-family: var(--tf-mono);
+}

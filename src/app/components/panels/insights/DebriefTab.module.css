@@ -1,0 +1,45 @@
+/* DebriefTab — CSS Module */
+.root { padding: 10px; }
+.modeRow { display: flex; align-items: center; gap: var(--sp-1_5); margin-bottom: 10px; }
+.modeBtn {
+  padding: var(--sp-1) 10px; border-radius: var(--br-sm);
+  font-size: var(--fs-2xs); font-weight: var(--fw-semibold);
+  cursor: pointer;
+}
+.modeBtnActive { background: color-mix(in srgb, var(--tf-accent) 12%, transparent); border: 1px solid var(--tf-accent); color: var(--tf-accent); }
+.modeBtnInactive { background: transparent; border: 1px solid var(--tf-bd); color: var(--tf-t3); }
+.dateNav { margin-left: auto; display: flex; align-items: center; gap: var(--sp-1); }
+.navBtn { background: none; border: none; color: var(--tf-t3); cursor: pointer; font-size: 14px; }
+.navBtnDisabled { color: var(--tf-bd); }
+.dateLabel { font-size: var(--fs-2xs); color: var(--tf-t1); font-family: var(--tf-mono); min-width: 80px; text-align: center; }
+
+.empty { padding: var(--sp-6); text-align: center; color: var(--tf-t3); }
+.emptyIcon { font-size: 24px; margin-bottom: var(--sp-2); }
+.emptyText { font-size: var(--fs-sm); }
+
+.headline {
+  padding: 10px var(--sp-3); background: var(--tf-sf);
+  border-radius: var(--br-md); margin-bottom: 10px;
+  font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--tf-t1);
+}
+.gradeBadge { float: right; font-size: var(--fs-sm); font-family: var(--tf-mono); font-weight: 800; }
+
+.section { margin-bottom: var(--sp-2); }
+.sectionTitle { font-size: var(--fs-xs); font-weight: var(--fw-bold); color: var(--tf-t3); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
+.sectionItem { font-size: var(--fs-2xs); color: var(--tf-t2); padding: 2px 0; line-height: var(--lh-normal); }
+
+.obsSection { margin-top: var(--sp-2); }
+.obsTitle { font-size: var(--fs-xs); font-weight: var(--fw-bold); color: var(--tf-t3); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: var(--sp-1); }
+.obsCard {
+  font-size: var(--fs-2xs); padding: 5px var(--sp-2); margin-bottom: 3px;
+  border-radius: var(--br-sm); color: var(--tf-t2); line-height: 1.4;
+  border-left: 3px solid var(--obs-color, var(--tf-accent));
+  background: color-mix(in srgb, var(--obs-color, var(--tf-accent)) 6%, transparent);
+}
+
+/* Weekly */
+.weekGrid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-1_5); margin-bottom: 10px; }
+.statCard { padding: var(--sp-2) 10px; background: var(--tf-sf); border-radius: var(--br-md); }
+.statLabel { font-size: var(--fs-3xs); color: var(--tf-t3); text-transform: uppercase; }
+.statValue { font-size: 14px; font-weight: var(--fw-bold); font-family: var(--tf-mono); margin-top: 2px; }
+.weekNote { font-size: var(--fs-2xs); color: var(--tf-t2); margin-bottom: var(--sp-1); }

@@ -6,9 +6,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { C, F, M } from '@/constants.js';
+import { C } from '@/constants.js';
 import useCopilotChat from '@/hooks/useCopilotChat';
 import AIOrb from '../design/AIOrb.jsx';
+import st from './MsgBubble.module.css';
 
 // ─── Lightweight Markdown Parser ─────────────────────────────────
 
@@ -23,7 +24,7 @@ function parseMarkdown(text) {
       return (
         <pre key={pi} style={{
           background: C.sf, padding: '8px 10px', borderRadius: 6,
-          fontSize: 10, fontFamily: M, lineHeight: 1.5,
+          fontSize: 10, fontFamily: 'var(--tf-mono)', lineHeight: 1.5,
           overflowX: 'auto', margin: '4px 0', border: `1px solid ${C.bd}`,
           whiteSpace: 'pre-wrap', wordBreak: 'break-word',
         }}>{inner.trim()}</pre>
@@ -60,7 +61,7 @@ function renderInline(text) {
     if (p.startsWith('`') && p.endsWith('`'))
       return <code key={i} style={{
         background: C.sf, padding: '1px 4px', borderRadius: 3,
-        fontSize: '0.9em', fontFamily: M,
+        fontSize: '0.9em', fontFamily: 'var(--tf-mono)',
       }}>{p.slice(1, -1)}</code>;
     return p;
   });

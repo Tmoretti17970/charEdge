@@ -1,0 +1,34 @@
+/* DrawingSidebar — CSS Module (Sprint 23) */
+
+.dragHandle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: grab;
+  padding: 0 2px 3px;
+  border-bottom: 1px solid var(--tf-bd);
+  margin-bottom: 3px;
+  user-select: none;
+}
+.gripDots { font-size: 8px; color: var(--tf-t3); letter-spacing: 2px; }
+.gripLabel { font-size: 8px; color: var(--tf-t3); font-weight: 600; }
+.gripClose {
+  background: none;
+  border: none;
+  color: var(--tf-t3);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  line-height: 1;
+}
+.utilRow { display: flex; gap: 2px; margin-bottom: 3px; justify-content: flex-end; }
+.catRow { display: flex; gap: 1px; flex-wrap: wrap; }
+.toolGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  margin-top: 3px;
+  padding-top: 3px;
+  border-top: 1px solid var(--tf-bd);
+}
+.fallbackIcon { font-size: 10px; }

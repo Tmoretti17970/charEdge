@@ -46,17 +46,13 @@ const WorkspacePresets = React.lazy(() => import('./panels/WorkspacePresets.jsx'
 function ToolbarBtn({ children, active, onClick, disabled, title, style, 'aria-label': ariaLabel }) {
   return (
     <button
-      className="tf-chart-toolbar-btn"
+      className={`tf-chart-toolbar-btn ${disabled ? st.toolbarBtnDisabled : ''}`}
       data-active={active || undefined}
       onClick={onClick}
       disabled={disabled}
       title={title}
       aria-label={ariaLabel || title}
-      style={{
-        opacity: disabled ? 0.4 : 1,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        ...style,
-      }}
+      style={style}
     >
       {children}
     </button>
@@ -106,19 +102,16 @@ function ChartColorPicker() {
                 key={preset.id}
                 onClick={() => { setChartColorPreset(preset.id); setOpen(false); }}
                 className={st.colorPresetBtn}
-                style={{
-                  background: active ? `${C.b}20` : 'transparent',
-                  outline: active ? `1px solid ${C.b}` : 'none',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = active ? `${C.b}30` : `${C.t3}15`; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = active ? `${C.b}20` : 'transparent'; }}
+                data-active={active ? 'true' : undefined}
+                onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = `${C.t3}15`; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = ''; }}
               >
                 <div className={st.colorPresetBars}>
                   {[preset.bull, preset.bear, preset.bull, preset.bear].map((clr, i) => (
                     <div key={i} className={st.colorPresetBar} style={{ height: [12, 16, 10, 14][i], background: clr }} />
                   ))}
                 </div>
-                <span className={st.colorPresetLabel} style={{ fontWeight: active ? 600 : 400, color: active ? C.t1 : C.t2 }}>
+                <span className={st.colorPresetLabel} data-active={active ? 'true' : 'false'}>
                   {preset.label}
                 </span>
                 {active && <span className={st.colorPresetCheck}>✓</span>}
@@ -166,20 +159,8 @@ function TimeframeCapsule({ tf, setTf, showCustomTf, toggleCustomTf }) {
       {/* Animated capsule background */}
       {capsule.ready && (
         <div
-          className="tf-capsule-slider"
-          style={{
-            position: 'absolute',
-            top: 3,
-            left: capsule.left,
-            width: capsule.width,
-            height: 'calc(100% - 6px)',
-            borderRadius: 7,
-            background: `rgba(232, 100, 44, 0.15)`,
-            boxShadow: `0 1px 3px rgba(0,0,0,0.2), inset 0 0 8px rgba(232,100,44,0.05)`,
-            transition: 'left 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.28s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            pointerEvents: 'none',
-            zIndex: 0,
-          }}
+          className={`tf-capsule-slider ${st.capsuleSlider}`}
+          style={{ left: capsule.left, width: capsule.width }}
         />
       )}
       {TFS.map((t) => (
@@ -188,11 +169,9 @@ function TimeframeCapsule({ tf, setTf, showCustomTf, toggleCustomTf }) {
           ref={(el) => {
             pillRefs.current[t.id] = el;
           }}
-          className="tf-chart-tf-pill"
+          className={`tf-chart-tf-pill ${st.tfPill}`}
           data-active={tf === t.id || undefined}
           onClick={() => setTf(t.id)}
-          style={{ position: 'relative', zIndex: 1 }}
-
         >
           {t.label}
         </button>
@@ -200,11 +179,10 @@ function TimeframeCapsule({ tf, setTf, showCustomTf, toggleCustomTf }) {
       {/* Custom Timeframe */}
       <div ref={customTfRef} className={st.tfPillRelative}>
         <button
-          className="tf-chart-tf-pill"
           data-active={showCustomTf || undefined}
           onClick={toggleCustomTf}
           title="Custom Timeframe"
-          style={{ fontSize: 11 }}
+          className={`tf-chart-tf-pill ${st.customTfBtn}`}
         >
           +
         </button>
@@ -351,16 +329,10 @@ export default function UnifiedChartToolbar({
   return (
     <div
       ref={toolbarRef}
-      className="tf-chart-toolbar"
+      className={`tf-chart-toolbar ${isMobile ? st.toolbarMobile : st.toolbarDesktop}`}
       data-container="toolbar"
       role="toolbar"
       aria-label="Chart toolbar"
-      style={{
-        gap: isMobile ? 2 : 4,
-        ...(isMobile
-          ? { padding: '0 6px', height: 'auto', overflow: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' }
-          : {}),
-      }}
     >
       {/* P2 2.6: Compact mode indicator */}
       {isMobile && (
@@ -373,12 +345,12 @@ export default function UnifiedChartToolbar({
           className="tf-nav-capsule__ticker"
           title="Search Symbol (Ctrl+K)"
         >
-          <svg width="12" height="12" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.45 }}>
+          <svg width="12" height="12" viewBox="0 0 14 14" fill="none" className={st.searchIcon}>
             <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.3" fill="none" />
             <line x1="9.5" y1="9.5" x2="13" y2="13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
           </svg>
           {symbol}
-          <span style={{ fontSize: 7, opacity: 0.4 }}>▾</span>
+          <span className={st.tickerChevron}>▾</span>
         </button>
         <div className="tf-nav-capsule__divider" />
         <TimeframeCapsule tf={tf} setTf={setTf} showCustomTf={showCustomTf} toggleCustomTf={toggleCustomTf} />
@@ -434,7 +406,6 @@ export default function UnifiedChartToolbar({
           active={showIndicators}
           onClick={() => setShowIndicators(!showIndicators)}
           title="Indicators"
-          style={{ flexShrink: 0 }}
         >
           ƒx
         </ToolbarBtn>
@@ -451,14 +422,13 @@ export default function UnifiedChartToolbar({
             const acct = ACCOUNTS.find((a) => a.id === activeAccountId) || ACCOUNTS[0];
             return (
               <button
-                className="tf-trade-capsule__account"
+                className={`tf-trade-capsule__account ${st.acctColor}`}
                 onClick={toggleAccount}
                 title={`Trading as ${acct.label} — click to switch`}
-                style={{ color: acct.color }}
+                style={{ '--acct-color': acct.color }}
               >
                 <span
-                  className="tf-trade-capsule__account-dot"
-                  style={{ background: acct.color }}
+                  className={`tf-trade-capsule__account-dot ${st.acctDot}`}
                 />
                 {acct.label}
               </button>
@@ -494,9 +464,9 @@ export default function UnifiedChartToolbar({
               </button>
               <div className="tf-trade-capsule__sizer-divider" />
               <button
-                className="tf-trade-capsule__mode-toggle"
+                className={`tf-trade-capsule__mode-toggle ${st.modeToggleColor}`}
                 onClick={toggleSizeMode}
-                style={{ color: sizeMode === 'usd' ? 'var(--tf-bullish)' : 'var(--tf-accent)' }}
+                style={{ '--mode-color': sizeMode === 'usd' ? 'var(--tf-bullish)' : 'var(--tf-accent)' }}
                 title="Click to toggle USD ↔ QTY"
               >
                 {sizeMode === 'usd' ? '$' : qtyLabel.slice(0, 4).toUpperCase()}

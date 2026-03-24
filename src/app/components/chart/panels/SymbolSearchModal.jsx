@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { C, F, GLASS, DEPTH } from '@/constants.js';
+import s from './SymbolSearchModal.module.css';
 
 const RECENT_KEY = 'tf_recent_symbols';
 const MAX_RECENT = 8;
@@ -18,7 +18,7 @@ function getRecent() {
 }
 
 function addRecent(sym) {
-  const arr = getRecent().filter(s => s !== sym);
+  const arr = getRecent().filter(x => x !== sym);
   arr.unshift(sym);
   localStorage.setItem(RECENT_KEY, JSON.stringify(arr.slice(0, MAX_RECENT)));
 }
@@ -38,14 +38,13 @@ export default function SymbolSearchModal({ isOpen, onClose, onSelect, onSearch,
   const displayItems = useMemo(() => {
     if (query.length > 0 && results.length > 0) return results.map(r => ({ symbol: r.symbol || r.name || r.pair || String(r), name: r.description || r.displayName || r.name || '' }));
     if (query.length > 0) return [];
-    // Show recent + trending when no query
     const items = [];
     if (recent.length > 0) {
       items.push({ header: 'RECENT' });
-      recent.forEach(s => items.push({ symbol: s, name: '' }));
+      recent.forEach(x => items.push({ symbol: x, name: '' }));
     }
     items.push({ header: 'TRENDING' });
-    TRENDING.filter(s => !recent.includes(s)).forEach(s => items.push({ symbol: s, name: '' }));
+    TRENDING.filter(x => !recent.includes(x)).forEach(x => items.push({ symbol: x, name: '' }));
     return items;
   }, [query, results, recent]);
 
@@ -98,40 +97,11 @@ export default function SymbolSearchModal({ isOpen, onClose, onSelect, onSearch,
   if (!isOpen) return null;
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9999,
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        paddingTop: '12vh',
-        background: GLASS.backdrop,
-        backdropFilter: GLASS.blurSm,
-        WebkitBackdropFilter: GLASS.blurSm,
-        animation: 'tfFadeIn 0.15s ease',
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          width: '100%',
-          maxWidth: 480,
-          background: GLASS.heavy,
-          backdropFilter: GLASS.blurLg,
-          WebkitBackdropFilter: GLASS.blurLg,
-          border: GLASS.border,
-          borderRadius: 16,
-          boxShadow: `${DEPTH[4]}, ${DEPTH.innerGlow}`,
-          overflow: 'hidden',
-          animation: 'tfModalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-        }}
-      >
+    <div onClick={onClose} className={s.backdrop}>
+      <div onClick={e => e.stopPropagation()} className={s.dialog}>
         {/* Search Input */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 18px 12px', borderBottom: GLASS.border }}>
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ flexShrink: 0, opacity: 0.5, color: C.t2 }}>
+        <div className={s.searchRow}>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className={s.searchIcon}>
             <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.5" fill="none" />
             <line x1="12" y1="12" x2="16" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
@@ -141,41 +111,25 @@ export default function SymbolSearchModal({ isOpen, onClose, onSelect, onSearch,
             onChange={e => { setQuery(e.target.value.toUpperCase()); setSelectedIdx(0); }}
             onKeyDown={handleKeyDown}
             placeholder="Search symbol…"
-            style={{
-              flex: 1,
-              background: 'transparent',
-              border: 'none',
-              outline: 'none',
-              color: C.t1,
-              fontFamily: F,
-              fontSize: 16,
-              fontWeight: 500,
-              letterSpacing: '0.5px',
-            }}
+            className={s.searchInput}
           />
-          <kbd style={{
-            padding: '2px 6px', borderRadius: 5,
-            background: C.sf2, border: `1px solid ${C.bd}`,
-            fontSize: 10, color: C.t3, fontFamily: F,
-          }}>ESC</kbd>
+          <kbd className={s.escBadge}>ESC</kbd>
         </div>
 
         {/* Results */}
-        <div style={{ maxHeight: 360, overflowY: 'auto', padding: '6px 0' }}>
-          {loading && <div style={{ padding: '12px 18px', fontSize: 12, color: C.t3, fontFamily: F }}>Searching…</div>}
+        <div className={s.results}>
+          {loading && <div className={s.loadingMsg}>Searching…</div>}
           {!loading && displayItems.length === 0 && query.length > 0 && (
-            <div style={{ padding: '16px 18px', fontSize: 12, color: C.t3, fontFamily: F, textAlign: 'center' }}>
+            <div className={s.emptyMsg}>
               No results. Press Enter to use "{query}"
             </div>
           )}
           {displayItems.map((item, _i) => {
             if (item.header) {
               return (
-                <div key={`h-${item.header}`} style={{
-                  padding: '8px 18px 4px',
-                  fontSize: 9, fontWeight: 700, color: C.b,
-                  letterSpacing: '0.8px', fontFamily: F,
-                }}>{item.header}</div>
+                <div key={`h-${item.header}`} className={s.sectionHeader}>
+                  {item.header}
+                </div>
               );
             }
             const selectableIdx = selectableItems.indexOf(item);
@@ -186,38 +140,20 @@ export default function SymbolSearchModal({ isOpen, onClose, onSelect, onSearch,
                 key={item.symbol}
                 onClick={() => handleSelect(item.symbol)}
                 onMouseEnter={() => setSelectedIdx(selectableIdx)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  width: '100%',
-                  padding: '8px 18px',
-                  background: isSelected ? C.sf2 : 'transparent',
-                  border: 'none',
-                  borderRadius: 0,
-                  color: isActive ? C.b : C.t1,
-                  fontFamily: F,
-                  fontSize: 13,
-                  fontWeight: isActive ? 700 : 500,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'background 0.1s ease',
-                }}
+                className={s.resultItem}
+                data-selected={isSelected || undefined}
+                data-active={isActive || undefined}
               >
-                <span style={{ fontWeight: 700, letterSpacing: '0.3px', minWidth: 50 }}>{item.symbol}</span>
-                {item.name && <span style={{ fontSize: 11, color: C.t3, flex: 1 }}>{item.name}</span>}
-                {isActive && <span style={{ fontSize: 10, color: C.b, opacity: 0.7 }}>●</span>}
+                <span className={s.resultSymbol}>{item.symbol}</span>
+                {item.name && <span className={s.resultName}>{item.name}</span>}
+                {isActive && <span className={s.activeDot}>●</span>}
               </button>
             );
           })}
         </div>
 
         {/* Footer hint */}
-        <div style={{
-          display: 'flex', gap: 12, padding: '8px 18px',
-          borderTop: GLASS.border,
-          fontSize: 10, color: C.t3, fontFamily: F,
-        }}>
+        <div className={s.footer}>
           <span>↑↓ Navigate</span>
           <span>↵ Select</span>
           <span>ESC Close</span>

@@ -1,0 +1,381 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — NotificationsSection CSS Module
+   Migrated from inline styles
+   ═══════════════════════════════════════════════════════════════════ */
+
+.sectionWrap { margin-bottom: 40px; }
+
+/* ─── Card Padding Utils ─── */
+.cardPad { padding: 16px; margin-bottom: 12px; }
+.cardPadLg { padding: 20px; margin-bottom: 12px; }
+.cardPadFlush { padding: 0; overflow: hidden; }
+.cardPadNoMb { padding: 16px; }
+.cardPadTop { padding: 16px; margin-top: 12px; }
+
+/* ─── Flex Layouts ─── */
+.rowBetween { display: flex; align-items: center; justify-content: space-between; }
+.rowGap { display: flex; align-items: center; gap: 10px; }
+.rowGapSm { display: flex; align-items: center; gap: 8px; }
+.rowGapTiny { display: flex; align-items: center; gap: 6px; }
+.colGapSm { display: flex; flex-direction: column; gap: 0; }
+.flexWrapGap { display: flex; flex-wrap: wrap; gap: 6px; }
+.flexGapSm { display: flex; gap: 6px; }
+.flexGapMd { display: flex; gap: 12px; align-items: center; }
+.flex1 { flex: 1; min-width: 0; }
+
+/* ─── Typography ─── */
+.heading { font-size: 13px; font-weight: 600; color: var(--tf-t1); font-family: var(--tf-font); }
+.headingLg { font-size: 16px; font-weight: 700; color: var(--tf-t1); font-family: var(--tf-font); }
+.subHeading { font-size: 12px; font-weight: 600; color: var(--tf-t1); font-family: var(--tf-font); margin-bottom: 10px; }
+.bodyText { font-size: 12px; color: var(--tf-t3); font-family: var(--tf-font); line-height: 1.5; }
+.hint { font-size: 11px; color: var(--tf-t3); font-family: var(--tf-font); margin-top: 2px; }
+.tinyHint { font-size: 10px; color: var(--tf-t3); font-family: var(--tf-mono, 'JetBrains Mono', monospace); }
+.tinyHintMt { font-size: 10px; color: var(--tf-t3); font-family: var(--tf-mono, 'JetBrains Mono', monospace); margin-top: 6px; }
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  letter-spacing: 0.5px;
+  padding: 8px 0 4px;
+  margin-bottom: 4px;
+}
+.sectionLabelInCard {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.previewLabel {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.iconSm { font-size: 14px; width: 20px; text-align: center; }
+.iconMd { font-size: 16px; width: 24px; text-align: center; }
+.iconLg { font-size: 24px; }
+.iconXl { font-size: 22px; margin-top: 1px; }
+
+/* ─── Back Button ─── */
+.backBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  border: none;
+  background: none;
+  color: var(--tf-accent);
+  font-size: 12px;
+  font-family: var(--tf-font);
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+/* ─── Pause Duration Button ─── */
+.pauseBtn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--tf-bd);
+  background: var(--tf-sf);
+  color: var(--tf-t2);
+  font-size: 11px;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+/* ─── Pause Banner ─── */
+.pauseBanner {
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pauseBannerIcon { font-size: 14px; }
+.pauseBannerText { font-size: 11px; font-family: var(--tf-font); font-weight: 500; }
+.resumeBtn {
+  margin-left: auto;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 10px;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  cursor: pointer;
+}
+
+/* ─── Category Row ─── */
+.catRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+.catRow:hover { background: color-mix(in srgb, var(--tf-sf) 30%, transparent); }
+.catStatusIcon { font-size: 10px; width: 14px; text-align: center; }
+.catLabel { font-size: 13px; font-weight: 600; color: var(--tf-t1); font-family: var(--tf-font); }
+.catCountBadge {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  padding: 1px 5px;
+  border-radius: 99px;
+}
+.catSummary { font-size: 11px; color: var(--tf-t3); font-family: var(--tf-mono, 'JetBrains Mono', monospace); margin-top: 1px; }
+.catChevron { font-size: 14px; color: var(--tf-t3); }
+
+/* ─── Recommendation Banner ─── */
+.recBanner {
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.recBannerIcon { font-size: 13px; }
+.recBannerText { flex: 1; font-size: 11px; color: var(--tf-accent); font-family: var(--tf-font); }
+.recTurnOnBtn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: none;
+  background: var(--tf-accent);
+  color: #fff;
+  font-size: 10px;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  font-weight: 600;
+  cursor: pointer;
+}
+.recDismissBtn {
+  background: none;
+  border: none;
+  color: var(--tf-t3);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+/* ─── Frequency Button ─── */
+.freqBtn {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: var(--tf-font);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+/* ─── Asset Toggle ─── */
+.assetToggle {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+/* ─── Asset Class Section ─── */
+.assetClassRow { margin-bottom: 12px; }
+.assetClassLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tf-t2);
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+/* ─── Event Row ─── */
+.eventRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+}
+.eventRowSm { padding: 8px 0; }
+.eventLabel { font-size: 12px; font-weight: 500; color: var(--tf-t1); font-family: var(--tf-font); }
+.eventDesc { font-size: 10px; color: var(--tf-t3); font-family: var(--tf-mono, 'JetBrains Mono', monospace); }
+.eventLabelPlain { font-size: 12px; color: var(--tf-t1); font-family: var(--tf-font); }
+.alwaysOnBadge {
+  margin-left: auto;
+  font-size: 9px;
+  color: var(--tf-green);
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  font-weight: 600;
+}
+.requiredBadge {
+  font-size: 9px;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  color: var(--tf-green);
+  margin-left: 6px;
+  font-weight: 600;
+}
+
+/* ─── Channel Row ─── */
+.channelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+}
+.channelLabel { font-size: 13px; font-weight: 500; color: var(--tf-t1); font-family: var(--tf-font); }
+
+/* ─── Preview Card ─── */
+.previewWrap { margin-top: 12px; transition: opacity 0.4s ease, transform 0.4s ease; }
+.previewMockup {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.previewCatLabel {
+  font-size: 9px;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  color: var(--tf-accent);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.previewTitle { font-size: 12px; font-weight: 600; color: var(--tf-t1); font-family: var(--tf-font); }
+.previewBody { font-size: 11px; color: var(--tf-t3); font-family: var(--tf-font); margin-top: 2px; line-height: 1.4; }
+.previewTime { font-size: 10px; color: var(--tf-t3); font-family: var(--tf-mono, 'JetBrains Mono', monospace); margin-top: 4px; opacity: 0.6; }
+
+/* ─── Toggle Switch ─── */
+.toggleTrack {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  border: none;
+  padding: 2px;
+  position: relative;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+.toggleThumb {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* ─── Time Input ─── */
+.timeLabel { display: flex; flex-direction: column; gap: 2px; }
+.timeLabelText { font-size: 10px; color: var(--tf-t3); font-family: var(--tf-mono, 'JetBrains Mono', monospace); }
+.timeArrow { color: var(--tf-t3); font-size: 11px; }
+.timeInput {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--tf-bd);
+  background: var(--tf-sf);
+  color: var(--tf-t1);
+  font-size: 12px;
+  font-family: var(--tf-mono, 'JetBrains Mono', monospace);
+  outline: none;
+}
+
+/* ─── Gamification Row ─── */
+.gamRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+.gamLabel { font-size: 12px; font-weight: 600; color: var(--tf-t1); font-family: var(--tf-font); }
+.gamDesc { font-size: 10px; color: var(--tf-t3); font-family: var(--tf-mono, 'JetBrains Mono', monospace); }
+
+.rateNote { font-size: 10px; color: var(--tf-t3); font-family: var(--tf-mono); margin-top: 10px; }
+
+/* ─── Sprint 24: Token-based inline style migration ───────────── */
+
+/* Pause banner */
+.pauseBanner {
+  background: rgba(240,182,78,0.07);
+  border: 1px solid rgba(240,182,78,0.19);
+}
+.pauseBannerText { color: var(--tf-y); }
+.resumeBtn { border: 1px solid rgba(240,182,78,0.25); color: var(--tf-y); }
+
+/* Category row separator */
+.catRow { border-bottom: 1px solid var(--tf-bd-12, rgba(128,128,128,0.07)); }
+.catRow:last-child { border-bottom: none; }
+
+/* Category status icon — data-driven */
+.catStatusIcon[data-off="true"] { color: var(--tf-t3); opacity: 0.4; }
+.catStatusIcon:not([data-off="true"]) { color: var(--tf-g); opacity: 0.7; }
+
+/* Category count badge — data-driven */
+.catCountBadge[data-off="true"] { background: rgba(255,69,58,0.07); color: var(--tf-r); }
+.catCountBadge:not([data-off="true"]) { background: rgba(49,209,88,0.07); color: var(--tf-g); }
+
+/* Category summary pause */
+.catSummary[data-paused="true"] { opacity: 0.5; }
+
+/* Recommendation banner */
+.recBanner { background: var(--tf-brand-08, rgba(59,130,246,0.05)); border: 1px solid var(--tf-brand-15, rgba(59,130,246,0.09)); }
+
+/* Frequency button */
+.freqBtn {
+  border: 1px solid var(--tf-bd); background: var(--tf-sf); color: var(--tf-t2); font-weight: 400;
+}
+.freqBtn[data-active="true"] {
+  border-color: var(--tf-brand); background: var(--tf-brand-08, rgba(59,130,246,0.07));
+  color: var(--tf-brand); font-weight: 600;
+}
+
+/* Asset toggle */
+.assetToggle {
+  border: 1px solid var(--tf-bd); background: var(--tf-sf); color: var(--tf-t3);
+}
+.assetToggle[data-active="true"] {
+  border-color: rgba(49,209,88,0.25); background: rgba(49,209,88,0.06); color: var(--tf-g);
+}
+
+/* Event row separator */
+.eventRow { border-bottom: 1px solid var(--tf-bd-12, rgba(128,128,128,0.07)); }
+.eventRow:last-child { border-bottom: none; }
+
+/* Channel row separator */
+.channelRow { border-bottom: 1px solid var(--tf-bd-12, rgba(128,128,128,0.09)); }
+.channelRow:last-child { border-bottom: none; }
+
+/* Toggle switch data-driven */
+.toggleTrack[data-checked="true"] { background: var(--tf-brand); }
+.toggleTrack:not([data-checked="true"]) { background: rgba(78,82,102,0.19); }
+.toggleTrack[data-disabled="true"] { cursor: not-allowed; opacity: 0.5; }
+.toggleThumb[data-checked="true"] { transform: translateX(20px); }
+
+/* Preview card */
+.previewCard { padding: 16px; background: var(--tf-sf); border: 1px solid var(--tf-bd-30, rgba(128,128,128,0.19)); backdrop-filter: blur(12px); }
+.previewMockup { background: var(--tf-bg2, var(--tf-bg)); border: 1px solid var(--tf-bd-12, rgba(128,128,128,0.07)); }
+.iconXlShadow { filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1)); }
+
+/* Gamification row separator */
+.gamRow { border-bottom: 1px solid var(--tf-bd-12, rgba(128,128,128,0.09)); }
+.gamRow:last-child { border-bottom: none; }
+
+/* Card inline padding (used instead of style={{ padding: 16 }}) */
+.cardInline { padding: 16px; margin-bottom: 12px; }

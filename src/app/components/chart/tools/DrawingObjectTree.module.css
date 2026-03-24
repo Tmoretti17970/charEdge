@@ -168,3 +168,9 @@
   padding: 3px 10px;
   cursor: pointer;
 }
+
+/* ─── Inline style migration classes ─── */
+.iconBtn[data-active="true"] { color: #2962FF; opacity: 1; }
+.iconBtn:not([data-active="true"]) { color: #787B86; opacity: 0.6; }
+.iconBtnDanger { color: #EF5350 !important; }
+.drawingRow { border-left: 3px solid var(--row-color, #2962FF); }

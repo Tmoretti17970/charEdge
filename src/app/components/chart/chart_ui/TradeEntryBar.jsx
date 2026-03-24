@@ -5,11 +5,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useMemo } from 'react';
-import { C, M } from '@/constants.js';
 import { calcRiskReward, calcPositionSize } from '../../../../state/chart/tradeSlice';
 import Icon from '../../design/Icon.jsx';
 import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 import { useChartTradeStore } from '../../../../state/chart/useChartTradeStore';
+import s from './TradeEntryBar.module.css';
 
 const STEPS = [
   { id: 'entry', label: '1. Entry', icon: 'pin' },
@@ -19,15 +19,15 @@ const STEPS = [
 ];
 
 export default function TradeEntryBar() {
-  const tradeMode = useChartFeaturesStore((s) => s.tradeMode);
-  const tradeStep = useChartFeaturesStore((s) => s.tradeStep);
-  const tradeSide = useChartFeaturesStore((s) => s.tradeSide);
-  const pendingEntry = useChartTradeStore((s) => s.pendingEntry);
-  const pendingSL = useChartTradeStore((s) => s.pendingStopLoss);
-  const pendingTP = useChartTradeStore((s) => s.pendingTakeProfit);
-  const setTradeSide = useChartTradeStore((s) => s.setTradeSide);
-  const exitTradeMode = useChartFeaturesStore((s) => s.exitTradeMode);
-  const riskAmount = useChartTradeStore((s) => s.riskAmount);
+  const tradeMode = useChartFeaturesStore((st) => st.tradeMode);
+  const tradeStep = useChartFeaturesStore((st) => st.tradeStep);
+  const tradeSide = useChartFeaturesStore((st) => st.tradeSide);
+  const pendingEntry = useChartTradeStore((st) => st.pendingEntry);
+  const pendingSL = useChartTradeStore((st) => st.pendingStopLoss);
+  const pendingTP = useChartTradeStore((st) => st.pendingTakeProfit);
+  const setTradeSide = useChartTradeStore((st) => st.setTradeSide);
+  const exitTradeMode = useChartFeaturesStore((st) => st.exitTradeMode);
+  const riskAmount = useChartTradeStore((st) => st.riskAmount);
 
   const rr = useMemo(
     () => calcRiskReward(pendingEntry?.price, pendingSL?.price, pendingTP?.price, tradeSide),
@@ -42,95 +42,55 @@ export default function TradeEntryBar() {
   if (!tradeMode) return null;
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '4px 12px',
-        background: C.bg2,
-        borderBottom: `1px solid ${C.bd}`,
-        flexWrap: 'wrap',
-        minHeight: 36,
-      }}
-    >
+    <div className={s.bar}>
       {/* Side toggle */}
-      <div style={{ display: 'flex', gap: 2 }}>
-        {['long', 'short'].map((s) => (
+      <div className={s.sideGroup}>
+        {['long', 'short'].map((side) => (
           <button
-            className="tf-btn"
-            key={s}
-            onClick={() => setTradeSide(s)}
-            style={{
-              padding: '3px 10px',
-              fontSize: 9,
-              fontWeight: 800,
-              borderRadius: 4,
-              cursor: 'pointer',
-              textTransform: 'uppercase',
-              fontFamily: M,
-              border: `1px solid ${tradeSide === s ? (s === 'long' ? C.g : C.r) : C.bd}`,
-              background: tradeSide === s ? (s === 'long' ? C.g + '15' : C.r + '15') : 'transparent',
-              color: tradeSide === s ? (s === 'long' ? C.g : C.r) : C.t3,
-            }}
+            className={s.sideBtn}
+            key={side}
+            onClick={() => setTradeSide(side)}
+            data-active={tradeSide === side || undefined}
+            data-side={side}
           >
-            <Icon name={s === 'long' ? 'long' : 'short'} size={9} /> {s}
+            <Icon name={side === 'long' ? 'long' : 'short'} size={9} /> {side}
           </button>
         ))}
       </div>
 
-      <div style={{ width: 1, height: 20, background: C.bd }} />
+      <div className={s.divider} />
 
       {/* Step indicators */}
       {STEPS.map((step, i) => {
         const isCurrent = step.id === tradeStep;
-        const isDone = STEPS.findIndex((s) => s.id === tradeStep) > i;
+        const isDone = STEPS.findIndex((st) => st.id === tradeStep) > i;
+        const state = isCurrent ? 'current' : isDone ? 'done' : undefined;
         return (
-          <div
-            key={step.id}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 3,
-              padding: '2px 6px',
-              borderRadius: 4,
-              background: isCurrent ? C.b + '15' : isDone ? C.g + '08' : 'transparent',
-              border: `1px solid ${isCurrent ? C.b + '40' : isDone ? C.g + '20' : 'transparent'}`,
-            }}
-          >
-            <span style={{ fontSize: 10 }}>{isDone ? <Icon name="check" size={10} color={C.g} /> : <Icon name={step.icon} size={10} />}</span>
-            <span
-              style={{
-                fontSize: 9,
-                fontWeight: 600,
-                fontFamily: M,
-                color: isCurrent ? C.b : isDone ? C.g : C.t3,
-              }}
-            >
+          <div key={step.id} className={s.stepChip} data-state={state}>
+            <span className={s.stepIcon}>
+              {isDone ? <Icon name="check" size={10} /> : <Icon name={step.icon} size={10} />}
+            </span>
+            <span className={s.stepLabel} data-state={state}>
               {step.label}
             </span>
           </div>
         );
       })}
 
-      <div style={{ width: 1, height: 20, background: C.bd }} />
+      <div className={s.divider} />
 
       {/* Level readouts */}
-      <LevelChip label="E" value={pendingEntry?.price} color={C.info} />
-      <LevelChip label="SL" value={pendingSL?.price} color={C.r} />
-      <LevelChip label="TP" value={pendingTP?.price} color={C.g} />
+      <LevelChip label="E" value={pendingEntry?.price} color="var(--tf-info)" />
+      <LevelChip label="SL" value={pendingSL?.price} color="var(--tf-red)" />
+      <LevelChip label="TP" value={pendingTP?.price} color="var(--tf-green)" />
 
       {/* R:R display */}
       {rr?.rr > 0 && (
         <>
-          <div style={{ width: 1, height: 20, background: C.bd }} />
+          <div className={s.divider} />
           <span
-            style={{
-              fontSize: 12,
-              fontWeight: 800,
-              fontFamily: M,
-              color: rr.rr >= 2 ? C.g : rr.rr >= 1 ? C.y : C.r,
-            }}
+            className={s.rrValue}
+            data-quality={rr.rr >= 2 ? 'good' : rr.rr >= 1 ? 'neutral' : 'bad'}
           >
             {rr.rr}R
           </span>
@@ -139,23 +99,16 @@ export default function TradeEntryBar() {
 
       {/* Position size */}
       {pos?.shares > 0 && (
-        <span
-          style={{
-            fontSize: 9,
-            fontWeight: 600,
-            fontFamily: M,
-            color: C.t2,
-          }}
-        >
+        <span className={s.posInfo}>
           {pos.shares}sh · ${pos.actualRisk} risk
         </span>
       )}
 
       {/* Spacer */}
-      <div style={{ flex: 1 }} />
+      <div className={s.spacer} />
 
       {/* Instruction */}
-      <span style={{ fontSize: 9, color: C.t3, fontFamily: M, fontStyle: 'italic' }}>
+      <span className={s.hint}>
         {tradeStep === 'entry' && 'Click chart to set entry price'}
         {tradeStep === 'sl' && 'Click chart to set stop loss'}
         {tradeStep === 'tp' && 'Click chart to set target (or skip)'}
@@ -165,40 +118,15 @@ export default function TradeEntryBar() {
       {/* Skip TP */}
       {tradeStep === 'tp' && (
         <button
-          className="tf-btn"
+          className={s.skipBtn}
           onClick={() => useChartTradeStore.getState().setTP(pendingEntry?.price, 0)}
-          style={{
-            padding: '2px 8px',
-            fontSize: 9,
-            fontWeight: 600,
-            borderRadius: 3,
-            border: `1px solid ${C.bd}`,
-            background: 'transparent',
-            color: C.t3,
-            cursor: 'pointer',
-            fontFamily: M,
-          }}
         >
           Skip TP
         </button>
       )}
 
       {/* Exit */}
-      <button
-        className="tf-btn"
-        onClick={exitTradeMode}
-        style={{
-          padding: '3px 10px',
-          fontSize: 9,
-          fontWeight: 700,
-          borderRadius: 4,
-          border: `1px solid ${C.r}30`,
-          background: C.r + '10',
-          color: C.r,
-          cursor: 'pointer',
-          fontFamily: M,
-        }}
-      >
+      <button className={s.cancelBtn} onClick={exitTradeMode}>
         ✕ Cancel
       </button>
     </div>
@@ -208,15 +136,9 @@ export default function TradeEntryBar() {
 function LevelChip({ label, value, color }) {
   return (
     <span
-      style={{
-        fontSize: 9,
-        fontWeight: 700,
-        fontFamily: M,
-        padding: '1px 5px',
-        borderRadius: 3,
-        background: value ? color + '12' : 'transparent',
-        color: value ? color : C.t3,
-      }}
+      className={s.levelChip}
+      style={{ '--level-color': color }}
+      data-has-value={!!value}
     >
       {label}: {value ? value.toFixed(2) : '—'}
     </span>

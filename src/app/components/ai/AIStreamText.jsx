@@ -9,7 +9,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useEffect, useRef } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
+import st from './AIStreamText.module.css';
 
 /** Streaming text with animated cursor */
 export default function AIStreamText({ text, isStreaming = false, style = {} }) {
@@ -31,7 +32,7 @@ export default function AIStreamText({ text, isStreaming = false, style = {} }) 
   return (
     <div style={{
       fontSize: 12,
-      fontFamily: F,
+      fontFamily: 'var(--tf-font)',
       color: C.t2,
       lineHeight: 1.6,
       letterSpacing: '0.01em',

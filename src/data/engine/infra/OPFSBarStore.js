@@ -239,10 +239,20 @@ class OPFSBarStore {
         if (buffer.byteLength > 0) {
           const bars = _decodeBinary(buffer);
           if (bars === null) {
-            // CRC32 mismatch — corrupt file, auto-delete and re-fetch
+            // CRC32 mismatch — corrupt file, auto-delete and signal for re-fetch
             logger.data.warn(`[OPFSBarStore] Corrupt file ${binName}, deleting`);
             // eslint-disable-next-line unused-imports/no-unused-vars
             try { await dir.removeEntry(binName); } catch (_) { /* storage may be blocked */ }
+            // Emit warning so status bar can inform user and trigger network re-fetch
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('charEdge:data-warning', {
+                detail: {
+                  message: `Cache corrupted for ${symbol}:${interval}, reloading from network`,
+                  symbol,
+                  type: 'cache-corruption',
+                },
+              }));
+            }
             return [];
           }
           return bars;

@@ -80,3 +80,80 @@
 
 /* ─── Timeframe capsule pill ─── */
 .tfPillRelative { position: relative; z-index: 1; }
+
+/* ─── Semantic classes for inline style migration ─── */
+
+/* ToolbarBtn disabled state */
+.toolbarBtnDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Color preset button active state */
+.colorPresetBtn[data-active="true"] {
+  background: color-mix(in srgb, var(--tf-accent) 12%, transparent);
+  outline: 1px solid var(--tf-accent);
+}
+
+/* Color preset label active */
+.colorPresetLabel[data-active="true"] {
+  font-weight: 600;
+  color: var(--tf-t1);
+}
+.colorPresetLabel[data-active="false"] {
+  font-weight: 400;
+  color: var(--tf-t2);
+}
+
+/* Capsule slider (animated TF indicator) */
+.capsuleSlider {
+  position: absolute;
+  top: 3px;
+  height: calc(100% - 6px);
+  border-radius: 7px;
+  background: rgba(232, 100, 44, 0.15);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), inset 0 0 8px rgba(232, 100, 44, 0.05);
+  transition: left 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+              width 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* TF pill z-index */
+.tfPill {
+  position: relative;
+  z-index: 1;
+}
+
+/* Custom TF button */
+.customTfBtn { font-size: 11px; }
+
+/* Toolbar root mobile */
+.toolbarMobile {
+  gap: 2px;
+  padding: 0 6px;
+  height: auto;
+  overflow: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.toolbarDesktop { gap: 4px; }
+
+/* Search icon */
+.searchIcon { opacity: 0.45; }
+
+/* Ticker chevron */
+.tickerChevron {
+  font-size: 7px;
+  opacity: 0.4;
+}
+
+/* No-shrink for mobile btns */
+.noShrink { flex-shrink: 0; }
+
+/* Account color via CSS custom prop */
+.acctColor { color: var(--acct-color); }
+.acctDot { background: var(--acct-color); }
+
+/* Mode toggle via CSS custom prop */
+.modeToggleColor { color: var(--mode-color); }

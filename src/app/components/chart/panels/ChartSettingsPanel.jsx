@@ -7,7 +7,7 @@ import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesS
 import s from './ChartSettingsPanel.module.css';
 
 // SVG Tab Icons
-const TabIcon = ({ children }) => <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ display: 'block' }}>{children}</svg>;
+const TabIcon = ({ children }) => <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className={s.tabIconSvg}>{children}</svg>;
 
 const TAB_ICONS = {
   appearance: <TabIcon><circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.2" fill="none" /><circle cx="5.5" cy="6" r="1.2" fill="currentColor" opacity="0.6" /><circle cx="8.5" cy="6" r="1.2" fill="currentColor" opacity="0.6" /><circle cx="7" cy="9" r="1.2" fill="currentColor" opacity="0.6" /></TabIcon>,
@@ -77,7 +77,7 @@ export default function ChartSettingsPanel({ _onClose }) {
         {tab === 'appearance' && (
           <div>
             {/* Theme Preset Picker */}
-            <div className={s.sectionLabel} style={{ marginBottom: 6 }}>Theme</div>
+            <div className={`${s.sectionLabel} ${s.sectionLabelMb}`}>Theme</div>
             <div className={s.themeRow}>
               {THEME_PILLS.map((tp) => (
                 <button
@@ -85,16 +85,13 @@ export default function ChartSettingsPanel({ _onClose }) {
                   onClick={() => applyChartPreset(tp.id)}
                   title={tp.label}
                   className={s.themePill}
-                  style={{
-                    border: `1.5px solid ${activePreset === tp.id ? C.b : C.bd}`,
-                    background: activePreset === tp.id ? C.b + '12' : 'transparent',
-                  }}
+                  data-active={activePreset === tp.id ? 'true' : undefined}
                 >
                   <div className={s.themeDots}>
-                    <div className={s.themeDot} style={{ background: tp.colors[0] }} />
-                    <div className={s.themeDot} style={{ background: tp.colors[1] }} />
+                    <div className={s.themeDot} style={{ '--dot-bg': tp.colors[0] }} />
+                    <div className={s.themeDot} style={{ '--dot-bg': tp.colors[1] }} />
                   </div>
-                  <span className={s.themeLabel} style={{ color: activePreset === tp.id ? C.b : C.t3 }}>{tp.label}</span>
+                  <span className={s.themeLabel} data-active={activePreset === tp.id ? 'true' : undefined}>{tp.label}</span>
                 </button>
               ))}
             </div>
@@ -175,7 +172,7 @@ export default function ChartSettingsPanel({ _onClose }) {
               onChange={setScaleMode}
             />
 
-            <div className={s.sectionLabel} style={{ marginTop: 12 }}>Layout</div>
+            <div className={`${s.sectionLabel} ${s.sectionLabelMt}`}>Layout</div>
             <Toggle label="Show Minimap" checked={showMinimap} onChange={toggleMinimap} />
             <Toggle label="Show Status Bar" checked={showStatusBar} onChange={toggleStatusBar} />
           </div>
@@ -227,16 +224,16 @@ export default function ChartSettingsPanel({ _onClose }) {
 
             <div className={s.infoBox}>
               <div>
-                <strong style={{ color: C.t2 }}>Free</strong> — Follows cursor with soft magnetic snap
+                <strong className={s.infoStrong}>Free</strong> — Follows cursor with soft magnetic snap
               </div>
               <div>
-                <strong style={{ color: C.t2 }}>Snap Bar</strong> — Locks X to nearest bar center
+                <strong className={s.infoStrong}>Snap Bar</strong> — Locks X to nearest bar center
               </div>
               <div>
-                <strong style={{ color: C.t2 }}>Snap Close</strong> — Locks to bar close price
+                <strong className={s.infoStrong}>Snap Close</strong> — Locks to bar close price
               </div>
               <div>
-                <strong style={{ color: C.t2 }}>Off</strong> — No crosshair
+                <strong className={s.infoStrong}>Off</strong> — No crosshair
               </div>
             </div>
           </div>
@@ -248,7 +245,7 @@ export default function ChartSettingsPanel({ _onClose }) {
           if (!params) {
             return (
               <div className={s.chartTypeEmpty}>
-                No configurable parameters for <strong style={{ color: C.t1 }}>{typeEntry?.name || chartType}</strong>.
+                No configurable parameters for <strong className={s.chartTypeStrong}>{typeEntry?.name || chartType}</strong>.
               </div>
             );
           }

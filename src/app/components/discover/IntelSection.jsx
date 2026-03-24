@@ -11,7 +11,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 // eslint-disable-next-line import/order
 import { useDataStore } from '../../../state/useDataStore.js';
 
@@ -29,6 +29,7 @@ import SocialValidation from './SocialValidation.jsx';
 import TechnicalScanner from './TechnicalScanner.jsx';
 import VolatilityDashboard from './VolatilityDashboard.jsx';
 import { alpha } from '@/shared/colorUtils';
+import st from './IntelSection.module.css';
 
 // Social widgets quarantined — see src/_quarantine/p2p/README.md
 
@@ -51,7 +52,7 @@ function ComingSoonWidget({ icon, title }) {
       }}
     >
       <span style={{ fontSize: 28, opacity: 0.7 }}>{icon}</span>
-      <div style={{ fontSize: 13, fontWeight: 600, color: C.t2, fontFamily: F }}>{title}</div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: C.t2, fontFamily: 'var(--tf-font)' }}>{title}</div>
       <span
         style={{
           padding: '4px 12px',
@@ -60,7 +61,7 @@ function ComingSoonWidget({ icon, title }) {
           color: C.b,
           fontSize: 10,
           fontWeight: 700,
-          fontFamily: F,
+          fontFamily: 'var(--tf-font)',
         }}
       >
         Coming Soon
@@ -189,7 +190,7 @@ function IntelSection({ activePolls: _activePolls, resolvedPolls: _resolvedPolls
               color: C.b,
               fontSize: 11,
               fontWeight: 700,
-              fontFamily: F,
+              fontFamily: 'var(--tf-font)',
               cursor: 'pointer',
               transition: 'all 0.2s',
             }}
@@ -231,7 +232,7 @@ function SectionHeader({ icon, title, count }) {
           fontSize: 18,
           fontWeight: 700,
           color: C.t1,
-          fontFamily: F,
+          fontFamily: 'var(--tf-font)',
         }}
       >
         {title}
@@ -245,7 +246,7 @@ function SectionHeader({ icon, title, count }) {
             background: alpha(C.t3, 0.1),
             padding: '3px 8px',
             borderRadius: 6,
-            fontFamily: M,
+            fontFamily: 'var(--tf-mono)',
           }}
         >
           {count}
@@ -271,7 +272,7 @@ function EmptyState({ text, icon, cta, onCta }) {
           {icon}
         </div>
       )}
-      <div style={{ color: C.t3, fontSize: 14, fontFamily: F, marginBottom: cta ? 16 : 0 }}>{text}</div>
+      <div style={{ color: C.t3, fontSize: 14, fontFamily: 'var(--tf-font)', marginBottom: cta ? 16 : 0 }}>{text}</div>
       {cta && onCta && (
         <button
           onClick={onCta}
@@ -284,7 +285,7 @@ function EmptyState({ text, icon, cta, onCta }) {
             fontSize: 12,
             fontWeight: 700,
             cursor: 'pointer',
-            fontFamily: F,
+            fontFamily: 'var(--tf-font)',
           }}
         >
           {cta}

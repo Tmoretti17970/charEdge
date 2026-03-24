@@ -1,17 +1,12 @@
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Alert Sound Picker (Sprint 9)
-//
-// 6 built-in notification sounds using Web Audio API:
-//   - Preview playback per sound
-//   - Volume slider
-//   - "None" option for silent
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useCallback, useRef } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useUserStore } from '../../../state/useUserStore';
-import { radii, transition } from '../../../theme/tokens.js';
 import { Card } from '../ui/UIKit.jsx';
+import st from './AlertSoundPicker.module.css';
 
 const SOUNDS = [
   { id: 'none',   label: 'Silent',  emoji: '🔇', freq: 0,    dur: 0 },
@@ -34,85 +29,50 @@ function AlertSoundPicker() {
     if (sound.freq === 0) return;
     try {
       if (!ctxRef.current) ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      const ctx = ctxRef.current;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      const ctx = ctxRef.current; const osc = ctx.createOscillator(); const gain = ctx.createGain();
       osc.type = sound.id === 'soft' ? 'sine' : sound.id === 'alert' ? 'square' : 'triangle';
-      osc.frequency.value = sound.freq;
-      gain.gain.value = volume;
+      osc.frequency.value = sound.freq; gain.gain.value = volume;
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + sound.dur);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + sound.dur + 0.05);
-    } catch (e) {
-      // Web Audio not available
-    }
+      osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + sound.dur + 0.05);
+    } catch { /* Web Audio not available */ }
   }, [volume]);
 
   const handleSelect = useCallback((id) => {
     setSelected(id);
     if (typeof updateSetting === 'function') updateSetting({ alertSound: id });
-    const sound = SOUNDS.find(s => s.id === id);
-    if (sound) playSound(sound);
+    const sound = SOUNDS.find(s => s.id === id); if (sound) playSound(sound);
   }, [updateSetting, playSound]);
 
   const handleVolume = useCallback((v) => {
-    setVolume(v);
-    if (typeof updateSetting === 'function') updateSetting({ alertVolume: v });
+    setVolume(v); if (typeof updateSetting === 'function') updateSetting({ alertVolume: v });
   }, [updateSetting]);
 
   return (
-    <Card style={{ padding: 20, marginTop: 12 }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 4 }}>
-        Alert Sound
-      </div>
-      <div style={{ fontSize: 11, color: C.t3, fontFamily: F, marginBottom: 14 }}>
-        Notification tone for price alerts and triggers
-      </div>
+    <Card className={st.cardPad}>
+      <div className={st.title}>Alert Sound</div>
+      <div className={st.hint}>Notification tone for price alerts and triggers</div>
 
-      {/* Sound grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 14 }}>
+      <div className={st.soundGrid}>
         {SOUNDS.map((sound) => (
-          <button
-            key={sound.id}
-            onClick={() => handleSelect(sound.id)}
-            className="tf-btn"
+          <button key={sound.id} onClick={() => handleSelect(sound.id)} className={`tf-btn ${st.soundBtn}`}
             style={{
-              padding: '10px 6px', borderRadius: radii.sm, textAlign: 'center',
               border: `2px solid ${selected === sound.id ? C.b : C.bd + '25'}`,
               background: selected === sound.id ? C.b + '08' : 'transparent',
-              cursor: 'pointer',
-              transition: `all ${transition.base}`,
-            }}
-          >
-            <div style={{ fontSize: 18, marginBottom: 4 }}>{sound.emoji}</div>
-            <div style={{
-              fontSize: 10, fontWeight: 600,
-              color: selected === sound.id ? C.b : C.t2,
-              fontFamily: F,
             }}>
-              {sound.label}
-            </div>
+            <div className={st.soundEmoji}>{sound.emoji}</div>
+            <div className={st.soundLabel} style={{ color: selected === sound.id ? C.b : C.t2 }}>{sound.label}</div>
           </button>
         ))}
       </div>
 
-      {/* Volume */}
       {selected !== 'none' && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 14 }}>🔈</span>
-          <input
-            type="range"
-            min="0" max="1" step="0.05"
-            value={volume}
+        <div className={st.volumeRow}>
+          <span className={st.volumeIcon}>🔈</span>
+          <input type="range" min="0" max="1" step="0.05" value={volume}
             onChange={(e) => handleVolume(parseFloat(e.target.value))}
-            style={{ flex: 1, accentColor: C.b }}
-          />
-          <span style={{ fontSize: 14 }}>🔊</span>
-          <span style={{ fontSize: 10, color: C.t3, fontFamily: M, minWidth: 30, textAlign: 'right' }}>
-            {Math.round(volume * 100)}%
-          </span>
+            style={{ flex: 1, accentColor: C.b }} />
+          <span className={st.volumeIcon}>🔊</span>
+          <span className={st.volumePercent}>{Math.round(volume * 100)}%</span>
         </div>
       )}
     </Card>
