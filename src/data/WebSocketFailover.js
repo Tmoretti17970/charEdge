@@ -17,10 +17,10 @@ import { WebSocketService as WSClass, WS_STATUS } from './WebSocketService';
 import { logger } from '@/observability/logger';
 
 // ─── Config ────────────────────────────────────────────────────
-const STANDBY_DELAY_MS = 2_000;        // Delay before standby connects
+const STANDBY_DELAY_MS = 2_000; // Delay before standby connects
 const HEALTH_CHECK_INTERVAL_MS = 5_000; // Check health every 5s
-const LATENCY_THRESHOLD_MS = 2_000;     // Switch if primary latency > 2s
-const STALENESS_THRESHOLD_MS = 10_000;  // Switch if no message in 10s
+const LATENCY_THRESHOLD_MS = 2_000; // Switch if primary latency > 2s
+const STALENESS_THRESHOLD_MS = 10_000; // Switch if no message in 10s
 
 /**
  * Dual-connection failover wrapper.
@@ -32,22 +32,25 @@ class _WebSocketFailover {
     this._enabled = false;
     this._primary = null;
     this._standby = null;
-    this._active = null;         // Points to whichever is currently active
+    this._active = null; // Points to whichever is currently active
 
     /** @type {Map<number, { args: Array, type: string }>} */
-    this._subscriptions = new Map();  // Track all subs so standby can mirror
+    this._subscriptions = new Map(); // Track all subs so standby can mirror
 
     this._healthCheckTimer = null;
     this._standbyTimer = null;
 
     this._switchCount = 0;
+    this._switching = false; // Lock flag during connection switch
+    this._pendingQueue = []; // Queue subs arriving during switch
 
     // Check opt-in
     try {
-      this._enabled = typeof localStorage !== 'undefined' &&
-        localStorage.getItem('charEdge:dualWs') === 'true';
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) { /* SSR safe */ }
+      this._enabled = typeof localStorage !== 'undefined' && localStorage.getItem('charEdge:dualWs') === 'true';
+      // eslint-disable-next-line unused-imports/no-unused-vars
+    } catch (_) {
+      /* SSR safe */
+    }
   }
 
   /**
@@ -83,6 +86,14 @@ class _WebSocketFailover {
   subscribe(symbol, tf, callbacks = {}) {
     if (!this._primary) this._init();
 
+    // Queue subscriptions during a connection switch to prevent race condition
+    if (this._switching) {
+      const deferred = { type: 'kline', args: [symbol, tf, callbacks] };
+      this._pendingQueue.push(deferred);
+      // Return a temporary ID; will be re-subscribed when switch completes
+      return -1;
+    }
+
     const subId = this._active.subscribe(symbol, tf, callbacks);
     this._subscriptions.set(subId, { args: [symbol, tf, callbacks], type: 'kline' });
 
@@ -102,6 +113,12 @@ class _WebSocketFailover {
    */
   subscribeTrades(symbol, callbacks = {}) {
     if (!this._primary) this._init();
+
+    // Queue during switch
+    if (this._switching) {
+      this._pendingQueue.push({ type: 'trade', args: [symbol, callbacks] });
+      return -1;
+    }
 
     const subId = this._active.subscribeTrades(symbol, callbacks);
     this._subscriptions.set(subId, { args: [symbol, callbacks], type: 'trade' });
@@ -144,11 +161,13 @@ class _WebSocketFailover {
       ...primary,
       isDualMode: this._enabled,
       switchCount: this._switchCount,
-      standby: standby ? {
-        status: standby.status,
-        latencyMs: standby.latencyMs,
-        isStale: standby.isStale,
-      } : null,
+      standby: standby
+        ? {
+            status: standby.status,
+            latencyMs: standby.latencyMs,
+            isStale: standby.isStale,
+          }
+        : null,
     };
   }
 
@@ -197,8 +216,7 @@ class _WebSocketFailover {
       // Switch back if primary recovered and is better than standby
       if (!primaryDegraded && this._active === this._standby) {
         const standbyDegraded =
-          standbyHealth.latencyMs > LATENCY_THRESHOLD_MS ||
-          standbyHealth.lastMessageAge > STALENESS_THRESHOLD_MS;
+          standbyHealth.latencyMs > LATENCY_THRESHOLD_MS || standbyHealth.lastMessageAge > STALENESS_THRESHOLD_MS;
 
         if (standbyDegraded) {
           this._switchTo(this._primary);
@@ -215,13 +233,13 @@ class _WebSocketFailover {
 
     logger.data.warn(`[WebSocketFailover] Switching to ${target === this._primary ? 'primary' : 'standby'}`);
     this._switchCount++;
+    this._switching = true; // Lock: queue any new subs arriving during switch
 
     // Re-subscribe with real callbacks on the new active
     const old = this._active;
     this._active = target;
 
     // A1.4: Clear standby's placeholder subs ONCE before re-subscribing all.
-    // Previously called target.unsubscribe() inside the loop, destroying earlier subs.
     target.unsubscribe();
     for (const [_subId, sub] of this._subscriptions) {
       if (sub.type === 'kline') {
@@ -234,6 +252,20 @@ class _WebSocketFailover {
     // Demote old to standby (empty callbacks)
     old.unsubscribe();
     this._mirrorSubscriptions(old);
+
+    this._switching = false; // Unlock
+
+    // Drain any subscriptions that arrived during the switch
+    if (this._pendingQueue.length > 0) {
+      const queued = this._pendingQueue.splice(0);
+      for (const pending of queued) {
+        if (pending.type === 'kline') {
+          this.subscribe(pending.args[0], pending.args[1], pending.args[2]);
+        } else if (pending.type === 'trade') {
+          this.subscribeTrades(pending.args[0], pending.args[1]);
+        }
+      }
+    }
   }
 
   /**

@@ -107,7 +107,11 @@ export function apiKeyAuth(keyStore: ApiKeyStore): RequestHandler {
  * - **Redis** (`useRedis: true`): delegates to redis.ts `checkRateLimit()` for
  *   distributed production deployments. Falls back to in-memory if Redis unavailable.
  */
-export function rateLimiter({ windowMs = 60_000, max = 60, useRedis = false }: RateLimiterOptions = {}): RequestHandler {
+export function rateLimiter({
+  windowMs = 60_000,
+  max = 60,
+  useRedis = false,
+}: RateLimiterOptions = {}): RequestHandler {
   // ── Redis-backed path ──────────────────────────────────────
   if (useRedis) {
     return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -196,13 +200,19 @@ export function rateLimiter({ windowMs = 60_000, max = 60, useRedis = false }: R
 export function cors({ origins = ['*'] }: CorsOptions = {}): RequestHandler {
   return (req: Request, res: Response, next: NextFunction): void => {
     const origin = req.headers.origin;
+    const isWildcard = origins.includes('*');
 
-    if (origins.includes('*') || (origin && origins.includes(origin))) {
-      res.set('Access-Control-Allow-Origin', origin || '*');
+    // Only set CORS headers if origin is in the allowlist
+    if (isWildcard) {
+      res.set('Access-Control-Allow-Origin', '*');
+    } else if (origin && origins.includes(origin)) {
+      res.set('Access-Control-Allow-Origin', origin);
+      res.set('Vary', 'Origin');
     }
+    // If origin not in allowlist, don't set Access-Control-Allow-Origin — browser blocks the request
 
     res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.set('Access-Control-Allow-Headers', 'Content-Type, x-api-key, Authorization');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, x-api-key, Authorization, x-csrf-token');
     res.set('Access-Control-Max-Age', '86400');
 
     if (req.method === 'OPTIONS') {
@@ -261,7 +271,7 @@ export function auditLogger({ getDb, skipMethods = ['GET', 'HEAD', 'OPTIONS'] }:
 
         db.prepare(
           `INSERT INTO audit_log (user_id, action, entity_type, entity_id, metadata, created_at)
-                     VALUES (?, ?, ?, ?, ?, ?)`
+                     VALUES (?, ?, ?, ?, ?, ?)`,
         ).run(
           req.userId || 'anonymous',
           `${req.method} ${req.originalUrl}`,
@@ -274,7 +284,7 @@ export function auditLogger({ getDb, skipMethods = ['GET', 'HEAD', 'OPTIONS'] }:
           }),
           Date.now(),
         );
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (_) {
         // Non-critical — never block the response
       }

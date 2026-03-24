@@ -14,35 +14,40 @@ import type { Request, Response } from 'express';
 import { z } from 'zod';
 import { validate } from './schemas.ts';
 import {
-    generateAccessToken,
-    generateRefreshToken,
-    verifyRefreshToken,
-    setRefreshCookie,
-    clearRefreshCookie,
-    hashPassword,
-    comparePassword,
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+  setRefreshCookie,
+  clearRefreshCookie,
+  hashPassword,
+  comparePassword,
+  needsRehash,
 } from './auth/jwt.ts';
 import { requireAuth } from './auth/rbac.ts';
 import { getDb } from './db/sqlite.ts';
 
 // ─── Zod Schemas ────────────────────────────────────────────────
 
-const registerSchema = z.object({
+const registerSchema = z
+  .object({
     email: z.string().email().max(254).toLowerCase(),
     password: z.string().min(8).max(128),
     displayName: z.string().min(1).max(64).optional(),
-}).strict();
+  })
+  .strict();
 
-const loginSchema = z.object({
+const loginSchema = z
+  .object({
     email: z.string().email().max(254).toLowerCase(),
     password: z.string().min(1).max(128),
-}).strict();
+  })
+  .strict();
 
 // ─── User Table (migration-safe) ────────────────────────────────
 
 function ensureUsersTable(): void {
-    const db = getDb();
-    db.exec(`
+  const db = getDb();
+  db.exec(`
         CREATE TABLE IF NOT EXISTS users (
             id              TEXT PRIMARY KEY,
             email           TEXT NOT NULL UNIQUE COLLATE NOCASE,
@@ -59,151 +64,165 @@ function ensureUsersTable(): void {
 // ─── Router ─────────────────────────────────────────────────────
 
 export function createAuthRouter(): Router {
-    const router = Router();
-    ensureUsersTable();
+  const router = Router();
+  ensureUsersTable();
 
-    // ── Register ────────────────────────────────────────────
+  // ── Register ────────────────────────────────────────────
 
-    router.post('/register', validate(registerSchema), (req: Request, res: Response) => {
-        const { email, password, displayName } = req.body;
-        const db = getDb();
+  router.post('/register', validate(registerSchema), (req: Request, res: Response) => {
+    const { email, password, displayName } = req.body;
+    const db = getDb();
 
-        // Check existing
-        const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
-        if (existing) {
-            res.status(409).json({
-                ok: false,
-                error: { code: 'EMAIL_TAKEN', message: 'An account with this email already exists.' },
-            });
-            return;
-        }
+    // Check existing
+    const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+    if (existing) {
+      res.status(409).json({
+        ok: false,
+        error: { code: 'EMAIL_TAKEN', message: 'An account with this email already exists.' },
+      });
+      return;
+    }
 
-        const now = Date.now();
-        const id = `user_${now}_${Math.random().toString(36).slice(2, 8)}`;
-        const hash = hashPassword(password);
+    const now = Date.now();
+    const id = `user_${now}_${Math.random().toString(36).slice(2, 8)}`;
+    const hash = hashPassword(password);
 
-        db.prepare(`
+    db.prepare(
+      `
             INSERT INTO users (id, email, password_hash, display_name, role, created_at, updated_at)
             VALUES (?, ?, ?, ?, 'free', ?, ?)
-        `).run(id, email, hash, displayName || '', now, now);
+        `,
+    ).run(id, email, hash, displayName || '', now, now);
 
-        // Issue tokens
-        const user = { id, email, role: 'free' };
-        const accessToken = generateAccessToken(user);
-        const refresh = generateRefreshToken(user);
-        setRefreshCookie(res, refresh.token);
+    // Issue tokens
+    const user = { id, email, role: 'free' };
+    const accessToken = generateAccessToken(user);
+    const refresh = generateRefreshToken(user);
+    setRefreshCookie(res, refresh.token);
 
-        res.status(201).json({
-            ok: true,
-            data: {
-                user: { id, email, role: 'free', displayName: displayName || '' },
-                accessToken,
-                expiresIn: 900, // 15 minutes
-            },
-        });
+    res.status(201).json({
+      ok: true,
+      data: {
+        user: { id, email, role: 'free', displayName: displayName || '' },
+        accessToken,
+        expiresIn: 900, // 15 minutes
+      },
     });
+  });
 
-    // ── Login ───────────────────────────────────────────────
+  // ── Login ───────────────────────────────────────────────
 
-    router.post('/login', validate(loginSchema), (req: Request, res: Response) => {
-        const { email, password } = req.body;
-        const db = getDb();
+  router.post('/login', validate(loginSchema), (req: Request, res: Response) => {
+    const { email, password } = req.body;
+    const db = getDb();
 
-        const row = db.prepare(
-            'SELECT id, email, password_hash, display_name, role FROM users WHERE email = ?'
-        ).get(email) as { id: string; email: string; password_hash: string; display_name: string; role: string } | undefined;
+    const row = db
+      .prepare('SELECT id, email, password_hash, display_name, role FROM users WHERE email = ?')
+      .get(email) as
+      | { id: string; email: string; password_hash: string; display_name: string; role: string }
+      | undefined;
 
-        if (!row || !comparePassword(password, row.password_hash)) {
-            res.status(401).json({
-                ok: false,
-                error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password.' },
-            });
-            return;
-        }
+    if (!row || !comparePassword(password, row.password_hash)) {
+      res.status(401).json({
+        ok: false,
+        error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password.' },
+      });
+      return;
+    }
 
-        const user = { id: row.id, email: row.email, role: row.role };
-        const accessToken = generateAccessToken(user);
-        const refresh = generateRefreshToken(user);
-        setRefreshCookie(res, refresh.token);
+    // Auto-rehash legacy HMAC-SHA256 passwords to scrypt on successful login
+    if (needsRehash(row.password_hash)) {
+      const newHash = hashPassword(password);
+      db.prepare('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?').run(
+        newHash,
+        new Date().toISOString(),
+        row.id,
+      );
+    }
 
-        res.json({
-            ok: true,
-            data: {
-                user: { id: row.id, email: row.email, role: row.role, displayName: row.display_name },
-                accessToken,
-                expiresIn: 900,
-            },
-        });
+    const user = { id: row.id, email: row.email, role: row.role };
+    const accessToken = generateAccessToken(user);
+    const refresh = generateRefreshToken(user);
+    setRefreshCookie(res, refresh.token);
+
+    res.json({
+      ok: true,
+      data: {
+        user: { id: row.id, email: row.email, role: row.role, displayName: row.display_name },
+        accessToken,
+        expiresIn: 900,
+      },
     });
+  });
 
-    // ── Refresh ─────────────────────────────────────────────
+  // ── Refresh ─────────────────────────────────────────────
 
-    router.post('/refresh', (req: Request, res: Response) => {
-        const refreshToken = req.cookies?.refreshToken;
-        if (!refreshToken) {
-            res.status(401).json({
-                ok: false,
-                error: { code: 'REFRESH_MISSING', message: 'Refresh token required.' },
-            });
-            return;
-        }
+  router.post('/refresh', (req: Request, res: Response) => {
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) {
+      res.status(401).json({
+        ok: false,
+        error: { code: 'REFRESH_MISSING', message: 'Refresh token required.' },
+      });
+      return;
+    }
 
-        const payload = verifyRefreshToken(refreshToken);
-        if (!payload) {
-            clearRefreshCookie(res);
-            res.status(401).json({
-                ok: false,
-                error: { code: 'REFRESH_INVALID', message: 'Invalid or expired refresh token.' },
-            });
-            return;
-        }
+    const payload = verifyRefreshToken(refreshToken);
+    if (!payload) {
+      clearRefreshCookie(res);
+      res.status(401).json({
+        ok: false,
+        error: { code: 'REFRESH_INVALID', message: 'Invalid or expired refresh token.' },
+      });
+      return;
+    }
 
-        // Look up user to get current role
-        const db = getDb();
-        const row = db.prepare(
-            'SELECT id, email, role FROM users WHERE id = ?'
-        ).get(payload.sub) as { id: string; email: string; role: string } | undefined;
+    // Look up user to get current role
+    const db = getDb();
+    const row = db.prepare('SELECT id, email, role FROM users WHERE id = ?').get(payload.sub) as
+      | { id: string; email: string; role: string }
+      | undefined;
 
-        if (!row) {
-            clearRefreshCookie(res);
-            res.status(401).json({
-                ok: false,
-                error: { code: 'USER_NOT_FOUND', message: 'User account not found.' },
-            });
-            return;
-        }
+    if (!row) {
+      clearRefreshCookie(res);
+      res.status(401).json({
+        ok: false,
+        error: { code: 'USER_NOT_FOUND', message: 'User account not found.' },
+      });
+      return;
+    }
 
-        // Rotate: issue new tokens
-        const user = { id: row.id, email: row.email, role: row.role };
-        const accessToken = generateAccessToken(user);
-        const newRefresh = generateRefreshToken(user);
-        setRefreshCookie(res, newRefresh.token);
+    // Rotate: issue new tokens
+    const user = { id: row.id, email: row.email, role: row.role };
+    const accessToken = generateAccessToken(user);
+    const newRefresh = generateRefreshToken(user);
+    setRefreshCookie(res, newRefresh.token);
 
-        res.json({
-            ok: true,
-            data: { accessToken, expiresIn: 900 },
-        });
+    res.json({
+      ok: true,
+      data: { accessToken, expiresIn: 900 },
     });
+  });
 
-    // ── Logout ──────────────────────────────────────────────
+  // ── Logout ──────────────────────────────────────────────
 
-    router.post('/logout', (_req: Request, res: Response) => {
-        clearRefreshCookie(res);
-        res.json({ ok: true, data: { message: 'Logged out successfully.' } });
+  router.post('/logout', (_req: Request, res: Response) => {
+    clearRefreshCookie(res);
+    res.json({ ok: true, data: { message: 'Logged out successfully.' } });
+  });
+
+  // ── Me (Current User) ───────────────────────────────────
+
+  router.get('/me', requireAuth(), (req: Request, res: Response) => {
+    res.json({
+      ok: true,
+      data: {
+        id: req.user!.id,
+        email: req.user!.email,
+        role: req.user!.role,
+      },
     });
+  });
 
-    // ── Me (Current User) ───────────────────────────────────
-
-    router.get('/me', requireAuth(), (req: Request, res: Response) => {
-        res.json({
-            ok: true,
-            data: {
-                id: req.user!.id,
-                email: req.user!.email,
-                role: req.user!.role,
-            },
-        });
-    });
-
-    return router;
+  return router;
 }
