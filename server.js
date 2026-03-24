@@ -187,7 +187,13 @@ app.use('/api/v1', rateLimiter({ windowMs: 60_000, max: 120 }));
 app.use('/api/v1', apiKeyAuth(apiKeyStore));
 app.use('/api/v1', csrfProtect());
 app.use('/api/v1', requestLogger());
-app.use('/api/v1', createApiRouter({ _keyStore: apiKeyStore }));
+// Phase 5: Wire webhook emitter for trade/alert/snapshot notifications
+let _webhookEmitter;
+try {
+  const { webhookEmitter: wh } = await import('./src/api/services/WebhookService.ts');
+  _webhookEmitter = wh;
+} catch { /* WebhookService unavailable in client-only mode */ }
+app.use('/api/v1', createApiRouter({ _keyStore: apiKeyStore, webhookEmitter: _webhookEmitter }));
 app.use('/api/v1', apiErrorHandler());
 
 // ─── CSRF + Billing ─────────────────────────────────────────────
