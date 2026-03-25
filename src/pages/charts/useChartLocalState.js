@@ -6,8 +6,8 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { analyzeAll } from '../../charting_library/studies/PriceActionEngine.js';
 import { useChartCoreStore } from '../../state/chart/useChartCoreStore';
-import { useChartToolsStore } from '../../state/chart/useChartToolsStore';
 import { useChartFeaturesStore } from '../../state/chart/useChartFeaturesStore';
+import { useChartToolsStore } from '../../state/chart/useChartToolsStore';
 import { useJournalStore } from '../../state/useJournalStore';
 import { useLayoutStore } from '../../state/useLayoutStore';
 import { useScriptStore } from '../../state/useScriptStore.js';
@@ -76,8 +76,11 @@ export default function useChartLocalState() {
   const [futuresOpen, setFuturesOpen] = useState(false);
   const [showWatchlistPanel, setShowWatchlistPanel] = useState(false);
   const [workspaceMode, setWorkspaceMode] = useState(() => {
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    try { return localStorage.getItem('charEdge-workspace-mode') === 'true'; } catch (_) { return false; }
+    try {
+      return localStorage.getItem('charEdge-workspace-mode') === 'true';
+    } catch {
+      return false;
+    }
   });
 
   // Listen for sidebar nav event to auto-open watchlist panel
@@ -89,8 +92,6 @@ export default function useChartLocalState() {
 
   const chartRef = useRef(null);
   const editorRef = useRef(null);
-
-
 
   // ─── Derived data ─────────────────────────────────────────────
   const analysis = useMemo(() => {
@@ -112,46 +113,96 @@ export default function useChartLocalState() {
 
   return {
     // Store values
-    symbol, tf, chartType, indicators, setSymbol, setTf,
-    data, dataSource, dataLoading,
-    replayMode, replayIdx, activeGhost,
-    layoutMode, setLayoutMode, multiMode,
-    activeTool, drawings, drawingsVisible, showVolumeProfile,
-    comparisonSymbol, comparisonData, intelligence, pendingDrawing,
-    tradeMode, tradeStep, contextMenu, closeContextMenu,
-    showQuickJournal, toggleQuickJournal,
-    openPanel, isMobile, enabledScriptCount,
+    symbol,
+    tf,
+    chartType,
+    indicators,
+    setSymbol,
+    setTf,
+    data,
+    dataSource,
+    dataLoading,
+    replayMode,
+    replayIdx,
+    activeGhost,
+    layoutMode,
+    setLayoutMode,
+    multiMode,
+    activeTool,
+    drawings,
+    drawingsVisible,
+    showVolumeProfile,
+    comparisonSymbol,
+    comparisonData,
+    intelligence,
+    pendingDrawing,
+    tradeMode,
+    tradeStep,
+    contextMenu,
+    closeContextMenu,
+    showQuickJournal,
+    toggleQuickJournal,
+    openPanel,
+    isMobile,
+    enabledScriptCount,
 
     // Local state
-    _symbolInput, setSymbolInput,
-    showIndicators, setShowIndicators,
-    showObjectTree, setShowObjectTree,
-    showTrades, setShowTrades,
-    showScriptManager, setShowScriptManager,
-    showShareModal, setShowShareModal,
-    showSnapshotPublisher, setShowSnapshotPublisher,
-    showMobileSettings, setShowMobileSettings,
-    showMobileShare, setShowMobileShare,
-    isLandscapeFullscreen, setIsLandscapeFullscreen,
-    showCopilot, setShowCopilot,
-    showShortcuts, setShowShortcuts,
-    snapshotModalOpen, setSnapshotModalOpen,
+    _symbolInput,
+    setSymbolInput,
+    showIndicators,
+    setShowIndicators,
+    showObjectTree,
+    setShowObjectTree,
+    showTrades,
+    setShowTrades,
+    showScriptManager,
+    setShowScriptManager,
+    showShareModal,
+    setShowShareModal,
+    showSnapshotPublisher,
+    setShowSnapshotPublisher,
+    showMobileSettings,
+    setShowMobileSettings,
+    showMobileShare,
+    setShowMobileShare,
+    isLandscapeFullscreen,
+    setIsLandscapeFullscreen,
+    showCopilot,
+    setShowCopilot,
+    showShortcuts,
+    setShowShortcuts,
+    snapshotModalOpen,
+    setSnapshotModalOpen,
 
-    focusMode, setFocusMode,
-    hoverInfo, setHoverInfo,
-    radialMenu, setRadialMenu,
-    showInsights, setShowInsights,
-    chartAnalysisOpen, setChartAnalysisOpen,
-    paperTradeOpen, setPaperTradeOpen,
-    walkForwardOpen, setWalkForwardOpen,
-    futuresOpen, setFuturesOpen,
-    showWatchlistPanel, setShowWatchlistPanel,
-    workspaceMode, setWorkspaceMode,
+    focusMode,
+    setFocusMode,
+    hoverInfo,
+    setHoverInfo,
+    radialMenu,
+    setRadialMenu,
+    showInsights,
+    setShowInsights,
+    chartAnalysisOpen,
+    setChartAnalysisOpen,
+    paperTradeOpen,
+    setPaperTradeOpen,
+    walkForwardOpen,
+    setWalkForwardOpen,
+    futuresOpen,
+    setFuturesOpen,
+    showWatchlistPanel,
+    setShowWatchlistPanel,
+    workspaceMode,
+    setWorkspaceMode,
 
     // Refs
-    chartRef, editorRef,
+    chartRef,
+    editorRef,
 
     // Derived
-    analysis, isWatched, toggleWatchlist, matchingTrades,
+    analysis,
+    isWatched,
+    toggleWatchlist,
+    matchingTrades,
   };
 }

@@ -15,16 +15,15 @@ import { C } from '../../../constants.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { alpha } from '@/shared/colorUtils';
-import st from './AIResearchCopilot.module.css';
 
 // ─── Quick Prompts ──────────────────────────────────────────────
 
 const QUICK_PROMPTS = [
-  { id: 'summary', label: '30-second summary', icon: '⚡', query: 'Give me the 30-second version of today\'s markets' },
-  { id: 'bearcase', label: 'Bear case', icon: '🐻', query: 'What\'s the bear case right now?' },
-  { id: 'bullcase', label: 'Bull case', icon: '🐂', query: 'What\'s the bull case right now?' },
+  { id: 'summary', label: '30-second summary', icon: '⚡', query: "Give me the 30-second version of today's markets" },
+  { id: 'bearcase', label: 'Bear case', icon: '🐻', query: "What's the bear case right now?" },
+  { id: 'bullcase', label: 'Bull case', icon: '🐂', query: "What's the bull case right now?" },
   { id: 'risk', label: 'Risk check', icon: '🛡️', query: 'How is my risk exposure looking?' },
-  { id: 'setup', label: 'Best setup today', icon: '🎯', query: 'What\'s the best setup today based on my style?' },
+  { id: 'setup', label: 'Best setup today', icon: '🎯', query: "What's the best setup today based on my style?" },
   { id: 'mistakes', label: 'Pattern check', icon: '🔍', query: 'Am I repeating any recent mistakes?' },
 ];
 
@@ -34,11 +33,11 @@ function generateResponse(query, trades, watchlist) {
   const q = query.toLowerCase();
   const tradeCount = trades.length;
   const recentTrades = trades.slice(0, 20);
-  const wins = recentTrades.filter(t => (t.pnl || 0) > 0).length;
+  const wins = recentTrades.filter((t) => (t.pnl || 0) > 0).length;
   const losses = recentTrades.length - wins;
   const winRate = recentTrades.length > 0 ? ((wins / recentTrades.length) * 100).toFixed(0) : 0;
   const totalPnl = recentTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
-  const symbols = watchlist.map(w => w.symbol).join(', ');
+  const symbols = watchlist.map((w) => w.symbol).join(', ');
 
   if (q.includes('30-second') || q.includes('summary') || q.includes('quick')) {
     return {
@@ -49,7 +48,7 @@ function generateResponse(query, trades, watchlist) {
 
   if (q.includes('bear') || q.includes('risk') || q.includes('danger')) {
     return {
-      text: `🐻 **Bear Case Analysis:**\n\n1. **Macro Risk:** FOMC minutes dropping today could shift rate expectations. A hawkish surprise would hit risk assets hard.\n\n2. **Overbought Signals:** SOL RSI at 71, DOGE at 74 — both in overbought territory. Mean reversion likely within 2-3 sessions.\n\n3. **Volume Divergence:** Crypto volume is elevated but some alts are showing exhaustion candles on 4H timeframe.\n\n4. **DXY Watch:** Dollar showing signs of bottoming — a reversal would pressure crypto and commodities.\n\n${tradeCount > 0 ? `5. **Your Edge:** Your recent ${losses > wins ? 'losing streak suggests caution' : 'performance is solid but don\'t get complacent'}. Consider reducing size by 25-50% today.` : ''}`,
+      text: `🐻 **Bear Case Analysis:**\n\n1. **Macro Risk:** FOMC minutes dropping today could shift rate expectations. A hawkish surprise would hit risk assets hard.\n\n2. **Overbought Signals:** SOL RSI at 71, DOGE at 74 — both in overbought territory. Mean reversion likely within 2-3 sessions.\n\n3. **Volume Divergence:** Crypto volume is elevated but some alts are showing exhaustion candles on 4H timeframe.\n\n4. **DXY Watch:** Dollar showing signs of bottoming — a reversal would pressure crypto and commodities.\n\n${tradeCount > 0 ? `5. **Your Edge:** Your recent ${losses > wins ? 'losing streak suggests caution' : "performance is solid but don't get complacent"}. Consider reducing size by 25-50% today.` : ''}`,
       followUp: ['Should I hedge?', 'What support levels should I watch?'],
     };
   }
@@ -57,7 +56,7 @@ function generateResponse(query, trades, watchlist) {
   if (q.includes('bull') || q.includes('upside') || q.includes('opportunity')) {
     return {
       text: `🐂 **Bull Case Analysis:**\n\n1. **Institutional Flow:** BTC ETF inflows hitting weekly records — smart money is accumulating aggressively.\n\n2. **Breakout Setup:** BTC testing $70K with increasing volume. A clean close above opens path to $75K.\n\n3. **Sector Rotation:** DeFi tokens (UNI +6.1%) showing renewed interest — narrative-driven momentum building.\n\n4. **Macro Tailwind:** If FOMC minutes are dovish, expect a risk-on rally across all assets.\n\n${tradeCount > 0 ? `5. **Your Data:** Win rate of ${winRate}% on your last 20 trades. ${Number(winRate) > 55 ? 'Your edge is intact — stick to your playbook.' : 'Focus on A+ setups only to improve your hit rate.'}` : ''}`,
-      followUp: ['Where should I add exposure?', 'What\'s the best risk/reward setup?'],
+      followUp: ['Where should I add exposure?', "What's the best risk/reward setup?"],
     };
   }
 
@@ -72,7 +71,7 @@ function generateResponse(query, trades, watchlist) {
   if (q.includes('setup') || q.includes('best') || q.includes('trade') || q.includes('play')) {
     return {
       text: `🎯 **Top Setups for Today:**\n\n1. **BTC Breakout Play** — Testing $70K resistance with volume confirmation. Entry above $70.2K, target $72.5K, stop $68.5K. R:R = 1.5:1.\n\n2. **SOL Cup & Handle** — Handle forming near $150. Breakout above $155 targets $180. Conservative entry: wait for retest of $148.\n\n3. **UNI Momentum** — +6.1% with 2.3x avg volume. DeFi narrative gaining traction. Entry on pullback to $11.80.\n\n4. **TSLA Mean Reversion** — RSI at 42, oversold on daily. If it holds $195 support, bounce to $205 MA20 is high-probability.\n\n${tradeCount > 0 ? `**Based on your history:** You tend to perform best on breakout setups${Number(winRate) > 55 ? ' — setups 1 & 2 align with your style.' : '. Focus on high-conviction entries only.'}` : ''}`,
-      followUp: ['Tell me more about the BTC setup', 'What\'s my edge on breakouts?'],
+      followUp: ['Tell me more about the BTC setup', "What's my edge on breakouts?"],
     };
   }
 
@@ -85,7 +84,7 @@ function generateResponse(query, trades, watchlist) {
     }
     const _avgSize = recentTrades.reduce((sum, t) => sum + Math.abs(t.pnl || 0), 0) / recentTrades.length;
     return {
-      text: `🔍 **Pattern Analysis (Last ${Math.min(tradeCount, 20)} Trades):**\n\n${Number(winRate) < 50 ? '⚠️ **Win Rate Below 50%** — You may be entering trades without clear signals. Consider waiting for 2+ confluence factors before entry.\n\n' : '✅ **Win Rate Healthy** — Your system is producing winners.\n\n'}${losses > 0 ? '📊 **Loss Pattern:** Your recent losses may share commonalities — check if you\'re:\n• Entering too early (before confirmation)\n• Setting stops too tight\n• Overtrading during low-volatility periods\n• Revenge trading after a loss\n\n' : ''}**Actionable Steps:**\n1. Before each trade, ask: "Is this an A+ setup?"\n2. Wait for price action confirmation, not prediction\n3. Risk no more than 1% per trade until win rate stabilizes`,
+      text: `🔍 **Pattern Analysis (Last ${Math.min(tradeCount, 20)} Trades):**\n\n${Number(winRate) < 50 ? '⚠️ **Win Rate Below 50%** — You may be entering trades without clear signals. Consider waiting for 2+ confluence factors before entry.\n\n' : '✅ **Win Rate Healthy** — Your system is producing winners.\n\n'}${losses > 0 ? "📊 **Loss Pattern:** Your recent losses may share commonalities — check if you're:\n• Entering too early (before confirmation)\n• Setting stops too tight\n• Overtrading during low-volatility periods\n• Revenge trading after a loss\n\n" : ''}**Actionable Steps:**\n1. Before each trade, ask: "Is this an A+ setup?"\n2. Wait for price action confirmation, not prediction\n3. Risk no more than 1% per trade until win rate stabilizes`,
       followUp: ['What days do I trade best?', 'Am I overtrading?'],
     };
   }

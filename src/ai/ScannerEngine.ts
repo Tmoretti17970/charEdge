@@ -30,13 +30,13 @@ export interface ScanSignal {
 
 export interface ScanResult {
   symbol: string;
-  score: number;            // 0-100 composite opportunity score
-  regime: string;           // market regime label
+  score: number; // 0-100 composite opportunity score
+  regime: string; // market regime label
   direction: 'bullish' | 'bearish' | 'neutral';
   topSignals: ScanSignal[];
-  momentum: number;         // -100 to 100
-  volumeScore: number;      // 0-100
-  volatility: number;       // normalized 0-100
+  momentum: number; // -100 to 100
+  volumeScore: number; // 0-100
+  volatility: number; // normalized 0-100
   summary: string;
   scannedAt: number;
 }
@@ -60,11 +60,7 @@ export class ScannerEngine {
   /**
    * Scan multiple symbols and rank by opportunity quality.
    */
-  async scan(
-    symbols: string[],
-    getBarsFn: GetBarsFn,
-    onProgress?: ProgressCallback,
-  ): Promise<ScanResult[]> {
+  async scan(symbols: string[], getBarsFn: GetBarsFn, onProgress?: ProgressCallback): Promise<ScanResult[]> {
     if (this._scanning) return this._results;
     this._scanning = true;
     this._results = [];
@@ -132,19 +128,16 @@ export class ScannerEngine {
     if (this._results.length === 0) return '';
 
     const top = this.getTopN(5);
-    const lines = top.map((r, i) =>
-      `${i + 1}. ${r.symbol} — ${r.regime} (${r.score}/100): ${r.summary}`
-    );
+    const lines = top.map((r, i) => `${i + 1}. ${r.symbol} — ${r.regime} (${r.score}/100): ${r.summary}`);
     return `--- Scanner Results ---\n${lines.join('\n')}`;
   }
 
   // ── Single Symbol Analysis ──────────────────────────────────
 
   private _analyzeSymbol(symbol: string, bars: Bar[]): ScanResult {
-    const n = bars.length;
     const recent = bars.slice(-50);
-    const closes = recent.map(b => b.close);
-    const volumes = recent.map(b => b.volume);
+    const closes = recent.map((b) => b.close);
+    const volumes = recent.map((b) => b.volume);
 
     // ── Momentum ──────────────────────────────────────────────
     const ema8 = this._ema(closes, 8);
@@ -173,23 +166,15 @@ export class ScannerEngine {
 
     // ── Direction ─────────────────────────────────────────────
     const direction: 'bullish' | 'bearish' | 'neutral' =
-      emaSpread > 0.2 && rsi > 45 ? 'bullish' :
-      emaSpread < -0.2 && rsi < 55 ? 'bearish' : 'neutral';
+      emaSpread > 0.2 && rsi > 45 ? 'bullish' : emaSpread < -0.2 && rsi < 55 ? 'bearish' : 'neutral';
 
     // ── Signals ───────────────────────────────────────────────
     const signals = this._detectSignals(closes, volumes, rsi, emaSpread, relativeVolume);
 
     // ── Composite Score ───────────────────────────────────────
     // Weight: momentum 40%, volume 25%, signal strength 25%, volatility 10%
-    const signalAvg = signals.length > 0
-      ? signals.reduce((s, sig) => s + sig.strength, 0) / signals.length
-      : 0;
-    const score = Math.round(
-      Math.abs(momentumScore) * 0.4 +
-      volumeScore * 0.25 +
-      signalAvg * 0.25 +
-      volatility * 0.10
-    );
+    const signalAvg = signals.length > 0 ? signals.reduce((s, sig) => s + sig.strength, 0) / signals.length : 0;
+    const score = Math.round(Math.abs(momentumScore) * 0.4 + volumeScore * 0.25 + signalAvg * 0.25 + volatility * 0.1);
 
     // ── Summary ───────────────────────────────────────────────
     const topSig = signals[0]?.description || 'No strong signals';
@@ -212,27 +197,46 @@ export class ScannerEngine {
   // ── Signal Detection ────────────────────────────────────────
 
   private _detectSignals(
-    closes: number[], volumes: number[],
-    rsi: number, emaSpread: number, relVol: number,
+    closes: number[],
+    volumes: number[],
+    rsi: number,
+    emaSpread: number,
+    relVol: number,
   ): ScanSignal[] {
     const signals: ScanSignal[] = [];
 
     // RSI extremes
     if (rsi > 70) {
-      signals.push({ type: 'rsi_overbought', description: `RSI overbought at ${rsi.toFixed(0)}`, strength: Math.min(90, rsi) });
+      signals.push({
+        type: 'rsi_overbought',
+        description: `RSI overbought at ${rsi.toFixed(0)}`,
+        strength: Math.min(90, rsi),
+      });
     } else if (rsi < 30) {
-      signals.push({ type: 'rsi_oversold', description: `RSI oversold at ${rsi.toFixed(0)}`, strength: Math.min(90, 100 - rsi) });
+      signals.push({
+        type: 'rsi_oversold',
+        description: `RSI oversold at ${rsi.toFixed(0)}`,
+        strength: Math.min(90, 100 - rsi),
+      });
     }
 
     // Volume spike
     if (relVol > 2.0) {
-      signals.push({ type: 'volume_spike', description: `Volume ${relVol.toFixed(1)}x average`, strength: Math.min(95, relVol * 30) });
+      signals.push({
+        type: 'volume_spike',
+        description: `Volume ${relVol.toFixed(1)}x average`,
+        strength: Math.min(95, relVol * 30),
+      });
     }
 
     // Strong trend
     if (Math.abs(emaSpread) > 1.0) {
       const dir = emaSpread > 0 ? 'bullish' : 'bearish';
-      signals.push({ type: 'strong_trend', description: `Strong ${dir} trend (EMA spread ${emaSpread.toFixed(2)}%)`, strength: Math.min(85, Math.abs(emaSpread) * 30) });
+      signals.push({
+        type: 'strong_trend',
+        description: `Strong ${dir} trend (EMA spread ${emaSpread.toFixed(2)}%)`,
+        strength: Math.min(85, Math.abs(emaSpread) * 30),
+      });
     }
 
     // Price at extremes (Bollinger-like)
@@ -245,7 +249,11 @@ export class ScannerEngine {
 
       if (Math.abs(zScore) > 2) {
         const side = zScore > 0 ? 'upper' : 'lower';
-        signals.push({ type: 'bb_extreme', description: `Price at ${side} Bollinger band (${zScore.toFixed(1)}σ)`, strength: Math.min(80, Math.abs(zScore) * 30) });
+        signals.push({
+          type: 'bb_extreme',
+          description: `Price at ${side} Bollinger band (${zScore.toFixed(1)}σ)`,
+          strength: Math.min(80, Math.abs(zScore) * 30),
+        });
       }
     }
 
@@ -299,10 +307,12 @@ export class ScannerEngine {
 
   private _rsi(data: number[], period: number): number {
     if (data.length < period + 1) return 50;
-    let gains = 0, losses = 0;
+    let gains = 0,
+      losses = 0;
     for (let i = data.length - period; i < data.length; i++) {
       const change = data[i] - data[i - 1];
-      if (change > 0) gains += change; else losses -= change;
+      if (change > 0) gains += change;
+      else losses -= change;
     }
     const avgGain = gains / period;
     const avgLoss = losses / period;

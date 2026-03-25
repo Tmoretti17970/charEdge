@@ -7,11 +7,10 @@
 
 import React, { useState, useMemo } from 'react';
 import { C, GLASS } from '../../../constants.js';
-import { alpha } from '@/shared/colorUtils';
-import { Card } from '../ui/UIKit.jsx';
 import { PROP_FIRM_RULES, evaluatePhase } from '../../../data/connectors/brokers/PropFirmConnector.js';
 import { useJournalStore } from '../../../state/useJournalStore.js';
-import st from './PropFirmDashboard.module.css';
+import { Card } from '../ui/UIKit.jsx';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Progress Ring ──────────────────────────────────────────────
 
@@ -37,9 +36,7 @@ function ProgressRing({ progress, color, size = 60, label, value }) {
           style={{ transition: 'stroke-dashoffset 0.6s ease' }}
         />
       </svg>
-      <div style={{ fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-mono)', color, marginTop: 4 }}>
-        {value}
-      </div>
+      <div style={{ fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-mono)', color, marginTop: 4 }}>{value}</div>
       <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>{label}</div>
     </div>
   );
@@ -54,7 +51,7 @@ function PropFirmDashboard() {
   const [selectedPhase, setSelectedPhase] = useState(0);
 
   const firm = PROP_FIRM_RULES[selectedFirm];
-  const accountSize = selectedSize || (firm?.accountSizes?.[2] || 50000);
+  const accountSize = selectedSize || firm?.accountSizes?.[2] || 50000;
   const phase = firm?.phases?.[selectedPhase];
 
   const evaluation = useMemo(() => {
@@ -75,7 +72,11 @@ function PropFirmDashboard() {
         {Object.entries(PROP_FIRM_RULES).map(([id, f]) => (
           <button
             key={id}
-            onClick={() => { setSelectedFirm(id); setSelectedPhase(0); setSelectedSize(null); }}
+            onClick={() => {
+              setSelectedFirm(id);
+              setSelectedPhase(0);
+              setSelectedSize(null);
+            }}
             style={{
               padding: '5px 12px',
               borderRadius: 8,
@@ -96,7 +97,9 @@ function PropFirmDashboard() {
 
       {/* Account size selector */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 12 }}>
-        <span style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', alignSelf: 'center', marginRight: 4 }}>Account:</span>
+        <span style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', alignSelf: 'center', marginRight: 4 }}>
+          Account:
+        </span>
         {firm.accountSizes.map((size) => (
           <button
             key={size}
@@ -156,7 +159,9 @@ function PropFirmDashboard() {
             {phase.maxTotalLoss && (
               <ProgressRing
                 progress={evaluation.progress.drawdownUsed}
-                color={evaluation.progress.drawdownUsed > 0.8 ? C.r : evaluation.progress.drawdownUsed > 0.5 ? C.y : C.g}
+                color={
+                  evaluation.progress.drawdownUsed > 0.8 ? C.r : evaluation.progress.drawdownUsed > 0.5 ? C.y : C.g
+                }
                 label="Max Drawdown"
                 value={`${(evaluation.progress.maxDrawdown * 100).toFixed(1)}% / ${(phase.maxTotalLoss * 100).toFixed(0)}%`}
               />
@@ -185,8 +190,19 @@ function PropFirmDashboard() {
               textAlign: 'center',
             }}
           >
-            <div style={{ fontSize: 12, fontWeight: 700, fontFamily: 'var(--tf-font)', color: evaluation.passed ? C.g : evaluation.violations.length > 0 ? C.r : C.t1 }}>
-              {evaluation.passed ? '✅ Phase Passed!' : evaluation.violations.length > 0 ? '🚨 Rule Violation' : '📊 In Progress'}
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                fontFamily: 'var(--tf-font)',
+                color: evaluation.passed ? C.g : evaluation.violations.length > 0 ? C.r : C.t1,
+              }}
+            >
+              {evaluation.passed
+                ? '✅ Phase Passed!'
+                : evaluation.violations.length > 0
+                  ? '🚨 Rule Violation'
+                  : '📊 In Progress'}
             </div>
             {evaluation.violations.length > 0 && (
               <div style={{ fontSize: 10, color: C.r, marginTop: 4, fontFamily: 'var(--tf-mono)' }}>
@@ -197,7 +213,8 @@ function PropFirmDashboard() {
 
           {/* Profit split info */}
           <div style={{ marginTop: 10, fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', textAlign: 'center' }}>
-            Profit split: {(firm.profitSplit * 100).toFixed(0)}% to you · Your payout: ${(evaluation.progress.totalPnl * firm.profitSplit).toFixed(2)}
+            Profit split: {(firm.profitSplit * 100).toFixed(0)}% to you · Your payout: $
+            {(evaluation.progress.totalPnl * firm.profitSplit).toFixed(2)}
           </div>
         </Card>
       ) : (

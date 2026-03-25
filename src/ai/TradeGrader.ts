@@ -19,7 +19,7 @@ export type LetterGrade = 'A+' | 'A' | 'B+' | 'B' | 'C' | 'D' | 'F';
 
 export interface GradeComponent {
   grade: LetterGrade;
-  score: number;        // 0-100
+  score: number; // 0-100
   note: string;
 }
 
@@ -52,8 +52,8 @@ interface Trade {
   exitDate?: string | number | Date;
   date?: string | number | Date;
   notes?: string;
-  highPrice?: number;   // highest price during trade
-  lowPrice?: number;    // lowest price during trade
+  highPrice?: number; // highest price during trade
+  lowPrice?: number; // lowest price during trade
 }
 
 // ─── Grader ─────────────────────────────────────────────────────
@@ -68,7 +68,14 @@ class TradeGrader {
 
     // ── Setup Score (from SetupScorer) ────────────────────────
     const historicalScore = setupScorer.score(
-      allTrades as any[],
+      allTrades as unknown as {
+        [key: string]: unknown;
+        pnl?: number;
+        symbol?: string;
+        setupType?: string;
+        timeframe?: string;
+        side?: string;
+      }[],
       { symbol, setup: setupName, timeframe: trade.timeframe || undefined },
     );
 
@@ -82,11 +89,7 @@ class TradeGrader {
     const riskMgmt = this._gradeRisk(trade, allTrades);
 
     // ── Overall ──────────────────────────────────────────────
-    const overallScore = Math.round(
-      entry.score * 0.35 +
-      exit.score * 0.35 +
-      riskMgmt.score * 0.30,
-    );
+    const overallScore = Math.round(entry.score * 0.35 + exit.score * 0.35 + riskMgmt.score * 0.3);
     const overall = this._scoreToGrade(overallScore);
 
     const summary = this._buildSummary(trade, overall, overallScore, entry, exit, riskMgmt, historicalScore);
@@ -162,12 +165,8 @@ class TradeGrader {
     // Check profit capture (if high/low data available)
     if (trade.highPrice && trade.lowPrice && trade.entryPrice && trade.exitPrice) {
       const isLong = (trade.side || 'long').toLowerCase() !== 'short';
-      const maxMove = isLong
-        ? trade.highPrice - trade.entryPrice
-        : trade.entryPrice - trade.lowPrice;
-      const capturedMove = isLong
-        ? trade.exitPrice - trade.entryPrice
-        : trade.entryPrice - trade.exitPrice;
+      const maxMove = isLong ? trade.highPrice - trade.entryPrice : trade.entryPrice - trade.lowPrice;
+      const capturedMove = isLong ? trade.exitPrice - trade.entryPrice : trade.entryPrice - trade.exitPrice;
 
       if (maxMove > 0) {
         const capturePct = capturedMove / maxMove;
@@ -192,9 +191,7 @@ class TradeGrader {
       // Check if loss was controlled
       if (trade.stopLoss && trade.exitPrice && trade.entryPrice) {
         const isLong = (trade.side || 'long').toLowerCase() !== 'short';
-        const stoppedOut = isLong
-          ? trade.exitPrice <= trade.stopLoss
-          : trade.exitPrice >= trade.stopLoss;
+        const stoppedOut = isLong ? trade.exitPrice <= trade.stopLoss : trade.exitPrice >= trade.stopLoss;
         if (stoppedOut) {
           score += 15;
           notes.push('Hit stop loss — disciplined exit on a losing trade ✓');
@@ -207,9 +204,7 @@ class TradeGrader {
     // Take profit target
     if (trade.takeProfit && trade.exitPrice) {
       const isLong = (trade.side || 'long').toLowerCase() !== 'short';
-      const hitTP = isLong
-        ? trade.exitPrice >= trade.takeProfit
-        : trade.exitPrice <= trade.takeProfit;
+      const hitTP = isLong ? trade.exitPrice >= trade.takeProfit : trade.exitPrice <= trade.takeProfit;
       if (hitTP) {
         score += 10;
         notes.push('Hit take-profit target ✓');
@@ -239,9 +234,7 @@ class TradeGrader {
       if (trade.takeProfit && trade.entryPrice) {
         const isLong = (trade.side || 'long').toLowerCase() !== 'short';
         const risk = Math.abs(trade.entryPrice - trade.stopLoss);
-        const reward = isLong
-          ? trade.takeProfit - trade.entryPrice
-          : trade.entryPrice - trade.takeProfit;
+        const reward = isLong ? trade.takeProfit - trade.entryPrice : trade.entryPrice - trade.takeProfit;
         const rr = risk > 0 ? reward / risk : 0;
 
         if (rr >= 3) {
@@ -264,9 +257,7 @@ class TradeGrader {
 
     // Position size relative to average
     if (allTrades.length >= 5) {
-      const sizes = allTrades
-        .map(t => t.quantity ?? t.size ?? t.amount ?? 0)
-        .filter(s => s > 0);
+      const sizes = allTrades.map((t) => t.quantity ?? t.size ?? t.amount ?? 0).filter((s) => s > 0);
       const tradeSize = trade.quantity ?? trade.size ?? trade.amount ?? 0;
 
       if (sizes.length >= 5 && tradeSize > 0) {
@@ -275,10 +266,10 @@ class TradeGrader {
 
         if (sizeRatio > 2) {
           score -= 15;
-          notes.push(`Position ${(sizeRatio).toFixed(1)}x your average — oversized`);
+          notes.push(`Position ${sizeRatio.toFixed(1)}x your average — oversized`);
         } else if (sizeRatio > 1.5) {
           score -= 5;
-          notes.push(`Position ${(sizeRatio).toFixed(1)}x your average — slightly large`);
+          notes.push(`Position ${sizeRatio.toFixed(1)}x your average — slightly large`);
         } else if (sizeRatio >= 0.5 && sizeRatio <= 1.5) {
           score += 10;
           notes.push('Consistent position sizing ✓');
@@ -326,9 +317,14 @@ class TradeGrader {
     const pnlStr = pnl >= 0 ? `+$${pnl.toFixed(2)}` : `-$${Math.abs(pnl).toFixed(2)}`;
     const pnlEmoji = pnl >= 0 ? '✅' : '❌';
 
-    const gradeEmoji = overall === 'A+' || overall === 'A' ? '🏆' :
-                       overall === 'B+' || overall === 'B' ? '👍' :
-                       overall === 'C' ? '➡️' : '⚠️';
+    const gradeEmoji =
+      overall === 'A+' || overall === 'A'
+        ? '🏆'
+        : overall === 'B+' || overall === 'B'
+          ? '👍'
+          : overall === 'C'
+            ? '➡️'
+            : '⚠️';
 
     parts.push(`**${gradeEmoji} Trade Grade: ${overall}** (${overallScore}/100)\n`);
     parts.push(`${side} **${symbol}** · ${pnlEmoji} ${pnlStr}\n`);
@@ -353,7 +349,9 @@ class TradeGrader {
 
     if (weakest && weakest.score < 60) {
       parts.push('');
-      parts.push(`💡 **Focus area:** Your ${weakest.name} could use improvement. Review your process for this component.`);
+      parts.push(
+        `💡 **Focus area:** Your ${weakest.name} could use improvement. Review your process for this component.`,
+      );
     }
 
     return parts.join('\n');

@@ -6,7 +6,7 @@
 // and challenge phase progression.
 // ═══════════════════════════════════════════════════════════════════
 
-import { BrokerConnector, CONNECTOR_STATUS } from '../BrokerConnector.js';
+import { BrokerConnector } from '../BrokerConnector.js';
 import { registerConnector } from '../ConnectorRegistry.js';
 
 // ─── Prop Firm Rules ────────────────────────────────────────────
@@ -16,20 +16,27 @@ export const PROP_FIRM_RULES = {
     name: 'FTMO',
     logo: '🔷',
     phases: [
-      { name: 'Challenge', profitTarget: 0.10, maxDailyLoss: 0.05, maxTotalLoss: 0.10, minDays: 4, maxDays: 30 },
-      { name: 'Verification', profitTarget: 0.05, maxDailyLoss: 0.05, maxTotalLoss: 0.10, minDays: 4, maxDays: 60 },
+      { name: 'Challenge', profitTarget: 0.1, maxDailyLoss: 0.05, maxTotalLoss: 0.1, minDays: 4, maxDays: 30 },
+      { name: 'Verification', profitTarget: 0.05, maxDailyLoss: 0.05, maxTotalLoss: 0.1, minDays: 4, maxDays: 60 },
     ],
     accountSizes: [10000, 25000, 50000, 100000, 200000],
-    profitSplit: 0.80,
+    profitSplit: 0.8,
   },
   topstep: {
     name: 'Topstep',
     logo: '🟤',
     phases: [
-      { name: 'Trading Combine', profitTarget: 0.06, maxDailyLoss: 0.02, maxTotalLoss: 0.04, minDays: 5, maxDays: null },
+      {
+        name: 'Trading Combine',
+        profitTarget: 0.06,
+        maxDailyLoss: 0.02,
+        maxTotalLoss: 0.04,
+        minDays: 5,
+        maxDays: null,
+      },
     ],
     accountSizes: [50000, 100000, 150000],
-    profitSplit: 0.90,
+    profitSplit: 0.9,
   },
   mffu: {
     name: 'MyFundedFX',
@@ -39,7 +46,7 @@ export const PROP_FIRM_RULES = {
       { name: 'Phase 2', profitTarget: 0.05, maxDailyLoss: 0.05, maxTotalLoss: 0.12, minDays: 0, maxDays: null },
     ],
     accountSizes: [5000, 10000, 25000, 50000, 100000, 200000],
-    profitSplit: 0.80,
+    profitSplit: 0.8,
   },
   apex: {
     name: 'Apex Trader',
@@ -57,7 +64,7 @@ export const PROP_FIRM_RULES = {
       { name: 'Hyper Growth', profitTarget: 0.06, maxDailyLoss: 0.03, maxTotalLoss: 0.06, minDays: 0, maxDays: null },
     ],
     accountSizes: [6000, 20000, 60000, 100000],
-    profitSplit: 0.80,
+    profitSplit: 0.8,
   },
 };
 
@@ -92,7 +99,9 @@ export function evaluatePhase(trades, phase, accountSize) {
   // Check daily loss limits
   for (const [day, pnl] of Object.entries(dailyPnl)) {
     if (phase.maxDailyLoss && pnl < -(accountSize * phase.maxDailyLoss)) {
-      violations.push(`Daily loss limit breached on ${day}: ${pnl.toFixed(2)} (max: -${(accountSize * phase.maxDailyLoss).toFixed(2)})`);
+      violations.push(
+        `Daily loss limit breached on ${day}: ${pnl.toFixed(2)} (max: -${(accountSize * phase.maxDailyLoss).toFixed(2)})`,
+      );
     }
 
     // Track drawdown
@@ -104,7 +113,9 @@ export function evaluatePhase(trades, phase, accountSize) {
 
   // Check total loss
   if (phase.maxTotalLoss && totalPnl < -(accountSize * phase.maxTotalLoss)) {
-    violations.push(`Total loss limit breached: ${totalPnl.toFixed(2)} (max: -${(accountSize * phase.maxTotalLoss).toFixed(2)})`);
+    violations.push(
+      `Total loss limit breached: ${totalPnl.toFixed(2)} (max: -${(accountSize * phase.maxTotalLoss).toFixed(2)})`,
+    );
   }
 
   // Check profit target

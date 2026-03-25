@@ -78,44 +78,40 @@ class CoinbaseConnector extends BrokerConnector {
     }
   }
 
-  async fetchTrades(credentials, options = {}) {
+  async fetchTrades(credentials, _options = {}) {
     const trades = [];
 
-    try {
-      // 1. Get accounts list
-      const accounts = await this._request(credentials, 'GET', '/v2/accounts?limit=100');
-      const accountList = accounts?.data || [];
+    // 1. Get accounts list
+    const accounts = await this._request(credentials, 'GET', '/v2/accounts?limit=100');
+    const accountList = accounts?.data || [];
 
-      // 2. For each account, get transactions
-      for (const account of accountList) {
-        if (!account?.id || parseFloat(account.balance?.amount || '0') === 0) continue;
+    // 2. For each account, get transactions
+    for (const account of accountList) {
+      if (!account?.id || parseFloat(account.balance?.amount || '0') === 0) continue;
 
-        let nextUri = `/v2/accounts/${account.id}/transactions?limit=100`;
-        while (nextUri) {
-          await this._waitForRateLimit();
-          const txData = await this._request(credentials, 'GET', nextUri);
+      let nextUri = `/v2/accounts/${account.id}/transactions?limit=100`;
+      while (nextUri) {
+        await this._waitForRateLimit();
+        const txData = await this._request(credentials, 'GET', nextUri);
 
-          for (const tx of txData?.data || []) {
-            if (tx.type === 'buy' || tx.type === 'sell' || tx.type === 'trade') {
-              trades.push({
-                date: tx.created_at || tx.updated_at,
-                symbol: (tx.amount?.currency || account.currency?.code || '').toUpperCase(),
-                side: tx.type === 'sell' ? 'SELL' : 'BUY',
-                quantity: Math.abs(parseFloat(tx.amount?.amount || '0')),
-                price: parseFloat(tx.native_amount?.amount || '0') / Math.abs(parseFloat(tx.amount?.amount || '1')),
-                pnl: 0,
-                commission: parseFloat(tx.network?.transaction_fee?.amount || '0'),
-                notes: tx.details?.title || '',
-                _source: 'coinbase',
-              });
-            }
+        for (const tx of txData?.data || []) {
+          if (tx.type === 'buy' || tx.type === 'sell' || tx.type === 'trade') {
+            trades.push({
+              date: tx.created_at || tx.updated_at,
+              symbol: (tx.amount?.currency || account.currency?.code || '').toUpperCase(),
+              side: tx.type === 'sell' ? 'SELL' : 'BUY',
+              quantity: Math.abs(parseFloat(tx.amount?.amount || '0')),
+              price: parseFloat(tx.native_amount?.amount || '0') / Math.abs(parseFloat(tx.amount?.amount || '1')),
+              pnl: 0,
+              commission: parseFloat(tx.network?.transaction_fee?.amount || '0'),
+              notes: tx.details?.title || '',
+              _source: 'coinbase',
+            });
           }
-
-          nextUri = txData?.pagination?.next_uri || null;
         }
+
+        nextUri = txData?.pagination?.next_uri || null;
       }
-    } catch (err) {
-      throw err;
     }
 
     return trades;

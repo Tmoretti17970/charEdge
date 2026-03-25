@@ -14,7 +14,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { C } from '../../../constants.js';
 import { binanceFuturesAdapter } from '../../../data/adapters/BinanceFuturesAdapter.js';
 import { logger } from '@/observability/logger';
-import st from './DerivativesDashboard.module.css';
 
 // ─── Formatters ────────────────────────────────────────────────
 
@@ -40,21 +39,31 @@ function fmtTime(ts) {
 
 function MetricCard({ label, value, sub, color, icon }) {
   return (
-    <div style={{
-      background: C.sf,
-      border: `1px solid ${C.bd}`,
-      borderRadius: 10,
-      padding: '12px 14px',
-      flex: 1,
-      minWidth: 120,
-    }}>
-      <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>
+    <div
+      style={{
+        background: C.sf,
+        border: `1px solid ${C.bd}`,
+        borderRadius: 10,
+        padding: '12px 14px',
+        flex: 1,
+        minWidth: 120,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 10,
+          color: C.t3,
+          fontFamily: 'var(--tf-font)',
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: 0.5,
+          marginBottom: 4,
+        }}
+      >
         {icon && <span style={{ marginRight: 4 }}>{icon}</span>}
         {label}
       </div>
-      <div style={{ fontSize: 20, fontWeight: 800, fontFamily: 'var(--tf-mono)', color: color || C.t1 }}>
-        {value}
-      </div>
+      <div style={{ fontSize: 20, fontWeight: 800, fontFamily: 'var(--tf-mono)', color: color || C.t1 }}>{value}</div>
       {sub && <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', marginTop: 2 }}>{sub}</div>}
     </div>
   );
@@ -68,19 +77,21 @@ function FundingPill({ rate }) {
   const label = rate > 0 ? 'Longs Pay' : rate < 0 ? 'Shorts Pay' : 'Neutral';
 
   return (
-    <span style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: 4,
-      padding: '3px 8px',
-      borderRadius: 6,
-      background: `${color}15`,
-      border: `1px solid ${color}30`,
-      fontSize: 10,
-      fontWeight: 600,
-      fontFamily: 'var(--tf-mono)',
-      color,
-    }}>
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '3px 8px',
+        borderRadius: 6,
+        background: `${color}15`,
+        border: `1px solid ${color}30`,
+        fontSize: 10,
+        fontWeight: 600,
+        fontFamily: 'var(--tf-mono)',
+        color,
+      }}
+    >
       <span style={{ width: 6, height: 6, borderRadius: '50%', background: color }} />
       {label}
     </span>
@@ -101,7 +112,14 @@ function Sparkline({ data, width = 100, height = 28, color = C.b }) {
 
   return (
     <svg width={width} height={height} style={{ display: 'block' }}>
-      <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <polyline
+        points={points}
+        fill="none"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -119,26 +137,32 @@ function LiquidationFeed({ liquidations }) {
 
   return (
     <div style={{ maxHeight: 160, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {liquidations.slice(-15).reverse().map((liq, i) => (
-        <div key={liq.time + '-' + i} style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          padding: '4px 8px',
-          borderRadius: 6,
-          background: i === 0 ? `${liq.type === 'long_liquidation' ? C.r : C.g}08` : 'transparent',
-          fontSize: 11,
-          fontFamily: 'var(--tf-mono)',
-        }}>
-          <span style={{ fontSize: 14 }}>{liq.type === 'long_liquidation' ? '🔴' : '🟢'}</span>
-          <span style={{ color: C.t1, fontWeight: 600, width: 80 }}>{liq.symbol?.replace('USDT', '')}</span>
-          <span style={{ color: liq.type === 'long_liquidation' ? C.r : C.g, width: 50 }}>
-            {liq.type === 'long_liquidation' ? 'LONG' : 'SHORT'}
-          </span>
-          <span style={{ color: C.t1, flex: 1 }}>${fmtNum(liq.quantityUsd)}</span>
-          <span style={{ color: C.t3, fontSize: 10 }}>{fmtTime(liq.time)}</span>
-        </div>
-      ))}
+      {liquidations
+        .slice(-15)
+        .reverse()
+        .map((liq, i) => (
+          <div
+            key={liq.time + '-' + i}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '4px 8px',
+              borderRadius: 6,
+              background: i === 0 ? `${liq.type === 'long_liquidation' ? C.r : C.g}08` : 'transparent',
+              fontSize: 11,
+              fontFamily: 'var(--tf-mono)',
+            }}
+          >
+            <span style={{ fontSize: 14 }}>{liq.type === 'long_liquidation' ? '🔴' : '🟢'}</span>
+            <span style={{ color: C.t1, fontWeight: 600, width: 80 }}>{liq.symbol?.replace('USDT', '')}</span>
+            <span style={{ color: liq.type === 'long_liquidation' ? C.r : C.g, width: 50 }}>
+              {liq.type === 'long_liquidation' ? 'LONG' : 'SHORT'}
+            </span>
+            <span style={{ color: C.t1, flex: 1 }}>${fmtNum(liq.quantityUsd)}</span>
+            <span style={{ color: C.t3, fontSize: 10 }}>{fmtTime(liq.time)}</span>
+          </div>
+        ))}
     </div>
   );
 }
@@ -166,9 +190,9 @@ function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
         binanceFuturesAdapter.fetchLongShortRatio(symbol, '1h', 24),
       ]);
       setSnapshot(snap);
-      setOiHistory(oiHist.map(d => d.oi));
-      setFundingHistory(fundHist.map(d => d.fundingRate * 100));
-      setLsrHistory(lsr.map(d => d.longShortRatio));
+      setOiHistory(oiHist.map((d) => d.oi));
+      setFundingHistory(fundHist.map((d) => d.fundingRate * 100));
+      setLsrHistory(lsr.map((d) => d.longShortRatio));
     } catch (err) {
       logger.data.warn('[DerivativesDashboard] Fetch failed:', err);
     }
@@ -184,7 +208,7 @@ function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
   // Subscribe to liquidation stream
   useEffect(() => {
     const unsub = binanceFuturesAdapter.subscribeLiquidations((liq) => {
-      setLiquidations(prev => [...prev.slice(-50), liq]);
+      setLiquidations((prev) => [...prev.slice(-50), liq]);
     });
     return unsub;
   }, []);
@@ -196,15 +220,17 @@ function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
   const taker = snapshot?.takerVolume;
 
   return (
-    <div style={{
-      padding: 16,
-      fontFamily: 'var(--tf-font)',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 14,
-      height: '100%',
-      overflowY: 'auto',
-    }}>
+    <div
+      style={{
+        padding: 16,
+        fontFamily: 'var(--tf-font)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
+        height: '100%',
+        overflowY: 'auto',
+      }}
+    >
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
@@ -220,9 +246,14 @@ function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
         <button
           onClick={fetchDerivativesData}
           style={{
-            fontSize: 10, padding: '5px 10px', borderRadius: 6,
-            border: `1px solid ${C.bd}`, background: C.sf, color: C.t2,
-            cursor: 'pointer', fontFamily: 'var(--tf-mono)',
+            fontSize: 10,
+            padding: '5px 10px',
+            borderRadius: 6,
+            border: `1px solid ${C.bd}`,
+            background: C.sf,
+            color: C.t2,
+            cursor: 'pointer',
+            fontFamily: 'var(--tf-mono)',
           }}
         >
           ↻ Refresh
@@ -273,15 +304,27 @@ function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
               icon="🔄"
               color={taker?.buySellRatio > 1 ? C.g : C.r}
             />
-            <div style={{
-              background: C.sf,
-              border: `1px solid ${C.bd}`,
-              borderRadius: 10,
-              padding: '12px 14px',
-              flex: 1,
-              minWidth: 120,
-            }}>
-              <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>
+            <div
+              style={{
+                background: C.sf,
+                border: `1px solid ${C.bd}`,
+                borderRadius: 10,
+                padding: '12px 14px',
+                flex: 1,
+                minWidth: 120,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 10,
+                  color: C.t3,
+                  fontFamily: 'var(--tf-font)',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                  marginBottom: 4,
+                }}
+              >
                 Funding <FundingPill rate={funding?.rate} />
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -293,18 +336,48 @@ function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
 
           {/* Sparklines Row */}
           <div style={{ display: 'flex', gap: 8 }}>
-            <div style={{
-              background: C.sf, border: `1px solid ${C.bd}`, borderRadius: 10, padding: '10px 14px', flex: 1,
-            }}>
-              <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', fontWeight: 600, textTransform: 'uppercase', marginBottom: 6 }}>
+            <div
+              style={{
+                background: C.sf,
+                border: `1px solid ${C.bd}`,
+                borderRadius: 10,
+                padding: '10px 14px',
+                flex: 1,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 10,
+                  color: C.t3,
+                  fontFamily: 'var(--tf-font)',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  marginBottom: 6,
+                }}
+              >
                 Open Interest Trend (24h)
               </div>
               <Sparkline data={oiHistory} width={200} height={32} color={C.b} />
             </div>
-            <div style={{
-              background: C.sf, border: `1px solid ${C.bd}`, borderRadius: 10, padding: '10px 14px', flex: 1,
-            }}>
-              <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', fontWeight: 600, textTransform: 'uppercase', marginBottom: 6 }}>
+            <div
+              style={{
+                background: C.sf,
+                border: `1px solid ${C.bd}`,
+                borderRadius: 10,
+                padding: '10px 14px',
+                flex: 1,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 10,
+                  color: C.t3,
+                  fontFamily: 'var(--tf-font)',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  marginBottom: 6,
+                }}
+              >
                 Long/Short Ratio (24h)
               </div>
               <Sparkline data={lsrHistory} width={200} height={32} color={C.cyan} />
@@ -312,13 +385,25 @@ function DerivativesDashboard({ symbol = 'BTCUSDT' }) {
           </div>
 
           {/* Liquidation Feed */}
-          <div style={{
-            background: C.sf,
-            border: `1px solid ${C.bd}`,
-            borderRadius: 10,
-            padding: '12px 14px',
-          }}>
-            <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+          <div
+            style={{
+              background: C.sf,
+              border: `1px solid ${C.bd}`,
+              borderRadius: 10,
+              padding: '12px 14px',
+            }}
+          >
+            <div
+              style={{
+                fontSize: 10,
+                color: C.t3,
+                fontFamily: 'var(--tf-font)',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+                marginBottom: 8,
+              }}
+            >
               🔥 Live Liquidations
             </div>
             <LiquidationFeed liquidations={liquidations} />

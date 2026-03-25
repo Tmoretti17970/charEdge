@@ -30,10 +30,7 @@ interface BackgroundRefreshCallbacks {
 /**
  * Hook to manage the background data refresh worker.
  */
-export function useBackgroundRefresh(
-  symbols: string[],
-  callbacks: BackgroundRefreshCallbacks = {},
-) {
+export function useBackgroundRefresh(symbols: string[], callbacks: BackgroundRefreshCallbacks = {}) {
   const workerRef = useRef<Worker | null>(null);
   const callbacksRef = useRef(callbacks);
   callbacksRef.current = callbacks;
@@ -51,38 +48,35 @@ export function useBackgroundRefresh(
     if (!symbols.length) return;
 
     try {
-      const worker = new Worker(
-        new URL('../workers/dataWorker.js', import.meta.url),
-        { type: 'module' },
-      );
+      const worker = new Worker(new URL('../workers/dataWorker.js', import.meta.url), { type: 'module' });
 
       worker.onmessage = (e: MessageEvent) => {
         const { type, data, error, status } = e.data;
 
         switch (type) {
           case 'status':
-            setState(s => ({ ...s, status }));
+            setState((s) => ({ ...s, status }));
             break;
           case 'sparklines':
-            setState(s => ({ ...s, lastSparklineUpdate: Date.now() }));
+            setState((s) => ({ ...s, lastSparklineUpdate: Date.now() }));
             callbacksRef.current.onSparklines?.(data);
             break;
           case 'fundamentals':
-            setState(s => ({ ...s, lastFundamentalsUpdate: Date.now() }));
+            setState((s) => ({ ...s, lastFundamentalsUpdate: Date.now() }));
             callbacksRef.current.onFundamentals?.(data);
             break;
           case 'news':
-            setState(s => ({ ...s, lastNewsUpdate: Date.now() }));
+            setState((s) => ({ ...s, lastNewsUpdate: Date.now() }));
             callbacksRef.current.onNews?.(data);
             break;
           case 'error':
-            setState(s => ({ ...s, error: error || 'Worker error' }));
+            setState((s) => ({ ...s, error: error || 'Worker error' }));
             break;
         }
       };
 
       worker.onerror = () => {
-        setState(s => ({ ...s, status: 'error', error: 'Worker crashed' }));
+        setState((s) => ({ ...s, status: 'error', error: 'Worker crashed' }));
       };
 
       // Start the worker
@@ -95,9 +89,9 @@ export function useBackgroundRefresh(
         workerRef.current = null;
       };
     } catch {
-      setState(s => ({ ...s, status: 'error', error: 'Worker initialization failed' }));
+      setState((s) => ({ ...s, status: 'error', error: 'Worker initialization failed' }));
     }
-  }, [symbols.join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [symbols.join(',')]);
 
   // Update symbols when they change
   useEffect(() => {

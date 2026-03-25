@@ -7,12 +7,12 @@
 
 import React from 'react';
 import { useState, useMemo, useCallback } from 'react';
-import { C } from '@/constants.js';
 import { useAllOpenPositions } from '../../../../hooks/useAllOpenPositions.js';
 import { useOpenPositions } from '../../../../hooks/useOpenPositions.js';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 import { useJournalStore } from '../../../../state/useJournalStore';
 import s from './TradePLPill.module.css';
+import { C } from '@/constants.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────
 
@@ -215,13 +215,13 @@ function TradePLPill({ showAutoFit, onAutoFit }) {
             }
           }
         }
-      } catch { /* non-fatal */ }
+      } catch {
+        /* non-fatal */
+      }
 
       // Build screenshots array: keep existing entry screenshots + add close screenshot
       const existingScreenshots = pos.screenshots || [];
-      const newScreenshots = closeScreenshot
-        ? [...existingScreenshots, closeScreenshot]
-        : existingScreenshots;
+      const newScreenshots = closeScreenshot ? [...existingScreenshots, closeScreenshot] : existingScreenshots;
 
       updateTrade(posId, {
         pnl,
@@ -233,7 +233,7 @@ function TradePLPill({ showAutoFit, onAutoFit }) {
         holdDuration,
         rMultiple,
         exitReason: 'manual',
-        fees: pos.commission || 1.00,
+        fees: pos.commission || 1.0,
         screenshots: newScreenshots.length > 0 ? newScreenshots : undefined,
       });
     },
@@ -251,7 +251,9 @@ function TradePLPill({ showAutoFit, onAutoFit }) {
     <div className={s.root} style={{ '--pill-color': pillColor }}>
       {/* Auto-Fit Button */}
       {showAutoFit && (
-        <button onClick={onAutoFit} className={s.autoFitBtn} title="Auto-fit price axis">⊞</button>
+        <button onClick={onAutoFit} className={s.autoFitBtn} title="Auto-fit price axis">
+          ⊞
+        </button>
       )}
 
       {/* ── Live Position Pill ────────────────────────────────── */}
@@ -264,14 +266,14 @@ function TradePLPill({ showAutoFit, onAutoFit }) {
               : '—'}
           </span>
           <span className={s.openCount}>({displayCount} open)</span>
-          <span className={s.chevron} data-open={expanded}>▼</span>
+          <span className={s.chevron} data-open={expanded}>
+            ▼
+          </span>
         </button>
 
         {/* ══════════ Expanded Dropdown ══════════ */}
         {expanded && (
-          <div
-            className={`tf-fade-in ${s.dropdown}`}
-          >
+          <div className={`tf-fade-in ${s.dropdown}`}>
             {/* ── View Toggle: This Chart / All Positions ── */}
             <div className={s.viewToggle}>
               {['chart', 'all'].map((mode) => (
@@ -291,9 +293,7 @@ function TradePLPill({ showAutoFit, onAutoFit }) {
               <div className={s.sectionTitle}>OPEN POSITIONS</div>
 
               {positionDetails.length === 0 ? (
-                <div className={s.emptyMsg}>
-                  No open positions{viewMode === 'chart' ? ' on this chart' : ''}
-                </div>
+                <div className={s.emptyMsg}>No open positions{viewMode === 'chart' ? ' on this chart' : ''}</div>
               ) : (
                 <div className={s.posList}>
                   {positionDetails.map((pos) => {

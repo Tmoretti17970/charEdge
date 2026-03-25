@@ -11,8 +11,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useState, useRef } from 'react';
-import { datafeedService } from '../../charting_library/datafeed/DatafeedService.js';
 import { resolveSymbol } from '../../app/components/chart/core/ChartEngineWidget.jsx';
+import { datafeedService } from '../../charting_library/datafeed/DatafeedService.js';
 import { resolveAdapterTimeframe } from '../../constants/TimeframeMap';
 import { useChartCoreStore } from '../../state/chart/useChartCoreStore';
 
@@ -56,4 +56,3 @@ export function useChartBars() {
 
   return bars;
 }
-

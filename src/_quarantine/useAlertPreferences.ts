@@ -11,10 +11,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import useNotificationPreferences, {
-    isInQuietHours,
-    getAlertVolume,
-    isAlertTypeEnabled,
-    DEFAULT_ASSET_CLASS_PREFS,
+  isInQuietHours,
+  getAlertVolume,
+  isAlertTypeEnabled,
+  DEFAULT_ASSET_CLASS_PREFS,
 } from './useNotificationPreferences';
 
 import type { AssetClassAlertPrefs } from './useNotificationPreferences';
@@ -22,7 +22,13 @@ export type { AssetClassAlertPrefs };
 
 // Re-export legacy types under old names
 export type AlertFrequency = 'instant' | 'hourly_digest' | 'daily_digest';
-export type AlertPresetId = '52w_high' | '52w_low' | 'percent_5_up' | 'percent_5_down' | 'percent_10_up' | 'percent_10_down';
+export type AlertPresetId =
+  | '52w_high'
+  | '52w_low'
+  | 'percent_5_up'
+  | 'percent_5_down'
+  | 'percent_10_up'
+  | 'percent_10_down';
 
 // ─── Thin Wrapper Store ─────────────────────────────────────────
 // This creates a Zustand-compatible selector interface that reads
@@ -30,21 +36,22 @@ export type AlertPresetId = '52w_high' | '52w_low' | 'percent_5_up' | 'percent_5
 // calls continue to work without any changes.
 
 const useAlertPreferences = Object.assign(
-    // The hook function: delegates all selector calls to the unified store
-    function useAlertPreferencesHook<T>(selector?: (state: any) => T): T {
-        if (selector) {
-            return useNotificationPreferences(selector);
-        }
-        return useNotificationPreferences() as T;
-    },
-    {
-        // Static .getState() — most common usage pattern in AlertPanel
-        getState: () => useNotificationPreferences.getState(),
-        // Static .setState() — used directly in AlertPanel for DND, volume, etc.
-        setState: (partial: any) => useNotificationPreferences.setState(partial),
-        // Subscribe for external listeners
-        subscribe: (listener: any) => useNotificationPreferences.subscribe(listener),
-    },
+  // The hook function: delegates all selector calls to the unified store
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- deprecated wrapper; state type from useNotificationPreferences is not re-exported
+  function useAlertPreferencesHook<T>(selector?: (state: any) => T): T {
+    if (selector) {
+      return useNotificationPreferences(selector);
+    }
+    return useNotificationPreferences() as T;
+  },
+  {
+    // Static .getState() — most common usage pattern in AlertPanel
+    getState: () => useNotificationPreferences.getState(),
+    // Static .setState() — used directly in AlertPanel for DND, volume, etc.
+    setState: (partial: Partial<Record<string, unknown>>) => useNotificationPreferences.setState(partial),
+    // Subscribe for external listeners
+    subscribe: (listener: () => void) => useNotificationPreferences.subscribe(listener),
+  },
 );
 
 // ─── Re-exports ─────────────────────────────────────────────────

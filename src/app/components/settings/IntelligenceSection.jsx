@@ -12,13 +12,13 @@
 // conversationMemory, ApiKeyStore. No new stores.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import AIPersonalityPicker from './AIPersonalityPicker.jsx';
-import ModelBenchmarkCard from './ModelBenchmarkCard.jsx';
-import { C, F, M } from '../../../constants.js';
+import React, { useState, useEffect, useCallback } from 'react';
+import { C } from '../../../constants.js';
 import { Card } from '../ui/UIKit.jsx';
-import { StatusBadge } from './SettingsHelpers.jsx';
+import AIPersonalityPicker from './AIPersonalityPicker.jsx';
 import css from './IntelligenceSection.module.css';
+import ModelBenchmarkCard from './ModelBenchmarkCard.jsx';
+import { StatusBadge } from './SettingsHelpers.jsx';
 
 // ─── Shared Sub-components ──────────────────────────────────────
 
@@ -29,9 +29,7 @@ function GroupHeader({ emoji, title, subtitle }) {
         <span className={css.groupEmoji}>{emoji}</span>
         <span className={css.groupTitle}>{title}</span>
       </div>
-      {subtitle && (
-        <div className={css.groupSub}>{subtitle}</div>
-      )}
+      {subtitle && <div className={css.groupSub}>{subtitle}</div>}
     </div>
   );
 }
@@ -51,10 +49,7 @@ function Toggle({ checked, onChange, label, disabled = false }) {
         opacity: disabled ? 0.4 : 1,
       }}
     >
-      <div
-        className={css.toggleThumb}
-        style={{ transform: checked ? 'translateX(16px)' : 'translateX(0)' }}
-      />
+      <div className={css.toggleThumb} style={{ transform: checked ? 'translateX(16px)' : 'translateX(0)' }} />
     </button>
   );
 }
@@ -101,26 +96,38 @@ function ToggleRow({ label, hint, checked, onChange, preview, disabled }) {
 
 const CONTEXT_KEY = 'charEdge-ai-context';
 const AUTOLOAD_KEY = 'charEdge-autoload-model';
-const PREFS_KEY = 'charEdge-coaching-prefs';
-
 function loadContextToggles() {
   try {
     const raw = localStorage.getItem(CONTEXT_KEY);
     if (raw) return JSON.parse(raw);
-  } catch { /* */ }
+  } catch {
+    /* */
+  }
   return { traderDNA: true, journal: true, chart: true, watchlist: true };
 }
 
 function saveContextToggles(ctx) {
-  try { localStorage.setItem(CONTEXT_KEY, JSON.stringify(ctx)); } catch { /* */ }
+  try {
+    localStorage.setItem(CONTEXT_KEY, JSON.stringify(ctx));
+  } catch {
+    /* */
+  }
 }
 
 function getAutoLoad() {
-  try { return localStorage.getItem(AUTOLOAD_KEY) === 'true'; } catch { return false; }
+  try {
+    return localStorage.getItem(AUTOLOAD_KEY) === 'true';
+  } catch {
+    return false;
+  }
 }
 
 function setAutoLoad(val) {
-  try { localStorage.setItem(AUTOLOAD_KEY, val ? 'true' : 'false'); } catch { /* */ }
+  try {
+    localStorage.setItem(AUTOLOAD_KEY, val ? 'true' : 'false');
+  } catch {
+    /* */
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -132,7 +139,7 @@ function EngineGroup() {
   const [models, setModels] = useState([]);
   const [autoLoad, setAutoLoadState] = useState(getAutoLoad);
   const [mlEnabled, setMlEnabled] = useState(true);
-  const [mlModels, setMlModels] = useState({});
+  const [_mlModels, setMlModels] = useState({});
 
   // Initialize WebLLM status
   useEffect(() => {
@@ -146,7 +153,9 @@ function EngineGroup() {
           setWebLLMStatus(s);
           setModels(webLLMProvider.getAvailableModels());
         });
-      } catch { /* WebLLM not available */ }
+      } catch {
+        /* WebLLM not available */
+      }
     })();
     return () => cleanup();
   }, []);
@@ -159,7 +168,9 @@ function EngineGroup() {
         const state = useModelStore.getState();
         setMlEnabled(state.mlEnabled);
         setMlModels(state.enabledModels);
-      } catch { /* */ }
+      } catch {
+        /* */
+      }
     })();
   }, []);
 
@@ -167,14 +178,18 @@ function EngineGroup() {
     try {
       const { webLLMProvider } = await import('../../../ai/WebLLMProvider');
       await webLLMProvider.loadModel(modelId);
-    } catch { /* */ }
+    } catch {
+      /* */
+    }
   }, []);
 
   const handleUnload = useCallback(async () => {
     try {
       const { webLLMProvider } = await import('../../../ai/WebLLMProvider');
       await webLLMProvider.unload();
-    } catch { /* */ }
+    } catch {
+      /* */
+    }
   }, []);
 
   const handleAutoLoadChange = useCallback(() => {
@@ -190,7 +205,9 @@ function EngineGroup() {
       const { useModelStore } = await import('../../../state/useModelStore');
       useModelStore.getState().toggleMlEnabled();
       setMlEnabled((p) => !p);
-    } catch { /* */ }
+    } catch {
+      /* */
+    }
   }, []);
 
   const statusEmoji = webLLMStatus?.loaded ? '✅' : webLLMStatus?.loading ? '🔄' : '⬇️';
@@ -215,7 +232,9 @@ function EngineGroup() {
           >
             <div className={css.flex1}>
               <div className={css.modelName}>{m.label}</div>
-              <div className={css.modelMeta}>{m.size} · {m.speed} · {m.contextWindow} ctx</div>
+              <div className={css.modelMeta}>
+                {m.size} · {m.speed} · {m.contextWindow} ctx
+              </div>
               <div className={css.modelDesc}>{m.description}</div>
             </div>
             {m.loaded ? (
@@ -247,7 +266,9 @@ function EngineGroup() {
           )}
         </div>
         {webLLMStatus?.loaded && (
-          <button onClick={handleUnload} className={`tf-btn ${css.unloadBtn}`}>Unload</button>
+          <button onClick={handleUnload} className={`tf-btn ${css.unloadBtn}`}>
+            Unload
+          </button>
         )}
       </div>
 
@@ -297,7 +318,9 @@ function PersonalityGroup() {
         const { adaptiveCoach } = await import('../../../ai/AdaptiveCoach');
         setPrefs(adaptiveCoach.getPreferences());
         setTotalInteractions(adaptiveCoach.totalInteractions);
-      } catch { /* */ }
+      } catch {
+        /* */
+      }
     })();
   }, []);
 
@@ -310,7 +333,9 @@ function PersonalityGroup() {
       data.globalPrefs = { ...data.globalPrefs, [key]: value };
       data.updatedAt = Date.now();
       localStorage.setItem('charEdge-coaching-prefs', JSON.stringify(data));
-    } catch { /* */ }
+    } catch {
+      /* */
+    }
   }, []);
 
   const handleReset = useCallback(async () => {
@@ -320,7 +345,9 @@ function PersonalityGroup() {
       adaptiveCoach.reset();
       setPrefs({ tone: 'supportive', verbosity: 'normal', frequency: 'medium' });
       setTotalInteractions(0);
-    } catch { /* */ }
+    } catch {
+      /* */
+    }
   }, []);
 
   const isAdapted = totalInteractions > 5;
@@ -331,8 +358,7 @@ function PersonalityGroup() {
 
       {/* Adapted badge */}
       {isAdapted && (
-        <div className={css.adaptedBadge}
-          style={{ background: `${C.b}10`, border: `1px solid ${C.b}25`, color: C.b }}>
+        <div className={css.adaptedBadge} style={{ background: `${C.b}10`, border: `1px solid ${C.b}25`, color: C.b }}>
           ✦ Auto-learned from {totalInteractions} interactions
         </div>
       )}
@@ -442,6 +468,7 @@ function ContextGroup() {
 // GROUP 4: CLOUD AI
 // ═══════════════════════════════════════════════════════════════════
 
+// eslint-disable-next-line unused-imports/no-unused-vars
 function CloudAIGroup() {
   const [keys, setKeys] = useState({});
   const [editing, setEditing] = useState(null);
@@ -460,45 +487,65 @@ function CloudAIGroup() {
           if (key) loaded[id] = key;
         }
         setKeys(loaded);
-      } catch { /* */ }
+      } catch {
+        /* */
+      }
     })();
   }, []);
 
-  const saveKey = useCallback(async (providerId) => {
-    try {
-      const { setApiKey } = await import('../../../data/providers/ApiKeyStore.js');
-      setApiKey(providerId, editValue.trim());
-      setKeys((prev) => ({ ...prev, [providerId]: editValue.trim() }));
-      setEditing(null);
-      setEditValue('');
-    } catch { /* */ }
-  }, [editValue]);
+  const saveKey = useCallback(
+    async (providerId) => {
+      try {
+        const { setApiKey } = await import('../../../data/providers/ApiKeyStore.js');
+        setApiKey(providerId, editValue.trim());
+        setKeys((prev) => ({ ...prev, [providerId]: editValue.trim() }));
+        setEditing(null);
+        setEditValue('');
+      } catch {
+        /* */
+      }
+    },
+    [editValue],
+  );
 
   const deleteKey = useCallback(async (providerId) => {
     try {
       const { setApiKey } = await import('../../../data/providers/ApiKeyStore.js');
       setApiKey(providerId, '');
-      setKeys((prev) => { const n = { ...prev }; delete n[providerId]; return n; });
-      setTestResult((prev) => { const n = { ...prev }; delete n[providerId]; return n; });
-    } catch { /* */ }
+      setKeys((prev) => {
+        const n = { ...prev };
+        delete n[providerId];
+        return n;
+      });
+      setTestResult((prev) => {
+        const n = { ...prev };
+        delete n[providerId];
+        return n;
+      });
+    } catch {
+      /* */
+    }
   }, []);
 
-  const testConnection = useCallback(async (providerId) => {
-    setTesting(providerId);
-    try {
-      if (providerId === 'groq') {
-        const { groqAdapter } = await import('../../../ai/GroqAdapter');
-        await groqAdapter.chat([{ role: 'user', content: 'Say "ok" in one word.' }], { maxTokens: 4 });
-        setTestResult((prev) => ({ ...prev, groq: true }));
-      } else if (providerId === 'gemini') {
-        // Simple test — we'll just verify the key format
-        setTestResult((prev) => ({ ...prev, gemini: keys.gemini?.length > 20 }));
+  const testConnection = useCallback(
+    async (providerId) => {
+      setTesting(providerId);
+      try {
+        if (providerId === 'groq') {
+          const { groqAdapter } = await import('../../../ai/GroqAdapter');
+          await groqAdapter.chat([{ role: 'user', content: 'Say "ok" in one word.' }], { maxTokens: 4 });
+          setTestResult((prev) => ({ ...prev, groq: true }));
+        } else if (providerId === 'gemini') {
+          // Simple test — we'll just verify the key format
+          setTestResult((prev) => ({ ...prev, gemini: keys.gemini?.length > 20 }));
+        }
+      } catch {
+        setTestResult((prev) => ({ ...prev, [providerId]: false }));
       }
-    } catch {
-      setTestResult((prev) => ({ ...prev, [providerId]: false }));
-    }
-    setTesting(null);
-  }, [keys]);
+      setTesting(null);
+    },
+    [keys],
+  );
 
   const maskKey = (key) => {
     if (!key || key.length < 8) return '••••';
@@ -515,8 +562,7 @@ function CloudAIGroup() {
       <GroupHeader emoji="☁️" title="Cloud AI" subtitle="Optional — copilot works entirely offline without these" />
 
       {/* Optional banner */}
-      <div className={css.optionalBanner}
-        style={{ background: `${C.y}08`, border: `1px solid ${C.y}20` }}>
+      <div className={css.optionalBanner} style={{ background: `${C.y}08`, border: `1px solid ${C.y}20` }}>
         ⚡ Optional — Add API keys for faster, smarter responses. Free tiers available.
       </div>
 
@@ -527,13 +573,8 @@ function CloudAIGroup() {
         const result = testResult[prov.id];
 
         return (
-          <div
-            key={prov.id}
-            className={css.providerRow}
-            style={{ borderBottom: `1px solid ${C.bd}10` }}
-          >
-            <div className={css.provDot}
-              style={{ background: hasKey ? '#4ade80' : `${C.bd}40` }} />
+          <div key={prov.id} className={css.providerRow} style={{ borderBottom: `1px solid ${C.bd}10` }}>
+            <div className={css.provDot} style={{ background: hasKey ? '#4ade80' : `${C.bd}40` }} />
             <div className={css.flex1}>
               <div className={css.provName}>{prov.name}</div>
               <div className={css.provDesc}>{prov.desc}</div>
@@ -550,8 +591,18 @@ function CloudAIGroup() {
                     placeholder={prov.hint}
                     className={css.apiInput}
                   />
-                  <button onClick={() => saveKey(prov.id)} className={`tf-btn ${css.miniBtnPrimary}`}>✓</button>
-                  <button onClick={() => { setEditing(null); setEditValue(''); }} className={`tf-btn ${css.miniBtnCancel}`}>✕</button>
+                  <button onClick={() => saveKey(prov.id)} className={`tf-btn ${css.miniBtnPrimary}`}>
+                    ✓
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditing(null);
+                      setEditValue('');
+                    }}
+                    className={`tf-btn ${css.miniBtnCancel}`}
+                  >
+                    ✕
+                  </button>
                 </>
               ) : (
                 <>
@@ -567,14 +618,22 @@ function CloudAIGroup() {
                     </button>
                   )}
                   <button
-                    onClick={() => { setEditing(prov.id); setEditValue(keys[prov.id] || ''); }}
+                    onClick={() => {
+                      setEditing(prov.id);
+                      setEditValue(keys[prov.id] || '');
+                    }}
                     className={`tf-btn ${css.miniBtn}`}
                   >
                     {hasKey ? 'Edit' : '+ Add'}
                   </button>
                   {hasKey && (
-                    <button onClick={() => deleteKey(prov.id)} className={`tf-btn ${css.miniBtnDelete}`}
-                      style={{ background: `${C.r}15`, color: C.r }}>🗑</button>
+                    <button
+                      onClick={() => deleteKey(prov.id)}
+                      className={`tf-btn ${css.miniBtnDelete}`}
+                      style={{ background: `${C.r}15`, color: C.r }}
+                    >
+                      🗑
+                    </button>
                   )}
                 </>
               )}
@@ -589,9 +648,11 @@ function CloudAIGroup() {
       </button>
       {showWhy && (
         <div className={css.whyBox} style={{ background: `${C.b}06` }}>
-          <strong>Gemini:</strong> Longer, more nuanced analysis. Great for multi-step reasoning and coaching narratives.<br />
-          <strong>Groq:</strong> Ultra-fast inference. Best for real-time chart queries and quick responses.
-          Both have generous free tiers — no credit card needed.
+          <strong>Gemini:</strong> Longer, more nuanced analysis. Great for multi-step reasoning and coaching
+          narratives.
+          <br />
+          <strong>Groq:</strong> Ultra-fast inference. Best for real-time chart queries and quick responses. Both have
+          generous free tiers — no credit card needed.
         </div>
       )}
     </Card>
@@ -602,6 +663,7 @@ function CloudAIGroup() {
 // GROUP 5: PRIVACY
 // ═══════════════════════════════════════════════════════════════════
 
+// eslint-disable-next-line unused-imports/no-unused-vars
 function PrivacyGroup() {
   const [memoryCount, setMemoryCount] = useState(0);
 
@@ -610,7 +672,9 @@ function PrivacyGroup() {
       try {
         const { conversationMemory } = await import('../../../ai/ConversationMemory');
         setMemoryCount(conversationMemory.messageCount);
-      } catch { /* */ }
+      } catch {
+        /* */
+      }
     })();
   }, []);
 
@@ -620,7 +684,9 @@ function PrivacyGroup() {
       const { conversationMemory } = await import('../../../ai/ConversationMemory');
       await conversationMemory.reset();
       setMemoryCount(0);
-    } catch { /* */ }
+    } catch {
+      /* */
+    }
   }, []);
 
   const handleClearPrefs = useCallback(async () => {
@@ -628,7 +694,9 @@ function PrivacyGroup() {
     try {
       const { adaptiveCoach } = await import('../../../ai/AdaptiveCoach');
       adaptiveCoach.reset();
-    } catch { /* */ }
+    } catch {
+      /* */
+    }
   }, []);
 
   return (
@@ -636,14 +704,11 @@ function PrivacyGroup() {
       <GroupHeader emoji="🛡️" title="Privacy" subtitle="Your data stays on your device" />
 
       {/* Shield banner */}
-      <div className={css.shieldBanner}
-        style={{ background: `${C.g}08`, border: `1px solid ${C.g}20` }}>
+      <div className={css.shieldBanner} style={{ background: `${C.g}08`, border: `1px solid ${C.g}20` }}>
         <span className={css.shieldIcon}>🛡️</span>
         <div>
           <div className={css.shieldTitle}>All AI processing happens in your browser</div>
-          <div className={css.shieldSubtitle}>
-            No data is sent to external servers unless you add a Cloud AI key.
-          </div>
+          <div className={css.shieldSubtitle}>No data is sent to external servers unless you add a Cloud AI key.</div>
         </div>
       </div>
 
@@ -651,11 +716,14 @@ function PrivacyGroup() {
       <div className={css.prefBlock}>
         <div className={css.dataAccessLabel}>What the AI can access</div>
         <div className={css.dataAccessList}>
-          • Journal trades and trade history<br />
-          • Chart context (symbol, timeframe, indicators)<br />
-          • Trader DNA personality profile<br />
-          • Watchlist symbols and alerts<br />
-          • Conversation history (current session)
+          • Journal trades and trade history
+          <br />
+          • Chart context (symbol, timeframe, indicators)
+          <br />
+          • Trader DNA personality profile
+          <br />
+          • Watchlist symbols and alerts
+          <br />• Conversation history (current session)
         </div>
       </div>
 
@@ -679,9 +747,7 @@ function PrivacyGroup() {
 
       <div className={css.statusFooter}>
         <StatusBadge ok label="Local-only processing" />
-        {memoryCount > 0 && (
-          <span className={css.memoryCount}>{memoryCount} messages in memory</span>
-        )}
+        {memoryCount > 0 && <span className={css.memoryCount}>{memoryCount} messages in memory</span>}
       </div>
     </Card>
   );
@@ -695,13 +761,10 @@ function IntelligenceSection() {
   return (
     <section id="intelligence-settings" className={css.sectionWrap}>
       {/* Local-processing reassurance banner */}
-      <div className={css.heroBanner}
-        style={{ background: `${C.g}08`, border: `1px solid ${C.g}20` }}>
+      <div className={css.heroBanner} style={{ background: `${C.g}08`, border: `1px solid ${C.g}20` }}>
         <span className={css.heroBannerIcon}>🛡️</span>
         <div>
-          <div className={css.heroBannerTitle}>
-            All AI processing happens locally in your browser
-          </div>
+          <div className={css.heroBannerTitle}>All AI processing happens locally in your browser</div>
           <div className={css.heroBannerSub}>
             No data leaves your machine. Models run on-device via WebLLM and ONNX Runtime.
           </div>
@@ -715,8 +778,7 @@ function IntelligenceSection() {
 
       {/* Advanced: Engine & ML — collapsed by default */}
       <details className={css.advancedDetails}>
-        <summary className={css.advancedSummary}
-          style={{ borderTop: `1px solid ${C.bd}20` }}>
+        <summary className={css.advancedSummary} style={{ borderTop: `1px solid ${C.bd}20` }}>
           <span className={css.advancedIcon}>⚙️</span>
           Advanced: Engine & ML
           <span className={css.advancedHint}>Model management & technical controls</span>

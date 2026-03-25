@@ -18,7 +18,6 @@ import SlashAutocomplete from './SlashAutocomplete.jsx';
 import TypingDots from './TypingDots.jsx';
 import { C } from '@/constants.js';
 import useCopilotChat from '@/hooks/useCopilotChat';
-import st from './CopilotChatInline.module.css';
 
 // ─── Mode Metadata ──────────────────────────────────────────────
 

@@ -3,22 +3,26 @@
 // Managed overlay for indicator legends, trade P&L, status info.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useEffect, useRef } from 'react';
-import { C } from '@/constants.js';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
+import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 import h from './ChartHUD.module.css';
 import { updateFaviconBadge, resetFavicon } from '@/app/misc/faviconBadge';
-import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
-import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
-import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 import { wsService } from '@/data/WebSocketService';
 
 // Phase 3 Task #50: Connection status pill
 const STATUS_CONFIG = {
-  connected:    { dot: '🟢', label: 'Live',       bg: 'rgba(45, 212, 160, 0.08)', border: 'rgba(45, 212, 160, 0.15)' },
-  connecting:   { dot: '🟡', label: 'Connecting',  bg: 'rgba(240, 182, 78, 0.08)', border: 'rgba(240, 182, 78, 0.15)' },
-  reconnecting: { dot: '🟡', label: 'Reconnecting',bg: 'rgba(240, 182, 78, 0.08)', border: 'rgba(240, 182, 78, 0.15)' },
-  disconnected: { dot: '🔴', label: 'Offline',     bg: 'rgba(242, 92, 92, 0.08)',  border: 'rgba(242, 92, 92, 0.15)' },
+  connected: { dot: '🟢', label: 'Live', bg: 'rgba(45, 212, 160, 0.08)', border: 'rgba(45, 212, 160, 0.15)' },
+  connecting: { dot: '🟡', label: 'Connecting', bg: 'rgba(240, 182, 78, 0.08)', border: 'rgba(240, 182, 78, 0.15)' },
+  reconnecting: {
+    dot: '🟡',
+    label: 'Reconnecting',
+    bg: 'rgba(240, 182, 78, 0.08)',
+    border: 'rgba(240, 182, 78, 0.15)',
+  },
+  disconnected: { dot: '🔴', label: 'Offline', bg: 'rgba(242, 92, 92, 0.08)', border: 'rgba(242, 92, 92, 0.15)' },
 };
 
 function ChartHUD({ _symbol, _timeframe, lastPrice, data }) {
@@ -30,12 +34,9 @@ function ChartHUD({ _symbol, _timeframe, lastPrice, data }) {
   // Item 37: HUD is always visible — no auto-fade
   const hudRef = useRef(null);
 
-  const priceChange = data?.length >= 2
-    ? data[data.length - 1].close - data[data.length - 2].close
-    : 0;
-  const priceChangePercent = data?.length >= 2 && data[data.length - 2].close
-    ? ((priceChange / data[data.length - 2].close) * 100)
-    : 0;
+  const priceChange = data?.length >= 2 ? data[data.length - 1].close - data[data.length - 2].close : 0;
+  const priceChangePercent =
+    data?.length >= 2 && data[data.length - 2].close ? (priceChange / data[data.length - 2].close) * 100 : 0;
   const isPositive = priceChange >= 0;
 
   // ── Favicon price badge — peripheral awareness ────────────
@@ -47,31 +48,21 @@ function ChartHUD({ _symbol, _timeframe, lastPrice, data }) {
   }, [priceChangePercent, lastPrice, isLive]);
 
   return (
-    <div
-      ref={hudRef}
-      className="tf-chart-hud"
-    >
+    <div ref={hudRef} className="tf-chart-hud">
       {/* Top-left: Symbol + Price badge */}
       <div className={h.topLeft}>
         {/* Live dot removed — status shown via header ● LIVE badge */}
 
         {/* Price change pill */}
         {lastPrice != null && (
-          <div
-            className={h.pricePill}
-            data-positive={isPositive ? 'true' : 'false'}
-          >
-            <span
-              className={h.priceChange}
-              data-positive={isPositive ? 'true' : 'false'}
-            >
-              {isPositive ? '+' : ''}{priceChange.toFixed(2)}
+          <div className={h.pricePill} data-positive={isPositive ? 'true' : 'false'}>
+            <span className={h.priceChange} data-positive={isPositive ? 'true' : 'false'}>
+              {isPositive ? '+' : ''}
+              {priceChange.toFixed(2)}
             </span>
-            <span
-              className={h.pricePercent}
-              data-positive={isPositive ? 'true' : 'false'}
-            >
-              ({isPositive ? '+' : ''}{priceChangePercent.toFixed(2)}%)
+            <span className={h.pricePercent} data-positive={isPositive ? 'true' : 'false'}>
+              ({isPositive ? '+' : ''}
+              {priceChangePercent.toFixed(2)}%)
             </span>
           </div>
         )}
@@ -82,10 +73,7 @@ function ChartHUD({ _symbol, _timeframe, lastPrice, data }) {
         {(() => {
           const st = STATUS_CONFIG[wsService.status] || STATUS_CONFIG.disconnected;
           return (
-            <div
-              className={h.statusPill}
-              style={{ '--status-bg': st.bg, '--status-border': st.border }}
-            >
+            <div className={h.statusPill} style={{ '--status-bg': st.bg, '--status-border': st.border }}>
               <span className={h.statusDot}>{st.dot}</span>
               {st.label}
             </div>
@@ -105,11 +93,7 @@ function ChartHUD({ _symbol, _timeframe, lastPrice, data }) {
             {drawings.length} drawing{drawings.length !== 1 ? 's' : ''}
           </div>
         )}
-        {replayMode && (
-          <div className={h.replayBadge}>
-            ⏪ REPLAY
-          </div>
-        )}
+        {replayMode && <div className={h.replayBadge}>⏪ REPLAY</div>}
       </div>
     </div>
   );

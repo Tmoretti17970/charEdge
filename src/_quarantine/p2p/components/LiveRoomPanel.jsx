@@ -6,8 +6,8 @@ import React from 'react';
 import { useState, useRef, useEffect } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useSocialStore } from '../../../state/useSocialStore.js';
-import { alpha } from '@/shared/colorUtils';
 import s from './LiveRoomPanel.module.css';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Room Card ──────────────────────────────────────────────────
 function RoomCard({ room, onJoin }) {
@@ -17,8 +17,13 @@ function RoomCard({ room, onJoin }) {
     <div
       className="tf-room-card"
       style={{
-        background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 16,
-        padding: 20, cursor: 'pointer', position: 'relative', overflow: 'hidden',
+        background: C.bg2,
+        border: `1px solid ${C.bd}`,
+        borderRadius: 16,
+        padding: 20,
+        cursor: 'pointer',
+        position: 'relative',
+        overflow: 'hidden',
         transition: 'all 0.25s ease',
       }}
       onClick={() => onJoin(room.id)}
@@ -32,18 +37,30 @@ function RoomCard({ room, onJoin }) {
       }}
     >
       {/* Live indicator bar */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: 3,
-        background: `linear-gradient(90deg, ${room.color}, ${alpha(room.color, 0.3)})`,
-      }} />
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 3,
+          background: `linear-gradient(90deg, ${room.color}, ${alpha(room.color, 0.3)})`,
+        }}
+      />
 
       <div className={s.s0}>
-        <div style={{
-          width: 48, height: 48, borderRadius: 14,
-          background: alpha(room.color, 0.12),
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 24,
-        }}>
+        <div
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: 14,
+            background: alpha(room.color, 0.12),
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 24,
+          }}
+        >
           {room.icon}
         </div>
         <div style={{ flex: 1 }}>
@@ -57,30 +74,41 @@ function RoomCard({ room, onJoin }) {
           {/* Avatar stack */}
           <div style={{ display: 'flex' }}>
             {room.participants.slice(0, 5).map((p, i) => (
-              <div key={i} style={{
-                width: 22, height: 22, borderRadius: '50%',
-                background: C.sf, border: `2px solid ${C.bg2}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 11, marginLeft: i > 0 ? -6 : 0, zIndex: 5 - i,
-              }}>
+              <div
+                key={i}
+                style={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: '50%',
+                  background: C.sf,
+                  border: `2px solid ${C.bg2}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 11,
+                  marginLeft: i > 0 ? -6 : 0,
+                  zIndex: 5 - i,
+                }}
+              >
                 {p.avatar}
               </div>
             ))}
           </div>
-          <span style={{ fontSize: 11, color: C.t3, fontFamily: F }}>
-            {room.participants.length} members
-          </span>
+          <span style={{ fontSize: 11, color: C.t3, fontFamily: F }}>{room.participants.length} members</span>
         </div>
 
         <div className={s.s3}>
-          <div className="tf-live-dot" style={{
-            width: 7, height: 7, borderRadius: '50%',
-            background: C.g,
-            boxShadow: `0 0 6px ${C.g}`,
-          }} />
-          <span style={{ fontSize: 11, fontWeight: 700, color: C.g, fontFamily: M }}>
-            {onlineCount} online
-          </span>
+          <div
+            className="tf-live-dot"
+            style={{
+              width: 7,
+              height: 7,
+              borderRadius: '50%',
+              background: C.g,
+              boxShadow: `0 0 6px ${C.g}`,
+            }}
+          />
+          <span style={{ fontSize: 11, fontWeight: 700, color: C.g, fontFamily: M }}>{onlineCount} online</span>
         </div>
       </div>
     </div>
@@ -114,16 +142,27 @@ function ChatView({ roomId }) {
   return (
     <div className={s.s4}>
       {/* Chat Area */}
-      <div style={{
-        display: 'flex', flexDirection: 'column',
-        background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 16, overflow: 'hidden',
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          background: C.bg2,
+          border: `1px solid ${C.bd}`,
+          borderRadius: 16,
+          overflow: 'hidden',
+        }}
+      >
         {/* Room Header */}
-        <div style={{
-          padding: '14px 20px', borderBottom: `1px solid ${C.bd}`,
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          background: alpha(room.color, 0.04),
-        }}>
+        <div
+          style={{
+            padding: '14px 20px',
+            borderBottom: `1px solid ${C.bd}`,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            background: alpha(room.color, 0.04),
+          }}
+        >
           <div className={s.s5}>
             <span style={{ fontSize: 22 }}>{room.icon}</span>
             <div>
@@ -134,9 +173,15 @@ function ChatView({ roomId }) {
           <button
             onClick={leaveRoom}
             style={{
-              padding: '6px 14px', borderRadius: 8,
-              border: `1px solid ${C.bd}`, background: 'transparent',
-              color: C.t2, fontSize: 11, fontWeight: 600, fontFamily: F, cursor: 'pointer',
+              padding: '6px 14px',
+              borderRadius: 8,
+              border: `1px solid ${C.bd}`,
+              background: 'transparent',
+              color: C.t2,
+              fontSize: 11,
+              fontWeight: 600,
+              fontFamily: F,
+              cursor: 'pointer',
             }}
           >
             ← Leave Room
@@ -148,34 +193,58 @@ function ChatView({ roomId }) {
           {messages.map((msg) => {
             const isMe = msg.userId === 'local_user';
             return (
-              <div key={msg.id} style={{
-                display: 'flex', gap: 10,
-                flexDirection: isMe ? 'row-reverse' : 'row',
-              }}>
-                <div style={{
-                  width: 32, height: 32, borderRadius: 10,
-                  background: C.sf, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 16, flexShrink: 0,
-                }}>
+              <div
+                key={msg.id}
+                style={{
+                  display: 'flex',
+                  gap: 10,
+                  flexDirection: isMe ? 'row-reverse' : 'row',
+                }}
+              >
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    background: C.sf,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 16,
+                    flexShrink: 0,
+                  }}
+                >
                   {msg.avatar}
                 </div>
                 <div style={{ maxWidth: '70%' }}>
-                  <div style={{
-                    display: 'flex', gap: 8, alignItems: 'baseline',
-                    flexDirection: isMe ? 'row-reverse' : 'row',
-                    marginBottom: 3,
-                  }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: isMe ? C.b : C.t1, fontFamily: F }}>{msg.userName}</span>
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: 8,
+                      alignItems: 'baseline',
+                      flexDirection: isMe ? 'row-reverse' : 'row',
+                      marginBottom: 3,
+                    }}
+                  >
+                    <span style={{ fontSize: 12, fontWeight: 700, color: isMe ? C.b : C.t1, fontFamily: F }}>
+                      {msg.userName}
+                    </span>
                     <span style={{ fontSize: 10, color: C.t3 }}>
                       {new Date(msg.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
-                  <div style={{
-                    padding: '8px 14px', borderRadius: 12,
-                    background: isMe ? alpha(C.b, 0.12) : C.sf,
-                    border: `1px solid ${isMe ? alpha(C.b, 0.2) : C.bd}`,
-                    fontSize: 13, color: C.t1, fontFamily: F, lineHeight: 1.5,
-                  }}>
+                  <div
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: 12,
+                      background: isMe ? alpha(C.b, 0.12) : C.sf,
+                      border: `1px solid ${isMe ? alpha(C.b, 0.2) : C.bd}`,
+                      fontSize: 13,
+                      color: C.t1,
+                      fontFamily: F,
+                      lineHeight: 1.5,
+                    }}
+                  >
                     {msg.text}
                   </div>
                 </div>
@@ -196,27 +265,42 @@ function ChatView({ roomId }) {
         </div>
 
         {/* Input */}
-        <div style={{
-          padding: '12px 16px', borderTop: `1px solid ${C.bd}`,
-          display: 'flex', gap: 10,
-        }}>
+        <div
+          style={{
+            padding: '12px 16px',
+            borderTop: `1px solid ${C.bd}`,
+            display: 'flex',
+            gap: 10,
+          }}
+        >
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Type a message..."
             style={{
-              flex: 1, padding: '10px 14px', borderRadius: 10,
-              border: `1px solid ${C.bd}`, background: C.sf, color: C.t1,
-              fontSize: 13, fontFamily: F, outline: 'none',
+              flex: 1,
+              padding: '10px 14px',
+              borderRadius: 10,
+              border: `1px solid ${C.bd}`,
+              background: C.sf,
+              color: C.t1,
+              fontSize: 13,
+              fontFamily: F,
+              outline: 'none',
             }}
           />
           <button
             onClick={handleSend}
             style={{
-              padding: '10px 20px', borderRadius: 10, border: 'none',
+              padding: '10px 20px',
+              borderRadius: 10,
+              border: 'none',
               background: `linear-gradient(135deg, ${C.b}, ${C.bH})`,
-              color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: F,
+              color: '#fff',
+              fontSize: 13,
+              fontWeight: 700,
+              fontFamily: F,
               cursor: 'pointer',
             }}
           >
@@ -226,17 +310,32 @@ function ChatView({ roomId }) {
       </div>
 
       {/* Participants Sidebar */}
-      <div style={{
-        background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 16,
-        padding: 16, overflowY: 'auto',
-      }}>
+      <div
+        style={{
+          background: C.bg2,
+          border: `1px solid ${C.bd}`,
+          borderRadius: 16,
+          padding: 16,
+          overflowY: 'auto',
+        }}
+      >
         <div style={{ fontSize: 12, fontWeight: 700, color: C.t2, fontFamily: F, marginBottom: 14 }}>
           Participants ({room.participants.length})
         </div>
 
         {/* Online */}
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 10, fontWeight: 600, color: C.g, fontFamily: F, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 600,
+              color: C.g,
+              fontFamily: F,
+              marginBottom: 8,
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+            }}
+          >
             Online — {onlineParticipants.length}
           </div>
           {onlineParticipants.map((p) => (
@@ -250,15 +349,27 @@ function ChatView({ roomId }) {
 
         {/* Offline */}
         <div>
-          <div style={{ fontSize: 10, fontWeight: 600, color: C.t3, fontFamily: F, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 600,
+              color: C.t3,
+              fontFamily: F,
+              marginBottom: 8,
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+            }}
+          >
             Offline — {room.participants.filter((p) => !p.online).length}
           </div>
-          {room.participants.filter((p) => !p.online).map((p) => (
-            <div key={p.id} className={s.s9}>
-              <span style={{ fontSize: 14 }}>{p.avatar}</span>
-              <span style={{ fontSize: 12, color: C.t3, fontFamily: F }}>{p.name}</span>
-            </div>
-          ))}
+          {room.participants
+            .filter((p) => !p.online)
+            .map((p) => (
+              <div key={p.id} className={s.s9}>
+                <span style={{ fontSize: 14 }}>{p.avatar}</span>
+                <span style={{ fontSize: 12, color: C.t3, fontFamily: F }}>{p.name}</span>
+              </div>
+            ))}
         </div>
       </div>
     </div>
@@ -281,10 +392,16 @@ function LiveRoomPanel() {
       <div className={s.s11}>
         <span style={{ fontSize: 22 }}>💬</span>
         <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.t1, fontFamily: F }}>Live Trading Rooms</h2>
-        <div className="tf-live-dot" style={{
-          width: 8, height: 8, borderRadius: '50%', background: C.g,
-          boxShadow: `0 0 8px ${C.g}`,
-        }} />
+        <div
+          className="tf-live-dot"
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            background: C.g,
+            boxShadow: `0 0 8px ${C.g}`,
+          }}
+        />
       </div>
 
       <p style={{ fontSize: 13, color: C.t3, fontFamily: F, margin: 0, marginTop: -8 }}>

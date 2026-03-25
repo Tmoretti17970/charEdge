@@ -8,11 +8,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useCallback } from 'react';
-import { useAlertStore } from '../../../../state/useAlertStore';
-import toast from '../../ui/Toast.jsx';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 import { useChartTradeStore } from '../../../../state/chart/useChartTradeStore';
+import { useAlertStore } from '../../../../state/useAlertStore';
+import toast from '../../ui/Toast.jsx';
 
 /**
  * Hook providing chart click handlers for trade mode.
@@ -101,7 +101,12 @@ export function useChartTradeHandler() {
     onAddAlert: (price, condition) => {
       if (addAlert) {
         const cond = condition || 'cross_above';
-        const labels = { above: '↑ Above', below: '↓ Below', cross_above: '↗ Cross Above', cross_below: '↘ Cross Below' };
+        const labels = {
+          above: '↑ Above',
+          below: '↓ Below',
+          cross_above: '↗ Cross Above',
+          cross_below: '↘ Cross Below',
+        };
         addAlert({ symbol, condition: cond, price });
         toast.success(`Alert ${labels[cond] || cond} @ $${price.toFixed(2)}`);
       }

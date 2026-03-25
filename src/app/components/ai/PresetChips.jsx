@@ -4,9 +4,8 @@
 // Quick-action preset buttons for the copilot chat.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { C } from '@/constants.js';
-import st from './PresetChips.module.css';
 
 const PRESETS = [
   { id: 'best', label: 'Best trade this week', emoji: '🏆' },
@@ -16,10 +15,13 @@ const PRESETS = [
 ];
 
 export default function PresetChips({ onPreset, disabled }) {
-  const handlePreset = useCallback((preset) => {
-    if (disabled) return;
-    onPreset(`${preset.emoji} ${preset.label}`);
-  }, [disabled, onPreset]);
+  const handlePreset = useCallback(
+    (preset) => {
+      if (disabled) return;
+      onPreset(`${preset.emoji} ${preset.label}`);
+    },
+    [disabled, onPreset],
+  );
 
   return (
     <div style={{ padding: '4px 16px 6px', flexShrink: 0 }}>
@@ -30,16 +32,32 @@ export default function PresetChips({ onPreset, disabled }) {
             onClick={() => handlePreset(p)}
             disabled={disabled}
             style={{
-              display: 'flex', alignItems: 'center', gap: 5,
-              padding: '6px 8px', borderRadius: 8,
-              border: `1px solid ${C.bd}`, background: C.sf2,
-              color: C.t2, fontSize: 10, fontWeight: 500, fontFamily: 'var(--tf-font)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '6px 8px',
+              borderRadius: 8,
+              border: `1px solid ${C.bd}`,
+              background: C.sf2,
+              color: C.t2,
+              fontSize: 10,
+              fontWeight: 500,
+              fontFamily: 'var(--tf-font)',
               cursor: disabled ? 'default' : 'pointer',
-              transition: 'all 0.15s', textAlign: 'left',
+              transition: 'all 0.15s',
+              textAlign: 'left',
               opacity: disabled ? 0.5 : 1,
             }}
-            onMouseEnter={(e) => { if (!disabled) { e.currentTarget.style.borderColor = C.b + '30'; e.currentTarget.style.background = C.b + '08'; } }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.bd; e.currentTarget.style.background = C.sf2; }}
+            onMouseEnter={(e) => {
+              if (!disabled) {
+                e.currentTarget.style.borderColor = C.b + '30';
+                e.currentTarget.style.background = C.b + '08';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = C.bd;
+              e.currentTarget.style.background = C.sf2;
+            }}
           >
             <span style={{ fontSize: 12, lineHeight: 1 }}>{p.emoji}</span>
             {p.label}

@@ -9,25 +9,15 @@
 //   §5  Rounding & Precision — Floating-point drift detection
 // ═══════════════════════════════════════════════════════════════════
 import { describe, it, expect } from 'vitest';
-
-import { sma, ema, wma, dema, tema, hma, vwma, nanSafeSma } from
-  '../../charting_library/studies/indicators/movingAverages.ts';
-import { rsi, volumeWeightedRSI } from
-  '../../charting_library/studies/indicators/rsi.ts';
-import { macd } from
-  '../../charting_library/studies/indicators/macd.ts';
-import { stochastic } from
-  '../../charting_library/studies/indicators/stochastic.ts';
-import { stochRsi } from
-  '../../charting_library/studies/indicators/stochRsi.ts';
-import { IncrementalIndicatorCache } from
-  '../../charting_library/studies/indicators/IncrementalIndicatorCache.ts';
-import { OVERLAY_INDICATORS } from
-  '../../charting_library/studies/indicators/overlayIndicators.js';
-import { PANE_INDICATORS } from
-  '../../charting_library/studies/indicators/paneIndicators.js';
-import { createIndicatorInstance } from
-  '../../charting_library/studies/indicators/indicatorFactory.js';
+import { IncrementalIndicatorCache } from '../../charting_library/studies/indicators/IncrementalIndicatorCache.ts';
+import { createIndicatorInstance } from '../../charting_library/studies/indicators/indicatorFactory.js';
+import { macd } from '../../charting_library/studies/indicators/macd.ts';
+import { sma, ema, wma } from '../../charting_library/studies/indicators/movingAverages.ts';
+import { OVERLAY_INDICATORS } from '../../charting_library/studies/indicators/overlayIndicators.js';
+import { PANE_INDICATORS } from '../../charting_library/studies/indicators/paneIndicators.js';
+import { rsi, volumeWeightedRSI } from '../../charting_library/studies/indicators/rsi.ts';
+import { stochastic } from '../../charting_library/studies/indicators/stochastic.ts';
+import { stochRsi } from '../../charting_library/studies/indicators/stochRsi.ts';
 
 // ─── Test Data Generators ───────────────────────────────────────
 
@@ -84,7 +74,10 @@ function generateFlatBars(count, price = 50) {
   for (let i = 0; i < count; i++) {
     bars.push({
       time: now - (count - i) * 60000,
-      open: price, high: price, low: price, close: price,
+      open: price,
+      high: price,
+      low: price,
+      close: price,
       volume: 100,
     });
   }
@@ -97,7 +90,7 @@ function generateFlatBars(count, price = 50) {
 
 describe('§1 — Flash Crash Data Volatility', () => {
   const crashBars = generateFlashCrash(200, 100);
-  const closes = crashBars.map(b => b.close);
+  const closes = crashBars.map((b) => b.close);
 
   it('RSI: does not produce NaN, Infinity, or values outside [0, 100] after flash crash', () => {
     const result = rsi(closes, 14);
@@ -115,11 +108,11 @@ describe('§1 — Flash Crash Data Volatility', () => {
     if (issues.length > 0) console.log('  Issues:', JSON.stringify(issues.slice(0, 5)));
 
     // RSI should stabilize — no Infinity
-    const infinities = postCrash.filter(v => !isFinite(v) && !isNaN(v));
+    const infinities = postCrash.filter((v) => !isFinite(v) && !isNaN(v));
     expect(infinities.length).toBe(0);
 
     // Post-warmup values must be in [0, 100]
-    const validValues = postCrash.filter(v => !isNaN(v));
+    const validValues = postCrash.filter((v) => !isNaN(v));
     for (const v of validValues) {
       expect(v).toBeGreaterThanOrEqual(0);
       expect(v).toBeLessThanOrEqual(100);
@@ -129,7 +122,7 @@ describe('§1 — Flash Crash Data Volatility', () => {
   it('RSI: Wilder smoothing carries crash residual (slow recovery is expected)', () => {
     const result = rsi(closes, 14);
     // Far enough past crash for some recovery
-    const lateValues = result.slice(150).filter(v => !isNaN(v));
+    const lateValues = result.slice(150).filter((v) => !isNaN(v));
     const avg = lateValues.reduce((a, b) => a + b, 0) / lateValues.length;
 
     console.log(`📊 RSI Post-Crash Avg: ${avg.toFixed(2)} (Wilder's smoothing: slow recovery expected)`);
@@ -144,9 +137,9 @@ describe('§1 — Flash Crash Data Volatility', () => {
 
   it('Stochastic: does not break Y-axis after flash crash', () => {
     const result = stochastic(crashBars, 14, 3);
-    const postCrash = result.k.slice(100).filter(v => !isNaN(v));
+    const postCrash = result.k.slice(100).filter((v) => !isNaN(v));
 
-    const outOfRange = postCrash.filter(v => v < 0 || v > 100);
+    const outOfRange = postCrash.filter((v) => v < 0 || v > 100);
     console.log(`📊 Stochastic Flash Crash: ${outOfRange.length} out-of-range %K values`);
 
     // %K must stay in [0, 100]
@@ -159,19 +152,19 @@ describe('§1 — Flash Crash Data Volatility', () => {
   it('Stochastic: range=0 produces 50 (flat line), not division by zero', () => {
     const flatBars = generateFlatBars(100, 50);
     const result = stochastic(flatBars, 14, 3);
-    const validK = result.k.filter(v => !isNaN(v));
+    const validK = result.k.filter((v) => !isNaN(v));
 
     // When range is 0, stochastic.ts returns 50
-    const allFifty = validK.every(v => v === 50);
+    const allFifty = validK.every((v) => v === 50);
     console.log(`📊 Stochastic Flat: all values = 50? ${allFifty}`);
     expect(allFifty).toBe(true);
   });
 
   it('MACD: histogram does not spike to Infinity on 10000x price drop', () => {
     const result = macd(closes, 12, 26, 9);
-    const postCrash = result.histogram.slice(100).filter(v => !isNaN(v));
+    const postCrash = result.histogram.slice(100).filter((v) => !isNaN(v));
 
-    const infinities = postCrash.filter(v => !isFinite(v));
+    const infinities = postCrash.filter((v) => !isFinite(v));
     console.log(`📊 MACD Flash Crash: ${infinities.length} Infinity values in histogram`);
     expect(infinities.length).toBe(0);
 
@@ -183,7 +176,7 @@ describe('§1 — Flash Crash Data Volatility', () => {
 
   it('EMA: does not produce NaN after a $100 → $0.01 crash', () => {
     const result = ema(closes, 20);
-    const postCrash = result.slice(100).filter(v => !isNaN(v));
+    const postCrash = result.slice(100).filter((v) => !isNaN(v));
 
     console.log(`📊 EMA Flash Crash: ${postCrash.length} valid values post-crash`);
     expect(postCrash.length).toBeGreaterThan(0);
@@ -196,8 +189,8 @@ describe('§1 — Flash Crash Data Volatility', () => {
 
   it('StochRSI: stays in [0, 100] during and after flash crash', () => {
     const result = stochRsi(crashBars, 14, 14, 3, 3);
-    const allK = result.k.filter(v => !isNaN(v));
-    const outOfRange = allK.filter(v => v < 0 || v > 100);
+    const allK = result.k.filter((v) => !isNaN(v));
+    const outOfRange = allK.filter((v) => v < 0 || v > 100);
 
     console.log(`📊 StochRSI Flash Crash: ${outOfRange.length} out-of-range values`);
     expect(outOfRange.length).toBe(0);
@@ -205,8 +198,8 @@ describe('§1 — Flash Crash Data Volatility', () => {
 
   it('Volume-Weighted RSI: handles extreme volume spike at crash bar', () => {
     const result = volumeWeightedRSI(crashBars, 14);
-    const validValues = result.filter(v => !isNaN(v));
-    const infinities = validValues.filter(v => !isFinite(v));
+    const validValues = result.filter((v) => !isNaN(v));
+    const infinities = validValues.filter((v) => !isFinite(v));
 
     console.log(`📊 vwRSI Flash Crash: ${infinities.length} Infinity values`);
     expect(infinities.length).toBe(0);
@@ -224,7 +217,7 @@ describe('§1 — Flash Crash Data Volatility', () => {
 
 describe('§2 — Parameter Abuse', () => {
   const bars = generateBars(500);
-  const closes = bars.map(b => b.close);
+  const closes = bars.map((b) => b.close);
 
   describe('Period = 0', () => {
     it('SMA(0): returns all NaN (not crash)', () => {
@@ -242,7 +235,7 @@ describe('§2 — Parameter Abuse', () => {
       const result = ema(closes, 0);
       const elapsed = performance.now() - start;
 
-      console.log(`⚠️ EMA(0): ${elapsed.toFixed(2)}ms, non-NaN count: ${result.filter(v => !isNaN(v)).length}`);
+      console.log(`⚠️ EMA(0): ${elapsed.toFixed(2)}ms, non-NaN count: ${result.filter((v) => !isNaN(v)).length}`);
       expect(elapsed).toBeLessThan(100);
       // EMA(0) → k = 2/(0+1) = 2 → amplifies signal. Should not hang.
     });
@@ -307,7 +300,7 @@ describe('§2 — Parameter Abuse', () => {
       const result = sma(closes, 999999);
       const elapsed = performance.now() - start;
 
-      const allNaN = result.every(v => isNaN(v));
+      const allNaN = result.every((v) => isNaN(v));
       console.log(`⚠️ SMA(999999): ${elapsed.toFixed(2)}ms, all NaN: ${allNaN}`);
       expect(elapsed).toBeLessThan(100);
       expect(allNaN).toBe(true);
@@ -318,7 +311,7 @@ describe('§2 — Parameter Abuse', () => {
       const result = ema(closes, 999999);
       const elapsed = performance.now() - start;
 
-      const allNaN = result.every(v => isNaN(v));
+      const allNaN = result.every((v) => isNaN(v));
       console.log(`⚠️ EMA(999999): ${elapsed.toFixed(2)}ms, all NaN: ${allNaN}`);
       expect(elapsed).toBeLessThan(100);
       expect(allNaN).toBe(true);
@@ -329,7 +322,7 @@ describe('§2 — Parameter Abuse', () => {
       const result = rsi(closes, 999999);
       const elapsed = performance.now() - start;
 
-      const allNaN = result.every(v => isNaN(v));
+      const allNaN = result.every((v) => isNaN(v));
       console.log(`⚠️ RSI(999999): ${elapsed.toFixed(2)}ms, all NaN: ${allNaN}`);
       expect(elapsed).toBeLessThan(100);
       expect(allNaN).toBe(true);
@@ -340,7 +333,7 @@ describe('§2 — Parameter Abuse', () => {
       const result = stochastic(bars, 999999, 3);
       const elapsed = performance.now() - start;
 
-      const allNaN = result.k.every(v => isNaN(v));
+      const allNaN = result.k.every((v) => isNaN(v));
       console.log(`⚠️ Stoch(999999): ${elapsed.toFixed(2)}ms, all NaN: ${allNaN}`);
       expect(elapsed).toBeLessThan(100);
       expect(allNaN).toBe(true);
@@ -353,7 +346,7 @@ describe('§2 — Parameter Abuse', () => {
 
       console.log(`⚠️ MACD(999999): ${elapsed.toFixed(2)}ms`);
       expect(elapsed).toBeLessThan(100);
-      expect(result.macd.every(v => isNaN(v))).toBe(true);
+      expect(result.macd.every((v) => isNaN(v))).toBe(true);
     });
   });
 
@@ -412,7 +405,9 @@ describe('§3 — Multi-Indicator Load (20+ simultaneous)', () => {
       const start = performance.now();
       try {
         def.compute(bars, params);
-      } catch { /* swallow */ }
+      } catch {
+        /* swallow */
+      }
       timings[id] = performance.now() - start;
     }
 
@@ -439,7 +434,9 @@ describe('§3 — Multi-Indicator Load (20+ simultaneous)', () => {
       const start = performance.now();
       try {
         def.compute(bars, params);
-      } catch { /* swallow */ }
+      } catch {
+        /* swallow */
+      }
       timings[id] = performance.now() - start;
     }
 
@@ -455,7 +452,9 @@ describe('§3 — Multi-Indicator Load (20+ simultaneous)', () => {
 
   it('computes 20+ indicators simultaneously in < 500ms', () => {
     const allDefs = { ...OVERLAY_INDICATORS, ...PANE_INDICATORS };
-    const ids = Object.keys(allDefs).filter(k => k !== 'vrvp').slice(0, 25);
+    const ids = Object.keys(allDefs)
+      .filter((k) => k !== 'vrvp')
+      .slice(0, 25);
 
     const start = performance.now();
     const results = {};
@@ -468,7 +467,9 @@ describe('§3 — Multi-Indicator Load (20+ simultaneous)', () => {
       }
       try {
         results[id] = def.compute(bars, params);
-      } catch { results[id] = 'ERROR'; }
+      } catch {
+        results[id] = 'ERROR';
+      }
     }
 
     const total = performance.now() - start;
@@ -480,7 +481,7 @@ describe('§3 — Multi-Indicator Load (20+ simultaneous)', () => {
   it('cumulative compute time: overlay + pane + advanced on 50K bars', () => {
     const bigBars = generateBars(50_000);
     const allDefs = { ...OVERLAY_INDICATORS, ...PANE_INDICATORS };
-    const ids = Object.keys(allDefs).filter(k => k !== 'vrvp');
+    const ids = Object.keys(allDefs).filter((k) => k !== 'vrvp');
 
     const perIndicator = {};
     const totalStart = performance.now();
@@ -492,7 +493,11 @@ describe('§3 — Multi-Indicator Load (20+ simultaneous)', () => {
         params[k] = cfg.default;
       }
       const t0 = performance.now();
-      try { def.compute(bigBars, params); } catch { /* */ }
+      try {
+        def.compute(bigBars, params);
+      } catch {
+        /* */
+      }
       perIndicator[id] = performance.now() - t0;
     }
 
@@ -518,7 +523,7 @@ describe('§4 — Timeframe Switching & Cache Coherence', () => {
   it('IncrementalIndicatorCache: bar count change forces full recompute', () => {
     const cache = new IncrementalIndicatorCache();
     const bars1m = generateBars(1000, 100);
-    const closes1m = bars1m.map(b => b.close);
+    const closes1m = bars1m.map((b) => b.close);
 
     // Compute on 1-minute data
     const r1 = cache.computeSmaIncremental('sma-20', closes1m, 20);
@@ -526,7 +531,7 @@ describe('§4 — Timeframe Switching & Cache Coherence', () => {
 
     // Switch to "monthly" data (fewer bars)
     const barsMonthly = generateBars(60, 100);
-    const closesMonthly = barsMonthly.map(b => b.close);
+    const closesMonthly = barsMonthly.map((b) => b.close);
 
     const r2 = cache.computeSmaIncremental('sma-20', closesMonthly, 20);
     expect(r2.length).toBe(60);
@@ -539,15 +544,15 @@ describe('§4 — Timeframe Switching & Cache Coherence', () => {
     const cache = new IncrementalIndicatorCache();
 
     // 1-minute data — price around 100
-    const closes1m = generateBars(500, 100).map(b => b.close);
+    const closes1m = generateBars(500, 100).map((b) => b.close);
     const r1 = cache.computeMacdIncremental('macd', closes1m, 12, 26, 9);
 
     // Monthly data — price around 50000 (very different scale)
-    const closesM = generateBars(100, 50000).map(b => b.close);
+    const closesM = generateBars(100, 50000).map((b) => b.close);
     const r2 = cache.computeMacdIncremental('macd', closesM, 12, 26, 9);
 
     // The MACD on monthly data should reflect ~50000 prices, not ~100
-    const lastMacd = r2.macd.filter(v => !isNaN(v)).pop();
+    const lastMacd = r2.macd.filter((v) => !isNaN(v)).pop();
     console.log(`📊 MACD TF Switch: 1m last MACD near 0, Monthly last MACD: ${lastMacd?.toFixed(2)}`);
 
     // Key check: same cache key 'macd' with different data → must have recomputed
@@ -560,8 +565,8 @@ describe('§4 — Timeframe Switching & Cache Coherence', () => {
 
     // SCENARIO: Two datasets with SAME bar count but different data
     // This is the subtle bug — the cache checks barCount but not data identity
-    const closes_A = generateBars(200, 100).map(b => b.close);
-    const closes_B = generateBars(200, 50000).map(b => b.close);
+    const closes_A = generateBars(200, 100).map((b) => b.close);
+    const closes_B = generateBars(200, 50000).map((b) => b.close);
 
     const rsiA = cache.computeRsiIncremental('rsi-14', closes_A, 14);
     const lastA = rsiA[199];
@@ -579,7 +584,9 @@ describe('§4 — Timeframe Switching & Cache Coherence', () => {
     console.log(`  Dataset A last RSI: ${lastA?.toFixed(4)}`);
     console.log(`  Dataset B cached RSI: ${lastB?.toFixed(4)}`);
     console.log(`  Dataset B fresh RSI:  ${lastB_fresh?.toFixed(4)}`);
-    console.log(`  Drift: ${drift.toFixed(4)} ${drift > 1 ? '⚠️ STALE DATA!' : '✅ Fixed — dataHash detected dataset swap'}`);
+    console.log(
+      `  Drift: ${drift.toFixed(4)} ${drift > 1 ? '⚠️ STALE DATA!' : '✅ Fixed — dataHash detected dataset swap'}`,
+    );
 
     // After the dataHash fix, drift should be 0 because the cache
     // detects the different dataset via first+last value hash
@@ -588,7 +595,7 @@ describe('§4 — Timeframe Switching & Cache Coherence', () => {
 
   it('cache.invalidate() clears all state', () => {
     const cache = new IncrementalIndicatorCache();
-    const closes = generateBars(100).map(b => b.close);
+    const closes = generateBars(100).map((b) => b.close);
 
     cache.computeSmaIncremental('sma', closes, 20);
     cache.computeEmaIncremental('ema', closes, 20);
@@ -602,7 +609,7 @@ describe('§4 — Timeframe Switching & Cache Coherence', () => {
   it('incremental RSI: tick update is idempotent (repeated ticks do not compound)', () => {
     const cache = new IncrementalIndicatorCache();
     const bars = generateBars(200, 100);
-    const closes = bars.map(b => b.close);
+    const closes = bars.map((b) => b.close);
 
     // Initial compute
     cache.computeRsiIncremental('rsi', closes, 14);
@@ -621,7 +628,9 @@ describe('§4 — Timeframe Switching & Cache Coherence', () => {
     const fresh = rsi(closes, 14)[199];
 
     const drift = Math.abs(cached - fresh);
-    console.log(`📊 RSI Idempotency: cached=${cached?.toFixed(4)} fresh=${fresh?.toFixed(4)} drift=${drift.toFixed(6)}`);
+    console.log(
+      `📊 RSI Idempotency: cached=${cached?.toFixed(4)} fresh=${fresh?.toFixed(4)} drift=${drift.toFixed(6)}`,
+    );
 
     // Drift should be very small (< 0.01) if idempotent
     expect(drift).toBeLessThan(0.5);
@@ -643,7 +652,9 @@ describe('§5 — Rounding & Floating-Point Precision', () => {
     const late = result[99_999];
     const drift = Math.abs(mid - late);
 
-    console.log(`📊 SMA Kahan Precision: mid=${mid?.toFixed(10)} late=${late?.toFixed(10)} drift=${drift.toExponential(3)}`);
+    console.log(
+      `📊 SMA Kahan Precision: mid=${mid?.toFixed(10)} late=${late?.toFixed(10)} drift=${drift.toExponential(3)}`,
+    );
     // The "drift" here is expected mathematical difference between SMA at two
     // different windows of a periodic signal, NOT a Kahan summation error.
     // The periodic source 100 + 0.0001*(i%100) has slightly different window means.
@@ -653,9 +664,9 @@ describe('§5 — Rounding & Floating-Point Precision', () => {
   it('EMA: no Infinity or NaN on very small price values', () => {
     const tinyPrices = new Array(500).fill(0).map(() => 1e-15 + Math.random() * 1e-16);
     const result = ema(tinyPrices, 20);
-    const valid = result.filter(v => !isNaN(v));
+    const valid = result.filter((v) => !isNaN(v));
 
-    const hasInf = valid.some(v => !isFinite(v));
+    const hasInf = valid.some((v) => !isFinite(v));
     console.log(`📊 EMA Tiny Prices: ${valid.length} valid, Infinity: ${hasInf}`);
     expect(hasInf).toBe(false);
   });
@@ -663,9 +674,9 @@ describe('§5 — Rounding & Floating-Point Precision', () => {
   it('EMA: no Infinity or NaN on very large price values', () => {
     const hugePrices = new Array(500).fill(0).map(() => 1e15 + Math.random() * 1e14);
     const result = ema(hugePrices, 20);
-    const valid = result.filter(v => !isNaN(v));
+    const valid = result.filter((v) => !isNaN(v));
 
-    const hasInf = valid.some(v => !isFinite(v));
+    const hasInf = valid.some((v) => !isFinite(v));
     console.log(`📊 EMA Huge Prices: ${valid.length} valid, Infinity: ${hasInf}`);
     expect(hasInf).toBe(false);
   });

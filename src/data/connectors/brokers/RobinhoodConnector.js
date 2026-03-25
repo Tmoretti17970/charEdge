@@ -77,48 +77,44 @@ class RobinhoodConnector extends BrokerConnector {
   async fetchTrades(credentials, options = {}) {
     const trades = [];
 
-    try {
-      // Fetch crypto order executions
-      let path = '/api/v1/crypto/trading/orders/?status=filled&page_size=100';
-      if (options.since) {
-        path += `&updated_at[gte]=${new Date(options.since).toISOString()}`;
+    // Fetch crypto order executions
+    let path = '/api/v1/crypto/trading/orders/?status=filled&page_size=100';
+    if (options.since) {
+      path += `&updated_at[gte]=${new Date(options.since).toISOString()}`;
+    }
+
+    let hasMore = true;
+    while (hasMore) {
+      await this._waitForRateLimit();
+      const data = await this._request(credentials, 'GET', path);
+
+      for (const order of data?.results || []) {
+        if (order.state !== 'filled') continue;
+
+        const symbol = (order.symbol || '').toUpperCase();
+        const side = (order.side || '').toUpperCase();
+
+        trades.push({
+          date: order.updated_at || order.created_at,
+          symbol,
+          side: side === 'SELL' ? 'SELL' : 'BUY',
+          quantity: parseFloat(order.filled_asset_quantity || order.quantity || '0'),
+          price: parseFloat(order.average_price || order.price || '0'),
+          pnl: 0, // Robinhood doesn't provide per-trade P&L
+          commission: 0, // Commission-free
+          notes: `Robinhood Crypto | ${order.type || 'market'} order`,
+          _source: 'robinhood',
+          assetClass: 'crypto',
+        });
       }
 
-      let hasMore = true;
-      while (hasMore) {
-        await this._waitForRateLimit();
-        const data = await this._request(credentials, 'GET', path);
-
-        for (const order of data?.results || []) {
-          if (order.state !== 'filled') continue;
-
-          const symbol = (order.symbol || '').toUpperCase();
-          const side = (order.side || '').toUpperCase();
-
-          trades.push({
-            date: order.updated_at || order.created_at,
-            symbol,
-            side: side === 'SELL' ? 'SELL' : 'BUY',
-            quantity: parseFloat(order.filled_asset_quantity || order.quantity || '0'),
-            price: parseFloat(order.average_price || order.price || '0'),
-            pnl: 0, // Robinhood doesn't provide per-trade P&L
-            commission: 0, // Commission-free
-            notes: `Robinhood Crypto | ${order.type || 'market'} order`,
-            _source: 'robinhood',
-            assetClass: 'crypto',
-          });
-        }
-
-        // Pagination
-        if (data?.next) {
-          const nextUrl = new URL(data.next, 'https://placeholder.com');
-          path = nextUrl.pathname + nextUrl.search;
-        } else {
-          hasMore = false;
-        }
+      // Pagination
+      if (data?.next) {
+        const nextUrl = new URL(data.next, 'https://placeholder.com');
+        path = nextUrl.pathname + nextUrl.search;
+      } else {
+        hasMore = false;
       }
-    } catch (err) {
-      throw err;
     }
 
     return trades;

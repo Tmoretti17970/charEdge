@@ -4,9 +4,9 @@
 // Long/Short entry — compact TradingView-style colored badge pills.
 // ═══════════════════════════════════════════════════════════════════
 
-import { C } from '@/constants.js';
 import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 import { useChartTradeStore } from '../../../../state/chart/useChartTradeStore';
+import { C } from '@/constants.js';
 
 export default function ChartTradeToolbar() {
   const tradeMode = useChartFeaturesStore((s) => s.tradeMode);
@@ -27,8 +27,7 @@ export default function ChartTradeToolbar() {
         onClick={() => (isLong ? exitTradeMode() : enterTradeMode('long'))}
         title="Enter long trade (click chart to set entry)"
       >
-        <span className="tf-trade-dot" style={{ background: C.g }} />
-        L
+        <span className="tf-trade-dot" style={{ background: C.g }} />L
       </button>
 
       {/* Short */}
@@ -39,8 +38,7 @@ export default function ChartTradeToolbar() {
         onClick={() => (isShort ? exitTradeMode() : enterTradeMode('short'))}
         title="Enter short trade (click chart to set entry)"
       >
-        <span className="tf-trade-dot" style={{ background: C.r }} />
-        S
+        <span className="tf-trade-dot" style={{ background: C.r }} />S
       </button>
     </div>
   );

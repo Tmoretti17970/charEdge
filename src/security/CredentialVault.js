@@ -6,8 +6,8 @@
 // Extends the ApiKeyStore pattern for complex credentials.
 // ═══════════════════════════════════════════════════════════════════
 
-import SecureStore from '@/security/SecureStore';
 import { logger } from '@/observability/logger';
+import SecureStore from '@/security/SecureStore';
 
 const VAULT_PREFIX = 'charEdge-cred-';
 const MAX_AUTH_FAILURES = 5;

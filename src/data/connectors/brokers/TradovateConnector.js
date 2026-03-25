@@ -59,7 +59,7 @@ class TradovateConnector extends BrokerConnector {
     }
   }
 
-  async fetchTrades(credentials, options = {}) {
+  async fetchTrades(credentials, _options = {}) {
     if (!this._accessToken) await this._authenticate(credentials);
 
     const accounts = await this._request('/account/list');
@@ -87,7 +87,11 @@ class TradovateConnector extends BrokerConnector {
 
   getSetupGuide() {
     return {
-      steps: ['Log in to trader.tradovate.com', 'Use your Tradovate username and password', 'charEdge connects via authenticated API'],
+      steps: [
+        'Log in to trader.tradovate.com',
+        'Use your Tradovate username and password',
+        'charEdge connects via authenticated API',
+      ],
       tips: ['Consider using a demo account for testing first'],
       url: 'https://trader.tradovate.com',
     };

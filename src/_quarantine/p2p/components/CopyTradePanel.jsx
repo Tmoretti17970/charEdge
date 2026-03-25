@@ -6,8 +6,8 @@ import React from 'react';
 import { useState } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useSocialStore } from '../../../state/useSocialStore.js';
-import { alpha } from '@/shared/colorUtils';
 import s from './CopyTradePanel.module.css';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Mini Equity Curve ──────────────────────────────────────────
 function MiniEquityCurve({ pnl = 0, width = 120, height = 32 }) {
@@ -16,7 +16,7 @@ function MiniEquityCurve({ pnl = 0, width = 120, height = 32 }) {
   const data = [];
   let val = 50;
   for (let i = 0; i < pts; i++) {
-    val += (Math.sin(seed * 0.3 + i * 0.7) * 8 + (pnl > 0 ? 1.5 : -0.8));
+    val += Math.sin(seed * 0.3 + i * 0.7) * 8 + (pnl > 0 ? 1.5 : -0.8);
     data.push(val);
   }
   const min = Math.min(...data);
@@ -33,10 +33,7 @@ function MiniEquityCurve({ pnl = 0, width = 120, height = 32 }) {
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <polygon
-        points={`0,${height} ${points} ${width},${height}`}
-        fill={`url(#eqg_${seed})`}
-      />
+      <polygon points={`0,${height} ${points} ${width},${height}`} fill={`url(#eqg_${seed})`} />
       <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" />
     </svg>
   );
@@ -60,13 +57,16 @@ function CopyTradePanel({ onCopyTrader }) {
   const [historyFilter, _setHistoryFilter] = useState('all');
 
   const totalPnl = getTotalCopyPnl();
-  const filteredHistory = historyFilter === 'all'
-    ? copyHistory
-    : copyHistory.filter((h) => h.traderId === historyFilter);
+  const filteredHistory =
+    historyFilter === 'all' ? copyHistory : copyHistory.filter((h) => h.traderId === historyFilter);
 
   const card = {
-    background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 16,
-    padding: 20, position: 'relative', overflow: 'hidden',
+    background: C.bg2,
+    border: `1px solid ${C.bd}`,
+    borderRadius: 16,
+    padding: 20,
+    position: 'relative',
+    overflow: 'hidden',
   };
 
   return (
@@ -77,7 +77,12 @@ function CopyTradePanel({ onCopyTrader }) {
           { label: 'Active Copies', value: copyTargets.filter((t) => t.active).length, icon: '📋', color: C.b },
           { label: 'Total P&L', value: `$${totalPnl.toLocaleString()}`, icon: '💰', color: totalPnl >= 0 ? C.g : C.r },
           { label: 'Copied Trades', value: copyHistory.length, icon: '🔄', color: C.cyan },
-          { label: 'Win Rate', value: `${copyHistory.length ? Math.round((copyHistory.filter((h) => h.pnl > 0).length / copyHistory.length) * 100) : 0}%`, icon: '🎯', color: C.p },
+          {
+            label: 'Win Rate',
+            value: `${copyHistory.length ? Math.round((copyHistory.filter((h) => h.pnl > 0).length / copyHistory.length) * 100) : 0}%`,
+            icon: '🎯',
+            color: C.p,
+          },
         ].map((stat, i) => (
           <div key={i} className="tf-copy-card" style={{ ...card, textAlign: 'center', padding: 16 }}>
             <div className={s.s2}>{stat.icon}</div>
@@ -92,7 +97,17 @@ function CopyTradePanel({ onCopyTrader }) {
         <div className={s.s3}>
           <span style={{ fontSize: 20 }}>📋</span>
           <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: C.t1, fontFamily: F }}>Active Copies</h2>
-          <span style={{ fontSize: 11, fontWeight: 700, color: C.t3, background: alpha(C.t3, 0.1), padding: '3px 8px', borderRadius: 6, fontFamily: M }}>
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: C.t3,
+              background: alpha(C.t3, 0.1),
+              padding: '3px 8px',
+              borderRadius: 6,
+              fontFamily: M,
+            }}
+          >
             {copyTargets.length}
           </span>
         </div>
@@ -112,11 +127,17 @@ function CopyTradePanel({ onCopyTrader }) {
             {copyTargets.map((target, idx) => (
               <div key={target.userId} className="tf-copy-card" style={{ ...card, animationDelay: `${idx * 60}ms` }}>
                 {/* Glow accent */}
-                <div style={{
-                  position: 'absolute', top: 0, left: 0, right: 0, height: 3,
-                  background: target.active ? `linear-gradient(90deg, ${C.g}, ${C.cyan})` : C.bd,
-                  borderRadius: '16px 16px 0 0',
-                }} />
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 3,
+                    background: target.active ? `linear-gradient(90deg, ${C.g}, ${C.cyan})` : C.bd,
+                    borderRadius: '16px 16px 0 0',
+                  }}
+                />
 
                 <div className={s.s6}>
                   <div className={s.s7}>
@@ -137,11 +158,15 @@ function CopyTradePanel({ onCopyTrader }) {
                     <div style={{ fontSize: 10, color: C.t3 }}>Allocation</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: M }}>{target.riskMultiplier}×</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: M }}>
+                      {target.riskMultiplier}×
+                    </div>
                     <div style={{ fontSize: 10, color: C.t3 }}>Risk</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: M }}>{target.maxPositions}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: M }}>
+                      {target.maxPositions}
+                    </div>
                     <div style={{ fontSize: 10, color: C.t3 }}>Max Pos</div>
                   </div>
                 </div>
@@ -150,11 +175,16 @@ function CopyTradePanel({ onCopyTrader }) {
                   <button
                     onClick={() => toggleActive(target.userId)}
                     style={{
-                      flex: 1, padding: '7px 0', borderRadius: 8,
+                      flex: 1,
+                      padding: '7px 0',
+                      borderRadius: 8,
                       border: `1px solid ${target.active ? C.y : C.g}`,
                       background: alpha(target.active ? C.y : C.g, 0.08),
                       color: target.active ? C.y : C.g,
-                      fontSize: 11, fontWeight: 700, fontFamily: F, cursor: 'pointer',
+                      fontSize: 11,
+                      fontWeight: 700,
+                      fontFamily: F,
+                      cursor: 'pointer',
                     }}
                   >
                     {target.active ? '⏸ Pause' : '▶ Resume'}
@@ -162,9 +192,15 @@ function CopyTradePanel({ onCopyTrader }) {
                   <button
                     onClick={() => removeCopyTarget(target.userId)}
                     style={{
-                      padding: '7px 14px', borderRadius: 8,
-                      border: `1px solid ${C.r}20`, background: alpha(C.r, 0.06),
-                      color: C.r, fontSize: 11, fontWeight: 700, fontFamily: F, cursor: 'pointer',
+                      padding: '7px 14px',
+                      borderRadius: 8,
+                      border: `1px solid ${C.r}20`,
+                      background: alpha(C.r, 0.06),
+                      color: C.r,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      fontFamily: F,
+                      cursor: 'pointer',
                     }}
                   >
                     ✕
@@ -185,11 +221,19 @@ function CopyTradePanel({ onCopyTrader }) {
 
         <div style={{ ...card }}>
           {/* Table Header */}
-          <div style={{
-            display: 'grid', gridTemplateColumns: '1.2fr 0.8fr 0.6fr 0.8fr 0.8fr 0.8fr',
-            gap: 8, padding: '0 0 12px', borderBottom: `1px solid ${C.bd}`,
-            fontSize: 11, fontWeight: 600, color: C.t3, fontFamily: F,
-          }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1.2fr 0.8fr 0.6fr 0.8fr 0.8fr 0.8fr',
+              gap: 8,
+              padding: '0 0 12px',
+              borderBottom: `1px solid ${C.bd}`,
+              fontSize: 11,
+              fontWeight: 600,
+              color: C.t3,
+              fontFamily: F,
+            }}
+          >
             <div>Trader</div>
             <div>Symbol</div>
             <div>Side</div>
@@ -199,40 +243,56 @@ function CopyTradePanel({ onCopyTrader }) {
           </div>
 
           {filteredHistory.length === 0 ? (
-            <div style={{ padding: '24px 0', textAlign: 'center', fontSize: 12, color: C.t3 }}>
-              No copy trades yet
-            </div>
+            <div style={{ padding: '24px 0', textAlign: 'center', fontSize: 12, color: C.t3 }}>No copy trades yet</div>
           ) : (
             filteredHistory.map((trade) => (
               <div
                 key={trade.id}
                 style={{
-                  display: 'grid', gridTemplateColumns: '1.2fr 0.8fr 0.6fr 0.8fr 0.8fr 0.8fr',
-                  gap: 8, padding: '10px 0', borderBottom: `1px solid ${alpha(C.bd, 0.5)}`,
-                  fontSize: 12, fontFamily: F, alignItems: 'center',
+                  display: 'grid',
+                  gridTemplateColumns: '1.2fr 0.8fr 0.6fr 0.8fr 0.8fr 0.8fr',
+                  gap: 8,
+                  padding: '10px 0',
+                  borderBottom: `1px solid ${alpha(C.bd, 0.5)}`,
+                  fontSize: 12,
+                  fontFamily: F,
+                  alignItems: 'center',
                 }}
               >
                 <div style={{ fontWeight: 600, color: C.t1 }}>{trade.traderName}</div>
                 <div style={{ color: C.t2, fontFamily: M }}>{trade.symbol}</div>
                 <div>
-                  <span style={{
-                    padding: '2px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700,
-                    background: alpha(trade.side === 'long' ? C.g : C.r, 0.1),
-                    color: trade.side === 'long' ? C.g : C.r,
-                  }}>
+                  <span
+                    style={{
+                      padding: '2px 8px',
+                      borderRadius: 6,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      background: alpha(trade.side === 'long' ? C.g : C.r, 0.1),
+                      color: trade.side === 'long' ? C.g : C.r,
+                    }}
+                  >
                     {trade.side.toUpperCase()}
                   </span>
                 </div>
                 <div style={{ textAlign: 'right', color: C.t2, fontFamily: M }}>
-                  {typeof trade.entry === 'number' && trade.entry < 10 ? trade.entry.toFixed(4) : trade.entry?.toLocaleString()}
+                  {typeof trade.entry === 'number' && trade.entry < 10
+                    ? trade.entry.toFixed(4)
+                    : trade.entry?.toLocaleString()}
                 </div>
                 <div style={{ textAlign: 'right', color: C.t2, fontFamily: M }}>
-                  {typeof trade.exit === 'number' && trade.exit < 10 ? trade.exit.toFixed(4) : trade.exit?.toLocaleString()}
+                  {typeof trade.exit === 'number' && trade.exit < 10
+                    ? trade.exit.toFixed(4)
+                    : trade.exit?.toLocaleString()}
                 </div>
-                <div style={{
-                  textAlign: 'right', fontWeight: 700, fontFamily: M,
-                  color: trade.pnl >= 0 ? C.g : C.r,
-                }}>
+                <div
+                  style={{
+                    textAlign: 'right',
+                    fontWeight: 700,
+                    fontFamily: M,
+                    color: trade.pnl >= 0 ? C.g : C.r,
+                  }}
+                >
                   {trade.pnl >= 0 ? '+' : ''}${trade.pnl.toLocaleString()}
                 </div>
               </div>
@@ -254,11 +314,18 @@ function CopyTradePanel({ onCopyTrader }) {
             return (
               <div key={trader.userId} className="tf-copy-card" style={{ ...card, animationDelay: `${idx * 60}ms` }}>
                 <div className={s.s13}>
-                  <div style={{
-                    width: 42, height: 42, borderRadius: 12,
-                    background: `linear-gradient(135deg, ${alpha(C.b, 0.2)}, ${alpha(C.p, 0.2)})`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
-                  }}>
+                  <div
+                    style={{
+                      width: 42,
+                      height: 42,
+                      borderRadius: 12,
+                      background: `linear-gradient(135deg, ${alpha(C.b, 0.2)}, ${alpha(C.p, 0.2)})`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 20,
+                    }}
+                  >
                     {trader.avatar}
                   </div>
                   <div style={{ flex: 1 }}>
@@ -274,7 +341,9 @@ function CopyTradePanel({ onCopyTrader }) {
                     <div style={{ fontSize: 9, color: C.t3 }}>Win Rate</div>
                   </div>
                   <div style={{ textAlign: 'center', padding: '6px 0', background: C.sf, borderRadius: 8 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: C.b, fontFamily: M }}>${(trader.totalPnl / 1000).toFixed(1)}k</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: C.b, fontFamily: M }}>
+                      ${(trader.totalPnl / 1000).toFixed(1)}k
+                    </div>
                     <div style={{ fontSize: 9, color: C.t3 }}>Total P&L</div>
                   </div>
                   <div style={{ textAlign: 'center', padding: '6px 0', background: C.sf, borderRadius: 8 }}>
@@ -287,10 +356,15 @@ function CopyTradePanel({ onCopyTrader }) {
                   onClick={() => !isCopied && onCopyTrader?.(trader)}
                   disabled={isCopied}
                   style={{
-                    width: '100%', padding: '9px 0', borderRadius: 10, border: 'none',
+                    width: '100%',
+                    padding: '9px 0',
+                    borderRadius: 10,
+                    border: 'none',
                     background: isCopied ? alpha(C.g, 0.1) : `linear-gradient(135deg, ${C.b}, ${C.bH})`,
                     color: isCopied ? C.g : '#fff',
-                    fontSize: 12, fontWeight: 700, fontFamily: F,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    fontFamily: F,
                     cursor: isCopied ? 'default' : 'pointer',
                     opacity: isCopied ? 0.8 : 1,
                   }}

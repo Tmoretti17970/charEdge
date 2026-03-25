@@ -7,7 +7,6 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useCallback } from 'react';
-import { C } from '../../../constants.js';
 import { useAlertStore } from '../../../state/useAlertStore';
 import st from './CompoundAlertBuilder.module.css';
 
@@ -38,7 +37,13 @@ function ConditionRow({ condition, onChange, onRemove, canRemove }) {
     <div className={st.condRow}>
       <select
         value={condition.type}
-        onChange={(e) => onChange({ ...condition, type: e.target.value, indicator: e.target.value === 'indicator' ? 'RSI' : undefined })}
+        onChange={(e) =>
+          onChange({
+            ...condition,
+            type: e.target.value,
+            indicator: e.target.value === 'indicator' ? 'RSI' : undefined,
+          })
+        }
         className={`${st.input} ${st.selectType}`}
       >
         <option value="price">Price</option>
@@ -52,7 +57,9 @@ function ConditionRow({ condition, onChange, onRemove, canRemove }) {
           className={`${st.input} ${st.selectInd}`}
         >
           {INDICATORS.map((ind) => (
-            <option key={ind} value={ind}>{ind}</option>
+            <option key={ind} value={ind}>
+              {ind}
+            </option>
           ))}
         </select>
       )}
@@ -63,7 +70,9 @@ function ConditionRow({ condition, onChange, onRemove, canRemove }) {
         className={`${st.input} ${st.selectCond}`}
       >
         {CONDITIONS.map((c) => (
-          <option key={c.id} value={c.id}>{c.label}</option>
+          <option key={c.id} value={c.id}>
+            {c.label}
+          </option>
         ))}
       </select>
 
@@ -88,7 +97,9 @@ function ConditionRow({ condition, onChange, onRemove, canRemove }) {
       />
 
       {canRemove && (
-        <button onClick={onRemove} className={st.removeCondBtn} title="Remove condition">✕</button>
+        <button onClick={onRemove} className={st.removeCondBtn} title="Remove condition">
+          ✕
+        </button>
       )}
     </div>
   );
@@ -105,7 +116,9 @@ function LogicToggle({ value, onChange }) {
             key={logic}
             onClick={() => onChange(logic)}
             className={`${st.logicBtn} ${value === logic ? st.logicBtnActive : st.logicBtnInactive}`}
-          >{logic}</button>
+          >
+            {logic}
+          </button>
         ))}
       </div>
     </div>
@@ -190,15 +203,15 @@ function CompoundAlertBuilder({ symbol = '', onClose }) {
               onRemove={() => removeCondition(i)}
               canRemove={conditions.length > 1}
             />
-            {i < conditions.length - 1 && (
-              <LogicToggle value={logic} onChange={setLogic} />
-            )}
+            {i < conditions.length - 1 && <LogicToggle value={logic} onChange={setLogic} />}
           </React.Fragment>
         ))}
       </div>
 
       {/* Add condition button */}
-      <button onClick={addCondition} className={st.addCondBtn}>+ Add condition</button>
+      <button onClick={addCondition} className={st.addCondBtn}>
+        + Add condition
+      </button>
 
       {/* Expiration + Cooldown */}
       <div className={st.extraRow}>
@@ -219,7 +232,9 @@ function CompoundAlertBuilder({ symbol = '', onClose }) {
             className={`${st.input} ${st.extraSelect}`}
           >
             {COOLDOWN_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
             ))}
           </select>
         </div>
@@ -246,7 +261,9 @@ function CompoundAlertBuilder({ symbol = '', onClose }) {
           onClick={handleSubmit}
           disabled={!isValid}
           className={`${st.submitBtn} ${!isValid ? st.submitBtnDisabled : ''}`}
-        >Create</button>
+        >
+          Create
+        </button>
       </div>
     </div>
   );

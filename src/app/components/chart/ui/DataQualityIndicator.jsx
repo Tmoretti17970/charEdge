@@ -8,8 +8,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { C, F } from '@/constants.js';
 import { CONFIDENCE } from '../../../../data/engine/streaming/PriceAggregator.js';
+import { C, F } from '@/constants.js';
 
 let _confidenceConfig = null;
 function getConfidenceConfig() {
@@ -69,13 +69,9 @@ export function DataQualityIndicator({ confidence, sourceCount, spread, sources 
   // Don't render if no aggregation data
   if (!confidence) return null;
 
-  const spreadStr = spread > 0
-    ? `$${spread < 1 ? spread.toFixed(4) : spread.toFixed(2)} spread`
-    : '';
+  const spreadStr = spread > 0 ? `$${spread < 1 ? spread.toFixed(4) : spread.toFixed(2)} spread` : '';
 
-  const sourceList = sources?.length > 0
-    ? sources.join(', ')
-    : 'none';
+  const sourceList = sources?.length > 0 ? sources.join(', ') : 'none';
 
   return (
     <div

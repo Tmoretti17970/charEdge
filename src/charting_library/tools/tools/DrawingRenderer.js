@@ -6,17 +6,58 @@
 // Individual tool renderers live in tools/renderers/*.js sub-modules.
 // ═══════════════════════════════════════════════════════════════════
 
-
 // ── Sub-renderers ────────────────────────────────────────────────
-import { renderChannel, renderPitchfork, renderParallelChannel, renderRegressionChannel } from '../renderers/ChannelDraw.js';
-import { renderFibRetracement, renderFibExtension, renderFibTimeZone, renderFibArc, renderFibFan, renderFibChannel, renderElliottWaves } from '../renderers/FibDraw.js';
-import { renderHorizontalLine, renderHorizontalRay, renderVerticalLine, renderCrossline } from '../renderers/HLineDraw.js';
-import { renderGannFan, renderGannSquare, renderXABCD, renderHeadShoulders } from '../renderers/PatternDraw.js';
-import { renderRectangle, renderTriangle, renderEllipse, renderText, renderCallout, renderEmoji, renderNote, renderSignpost } from '../renderers/ShapeDraw.js';
-import { renderMeasure, renderLongPosition, renderShortPosition, renderAlertZone, renderInfoLine, renderFlatZone, renderPriceRange, renderDateRange } from '../renderers/TradeDraw.js';
-import { renderTrendline, renderRay, renderExtendedLine, renderArrow, renderPolyline } from '../renderers/TrendlineDraw.js';
 import { RESIZABLE_TOOLS, computeResizeHandles, renderResizeHandles } from '../engines/ResizeHandles.js';
+import {
+  renderChannel,
+  renderPitchfork,
+  renderParallelChannel,
+  renderRegressionChannel,
+} from '../renderers/ChannelDraw.js';
+import {
+  renderFibRetracement,
+  renderFibExtension,
+  renderFibTimeZone,
+  renderFibArc,
+  renderFibFan,
+  renderFibChannel,
+  renderElliottWaves,
+} from '../renderers/FibDraw.js';
+import {
+  renderHorizontalLine,
+  renderHorizontalRay,
+  renderVerticalLine,
+  renderCrossline,
+} from '../renderers/HLineDraw.js';
 import { renderMeasureLabels } from '../renderers/MeasureLabels.js';
+import { renderGannFan, renderGannSquare, renderXABCD, renderHeadShoulders } from '../renderers/PatternDraw.js';
+import {
+  renderRectangle,
+  renderTriangle,
+  renderEllipse,
+  renderText,
+  renderCallout,
+  renderEmoji,
+  renderNote,
+  renderSignpost,
+} from '../renderers/ShapeDraw.js';
+import {
+  renderMeasure,
+  renderLongPosition,
+  renderShortPosition,
+  renderAlertZone,
+  renderInfoLine,
+  renderFlatZone,
+  renderPriceRange,
+  renderDateRange,
+} from '../renderers/TradeDraw.js';
+import {
+  renderTrendline,
+  renderRay,
+  renderExtendedLine,
+  renderArrow,
+  renderPolyline,
+} from '../renderers/TrendlineDraw.js';
 
 const ANCHOR_RADIUS = 4;
 const ANCHOR_FILL = '#FFFFFF';
@@ -31,7 +72,6 @@ const MAX_DRAWINGS = 500; // BUG-02: drawing count cap
  * @returns {Object} Renderer with drawMain() and drawTop()
  */
 export function createDrawingRenderer(drawingEngine) {
-
   /** Draw a small text label */
   function drawLabel(ctx, text, x, y, color, pr) {
     const fontSize = Math.round(10 * pr);
@@ -63,6 +103,7 @@ export function createDrawingRenderer(drawingEngine) {
 
     // BUG-02: Warn if drawings exceed cap
     if (drawings.length > MAX_DRAWINGS) {
+      // eslint-disable-next-line no-console
       console.warn(`[DrawingRenderer] ${drawings.length} drawings exceed cap of ${MAX_DRAWINGS}`);
     }
 
@@ -72,7 +113,7 @@ export function createDrawingRenderer(drawingEngine) {
       if (d.state === 'selected') continue;
 
       // BUG-02: Off-screen culling — skip drawings entirely outside viewport
-      const pts = d.points?.map(p => drawingEngine.anchorToPixel(p)).filter(Boolean);
+      const pts = d.points?.map((p) => drawingEngine.anchorToPixel(p)).filter(Boolean);
       if (pts && pts.length > 0 && _isOffScreen(pts, size)) continue;
 
       const isHovered = d.id === hoveredId;
@@ -80,7 +121,7 @@ export function createDrawingRenderer(drawingEngine) {
 
       if (isHovered || isMultiSelected) {
         ctx.save();
-        ctx.shadowColor = isMultiSelected ? '#2962FF' : (d.style?.color || '#2962FF');
+        ctx.shadowColor = isMultiSelected ? '#2962FF' : d.style?.color || '#2962FF';
         ctx.shadowBlur = (isMultiSelected ? 10 : 8) * pr;
       }
 
@@ -92,18 +133,26 @@ export function createDrawingRenderer(drawingEngine) {
         ctx.setLineDash([Math.round(4 * pr), Math.round(3 * pr)]);
         ctx.strokeStyle = 'rgba(41, 98, 255, 0.4)';
         ctx.lineWidth = Math.round(1.5 * pr);
-        const bpts = pts.map(p => ({ x: Math.round(p.x * pr), y: Math.round(p.y * pr) }));
-        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-        for (const p of bpts) { minX = Math.min(minX, p.x); minY = Math.min(minY, p.y); maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y); }
+        const bpts = pts.map((p) => ({ x: Math.round(p.x * pr), y: Math.round(p.y * pr) }));
+        let minX = Infinity,
+          minY = Infinity,
+          maxX = -Infinity,
+          maxY = -Infinity;
+        for (const p of bpts) {
+          minX = Math.min(minX, p.x);
+          minY = Math.min(minY, p.y);
+          maxX = Math.max(maxX, p.x);
+          maxY = Math.max(maxY, p.y);
+        }
         const pad = Math.round(6 * pr);
-        ctx.strokeRect(minX - pad, minY - pad, (maxX - minX) + pad * 2, (maxY - minY) + pad * 2);
+        ctx.strokeRect(minX - pad, minY - pad, maxX - minX + pad * 2, maxY - minY + pad * 2);
         ctx.restore();
       }
 
       // Measurement info labels for idle drawings
-      const mpts = d.points?.map(p => drawingEngine.anchorToPixel(p)).filter(Boolean);
+      const mpts = d.points?.map((p) => drawingEngine.anchorToPixel(p)).filter(Boolean);
       if (mpts && mpts.length >= 2) {
-        const bitmapPts = mpts.map(p => ({ x: Math.round(p.x * pr), y: Math.round(p.y * pr) }));
+        const bitmapPts = mpts.map((p) => ({ x: Math.round(p.x * pr), y: Math.round(p.y * pr) }));
         renderMeasureLabels(ctx, d, bitmapPts, pr, drawingEngine.pixelToPrice, drawingEngine.pixelToTime);
       }
 
@@ -158,7 +207,7 @@ export function createDrawingRenderer(drawingEngine) {
         ctx.globalAlpha = 0.45;
         ctx.setLineDash([Math.round(6 * pr), Math.round(4 * pr)]);
         // Marching-ant animation — dashes crawl along the line
-        ctx.lineDashOffset = -(Date.now() % 1000) / 1000 * 16 * pr;
+        ctx.lineDashOffset = (-(Date.now() % 1000) / 1000) * 16 * pr;
         const pulsePhase = (Date.now() % 1500) / 1500;
         const pulseGlow = 4 + Math.sin(pulsePhase * Math.PI * 2) * 3;
         ctx.shadowColor = d.style?.color || '#2962FF';
@@ -171,7 +220,8 @@ export function createDrawingRenderer(drawingEngine) {
         if (lastPt) {
           const px = drawingEngine.anchorToPixel(lastPt);
           if (px) {
-            const bx = Math.round(px.x * pr), by = Math.round(px.y * pr);
+            const bx = Math.round(px.x * pr),
+              by = Math.round(px.y * pr);
             const crossSize = Math.round(8 * pr);
             const ringPhase = (Date.now() % 1200) / 1200;
             const ringRadius = (6 + Math.sin(ringPhase * Math.PI * 2) * 3) * pr;
@@ -182,8 +232,10 @@ export function createDrawingRenderer(drawingEngine) {
             ctx.setLineDash([]);
             // Crosshair lines
             ctx.beginPath();
-            ctx.moveTo(bx - crossSize, by); ctx.lineTo(bx + crossSize, by);
-            ctx.moveTo(bx, by - crossSize); ctx.lineTo(bx, by + crossSize);
+            ctx.moveTo(bx - crossSize, by);
+            ctx.lineTo(bx + crossSize, by);
+            ctx.moveTo(bx, by - crossSize);
+            ctx.lineTo(bx, by + crossSize);
             ctx.stroke();
             // Pulsing ring
             ctx.globalAlpha = 0.3;
@@ -198,9 +250,9 @@ export function createDrawingRenderer(drawingEngine) {
       }
 
       // Measurement labels for selected/creating drawings
-      const mpts = d.points?.map(p => drawingEngine.anchorToPixel(p)).filter(Boolean);
+      const mpts = d.points?.map((p) => drawingEngine.anchorToPixel(p)).filter(Boolean);
       if (mpts && mpts.length >= 2) {
-        const bitmapPts = mpts.map(p => ({ x: Math.round(p.x * pr), y: Math.round(p.y * pr) }));
+        const bitmapPts = mpts.map((p) => ({ x: Math.round(p.x * pr), y: Math.round(p.y * pr) }));
         renderMeasureLabels(ctx, d, bitmapPts, pr, drawingEngine.pixelToPrice, drawingEngine.pixelToTime);
       }
 
@@ -288,7 +340,7 @@ export function createDrawingRenderer(drawingEngine) {
 
         // Drawing label (meta.label) near midpoint
         if (d.meta?.label && d.points.length >= 1) {
-          const pts = d.points.map(p => drawingEngine.anchorToPixel(p)).filter(Boolean);
+          const pts = d.points.map((p) => drawingEngine.anchorToPixel(p)).filter(Boolean);
           if (pts.length > 0) {
             const midX = pts.reduce((s, p) => s + p.x, 0) / pts.length;
             const midY = pts.reduce((s, p) => s + p.y, 0) / pts.length;
@@ -391,7 +443,7 @@ export function createDrawingRenderer(drawingEngine) {
 
       // ─── 8-handle resize overlay for shapes ──────────────────
       if (d.state === 'selected' && RESIZABLE_TOOLS.has(d.type)) {
-        const pts = d.points.map(p => drawingEngine.anchorToPixel(p)).filter(Boolean);
+        const pts = d.points.map((p) => drawingEngine.anchorToPixel(p)).filter(Boolean);
         if (pts.length >= 2) {
           const handles = computeResizeHandles(pts);
           const hoveredHandle = drawingEngine._hoveredResizeHandle || null;
@@ -412,33 +464,78 @@ export function createDrawingRenderer(drawingEngine) {
     if (!snapInfo) return;
     const snapPx = drawingEngine.anchorToPixel({ price: snapInfo.price, time: snapInfo.time });
     if (!snapPx) return;
-    const sx = Math.round(snapPx.x * pr), sy = Math.round(snapPx.y * pr);
+    const sx = Math.round(snapPx.x * pr),
+      sy = Math.round(snapPx.y * pr);
     const SNAP_COLORS = {
-      ohlc:      { glow: 'rgba(41, 98, 255, 0.25)',   mid: 'rgba(41, 98, 255, 0.6)',   pill: 'rgba(41, 98, 255, 0.85)',   guide: 'rgba(41, 98, 255, 0.15)' },
-      drawing:   { glow: 'rgba(255, 152, 0, 0.25)',    mid: 'rgba(255, 152, 0, 0.6)',    pill: 'rgba(255, 152, 0, 0.85)',    guide: 'rgba(255, 152, 0, 0.15)' },
-      round:     { glow: 'rgba(76, 175, 80, 0.25)',    mid: 'rgba(76, 175, 80, 0.6)',    pill: 'rgba(76, 175, 80, 0.85)',    guide: 'rgba(76, 175, 80, 0.15)' },
-      indicator: { glow: 'rgba(156, 39, 176, 0.25)',   mid: 'rgba(156, 39, 176, 0.6)',   pill: 'rgba(156, 39, 176, 0.85)',   guide: 'rgba(156, 39, 176, 0.15)' },
-      grid:      { glow: 'rgba(120, 123, 134, 0.25)',  mid: 'rgba(120, 123, 134, 0.5)',  pill: 'rgba(120, 123, 134, 0.75)',  guide: 'rgba(120, 123, 134, 0.1)' },
+      ohlc: {
+        glow: 'rgba(41, 98, 255, 0.25)',
+        mid: 'rgba(41, 98, 255, 0.6)',
+        pill: 'rgba(41, 98, 255, 0.85)',
+        guide: 'rgba(41, 98, 255, 0.15)',
+      },
+      drawing: {
+        glow: 'rgba(255, 152, 0, 0.25)',
+        mid: 'rgba(255, 152, 0, 0.6)',
+        pill: 'rgba(255, 152, 0, 0.85)',
+        guide: 'rgba(255, 152, 0, 0.15)',
+      },
+      round: {
+        glow: 'rgba(76, 175, 80, 0.25)',
+        mid: 'rgba(76, 175, 80, 0.6)',
+        pill: 'rgba(76, 175, 80, 0.85)',
+        guide: 'rgba(76, 175, 80, 0.15)',
+      },
+      indicator: {
+        glow: 'rgba(156, 39, 176, 0.25)',
+        mid: 'rgba(156, 39, 176, 0.6)',
+        pill: 'rgba(156, 39, 176, 0.85)',
+        guide: 'rgba(156, 39, 176, 0.15)',
+      },
+      grid: {
+        glow: 'rgba(120, 123, 134, 0.25)',
+        mid: 'rgba(120, 123, 134, 0.5)',
+        pill: 'rgba(120, 123, 134, 0.75)',
+        guide: 'rgba(120, 123, 134, 0.1)',
+      },
     };
     const colors = SNAP_COLORS[snapInfo.type] || SNAP_COLORS.ohlc;
     ctx.save();
-    ctx.strokeStyle = colors.guide; ctx.lineWidth = Math.max(1, pr);
+    ctx.strokeStyle = colors.guide;
+    ctx.lineWidth = Math.max(1, pr);
     ctx.setLineDash([Math.round(3 * pr), Math.round(3 * pr)]);
-    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ctx.canvas.width, sy); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(ctx.canvas.width, sy);
+    ctx.stroke();
+    ctx.setLineDash([]);
     const phase = (Date.now() % 1200) / 1200;
     const outerR = Math.round((6 + Math.sin(phase * Math.PI * 2) * 2) * pr);
-    ctx.beginPath(); ctx.arc(sx, sy, outerR, 0, Math.PI * 2); ctx.fillStyle = colors.glow; ctx.fill();
-    ctx.beginPath(); ctx.arc(sx, sy, Math.round(4 * pr), 0, Math.PI * 2); ctx.fillStyle = colors.mid; ctx.fill();
-    ctx.beginPath(); ctx.arc(sx, sy, Math.round(2 * pr), 0, Math.PI * 2); ctx.fillStyle = '#FFFFFF'; ctx.fill();
+    ctx.beginPath();
+    ctx.arc(sx, sy, outerR, 0, Math.PI * 2);
+    ctx.fillStyle = colors.glow;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(sx, sy, Math.round(4 * pr), 0, Math.PI * 2);
+    ctx.fillStyle = colors.mid;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(sx, sy, Math.round(2 * pr), 0, Math.PI * 2);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fill();
     if (snapInfo.label) {
-      const fontSize = Math.round(9 * pr), padding = Math.round(4 * pr);
+      const fontSize = Math.round(9 * pr),
+        padding = Math.round(4 * pr);
       ctx.font = `bold ${fontSize}px -apple-system, Arial`;
       const tw = ctx.measureText(snapInfo.label).width;
-      const pillW = tw + padding * 2, pillH = fontSize + padding * 2, pillR = Math.round(3 * pr);
-      const lx = sx + Math.round(10 * pr), ly = sy - pillH / 2;
+      const pillW = tw + padding * 2,
+        pillH = fontSize + padding * 2,
+        pillR = Math.round(3 * pr);
+      const lx = sx + Math.round(10 * pr),
+        ly = sy - pillH / 2;
       ctx.fillStyle = colors.pill;
       ctx.beginPath();
-      ctx.moveTo(lx + pillR, ly); ctx.lineTo(lx + pillW - pillR, ly);
+      ctx.moveTo(lx + pillR, ly);
+      ctx.lineTo(lx + pillW - pillR, ly);
       ctx.quadraticCurveTo(lx + pillW, ly, lx + pillW, ly + pillR);
       ctx.lineTo(lx + pillW, ly + pillH - pillR);
       ctx.quadraticCurveTo(lx + pillW, ly + pillH, lx + pillW - pillR, ly + pillH);
@@ -446,8 +543,11 @@ export function createDrawingRenderer(drawingEngine) {
       ctx.quadraticCurveTo(lx, ly + pillH, lx, ly + pillH - pillR);
       ctx.lineTo(lx, ly + pillR);
       ctx.quadraticCurveTo(lx, ly, lx + pillR, ly);
-      ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#FFFFFF'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
       ctx.fillText(snapInfo.label, lx + padding, sy);
     }
     ctx.restore();
@@ -460,7 +560,7 @@ export function createDrawingRenderer(drawingEngine) {
     if (!drawingEngine.getSmartGuides) return;
     const mouseState = drawingEngine.state;
     if (mouseState !== 'creating' && mouseState !== 'dragging') return;
-    const activeDrawings = drawingEngine.drawings.filter(d => d.state === 'creating');
+    const activeDrawings = drawingEngine.drawings.filter((d) => d.state === 'creating');
     if (activeDrawings.length === 0) return;
     const lastPt = activeDrawings[0].points[activeDrawings[0].points.length - 1];
     if (!lastPt) return;
@@ -476,14 +576,17 @@ export function createDrawingRenderer(drawingEngine) {
       ctx.beginPath();
       if (g.type === 'horizontal') {
         const y = Math.round(g.y * pr);
-        ctx.moveTo(Math.round(g.fromX * pr), y); ctx.lineTo(Math.round(g.toX * pr), y);
+        ctx.moveTo(Math.round(g.fromX * pr), y);
+        ctx.lineTo(Math.round(g.toX * pr), y);
       } else {
         const x = Math.round(g.x * pr);
-        ctx.moveTo(x, Math.round(g.fromY * pr)); ctx.lineTo(x, Math.round(g.toY * pr));
+        ctx.moveTo(x, Math.round(g.fromY * pr));
+        ctx.lineTo(x, Math.round(g.toY * pr));
       }
       ctx.stroke();
     }
-    ctx.setLineDash([]); ctx.restore();
+    ctx.setLineDash([]);
+    ctx.restore();
   }
 
   /**
@@ -498,47 +601,129 @@ export function createDrawingRenderer(drawingEngine) {
     const lineWidth = Math.max(1, Math.round(style.lineWidth * pr));
 
     switch (drawing.type) {
-      case 'trendline': renderTrendline(ctx, bPoints, style, lineWidth, pr); break;
-      case 'hray': renderHorizontalRay(ctx, bPoints, style, lineWidth, pr, size, deps); break;
-      case 'hline': renderHorizontalLine(ctx, bPoints, style, lineWidth, pr, size); break;
-      case 'ray': renderRay(ctx, bPoints, style, lineWidth, pr, size); break;
-      case 'extendedline': renderExtendedLine(ctx, bPoints, style, lineWidth, pr, size); break;
-      case 'fib': renderFibRetracement(ctx, bPoints, drawing.points, style, lineWidth, pr, size, deps); break;
-      case 'fibext': renderFibExtension(ctx, bPoints, drawing.points, style, lineWidth, pr, size, deps); break;
-      case 'longposition': renderLongPosition(ctx, bPoints, drawing, style, lineWidth, pr, size); break;
-      case 'shortposition': renderShortPosition(ctx, bPoints, drawing, style, lineWidth, pr, size); break;
-      case 'gannfan': renderGannFan(ctx, bPoints, drawing, style, lineWidth, pr, size); break;
-      case 'fibtimezone': renderFibTimeZone(ctx, bPoints, drawing, style, lineWidth, pr, size); break;
-      case 'elliott': renderElliottWaves(ctx, bPoints, drawing, style, lineWidth, pr); break;
-      case 'rect': renderRectangle(ctx, bPoints, style, lineWidth, pr); break;
-      case 'channel': renderChannel(ctx, bPoints, style, lineWidth, pr, size); break;
-      case 'crossline': renderCrossline(ctx, bPoints, style, lineWidth, pr, size); break;
-      case 'arrow': renderArrow(ctx, bPoints, style, lineWidth, pr); break;
-      case 'text': renderText(ctx, bPoints, drawing, style, pr); break;
-      case 'triangle': renderTriangle(ctx, bPoints, style, lineWidth, pr); break;
-      case 'ellipse': renderEllipse(ctx, bPoints, style, lineWidth, pr); break;
-      case 'pitchfork': renderPitchfork(ctx, bPoints, drawing, style, lineWidth, pr, size); break;
-      case 'callout': renderCallout(ctx, bPoints, drawing, style, lineWidth, pr); break;
-      case 'vline': renderVerticalLine(ctx, bPoints, style, lineWidth, pr, size); break;
-      case 'measure': renderMeasure(ctx, bPoints, drawing, style, lineWidth, pr, size); break;
-      case 'alertzone': renderAlertZone(ctx, bPoints, drawing, style, lineWidth, pr, size); break;
-      case 'fibarc': renderFibArc(ctx, bPoints, drawing.points, style, lineWidth, pr, size); break;
-      case 'fibfan': renderFibFan(ctx, bPoints, drawing.points, style, lineWidth, pr, size); break;
-      case 'fibchannel': renderFibChannel(ctx, bPoints, drawing.points, style, lineWidth, pr, size); break;
-      case 'regressionchannel': renderRegressionChannel(ctx, bPoints, drawing, style, lineWidth, pr, size); break;
-      case 'gannsquare': renderGannSquare(ctx, bPoints, drawing, style, lineWidth, pr, size); break;
-      case 'xabcd': renderXABCD(ctx, bPoints, drawing, style, lineWidth, pr, size); break;
-      case 'headshoulders': renderHeadShoulders(ctx, bPoints, drawing, style, lineWidth, pr, size); break;
-      case 'emoji': renderEmoji(ctx, bPoints, drawing, style, pr); break;
-      case 'flattop': renderFlatZone(ctx, bPoints, drawing, style, lineWidth, pr, size, 'top'); break;
-      case 'flatbottom': renderFlatZone(ctx, bPoints, drawing, style, lineWidth, pr, size, 'bottom'); break;
-      case 'infoline': renderInfoLine(ctx, bPoints, drawing, style, lineWidth, pr, size); break;
-      case 'parallelchannel': renderParallelChannel(ctx, bPoints, style, lineWidth, pr, size); break;
-      case 'polyline': renderPolyline(ctx, bPoints, style, lineWidth, pr); break;
-      case 'pricerange': renderPriceRange(ctx, bPoints, drawing, style, lineWidth, pr, size); break;
-      case 'daterange': renderDateRange(ctx, bPoints, drawing, style, lineWidth, pr, size); break;
-      case 'note': renderNote(ctx, bPoints, drawing, style, pr); break;
-      case 'signpost': renderSignpost(ctx, bPoints, drawing, style, pr); break;
+      case 'trendline':
+        renderTrendline(ctx, bPoints, style, lineWidth, pr);
+        break;
+      case 'hray':
+        renderHorizontalRay(ctx, bPoints, style, lineWidth, pr, size, deps);
+        break;
+      case 'hline':
+        renderHorizontalLine(ctx, bPoints, style, lineWidth, pr, size);
+        break;
+      case 'ray':
+        renderRay(ctx, bPoints, style, lineWidth, pr, size);
+        break;
+      case 'extendedline':
+        renderExtendedLine(ctx, bPoints, style, lineWidth, pr, size);
+        break;
+      case 'fib':
+        renderFibRetracement(ctx, bPoints, drawing.points, style, lineWidth, pr, size, deps);
+        break;
+      case 'fibext':
+        renderFibExtension(ctx, bPoints, drawing.points, style, lineWidth, pr, size, deps);
+        break;
+      case 'longposition':
+        renderLongPosition(ctx, bPoints, drawing, style, lineWidth, pr, size);
+        break;
+      case 'shortposition':
+        renderShortPosition(ctx, bPoints, drawing, style, lineWidth, pr, size);
+        break;
+      case 'gannfan':
+        renderGannFan(ctx, bPoints, drawing, style, lineWidth, pr, size);
+        break;
+      case 'fibtimezone':
+        renderFibTimeZone(ctx, bPoints, drawing, style, lineWidth, pr, size);
+        break;
+      case 'elliott':
+        renderElliottWaves(ctx, bPoints, drawing, style, lineWidth, pr);
+        break;
+      case 'rect':
+        renderRectangle(ctx, bPoints, style, lineWidth, pr);
+        break;
+      case 'channel':
+        renderChannel(ctx, bPoints, style, lineWidth, pr, size);
+        break;
+      case 'crossline':
+        renderCrossline(ctx, bPoints, style, lineWidth, pr, size);
+        break;
+      case 'arrow':
+        renderArrow(ctx, bPoints, style, lineWidth, pr);
+        break;
+      case 'text':
+        renderText(ctx, bPoints, drawing, style, pr);
+        break;
+      case 'triangle':
+        renderTriangle(ctx, bPoints, style, lineWidth, pr);
+        break;
+      case 'ellipse':
+        renderEllipse(ctx, bPoints, style, lineWidth, pr);
+        break;
+      case 'pitchfork':
+        renderPitchfork(ctx, bPoints, drawing, style, lineWidth, pr, size);
+        break;
+      case 'callout':
+        renderCallout(ctx, bPoints, drawing, style, lineWidth, pr);
+        break;
+      case 'vline':
+        renderVerticalLine(ctx, bPoints, style, lineWidth, pr, size);
+        break;
+      case 'measure':
+        renderMeasure(ctx, bPoints, drawing, style, lineWidth, pr, size);
+        break;
+      case 'alertzone':
+        renderAlertZone(ctx, bPoints, drawing, style, lineWidth, pr, size);
+        break;
+      case 'fibarc':
+        renderFibArc(ctx, bPoints, drawing.points, style, lineWidth, pr, size);
+        break;
+      case 'fibfan':
+        renderFibFan(ctx, bPoints, drawing.points, style, lineWidth, pr, size);
+        break;
+      case 'fibchannel':
+        renderFibChannel(ctx, bPoints, drawing.points, style, lineWidth, pr, size);
+        break;
+      case 'regressionchannel':
+        renderRegressionChannel(ctx, bPoints, drawing, style, lineWidth, pr, size);
+        break;
+      case 'gannsquare':
+        renderGannSquare(ctx, bPoints, drawing, style, lineWidth, pr, size);
+        break;
+      case 'xabcd':
+        renderXABCD(ctx, bPoints, drawing, style, lineWidth, pr, size);
+        break;
+      case 'headshoulders':
+        renderHeadShoulders(ctx, bPoints, drawing, style, lineWidth, pr, size);
+        break;
+      case 'emoji':
+        renderEmoji(ctx, bPoints, drawing, style, pr);
+        break;
+      case 'flattop':
+        renderFlatZone(ctx, bPoints, drawing, style, lineWidth, pr, size, 'top');
+        break;
+      case 'flatbottom':
+        renderFlatZone(ctx, bPoints, drawing, style, lineWidth, pr, size, 'bottom');
+        break;
+      case 'infoline':
+        renderInfoLine(ctx, bPoints, drawing, style, lineWidth, pr, size);
+        break;
+      case 'parallelchannel':
+        renderParallelChannel(ctx, bPoints, style, lineWidth, pr, size);
+        break;
+      case 'polyline':
+        renderPolyline(ctx, bPoints, style, lineWidth, pr);
+        break;
+      case 'pricerange':
+        renderPriceRange(ctx, bPoints, drawing, style, lineWidth, pr, size);
+        break;
+      case 'daterange':
+        renderDateRange(ctx, bPoints, drawing, style, lineWidth, pr, size);
+        break;
+      case 'note':
+        renderNote(ctx, bPoints, drawing, style, pr);
+        break;
+      case 'signpost':
+        renderSignpost(ctx, bPoints, drawing, style, pr);
+        break;
     }
   }
 
@@ -558,5 +743,5 @@ function _isOffScreen(pts, size) {
   const MARGIN = 200;
   const w = size.width + MARGIN;
   const h = size.height + MARGIN;
-  return pts.every(p => p.x < -MARGIN || p.x > w || p.y < -MARGIN || p.y > h);
+  return pts.every((p) => p.x < -MARGIN || p.x > w || p.y < -MARGIN || p.y > h);
 }

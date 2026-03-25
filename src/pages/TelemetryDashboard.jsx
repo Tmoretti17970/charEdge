@@ -13,9 +13,9 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { StressTest } from '../charting_library/perf/StressTest.js';
 import { C, F, M } from '../constants.js';
 import { useAnalyticsStore } from '../state/useAnalyticsStore';
+import s from './TelemetryDashboard.module.css';
 import { getAuditSummary, getPlatformCLS, getPhase5Summary, SIMPLIFICATION_MANIFESTO } from '@/a11y/cognitiveLoadAudit';
 import { logger } from '@/observability/logger';
-import s from './TelemetryDashboard.module.css';
 
 function formatDuration(ms) {
   if (!ms || ms <= 0) return '—';
@@ -30,22 +30,31 @@ function formatDuration(ms) {
 
 function MetricCard({ label, value, sub, accent }) {
   return (
-    <div style={{
-      background: C.sf,
-      border: `1px solid ${C.bd}`,
-      borderRadius: 12,
-      padding: '16px 20px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 4,
-      minWidth: 160,
-    }}>
-      <div style={{ fontSize: 11, color: C.t3, fontFamily: F, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+    <div
+      style={{
+        background: C.sf,
+        border: `1px solid ${C.bd}`,
+        borderRadius: 12,
+        padding: '16px 20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 4,
+        minWidth: 160,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 11,
+          color: C.t3,
+          fontFamily: F,
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: 0.5,
+        }}
+      >
         {label}
       </div>
-      <div style={{ fontSize: 28, fontWeight: 800, fontFamily: M, color: accent || C.t1 }}>
-        {value}
-      </div>
+      <div style={{ fontSize: 28, fontWeight: 800, fontFamily: M, color: accent || C.t1 }}>{value}</div>
       {sub && <div style={{ fontSize: 11, color: C.t3, fontFamily: F }}>{sub}</div>}
     </div>
   );
@@ -56,45 +65,43 @@ function RankTable({ title, data, labelKey, countKey }) {
   const max = data[0]?.[countKey] || 1;
 
   return (
-    <div style={{
-      background: C.sf,
-      border: `1px solid ${C.bd}`,
-      borderRadius: 12,
-      padding: 20,
-      flex: 1,
-      minWidth: 260,
-    }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 12 }}>
-        {title}
-      </div>
+    <div
+      style={{
+        background: C.sf,
+        border: `1px solid ${C.bd}`,
+        borderRadius: 12,
+        padding: 20,
+        flex: 1,
+        minWidth: 260,
+      }}
+    >
+      <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 12 }}>{title}</div>
       <div className={s.s0}>
         {data.slice(0, 10).map((item, i) => (
           <div key={item[labelKey]} className={s.s1}>
-            <div style={{ width: 16, fontSize: 10, color: C.t3, fontFamily: M, textAlign: 'right' }}>
-              {i + 1}
-            </div>
+            <div style={{ width: 16, fontSize: 10, color: C.t3, fontFamily: M, textAlign: 'right' }}>{i + 1}</div>
             <div style={{ flex: 1 }}>
               <div className={s.s2}>
-                <span style={{ fontSize: 12, fontFamily: M, color: C.t1, fontWeight: 500 }}>
-                  {item[labelKey]}
-                </span>
-                <span style={{ fontSize: 11, fontFamily: M, color: C.t3 }}>
-                  {item[countKey]}
-                </span>
+                <span style={{ fontSize: 12, fontFamily: M, color: C.t1, fontWeight: 500 }}>{item[labelKey]}</span>
+                <span style={{ fontSize: 11, fontFamily: M, color: C.t3 }}>{item[countKey]}</span>
               </div>
-              <div style={{
-                height: 3,
-                borderRadius: 2,
-                background: C.bd,
-                overflow: 'hidden',
-              }}>
-                <div style={{
-                  width: `${(item[countKey] / max) * 100}%`,
-                  height: '100%',
+              <div
+                style={{
+                  height: 3,
                   borderRadius: 2,
-                  background: `linear-gradient(90deg, ${C.b}, ${C.b}80)`,
-                  transition: 'width 0.3s ease',
-                }} />
+                  background: C.bd,
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    width: `${(item[countKey] / max) * 100}%`,
+                    height: '100%',
+                    borderRadius: 2,
+                    background: `linear-gradient(90deg, ${C.b}, ${C.b}80)`,
+                    transition: 'width 0.3s ease',
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -106,7 +113,9 @@ function RankTable({ title, data, labelKey, countKey }) {
 
 function DailyChart({ dailyMinutes }) {
   const days = useMemo(() => {
-    const entries = Object.entries(dailyMinutes || {}).sort((a, b) => a[0].localeCompare(b[0])).slice(-14);
+    const entries = Object.entries(dailyMinutes || {})
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .slice(-14);
     return entries;
   }, [dailyMinutes]);
 
@@ -115,25 +124,29 @@ function DailyChart({ dailyMinutes }) {
   const maxMin = Math.max(...days.map(([, m]) => m), 1);
 
   return (
-    <div style={{
-      background: C.sf,
-      border: `1px solid ${C.bd}`,
-      borderRadius: 12,
-      padding: 20,
-    }}>
+    <div
+      style={{
+        background: C.sf,
+        border: `1px solid ${C.bd}`,
+        borderRadius: 12,
+        padding: 20,
+      }}
+    >
       <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 12 }}>
         Daily Active Minutes (last 14 days)
       </div>
       <div className={s.s3}>
         {days.map(([day, mins]) => (
           <div key={day} className={s.s4}>
-            <div style={{
-              width: '100%',
-              height: Math.max(4, (mins / maxMin) * 68),
-              borderRadius: 3,
-              background: `linear-gradient(to top, ${C.b}, ${C.b}60)`,
-              transition: 'height 0.3s ease',
-            }} />
+            <div
+              style={{
+                width: '100%',
+                height: Math.max(4, (mins / maxMin) * 68),
+                borderRadius: 3,
+                background: `linear-gradient(to top, ${C.b}, ${C.b}60)`,
+                transition: 'height 0.3s ease',
+              }}
+            />
             <div style={{ fontSize: 8, color: C.t3, fontFamily: M }}>
               {day.slice(5)} {/* MM-DD */}
             </div>
@@ -153,34 +166,36 @@ export default function TelemetryDashboard() {
   const sessions = useAnalyticsStore((s) => s.sessions);
   const reset = useAnalyticsStore((s) => s.reset);
 
-  const clickData = useMemo(() =>
-    Object.entries(clickMap || {})
-      .map(([target, count]) => ({ target, count }))
-      .sort((a, b) => b.count - a.count),
+  const clickData = useMemo(
+    () =>
+      Object.entries(clickMap || {})
+        .map(([target, count]) => ({ target, count }))
+        .sort((a, b) => b.count - a.count),
     [clickMap],
   );
 
-  const workflowData = useMemo(() =>
-    Object.entries(workflows || {})
-      .map(([workflow, count]) => ({ workflow, count }))
-      .sort((a, b) => b.count - a.count),
+  const workflowData = useMemo(
+    () =>
+      Object.entries(workflows || {})
+        .map(([workflow, count]) => ({ workflow, count }))
+        .sort((a, b) => b.count - a.count),
     [workflows],
   );
 
   return (
-    <div style={{
-      padding: 32,
-      maxWidth: 1000,
-      fontFamily: F,
-      overflowY: 'auto',
-      height: '100%',
-    }}>
+    <div
+      style={{
+        padding: 32,
+        maxWidth: 1000,
+        fontFamily: F,
+        overflowY: 'auto',
+        height: '100%',
+      }}
+    >
       {/* Header */}
       <div className={s.s5}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: C.t1, margin: 0 }}>
-            📊 Telemetry Dashboard
-          </h1>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: C.t1, margin: 0 }}>📊 Telemetry Dashboard</h1>
           <div style={{ fontSize: 12, color: C.t3, marginTop: 4 }}>
             Internal metrics for simplification strategy — Sprint 1
           </div>
@@ -247,42 +262,49 @@ export default function TelemetryDashboard() {
       </div>
 
       {/* Recent Sessions */}
-      <div style={{
-        background: C.sf,
-        border: `1px solid ${C.bd}`,
-        borderRadius: 12,
-        padding: 20,
-        marginBottom: 20,
-      }}>
+      <div
+        style={{
+          background: C.sf,
+          border: `1px solid ${C.bd}`,
+          borderRadius: 12,
+          padding: 20,
+          marginBottom: 20,
+        }}
+      >
         <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 12 }}>
           Recent Sessions ({sessions.length})
         </div>
         <div className={s.s9}>
-          {sessions.slice(-10).reverse().map((s, i) => (
-            <div key={s.id || i} style={{
-              display: 'flex',
-              gap: 16,
-              alignItems: 'center',
-              padding: '6px 8px',
-              borderRadius: 6,
-              background: i % 2 === 0 ? 'transparent' : `${C.bd}15`,
-              fontSize: 11,
-              fontFamily: M,
-              color: C.t2,
-            }}>
-              <span style={{ color: C.t3, width: 80 }}>
-                {s.start ? new Date(s.start).toLocaleDateString() : '—'}
-              </span>
-              <span style={{ width: 70 }}>{formatDuration(s.duration)}</span>
-              <span style={{ width: 90, color: s.firstActionMs < 30000 ? C.g : C.t3 }}>
-                TTFA: {formatDuration(s.firstActionMs)}
-              </span>
-              <span style={{ flex: 1, color: C.t3 }}>
-                {(s.pageSequence || []).slice(0, 5).join(' → ')}{(s.pageSequence || []).length > 5 ? '…' : ''}
-              </span>
-              <span style={{ color: C.t3, width: 100, fontSize: 10 }}>{s.viewport || '—'}</span>
-            </div>
-          ))}
+          {sessions
+            .slice(-10)
+            .reverse()
+            .map((s, i) => (
+              <div
+                key={s.id || i}
+                style={{
+                  display: 'flex',
+                  gap: 16,
+                  alignItems: 'center',
+                  padding: '6px 8px',
+                  borderRadius: 6,
+                  background: i % 2 === 0 ? 'transparent' : `${C.bd}15`,
+                  fontSize: 11,
+                  fontFamily: M,
+                  color: C.t2,
+                }}
+              >
+                <span style={{ color: C.t3, width: 80 }}>{s.start ? new Date(s.start).toLocaleDateString() : '—'}</span>
+                <span style={{ width: 70 }}>{formatDuration(s.duration)}</span>
+                <span style={{ width: 90, color: s.firstActionMs < 30000 ? C.g : C.t3 }}>
+                  TTFA: {formatDuration(s.firstActionMs)}
+                </span>
+                <span style={{ flex: 1, color: C.t3 }}>
+                  {(s.pageSequence || []).slice(0, 5).join(' → ')}
+                  {(s.pageSequence || []).length > 5 ? '…' : ''}
+                </span>
+                <span style={{ color: C.t3, width: 100, fontSize: 10 }}>{s.viewport || '—'}</span>
+              </div>
+            ))}
           {sessions.length === 0 && (
             <div style={{ fontSize: 12, color: C.t3, textAlign: 'center', padding: 16 }}>
               No sessions recorded yet. Use the app for a bit and check back.
@@ -292,26 +314,39 @@ export default function TelemetryDashboard() {
       </div>
 
       {/* ─── Cognitive Load Audit ─────────────────────── */}
-      <div style={{
-        background: C.sf,
-        border: `1px solid ${C.bd}`,
-        borderRadius: 12,
-        padding: 20,
-        marginBottom: 20,
-      }}>
+      <div
+        style={{
+          background: C.sf,
+          border: `1px solid ${C.bd}`,
+          borderRadius: 12,
+          padding: 20,
+          marginBottom: 20,
+        }}
+      >
         <div className={s.s10}>
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F }}>🧠 Cognitive Load Audit</div>
-            <div style={{ fontSize: 11, color: C.t3, fontFamily: F, marginTop: 2 }}>Sprint 4 — Screen complexity scores (1-10)</div>
+            <div style={{ fontSize: 11, color: C.t3, fontFamily: F, marginTop: 2 }}>
+              Sprint 4 — Screen complexity scores (1-10)
+            </div>
           </div>
           {(() => {
             const p = getPlatformCLS();
             return (
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 20, fontWeight: 800, fontFamily: M, color: p.current > 7 ? '#ef4444' : p.current > 5 ? '#f59e0b' : '#10b981' }}>
+                <div
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 800,
+                    fontFamily: M,
+                    color: p.current > 7 ? '#ef4444' : p.current > 5 ? '#f59e0b' : '#10b981',
+                  }}
+                >
                   {p.current}
                 </div>
-                <div style={{ fontSize: 10, color: C.t3 }}>Platform avg → {p.target} ({p.reduction}% reduction)</div>
+                <div style={{ fontSize: 10, color: C.t3 }}>
+                  Platform avg → {p.target} ({p.reduction}% reduction)
+                </div>
               </div>
             );
           })()}
@@ -324,14 +359,56 @@ export default function TelemetryDashboard() {
                 <div style={{ width: 140, fontSize: 11, fontFamily: M, color: C.t2, flexShrink: 0 }}>{a.name}</div>
                 <div className={s.s13}>
                   {/* Current bar */}
-                  <div style={{ flex: 1, height: 8, borderRadius: 4, background: C.bd, overflow: 'hidden', position: 'relative' }}>
-                    <div style={{ width: `${a.currentScore * 10}%`, height: '100%', borderRadius: 4, background: barColor, transition: 'width 0.3s' }} />
+                  <div
+                    style={{
+                      flex: 1,
+                      height: 8,
+                      borderRadius: 4,
+                      background: C.bd,
+                      overflow: 'hidden',
+                      position: 'relative',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${a.currentScore * 10}%`,
+                        height: '100%',
+                        borderRadius: 4,
+                        background: barColor,
+                        transition: 'width 0.3s',
+                      }}
+                    />
                     {/* Target marker */}
-                    <div style={{ position: 'absolute', top: 0, left: `${a.targetScore * 10}%`, width: 2, height: '100%', background: '#10b981', borderRadius: 1 }} />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: `${a.targetScore * 10}%`,
+                        width: 2,
+                        height: '100%',
+                        background: '#10b981',
+                        borderRadius: 1,
+                      }}
+                    />
                   </div>
-                  <div style={{ width: 36, fontSize: 11, fontWeight: 700, fontFamily: M, color: barColor, textAlign: 'right' }}>{a.currentScore}</div>
-                  <div style={{ fontSize: 10, color: '#10b981', fontFamily: M, width: 24, textAlign: 'right' }}>→{a.targetScore}</div>
-                  <div style={{ fontSize: 9, color: C.t3, fontFamily: M, width: 36, textAlign: 'right' }}>-{a.reduction}%</div>
+                  <div
+                    style={{
+                      width: 36,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      fontFamily: M,
+                      color: barColor,
+                      textAlign: 'right',
+                    }}
+                  >
+                    {a.currentScore}
+                  </div>
+                  <div style={{ fontSize: 10, color: '#10b981', fontFamily: M, width: 24, textAlign: 'right' }}>
+                    →{a.targetScore}
+                  </div>
+                  <div style={{ fontSize: 9, color: C.t3, fontFamily: M, width: 36, textAlign: 'right' }}>
+                    -{a.reduction}%
+                  </div>
                 </div>
               </div>
             );
@@ -343,13 +420,15 @@ export default function TelemetryDashboard() {
       {(() => {
         const p5 = getPhase5Summary();
         return (
-          <div style={{
-            background: C.sf,
-            border: `1px solid ${C.bd}`,
-            borderRadius: 12,
-            padding: 20,
-            marginBottom: 20,
-          }}>
+          <div
+            style={{
+              background: C.sf,
+              border: `1px solid ${C.bd}`,
+              borderRadius: 12,
+              padding: 20,
+              marginBottom: 20,
+            }}
+          >
             <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 12 }}>
               ✨ Phase 5 Impact — Polish & Measurement
             </div>
@@ -365,7 +444,16 @@ export default function TelemetryDashboard() {
 
             {/* Manifesto */}
             <div style={{ borderTop: `1px solid ${C.bd}`, paddingTop: 16 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: C.t2, fontFamily: F, marginBottom: 8, letterSpacing: 0.5 }}>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: C.t2,
+                  fontFamily: F,
+                  marginBottom: 8,
+                  letterSpacing: 0.5,
+                }}
+              >
                 📜 SIMPLIFICATION MANIFESTO
               </div>
               <ol className={s.s15}>
@@ -400,14 +488,16 @@ function RenderPerfSection({ MetricCard }) {
         if (monitor && typeof monitor.getReport === 'function') {
           setPerfData(monitor.getReport());
         }
-      } catch (e) { logger.ui.warn('Operation failed', e); }
+      } catch (e) {
+        logger.ui.warn('Operation failed', e);
+      }
     }, 2000);
     return () => clearInterval(id);
   }, []);
 
   const runBench = useCallback(async () => {
     setBenchRunning(true);
-    await new Promise(r => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, 50));
     try {
       const noop = () => {};
       const result = StressTest.runFullBenchmark(noop, {
@@ -422,20 +512,24 @@ function RenderPerfSection({ MetricCard }) {
     setBenchRunning(false);
   }, []);
 
-  const stageColor = (ms) => ms > 8 ? '#ef4444' : ms > 4 ? '#f59e0b' : '#10b981';
+  const stageColor = (ms) => (ms > 8 ? '#ef4444' : ms > 4 ? '#f59e0b' : '#10b981');
 
   return (
-    <div style={{
-      background: C.sf,
-      border: `1px solid ${C.bd}`,
-      borderRadius: 12,
-      padding: 20,
-      marginBottom: 20,
-    }}>
+    <div
+      style={{
+        background: C.sf,
+        border: `1px solid ${C.bd}`,
+        borderRadius: 12,
+        padding: 20,
+        marginBottom: 20,
+      }}
+    >
       <div className={s.s16}>
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F }}>⚡ Rendering Performance</div>
-          <div style={{ fontSize: 11, color: C.t3, fontFamily: F, marginTop: 2 }}>Phase 3.1.3 — Live metrics + benchmark runner</div>
+          <div style={{ fontSize: 11, color: C.t3, fontFamily: F, marginTop: 2 }}>
+            Phase 3.1.3 — Live metrics + benchmark runner
+          </div>
         </div>
         <button
           onClick={runBench}
@@ -460,10 +554,22 @@ function RenderPerfSection({ MetricCard }) {
       {perfData ? (
         <div className={s.s17}>
           <MetricCard label="FPS" value={perfData.fps ?? '—'} accent={perfData.fps >= 55 ? C.g : C.r} />
-          <MetricCard label="Frame Time" value={`${perfData.avgFrameMs?.toFixed(1) ?? '—'}ms`} accent={perfData.avgFrameMs <= 8 ? C.g : C.r} />
-          <MetricCard label="Jank Frames" value={perfData.jankFrames ?? 0} accent={perfData.jankFrames > 5 ? '#ef4444' : C.g} />
+          <MetricCard
+            label="Frame Time"
+            value={`${perfData.avgFrameMs?.toFixed(1) ?? '—'}ms`}
+            accent={perfData.avgFrameMs <= 8 ? C.g : C.r}
+          />
+          <MetricCard
+            label="Jank Frames"
+            value={perfData.jankFrames ?? 0}
+            accent={perfData.jankFrames > 5 ? '#ef4444' : C.g}
+          />
           {perfData.gpuMs != null && (
-            <MetricCard label="GPU Time" value={`${perfData.gpuMs.toFixed(1)}ms`} accent={perfData.gpuMs <= 4 ? C.g : '#f59e0b'} />
+            <MetricCard
+              label="GPU Time"
+              value={`${perfData.gpuMs.toFixed(1)}ms`}
+              accent={perfData.gpuMs <= 4 ? C.g : '#f59e0b'}
+            />
           )}
         </div>
       ) : (
@@ -475,15 +581,27 @@ function RenderPerfSection({ MetricCard }) {
       {/* Stage Waterfall */}
       {perfData?.stageTimings && Object.keys(perfData.stageTimings).length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: C.t2, fontFamily: F, marginBottom: 8 }}>Stage Waterfall</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: C.t2, fontFamily: F, marginBottom: 8 }}>
+            Stage Waterfall
+          </div>
           <div className={s.s18}>
             {Object.entries(perfData.stageTimings).map(([stage, ms]) => (
               <div key={stage} className={s.s19}>
                 <div style={{ width: 80, fontSize: 10, fontFamily: M, color: C.t2, textAlign: 'right' }}>{stage}</div>
                 <div style={{ flex: 1, height: 6, borderRadius: 3, background: C.bd, overflow: 'hidden' }}>
-                  <div style={{ width: `${Math.min(100, ms * 10)}%`, height: '100%', borderRadius: 3, background: stageColor(ms), transition: 'width 0.3s' }} />
+                  <div
+                    style={{
+                      width: `${Math.min(100, ms * 10)}%`,
+                      height: '100%',
+                      borderRadius: 3,
+                      background: stageColor(ms),
+                      transition: 'width 0.3s',
+                    }}
+                  />
                 </div>
-                <div style={{ width: 40, fontSize: 10, fontFamily: M, color: stageColor(ms), textAlign: 'right' }}>{ms.toFixed(1)}ms</div>
+                <div style={{ width: 40, fontSize: 10, fontFamily: M, color: stageColor(ms), textAlign: 'right' }}>
+                  {ms.toFixed(1)}ms
+                </div>
               </div>
             ))}
           </div>
@@ -503,11 +621,15 @@ function RenderPerfSection({ MetricCard }) {
         <div style={{ marginBottom: 16 }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: C.t2, fontFamily: F, marginBottom: 6 }}>Diagnostics</div>
           {perfData.diagnostics.map((d, i) => (
-            <div key={i} style={{
-              fontSize: 11, fontFamily: F,
-              color: d.severity === 'error' ? '#ef4444' : d.severity === 'warning' ? '#f59e0b' : C.t2,
-              padding: '4px 0',
-            }}>
+            <div
+              key={i}
+              style={{
+                fontSize: 11,
+                fontFamily: F,
+                color: d.severity === 'error' ? '#ef4444' : d.severity === 'warning' ? '#f59e0b' : C.t2,
+                padding: '4px 0',
+              }}
+            >
               {d.severity === 'error' ? '🔴' : d.severity === 'warning' ? '🟡' : '🟢'} {d.message}
               {d.fix && <span style={{ color: C.t3 }}> — {d.fix}</span>}
             </div>
@@ -522,10 +644,15 @@ function RenderPerfSection({ MetricCard }) {
             Benchmark: {benchResult.report.verdict}
           </div>
           <div className={s.s21}>
-            {benchResult.report.gates.map(g => (
-              <div key={g.barCount} style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, fontFamily: M }}>
+            {benchResult.report.gates.map((g) => (
+              <div
+                key={g.barCount}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, fontFamily: M }}
+              >
                 <span style={{ width: 80, color: C.t2 }}>{g.label}</span>
-                <span style={{ width: 90, color: g.passed ? '#10b981' : '#ef4444' }}>{g.scrollFrameMs.toFixed(2)}ms</span>
+                <span style={{ width: 90, color: g.passed ? '#10b981' : '#ef4444' }}>
+                  {g.scrollFrameMs.toFixed(2)}ms
+                </span>
                 <span style={{ width: 70, color: C.t3 }}>gate: {g.maxFrameMs}ms</span>
                 <span style={{ fontWeight: 700, color: g.passed ? '#10b981' : '#ef4444' }}>{g.verdict}</span>
               </div>
@@ -533,9 +660,7 @@ function RenderPerfSection({ MetricCard }) {
           </div>
         </div>
       )}
-      {benchResult?.error && (
-        <div className={s.s22}>Benchmark error: {benchResult.error}</div>
-      )}
+      {benchResult?.error && <div className={s.s22}>Benchmark error: {benchResult.error}</div>}
     </div>
   );
 }

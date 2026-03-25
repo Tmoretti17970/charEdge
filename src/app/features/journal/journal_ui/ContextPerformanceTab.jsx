@@ -6,9 +6,9 @@
 
 import React from 'react';
 import { useMemo } from 'react';
-import { C, F, M } from '@/constants.js';
 import { fmtD } from '../../../../utils.js';
 import { Card } from '../../../components/ui/UIKit.jsx';
+import { C, F, M } from '@/constants.js';
 
 /**
  * @param {Array} trades - All trades

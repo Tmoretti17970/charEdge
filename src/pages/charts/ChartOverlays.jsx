@@ -5,8 +5,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { Suspense } from 'react';
-import WidgetBoundary from '../../app/components/ui/WidgetBoundary.jsx';
 import ChartContextMenu from '../../app/components/chart/chart_ui/ChartContextMenu.jsx';
+import WidgetBoundary from '../../app/components/ui/WidgetBoundary.jsx';
 import { C } from '../../constants.js';
 import { useChartCoreStore } from '../../state/chart/useChartCoreStore';
 import { useChartFeaturesStore } from '../../state/chart/useChartFeaturesStore';
@@ -113,7 +113,6 @@ export default function ChartOverlays({
   showAutoFit,
   onAutoFit,
 }) {
-  const selectedDrawingId = useChartToolsStore((s) => s.selectedDrawingId);
   const showComparisonOverlay = useChartFeaturesStore((s) => s.showComparisonOverlay);
   const showDataWindow = useChartFeaturesStore((s) => s.showDataWindow);
   const backtestPanelOpen = useBacktestStore((s) => s.panelOpen);
@@ -147,16 +146,12 @@ export default function ChartOverlays({
         </Suspense>
       )}
 
-
-
       {/* Live P/L Pill — shows only when user has open positions */}
       {!multiMode && !isMobile && (
         <Suspense fallback={null}>
           <TradePLPill showAutoFit={showAutoFit} onAutoFit={onAutoFit} />
         </Suspense>
       )}
-
-
 
       {/* F3.3: Prop Firm Risk Guard Overlay — only mount when trade mode active */}
       {!multiMode && !isMobile && tradeMode && (
@@ -236,48 +231,58 @@ export default function ChartOverlays({
                           );
 
                           // Show toast
-                          import('../../app/components/ui/Toast.jsx').then(({ default: toast }) => {
-                            const label = side === 'long' ? 'BUY' : 'SELL';
-                            toast.success(`${label} ${sym} @ $${livePrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-                          }).catch(() => {});
+                          import('../../app/components/ui/Toast.jsx')
+                            .then(({ default: toast }) => {
+                              const label = side === 'long' ? 'BUY' : 'SELL';
+                              toast.success(
+                                `${label} ${sym} @ $${livePrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                              );
+                            })
+                            .catch(() => {});
 
                           // Screenshot + journal entry after chart settles
                           if (result?.filled && result.position) {
                             setTimeout(() => {
                               try {
-                                import('../../hooks/useAutoScreenshot.js').then(({ captureChartScreenshot }) => {
-                                  const shot = captureChartScreenshot(sym, '');
-                                  const screenshotData = shot?.data || null;
+                                import('../../hooks/useAutoScreenshot.js')
+                                  .then(({ captureChartScreenshot }) => {
+                                    const shot = captureChartScreenshot(sym, '');
+                                    const screenshotData = shot?.data || null;
 
-                                  import('../../state/useJournalStore').then(({ useJournalStore }) => {
-                                    const store = useJournalStore.getState();
-                                    if (store.addTrade) {
-                                      const screenshotArr = screenshotData
-                                        ? [{ data: screenshotData, name: `${sym}_entry_${Date.now()}.png` }]
-                                        : [];
-                                      store.addTrade({
-                                        id: `rm_${Date.now()}`,
-                                        date: new Date().toISOString(),
-                                        symbol: sym,
-                                        side,
-                                        entry: livePrice,
-                                        exit: null,
-                                        qty: 1,
-                                        stopLoss: null,
-                                        takeProfit: null,
-                                        pnl: 0,
-                                        fees: result.position.commission || 0,
-                                        rMultiple: null,
-                                        notes: `${side === 'long' ? '📈 BUY' : '📉 SELL'} ${sym} @ $${livePrice.toFixed(2)} — placed via radial menu`,
-                                        tags: [sym, side, 'radial-menu', 'entry'],
-                                        chartScreenshot: screenshotData,
-                                        screenshots: screenshotArr.length > 0 ? screenshotArr : undefined,
-                                        source: 'radial-menu',
-                                      });
-                                    }
-                                  }).catch(() => {});
-                                }).catch(() => {});
-                              } catch { /* non-fatal */ }
+                                    import('../../state/useJournalStore')
+                                      .then(({ useJournalStore }) => {
+                                        const store = useJournalStore.getState();
+                                        if (store.addTrade) {
+                                          const screenshotArr = screenshotData
+                                            ? [{ data: screenshotData, name: `${sym}_entry_${Date.now()}.png` }]
+                                            : [];
+                                          store.addTrade({
+                                            id: `rm_${Date.now()}`,
+                                            date: new Date().toISOString(),
+                                            symbol: sym,
+                                            side,
+                                            entry: livePrice,
+                                            exit: null,
+                                            qty: 1,
+                                            stopLoss: null,
+                                            takeProfit: null,
+                                            pnl: 0,
+                                            fees: result.position.commission || 0,
+                                            rMultiple: null,
+                                            notes: `${side === 'long' ? '📈 BUY' : '📉 SELL'} ${sym} @ $${livePrice.toFixed(2)} — placed via radial menu`,
+                                            tags: [sym, side, 'radial-menu', 'entry'],
+                                            chartScreenshot: screenshotData,
+                                            screenshots: screenshotArr.length > 0 ? screenshotArr : undefined,
+                                            source: 'radial-menu',
+                                          });
+                                        }
+                                      })
+                                      .catch(() => {});
+                                  })
+                                  .catch(() => {});
+                              } catch {
+                                /* non-fatal */
+                              }
                             }, 500);
                           }
                         });

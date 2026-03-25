@@ -7,7 +7,6 @@
 
 import { BrokerConnector } from '../BrokerConnector.js';
 import { registerConnector } from '../ConnectorRegistry.js';
-import { logger } from '@/observability/logger';
 
 const SNAPTRADE_BASE = '/api/proxy/snaptrade';
 
@@ -84,7 +83,9 @@ class SnapTradeClient extends BrokerConnector {
     });
 
     if (!response.ok) {
-      throw Object.assign(new Error(`SnapTrade login redirect failed: ${response.status}`), { status: response.status });
+      throw Object.assign(new Error(`SnapTrade login redirect failed: ${response.status}`), {
+        status: response.status,
+      });
     }
 
     const data = await response.json();
@@ -96,18 +97,20 @@ class SnapTradeClient extends BrokerConnector {
   async listAccounts(credentials) {
     const response = await fetch(
       `${SNAPTRADE_BASE}/api/v1/accounts?userId=${this._userId}&userSecret=${this._userSecret}`,
-      { headers: this._headers(credentials) }
+      { headers: this._headers(credentials) },
     );
-    if (!response.ok) throw Object.assign(new Error(`SnapTrade accounts: ${response.status}`), { status: response.status });
+    if (!response.ok)
+      throw Object.assign(new Error(`SnapTrade accounts: ${response.status}`), { status: response.status });
     return response.json();
   }
 
   async getPositions(credentials, accountId) {
     const response = await fetch(
       `${SNAPTRADE_BASE}/api/v1/accounts/${accountId}/positions?userId=${this._userId}&userSecret=${this._userSecret}`,
-      { headers: this._headers(credentials) }
+      { headers: this._headers(credentials) },
     );
-    if (!response.ok) throw Object.assign(new Error(`SnapTrade positions: ${response.status}`), { status: response.status });
+    if (!response.ok)
+      throw Object.assign(new Error(`SnapTrade positions: ${response.status}`), { status: response.status });
     return response.json();
   }
 
@@ -117,16 +120,18 @@ class SnapTradeClient extends BrokerConnector {
     if (endDate) url += `&endDate=${endDate}`;
 
     const response = await fetch(url, { headers: this._headers(credentials) });
-    if (!response.ok) throw Object.assign(new Error(`SnapTrade activities: ${response.status}`), { status: response.status });
+    if (!response.ok)
+      throw Object.assign(new Error(`SnapTrade activities: ${response.status}`), { status: response.status });
     return response.json();
   }
 
   async getBalances(credentials, accountId) {
     const response = await fetch(
       `${SNAPTRADE_BASE}/api/v1/accounts/${accountId}/balances?userId=${this._userId}&userSecret=${this._userSecret}`,
-      { headers: this._headers(credentials) }
+      { headers: this._headers(credentials) },
     );
-    if (!response.ok) throw Object.assign(new Error(`SnapTrade balances: ${response.status}`), { status: response.status });
+    if (!response.ok)
+      throw Object.assign(new Error(`SnapTrade balances: ${response.status}`), { status: response.status });
     return response.json();
   }
 
@@ -144,39 +149,35 @@ class SnapTradeClient extends BrokerConnector {
   async fetchTrades(credentials, options = {}) {
     const trades = [];
 
-    try {
-      const accounts = await this.listAccounts(credentials);
+    const accounts = await this.listAccounts(credentials);
 
-      for (const account of accounts || []) {
-        const accountId = account.id || account.accountId;
-        if (!accountId) continue;
+    for (const account of accounts || []) {
+      const accountId = account.id || account.accountId;
+      if (!accountId) continue;
 
-        const startDate = options.since
-          ? new Date(options.since).toISOString().split('T')[0]
-          : new Date(Date.now() - 90 * 86_400_000).toISOString().split('T')[0];
+      const startDate = options.since
+        ? new Date(options.since).toISOString().split('T')[0]
+        : new Date(Date.now() - 90 * 86_400_000).toISOString().split('T')[0];
 
-        await this._waitForRateLimit();
-        const activities = await this.getActivities(credentials, accountId, startDate);
+      await this._waitForRateLimit();
+      const activities = await this.getActivities(credentials, accountId, startDate);
 
-        for (const activity of activities || []) {
-          if (activity.type !== 'BUY' && activity.type !== 'SELL' && activity.type !== 'DIVIDEND') continue;
+      for (const activity of activities || []) {
+        if (activity.type !== 'BUY' && activity.type !== 'SELL' && activity.type !== 'DIVIDEND') continue;
 
-          trades.push({
-            date: activity.trade_date || activity.settlement_date,
-            symbol: activity.symbol?.symbol || activity.symbol || '',
-            side: activity.type === 'SELL' ? 'SELL' : 'BUY',
-            quantity: Math.abs(parseFloat(activity.units || activity.quantity || '0')),
-            price: parseFloat(activity.price || '0'),
-            pnl: 0,
-            commission: parseFloat(activity.commission || '0'),
-            notes: `SnapTrade | ${account.name || account.brokerage?.name || 'Account'}`,
-            _source: 'snaptrade',
-            _accountId: accountId,
-          });
-        }
+        trades.push({
+          date: activity.trade_date || activity.settlement_date,
+          symbol: activity.symbol?.symbol || activity.symbol || '',
+          side: activity.type === 'SELL' ? 'SELL' : 'BUY',
+          quantity: Math.abs(parseFloat(activity.units || activity.quantity || '0')),
+          price: parseFloat(activity.price || '0'),
+          pnl: 0,
+          commission: parseFloat(activity.commission || '0'),
+          notes: `SnapTrade | ${account.name || account.brokerage?.name || 'Account'}`,
+          _source: 'snaptrade',
+          _accountId: accountId,
+        });
       }
-    } catch (err) {
-      throw err;
     }
 
     return trades;

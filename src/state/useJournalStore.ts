@@ -41,7 +41,7 @@ let _rehydrationInProgress = false;
 /**
  * Snapshot current journal state into the cache slot for `accountId`.
  */
-function _snapshotToCache(accountId) {
+function snapshotToCache(accountId) {
   const state = useJournalStore.getState();
   _cache[accountId] = {
     trades: state.trades || [],
@@ -73,12 +73,14 @@ export async function rehydrateJournalForAccount() {
     // Save the outgoing account's data before we overwrite it
     const outgoingId = accountId === 'real' ? 'demo' : 'real';
     if (useJournalStore.getState().loaded) {
-      _snapshotToCache(outgoingId);
+      snapshotToCache(outgoingId);
     }
 
     // ── Fast path: cache hit ────────────────────────────────
     if (_cache[accountId]) {
-      console.info(`[Journal] ✅ Fast-path cache hit for "${accountId}" — ${_cache[accountId]?.trades?.length || 0} trades`);
+      console.info(
+        `[Journal] ✅ Fast-path cache hit for "${accountId}" — ${_cache[accountId]?.trades?.length || 0} trades`,
+      );
       useJournalStore.getState().hydrate(_cache[accountId]);
       // Invalidate analytics hash — recomputes without skeleton flash
       import('../app/features/analytics/analyticsSingleton.js').then((m) => m.invalidateCache());
@@ -228,4 +230,3 @@ export function initAccountSwitchListener() {
 
 export { useJournalStore };
 export default useJournalStore;
-

@@ -20,10 +20,7 @@ describe('Sprint 9 — formatTimeLabel smart resolution', () => {
     const { fileURLToPath } = await import('url');
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'charting_library/core/barCountdown.js'),
-      'utf-8'
-    );
+    source = fs.readFileSync(path.resolve(__dirname, '..', '..', 'charting_library/core/barCountdown.js'), 'utf-8');
   });
 
   it('exports formatTimeLabel function', () => {
@@ -59,7 +56,7 @@ describe('Sprint 9 — formatTimeLabel smart resolution', () => {
   });
 
   it('formats weekly as "Feb \'26" style', () => {
-    expect(source).toContain(".slice(2)");
+    expect(source).toContain('.slice(2)');
   });
 });
 
@@ -73,10 +70,7 @@ describe('Sprint 9 — AxesStage labels and dividers', () => {
     const { fileURLToPath } = await import('url');
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'charting_library/core/stages/AxesStage.ts'),
-      'utf-8'
-    );
+    source = fs.readFileSync(path.resolve(__dirname, '..', '..', 'charting_library/core/stages/AxesStage.ts'), 'utf-8');
   });
 
   it('uses density-aware label spacing (80px min)', () => {
@@ -87,7 +81,7 @@ describe('Sprint 9 — AxesStage labels and dividers', () => {
   it('has session dividers for intraday', () => {
     expect(source).toContain('Session dividers');
     // 8.1.3: Numeric day-boundary detection replaced getUTCDate
-    expect(source).toContain('DAY_MS');
+    expect(source).toContain('86400000');
   });
 
   it('has weekend/holiday gap markers for daily+', () => {
@@ -120,10 +114,7 @@ describe('Sprint 9 — FrameState useUTC', () => {
     const { fileURLToPath } = await import('url');
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'charting_library/core/FrameState.ts'),
-      'utf-8'
-    );
+    source = fs.readFileSync(path.resolve(__dirname, '..', '..', 'charting_library/core/FrameState.ts'), 'utf-8');
   });
 
   it('stores useUTC on frame state', () => {
@@ -145,10 +136,7 @@ describe('Sprint 9 — TimeAxis coordinate transforms', () => {
     const { fileURLToPath } = await import('url');
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'charting_library/core/TimeAxis.js'),
-      'utf-8'
-    );
+    source = fs.readFileSync(path.resolve(__dirname, '..', '..', 'charting_library/core/TimeAxis.js'), 'utf-8');
   });
 
   it('exports createTimeTransform', () => {

@@ -41,19 +41,19 @@ export interface BudgetStatus {
 // ─── Config ──────────────────────────────────────────────────────
 
 const CATEGORIES: Record<string, CategoryConfig> = {
-  fetch: { threshold: 0.01, label: 'Data Fetch' },    // <1% failure
-  ws:    { threshold: 0.001, label: 'WebSocket' },     // <0.1% disconnects
-  cache: { threshold: 0.0001, label: 'Cache' },        // <0.01% corruption
-  ai:    { threshold: 0.05, label: 'AI Copilot' },     // <5% failures
+  fetch: { threshold: 0.01, label: 'Data Fetch' }, // <1% failure
+  ws: { threshold: 0.001, label: 'WebSocket' }, // <0.1% disconnects
+  cache: { threshold: 0.0001, label: 'Cache' }, // <0.01% corruption
+  ai: { threshold: 0.05, label: 'AI Copilot' }, // <5% failures
 };
 
 const WINDOW_MS = 5 * 60_000; // 5-minute rolling window
-const MAX_EVENTS = 500;       // Max events per category in window
+const MAX_EVENTS = 500; // Max events per category in window
 const BREACH_DEBOUNCE_MS = 30_000; // Only fire breach event every 30s
 
 // ─── Error Budget Class ─────────────────────────────────────────
 
-class _ErrorBudget {
+class ErrorBudget {
   private _windows: Map<string, RollingWindow> = new Map();
   private _lastGlobalBreach = 0;
 
@@ -113,8 +113,8 @@ class _ErrorBudget {
 
       // Filter to rolling window
       const cutoff = now - WINDOW_MS;
-      const recent = win.events.filter(e => e.ts > cutoff);
-      const errors = recent.filter(e => e.isError).length;
+      const recent = win.events.filter((e) => e.ts > cutoff);
+      const errors = recent.filter((e) => e.isError).length;
       const total = recent.length;
       const rate = total > 0 ? errors / total : 0;
 
@@ -136,7 +136,7 @@ class _ErrorBudget {
    */
   isBreached(): boolean {
     const status = this.getStatus();
-    return Object.values(status).some(s => s.breached);
+    return Object.values(status).some((s) => s.breached);
   }
 
   /**
@@ -168,17 +168,17 @@ class _ErrorBudget {
     if (now - win.lastBreached < BREACH_DEBOUNCE_MS) return;
 
     const cutoff = now - WINDOW_MS;
-    const recent = win.events.filter(e => e.ts > cutoff);
+    const recent = win.events.filter((e) => e.ts > cutoff);
     if (recent.length < 5) return; // Need minimum sample size
 
-    const errors = recent.filter(e => e.isError).length;
+    const errors = recent.filter((e) => e.isError).length;
     const rate = errors / recent.length;
 
     if (rate > config.threshold) {
       win.lastBreached = now;
 
       logger.data.warn(
-        `[ErrorBudget] ${config.label} budget breached: ${(rate * 100).toFixed(2)}% > ${(config.threshold * 100).toFixed(2)}% (${errors}/${recent.length} events)`
+        `[ErrorBudget] ${config.label} budget breached: ${(rate * 100).toFixed(2)}% > ${(config.threshold * 100).toFixed(2)}% (${errors}/${recent.length} events)`,
       );
 
       // Dispatch custom event for the banner UI (debounced globally)
@@ -193,14 +193,14 @@ class _ErrorBudget {
               threshold: config.threshold,
               breachedCategories: this.getBreachedCategories(),
             },
-          })
+          }),
         );
       }
     }
   }
 }
 
-export const errorBudget = new _ErrorBudget();
+export const errorBudget = new ErrorBudget();
 
 // Expose on window for dev-mode console access
 if (typeof window !== 'undefined') {

@@ -10,9 +10,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import AIOrb from './AIOrb.jsx';
-import AILoadingSkeleton from './AILoadingSkeleton.jsx';
 import AIConfidenceMeter from './AIConfidenceMeter.jsx';
+import AILoadingSkeleton from './AILoadingSkeleton.jsx';
+import AIOrb from './AIOrb.jsx';
 
 /**
  * AICard — standard AI content container.
@@ -62,9 +62,16 @@ export default function AICard({
         onClick={handleToggle}
         role={collapsible ? 'button' : undefined}
         tabIndex={collapsible ? 0 : undefined}
-        onKeyDown={collapsible ? (e) => {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleToggle(); }
-        } : undefined}
+        onKeyDown={
+          collapsible
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleToggle();
+                }
+              }
+            : undefined
+        }
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -88,9 +95,7 @@ export default function AICard({
         >
           {title}
         </span>
-        {confidence !== null && (
-          <AIConfidenceMeter value={confidence} size={18} showLabel />
-        )}
+        {confidence !== null && <AIConfidenceMeter value={confidence} size={18} showLabel />}
         {collapsible && (
           <span
             style={{
@@ -108,11 +113,7 @@ export default function AICard({
       {/* Body */}
       {isOpen && (
         <div style={{ padding: '0 12px 10px' }}>
-          {loading ? (
-            <AILoadingSkeleton variant="compact" lines={3} />
-          ) : (
-            children
-          )}
+          {loading ? <AILoadingSkeleton variant="compact" lines={3} /> : children}
         </div>
       )}
     </div>

@@ -1,9 +1,8 @@
 // Section 1: Watchlist Digest for Morning Briefing
-import { C } from '@/constants.js';
 import { formatDisplayPrice as formatPrice } from '../../../../shared/formatting';
 import { SignalDot, NewsSentimentDot } from './briefingHelpers.jsx';
+import { C } from '@/constants.js';
 import { alpha } from '@/shared/colorUtils';
-import st from './WatchlistDigest.module.css';
 
 export default function WatchlistDigest({ items }) {
   if (!items || items.length === 0) {
@@ -113,8 +112,7 @@ function WatchlistCard({ item }) {
               whiteSpace: 'nowrap',
             }}
           >
-            <NewsSentimentDot sentiment={item.news[0].sentiment} />
-            {' '}{item.news[0].headline}
+            <NewsSentimentDot sentiment={item.news[0].sentiment} /> {item.news[0].headline}
           </div>
           <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)', marginTop: 2 }}>
             {item.news[0].source}

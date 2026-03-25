@@ -6,8 +6,8 @@
 
 import React from 'react';
 import { useRef, useEffect, useCallback, useState } from 'react';
-import { C } from '@/constants.js';
 import { useChartBars } from '../../../hooks/useChartBars.js';
+import { C } from '@/constants.js';
 import { alpha } from '@/shared/colorUtils';
 
 const MINIMAP_HEIGHT = 36;
@@ -35,7 +35,7 @@ function computeTimeLabels(data, canvasWidth) {
       lastMonth = month;
     } else if (month !== lastMonth) {
       // Only show month labels if there's enough room (>40px apart)
-      const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       const prev = labels.length > 0 ? labels[labels.length - 1].x : -Infinity;
       const px = i * barW;
       if (px - prev > 40) {
@@ -59,177 +59,179 @@ function ChartMinimap({ visibleBars = 80, scrollOffset = 0, onViewportChange }) 
   const totalBars = data?.length || 0;
 
   // Render the minimap canvas (accepts optional beacon alpha for animation)
-  const render = useCallback((beaconAlpha = 1) => {
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container || !data?.length) return;
+  const render = useCallback(
+    (beaconAlpha = 1) => {
+      const canvas = canvasRef.current;
+      const container = containerRef.current;
+      if (!canvas || !container || !data?.length) return;
 
-    const rect = container.getBoundingClientRect();
-    const pr = window.devicePixelRatio || 1;
-    const w = rect.width;
-    const h = MINIMAP_HEIGHT;
+      const rect = container.getBoundingClientRect();
+      const pr = window.devicePixelRatio || 1;
+      const w = rect.width;
+      const h = MINIMAP_HEIGHT;
 
-    canvas.width = w * pr;
-    canvas.height = h * pr;
-    canvas.style.width = w + 'px';
-    canvas.style.height = h + 'px';
+      canvas.width = w * pr;
+      canvas.height = h * pr;
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
 
-    const ctx = canvas.getContext('2d');
-    ctx.scale(pr, pr);
+      const ctx = canvas.getContext('2d');
+      ctx.scale(pr, pr);
 
-    // Background — transparent to let CSS handle it
-    ctx.clearRect(0, 0, w, h);
+      // Background — transparent to let CSS handle it
+      ctx.clearRect(0, 0, w, h);
 
-    // Find price range
-    let minP = Infinity, maxP = -Infinity;
-    for (const b of data) {
-      if (b.low < minP) minP = b.low;
-      if (b.high > maxP) maxP = b.high;
-    }
-    const range = maxP - minP || 1;
-    const barW = w / data.length;
-    const padY = 6;
-
-    // Draw smooth area chart of close prices
-    ctx.beginPath();
-    ctx.moveTo(0, h);
-    for (let i = 0; i < data.length; i++) {
-      const x = i * barW;
-      const y = h - ((data[i].close - minP) / range) * (h - padY * 2) - padY;
-      if (i === 0) {
-        ctx.lineTo(x, y);
-      } else {
-        // Smooth curve between points for Apple-like feel
-        const prevX = (i - 1) * barW;
-        const cpx = (prevX + x) / 2;
-        const prevY = h - ((data[i - 1].close - minP) / range) * (h - padY * 2) - padY;
-        ctx.quadraticCurveTo(cpx, prevY, x, y);
+      // Find price range
+      let minP = Infinity,
+        maxP = -Infinity;
+      for (const b of data) {
+        if (b.low < minP) minP = b.low;
+        if (b.high > maxP) maxP = b.high;
       }
-    }
-    ctx.lineTo(w, h);
-    ctx.closePath();
+      const range = maxP - minP || 1;
+      const barW = w / data.length;
+      const padY = 6;
 
-    const grad = ctx.createLinearGradient(0, 0, 0, h);
-    grad.addColorStop(0, alpha(C.b, 0.13));
-    grad.addColorStop(1, alpha(C.b, 0.01));
-    ctx.fillStyle = grad;
-    ctx.fill();
-
-    // Line stroke
-    ctx.beginPath();
-    for (let i = 0; i < data.length; i++) {
-      const x = i * barW;
-      const y = h - ((data[i].close - minP) / range) * (h - padY * 2) - padY;
-      if (i === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        const prevX = (i - 1) * barW;
-        const cpx = (prevX + x) / 2;
-        const prevY = h - ((data[i - 1].close - minP) / range) * (h - padY * 2) - padY;
-        ctx.quadraticCurveTo(cpx, prevY, x, y);
+      // Draw smooth area chart of close prices
+      ctx.beginPath();
+      ctx.moveTo(0, h);
+      for (let i = 0; i < data.length; i++) {
+        const x = i * barW;
+        const y = h - ((data[i].close - minP) / range) * (h - padY * 2) - padY;
+        if (i === 0) {
+          ctx.lineTo(x, y);
+        } else {
+          // Smooth curve between points for Apple-like feel
+          const prevX = (i - 1) * barW;
+          const cpx = (prevX + x) / 2;
+          const prevY = h - ((data[i - 1].close - minP) / range) * (h - padY * 2) - padY;
+          ctx.quadraticCurveTo(cpx, prevY, x, y);
+        }
       }
-    }
-    ctx.strokeStyle = alpha(C.b, 0.33);
-    ctx.lineWidth = 1.2;
-    ctx.stroke();
+      ctx.lineTo(w, h);
+      ctx.closePath();
 
-    // ─── Year/Month Labels ───────────────────────────────────────
-    const labels = computeTimeLabels(data, w);
-    for (const lbl of labels) {
-      ctx.save();
-      ctx.font = lbl.isYear
-        ? 'bold 8px Inter, system-ui, sans-serif'
-        : '7px Inter, system-ui, sans-serif';
-      ctx.fillStyle = lbl.isYear ? alpha(C.b, 0.6) : alpha(C.b, 0.35);
-      ctx.textBaseline = 'bottom';
-      ctx.fillText(lbl.text, lbl.x + 2, h - 1);
-      // Year tick mark
-      if (lbl.isYear) {
-        ctx.strokeStyle = alpha(C.b, 0.25);
-        ctx.lineWidth = 0.5;
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, alpha(C.b, 0.13));
+      grad.addColorStop(1, alpha(C.b, 0.01));
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Line stroke
+      ctx.beginPath();
+      for (let i = 0; i < data.length; i++) {
+        const x = i * barW;
+        const y = h - ((data[i].close - minP) / range) * (h - padY * 2) - padY;
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          const prevX = (i - 1) * barW;
+          const cpx = (prevX + x) / 2;
+          const prevY = h - ((data[i - 1].close - minP) / range) * (h - padY * 2) - padY;
+          ctx.quadraticCurveTo(cpx, prevY, x, y);
+        }
+      }
+      ctx.strokeStyle = alpha(C.b, 0.33);
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // ─── Year/Month Labels ───────────────────────────────────────
+      const labels = computeTimeLabels(data, w);
+      for (const lbl of labels) {
+        ctx.save();
+        ctx.font = lbl.isYear ? 'bold 8px Inter, system-ui, sans-serif' : '7px Inter, system-ui, sans-serif';
+        ctx.fillStyle = lbl.isYear ? alpha(C.b, 0.6) : alpha(C.b, 0.35);
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(lbl.text, lbl.x + 2, h - 1);
+        // Year tick mark
+        if (lbl.isYear) {
+          ctx.strokeStyle = alpha(C.b, 0.25);
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.moveTo(lbl.x, 0);
+          ctx.lineTo(lbl.x, h);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // Viewport rectangle
+      const vBars = Math.min(visibleBars, totalBars);
+      const vpRight = w - (scrollOffset / totalBars) * w;
+      const vpWidth = Math.max(12, (vBars / totalBars) * w);
+      const vpLeft = Math.max(0, vpRight - vpWidth);
+
+      // ─── Fog-of-War (gradient dim) ──────────────────────────────
+      // Left fog: opaque at x=0, fading to transparent near viewport
+      if (vpLeft > 0) {
+        const fogL = ctx.createLinearGradient(0, 0, vpLeft, 0);
+        fogL.addColorStop(0, 'rgba(0,0,0,0.55)');
+        fogL.addColorStop(0.7, 'rgba(0,0,0,0.4)');
+        fogL.addColorStop(1, 'rgba(0,0,0,0.05)');
+        ctx.fillStyle = fogL;
         ctx.beginPath();
-        ctx.moveTo(lbl.x, 0);
-        ctx.lineTo(lbl.x, h);
-        ctx.stroke();
+        ctx.roundRect(0, 0, vpLeft, h, [4, 0, 0, 4]);
+        ctx.fill();
       }
+      // Right fog: transparent near viewport, opaque at x=w
+      if (vpRight < w) {
+        const fogR = ctx.createLinearGradient(vpRight, 0, w, 0);
+        fogR.addColorStop(0, 'rgba(0,0,0,0.05)');
+        fogR.addColorStop(0.3, 'rgba(0,0,0,0.4)');
+        fogR.addColorStop(1, 'rgba(0,0,0,0.55)');
+        ctx.fillStyle = fogR;
+        ctx.beginPath();
+        ctx.roundRect(vpRight, 0, w - vpRight, h, [0, 4, 4, 0]);
+        ctx.fill();
+      }
+
+      // Viewport border — rounded
+      ctx.strokeStyle = alpha(C.b, 0.56);
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(vpLeft + 0.5, 1, Math.min(vpWidth, w - vpLeft) - 1, h - 2, 4);
+      ctx.stroke();
+
+      // Frosted handles (pill-style)
+      ctx.fillStyle = C.b;
+      ctx.globalAlpha = 0.7;
+      const handleW = 4;
+      const handleH = 12;
+      const hy = (h - handleH) / 2;
+      // Left handle
+      ctx.beginPath();
+      ctx.roundRect(vpLeft + 1, hy, handleW, handleH, 2);
+      ctx.fill();
+      // Right handle
+      ctx.beginPath();
+      ctx.roundRect(Math.min(vpRight, w) - handleW - 1, hy, handleW, handleH, 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      // ─── Live-Candle Beacon ──────────────────────────────────────
+      // Pulsing dot at the rightmost (newest) candle position
+      const lastIdx = data.length - 1;
+      const beaconX = lastIdx * barW;
+      const beaconY = h - ((data[lastIdx].close - minP) / range) * (h - padY * 2) - padY;
+
+      // Outer glow
+      ctx.save();
+      ctx.globalAlpha = beaconAlpha * 0.25;
+      ctx.fillStyle = C.b;
+      ctx.beginPath();
+      ctx.arc(beaconX, beaconY, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Inner dot
+      ctx.globalAlpha = beaconAlpha;
+      ctx.fillStyle = C.b;
+      ctx.beginPath();
+      ctx.arc(beaconX, beaconY, 2.5, 0, Math.PI * 2);
+      ctx.fill();
       ctx.restore();
-    }
-
-    // Viewport rectangle
-    const vBars = Math.min(visibleBars, totalBars);
-    const vpRight = w - (scrollOffset / totalBars) * w;
-    const vpWidth = Math.max(12, (vBars / totalBars) * w);
-    const vpLeft = Math.max(0, vpRight - vpWidth);
-
-    // ─── Fog-of-War (gradient dim) ──────────────────────────────
-    // Left fog: opaque at x=0, fading to transparent near viewport
-    if (vpLeft > 0) {
-      const fogL = ctx.createLinearGradient(0, 0, vpLeft, 0);
-      fogL.addColorStop(0, 'rgba(0,0,0,0.55)');
-      fogL.addColorStop(0.7, 'rgba(0,0,0,0.4)');
-      fogL.addColorStop(1, 'rgba(0,0,0,0.05)');
-      ctx.fillStyle = fogL;
-      ctx.beginPath();
-      ctx.roundRect(0, 0, vpLeft, h, [4, 0, 0, 4]);
-      ctx.fill();
-    }
-    // Right fog: transparent near viewport, opaque at x=w
-    if (vpRight < w) {
-      const fogR = ctx.createLinearGradient(vpRight, 0, w, 0);
-      fogR.addColorStop(0, 'rgba(0,0,0,0.05)');
-      fogR.addColorStop(0.3, 'rgba(0,0,0,0.4)');
-      fogR.addColorStop(1, 'rgba(0,0,0,0.55)');
-      ctx.fillStyle = fogR;
-      ctx.beginPath();
-      ctx.roundRect(vpRight, 0, w - vpRight, h, [0, 4, 4, 0]);
-      ctx.fill();
-    }
-
-    // Viewport border — rounded
-    ctx.strokeStyle = alpha(C.b, 0.56);
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect(vpLeft + 0.5, 1, Math.min(vpWidth, w - vpLeft) - 1, h - 2, 4);
-    ctx.stroke();
-
-    // Frosted handles (pill-style)
-    ctx.fillStyle = C.b;
-    ctx.globalAlpha = 0.7;
-    const handleW = 4;
-    const handleH = 12;
-    const hy = (h - handleH) / 2;
-    // Left handle
-    ctx.beginPath();
-    ctx.roundRect(vpLeft + 1, hy, handleW, handleH, 2);
-    ctx.fill();
-    // Right handle
-    ctx.beginPath();
-    ctx.roundRect(Math.min(vpRight, w) - handleW - 1, hy, handleW, handleH, 2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-
-    // ─── Live-Candle Beacon ──────────────────────────────────────
-    // Pulsing dot at the rightmost (newest) candle position
-    const lastIdx = data.length - 1;
-    const beaconX = lastIdx * barW;
-    const beaconY = h - ((data[lastIdx].close - minP) / range) * (h - padY * 2) - padY;
-
-    // Outer glow
-    ctx.save();
-    ctx.globalAlpha = beaconAlpha * 0.25;
-    ctx.fillStyle = C.b;
-    ctx.beginPath();
-    ctx.arc(beaconX, beaconY, 6, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Inner dot
-    ctx.globalAlpha = beaconAlpha;
-    ctx.fillStyle = C.b;
-    ctx.beginPath();
-    ctx.arc(beaconX, beaconY, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }, [data, visibleBars, scrollOffset, totalBars]);
+    },
+    [data, visibleBars, scrollOffset, totalBars],
+  );
 
   // Beacon animation loop — pulse the live dot
   useEffect(() => {

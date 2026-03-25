@@ -4,7 +4,7 @@ import { detectDisplayHz } from './DisplayHz.js';
 import { microJankDetector } from './MicroJankDetector.js';
 import { createChartDrawingSetup } from './ChartDrawingSetup.js';
 import { InputManager } from './InputManager.js';
-import type { LayerManager} from './LayerManager.js';
+import type { LayerManager } from './LayerManager.js';
 import { LAYERS } from './LayerManager.js';
 import { PaneManager } from './PaneManager.js';
 import { BarDataBuffer } from './BarDataBuffer.js';
@@ -259,7 +259,10 @@ export class ChartEngine {
     // PaneManager creates the main pane's LayerManager + DOM container.
     // engine.layers is a backward-compat alias to mainPane.layers.
     this.paneManager = new PaneManager(container, {
-      onResize: () => { this.resize(); this._scheduleDraw(); },
+      onResize: () => {
+        this.resize();
+        this._scheduleDraw();
+      },
     });
     this.layers = this.paneManager.mainPane.layers;
 
@@ -274,7 +277,8 @@ export class ChartEngine {
 
     // ─── WebGL Renderer (GPU-accelerated candlesticks, volume, lines) ─
     this._webglCanvas = document.createElement('canvas');
-    this._webglCanvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:6;pointer-events:none';
+    this._webglCanvas.style.cssText =
+      'position:absolute;top:0;left:0;width:100%;height:100%;z-index:6;pointer-events:none';
     // Append to the main pane container (inside the flex layout), NOT the
     // engine container. This ensures the WebGL canvas resizes with the pane
     // when the side panel opens/closes.
@@ -313,13 +317,13 @@ export class ChartEngine {
       mainDirty: true,
       topDirty: true,
       lastRender: null,
-      historyLoading: false,  // Sprint 1: set by ChartEngineWidget during history prefetch
+      historyLoading: false, // Sprint 1: set by ChartEngineWidget during history prefetch
       collapsedPanes: new Set(), // Sprint 11: collapsed indicator panes
-      _splitterHoverIdx: -1,     // Sprint 11: which splitter is hovered (-1 = none)
+      _splitterHoverIdx: -1, // Sprint 11: which splitter is hovered (-1 = none)
       _highlightedIndicator: -1, // Sprint 12: legend click-to-highlight index
       hiddenIndicators: new Set(), // Sprint 12: visually hidden indicator indices
-      _legendHitRegions: [],      // Sprint 12: [{x,y,w,h,type,idx}] for click detection
-      yAxisLocked: false,         // Task 1.4.14: Y-axis lock toggle
+      _legendHitRegions: [], // Sprint 12: [{x,y,w,h,type,idx}] for click detection
+      yAxisLocked: false, // Task 1.4.14: Y-axis lock toggle
     };
 
     this.resize = this.resize.bind(this);
@@ -334,15 +338,16 @@ export class ChartEngine {
 
     // P3: Detect actual display refresh rate and update frame budget accordingly.
     // Resolves in ~500ms; until then, the 60fps default is used.
-    detectDisplayHz().then(({ hz }) => {
-      this.fb = new FrameBudget({ targetFps: hz });
-    }).catch(() => { /* keep default 60fps budget */ });
+    detectDisplayHz()
+      .then(({ hz }) => {
+        this.fb = new FrameBudget({ targetFps: hz });
+      })
+      .catch(() => {
+        /* keep default 60fps budget */
+      });
 
     // ─── Scene Graph (Phase 2) ────────────────────────────────────
-    this._sceneGraph = new SceneGraph(
-      container.clientWidth || 1920,
-      container.clientHeight || 1080
-    );
+    this._sceneGraph = new SceneGraph(container.clientWidth || 1920, container.clientHeight || 1080);
     // Connect scene graph to drawing engine for spatial-index hitTest
     if (this.drawingEngine.setSceneGraph) {
       this.drawingEngine.setSceneGraph(this._sceneGraph);
@@ -375,9 +380,11 @@ export class ChartEngine {
     this._degradationLevel = 0;
     memoryBudget.register('chartEngine', () => {
       // Estimate: bars × 7 floats × 8 bytes + indicator buffer overhead
-      return (this.bars.length * 7 * 8) +
-        (this.indicators.length * this.bars.length * 8) +
-        ((this.drawingEngine?.getDrawings?.()?.length || 0) * 200);
+      return (
+        this.bars.length * 7 * 8 +
+        this.indicators.length * this.bars.length * 8 +
+        (this.drawingEngine?.getDrawings?.()?.length || 0) * 200
+      );
     });
     this._memoryUnsubscribe = memoryBudget.onPressure((status: unknown) => {
       this._degradationLevel = status.level === 'critical' ? 2 : status.level === 'warning' ? 1 : 0;
@@ -410,7 +417,9 @@ export class ChartEngine {
    */
   destroy(): void {
     // Task 2.3.23: Mark clean shutdown so recovery prompt is suppressed
-    markCleanExit().catch(() => { /* best effort on unload */ });
+    markCleanExit().catch(() => {
+      /* best effort on unload */
+    });
 
     // Dispose pane manager (disposes all panes + their LayerManagers)
     this.paneManager.destroy();
@@ -454,10 +463,7 @@ export class ChartEngine {
     this.markDirty();
     // Rebuild spatial index on resize
     if (this._sceneGraph) {
-      this._sceneGraph.rebuildSpatialIndex(
-        this.container.clientWidth || 1920,
-        this.container.clientHeight || 1080
-      );
+      this._sceneGraph.rebuildSpatialIndex(this.container.clientWidth || 1920, this.container.clientHeight || 1080);
     }
     // Sync WebGL overlay canvas dimensions
     if (this._webglRenderer && this._webglCanvas) {
@@ -559,12 +565,12 @@ export class ChartEngine {
     if (bars.length > 0 && typeof bars[0].time === 'string') {
       for (let i = 0; i < bars.length; i++) {
         if (typeof bars[i].time === 'string') {
-          (bars[i] as any).time = new Date(bars[i].time as any).getTime();
+          (bars[i] as unknown as { time: number }).time = new Date(bars[i].time as unknown as string).getTime();
         }
       }
     }
     // ─── Phase 1.1.2: Track tick vs new-bar updates ─────────────────
-    this._tickUpdate = (bars.length > 0 && this.bars.length === bars.length);
+    this._tickUpdate = bars.length > 0 && this.bars.length === bars.length;
 
     // Task 2.3.25: Mark live subscription active on tick data
     if (this._tickUpdate) this._hasLiveSubscription = true;
@@ -909,7 +915,7 @@ export class ChartEngine {
 
     for (const ind of indicators) {
       if (!ind.computed) continue;
-      for (const out of (ind.outputs || [])) {
+      for (const out of ind.outputs || []) {
         const vals = ind.computed[out.key];
         if (!vals) continue;
         for (let i = startIdx; i <= endIdx && i < vals.length; i++) {
@@ -970,8 +976,7 @@ export class ChartEngine {
       if (!isLight && this.props.theme === 'system' && typeof window !== 'undefined') {
         isLight = window.matchMedia('(prefers-color-scheme: light)').matches;
       }
-      if (!isLight && typeof document !== 'undefined' &&
-          document.documentElement.classList.contains('theme-light')) {
+      if (!isLight && typeof document !== 'undefined' && document.documentElement.classList.contains('theme-light')) {
         isLight = true;
       }
       const bgColor = isLight ? '#FFFFFF' : '#131722';

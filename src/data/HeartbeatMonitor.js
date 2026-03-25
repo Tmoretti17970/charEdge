@@ -13,15 +13,15 @@
 //
 // ═══════════════════════════════════════════════════════════════════
 
+import { connectionQuality } from './connectionQuality';
 import { logger } from '@/observability/logger.js';
 // #14: Wire RTT into heartbeat — adaptive staleness threshold
-import { connectionQuality } from './connectionQuality';
 
 // ─── Constants ─────────────────────────────────────────────────
 
-const DEFAULT_STALENESS_MS = 90_000;    // 90s → flag as stale
-const POLL_INTERVAL_MS = 10_000;        // Check every 10s
-const MIN_STALENESS_MS = 10_000;        // Floor: 10s
+const DEFAULT_STALENESS_MS = 90_000; // 90s → flag as stale
+const POLL_INTERVAL_MS = 10_000; // Check every 10s
+const MIN_STALENESS_MS = 10_000; // Floor: 10s
 
 // ─── HeartbeatMonitor ──────────────────────────────────────────
 
@@ -191,10 +191,7 @@ class _HeartbeatMonitor {
     // get more generous windows (base + 3×avgRtt) to avoid false-positive stale flags
     const rttStatus = connectionQuality.getStatus();
     if (rttStatus.avgRttMs > 0) {
-      this._stalenessMs = Math.max(
-        this._baseStalenessMs + 3 * rttStatus.avgRttMs,
-        MIN_STALENESS_MS,
-      );
+      this._stalenessMs = Math.max(this._baseStalenessMs + 3 * rttStatus.avgRttMs, MIN_STALENESS_MS);
     }
 
     const now = Date.now();
@@ -211,9 +208,7 @@ class _HeartbeatMonitor {
 
         const event = { type: 'stale', streamKey, gapMs };
         this._emit(event);
-        logger.data.warn(
-          `[HeartbeatMonitor] Stream stale: ${streamKey} — no data for ${(gapMs / 1000).toFixed(0)}s`
-        );
+        logger.data.warn(`[HeartbeatMonitor] Stream stale: ${streamKey} — no data for ${(gapMs / 1000).toFixed(0)}s`);
       }
     }
 

@@ -32,7 +32,7 @@ export function scoreImport(trades) {
 
   let missingDates = 0;
   let missingSymbols = 0;
-  let missingPrices = 0;
+  let _missingPrices = 0;
   let futureDates = 0;
   let negativeQty = 0;
   let zeroPrices = 0;
@@ -64,7 +64,7 @@ export function scoreImport(trades) {
     if (isNaN(price) || price === 0) {
       zeroPrices++;
     } else if (price < 0) {
-      missingPrices++;
+      _missingPrices++;
     }
 
     // Negative quantity

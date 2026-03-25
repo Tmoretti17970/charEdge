@@ -31,7 +31,6 @@ import SentimentSnapshot from './morning-briefing/SentimentSnapshot.jsx';
 import WatchlistDigest from './morning-briefing/WatchlistDigest.jsx';
 import { fetchBriefingData } from '@/journal/briefingService.js';
 import { alpha } from '@/shared/colorUtils';
-import st from './MorningBriefing.module.css';
 
 function MorningBriefing() {
   const watchlistItems = useWatchlistStore((s) => s.items);
@@ -127,7 +126,16 @@ function MorningBriefing() {
               ~{briefing.readTimeMinutes} min read
             </span>
           </div>
-          <p style={{ margin: 0, fontSize: 13, color: C.t2, fontFamily: 'var(--tf-font)', lineHeight: 1.6, maxWidth: 600 }}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 13,
+              color: C.t2,
+              fontFamily: 'var(--tf-font)',
+              lineHeight: 1.6,
+              maxWidth: 600,
+            }}
+          >
             {briefing.marketNarrative}
           </p>
         </div>
@@ -176,24 +184,57 @@ function MorningBriefing() {
 
       {/* ─── Sections ────────────────────────────────────────── */}
       <div style={{ padding: '0 24px 20px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <BriefingSection id="watchlist" title="Your Watchlist" icon="🎯" count={briefing.watchlistDigest.length} expanded={expandedSections.watchlist} onToggle={() => toggleSection('watchlist')}>
+        <BriefingSection
+          id="watchlist"
+          title="Your Watchlist"
+          icon="🎯"
+          count={briefing.watchlistDigest.length}
+          expanded={expandedSections.watchlist}
+          onToggle={() => toggleSection('watchlist')}
+        >
           <WatchlistDigest items={briefing.watchlistDigest} />
         </BriefingSection>
 
-        <BriefingSection id="movers" title="Overnight Movers" icon="📈" expanded={expandedSections.movers} onToggle={() => toggleSection('movers')}>
+        <BriefingSection
+          id="movers"
+          title="Overnight Movers"
+          icon="📈"
+          expanded={expandedSections.movers}
+          onToggle={() => toggleSection('movers')}
+        >
           <OvernightMovers movers={briefing.overnightMovers} />
         </BriefingSection>
 
-        <BriefingSection id="events" title="Economic Calendar" icon="📅" count={briefing.eventsToday.length} expanded={expandedSections.events} onToggle={() => toggleSection('events')}>
+        <BriefingSection
+          id="events"
+          title="Economic Calendar"
+          icon="📅"
+          count={briefing.eventsToday.length}
+          expanded={expandedSections.events}
+          onToggle={() => toggleSection('events')}
+        >
           <EventsToday events={briefing.eventsToday} />
         </BriefingSection>
 
-        <BriefingSection id="sentiment" title="Sentiment Snapshot" icon="🌡️" expanded={expandedSections.sentiment} onToggle={() => toggleSection('sentiment')}>
+        <BriefingSection
+          id="sentiment"
+          title="Sentiment Snapshot"
+          icon="🌡️"
+          expanded={expandedSections.sentiment}
+          onToggle={() => toggleSection('sentiment')}
+        >
           <SentimentSnapshot data={briefing.sentiment} />
         </BriefingSection>
 
         {briefing.edgeInsights.length > 0 && (
-          <BriefingSection id="edge" title="Your Edge Today" icon="⚡" expanded={expandedSections.edge} onToggle={() => toggleSection('edge')} accent>
+          <BriefingSection
+            id="edge"
+            title="Your Edge Today"
+            icon="⚡"
+            expanded={expandedSections.edge}
+            onToggle={() => toggleSection('edge')}
+            accent
+          >
             <EdgeInsights insights={briefing.edgeInsights} />
           </BriefingSection>
         )}

@@ -28,13 +28,32 @@ import { registerBuiltInSources } from './builtInSources.js';
 import { AdapterHealthTracker } from './adapterHealth.js';
 import { pipelineLogger } from '../infra/DataPipelineLogger.js';
 import type {
-  PriceUpdate, PriceCallback, SourceAdapter, QuoteResult, WatchEntry,
-  BandwidthCounters, BandwidthMetrics, SourceHealthStatus, SourceStatus,
-  HealthStatus, BenchmarkResult, SharedWorkerMessage,
+  PriceUpdate,
+  PriceCallback,
+  SourceAdapter,
+  QuoteResult,
+  WatchEntry,
+  BandwidthCounters,
+  BandwidthMetrics,
+  SourceHealthStatus,
+  SourceStatus,
+  HealthStatus,
+  BenchmarkResult,
+  SharedWorkerMessage,
 } from './TickerPlantTypes.js';
 
 // Re-export types for backward compatibility
-export type { PriceUpdate, PriceCallback, SourceAdapter, QuoteResult, BandwidthMetrics, SourceHealthStatus, SourceStatus, HealthStatus, BenchmarkResult } from './TickerPlantTypes.js';
+export type {
+  PriceUpdate,
+  PriceCallback,
+  SourceAdapter,
+  QuoteResult,
+  BandwidthMetrics,
+  SourceHealthStatus,
+  SourceStatus,
+  HealthStatus,
+  BenchmarkResult,
+} from './TickerPlantTypes.js';
 
 // ─── Ticker Plant Class ─────────────────────────────────────────
 
@@ -131,7 +150,9 @@ class _TickerPlant {
     // Wire stale-symbol detection — checks every 30s for sources that stopped sending data
     this._staleCheckInterval = setInterval(() => this._checkStaleSymbols(), 30_000);
 
-    logger.data.info(`[TickerPlant] Started with ${this._sources.size} sources, watching ${this._watched.size} symbols`);
+    logger.data.info(
+      `[TickerPlant] Started with ${this._sources.size} sources, watching ${this._watched.size} symbols`,
+    );
   }
 
   /**
@@ -226,8 +247,8 @@ class _TickerPlant {
           priceAggregator.ingest(upper, source.id, quote.price, Date.now(), quote.confidence || 0);
           return { ...quote, source: source.id };
         }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (_) {
+         
+      } catch {
         // Try next source
       }
     }
@@ -276,9 +297,10 @@ class _TickerPlant {
       messagesProcessed: this._bandwidth.messagesProcessed,
       uptimeSeconds: Math.round(elapsed),
       avgMessageRate: elapsed > 0 ? (this._bandwidth.messagesProcessed / elapsed).toFixed(1) + '/s' : '0/s',
-      savings: this._bandwidth.jsonBytesIn > 0
-        ? ((1 - this._bandwidth.binaryBytesOut / this._bandwidth.jsonBytesIn) * 100).toFixed(1) + '%'
-        : 'N/A',
+      savings:
+        this._bandwidth.jsonBytesIn > 0
+          ? ((1 - this._bandwidth.binaryBytesOut / this._bandwidth.jsonBytesIn) * 100).toFixed(1) + '%'
+          : 'N/A',
     };
   }
 
@@ -287,10 +309,27 @@ class _TickerPlant {
    * Returns compression stats for candles, ticks, and quotes.
    */
   benchmarkBandwidth(): BenchmarkResult {
-    const sampleCandle = { time: Date.now(), open: 97000.50, high: 97250.00, low: 96800.25, close: 97100.75, volume: 1234.567 };
-    const sampleTick = { time: Date.now(), price: 97000.50, volume: 0.5, side: 'buy' };
-    const sampleQuote = { symbol: 'BTCUSDT', price: 97000.50, confidence: 'high', sourceCount: 3, spread: 10.20, timestamp: Date.now() };
-    const sampleBatch = Array.from({ length: 200 }, (_, i) => ({ ...sampleCandle, time: sampleCandle.time + i * 60000 }));
+    const sampleCandle = {
+      time: Date.now(),
+      open: 97000.5,
+      high: 97250.0,
+      low: 96800.25,
+      close: 97100.75,
+      volume: 1234.567,
+    };
+    const sampleTick = { time: Date.now(), price: 97000.5, volume: 0.5, side: 'buy' };
+    const sampleQuote = {
+      symbol: 'BTCUSDT',
+      price: 97000.5,
+      confidence: 'high',
+      sourceCount: 3,
+      spread: 10.2,
+      timestamp: Date.now(),
+    };
+    const sampleBatch = Array.from({ length: 200 }, (_, i) => ({
+      ...sampleCandle,
+      time: sampleCandle.time + i * 60000,
+    }));
 
     return {
       candle: BinaryCodec.benchmark(sampleCandle),
@@ -351,8 +390,8 @@ class _TickerPlant {
       eligible.push(source);
     }
 
-    const exchangeSources = eligible.filter(s => CRYPTO_EXCHANGES.has(s.id));
-    const otherSources = eligible.filter(s => !CRYPTO_EXCHANGES.has(s.id));
+    const exchangeSources = eligible.filter((s) => CRYPTO_EXCHANGES.has(s.id));
+    const otherSources = eligible.filter((s) => !CRYPTO_EXCHANGES.has(s.id));
 
     exchangeSources.sort((a, b) => {
       const healthA = this._healthTracker.get(a.id);
@@ -379,24 +418,20 @@ class _TickerPlant {
             this._bandwidth.messagesProcessed++;
             this._healthTracker.recordSuccess(source.id, data.price);
 
-            priceAggregator.ingest(
-              symbol,
-              source.id,
-              data.price,
-              data.timestamp || Date.now(),
-              data.confidence || 0
-            );
+            priceAggregator.ingest(symbol, source.id, data.price, data.timestamp || Date.now(), data.confidence || 0);
 
             // Sprint 1 Task 1.2.1: Reset reconnect counter on successful data receipt
             this._resetReconnect(symbol);
           });
           if (typeof unsub === 'function') {
             entry.unsubs.push(unsub);
-          } else if (unsub && typeof (unsub as any).then === 'function') {
+          } else if (unsub && typeof (unsub as unknown as Promise<unknown>).then === 'function') {
             // Handle async subscribe that returns Promise<() => void>
-            (unsub as unknown as Promise<(() => void) | undefined>).then(fn => {
-              if (typeof fn === 'function' && entry.active) entry.unsubs.push(fn);
-            }).catch(() => {});
+            (unsub as unknown as Promise<(() => void) | undefined>)
+              .then((fn) => {
+                if (typeof fn === 'function' && entry.active) entry.unsubs.push(fn);
+              })
+              .catch(() => {});
           }
         } catch (err) {
           this._healthTracker.recordError(source.id);
@@ -417,12 +452,12 @@ class _TickerPlant {
                   priceAggregator.ingest(symbol, source.id, quote.price, Date.now(), quote.confidence || 0);
                   this._broadcastToSharedWorker(symbol, source.id, quote.price);
                 }
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              } catch (_) {
+                 
+              } catch {
                 this._healthTracker.recordError(source.id);
               }
             },
-            'visible'
+            'visible',
           );
           this._pollIntervals.set(pollKey, taskId);
         }
@@ -430,7 +465,7 @@ class _TickerPlant {
     }
 
     if (selectedExchanges.length > 0) {
-      const names = selected.map(s => s.id).join(', ');
+      const names = selected.map((s) => s.id).join(', ');
       logger.data.info(`[TickerPlant] ${symbol}: connected to ${selected.length} sources (${names})`);
     }
 
@@ -443,7 +478,11 @@ class _TickerPlant {
     if (!entry) return;
 
     for (const unsub of entry.unsubs) {
-      try { unsub(); } catch (e) { logger.data.warn('Operation failed', e); }
+      try {
+        unsub();
+      } catch (e) {
+        logger.data.warn('Operation failed', e);
+      }
     }
     entry.unsubs = [];
 
@@ -496,7 +535,7 @@ class _TickerPlant {
             `shared:${msg.data.sourceId}`,
             msg.data.price,
             msg.data.timestamp,
-            msg.data.confidence || 0
+            msg.data.confidence || 0,
           );
         }
       };
@@ -526,13 +565,15 @@ class _TickerPlant {
         const binaryMsg = BinaryCodec.encode(msg);
         this._bandwidth.binaryBytesOut += binaryMsg.byteLength || binaryMsg.length;
         this._sharedWorkerPort.postMessage(msg);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (_) {
+         
+      } catch {
         this._sharedWorkerPort.postMessage(msg);
         this._bandwidth.binaryBytesOut += jsonSize;
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_) { /* SharedWorker may be closed */ }
+       
+    } catch {
+      /* SharedWorker may be closed */
+    }
   }
 
   // ─── Predictive Prefetch (Phase 9) ─────────────────────────
@@ -551,10 +592,10 @@ class _TickerPlant {
       if (this._watched.has(corrSymbol)) continue;
 
       const lastPrefetch = this._prefetchCooldown.get(corrSymbol);
-      if (lastPrefetch && (now - lastPrefetch) < this._prefetchTTL) continue;
+      if (lastPrefetch && now - lastPrefetch < this._prefetchTTL) continue;
 
       this._prefetchCooldown.set(corrSymbol, now);
-      this.fetchQuote(corrSymbol).catch(() => { });
+      this.fetchQuote(corrSymbol).catch(() => {});
     }
 
     if (this._prefetchCooldown.size > 50) {
@@ -591,7 +632,9 @@ class _TickerPlant {
     const attempts = this._reconnectAttempts.get(symbol) || 0;
     const delay = Math.min(1000 * Math.pow(2, attempts), 30000); // 1s → 30s max
 
-    logger.data.warn(`[TickerPlant] Source ${failedSourceId} failed for ${symbol}, reconnecting in ${delay}ms (attempt ${attempts + 1})`);
+    logger.data.warn(
+      `[TickerPlant] Source ${failedSourceId} failed for ${symbol}, reconnecting in ${delay}ms (attempt ${attempts + 1})`,
+    );
 
     this._reconnectAttempts.set(symbol, attempts + 1);
 
@@ -644,14 +687,18 @@ class _TickerPlant {
       }
 
       // If the freshest update is too old, trigger reconnect
-      if (freshestUpdate > 0 && (now - freshestUpdate) > STALE_THRESHOLD_MS) {
+      if (freshestUpdate > 0 && now - freshestUpdate > STALE_THRESHOLD_MS) {
         // Sprint 1 Task 1.2.3: Structured failover logging
         const stalenessMs = now - freshestUpdate;
-        pipelineLogger.warn('TickerPlant', `Failover triggered for ${symbol} — stale for ${Math.round(stalenessMs / 1000)}s`, {
-          sourceId: stalestSource || 'unknown',
-          stalenessMs,
-          symbol,
-        } as unknown as Error);
+        pipelineLogger.warn(
+          'TickerPlant',
+          `Failover triggered for ${symbol} — stale for ${Math.round(stalenessMs / 1000)}s`,
+          {
+            sourceId: stalestSource || 'unknown',
+            stalenessMs,
+            symbol,
+          } as unknown as Error,
+        );
         this._handleSourceFailure(symbol, stalestSource || 'unknown');
       }
     }

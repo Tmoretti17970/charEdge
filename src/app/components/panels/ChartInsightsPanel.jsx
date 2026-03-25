@@ -19,16 +19,16 @@
 
 import React from 'react';
 import { useMemo, useState, useCallback, useEffect } from 'react';
-import { analyzeAll, checkDrawingProximity } from '../../../charting_library/studies/PriceActionEngine.js';
-import { localInsightEngine } from '../../../charting_library/ai/LocalInsightEngine.js';
-import { featureExtractor } from '../../../charting_library/ai/FeatureExtractor.js';
 import { anomalyDetector } from '../../../charting_library/ai/AnomalyDetector.js';
 import { entryQualityScorer } from '../../../charting_library/ai/EntryQualityScorer.js';
+import { featureExtractor } from '../../../charting_library/ai/FeatureExtractor.js';
+import { localInsightEngine } from '../../../charting_library/ai/LocalInsightEngine.js';
+import { analyzeAll, checkDrawingProximity } from '../../../charting_library/studies/PriceActionEngine.js';
 import { C } from '../../../constants.js';
-import { useChartToolsStore } from '../../../state/chart/useChartToolsStore';
 import { useChartFeaturesStore } from '../../../state/chart/useChartFeaturesStore';
-import AIOrb from '../design/AIOrb.jsx';
+import { useChartToolsStore } from '../../../state/chart/useChartToolsStore';
 import AILoadingSkeleton from '../design/AILoadingSkeleton.jsx';
+import AIOrb from '../design/AIOrb.jsx';
 import st from './ChartInsightsPanel.module.css';
 
 function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAlert, symbol, tf }) {
@@ -77,16 +77,23 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
 
   const [mlGrade, setMlGrade] = useState(null);
   useEffect(() => {
-    if (!aiAnalysis || !data?.length || data.length < 25) { setMlGrade(null); return; }
+    if (!aiAnalysis || !data?.length || data.length < 25) {
+      setMlGrade(null);
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
         const features = featureExtractor.extract(data);
         const result = await entryQualityScorer.score(features.vector);
         if (!cancelled) setMlGrade(result);
-      } catch { /* graceful degradation */ }
+      } catch {
+        /* graceful degradation */
+      }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [data, aiAnalysis]);
 
   const [collapsed, setCollapsed] = useState({
@@ -159,7 +166,9 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
               {risk.emoji}
             </span>
           )}
-          <button className={`tf-btn ${st.closeBtn}`} onClick={onClose}>✕</button>
+          <button className={`tf-btn ${st.closeBtn}`} onClick={onClose}>
+            ✕
+          </button>
         </div>
       </div>
 
@@ -202,7 +211,9 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
               <span className={st.riskScore}>{risk.score}/100</span>
             </div>
             {risk.risks.map((r, i) => (
-              <div key={i} className={st.riskItem}>⚠ {r}</div>
+              <div key={i} className={st.riskItem}>
+                ⚠ {r}
+              </div>
             ))}
           </div>
         </CollapsibleSection>
@@ -210,14 +221,24 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
 
       {/* ─── Momentum ────────────────────────────────── */}
       {momentumSection && (
-        <CollapsibleSection title="Momentum" color="#a855f7" isOpen={!collapsed.momentum} onToggle={() => toggleSection('momentum')}>
+        <CollapsibleSection
+          title="Momentum"
+          color="#a855f7"
+          isOpen={!collapsed.momentum}
+          onToggle={() => toggleSection('momentum')}
+        >
           <InsightBlock content={momentumSection.content} detail={momentumSection.detail} />
         </CollapsibleSection>
       )}
 
       {/* ─── Volume ──────────────────────────────────── */}
       {volumeSection && (
-        <CollapsibleSection title="Volume" color="#22d3ee" isOpen={!collapsed.volume} onToggle={() => toggleSection('volume')}>
+        <CollapsibleSection
+          title="Volume"
+          color="#22d3ee"
+          isOpen={!collapsed.volume}
+          onToggle={() => toggleSection('volume')}
+        >
           <InsightBlock content={volumeSection.content} detail={volumeSection.detail} />
         </CollapsibleSection>
       )}
@@ -237,11 +258,19 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
               <TypeBadge type={level.type} />
               <div style={{ flex: 1 }}>
                 <div className={st.levelPrice}>{level.price.toFixed(2)}</div>
-                <div className={st.levelMeta}>{level.touches} touches · {level.distancePct}% away</div>
+                <div className={st.levelMeta}>
+                  {level.touches} touches · {level.distancePct}% away
+                </div>
               </div>
               <StrengthBar strength={level.strength} maxStrength={Math.max(...levels.map((l) => l.strength))} />
               {onCreateAlert && (
-                <button className={`tf-btn ${st.alertLevelBtn}`} onClick={() => onCreateAlert(level)} title="Create alert at this level">🔔</button>
+                <button
+                  className={`tf-btn ${st.alertLevelBtn}`}
+                  onClick={() => onCreateAlert(level)}
+                  title="Create alert at this level"
+                >
+                  🔔
+                </button>
               )}
             </div>
           ))
@@ -263,7 +292,9 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
               <span className={st.patIcon}>{pat.icon}</span>
               <div className={st.patBody}>
                 <div className={st.patName}>{pat.label}</div>
-                <div className={st.patMeta}>Bar {pat.idx} · {Math.round(pat.confidence * 100)}% confidence</div>
+                <div className={st.patMeta}>
+                  Bar {pat.idx} · {Math.round(pat.confidence * 100)}% confidence
+                </div>
               </div>
               <BiasBadge bias={pat.bias} />
             </div>
@@ -291,7 +322,14 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
             <>
               <div className={st.subGroupLabel}>Formations</div>
               {aiPatterns.chart.map((p, i) => (
-                <PatternRow key={`ch-${i}`} emoji={p.icon} name={p.label} type={p.bias} desc={p.desc} confidence={p.confidence} />
+                <PatternRow
+                  key={`ch-${i}`}
+                  emoji={p.icon}
+                  name={p.label}
+                  type={p.bias}
+                  desc={p.desc}
+                  confidence={p.confidence}
+                />
               ))}
             </>
           )}
@@ -314,7 +352,7 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
                   style={{ '--dot-color': a.severity === 'high' ? C.r : a.severity === 'medium' ? '#f59e0b' : C.t3 }}
                 />
                 <span className={st.anomalyName}>
-                  {a.type.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                  {a.type.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
                 </span>
                 <span className={st.anomalyZ}>{a.zScore.toFixed(1)}σ</span>
               </div>
@@ -354,7 +392,12 @@ function ChartInsightsPanel({ data, isOpen, onClose, onApplyAutoFib, onCreateAle
       </CollapsibleSection>
 
       {/* ─── Auto-Fib ────────────────────────────────── */}
-      <CollapsibleSection title="Auto Fibonacci" color="#22c55e" isOpen={!collapsed.fib} onToggle={() => toggleSection('fib')}>
+      <CollapsibleSection
+        title="Auto Fibonacci"
+        color="#22c55e"
+        isOpen={!collapsed.fib}
+        onToggle={() => toggleSection('fib')}
+      >
         {autoFib ? (
           <div className={st.fibWrap}>
             <div className={st.fibInfo}>
@@ -415,7 +458,12 @@ function CollapsibleSection({ title, color, children, isOpen, onToggle }) {
         onClick={onToggle}
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(); } }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onToggle();
+          }
+        }}
         className={st.sectionHeader}
         style={{ '--section-color': color }}
       >
@@ -468,17 +516,13 @@ function PatternRow({ emoji, name, type, desc, confidence }) {
         <span className={st.patIcon}>{emoji}</span>
         <div className={st.patBody}>
           <div className={st.patName}>{name}</div>
-          {confidence != null && (
-            <div className={st.patMetaMono}>{Math.round(confidence * 100)}% confidence</div>
-          )}
+          {confidence != null && <div className={st.patMetaMono}>{Math.round(confidence * 100)}% confidence</div>}
         </div>
         <span className={st.biasBadge} style={{ '--badge-color': typeColor }}>
           {type}
         </span>
       </div>
-      {expanded && desc && (
-        <div className={st.patDesc}>{desc}</div>
-      )}
+      {expanded && desc && <div className={st.patDesc}>{desc}</div>}
     </div>
   );
 }
@@ -502,10 +546,7 @@ function StrengthBar({ strength, maxStrength }) {
   const barColor = pct > 0.7 ? C.g : pct > 0.4 ? C.y : C.t3;
   return (
     <div className={st.strengthTrack}>
-      <div
-        className={st.strengthFill}
-        style={{ width: `${Math.round(pct * 100)}%`, '--bar-color': barColor }}
-      />
+      <div className={st.strengthFill} style={{ width: `${Math.round(pct * 100)}%`, '--bar-color': barColor }} />
     </div>
   );
 }

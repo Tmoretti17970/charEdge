@@ -5,8 +5,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { Suspense, useEffect } from 'react';
-import WidgetBoundary from '../../app/components/ui/WidgetBoundary.jsx';
 import SlidePanel from '../../app/components/panels/SlidePanel.jsx';
+import WidgetBoundary from '../../app/components/ui/WidgetBoundary.jsx';
 import { C } from '../../constants.js';
 import { useChartFeaturesStore } from '../../state/chart/useChartFeaturesStore';
 import { useChartToolsStore } from '../../state/chart/useChartToolsStore';
@@ -176,60 +176,64 @@ export default function ChartPanelManager({
         >
           <div style={{ padding: 16, height: '100%', display: 'flex', flexDirection: 'column' }}>
             <WidgetBoundary name="Panel Content">
-            <Suspense fallback={<div style={{ padding: 16, color: C.t3 }}>Loading component...</div>}>
-              {activePanel === 'indicators' && <IndicatorPanel isOpen={true} onClose={closePanel} />}
-              {activePanel === 'watchlist' && <WatchlistPanel compact />}
-              {activePanel === 'alerts' && <AlertPanel currentSymbol={symbol} />}
-              {activePanel === 'insights' && (
-                <ChartInsightsPanel
-                  data={data}
-                  isOpen={true}
-                  onClose={closePanel}
-                  symbol={symbol}
-                  tf={tf}
-                  onApplyAutoFib={(fib) => {
-                    useChartToolsStore.getState().addDrawing(fib);
-                    useChartFeaturesStore.getState().setIntelligence('showAutoFib', true);
-                  }}
-                  onCreateAlert={(level) => {
-                    const { addAlert } = useAlertStore.getState();
-                    addAlert({
-                      symbol,
-                      condition: level.price > data[data.length - 1]?.close ? 'above' : 'below',
-                      price: level.price,
-                      note: `[Smart] ${level.type} level with ${level.touches} touches`,
-                    });
-                  }}
-                />
-              )}
-              {/* Wave 0: Quarantined — script editor frozen
+              <Suspense fallback={<div style={{ padding: 16, color: C.t3 }}>Loading component...</div>}>
+                {activePanel === 'indicators' && <IndicatorPanel isOpen={true} onClose={closePanel} />}
+                {activePanel === 'watchlist' && <WatchlistPanel compact />}
+                {activePanel === 'alerts' && <AlertPanel currentSymbol={symbol} />}
+                {activePanel === 'insights' && (
+                  <ChartInsightsPanel
+                    data={data}
+                    isOpen={true}
+                    onClose={closePanel}
+                    symbol={symbol}
+                    tf={tf}
+                    onApplyAutoFib={(fib) => {
+                      useChartToolsStore.getState().addDrawing(fib);
+                      useChartFeaturesStore.getState().setIntelligence('showAutoFib', true);
+                    }}
+                    onCreateAlert={(level) => {
+                      const { addAlert } = useAlertStore.getState();
+                      addAlert({
+                        symbol,
+                        condition: level.price > data[data.length - 1]?.close ? 'above' : 'below',
+                        price: level.price,
+                        note: `[Smart] ${level.type} level with ${level.touches} touches`,
+                      });
+                    }}
+                  />
+                )}
+                {/* Wave 0: Quarantined — script editor frozen
               {activePanel === 'scripts' && (
                 <ScriptEditor ref={editorRef} bars={data} onResults={setEditorOutputs} />
               )}
               */}
-              {activePanel === 'settings' && <ChartSettingsPanel onClose={closePanel} />}
-              {activePanel === 'hotkeys' && <HotkeyCustomizationPanel onClose={closePanel} />}
-              {activePanel === 'annotations' && <ChartAnnotationsPanel onClose={closePanel} />}
-              {activePanel === 'orderflow' && <OrderFlowPanel symbol={symbol} />}
-              {activePanel === 'derivatives' && (
-                <DerivativesDashboard
-                  symbol={symbol.toUpperCase().endsWith('USDT') ? symbol.toUpperCase() : symbol.toUpperCase() + 'USDT'}
-                />
-              )}
-              {activePanel === 'depth' && (
-                <DepthPanel
-                  symbol={symbol.toUpperCase().endsWith('USDT') ? symbol.toUpperCase() : symbol.toUpperCase() + 'USDT'}
-                />
-              )}
-              {activePanel === 'institutional' && <InstitutionalPanel symbol={symbol} />}
-              {activePanel === 'community' && <CommunitySignals />}
-              {activePanel === 'positionSizer' && <PositionSizer />}
-              {activePanel === 'alertHistory' && <AlertHistoryPanel />}
-              {activePanel === 'alertAnalytics' && <AlertAnalytics />}
-              {activePanel === 'quickJournal' && <QuickJournalPanel onClose={closePanel} />}
-              {activePanel === 'stockInfo' && <StockInfoPanel symbol={symbol} />}
-              {/* copilot removed — consolidated into watchlist side panel */}
-            </Suspense>
+                {activePanel === 'settings' && <ChartSettingsPanel onClose={closePanel} />}
+                {activePanel === 'hotkeys' && <HotkeyCustomizationPanel onClose={closePanel} />}
+                {activePanel === 'annotations' && <ChartAnnotationsPanel onClose={closePanel} />}
+                {activePanel === 'orderflow' && <OrderFlowPanel symbol={symbol} />}
+                {activePanel === 'derivatives' && (
+                  <DerivativesDashboard
+                    symbol={
+                      symbol.toUpperCase().endsWith('USDT') ? symbol.toUpperCase() : symbol.toUpperCase() + 'USDT'
+                    }
+                  />
+                )}
+                {activePanel === 'depth' && (
+                  <DepthPanel
+                    symbol={
+                      symbol.toUpperCase().endsWith('USDT') ? symbol.toUpperCase() : symbol.toUpperCase() + 'USDT'
+                    }
+                  />
+                )}
+                {activePanel === 'institutional' && <InstitutionalPanel symbol={symbol} />}
+                {activePanel === 'community' && <CommunitySignals />}
+                {activePanel === 'positionSizer' && <PositionSizer />}
+                {activePanel === 'alertHistory' && <AlertHistoryPanel />}
+                {activePanel === 'alertAnalytics' && <AlertAnalytics />}
+                {activePanel === 'quickJournal' && <QuickJournalPanel onClose={closePanel} />}
+                {activePanel === 'stockInfo' && <StockInfoPanel symbol={symbol} />}
+                {/* copilot removed — consolidated into watchlist side panel */}
+              </Suspense>
             </WidgetBoundary>
           </div>
         </SlidePanel>

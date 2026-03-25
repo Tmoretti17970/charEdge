@@ -60,15 +60,39 @@ function createCondition() {
 // strategy creation time. Same blocked-globals as ScriptEngine.
 
 const _BLOCKED_GLOBALS = [
-  'window', 'document', 'globalThis', 'self',
-  'fetch', 'XMLHttpRequest', 'WebSocket', 'Worker',
-  'localStorage', 'sessionStorage', 'indexedDB',
-  'navigator', 'location', 'history',
-  'setTimeout', 'setInterval', 'requestAnimationFrame',
-  'alert', 'confirm', 'prompt', 'console',
-  'Blob', 'URL', 'TextEncoder', 'TextDecoder',
-  'FormData', 'Headers', 'Request', 'Response',
-  'AbortController', 'BroadcastChannel', 'MessageChannel', 'crypto',
+  'window',
+  'document',
+  'globalThis',
+  'self',
+  'fetch',
+  'XMLHttpRequest',
+  'WebSocket',
+  'Worker',
+  'localStorage',
+  'sessionStorage',
+  'indexedDB',
+  'navigator',
+  'location',
+  'history',
+  'setTimeout',
+  'setInterval',
+  'requestAnimationFrame',
+  'alert',
+  'confirm',
+  'prompt',
+  'console',
+  'Blob',
+  'URL',
+  'TextEncoder',
+  'TextDecoder',
+  'FormData',
+  'Headers',
+  'Request',
+  'Response',
+  'AbortController',
+  'BroadcastChannel',
+  'MessageChannel',
+  'crypto',
 ];
 
 const _DANGEROUS_PATTERNS = [
@@ -87,7 +111,7 @@ const _DANGEROUS_PATTERNS = [
  * Returns a function (i: number, ctx: Record<string, any>) => boolean
  * or null if the condition is invalid/dangerous.
  */
-function _compileCondition(condition: string): ((i: number, ctx: Record<string, unknown>) => boolean) | null {
+function compileCondition(condition: string): ((i: number, ctx: Record<string, unknown>) => boolean) | null {
   if (!condition || condition === 'false') return null;
 
   // Validate against dangerous patterns
@@ -97,21 +121,17 @@ function _compileCondition(condition: string): ((i: number, ctx: Record<string, 
 
   // Pre-compile the Function ONCE (sandbox hardened)
   // The function receives blocked globals (as undefined), ctx keys, i, and Math
-  try {
-    return (i: number, ctx: Record<string, unknown>) => {
+  return (i: number, ctx: Record<string, unknown>) => {
+    try {
       const scopeKeys = [..._BLOCKED_GLOBALS, ...Object.keys(ctx), 'i', 'Math'];
-      const scopeVals = [
-        ..._BLOCKED_GLOBALS.map(() => undefined),
-        ...Object.values(ctx),
-        i, Math,
-      ];
-      // eslint-disable-next-line @typescript-eslint/no-implied-eval
+      const scopeVals = [..._BLOCKED_GLOBALS.map(() => undefined), ...Object.values(ctx), i, Math];
+
       const fn = new Function(...scopeKeys, `"use strict";\nreturn ${condition};`);
       return fn(...scopeVals);
-    };
-  } catch {
-    return null;
-  }
+    } catch {
+      return null;
+    }
+  };
 }
 
 // ─── Store ───────────────────────────────────────────────────────
@@ -124,42 +144,50 @@ const useStrategyBuilderStore = create(
 
       // ─── Strategy Definition ─────────────────────────────
       name: 'My Strategy',
-      entryLong: [createCondition()],     // AND conditions for long entry
-      entryShort: [],                      // AND conditions for short entry
+      entryLong: [createCondition()], // AND conditions for long entry
+      entryShort: [], // AND conditions for short entry
       exitRules: [{ type: 'opposite_signal', params: {} }],
-      logicMode: 'AND',  // AND / OR for combining conditions
+      logicMode: 'AND', // AND / OR for combining conditions
 
       // ─── Actions ─────────────────────────────────────────
 
-      togglePanel() { set(s => ({ panelOpen: !s.panelOpen })); },
+      togglePanel() {
+        set((s) => ({ panelOpen: !s.panelOpen }));
+      },
 
-      setName(name) { set({ name }); },
+      setName(name) {
+        set({ name });
+      },
 
       addCondition(side = 'long') {
-        set(s => {
+        set((s) => {
           const key = side === 'long' ? 'entryLong' : 'entryShort';
           return { [key]: [...s[key], createCondition()] };
         });
       },
 
       removeCondition(side, id) {
-        set(s => {
+        set((s) => {
           const key = side === 'long' ? 'entryLong' : 'entryShort';
-          return { [key]: s[key].filter(c => c.id !== id) };
+          return { [key]: s[key].filter((c) => c.id !== id) };
         });
       },
 
       updateCondition(side, id, updates) {
-        set(s => {
+        set((s) => {
           const key = side === 'long' ? 'entryLong' : 'entryShort';
           return {
-            [key]: s[key].map(c => c.id === id ? { ...c, ...updates } : c),
+            [key]: s[key].map((c) => (c.id === id ? { ...c, ...updates } : c)),
           };
         });
       },
 
-      setExitRules(rules) { set({ exitRules: rules }); },
-      setLogicMode(mode) { set({ logicMode: mode }); },
+      setExitRules(rules) {
+        set({ exitRules: rules });
+      },
+      setLogicMode(mode) {
+        set({ logicMode: mode });
+      },
 
       // ─── Code Generation ─────────────────────────────────
 
@@ -172,26 +200,42 @@ const useStrategyBuilderStore = create(
 
         const getLookup = (src) => {
           switch (src.source) {
-            case 'close': return 'close[i]';
-            case 'open': return 'open[i]';
-            case 'high': return 'high[i]';
-            case 'low': return 'low[i]';
-            case 'volume': return 'volume[i]';
-            case 'sma': return `_sma${src.params.period || 20}[i]`;
-            case 'ema': return `_ema${src.params.period || 20}[i]`;
-            case 'rsi': return `_rsi${src.params.period || 14}[i]`;
-            case 'atr': return `_atr${src.params.period || 14}[i]`;
-            case 'macd_line': return '_macd[i]?.macd';
-            case 'macd_signal': return '_macd[i]?.signal';
-            case 'macd_histogram': return '_macd[i]?.histogram';
-            case 'bollinger_upper': return `_bb${src.params.period || 20}[i]?.upper`;
-            case 'bollinger_lower': return `_bb${src.params.period || 20}[i]?.lower`;
-            case 'vwap': return '_vwap[i]';
+            case 'close':
+              return 'close[i]';
+            case 'open':
+              return 'open[i]';
+            case 'high':
+              return 'high[i]';
+            case 'low':
+              return 'low[i]';
+            case 'volume':
+              return 'volume[i]';
+            case 'sma':
+              return `_sma${src.params.period || 20}[i]`;
+            case 'ema':
+              return `_ema${src.params.period || 20}[i]`;
+            case 'rsi':
+              return `_rsi${src.params.period || 14}[i]`;
+            case 'atr':
+              return `_atr${src.params.period || 14}[i]`;
+            case 'macd_line':
+              return '_macd[i]?.macd';
+            case 'macd_signal':
+              return '_macd[i]?.signal';
+            case 'macd_histogram':
+              return '_macd[i]?.histogram';
+            case 'bollinger_upper':
+              return `_bb${src.params.period || 20}[i]?.upper`;
+            case 'bollinger_lower':
+              return `_bb${src.params.period || 20}[i]?.lower`;
+            case 'vwap':
+              return '_vwap[i]';
             case 'number': {
               const n = Number(src.params.value);
               return String(isFinite(n) ? n : 0);
             }
-            default: return '0';
+            default:
+              return '0';
           }
         };
 
@@ -203,22 +247,24 @@ const useStrategyBuilderStore = create(
           const lp = getPrev(c.left);
           const rp = getPrev(c.right);
           switch (c.comparison) {
-            case 'crosses_above': return `(${lp} <= ${rp} && ${l} > ${r})`;
-            case 'crosses_below': return `(${lp} >= ${rp} && ${l} < ${r})`;
-            case 'greater_than': return `(${l} > ${r})`;
-            case 'less_than': return `(${l} < ${r})`;
-            case 'equals': return `(Math.abs(${l} - ${r}) < 0.0001)`;
-            default: return 'false';
+            case 'crosses_above':
+              return `(${lp} <= ${rp} && ${l} > ${r})`;
+            case 'crosses_below':
+              return `(${lp} >= ${rp} && ${l} < ${r})`;
+            case 'greater_than':
+              return `(${l} > ${r})`;
+            case 'less_than':
+              return `(${l} < ${r})`;
+            case 'equals':
+              return `(Math.abs(${l} - ${r}) < 0.0001)`;
+            default:
+              return 'false';
           }
         };
 
         const joiner = logicMode === 'OR' ? ' || ' : ' && ';
-        const longCond = entryLong.length > 0
-          ? entryLong.map(buildComparison).join(joiner)
-          : 'false';
-        const shortCond = entryShort.length > 0
-          ? entryShort.map(buildComparison).join(joiner)
-          : 'false';
+        const longCond = entryLong.length > 0 ? entryLong.map(buildComparison).join(joiner) : 'false';
+        const shortCond = entryShort.length > 0 ? entryShort.map(buildComparison).join(joiner) : 'false';
 
         // Build the strategy object compatible with BacktestEngine
         return {
@@ -231,13 +277,13 @@ const useStrategyBuilderStore = create(
           // #19: Pre-compiled condition evaluators (sandbox hardened)
           // Compiled ONCE at strategy creation — not per-bar.
           // Uses same blocked-globals technique as ScriptEngine.
-          _compiledLong: _compileCondition(longCond),
-          _compiledShort: _compileCondition(shortCond),
+          _compiledLong: compileCondition(longCond),
+          _compiledShort: compileCondition(shortCond),
 
           // Setup — compute indicators once
           setup(bars) {
             const ctx = {};
-            const closes = bars.map(b => b.close);
+            const closes = bars.map((b) => b.close);
 
             // Collect all needed indicator calls
             const needsSma = new Set();
@@ -276,10 +322,10 @@ const useStrategyBuilderStore = create(
             if (needsVwap) ctx._vwap = Calc.vwap(bars);
 
             ctx.close = closes;
-            ctx.open = bars.map(b => b.open);
-            ctx.high = bars.map(b => b.high);
-            ctx.low = bars.map(b => b.low);
-            ctx.volume = bars.map(b => b.volume || 0);
+            ctx.open = bars.map((b) => b.open);
+            ctx.high = bars.map((b) => b.high);
+            ctx.low = bars.map((b) => b.low);
+            ctx.volume = bars.map((b) => b.volume || 0);
 
             return ctx;
           },
@@ -290,8 +336,8 @@ const useStrategyBuilderStore = create(
             try {
               if (this._compiledLong && this._compiledLong(i, ctx)) return 1;
               if (this._compiledShort && this._compiledShort(i, ctx)) return -1;
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            } catch (_) {
+               
+            } catch {
               // Evaluation error — no signal
             }
             return 0;

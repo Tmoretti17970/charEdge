@@ -10,9 +10,9 @@ import { C } from '../../../constants.js';
 import { gradient } from '../../../theme/tokens.js';
 import { fmtD } from '../../../utils.js';
 import { Card } from '../ui/UIKit.jsx';
+import s from './DashboardHero.module.css';
 import { useCountUp } from '@/hooks/useCountUp';
 import { useAccountStore } from '@/state/useAccountStore';
-import s from './DashboardHero.module.css';
 
 // ─── Mini Sparkline (inline SVG) ────────────────────────────────
 function MiniSparkline({ data, color, width = 120, height = 32 }) {
@@ -109,9 +109,7 @@ function DashboardHero({ todayPnl, todayCount, winRate, yesterdayPnl, recentDail
         </div>
 
         {/* Big number */}
-        <div className={s.bigNumber}>
-          {fmtD(animatedPnl)}
-        </div>
+        <div className={s.bigNumber}>{fmtD(animatedPnl)}</div>
 
         {/* Sparkline (last 7 days) */}
         {recentDailyPnl.length > 1 && (
@@ -140,9 +138,7 @@ function DashboardHero({ todayPnl, todayCount, winRate, yesterdayPnl, recentDail
       {/* ─── Trade Count ─────────────────────────────────────── */}
       <Card className={s.statTile}>
         <div className={s.statLabel}>Trades</div>
-        <div className={s.statValue}>
-          {animatedCount < 1 && todayCount > 0 ? 1 : Math.round(animatedCount)}
-        </div>
+        <div className={s.statValue}>{animatedCount < 1 && todayCount > 0 ? 1 : Math.round(animatedCount)}</div>
         <div className={s.statCaption}>today's session</div>
       </Card>
     </div>

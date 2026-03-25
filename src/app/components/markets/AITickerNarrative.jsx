@@ -16,13 +16,10 @@
 
 import { memo, useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { C } from '../../../constants.js';
-import { radii, transition } from '../../../theme/tokens.js';
 import useHistoricalData from '../../../hooks/useHistoricalData.js';
-import st from './AITickerNarrative.module.css';
+import { radii, transition } from '../../../theme/tokens.js';
 
 const ACCENT = '#6e5ce6';
-const GREEN  = '#22c55e';
-const RED    = '#ef4444';
 
 // ═══════════════════════════════════════════════════════════════════
 // Narrative generator (heuristic-based)
@@ -61,19 +58,29 @@ function generateNarrative(symbol, candles) {
   if (totalChange > 5) {
     parts.push(`**${symbol}** has been on a strong uptrend, gaining ${totalChange.toFixed(1)}% over the period.`);
   } else if (totalChange > 1) {
-    parts.push(`**${symbol}** is showing a moderate upward bias, advancing ${totalChange.toFixed(1)}% over the period.`);
+    parts.push(
+      `**${symbol}** is showing a moderate upward bias, advancing ${totalChange.toFixed(1)}% over the period.`,
+    );
   } else if (totalChange < -5) {
-    parts.push(`**${symbol}** has been under significant selling pressure, declining ${Math.abs(totalChange).toFixed(1)}% over the period.`);
+    parts.push(
+      `**${symbol}** has been under significant selling pressure, declining ${Math.abs(totalChange).toFixed(1)}% over the period.`,
+    );
   } else if (totalChange < -1) {
-    parts.push(`**${symbol}** is trending slightly lower, retreating ${Math.abs(totalChange).toFixed(1)}% over the review period.`);
+    parts.push(
+      `**${symbol}** is trending slightly lower, retreating ${Math.abs(totalChange).toFixed(1)}% over the review period.`,
+    );
   } else {
-    parts.push(`**${symbol}** is consolidating in a tight range with minimal directional bias (${totalChange > 0 ? '+' : ''}${totalChange.toFixed(1)}%).`);
+    parts.push(
+      `**${symbol}** is consolidating in a tight range with minimal directional bias (${totalChange > 0 ? '+' : ''}${totalChange.toFixed(1)}%).`,
+    );
   }
 
   // Recent momentum
   if (Math.abs(recentChange) > 2) {
     const dir = recentChange > 0 ? 'bullish' : 'bearish';
-    parts.push(`Short-term momentum is ${dir}, with price ${recentChange > 0 ? 'pushing higher' : 'pulling back'} ${Math.abs(recentChange).toFixed(1)}% in recent sessions.`);
+    parts.push(
+      `Short-term momentum is ${dir}, with price ${recentChange > 0 ? 'pushing higher' : 'pulling back'} ${Math.abs(recentChange).toFixed(1)}% in recent sessions.`,
+    );
   } else {
     parts.push('Near-term momentum remains subdued with no clear directional conviction.');
   }
@@ -89,9 +96,13 @@ function generateNarrative(symbol, candles) {
 
   // Key levels
   if (positionInRange > 85) {
-    parts.push(`Price is testing resistance near $${resistance >= 1 ? resistance.toFixed(2) : resistance.toFixed(4)} — a breakout could accelerate gains.`);
+    parts.push(
+      `Price is testing resistance near $${resistance >= 1 ? resistance.toFixed(2) : resistance.toFixed(4)} — a breakout could accelerate gains.`,
+    );
   } else if (positionInRange < 15) {
-    parts.push(`Price is approaching support at $${support >= 1 ? support.toFixed(2) : support.toFixed(4)} — this level has held previously.`);
+    parts.push(
+      `Price is approaching support at $${support >= 1 ? support.toFixed(2) : support.toFixed(4)} — this level has held previously.`,
+    );
   }
 
   return parts.join(' ');
@@ -106,10 +117,7 @@ function AITickerNarrative({ symbol }) {
   const [displayText, setDisplayText] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [streamKey, setStreamKey] = useState(0);
-  const fullText = useMemo(
-    () => generateNarrative(symbol, candles),
-    [symbol, candles]
-  );
+  const fullText = useMemo(() => generateNarrative(symbol, candles), [symbol, candles]);
   const animRef = useRef(null);
 
   // Typewriter streaming effect

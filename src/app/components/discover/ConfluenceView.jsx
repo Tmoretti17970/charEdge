@@ -8,7 +8,6 @@ import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
-import st from './ConfluenceView.module.css';
 
 const TIMEFRAMES = ['5m', '15m', '1H', '4H', '1D', '1W'];
 
@@ -170,12 +169,21 @@ function ConfluenceView() {
                   border: `1px solid ${item.score >= 70 ? alpha(C.g, 0.15) : alpha(C.bd, 0.3)}`,
                 }}
               >
-                <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>{item.symbol}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
+                  {item.symbol}
+                </span>
                 {TIMEFRAMES.map((tf) => {
                   const sig = item.signals[tf];
                   return (
                     <div key={tf} style={{ textAlign: 'center' }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: getSignalColor(sig), fontFamily: 'var(--tf-mono)' }}>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: getSignalColor(sig),
+                          fontFamily: 'var(--tf-mono)',
+                        }}
+                      >
                         {SIGNAL_ICONS[sig]}
                       </span>
                     </div>
@@ -208,8 +216,12 @@ function ConfluenceView() {
               ['neutral', 'Neutral'],
             ].map(([key, label]) => (
               <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 11, color: getSignalColor(key), fontFamily: 'var(--tf-mono)' }}>{SIGNAL_ICONS[key]}</span>
-                <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)', textTransform: 'capitalize' }}>{label}</span>
+                <span style={{ fontSize: 11, color: getSignalColor(key), fontFamily: 'var(--tf-mono)' }}>
+                  {SIGNAL_ICONS[key]}
+                </span>
+                <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)', textTransform: 'capitalize' }}>
+                  {label}
+                </span>
               </div>
             ))}
           </div>

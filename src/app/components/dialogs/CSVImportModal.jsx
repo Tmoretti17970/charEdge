@@ -9,7 +9,7 @@ import { useState, useRef, useCallback } from 'react';
 import { importCSV } from '../../../charting_library/datafeed/csv.js';
 import { safeSum } from '../../../charting_library/model/Money.js';
 import { reconcile } from '../../../charting_library/model/reconcile.js';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { fmtD } from '../../../utils.js';
 import { brokerBadge } from '../../features/trading/BrokerProfiles.js';
@@ -125,15 +125,23 @@ function CSVImportModal({ isOpen, onClose }) {
 
           {/* Drop zone */}
           <div
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
             onDragLeave={() => setDragOver(false)}
             onDrop={onDrop}
             onClick={() => fileRef.current?.click()}
             className={s.dropZone}
             data-active={dragOver ? 'true' : undefined}
           >
-            <input ref={fileRef} type="file" accept=".csv,.tsv,.txt" style={{ display: 'none' }}
-              onChange={(e) => processFile(e.target.files[0])} />
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv,.tsv,.txt"
+              style={{ display: 'none' }}
+              onChange={(e) => processFile(e.target.files[0])}
+            />
             <div className={s.s1}>📁</div>
             <div className={s.dropInstruction}>Drop CSV file here or click to browse</div>
             <div className={s.dropHint}>Supports .csv, .tsv, .txt · Auto-detects delimiters and headers</div>
@@ -152,7 +160,9 @@ function CSVImportModal({ isOpen, onClose }) {
               {result.warnings > 0 && <span className={s.countYellow}>{result.warnings} warnings</span>}
               {result.errors > 0 && <span className={s.countRed}>{result.errors} errors</span>}
               {result.duplicates > 0 && <span className={s.countMuted}>{result.duplicates} dupes</span>}
-              <span className={s.pnlValue} style={{ color: totalPnl >= 0 ? C.g : C.r }}>{fmtD(totalPnl)}</span>
+              <span className={s.pnlValue} style={{ color: totalPnl >= 0 ? C.g : C.r }}>
+                {fmtD(totalPnl)}
+              </span>
             </div>
           </div>
 
@@ -206,20 +216,18 @@ function CSVImportModal({ isOpen, onClose }) {
               </div>
             ))}
 
-            {result.trades.length === 0 && (
-              <div className={s.emptyState}>No valid trades found in this file.</div>
-            )}
+            {result.trades.length === 0 && <div className={s.emptyState}>No valid trades found in this file.</div>}
           </div>
 
           {/* Row-level issues (from csv.js) */}
           {result.issues.length > 0 && (
             <div className={s.s3}>
               {result.issues.slice(0, 10).map((issue, i) => (
-                <div key={i} className={s.issueLine}>⚠ {issue}</div>
+                <div key={i} className={s.issueLine}>
+                  ⚠ {issue}
+                </div>
               ))}
-              {result.issues.length > 10 && (
-                <div className={s.issueMore}>...and {result.issues.length - 10} more</div>
-              )}
+              {result.issues.length > 10 && <div className={s.issueMore}>...and {result.issues.length - 10} more</div>}
             </div>
           )}
 
@@ -261,9 +269,13 @@ function CSVImportModal({ isOpen, onClose }) {
                     </span>
                   )}
                   {recon.summary.infos > 0 && (
-                    <span className={s.reconCountInfo} style={{ color: C.b }}>{recon.summary.infos} info</span>
+                    <span className={s.reconCountInfo} style={{ color: C.b }}>
+                      {recon.summary.infos} info
+                    </span>
                   )}
-                  <span className={s.reconChevron} data-open={reconOpen ? 'true' : undefined}>▼</span>
+                  <span className={s.reconChevron} data-open={reconOpen ? 'true' : undefined}>
+                    ▼
+                  </span>
                 </div>
               </div>
 
@@ -280,9 +292,7 @@ function CSVImportModal({ isOpen, onClose }) {
                       </span>
                       <div>
                         <div className={s.reconIssueMsg}>{issue.message}</div>
-                        <div className={s.reconIssueCode}>
-                          {issue.code.replace(/_/g, ' ').toLowerCase()}
-                        </div>
+                        <div className={s.reconIssueCode}>{issue.code.replace(/_/g, ' ').toLowerCase()}</div>
                       </div>
                     </div>
                   ))}
@@ -327,7 +337,10 @@ function CSVImportModal({ isOpen, onClose }) {
             Imported {importCount} trade{importCount !== 1 ? 's' : ''}
           </div>
           <div className={s.doneSummary}>
-            Total P&L: <span className={s.donePnl} style={{ color: totalPnl >= 0 ? C.g : C.r }}>{fmtD(totalPnl)}</span>
+            Total P&L:{' '}
+            <span className={s.donePnl} style={{ color: totalPnl >= 0 ? C.g : C.r }}>
+              {fmtD(totalPnl)}
+            </span>
             {result && result.duplicates > 0 && <span> · {result.duplicates} duplicates skipped</span>}
             {result && result.errors > 0 && <span> · {result.errors} errors skipped</span>}
             {recon && <span> · Data quality: Grade {recon.summary.grade}</span>}

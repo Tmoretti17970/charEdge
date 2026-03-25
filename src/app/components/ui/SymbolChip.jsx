@@ -9,21 +9,21 @@
 import React from 'react';
 import { useState } from 'react';
 import { C, M } from '../../../constants.js';
+import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
 import { useUIStore } from '../../../state/useUIStore';
 import { alpha } from '@/shared/colorUtils';
-import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
 
 // ─── Simulated prices (in production, use live feed) ─────────────
 const SYMBOL_PRICES = {
-  ES:   { price: 5285.50, change: +0.42 },
-  NQ:   { price: 18452.25, change: +0.67 },
-  BTC:  { price: 68425.00, change: +2.14 },
-  ETH:  { price: 3842.18, change: +1.89 },
-  SOL:  { price: 148.62, change: +4.21 },
+  ES: { price: 5285.5, change: +0.42 },
+  NQ: { price: 18452.25, change: +0.67 },
+  BTC: { price: 68425.0, change: +2.14 },
+  ETH: { price: 3842.18, change: +1.89 },
+  SOL: { price: 148.62, change: +4.21 },
   DOGE: { price: 0.1245, change: -1.02 },
   AAPL: { price: 189.72, change: -0.31 },
-  SPY:  { price: 528.45, change: +0.38 },
-  UNI:  { price: 11.84, change: +6.10 },
+  SPY: { price: 528.45, change: +0.38 },
+  UNI: { price: 11.84, change: +6.1 },
   TSLA: { price: 196.42, change: -0.87 },
 };
 
@@ -58,9 +58,7 @@ function SymbolChip({ symbol, showPrice = true, size = 'default' }) {
         padding: isSmall ? '2px 6px' : '3px 10px',
         borderRadius: isSmall ? 6 : 8,
         border: `1px solid ${hovered ? alpha(C.b, 0.4) : alpha(C.bd, 0.6)}`,
-        background: hovered
-          ? alpha(C.b, 0.08)
-          : alpha(C.sf, 0.4),
+        background: hovered ? alpha(C.b, 0.08) : alpha(C.sf, 0.4),
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         cursor: 'pointer',
@@ -100,7 +98,8 @@ function SymbolChip({ symbol, showPrice = true, size = 'default' }) {
               fontFamily: M,
             }}
           >
-            {data.change >= 0 ? '↑' : '↓'}{Math.abs(data.change).toFixed(2)}%
+            {data.change >= 0 ? '↑' : '↓'}
+            {Math.abs(data.change).toFixed(2)}%
           </span>
         </>
       )}

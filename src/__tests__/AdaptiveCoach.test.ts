@@ -7,11 +7,17 @@ import { describe, it, expect, beforeEach } from 'vitest';
 // Shim localStorage for vitest (not available in Node)
 if (typeof globalThis.localStorage === 'undefined') {
   const store: Record<string, string> = {};
-  (globalThis as any).localStorage = {
+  (globalThis as unknown as Record<string, unknown>).localStorage = {
     getItem: (k: string) => store[k] ?? null,
-    setItem: (k: string, v: string) => { store[k] = v; },
-    removeItem: (k: string) => { delete store[k]; },
-    clear: () => { for (const k of Object.keys(store)) delete store[k]; },
+    setItem: (k: string, v: string) => {
+      store[k] = v;
+    },
+    removeItem: (k: string) => {
+      delete store[k];
+    },
+    clear: () => {
+      for (const k of Object.keys(store)) delete store[k];
+    },
   };
 }
 

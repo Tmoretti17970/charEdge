@@ -200,7 +200,7 @@ function openUnifiedDB() {
             },
             timestamp: Date.now(),
           });
-        } catch (_schemaErr) {
+        } catch {
           // Non-critical — meta store may not exist on first open
         }
 
@@ -219,8 +219,7 @@ function openUnifiedDB() {
         logger.data.warn('[UnifiedDB] Failed to open unified database');
         reject(new Error('IndexedDB unavailable'));
       };
-      // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) {
+    } catch {
       if (!settled) {
         settled = true;
         clearTimeout(timeout);
@@ -232,7 +231,9 @@ function openUnifiedDB() {
   // On failure, cache the rejection for 30s to prevent rapid-fire retries
   // that flood the console (TickPersistence flushes every 5s)
   _dbPromise.catch(() => {
-    setTimeout(() => { _dbPromise = null; }, 30000);
+    setTimeout(() => {
+      _dbPromise = null;
+    }, 30000);
   });
 
   return _dbPromise;
@@ -246,8 +247,7 @@ async function _migrateOldDBs(unifiedDb) {
   // Skip if already migrated
   try {
     if (localStorage.getItem(MIGRATION_FLAG)) return;
-    // eslint-disable-next-line unused-imports/no-unused-vars
-  } catch (_) {
+  } catch {
     /* localStorage unavailable — skip migration check */
   }
 
@@ -288,8 +288,7 @@ async function _migrateOldDBs(unifiedDb) {
   // Set flag so migration doesn't re-run
   try {
     localStorage.setItem(MIGRATION_FLAG, Date.now().toString());
-    // eslint-disable-next-line unused-imports/no-unused-vars
-  } catch (_) {
+  } catch {
     /* ignore */
   }
 
@@ -305,8 +304,7 @@ async function _migrateOldDBs(unifiedDb) {
     for (const dbName of OLD_DBS) {
       try {
         indexedDB.deleteDatabase(dbName);
-        // eslint-disable-next-line unused-imports/no-unused-vars
-      } catch (_) {
+      } catch {
         /* silent */
       }
     }
@@ -404,8 +402,7 @@ async function _migrateToAccountStores(unifiedDb) {
   // Skip if already migrated
   try {
     if (localStorage.getItem(ACCOUNT_MIGRATION_FLAG)) return;
-    // eslint-disable-next-line unused-imports/no-unused-vars
-  } catch (_) {
+  } catch {
     /* localStorage unavailable */
   }
 
@@ -426,8 +423,7 @@ async function _migrateToAccountStores(unifiedDb) {
       await _writeAllToStore(unifiedDb, realStoreName, records);
       migrated = true;
       logger.data.info(`[UnifiedDB] Migrated ${records.length} records from '${base}' → '${realStoreName}'`);
-      // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) {
+    } catch {
       // Non-fatal — store may not exist in older DB versions
     }
   }
@@ -439,8 +435,7 @@ async function _migrateToAccountStores(unifiedDb) {
   // Set flag so migration doesn't re-run
   try {
     localStorage.setItem(ACCOUNT_MIGRATION_FLAG, Date.now().toString());
-    // eslint-disable-next-line unused-imports/no-unused-vars
-  } catch (_) {
+  } catch {
     /* ignore */
   }
 }
@@ -463,8 +458,7 @@ function _readAllFromStoreWithKeys(db, storeName) {
         }
       };
       req.onerror = () => resolve([]);
-      // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) {
+    } catch {
       resolve([]);
     }
   });
@@ -481,8 +475,7 @@ function _writeAllToStoreWithKeys(db, storeName, records) {
       }
       tx.oncomplete = () => resolve();
       tx.onerror = () => resolve();
-      // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) {
+    } catch {
       resolve();
     }
   });
@@ -496,8 +489,7 @@ function _openOldDB(name) {
       const req = indexedDB.open(name);
       req.onsuccess = (e) => resolve(e.target.result);
       req.onerror = () => resolve(null);
-      // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) {
+    } catch {
       resolve(null);
     }
   });
@@ -511,8 +503,7 @@ function _readAllFromStore(db, storeName) {
       const req = store.getAll();
       req.onsuccess = () => resolve(req.result || []);
       req.onerror = () => resolve([]);
-      // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) {
+    } catch {
       resolve([]);
     }
   });
@@ -528,8 +519,7 @@ function _writeAllToStore(db, storeName, records) {
       }
       tx.oncomplete = () => resolve();
       tx.onerror = () => resolve();
-      // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) {
+    } catch {
       resolve();
     }
   });
@@ -545,8 +535,7 @@ function _addAllToStore(db, storeName, records) {
       }
       tx.oncomplete = () => resolve();
       tx.onerror = () => resolve();
-      // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) {
+    } catch {
       resolve();
     }
   });
@@ -576,14 +565,14 @@ async function getStorageHealth() {
     try {
       const tx = db.transaction('meta', 'readonly');
       const req = tx.objectStore('meta').get('__schema__');
-      const schema = await new Promise(r => {
+      const schema = await new Promise((r) => {
         req.onsuccess = () => r(req.result);
         req.onerror = () => r(null);
       });
       if (schema?.data) {
         report.actualVersion = schema.data.version;
       }
-    } catch (_) {
+    } catch {
       report.errors.push('Could not read schema version');
     }
 
@@ -591,7 +580,7 @@ async function getStorageHealth() {
     const storeNames = [...db.objectStoreNames];
     for (const name of storeNames) {
       try {
-        const count = await new Promise(r => {
+        const count = await new Promise((r) => {
           const tx = db.transaction(name, 'readonly');
           const req = tx.objectStore(name).count();
           req.onsuccess = () => r(req.result);
@@ -599,7 +588,7 @@ async function getStorageHealth() {
         });
         report.storeCounts[name] = count;
         report.totalRecords += count;
-      } catch (_) {
+      } catch {
         report.storeCounts[name] = -1; // Error flag
       }
     }
@@ -607,7 +596,7 @@ async function getStorageHealth() {
     // Storage usage
     if (navigator?.storage?.estimate) {
       const est = await navigator.storage.estimate();
-      report.usageMB = Math.round((est.usage || 0) / 1048576 * 10) / 10;
+      report.usageMB = Math.round(((est.usage || 0) / 1048576) * 10) / 10;
       report.quotaMB = Math.round((est.quota || 0) / 1048576);
       report.usagePct = est.quota > 0 ? Math.round((est.usage / est.quota) * 1000) / 10 : 0;
     }
@@ -615,7 +604,9 @@ async function getStorageHealth() {
     // Migration status
     try {
       report.migrated = !!localStorage.getItem(MIGRATION_FLAG);
-    } catch (_) {}
+    } catch {
+      /* migration flag check best-effort */
+    }
 
     report.healthy = report.errors.length === 0 && report.actualVersion === UNIFIED_DB_VERSION;
   } catch (err) {

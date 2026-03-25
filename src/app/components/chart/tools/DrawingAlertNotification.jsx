@@ -14,9 +14,12 @@ export default function DrawingAlertNotification() {
   const timersRef = useRef(new Map());
 
   const dismiss = useCallback((id) => {
-    setAlerts(prev => prev.filter(a => a.id !== id));
+    setAlerts((prev) => prev.filter((a) => a.id !== id));
     const t = timersRef.current.get(id);
-    if (t) { clearTimeout(t); timersRef.current.delete(id); }
+    if (t) {
+      clearTimeout(t);
+      timersRef.current.delete(id);
+    }
   }, []);
 
   useEffect(() => {
@@ -25,8 +28,8 @@ export default function DrawingAlertNotification() {
       if (!detail) return;
       const id = `alert_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
       const alert = { id, ...detail, createdAt: Date.now() };
-      setAlerts(prev => [...prev.slice(-4), alert]); // Cap at 5
-      
+      setAlerts((prev) => [...prev.slice(-4), alert]); // Cap at 5
+
       // Play chime
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -40,7 +43,9 @@ export default function DrawingAlertNotification() {
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + 0.3);
-      } catch {}
+      } catch {
+        /* audio playback may be blocked by browser autoplay policy */
+      }
 
       // Auto-dismiss
       const timer = setTimeout(() => dismiss(id), DISMISS_MS);
@@ -48,28 +53,38 @@ export default function DrawingAlertNotification() {
     };
 
     window.addEventListener('charEdge:drawing-alert', handler);
+    const timers = timersRef.current;
     return () => {
       window.removeEventListener('charEdge:drawing-alert', handler);
-      for (const t of timersRef.current.values()) clearTimeout(t);
+      for (const t of timers.values()) clearTimeout(t);
     };
   }, [dismiss]);
 
   if (alerts.length === 0) return null;
 
   return (
-    <div style={{
-      position: 'fixed', top: 64, right: 16,
-      display: 'flex', flexDirection: 'column', gap: 8,
-      zIndex: 10001, pointerEvents: 'none',
-    }}>
-      {alerts.map(alert => {
+    <div
+      style={{
+        position: 'fixed',
+        top: 64,
+        right: 16,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        zIndex: 10001,
+        pointerEvents: 'none',
+      }}
+    >
+      {alerts.map((alert) => {
         const age = Date.now() - alert.createdAt;
         const fadeOut = age > DISMISS_MS - 600;
         return (
           <div
             key={alert.id}
             style={{
-              display: 'flex', alignItems: 'center', gap: 10,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
               padding: '10px 14px',
               borderRadius: 10,
               background: 'rgba(24, 26, 32, 0.92)',
@@ -88,17 +103,17 @@ export default function DrawingAlertNotification() {
             onClick={() => dismiss(alert.id)}
           >
             {/* Direction arrow */}
-            <span style={{
-              fontSize: 18,
-              color: alert.direction === 'up' ? '#26A69A' : '#EF5350',
-            }}>
+            <span
+              style={{
+                fontSize: 18,
+                color: alert.direction === 'up' ? '#26A69A' : '#EF5350',
+              }}
+            >
               {alert.direction === 'up' ? '↑' : '↓'}
             </span>
 
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 2 }}>
-                🔔 Drawing Alert
-              </div>
+              <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 2 }}>🔔 Drawing Alert</div>
               <div style={{ fontSize: 11, color: '#787B86' }}>
                 Price {alert.direction === 'up' ? 'crossed above' : 'crossed below'} {alert.drawingType || 'line'}
                 {alert.price != null && ` at ${Number(alert.price).toFixed(2)}`}

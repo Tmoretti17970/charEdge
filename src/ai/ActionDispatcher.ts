@@ -15,7 +15,7 @@
 export interface Capability {
   name: string;
   description: string;
-  params: string[];         // Expected parameter names
+  params: string[]; // Expected parameter names
   handler: (params: Record<string, unknown>) => Promise<string> | string;
 }
 
@@ -69,9 +69,7 @@ export class CapabilityRegistry {
   getCapabilitiesForPrompt(): string {
     if (this._capabilities.size === 0) return '';
 
-    const lines = [...this._capabilities.values()].map(c =>
-      `- ${c.name}(${c.params.join(', ')}): ${c.description}`
-    );
+    const lines = [...this._capabilities.values()].map((c) => `- ${c.name}(${c.params.join(', ')}): ${c.description}`);
     return `--- Available Actions ---\nYou can trigger actions by including [ACTION: name | param=value] in your response.\n${lines.join('\n')}`;
   }
 }
@@ -148,54 +146,54 @@ export class ActionDispatcher {
 export const capabilityRegistry = new CapabilityRegistry();
 
 // Register built-in actions — wired to actual app functionality
-capabilityRegistry.register('set_alert', 'Set a price alert', ['symbol', 'price'],
-  async (params) => {
-    window.dispatchEvent(new CustomEvent('tf:create-alert', {
+capabilityRegistry.register('set_alert', 'Set a price alert', ['symbol', 'price'], async (params) => {
+  window.dispatchEvent(
+    new CustomEvent('tf:create-alert', {
       detail: { symbol: String(params.symbol), price: Number(params.price) },
-    }));
-    return `✅ Price alert set: ${params.symbol} at $${params.price}`;
-  }
-);
+    }),
+  );
+  return `✅ Price alert set: ${params.symbol} at $${params.price}`;
+});
 
-capabilityRegistry.register('add_journal', 'Save analysis to journal', ['content'],
-  async (params) => {
-    window.dispatchEvent(new CustomEvent('tf:add-journal-entry', {
+capabilityRegistry.register('add_journal', 'Save analysis to journal', ['content'], async (params) => {
+  window.dispatchEvent(
+    new CustomEvent('tf:add-journal-entry', {
       detail: { content: String(params.content), source: 'ai-copilot' },
-    }));
-    return `✅ Saved to journal: ${String(params.content).slice(0, 80)}...`;
-  }
-);
+    }),
+  );
+  return `✅ Saved to journal: ${String(params.content).slice(0, 80)}...`;
+});
 
-capabilityRegistry.register('fetch_trades', 'Fetch recent trades', ['symbol', 'count'],
-  async (params) => {
-    try {
-      const { default: useJournalStore } = await import('@/state/useJournalStore');
-      const trades = (useJournalStore as any).getState().trades || [];
-      const symbol = params.symbol ? String(params.symbol).toUpperCase() : null;
-      const count = Number(params.count) || 5;
-      const filtered = symbol
-        ? trades.filter((t: any) => t.symbol?.toUpperCase() === symbol).slice(-count)
-        : trades.slice(-count);
-      if (filtered.length === 0) return `No trades found${symbol ? ` for ${symbol}` : ''}.`;
-      return filtered.map((t: any) =>
-        `${t.symbol} ${t.side} — $${(t.pnl || 0).toFixed(2)} (${t.date || 'N/A'})`
-      ).join('\n');
-    } catch {
-      return 'Could not access trade journal.';
-    }
+capabilityRegistry.register('fetch_trades', 'Fetch recent trades', ['symbol', 'count'], async (params) => {
+  try {
+    const { default: useJournalStore } = await import('@/state/useJournalStore');
+    const store = useJournalStore as unknown as { getState: () => Record<string, unknown> };
+    const trades = (store.getState().trades || []) as Record<string, unknown>[];
+    const symbol = params.symbol ? String(params.symbol).toUpperCase() : null;
+    const count = Number(params.count) || 5;
+    const filtered = symbol
+      ? trades.filter((t: Record<string, unknown>) => (t.symbol as string)?.toUpperCase() === symbol).slice(-count)
+      : trades.slice(-count);
+    if (filtered.length === 0) return `No trades found${symbol ? ` for ${symbol}` : ''}.`;
+    return filtered
+      .map(
+        (t: Record<string, unknown>) =>
+          `${t.symbol} ${t.side} — $${(Number(t.pnl) || 0).toFixed(2)} (${t.date || 'N/A'})`,
+      )
+      .join('\n');
+  } catch {
+    return 'Could not access trade journal.';
   }
-);
+});
 
-capabilityRegistry.register('query_profile', 'Query trading profile', ['metric'],
-  async () => {
-    try {
-      const { userProfileStore } = await import('./UserProfileStore');
-      return userProfileStore.getSummaryForAI() || 'No profile data available yet.';
-    } catch {
-      return 'Profile store not available.';
-    }
+capabilityRegistry.register('query_profile', 'Query trading profile', ['metric'], async () => {
+  try {
+    const { userProfileStore } = await import('./UserProfileStore');
+    return userProfileStore.getSummaryForAI() || 'No profile data available yet.';
+  } catch {
+    return 'Profile store not available.';
   }
-);
+});
 
 // ─── Dispatcher Singleton ───────────────────────────────────────
 

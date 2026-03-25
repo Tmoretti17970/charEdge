@@ -7,9 +7,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo, useState } from 'react';
-import { C, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { transition } from '../../../theme/tokens.js';
-import st from './VolumeProfileBar.module.css';
 
 function fmtVol(v) {
   if (v == null || isNaN(v)) return '—';
@@ -48,19 +47,18 @@ function VolumeProfileBar({ currentVolume, avgVolume, expanded = false }) {
     >
       {/* Expanded header */}
       {expanded && (
-        <div style={{
-          display: 'flex', justifyContent: 'space-between',
-          marginBottom: 6,
-        }}>
-          <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
-            Avg: {fmtVol(avgVolume)}
-          </span>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginBottom: 6,
+          }}
+        >
+          <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t3 }}>Avg: {fmtVol(avgVolume)}</span>
           <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: barColor, fontWeight: 700 }}>
             {ratioLabel} avg {badge}
           </span>
-          <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
-            Now: {fmtVol(currentVolume)}
-          </span>
+          <span style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t3 }}>Now: {fmtVol(currentVolume)}</span>
         </div>
       )}
 
@@ -103,7 +101,16 @@ function VolumeProfileBar({ currentVolume, avgVolume, expanded = false }) {
 
         {/* Compact labels */}
         {!expanded && (
-          <span style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: barColor, fontWeight: 700, minWidth: 26, textAlign: 'right' }}>
+          <span
+            style={{
+              fontSize: 9,
+              fontFamily: 'var(--tf-mono)',
+              color: barColor,
+              fontWeight: 700,
+              minWidth: 26,
+              textAlign: 'right',
+            }}
+          >
             {badge || ratioLabel}
           </span>
         )}

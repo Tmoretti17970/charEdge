@@ -6,24 +6,23 @@
 // Skipped on Charts page (full-bleed layout).
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
 import { C, F } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
 
 const PAGE_META = {
-  journal:    { label: 'Command Center', icon: '🏠' },
-  dashboard:  { label: 'Command Center', icon: '🏠' },
-  markets:    { label: 'Markets',        icon: '👁' },
-  charts:     { label: 'Charts',         icon: '📈' },
-  import:     { label: 'Import Hub',     icon: '📥' },
-  settings:   { label: 'Settings',       icon: '⚙️' },
-  changelog:  { label: "What's New",     icon: '📋' },
-  privacy:    { label: 'Privacy Policy', icon: '🔒' },
-  terms:      { label: 'Terms of Service', icon: '📄' },
+  journal: { label: 'Command Center', icon: '🏠' },
+  dashboard: { label: 'Command Center', icon: '🏠' },
+  markets: { label: 'Markets', icon: '👁' },
+  charts: { label: 'Charts', icon: '📈' },
+  import: { label: 'Import Hub', icon: '📥' },
+  settings: { label: 'Settings', icon: '⚙️' },
+  changelog: { label: "What's New", icon: '📋' },
+  privacy: { label: 'Privacy Policy', icon: '🔒' },
+  terms: { label: 'Terms of Service', icon: '📄' },
   charolette: { label: "Charolette's Light", icon: '✦' },
-  telemetry:  { label: 'Telemetry',      icon: '📊' },
-  speedtest:  { label: 'Speed Test',     icon: '⚡' },
-  landing:    { label: 'Landing',        icon: '🚀' },
+  telemetry: { label: 'Telemetry', icon: '📊' },
+  speedtest: { label: 'Speed Test', icon: '⚡' },
+  landing: { label: 'Landing', icon: '🚀' },
 };
 
 export default function PageBreadcrumb({ page, subTab = null }) {

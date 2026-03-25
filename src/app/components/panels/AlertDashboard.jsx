@@ -11,16 +11,6 @@ function AlertDashboard({ alerts = [], onMuteSymbol, onDeleteAlert, onEditAlert 
   const [expanded, setExpanded] = useState(null);
   const [filter, setFilter] = useState('all');
 
-  const grouped = useMemo(() => {
-    const map = {};
-    for (const alert of alerts) {
-      const sym = alert.symbol || 'Unknown';
-      if (!map[sym]) map[sym] = [];
-      map[sym].push(alert);
-    }
-    return map;
-  }, [alerts]);
-
   const filteredAlerts = useMemo(() => {
     if (filter === 'all') return alerts;
     if (filter === 'active') return alerts.filter((a) => !a.triggered && !a.expired);
@@ -64,7 +54,9 @@ function AlertDashboard({ alerts = [], onMuteSymbol, onDeleteAlert, onEditAlert 
           { label: 'Total', value: stats.total, color: C.t1 },
         ].map((stat) => (
           <Card key={stat.label} className={st.statCard}>
-            <div className={st.statValue} style={{ color: stat.color }}>{stat.value}</div>
+            <div className={st.statValue} style={{ color: stat.color }}>
+              {stat.value}
+            </div>
             <div className={st.statLabel}>{stat.label}</div>
           </Card>
         ))}
@@ -77,7 +69,9 @@ function AlertDashboard({ alerts = [], onMuteSymbol, onDeleteAlert, onEditAlert 
             key={f}
             className={`tf-btn ${st.filterBtn} ${filter === f ? st.filterBtnActive : st.filterBtnInactive}`}
             onClick={() => setFilter(f)}
-          >{f}</button>
+          >
+            {f}
+          </button>
         ))}
       </div>
 
@@ -139,9 +133,12 @@ function SymbolGroup({ symbol, alerts, isExpanded, onToggle, onMuteSymbol, onDel
               </button>
             )}
             {triggered > 0 && onDeleteAlert && (
-              <button className={`tf-btn ${st.actionBtn}`} onClick={() => {
-                alerts.filter((a) => a.triggered).forEach((a) => onDeleteAlert(a.id));
-              }}>
+              <button
+                className={`tf-btn ${st.actionBtn}`}
+                onClick={() => {
+                  alerts.filter((a) => a.triggered).forEach((a) => onDeleteAlert(a.id));
+                }}
+              >
                 🗑 Delete Triggered
               </button>
             )}
@@ -158,8 +155,14 @@ function SymbolGroup({ symbol, alerts, isExpanded, onToggle, onMuteSymbol, onDel
 // ─── Individual Alert Row ───────────────────────────────────────
 
 const COND_ICONS = {
-  above: '↑', below: '↓', cross_above: '↗', cross_below: '↘',
-  percent_above: '📈', percent_below: '📉', '52w_high': '🌟', '52w_low': '⚠️',
+  above: '↑',
+  below: '↓',
+  cross_above: '↗',
+  cross_below: '↘',
+  percent_above: '📈',
+  percent_below: '📉',
+  '52w_high': '🌟',
+  '52w_low': '⚠️',
 };
 
 function AlertRow({ alert, onEdit, onDelete }) {
@@ -169,15 +172,25 @@ function AlertRow({ alert, onEdit, onDelete }) {
     <div className={`${st.alertRow} ${alert.expired ? st.alertRowExpired : ''}`}>
       <span className={st.alertIcon}>{condIcon}</span>
       <div className={st.alertBody}>
-        <div className={st.alertCond}>{alert.condition} ${alert.price?.toFixed(2)}</div>
+        <div className={st.alertCond}>
+          {alert.condition} ${alert.price?.toFixed(2)}
+        </div>
         <div className={st.alertMeta}>
           {alert.triggered ? `Fired ${timeAgo(alert.lastTriggered)}` : alert.expired ? 'Expired' : 'Active'}
           {alert.repeatMode && ` · ${alert.repeatMode}`}
         </div>
       </div>
       <div className={st.alertActions}>
-        {onEdit && <button className={`tf-btn ${st.smBtn}`} onClick={() => onEdit(alert)}>✏️</button>}
-        {onDelete && <button className={`tf-btn ${st.smBtn}`} onClick={() => onDelete(alert.id)}>🗑</button>}
+        {onEdit && (
+          <button className={`tf-btn ${st.smBtn}`} onClick={() => onEdit(alert)}>
+            ✏️
+          </button>
+        )}
+        {onDelete && (
+          <button className={`tf-btn ${st.smBtn}`} onClick={() => onDelete(alert.id)}>
+            🗑
+          </button>
+        )}
       </div>
     </div>
   );

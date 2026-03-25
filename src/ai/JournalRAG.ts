@@ -21,9 +21,9 @@ import { bm25Search } from './BM25Search';
 // ─── Types ──────────────────────────────────────────────────────
 
 export interface RAGResult {
-  context: string;           // Formatted context string for LLM
-  sources: RAGSource[];      // The matching trades/entries
-  queryTime: number;         // ms
+  context: string; // Formatted context string for LLM
+  sources: RAGSource[]; // The matching trades/entries
+  queryTime: number; // ms
 }
 
 export interface RAGSource {
@@ -65,7 +65,7 @@ interface TradeLike {
 
 // ─── Constants ──────────────────────────────────────────────────
 
-const BATCH_DELAY_MS = 30;  // Delay between batch embeddings to avoid blocking
+const BATCH_DELAY_MS = 30; // Delay between batch embeddings to avoid blocking
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -97,9 +97,7 @@ export class JournalRAG {
 
     try {
       const embed = await this._getEmbedFn();
-      const closedTrades = trades.filter(t =>
-        typeof t.pnl === 'number' && !isNaN(t.pnl) && t.id,
-      );
+      const closedTrades = trades.filter((t) => typeof t.pnl === 'number' && !isNaN(t.pnl) && t.id);
 
       for (const trade of closedTrades) {
         const id = `trade-${trade.id}`;
@@ -135,7 +133,7 @@ export class JournalRAG {
 
         // Small delay to avoid blocking
         if (indexed % 5 === 0) {
-          await new Promise(r => setTimeout(r, BATCH_DELAY_MS));
+          await new Promise((r) => setTimeout(r, BATCH_DELAY_MS));
         }
       }
 
@@ -193,7 +191,7 @@ export class JournalRAG {
 
         if (results.length > 0) {
           this._searchMode = 'semantic';
-          const sources: RAGSource[] = results.map(r => ({
+          const sources: RAGSource[] = results.map((r) => ({
             id: r.entry.id,
             text: r.entry.text,
             similarity: Math.round(r.similarity * 100) / 100,
@@ -206,14 +204,16 @@ export class JournalRAG {
           };
         }
       }
-    } catch { /* fall through to BM25 */ }
+    } catch {
+      /* fall through to BM25 */
+    }
 
     // BM25 keyword fallback
     try {
       const bm25Results = bm25Search.search(question, topK);
       if (bm25Results.length > 0) {
         this._searchMode = 'keyword';
-        const sources: RAGSource[] = bm25Results.map(r => ({
+        const sources: RAGSource[] = bm25Results.map((r) => ({
           id: r.id,
           text: r.text,
           similarity: Math.min(r.score / 5, 1), // Normalize BM25 scores to 0-1 range
@@ -225,7 +225,9 @@ export class JournalRAG {
           queryTime: Math.round(performance.now() - start),
         };
       }
-    } catch { /* non-critical */ }
+    } catch {
+      /* non-critical */
+    }
 
     this._searchMode = 'none';
     return { context: '', sources: [], queryTime: performance.now() - start };
@@ -294,14 +296,18 @@ export class JournalRAG {
         };
         return this._embedFn;
       }
-    } catch { /* not available */ }
+    } catch {
+      /* not available */
+    }
 
     // Fallback to Gemini API
     try {
       const { embeddingService } = await import('./EmbeddingService');
       this._embedFn = (text: string) => embeddingService.embed(text);
       return this._embedFn;
-    } catch { /* not available */ }
+    } catch {
+      /* not available */
+    }
 
     // Last resort: return zero vector (RAG won't work but won't crash)
     this._embedFn = async () => [];
@@ -315,7 +321,13 @@ export function tradeToText(trade: TradeLike): string {
   const parts: string[] = [];
 
   // Side + Symbol
-  const side = String(trade.side || '').charAt(0).toUpperCase() + String(trade.side || '').slice(1).toLowerCase();
+  const side =
+    String(trade.side || '')
+      .charAt(0)
+      .toUpperCase() +
+    String(trade.side || '')
+      .slice(1)
+      .toLowerCase();
   const symbol = String(trade.symbol || 'Unknown').toUpperCase();
   parts.push(`${side || 'Trade'} ${symbol}`);
 
@@ -324,7 +336,7 @@ export function tradeToText(trade: TradeLike): string {
   if (setup) parts.push(String(setup).toLowerCase());
 
   // Timing
-  const d = _getDate(trade);
+  const d = getDate(trade);
   if (d) {
     const dayName = DAY_NAMES[d.getDay()] || '';
     const hour = d.getHours();
@@ -335,7 +347,7 @@ export function tradeToText(trade: TradeLike): string {
   }
 
   // Hold time
-  const holdMins = _getHoldMinutes(trade);
+  const holdMins = getHoldMinutes(trade);
   if (holdMins > 0) {
     if (holdMins < 60) {
       parts.push(`held ${Math.round(holdMins)}min`);
@@ -377,14 +389,14 @@ export function tradeToText(trade: TradeLike): string {
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
-function _getDate(t: TradeLike): Date | null {
+function getDate(t: TradeLike): Date | null {
   const raw = t.entryDate || t.date || t.entryTime;
   if (!raw) return null;
   const d = new Date(raw as string | number);
   return isNaN(d.getTime()) ? null : d;
 }
 
-function _getHoldMinutes(t: TradeLike): number {
+function getHoldMinutes(t: TradeLike): number {
   if (typeof t.holdMinutes === 'number' && t.holdMinutes > 0) return t.holdMinutes;
   if (typeof t.holdDuration === 'number' && t.holdDuration > 0) return t.holdDuration / 60000;
 

@@ -5,9 +5,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useMemo } from 'react';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 import { useJournalStore } from '../../../../state/useJournalStore';
 import { POPULAR_SYMBOLS } from './commandRegistry.js';
-import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 
 // ─── Fuzzy Match ────────────────────────────────────────────────
 
@@ -42,17 +42,28 @@ export default function useCommandSearch(commands, query, actions) {
       }
     }
     const recent = tradeSymbols.slice(0, 5).map((sym) => ({
-      id: `sym-recent-${sym}`, label: sym, sublabel: 'Recent',
-      group: 'Recent Symbols', icon: '🕐',
-      action: () => { useChartCoreStore.getState().setSymbol(sym); actions.setPage('charts'); },
+      id: `sym-recent-${sym}`,
+      label: sym,
+      sublabel: 'Recent',
+      group: 'Recent Symbols',
+      icon: '🕐',
+      action: () => {
+        useChartCoreStore.getState().setSymbol(sym);
+        actions.setPage('charts');
+      },
     }));
-    const popular = POPULAR_SYMBOLS
-      .filter((p) => !seen.has(p.sym))
+    const popular = POPULAR_SYMBOLS.filter((p) => !seen.has(p.sym))
       .slice(0, 8)
       .map((p) => ({
-        id: `sym-${p.sym}`, label: p.sym, sublabel: p.name,
-        group: 'Symbols', icon: p.icon,
-        action: () => { useChartCoreStore.getState().setSymbol(p.sym); actions.setPage('charts'); },
+        id: `sym-${p.sym}`,
+        label: p.sym,
+        sublabel: p.name,
+        group: 'Symbols',
+        icon: p.icon,
+        action: () => {
+          useChartCoreStore.getState().setSymbol(p.sym);
+          actions.setPage('charts');
+        },
       }));
     return { recent, popular };
   }, [actions]);
@@ -67,7 +78,7 @@ export default function useCommandSearch(commands, query, actions) {
       const symQ = q.slice(1).toLowerCase();
       if (!symQ) return [...symbolResults.recent, ...symbolResults.popular];
       return [...symbolResults.recent, ...symbolResults.popular].filter(
-        (s) => s.label.toLowerCase().includes(symQ) || s.sublabel?.toLowerCase().includes(symQ)
+        (s) => s.label.toLowerCase().includes(symQ) || s.sublabel?.toLowerCase().includes(symQ),
       );
     }
 
@@ -81,22 +92,28 @@ export default function useCommandSearch(commands, query, actions) {
     // Default: search commands + symbols
     const matchedCmds = commands.filter((c) => fuzzyMatch(q, c.label) || fuzzyMatch(q, c.group));
     const matchedSyms = [...symbolResults.recent, ...symbolResults.popular].filter(
-      (s) => s.label.toLowerCase().includes(q.toLowerCase()) || s.sublabel?.toLowerCase().includes(q.toLowerCase())
+      (s) => s.label.toLowerCase().includes(q.toLowerCase()) || s.sublabel?.toLowerCase().includes(q.toLowerCase()),
     );
 
     // If query looks like a ticker, prioritize symbols
     if (/^[A-Z]{1,5}$/.test(q)) {
       const arbitraryCmd = {
-        id: `sym-open-${q}`, label: q, sublabel: 'Open chart',
-        group: 'Symbols', icon: '📈',
-        action: () => { useChartCoreStore.getState().setSymbol(q); actions.setPage('charts'); },
+        id: `sym-open-${q}`,
+        label: q,
+        sublabel: 'Open chart',
+        group: 'Symbols',
+        icon: '📈',
+        action: () => {
+          useChartCoreStore.getState().setSymbol(q);
+          actions.setPage('charts');
+        },
       };
       const existsAlready = matchedSyms.some((s) => s.label === q);
       return existsAlready ? [...matchedSyms, ...matchedCmds] : [arbitraryCmd, ...matchedSyms, ...matchedCmds];
     }
 
     return [...matchedCmds, ...matchedSyms];
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [commands, query, symbolResults]);
 
   // Group filtered commands

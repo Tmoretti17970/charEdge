@@ -10,23 +10,19 @@
 // theme in workspace/themeOverrides.js.
 // ═══════════════════════════════════════════════════════════════════
 
-// eslint-disable-next-line import/order
-import React from 'react';
-import { logger } from '@/observability/logger';
 import { Layout, Model, Actions, DockLocation } from 'flexlayout-react';
+import React from 'react';
 import { useRef, useCallback, useEffect, useState } from 'react';
 import 'flexlayout-react/style/dark.css';
 import { C, F, M } from '../../constants.js';
-import ChartPane from '../components/chart/core/ChartPane.jsx';
 import { useNotificationStore } from '../../state/useNotificationStore';
+import ChartPane from '../components/chart/core/ChartPane.jsx';
 import IndicatorPanel from '../components/panels/IndicatorPanel.jsx';
-// eslint-disable-next-line import/order
 import WatchlistPanel from '../components/panels/WatchlistPanel.jsx';
-
-// Decomposed sub-modules
 import { LAYOUT_PRESETS, loadLayout, saveLayout, STORAGE_KEY, chartTab } from './workspace/layoutPresets.js';
 import { JournalMini, AnalyticsMini, InsightsPanelWrapper, ComparePanelWrapper } from './workspace/MiniPanels.jsx';
 import THEME_OVERRIDES from './workspace/themeOverrides.js';
+import { logger } from '@/observability/logger';
 
 // Re-export presets for external consumers
 export { LAYOUT_PRESETS };
@@ -81,13 +77,24 @@ function WorkspaceLayout({ preset = null }) {
             <div style={{ fontSize: 11, lineHeight: 1.5 }}>Click to open the Notification Center</div>
             <button
               className="tf-btn"
-              onClick={(e) => { e.stopPropagation(); openAlerts(); }}
-              style={{
-                marginTop: 10, padding: '6px 16px', borderRadius: 6,
-                background: C.b, color: '#fff', border: 'none',
-                fontSize: 11, fontWeight: 600, cursor: 'pointer',
+              onClick={(e) => {
+                e.stopPropagation();
+                openAlerts();
               }}
-            >Open Alerts</button>
+              style={{
+                marginTop: 10,
+                padding: '6px 16px',
+                borderRadius: 6,
+                background: C.b,
+                color: '#fff',
+                border: 'none',
+                fontSize: 11,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Open Alerts
+            </button>
           </div>
         );
       }
@@ -138,8 +145,9 @@ function WorkspaceLayout({ preset = null }) {
     try {
       localStorage.removeItem(STORAGE_KEY);
       window.location.reload();
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) { /* storage may be blocked */ }
+    } catch {
+      /* storage may be blocked */
+    }
   }, []);
 
   // Close preset dropdown on outside click

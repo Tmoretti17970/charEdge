@@ -44,9 +44,19 @@ export function executeAxesStage(fs, ctx, engine) {
   const mCtx = ctx.dataCtx || ctx.uiCtx;
   if (!mCtx) return;
   const {
-    bitmapWidth: bw, bitmapHeight: bh, pixelRatio: pr,
-    chartWidth: cW, mainHeight, axW, bars, visBars: vis,
-    startIdx: start, yMin, yMax, scaleMode, percentBase,
+    bitmapWidth: bw,
+    bitmapHeight: bh,
+    pixelRatio: pr,
+    chartWidth: cW,
+    mainHeight,
+    axW,
+    bars,
+    visBars: vis,
+    startIdx: start,
+    yMin,
+    yMax,
+    scaleMode,
+    percentBase,
   } = fs;
 
   const R = engine.state.lastRender;
@@ -121,7 +131,7 @@ export function executeAxesStage(fs, ctx, engine) {
 
     if (useGPUText) {
       const axisColor = _parseColorToArray(thm.axisText || '#787B86');
-      const sdfEntries = filteredPriceLabels.map(l => ({
+      const sdfEntries = filteredPriceLabels.map((l) => ({
         text: l.text,
         x: l.x,
         y: l.y,
@@ -133,7 +143,14 @@ export function executeAxesStage(fs, ctx, engine) {
       const priceTextFn = () => webgl.drawSDFText(sdfEntries, { pixelRatio: pr });
       const cmdBuf = ctx.commandBuffer;
       if (cmdBuf) {
-        cmdBuf.push({ program: null, blendMode: 0, texture: null, zOrder: 5, label: 'price-labels', drawFn: priceTextFn });
+        cmdBuf.push({
+          program: null,
+          blendMode: 0,
+          texture: null,
+          zOrder: 5,
+          label: 'price-labels',
+          drawFn: priceTextFn,
+        });
       } else {
         priceTextFn();
       }
@@ -152,7 +169,7 @@ export function executeAxesStage(fs, ctx, engine) {
     if (vis.length > 0) {
       // Sprint 9: Density-aware label spacing (min 80px between labels)
       const MIN_LABEL_PX = 80;
-      const barPx = (cBW / vis.length) || 10;
+      const barPx = cBW / vis.length || 10;
       const minBarsPerLabel = Math.max(1, Math.ceil((MIN_LABEL_PX * pr) / barPx));
       const step = Math.max(1, minBarsPerLabel);
 
@@ -185,11 +202,13 @@ export function executeAxesStage(fs, ctx, engine) {
       // Sprint 9: Session dividers (thicker line at day boundaries for intraday)
       // 8.1.3: Use numeric timestamps directly — avoid new Date() in hot loops
       const firstTime = typeof vis[0].time === 'number' ? vis[0].time : new Date(vis[0].time).getTime();
-      const lastTime = typeof vis[vis.length - 1].time === 'number' ? vis[vis.length - 1].time : new Date(vis[vis.length - 1].time).getTime();
-      const tfMs = vis.length > 1
-        ? (lastTime - firstTime) / vis.length
-        : 60000;
-      if (tfMs < 86400000) { // Only for intraday
+      const lastTime =
+        typeof vis[vis.length - 1].time === 'number'
+          ? vis[vis.length - 1].time
+          : new Date(vis[vis.length - 1].time).getTime();
+      const tfMs = vis.length > 1 ? (lastTime - firstTime) / vis.length : 60000;
+      if (tfMs < 86400000) {
+        // Only for intraday
         oCtx.save();
         oCtx.strokeStyle = thm.gridLine || 'rgba(54,58,69,0.5)';
         oCtx.lineWidth = Math.max(1, pr);
@@ -199,7 +218,6 @@ export function executeAxesStage(fs, ctx, engine) {
           // 8.1.3: Numeric day-boundary detection (avoid new Date() per iteration)
           const t = typeof vis[i].time === 'number' ? vis[i].time : +new Date(vis[i].time);
           const pt = typeof vis[i - 1].time === 'number' ? vis[i - 1].time : +new Date(vis[i - 1].time);
-          const DAY_MS = 86400000;
           const tz = fs.activeTimezone || 'UTC';
           if (temporalEngine.dayStartUTC(t, tz) !== temporalEngine.dayStartUTC(pt, tz)) {
             const sx = Math.round(timeTransform.indexToPixel(start + i) * pr);
@@ -246,7 +264,7 @@ export function executeAxesStage(fs, ctx, engine) {
       // GPU SDF text path for time labels
       if (useGPUText) {
         const axisColor = _parseColorToArray(thm.axisText || '#787B86');
-        const sdfEntries = filteredTimeLabels.map(l => ({
+        const sdfEntries = filteredTimeLabels.map((l) => ({
           text: l.text,
           x: l.x,
           y: l.y,
@@ -258,7 +276,14 @@ export function executeAxesStage(fs, ctx, engine) {
         const timeTextFn = () => webgl.drawSDFText(sdfEntries, { pixelRatio: pr });
         const cmdBuf = ctx.commandBuffer;
         if (cmdBuf) {
-          cmdBuf.push({ program: null, blendMode: 0, texture: null, zOrder: 5, label: 'time-labels', drawFn: timeTextFn });
+          cmdBuf.push({
+            program: null,
+            blendMode: 0,
+            texture: null,
+            zOrder: 5,
+            label: 'time-labels',
+            drawFn: timeTextFn,
+          });
         } else {
           timeTextFn();
         }
@@ -323,9 +348,7 @@ export function executeAxesStage(fs, ctx, engine) {
     // Colored pill based on whether cursor is above/below last close
     const lastBar = bars[bars.length - 1];
     const isBull = lastBar ? cursorPrice >= lastBar.close : true;
-    const cmColor = isBull
-      ? (thm.bullCandle || '#26A69A')
-      : (thm.bearCandle || '#EF5350');
+    const cmColor = isBull ? thm.bullCandle || '#26A69A' : thm.bearCandle || '#EF5350';
 
     // Price text
     let cmText = formatPrice(cursorPrice);

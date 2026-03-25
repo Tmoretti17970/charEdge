@@ -7,9 +7,9 @@
 // encrypted credential storage for account correlation.
 // ═══════════════════════════════════════════════════════════════════
 
+import { parseMT5 } from '../../importExport/parsers/mt5.js';
 import { BrokerConnector } from '../BrokerConnector.js';
 import { registerConnector } from '../ConnectorRegistry.js';
-import { parseMT5 } from '../../importExport/parsers/mt5.js';
 
 class MT5Connector extends BrokerConnector {
   constructor() {
@@ -89,17 +89,13 @@ class MT5Connector extends BrokerConnector {
     const lines = csvContent.split('\n').filter((l) => l.trim());
     if (lines.length < 2) return [];
 
-    const headers = lines[0].split('\t').length > 1
-      ? lines[0].split('\t')
-      : lines[0].split(',');
+    const headers = lines[0].split('\t').length > 1 ? lines[0].split('\t') : lines[0].split(',');
 
     const cleanHeaders = headers.map((h) => h.trim().replace(/^"|"$/g, ''));
 
     const rows = [];
     for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split('\t').length > 1
-        ? lines[i].split('\t')
-        : lines[i].split(',');
+      const values = lines[i].split('\t').length > 1 ? lines[i].split('\t') : lines[i].split(',');
 
       const row = {};
       cleanHeaders.forEach((h, idx) => {
@@ -120,9 +116,7 @@ class MT5Connector extends BrokerConnector {
     const content = await file.text();
     const isHTML = file.name.endsWith('.html') || file.name.endsWith('.htm') || content.trim().startsWith('<');
 
-    const trades = isHTML
-      ? this.parseHTMLStatement(content)
-      : this.parseCSVStatement(content);
+    const trades = isHTML ? this.parseHTMLStatement(content) : this.parseCSVStatement(content);
 
     // Stamp source metadata
     trades.forEach((t) => {

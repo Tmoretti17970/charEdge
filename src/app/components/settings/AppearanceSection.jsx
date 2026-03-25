@@ -11,8 +11,8 @@ import { useSettingsHistory } from '../../../state/useSettingsHistory.js';
 import { useUserStore } from '../../../state/useUserStore';
 import TFIcon from '../ui/TFIcon.jsx';
 import { Card } from '../ui/UIKit.jsx';
-import { SectionHeader } from './SettingsHelpers.jsx';
 import s from './AppearanceSection.module.css';
+import { SectionHeader } from './SettingsHelpers.jsx';
 
 // ─── Shared Styles ───────────────────────────────────────────────
 
@@ -52,16 +52,20 @@ function ThemePicker() {
                 const prev = theme;
                 setTheme(opt.value);
                 useSettingsHistory.getState().record({
-                  store: 'user', key: 'theme',
+                  store: 'user',
+                  key: 'theme',
                   label: `Theme → ${opt.label}`,
-                  previousValue: prev, newValue: opt.value,
+                  previousValue: prev,
+                  newValue: opt.value,
                 });
               }}
               className={`tf-btn ${s.optionBtn}`}
               data-active={active ? 'true' : undefined}
             >
               <TFIcon name={opt.icon} size={22} color={active ? C.b : C.t2} />
-              <span className={s.optionLabel} data-active={active ? 'true' : undefined}>{opt.label}</span>
+              <span className={s.optionLabel} data-active={active ? 'true' : undefined}>
+                {opt.label}
+              </span>
               <span className={s.optionHint}>{opt.desc}</span>
             </button>
           );
@@ -105,17 +109,18 @@ function AccentColorPicker() {
               title={preset.label}
               className="tf-btn"
               style={{
-                width: 36, height: 36, borderRadius: '50%',
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
                 background: preset.hex,
                 border: `2.5px solid ${active ? '#fff' : 'transparent'}`,
                 boxShadow: active ? `0 0 0 2px ${preset.hex}, 0 2px 8px ${preset.hex}40` : 'none',
-                cursor: 'pointer', position: 'relative',
+                cursor: 'pointer',
+                position: 'relative',
                 transition: 'box-shadow 0.15s ease, border-color 0.15s ease',
               }}
             >
-              {active && (
-                <span className={s.s4}>✓</span>
-              )}
+              {active && <span className={s.s4}>✓</span>}
             </button>
           );
         })}
@@ -126,13 +131,19 @@ function AccentColorPicker() {
           className="tf-btn"
           title="Custom color"
           style={{
-            width: 36, height: 36, borderRadius: '50%',
+            width: 36,
+            height: 36,
+            borderRadius: '50%',
             background: !ACCENT_PRESETS.some((p) => p.hex === accentColor)
               ? accentColor
               : `conic-gradient(from 0deg, #e8642c, #f0b64e, #2dd4a0, #22d3ee, #c084fc, #f472b6, #e8642c)`,
             border: `2.5px solid ${!ACCENT_PRESETS.some((p) => p.hex === accentColor) ? '#fff' : 'transparent'}`,
-            cursor: 'pointer', fontSize: 14, color: '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer',
+            fontSize: 14,
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
           {showCustom ? '×' : '+'}
@@ -141,12 +152,7 @@ function AccentColorPicker() {
 
       {showCustom && (
         <div className={s.customHexRow}>
-          <input
-            type="color"
-            value={accentColor}
-            onChange={(e) => setAccentColor(e.target.value)}
-            className={s.s5}
-          />
+          <input type="color" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className={s.s5} />
           <input
             type="text"
             placeholder="#e8642c"
@@ -156,10 +162,7 @@ function AccentColorPicker() {
             maxLength={7}
             className={s.hexInput}
           />
-          <button
-            onClick={handleCustomSubmit}
-            className={`tf-btn ${s.applyBtn}`}
-          >
+          <button onClick={handleCustomSubmit} className={`tf-btn ${s.applyBtn}`}>
             Apply
           </button>
         </div>
@@ -180,9 +183,7 @@ function FontSizeSlider() {
         <TFIcon name="edit" size={14} className={s.s6} />
         Font Size
       </div>
-      <div className={s.subHint}>
-        Adjust the base font size across the interface
-      </div>
+      <div className={s.subHint}>Adjust the base font size across the interface</div>
 
       <div className={s.s7}>
         <span className={s.sliderSmall}>
@@ -205,9 +206,7 @@ function FontSizeSlider() {
         </span>
       </div>
 
-      <div className={s.sliderDisplay}>
-        {fontSize}px
-      </div>
+      <div className={s.sliderDisplay}>{fontSize}px</div>
 
       {/* Live preview */}
       <div className={s.livePreview}>
@@ -249,22 +248,6 @@ function ChartStylePicker() {
   );
 }
 
-/** Tiny candle stick for the preview */
-function MiniCandle({ color, h, body, down }) {
-  const wickH = h - body;
-  return (
-    <div className={s.s11}>
-      {!down && <div style={{ width: 1, height: wickH, background: color, opacity: 0.6 }} />}
-      <div style={{
-        width: 6, height: body, borderRadius: 1,
-        background: down ? 'transparent' : color,
-        border: down ? `1px solid ${color}` : 'none',
-      }} />
-      {down && <div style={{ width: 1, height: wickH, background: color, opacity: 0.6 }} />}
-    </div>
-  );
-}
-
 // ─── Density Picker (existing) ───────────────────────────────────
 
 function DensityPicker() {
@@ -290,11 +273,16 @@ function DensityPicker() {
         {options.map((opt) => {
           const isActive = densityMode === opt.value;
           return (
-            <button key={opt.value} onClick={() => setMode(opt.value)}
+            <button
+              key={opt.value}
+              onClick={() => setMode(opt.value)}
               className={`tf-btn ${s.densityBtn}`}
-              data-active={isActive ? 'true' : undefined}>
+              data-active={isActive ? 'true' : undefined}
+            >
               <TFIcon name={opt.icon} size={20} color={isActive ? C.b : C.t2} />
-              <span className={s.optionLabel} data-active={isActive ? 'true' : undefined}>{opt.label}</span>
+              <span className={s.optionLabel} data-active={isActive ? 'true' : undefined}>
+                {opt.label}
+              </span>
               <span className={s.optionHint}>{opt.hint}</span>
             </button>
           );
@@ -319,7 +307,8 @@ function SimpleModePicker() {
             Simple Mode
           </div>
           <div className={s.simpleDesc}>
-            Hide advanced features like gamification, Smart Insights, and detailed analytics. Perfect for focused trading.
+            Hide advanced features like gamification, Smart Insights, and detailed analytics. Perfect for focused
+            trading.
           </div>
         </div>
         <button
@@ -355,13 +344,12 @@ function KeyboardShortcutsCard() {
   const [expanded, setExpanded] = useState(false);
   return (
     <Card className={s.cardWrap}>
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className={`tf-btn ${s.shortcutHeader}`}
-      >
+      <button onClick={() => setExpanded(!expanded)} className={`tf-btn ${s.shortcutHeader}`}>
         <TFIcon name="command" size={14} color={C.t3} />
         <span className={s.shortcutLabel}>Keyboard Shortcuts</span>
-        <span className={s.shortcutArrow} data-open={expanded ? 'true' : undefined}>›</span>
+        <span className={s.shortcutArrow} data-open={expanded ? 'true' : undefined}>
+          ›
+        </span>
       </button>
       {expanded && (
         <div className={s.shortcutList}>
@@ -385,16 +373,17 @@ function KeyboardShortcutsCard() {
 function ResetDefaultsButton() {
   const resetSettings = useUserStore((s) => s.resetSettings);
   const handleReset = () => {
-    if (window.confirm('Reset all appearance settings to defaults? This will reset your theme, accent color, font size, chart colors, and density.')) {
+    if (
+      window.confirm(
+        'Reset all appearance settings to defaults? This will reset your theme, accent color, font size, chart colors, and density.',
+      )
+    ) {
       resetSettings();
     }
   };
   return (
     <div className={s.resetWrap}>
-      <button
-        onClick={handleReset}
-        className={`tf-btn ${s.resetBtn}`}
-      >
+      <button onClick={handleReset} className={`tf-btn ${s.resetBtn}`}>
         ↺ Reset to Defaults
       </button>
     </div>

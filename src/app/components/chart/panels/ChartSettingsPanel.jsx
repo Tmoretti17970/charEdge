@@ -1,20 +1,65 @@
 import { useState } from 'react';
 import { CHART_TYPES, getChartTypeDefaults } from '../../../../charting_library/renderers/renderers/ChartTypes.js';
-import { C, F } from '@/constants.js';
-import { ColorSwatch, Toggle, RangeSlider, RadioGroup } from '../../settings/SettingsControls.jsx';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
+import { ColorSwatch, Toggle, RangeSlider, RadioGroup } from '../../settings/SettingsControls.jsx';
 import s from './ChartSettingsPanel.module.css';
 
 // SVG Tab Icons
-const TabIcon = ({ children }) => <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className={s.tabIconSvg}>{children}</svg>;
+const TabIcon = ({ children }) => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className={s.tabIconSvg}>
+    {children}
+  </svg>
+);
 
 const TAB_ICONS = {
-  appearance: <TabIcon><circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.2" fill="none" /><circle cx="5.5" cy="6" r="1.2" fill="currentColor" opacity="0.6" /><circle cx="8.5" cy="6" r="1.2" fill="currentColor" opacity="0.6" /><circle cx="7" cy="9" r="1.2" fill="currentColor" opacity="0.6" /></TabIcon>,
-  grid: <TabIcon><line x1="1" y1="4.5" x2="13" y2="4.5" stroke="currentColor" strokeWidth="0.8" opacity="0.5" /><line x1="1" y1="9.5" x2="13" y2="9.5" stroke="currentColor" strokeWidth="0.8" opacity="0.5" /><line x1="4.5" y1="1" x2="4.5" y2="13" stroke="currentColor" strokeWidth="0.8" opacity="0.5" /><line x1="9.5" y1="1" x2="9.5" y2="13" stroke="currentColor" strokeWidth="0.8" opacity="0.5" /><rect x="1" y="1" width="12" height="12" rx="1.5" stroke="currentColor" strokeWidth="1" fill="none" /></TabIcon>,
-  scale: <TabIcon><line x1="2" y1="12" x2="12" y2="12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /><line x1="12" y1="2" x2="12" y2="12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /><line x1="2" y1="12" x2="12" y2="2" stroke="currentColor" strokeWidth="0.8" strokeDasharray="2 1.5" opacity="0.5" /></TabIcon>,
-  crosshair: <TabIcon><line x1="7" y1="1" x2="7" y2="13" stroke="currentColor" strokeWidth="1" opacity="0.6" /><line x1="1" y1="7" x2="13" y2="7" stroke="currentColor" strokeWidth="1" opacity="0.6" /><circle cx="7" cy="7" r="2" stroke="currentColor" strokeWidth="1.2" fill="none" /></TabIcon>,
-  chartType: <TabIcon><rect x="2" y="3" width="3" height="8" rx="0.5" fill="currentColor" opacity="0.7" /><rect x="6" y="5" width="3" height="6" rx="0.5" fill="currentColor" opacity="0.5" /><rect x="10" y="4" width="3" height="7" rx="0.5" fill="currentColor" opacity="0.6" /></TabIcon>,
+  appearance: (
+    <TabIcon>
+      <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.2" fill="none" />
+      <circle cx="5.5" cy="6" r="1.2" fill="currentColor" opacity="0.6" />
+      <circle cx="8.5" cy="6" r="1.2" fill="currentColor" opacity="0.6" />
+      <circle cx="7" cy="9" r="1.2" fill="currentColor" opacity="0.6" />
+    </TabIcon>
+  ),
+  grid: (
+    <TabIcon>
+      <line x1="1" y1="4.5" x2="13" y2="4.5" stroke="currentColor" strokeWidth="0.8" opacity="0.5" />
+      <line x1="1" y1="9.5" x2="13" y2="9.5" stroke="currentColor" strokeWidth="0.8" opacity="0.5" />
+      <line x1="4.5" y1="1" x2="4.5" y2="13" stroke="currentColor" strokeWidth="0.8" opacity="0.5" />
+      <line x1="9.5" y1="1" x2="9.5" y2="13" stroke="currentColor" strokeWidth="0.8" opacity="0.5" />
+      <rect x="1" y="1" width="12" height="12" rx="1.5" stroke="currentColor" strokeWidth="1" fill="none" />
+    </TabIcon>
+  ),
+  scale: (
+    <TabIcon>
+      <line x1="2" y1="12" x2="12" y2="12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="12" y1="2" x2="12" y2="12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      <line
+        x1="2"
+        y1="12"
+        x2="12"
+        y2="2"
+        stroke="currentColor"
+        strokeWidth="0.8"
+        strokeDasharray="2 1.5"
+        opacity="0.5"
+      />
+    </TabIcon>
+  ),
+  crosshair: (
+    <TabIcon>
+      <line x1="7" y1="1" x2="7" y2="13" stroke="currentColor" strokeWidth="1" opacity="0.6" />
+      <line x1="1" y1="7" x2="13" y2="7" stroke="currentColor" strokeWidth="1" opacity="0.6" />
+      <circle cx="7" cy="7" r="2" stroke="currentColor" strokeWidth="1.2" fill="none" />
+    </TabIcon>
+  ),
+  chartType: (
+    <TabIcon>
+      <rect x="2" y="3" width="3" height="8" rx="0.5" fill="currentColor" opacity="0.7" />
+      <rect x="6" y="5" width="3" height="6" rx="0.5" fill="currentColor" opacity="0.5" />
+      <rect x="10" y="4" width="3" height="7" rx="0.5" fill="currentColor" opacity="0.6" />
+    </TabIcon>
+  ),
 };
 
 const TABS = [
@@ -60,12 +105,7 @@ export default function ChartSettingsPanel({ _onClose }) {
       {/* Tabs */}
       <div className={s.tabRow}>
         {TABS.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={s.tab}
-            data-active={tab === t.id || undefined}
-          >
+          <button key={t.id} onClick={() => setTab(t.id)} className={s.tab} data-active={tab === t.id || undefined}>
             <span className={s.tabIcon}>{TAB_ICONS[t.id]}</span>
             {t.label}
           </button>
@@ -91,7 +131,9 @@ export default function ChartSettingsPanel({ _onClose }) {
                     <div className={s.themeDot} style={{ '--dot-bg': tp.colors[0] }} />
                     <div className={s.themeDot} style={{ '--dot-bg': tp.colors[1] }} />
                   </div>
-                  <span className={s.themeLabel} data-active={activePreset === tp.id ? 'true' : undefined}>{tp.label}</span>
+                  <span className={s.themeLabel} data-active={activePreset === tp.id ? 'true' : undefined}>
+                    {tp.label}
+                  </span>
                 </button>
               ))}
             </div>
@@ -152,8 +194,8 @@ export default function ChartSettingsPanel({ _onClose }) {
               display={`${Math.round(appearance.gridOpacity * 100)}%`}
             />
             <div className={s.infoBox}>
-              💡 Grid lines help identify price levels. Lower opacity keeps the chart clean while maintaining
-              reference points.
+              💡 Grid lines help identify price levels. Lower opacity keeps the chart clean while maintaining reference
+              points.
             </div>
           </div>
         )}
@@ -216,11 +258,7 @@ export default function ChartSettingsPanel({ _onClose }) {
               display={`${Math.round((appearance.crosshairOpacity ?? 1) * 100)}%`}
             />
 
-            <Toggle
-              label="Show Floating Tooltip"
-              checked={showCrosshairTooltip}
-              onChange={toggleCrosshairTooltip}
-            />
+            <Toggle label="Show Floating Tooltip" checked={showCrosshairTooltip} onChange={toggleCrosshairTooltip} />
 
             <div className={s.infoBox}>
               <div>
@@ -239,50 +277,85 @@ export default function ChartSettingsPanel({ _onClose }) {
           </div>
         )}
 
-        {tab === 'chartType' && (() => {
-          const typeEntry = CHART_TYPES[chartType];
-          const params = typeEntry?.configParams;
-          if (!params) {
+        {tab === 'chartType' &&
+          (() => {
+            const typeEntry = CHART_TYPES[chartType];
+            const params = typeEntry?.configParams;
+            if (!params) {
+              return (
+                <div className={s.chartTypeEmpty}>
+                  No configurable parameters for{' '}
+                  <strong className={s.chartTypeStrong}>{typeEntry?.name || chartType}</strong>.
+                </div>
+              );
+            }
+            const defaults = getChartTypeDefaults(chartType);
+            const cfg = { ...defaults, ...(chartTypeConfig[chartType] || {}) };
             return (
-              <div className={s.chartTypeEmpty}>
-                No configurable parameters for <strong className={s.chartTypeStrong}>{typeEntry?.name || chartType}</strong>.
+              <div>
+                <div className={s.sectionLabel}>
+                  {typeEntry.icon} {typeEntry.name} Settings
+                </div>
+                {Object.entries(params).map(([key, p]) => {
+                  const val = cfg[key] ?? p.default;
+                  if (p.type === 'range') {
+                    return (
+                      <RangeSlider
+                        key={key}
+                        label={p.label}
+                        value={val}
+                        min={p.min}
+                        max={p.max}
+                        step={p.step}
+                        onChange={(v) => setChartTypeConfig(chartType, key, v)}
+                      />
+                    );
+                  }
+                  if (p.type === 'select') {
+                    return (
+                      <RadioGroup
+                        key={key}
+                        label={p.label}
+                        options={p.options.map((o) => ({ id: o, label: o }))}
+                        value={val}
+                        onChange={(v) => setChartTypeConfig(chartType, key, v)}
+                      />
+                    );
+                  }
+                  if (p.type === 'color') {
+                    return (
+                      <ColorSwatch
+                        key={key}
+                        label={p.label}
+                        color={val}
+                        onChange={(v) => setChartTypeConfig(chartType, key, v)}
+                      />
+                    );
+                  }
+                  if (p.type === 'number') {
+                    return (
+                      <RangeSlider
+                        key={key}
+                        label={p.label}
+                        value={val}
+                        min={p.min || 0}
+                        max={p.max || 1000}
+                        step={p.step || 0.01}
+                        onChange={(v) => setChartTypeConfig(chartType, key, v)}
+                        display={val}
+                      />
+                    );
+                  }
+                  return null;
+                })}
+                <div className={s.resetWrap}>
+                  <button onClick={() => resetChartTypeConfig(chartType)} className={s.resetBtn}>
+                    Reset to Defaults
+                  </button>
+                </div>
               </div>
             );
-          }
-          const defaults = getChartTypeDefaults(chartType);
-          const cfg = { ...defaults, ...(chartTypeConfig[chartType] || {}) };
-          return (
-            <div>
-              <div className={s.sectionLabel}>
-                {typeEntry.icon} {typeEntry.name} Settings
-              </div>
-              {Object.entries(params).map(([key, p]) => {
-                const val = cfg[key] ?? p.default;
-                if (p.type === 'range') {
-                  return <RangeSlider key={key} label={p.label} value={val} min={p.min} max={p.max} step={p.step} onChange={(v) => setChartTypeConfig(chartType, key, v)} />;
-                }
-                if (p.type === 'select') {
-                  return <RadioGroup key={key} label={p.label} options={p.options.map((o) => ({ id: o, label: o }))} value={val} onChange={(v) => setChartTypeConfig(chartType, key, v)} />;
-                }
-                if (p.type === 'color') {
-                  return <ColorSwatch key={key} label={p.label} color={val} onChange={(v) => setChartTypeConfig(chartType, key, v)} />;
-                }
-                if (p.type === 'number') {
-                  return <RangeSlider key={key} label={p.label} value={val} min={p.min || 0} max={p.max || 1000} step={p.step || 0.01} onChange={(v) => setChartTypeConfig(chartType, key, v)} display={val} />;
-                }
-                return null;
-              })}
-              <div className={s.resetWrap}>
-                <button
-                  onClick={() => resetChartTypeConfig(chartType)}
-                  className={s.resetBtn}
-                >
-                  Reset to Defaults
-                </button>
-              </div>
-            </div>
-          );
-        })()}
+          })()}
       </div>
     </div>
   );

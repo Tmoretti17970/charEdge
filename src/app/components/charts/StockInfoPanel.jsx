@@ -12,10 +12,10 @@
 // this panel just surfaces it in the UI.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import s from './StockInfoPanel.module.css';
 import { isCrypto } from '@/constants.js';
 import { logger } from '@/observability/logger';
-import s from './StockInfoPanel.module.css';
 
 const TABS = ['Profile', 'Analysts', 'Earnings', 'News', 'Insiders'];
 
@@ -28,10 +28,7 @@ export default function StockInfoPanel({ symbol }) {
   const [insiders, setInsiders] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const baseSym = useMemo(() =>
-    (symbol || '').toUpperCase().replace(/USDT$|BUSD$|USD$/, ''),
-    [symbol]
-  );
+  const baseSym = useMemo(() => (symbol || '').toUpperCase().replace(/USDT$|BUSD$|USD$/, ''), [symbol]);
 
   const isEquity = useMemo(() => !isCrypto(baseSym), [baseSym]);
 
@@ -57,7 +54,7 @@ export default function StockInfoPanel({ symbol }) {
           const from = new Date(now.getTime() - 365 * 86400000).toISOString().split('T')[0];
           const to = now.toISOString().split('T')[0];
           const e = await finnhubAdapter.fetchEarnings(from, to);
-          if (e) setEarnings(e.filter(x => x.symbol === baseSym).slice(0, 8));
+          if (e) setEarnings(e.filter((x) => x.symbol === baseSym).slice(0, 8));
           break;
         }
         case 'News': {
@@ -78,7 +75,9 @@ export default function StockInfoPanel({ symbol }) {
     }
   }, [baseSym, tab, isEquity]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   if (!isEquity) {
     return (
@@ -94,13 +93,8 @@ export default function StockInfoPanel({ symbol }) {
     <div className={s.container}>
       {/* Tab Bar */}
       <div className={s.tabBar}>
-        {TABS.map(t => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={s.tabBtn}
-            data-active={tab === t || undefined}
-          >
+        {TABS.map((t) => (
+          <button key={t} onClick={() => setTab(t)} className={s.tabBtn} data-active={tab === t || undefined}>
             {t}
           </button>
         ))}
@@ -108,29 +102,17 @@ export default function StockInfoPanel({ symbol }) {
 
       {/* Content */}
       <div className={s.content}>
-        {loading && (
-          <div className={s.loading}>Loading...</div>
-        )}
+        {loading && <div className={s.loading}>Loading...</div>}
 
-        {!loading && tab === 'Profile' && profile && (
-          <ProfileView data={profile} />
-        )}
+        {!loading && tab === 'Profile' && profile && <ProfileView data={profile} />}
 
-        {!loading && tab === 'Analysts' && recommendations && (
-          <AnalystsView data={recommendations} />
-        )}
+        {!loading && tab === 'Analysts' && recommendations && <AnalystsView data={recommendations} />}
 
-        {!loading && tab === 'Earnings' && earnings && (
-          <EarningsView data={earnings} />
-        )}
+        {!loading && tab === 'Earnings' && earnings && <EarningsView data={earnings} />}
 
-        {!loading && tab === 'News' && news && (
-          <NewsView data={news} />
-        )}
+        {!loading && tab === 'News' && news && <NewsView data={news} />}
 
-        {!loading && tab === 'Insiders' && insiders && (
-          <InsidersView data={insiders} />
-        )}
+        {!loading && tab === 'Insiders' && insiders && <InsidersView data={insiders} />}
       </div>
     </div>
   );
@@ -156,23 +138,23 @@ function ProfileView({ data }) {
           <img src={data.logo} alt="" className={s.profileLogo} />
           <div>
             <div className={s.profileName}>{data.name}</div>
-            <div className={s.profileExchange}>{data.exchange} · {data.ticker}</div>
+            <div className={s.profileExchange}>
+              {data.exchange} · {data.ticker}
+            </div>
           </div>
         </div>
       )}
       <InfoRow label="Sector" value={data.finnhubIndustry} />
-      <InfoRow label="Market Cap" value={data.marketCapitalization ? `$${(data.marketCapitalization / 1000).toFixed(1)}B` : null} />
+      <InfoRow
+        label="Market Cap"
+        value={data.marketCapitalization ? `$${(data.marketCapitalization / 1000).toFixed(1)}B` : null}
+      />
       <InfoRow label="IPO Date" value={data.ipo} />
       <InfoRow label="Country" value={data.country} />
       <InfoRow label="Phone" value={data.phone} />
       <InfoRow label="Employees" value={data.employeeTotal?.toLocaleString()} />
       {data.weburl && (
-        <a
-          href={data.weburl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={s.profileLink}
-        >
+        <a href={data.weburl} target="_blank" rel="noopener noreferrer" className={s.profileLink}>
           {data.weburl} ↗
         </a>
       )}
@@ -183,7 +165,8 @@ function ProfileView({ data }) {
 function AnalystsView({ data }) {
   if (!data.length) return <div className={s.emptyState}>No analyst data available.</div>;
   const latest = data[0];
-  const total = (latest.buy || 0) + (latest.hold || 0) + (latest.sell || 0) + (latest.strongBuy || 0) + (latest.strongSell || 0);
+  const total =
+    (latest.buy || 0) + (latest.hold || 0) + (latest.sell || 0) + (latest.strongBuy || 0) + (latest.strongSell || 0);
   if (!total) return null;
 
   const segments = [
@@ -201,30 +184,34 @@ function AnalystsView({ data }) {
       </div>
       {/* Horizontal bar */}
       <div className={s.analystsBar}>
-        {segments.filter(seg => seg.count > 0).map((seg, i) => (
-          <div
-            key={i}
-            className={s.analystsSegment}
-            style={{
-              '--seg-width': `${(seg.count / total) * 100}%`,
-              '--seg-color': seg.color,
-              width: `${(seg.count / total) * 100}%`,
-              background: seg.color,
-              minWidth: seg.count > 0 ? 18 : 0,
-            }}
-          >
-            {seg.count}
-          </div>
-        ))}
+        {segments
+          .filter((seg) => seg.count > 0)
+          .map((seg, i) => (
+            <div
+              key={i}
+              className={s.analystsSegment}
+              style={{
+                '--seg-width': `${(seg.count / total) * 100}%`,
+                '--seg-color': seg.color,
+                width: `${(seg.count / total) * 100}%`,
+                background: seg.color,
+                minWidth: seg.count > 0 ? 18 : 0,
+              }}
+            >
+              {seg.count}
+            </div>
+          ))}
       </div>
       {/* Legend */}
       <div className={s.analystsLegend}>
-        {segments.filter(seg => seg.count > 0).map((seg, i) => (
-          <div key={i} className={s.legendItem}>
-            <div className={s.legendDot} style={{ background: seg.color }} />
-            {seg.label}
-          </div>
-        ))}
+        {segments
+          .filter((seg) => seg.count > 0)
+          .map((seg, i) => (
+            <div key={i} className={s.legendItem}>
+              <div className={s.legendDot} style={{ background: seg.color }} />
+              {seg.label}
+            </div>
+          ))}
       </div>
     </div>
   );
@@ -241,15 +228,18 @@ function EarningsView({ data }) {
         <span className={`${s.earningsCol} ${s['earningsCol--right']}`}>Surprise</span>
       </div>
       {data.map((e, i) => {
-        const surprise = e.epsActual != null && e.epsEstimate != null
-          ? ((e.epsActual - e.epsEstimate) / Math.abs(e.epsEstimate || 1) * 100).toFixed(1)
-          : null;
+        const surprise =
+          e.epsActual != null && e.epsEstimate != null
+            ? (((e.epsActual - e.epsEstimate) / Math.abs(e.epsEstimate || 1)) * 100).toFixed(1)
+            : null;
         const beat = surprise && parseFloat(surprise) > 0;
         return (
           <div key={i} className={s.earningsRow}>
             <span className={`${s.earningsCol} ${s['earningsCol--date']}`}>{e.date}</span>
             <span className={`${s.earningsCol} ${s['earningsCol--right']}`}>{e.epsEstimate?.toFixed(2) ?? '—'}</span>
-            <span className={`${s.earningsCol} ${s['earningsCol--right']} ${s['earningsCol--actual']}`}>{e.epsActual?.toFixed(2) ?? '—'}</span>
+            <span className={`${s.earningsCol} ${s['earningsCol--right']} ${s['earningsCol--actual']}`}>
+              {e.epsActual?.toFixed(2) ?? '—'}
+            </span>
             <span
               className={`${s.earningsCol} ${s['earningsCol--right']} ${s['earningsCol--surprise']}`}
               style={{ '--surprise-color': beat ? '#00c853' : surprise ? '#ef5350' : undefined }}
@@ -270,13 +260,7 @@ function NewsView({ data }) {
   return (
     <div className={s.newsWrap}>
       {data.map((n, i) => (
-        <a
-          key={i}
-          href={n.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={s.newsCard}
-        >
+        <a key={i} href={n.url} target="_blank" rel="noopener noreferrer" className={s.newsCard}>
           <div className={s.newsHeadline}>{n.headline}</div>
           <div className={s.newsMeta}>
             <span>{n.source}</span>
@@ -294,8 +278,9 @@ function InsidersView({ data }) {
   return (
     <div className={s.insidersWrap}>
       {data.slice(0, 15).map((tx, i) => {
-        const isBuy = tx.transactionType?.toLowerCase().includes('buy') ||
-                       tx.transactionType?.toLowerCase().includes('acquisition');
+        const isBuy =
+          tx.transactionType?.toLowerCase().includes('buy') ||
+          tx.transactionType?.toLowerCase().includes('acquisition');
         return (
           <div key={i} className={s.insiderRow}>
             <div className={s.insiderTop}>
@@ -306,7 +291,9 @@ function InsidersView({ data }) {
             </div>
             <div className={s.insiderBottom}>
               <span>{tx.filingDate}</span>
-              <span>{tx.share?.toLocaleString()} shares @ ${tx.transactionPrice?.toFixed(2)}</span>
+              <span>
+                {tx.share?.toLocaleString()} shares @ ${tx.transactionPrice?.toFixed(2)}
+              </span>
             </div>
           </div>
         );

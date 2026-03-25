@@ -23,18 +23,28 @@ export interface VoiceStatus {
 // ─── Trading Vocabulary ─────────────────────────────────────────
 
 const TRADING_CORRECTIONS: Record<string, string> = {
-  'bitcoin': 'BTC', 'ethereum': 'ETH', 'solana': 'SOL',
-  'to the moon': 'bullish', 'tanking': 'bearish',
-  'our side': 'RSI', 'our essay': 'RSI',
-  'email': 'EMA', 'Bollinger': 'Bollinger',
-  'mac d': 'MACD', 'mack d': 'MACD', 'mac dee': 'MACD',
-  'stop loss': 'stop-loss', 'take profit': 'take-profit',
-  'v wap': 'VWAP', 'v whap': 'VWAP',
+  bitcoin: 'BTC',
+  ethereum: 'ETH',
+  solana: 'SOL',
+  'to the moon': 'bullish',
+  tanking: 'bearish',
+  'our side': 'RSI',
+  'our essay': 'RSI',
+  email: 'EMA',
+  Bollinger: 'Bollinger',
+  'mac d': 'MACD',
+  'mack d': 'MACD',
+  'mac dee': 'MACD',
+  'stop loss': 'stop-loss',
+  'take profit': 'take-profit',
+  'v wap': 'VWAP',
+  'v whap': 'VWAP',
 };
 
 // ─── Voice Engine ───────────────────────────────────────────────
 
 export class VoiceInput {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Web Speech API types not available without @types/dom-speech-recognition
   private _recognition: any = null;
   private _synthesis: SpeechSynthesis | null = null;
   private _status: VoiceStatus = {
@@ -75,6 +85,7 @@ export class VoiceInput {
     if (this._status.listening) return true;
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Web Speech API accessed via non-standard vendor-prefixed property
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       this._recognition = new SpeechRecognition();
       this._recognition.continuous = true;
@@ -82,6 +93,7 @@ export class VoiceInput {
       this._recognition.lang = 'en-US';
       this._onTranscript = onTranscript;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SpeechRecognitionEvent type not available
       this._recognition.onresult = (event: any) => {
         let finalTranscript = '';
         let interimTranscript = '';
@@ -103,6 +115,7 @@ export class VoiceInput {
         }
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SpeechRecognitionErrorEvent type not available
       this._recognition.onerror = (event: any) => {
         this._status.error = event.error;
         if (event.error === 'not-allowed' || event.error === 'no-speech') {
@@ -129,7 +142,11 @@ export class VoiceInput {
    */
   stopListening(): void {
     if (this._recognition) {
-      try { this._recognition.stop(); } catch { /* ignore */ }
+      try {
+        this._recognition.stop();
+      } catch {
+        /* ignore */
+      }
       this._recognition = null;
     }
     this._status.listening = false;
@@ -154,9 +171,17 @@ export class VoiceInput {
       utterance.pitch = 1.0;
       utterance.lang = 'en-US';
 
-      utterance.onstart = () => { this._status.speaking = true; };
-      utterance.onend = () => { this._status.speaking = false; resolve(); };
-      utterance.onerror = () => { this._status.speaking = false; resolve(); };
+      utterance.onstart = () => {
+        this._status.speaking = true;
+      };
+      utterance.onend = () => {
+        this._status.speaking = false;
+        resolve();
+      };
+      utterance.onerror = () => {
+        this._status.speaking = false;
+        resolve();
+      };
 
       this._synthesis.speak(utterance);
     });
@@ -187,10 +212,8 @@ export class VoiceInput {
 
   private _checkSupport(): boolean {
     if (typeof window === 'undefined') return false;
-    return !!(
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition
-    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Web Speech API accessed via non-standard vendor-prefixed property
+    return !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
   }
 
   private _correctTradingTerms(text: string): string {

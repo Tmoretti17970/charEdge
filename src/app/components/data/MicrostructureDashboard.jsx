@@ -9,7 +9,6 @@
 import React from 'react';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { logger } from '@/observability/logger';
-import st from './MicrostructureDashboard.module.css';
 
 // ─── Default Watchlist ─────────────────────────────────────────
 
@@ -94,9 +93,7 @@ const css = {
   imbalanceFill: (pct, bullish) => ({
     height: '100%',
     width: `${Math.min(100, Math.max(0, pct))}%`,
-    background: bullish
-      ? 'linear-gradient(90deg, #4ecdc4, #26d0ce)'
-      : 'linear-gradient(90deg, #ef5350, #ff6b6b)',
+    background: bullish ? 'linear-gradient(90deg, #4ecdc4, #26d0ce)' : 'linear-gradient(90deg, #ef5350, #ff6b6b)',
     borderRadius: '2px',
     transition: 'width 0.3s ease',
   }),
@@ -148,14 +145,18 @@ function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
       try {
         const depthMod = await import('../../data/engine/orderflow/DepthEngine.js');
         depthEngine = depthMod.depthEngine;
-      } catch (e) { logger.ui.warn('Operation failed', e); }
+      } catch (e) {
+        logger.ui.warn('Operation failed', e);
+      }
 
       // OrderFlowEngine — CVD, aggressor ratio, tick rates
       let orderFlowEngine;
       try {
         const ofMod = await import('../../data/engine/orderflow/OrderFlowEngine.js');
         orderFlowEngine = ofMod.orderFlowEngine;
-      } catch (e) { logger.ui.warn('Operation failed', e); }
+      } catch (e) {
+        logger.ui.warn('Operation failed', e);
+      }
 
       for (const symbol of symbols) {
         const upper = symbol.toUpperCase();
@@ -189,7 +190,9 @@ function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
             entry.cvd = cvd?.current || 0;
             entry.aggressorBuy = aggressor?.buyPercent || 50;
             entry.aggressorSell = aggressor?.sellPercent || 50;
-          } catch (e) { logger.ui.warn('Operation failed', e); }
+          } catch (e) {
+            logger.ui.warn('Operation failed', e);
+          }
         }
 
         snap[upper] = entry;
@@ -202,9 +205,12 @@ function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
         const { depthFlowCorrelator } = await import('../../data/engine/orderflow/DepthFlowCorrelator.js');
         const events = depthFlowCorrelator.getRecentEvents?.(10) || [];
         setCorrelatorEvents(events);
-      } catch (e) { logger.ui.warn('Operation failed', e); }
-
-    } catch (e) { logger.ui.warn('Operation failed', e); }
+      } catch (e) {
+        logger.ui.warn('Operation failed', e);
+      }
+    } catch (e) {
+      logger.ui.warn('Operation failed', e);
+    }
   }, [symbols]);
 
   useEffect(() => {
@@ -216,7 +222,7 @@ function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
   }, [collectData]);
 
   const _activeSymbols = useMemo(() => {
-    return symbols.filter(s => data[s.toUpperCase()]);
+    return symbols.filter((s) => data[s.toUpperCase()]);
   }, [symbols, data]);
 
   return (
@@ -225,15 +231,13 @@ function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
       <div style={css.header}>
         <div>
           <div style={css.title}>Market Microstructure</div>
-          <div style={css.subtitle}>
-            Real-time spread, depth, & flow across {symbols.length} symbols
-          </div>
+          <div style={css.subtitle}>Real-time spread, depth, & flow across {symbols.length} symbols</div>
         </div>
       </div>
 
       {/* Symbol Cards Grid */}
       <div style={css.grid}>
-        {symbols.map(symbol => {
+        {symbols.map((symbol) => {
           const upper = symbol.toUpperCase();
           const d = data[upper] || {};
           const hasData = d.bestBid > 0 || d.totalTicks > 0;
@@ -249,14 +253,20 @@ function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
               onMouseLeave={() => setHoveredCard(null)}
             >
               {/* Symbol + Connection State */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}
+              >
                 <span style={css.symbolName}>{upper}</span>
                 {d.depthState && (
-                  <span style={css.badge(
-                    d.depthState === 'connected' ? '#4ecdc4'
-                    : d.depthState === 'reconnecting' ? '#ffa726'
-                    : '#ef5350'
-                  )}>
+                  <span
+                    style={css.badge(
+                      d.depthState === 'connected'
+                        ? '#4ecdc4'
+                        : d.depthState === 'reconnecting'
+                          ? '#ffa726'
+                          : '#ef5350',
+                    )}
+                  >
                     {d.depthState}
                   </span>
                 )}
@@ -274,9 +284,7 @@ function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
                         <span style={{ ...css.metricValue, color: '#64d8ff' }}>
                           {d.spread != null ? d.spread.toFixed(2) : '—'}
                           {d.spreadPct != null && (
-                            <span style={{ color: '#667788', marginLeft: '4px' }}>
-                              ({d.spreadPct.toFixed(3)}%)
-                            </span>
+                            <span style={{ color: '#667788', marginLeft: '4px' }}>({d.spreadPct.toFixed(3)}%)</span>
                           )}
                         </span>
                       </div>
@@ -294,12 +302,16 @@ function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
                       {/* Depth Imbalance */}
                       <div style={css.metricRow}>
                         <span style={css.metricLabel}>Imbalance</span>
-                        <span style={{
-                          ...css.metricValue,
-                          ...(d.imbalanceRatio > 0.55 ? css.positive
-                            : d.imbalanceRatio < 0.45 ? css.negative
-                            : css.neutral)
-                        }}>
+                        <span
+                          style={{
+                            ...css.metricValue,
+                            ...(d.imbalanceRatio > 0.55
+                              ? css.positive
+                              : d.imbalanceRatio < 0.45
+                                ? css.negative
+                                : css.neutral),
+                          }}
+                        >
                           {d.imbalanceLabel || '—'}
                           {d.imbalanceRatio != null && (
                             <span style={{ color: '#667788', marginLeft: '4px' }}>
@@ -311,10 +323,9 @@ function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
 
                       {/* Imbalance Bar */}
                       <div style={css.imbalanceBar}>
-                        <div style={css.imbalanceFill(
-                          (d.imbalanceRatio || 0.5) * 100,
-                          (d.imbalanceRatio || 0.5) >= 0.5
-                        )} />
+                        <div
+                          style={css.imbalanceFill((d.imbalanceRatio || 0.5) * 100, (d.imbalanceRatio || 0.5) >= 0.5)}
+                        />
                       </div>
                     </>
                   )}
@@ -324,11 +335,14 @@ function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
                     <>
                       <div style={{ ...css.metricRow, marginTop: '8px' }}>
                         <span style={css.metricLabel}>CVD</span>
-                        <span style={{
-                          ...css.metricValue,
-                          ...(d.cvd > 0 ? css.positive : d.cvd < 0 ? css.negative : css.neutral)
-                        }}>
-                          {d.cvd > 0 ? '+' : ''}{(d.cvd || 0).toFixed(2)}
+                        <span
+                          style={{
+                            ...css.metricValue,
+                            ...(d.cvd > 0 ? css.positive : d.cvd < 0 ? css.negative : css.neutral),
+                          }}
+                        >
+                          {d.cvd > 0 ? '+' : ''}
+                          {(d.cvd || 0).toFixed(2)}
                         </span>
                       </div>
 
@@ -343,9 +357,7 @@ function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
 
                       <div style={css.metricRow}>
                         <span style={css.metricLabel}>Tick Rate</span>
-                        <span style={css.metricValue}>
-                          {(d.tickRate || 0).toFixed(1)}/s
-                        </span>
+                        <span style={css.metricValue}>{(d.tickRate || 0).toFixed(1)}/s</span>
                       </div>
                     </>
                   )}
@@ -370,17 +382,31 @@ function MicrostructureDashboard({ symbols = DEFAULT_SYMBOLS }) {
       {/* Institutional Pattern Alerts */}
       {correlatorEvents.length > 0 && (
         <div style={css.alertsSection}>
-          <div style={{ ...css.metricLabel, fontSize: '10px', fontWeight: 600, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div
+            style={{
+              ...css.metricLabel,
+              fontSize: '10px',
+              fontWeight: 600,
+              marginBottom: '4px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}
+          >
             Institutional Patterns
           </div>
           {correlatorEvents.slice(0, 5).map((evt, i) => (
             <div key={i} style={css.alertItem}>
-              <span style={css.badge(
-                evt.type === 'absorption' ? '#64d8ff'
-                : evt.type === 'iceberg' ? '#ba68c8'
-                : evt.type === 'sweep' ? '#ef5350'
-                : '#ffa726'
-              )}>
+              <span
+                style={css.badge(
+                  evt.type === 'absorption'
+                    ? '#64d8ff'
+                    : evt.type === 'iceberg'
+                      ? '#ba68c8'
+                      : evt.type === 'sweep'
+                        ? '#ef5350'
+                        : '#ffa726',
+                )}
+              >
                 {evt.type}
               </span>
               <span style={{ marginLeft: '6px' }}>

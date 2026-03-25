@@ -25,7 +25,7 @@ const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 min inactivity = new session
 
 function getSessionId() {
   const now = Date.now();
-  if (!_sessionId || !_lastActivity || (now - _lastActivity) > SESSION_TIMEOUT_MS) {
+  if (!_sessionId || !_lastActivity || now - _lastActivity > SESSION_TIMEOUT_MS) {
     _sessionId = `s_${now}_${Math.random().toString(36).slice(2, 8)}`;
     _sessionStart = now;
   }
@@ -151,9 +151,11 @@ export function trackWorkflow(workflow) {
 export function trackError(category, meta = {}) {
   track(`error:${category}`, meta);
   // Lazy import to avoid circular deps and keep bundle small
-  import('./ErrorBudget').then(({ errorBudget }) => {
-    errorBudget.record(category, true);
-  }).catch(() => {}); // non-fatal
+  import('./ErrorBudget')
+    .then(({ errorBudget }) => {
+      errorBudget.record(category, true);
+    })
+    .catch(() => {}); // non-fatal
 }
 
 /**
@@ -161,9 +163,11 @@ export function trackError(category, meta = {}) {
  * @param {string} category - 'fetch' | 'ws' | 'cache' | 'ai'
  */
 export function trackSuccess(category) {
-  import('./ErrorBudget').then(({ errorBudget }) => {
-    errorBudget.record(category, false);
-  }).catch(() => {}); // non-fatal
+  import('./ErrorBudget')
+    .then(({ errorBudget }) => {
+      errorBudget.record(category, false);
+    })
+    .catch(() => {}); // non-fatal
 }
 
 /**
@@ -173,7 +177,7 @@ export async function getErrorBudgetStatus() {
   try {
     const { errorBudget } = await import('./ErrorBudget');
     return errorBudget.getStatus();
-  } catch (_) {
+  } catch {
     return {};
   }
 }
@@ -184,7 +188,8 @@ export async function getErrorBudgetStatus() {
  */
 export function trackSessionEnd() {
   const duration = getSessionDuration();
-  if (duration > 1000) { // ignore sub-second sessions
+  if (duration > 1000) {
+    // ignore sub-second sessions
     track('session_end', { duration_ms: duration });
     flushEvents(); // immediate flush on session end
   }
@@ -213,12 +218,8 @@ export function initTelemetry(store) {
   }
 
   track('session_start', {
-    viewport: typeof window !== 'undefined'
-      ? `${window.innerWidth}x${window.innerHeight}`
-      : 'unknown',
-    userAgent: typeof navigator !== 'undefined'
-      ? navigator.userAgent.slice(0, 80)
-      : 'unknown',
+    viewport: typeof window !== 'undefined' ? `${window.innerWidth}x${window.innerHeight}` : 'unknown',
+    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 80) : 'unknown',
   });
 }
 

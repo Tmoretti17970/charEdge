@@ -15,11 +15,17 @@
 
 import React, { Suspense } from 'react';
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { C, F, M } from '../../../constants.js';
-import { useWatchlistStore, groupByAssetClass, buildFolderTree, getRootItems, enrichWithTradeStats } from '../../../state/useWatchlistStore.js';
-import { useJournalStore } from '../../../state/useJournalStore';
-import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
+import { C } from '../../../constants.js';
 import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming.js';
+import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
+import { useJournalStore } from '../../../state/useJournalStore';
+import {
+  useWatchlistStore,
+  groupByAssetClass,
+  buildFolderTree,
+  getRootItems,
+  enrichWithTradeStats,
+} from '../../../state/useWatchlistStore.js';
 import s from './WatchlistQuickPanel.module.css';
 
 // Lazy-load AI Copilot for the AI tab
@@ -92,13 +98,7 @@ function MiniSparkline({ data, color, width = 60, height = 24 }) {
     ctx.stroke();
   }, [data, color, width, height]);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className={s.sparklineCanvas}
-      style={{ width, height }}
-    />
-  );
+  return <canvas ref={canvasRef} className={s.sparklineCanvas} style={{ width, height }} />;
 }
 
 // ─── Watchlist Quick Panel ──────────────────────────────────────
@@ -117,7 +117,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
   const [addInput, setAddInput] = useState('');
   const [showAddInput, setShowAddInput] = useState(false);
   const [viewMode, setViewMode] = useState('standard'); // 'compact' | 'standard' | 'table'
-  const [groupMode, setGroupMode] = useState('folders'); // 'folders' | 'asset'
+  const [groupMode] = useState('folders'); // 'folders' | 'asset'
   const filterRef = useRef(null);
   const [activeTab, setActiveTab] = useState(initialTab || 'watchlist'); // 'watchlist' | 'copilot'
 
@@ -138,7 +138,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
   const prevPricesRef = useRef({});
 
   // ─── WebSocket streaming ──────────────────────────────────────
-  const symbolList = useMemo(() => items.map(i => i.symbol), [items]);
+  const symbolList = useMemo(() => items.map((i) => i.symbol), [items]);
   const { prices: streamingPrices, wsStatus } = useWatchlistStreaming(symbolList, isOpen);
 
   // ─── Drag state ───────────────────────────────────────────────
@@ -146,42 +146,45 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef(null);
 
-  const handleDragStart = useCallback((e) => {
-    e.preventDefault();
-    setIsDragging(true);
-    dragStartRef.current = { startX: e.clientX, wasOpen: isOpen };
+  const handleDragStart = useCallback(
+    (e) => {
+      e.preventDefault();
+      setIsDragging(true);
+      dragStartRef.current = { startX: e.clientX, wasOpen: isOpen };
 
-    const handleMove = (moveEvt) => {
-      const delta = dragStartRef.current.startX - moveEvt.clientX;
-      if (dragStartRef.current.wasOpen) {
-        setDragOffset(Math.min(0, delta));
-      } else {
-        setDragOffset(Math.max(0, delta));
-      }
-    };
-
-    const handleUp = (upEvt) => {
-      const delta = dragStartRef.current.startX - upEvt.clientX;
-      setIsDragging(false);
-      setDragOffset(0);
-
-      if (dragStartRef.current.wasOpen) {
-        if (-delta > DISMISS_THRESHOLD) {
-          onClose?.();
+      const handleMove = (moveEvt) => {
+        const delta = dragStartRef.current.startX - moveEvt.clientX;
+        if (dragStartRef.current.wasOpen) {
+          setDragOffset(Math.min(0, delta));
+        } else {
+          setDragOffset(Math.max(0, delta));
         }
-      } else {
-        if (delta > DISMISS_THRESHOLD / 2) {
-          onToggle?.();
+      };
+
+      const handleUp = (upEvt) => {
+        const delta = dragStartRef.current.startX - upEvt.clientX;
+        setIsDragging(false);
+        setDragOffset(0);
+
+        if (dragStartRef.current.wasOpen) {
+          if (-delta > DISMISS_THRESHOLD) {
+            onClose?.();
+          }
+        } else {
+          if (delta > DISMISS_THRESHOLD / 2) {
+            onToggle?.();
+          }
         }
-      }
 
-      document.removeEventListener('mousemove', handleMove);
-      document.removeEventListener('mouseup', handleUp);
-    };
+        document.removeEventListener('mousemove', handleMove);
+        document.removeEventListener('mouseup', handleUp);
+      };
 
-    document.addEventListener('mousemove', handleMove);
-    document.addEventListener('mouseup', handleUp);
-  }, [isOpen, onClose, onToggle]);
+      document.addEventListener('mousemove', handleMove);
+      document.addEventListener('mouseup', handleUp);
+    },
+    [isOpen, onClose, onToggle],
+  );
 
   // Fetch tickers and sparklines for watchlist items
   useEffect(() => {
@@ -190,7 +193,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
 
     import('../../../data/FetchService').then(async ({ fetch24hTicker, fetchSparkline }) => {
       // Batch fetch tickers
-      const symbolsToFetch = items.filter(i => !tickers[i.symbol]).map(i => i.symbol);
+      const symbolsToFetch = items.filter((i) => !tickers[i.symbol]).map((i) => i.symbol);
       if (symbolsToFetch.length > 0) {
         const tickerResults = await fetch24hTicker(symbolsToFetch);
         const newTickers = { ...tickers };
@@ -205,7 +208,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
 
       // Batch fetch sparklines via QuoteService
       const { batchGetQuotes } = await import('../../../data/QuoteService.js');
-      const missingSparklines = items.filter(i => !sparklines[i.symbol]).map(i => i.symbol);
+      const missingSparklines = items.filter((i) => !sparklines[i.symbol]).map((i) => i.symbol);
       if (missingSparklines.length > 0) {
         const quoteMap = await batchGetQuotes(missingSparklines);
         const newSparklines = { ...sparklines };
@@ -220,7 +223,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
         }
         if (stillMissing.length > 0) {
           const sparkPromises = stillMissing.map(async (sym) => {
-            const item = items.find(i => i.symbol === sym);
+            const item = items.find((i) => i.symbol === sym);
             const sData = await fetchSparkline(sym, item?.assetClass === 'crypto');
             return { symbol: sym, data: sData };
           });
@@ -233,7 +236,9 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
       }
     });
 
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, items]);
 
@@ -312,16 +317,19 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
     e.dataTransfer.dropEffect = 'move';
   }, []);
 
-  const handleRowDrop = useCallback((e, targetIdx, targetFolderId = null) => {
-    e.preventDefault();
-    if (!dragItem) return;
-    if (targetFolderId !== undefined) {
-      moveToFolder(dragItem.symbol, targetFolderId);
-    } else if (dragItem.idx !== targetIdx) {
-      reorderStore(dragItem.idx, targetIdx);
-    }
-    setDragItem(null);
-  }, [dragItem, moveToFolder, reorderStore]);
+  const handleRowDrop = useCallback(
+    (e, targetIdx, targetFolderId = null) => {
+      e.preventDefault();
+      if (!dragItem) return;
+      if (targetFolderId !== undefined) {
+        moveToFolder(dragItem.symbol, targetFolderId);
+      } else if (dragItem.idx !== targetIdx) {
+        reorderStore(dragItem.idx, targetIdx);
+      }
+      setDragItem(null);
+    },
+    [dragItem, moveToFolder, reorderStore],
+  );
 
   const handleRowDragEnd = useCallback(() => {
     setDragItem(null);
@@ -364,130 +372,149 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
   }, [mergedTickers]);
 
   // ─── Render a single symbol row (shared by folders + root) ────
-  const renderSymbolRow = useCallback((item, idx) => {
-    const ticker = mergedTickers[item.symbol];
-    const sparkline = sparklines[item.symbol];
-    const isActive = currentSymbol?.toUpperCase() === item.symbol.toUpperCase();
-    const isHovered = hoveredSymbol === item.symbol;
-    const changePercent = ticker ? parseFloat(ticker.priceChangePercent) : null;
-    const isPositive = changePercent !== null ? changePercent >= 0 : true;
-    const changeColor = changePercent !== null ? (isPositive ? C.g : C.r) : C.t3;
-    const lastPrice = ticker ? parseFloat(ticker.lastPrice) : null;
+  const renderSymbolRow = useCallback(
+    (item, idx) => {
+      const ticker = mergedTickers[item.symbol];
+      const sparkline = sparklines[item.symbol];
+      const isActive = currentSymbol?.toUpperCase() === item.symbol.toUpperCase();
+      const isHovered = hoveredSymbol === item.symbol;
+      const changePercent = ticker ? parseFloat(ticker.priceChangePercent) : null;
+      const isPositive = changePercent !== null ? changePercent >= 0 : true;
+      const changeColor = changePercent !== null ? (isPositive ? C.g : C.r) : C.t3;
+      const lastPrice = ticker ? parseFloat(ticker.lastPrice) : null;
 
-    const isCompact = viewMode === 'compact';
-    const isTable = viewMode === 'table';
-    const showSparkline = !isCompact;
-    const showName = !isCompact && !isTable;
+      const isCompact = viewMode === 'compact';
+      const isTable = viewMode === 'table';
+      const showSparkline = !isCompact;
+      const showName = !isCompact && !isTable;
 
-    return (
-      <div
-        key={item.symbol}
-        draggable
-        onDragStart={(e) => handleRowDragStart(e, item.symbol, idx)}
-        onDragOver={handleRowDragOver}
-        onDrop={(e) => handleRowDrop(e, idx)}
-        onDragEnd={handleRowDragEnd}
-        onClick={() => handleSymbolClick(item.symbol)}
-        onMouseEnter={() => setHoveredSymbol(item.symbol)}
-        onMouseLeave={() => setHoveredSymbol(null)}
-        className={s.symbolRow}
-        data-compact={isCompact || undefined}
-        data-table={isTable || undefined}
-        data-active={isActive || undefined}
-        data-dragging={dragItem?.symbol === item.symbol || undefined}
-      >
-        {/* Price flash overlay */}
-        {flashSymbols[item.symbol] && (
-          <div className={s.priceFlash} data-dir={flashSymbols[item.symbol]} />
-        )}
-        {/* Drag grip (hidden in compact) */}
-        {!isCompact && (
-          <div className={s.dragGrip}>
-            {[0, 1].map(i => (
-              <div key={i} className={s.dragGripRow}>
-                <div className={s.dragGripDot} />
-                <div className={s.dragGripDot} />
+      return (
+        <div
+          key={item.symbol}
+          draggable
+          onDragStart={(e) => handleRowDragStart(e, item.symbol, idx)}
+          onDragOver={handleRowDragOver}
+          onDrop={(e) => handleRowDrop(e, idx)}
+          onDragEnd={handleRowDragEnd}
+          onClick={() => handleSymbolClick(item.symbol)}
+          onMouseEnter={() => setHoveredSymbol(item.symbol)}
+          onMouseLeave={() => setHoveredSymbol(null)}
+          className={s.symbolRow}
+          data-compact={isCompact || undefined}
+          data-table={isTable || undefined}
+          data-active={isActive || undefined}
+          data-dragging={dragItem?.symbol === item.symbol || undefined}
+        >
+          {/* Price flash overlay */}
+          {flashSymbols[item.symbol] && <div className={s.priceFlash} data-dir={flashSymbols[item.symbol]} />}
+          {/* Drag grip (hidden in compact) */}
+          {!isCompact && (
+            <div className={s.dragGrip}>
+              {[0, 1].map((i) => (
+                <div key={i} className={s.dragGripRow}>
+                  <div className={s.dragGripDot} />
+                  <div className={s.dragGripDot} />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Symbol + Name */}
+          <div className={s.symbolInfo}>
+            <div className={s.symbolNameRow}>
+              <span className={s.symbolTicker}>{item.symbol}</span>
+              {item.tradeCount > 0 && !isCompact && (
+                <span className={s.tradeStats} style={{ '--stat-color': item.totalPnl >= 0 ? C.g : C.r }}>
+                  {item.totalPnl >= 0 ? '+' : ''}${item.totalPnl.toFixed(0)}
+                </span>
+              )}
+            </div>
+            {showName && item.name && item.name !== item.symbol && <div className={s.symbolName}>{item.name}</div>}
+          </div>
+
+          {/* Sparkline (standard + table only) */}
+          {showSparkline && sparkline && sparkline.length > 0 && (
+            <div className={s.sparklineWrap}>
+              <MiniSparkline
+                data={sparkline}
+                color={changeColor}
+                width={isTable ? 64 : 48}
+                height={isTable ? 18 : 20}
+              />
+            </div>
+          )}
+
+          {/* Price + Change */}
+          <div className={s.priceCol}>
+            {lastPrice !== null && (
+              <div className={s.priceValue}>
+                {lastPrice < 1
+                  ? lastPrice.toFixed(4)
+                  : lastPrice < 100
+                    ? lastPrice.toFixed(2)
+                    : lastPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}
               </div>
-            ))}
-          </div>
-        )}
-
-        {/* Symbol + Name */}
-        <div className={s.symbolInfo}>
-          <div className={s.symbolNameRow}>
-            <span className={s.symbolTicker}>
-              {item.symbol}
-            </span>
-            {item.tradeCount > 0 && !isCompact && (
-              <span className={s.tradeStats} style={{ '--stat-color': item.totalPnl >= 0 ? C.g : C.r }}>
-                {item.totalPnl >= 0 ? '+' : ''}${item.totalPnl.toFixed(0)}
-              </span>
+            )}
+            {changePercent !== null && (
+              <div
+                className={s.changeBadge}
+                style={{ '--change-color': changeColor, '--change-bg': changeColor + '14' }}
+              >
+                {isPositive ? '+' : ''}
+                {changePercent.toFixed(2)}%
+              </div>
             )}
           </div>
-          {showName && item.name && item.name !== item.symbol && (
-            <div className={s.symbolName}>
-              {item.name}
+
+          {/* Volume column (table only) */}
+          {isTable && (
+            <div className={s.volumeCol}>
+              {ticker?.volume ? (
+                <span className={s.volumeVal}>
+                  {parseFloat(ticker.volume) >= 1e6
+                    ? `${(parseFloat(ticker.volume) / 1e6).toFixed(1)}M`
+                    : parseFloat(ticker.volume) >= 1e3
+                      ? `${(parseFloat(ticker.volume) / 1e3).toFixed(0)}K`
+                      : parseFloat(ticker.volume).toFixed(0)}
+                </span>
+              ) : (
+                <span className={s.volumeEmpty}>—</span>
+              )}
             </div>
           )}
-        </div>
 
-        {/* Sparkline (standard + table only) */}
-        {showSparkline && sparkline && sparkline.length > 0 && (
-          <div className={s.sparklineWrap}>
-            <MiniSparkline data={sparkline} color={changeColor} width={isTable ? 64 : 48} height={isTable ? 18 : 20} />
-          </div>
-        )}
-
-        {/* Price + Change */}
-        <div className={s.priceCol}>
-          {lastPrice !== null && (
-            <div className={s.priceValue}>
-              {lastPrice < 1 ? lastPrice.toFixed(4) : lastPrice < 100 ? lastPrice.toFixed(2) : lastPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-            </div>
-          )}
-          {changePercent !== null && (
-            <div
-              className={s.changeBadge}
-              style={{ '--change-color': changeColor, '--change-bg': changeColor + '14' }}
+          {/* Remove button (hover only) */}
+          {isHovered && !isActive && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                removeSymbol(item.symbol);
+              }}
+              className={s.removeBtn}
+              title="Remove from watchlist"
             >
-              {isPositive ? '+' : ''}{changePercent.toFixed(2)}%
-            </div>
+              ✕
+            </button>
           )}
         </div>
-
-        {/* Volume column (table only) */}
-        {isTable && (
-          <div className={s.volumeCol}>
-            {ticker?.volume ? (
-              <span className={s.volumeVal}>
-                {parseFloat(ticker.volume) >= 1e6
-                  ? `${(parseFloat(ticker.volume) / 1e6).toFixed(1)}M`
-                  : parseFloat(ticker.volume) >= 1e3
-                    ? `${(parseFloat(ticker.volume) / 1e3).toFixed(0)}K`
-                    : parseFloat(ticker.volume).toFixed(0)}
-              </span>
-            ) : (
-              <span className={s.volumeEmpty}>—</span>
-            )}
-          </div>
-        )}
-
-        {/* Remove button (hover only) */}
-        {isHovered && !isActive && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              removeSymbol(item.symbol);
-            }}
-            className={s.removeBtn}
-            title="Remove from watchlist"
-          >
-            ✕
-          </button>
-        )}
-      </div>
-    );
-  }, [mergedTickers, sparklines, currentSymbol, hoveredSymbol, dragItem, flashSymbols, viewMode, handleRowDragStart, handleRowDragOver, handleRowDrop, handleRowDragEnd, handleSymbolClick, removeSymbol]);
+      );
+    },
+    [
+      mergedTickers,
+      sparklines,
+      currentSymbol,
+      hoveredSymbol,
+      dragItem,
+      flashSymbols,
+      viewMode,
+      handleRowDragStart,
+      handleRowDragOver,
+      handleRowDrop,
+      handleRowDragEnd,
+      handleSymbolClick,
+      removeSymbol,
+    ],
+  );
 
   // ─── Compute transform ────────────────────────────────────────
   let panelTranslateX;
@@ -504,11 +531,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
   // ─── Render ───────────────────────────────────────────────────
 
   return (
-    <div
-      className={s.wrapper}
-      data-open={isOpen && !isDragging}
-      data-dragging={isDragging || undefined}
-    >
+    <div className={s.wrapper} data-open={isOpen && !isDragging} data-dragging={isDragging || undefined}>
       {/* ─── Drag Handle Tab ─── */}
       <div
         onMouseDown={handleDragStart}
@@ -520,25 +543,35 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
       >
         {/* Grip dots */}
         <div className={s.handleDots}>
-          {[0, 1, 2, 3].map(i => (
+          {[0, 1, 2, 3].map((i) => (
             <div key={i} className={s.gripDot} />
           ))}
         </div>
         {/* Tab icon below dots */}
         {activeTab === 'copilot' ? (
           <svg
-            width="12" height="12" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor"
-            strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             className={s.handleIcon}
           >
             <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" />
           </svg>
         ) : (
           <svg
-            width="12" height="12" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor"
-            strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             className={s.handleIcon}
           >
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -547,9 +580,14 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
         )}
         {/* Chevron arrow hint */}
         <svg
-          width="10" height="10" viewBox="0 0 24 24"
-          fill="none" stroke="currentColor"
-          strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+          width="10"
+          height="10"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
           className={s.handleChevron}
         >
           <polyline points={isOpen ? '9 18 15 12 9 6' : '15 18 9 12 15 6'} />
@@ -570,17 +608,47 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
         <div className={s.tabBar}>
           <div className={s.tabList}>
             {[
-              { id: 'watchlist', label: 'Watchlist', icon: (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              ), badge: items.length },
-              { id: 'copilot', label: 'AI Copilot', icon: (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
-                  <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" fill="currentColor" fillOpacity="0.15" />
-                </svg>
-              ) },
+              {
+                id: 'watchlist',
+                label: 'Watchlist',
+                icon: (
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                ),
+                badge: items.length,
+              },
+              {
+                id: 'copilot',
+                label: 'AI Copilot',
+                icon: (
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
+                  >
+                    <path
+                      d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z"
+                      fill="currentColor"
+                      fillOpacity="0.15"
+                    />
+                  </svg>
+                ),
+              },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -590,19 +658,13 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
               >
                 <span className={s.tabIcon}>{tab.icon}</span>
                 {tab.label}
-                {tab.badge != null && (
-                  <span className={s.tabBadge}>{tab.badge}</span>
-                )}
+                {tab.badge != null && <span className={s.tabBadge}>{tab.badge}</span>}
               </button>
             ))}
           </div>
 
           {/* Close button */}
-          <button
-            onClick={() => onClose?.()}
-            title="Slide away (W)"
-            className={s.closeBtn}
-          >
+          <button onClick={() => onClose?.()} title="Slide away (W)" className={s.closeBtn}>
             ✕
           </button>
         </div>
@@ -612,7 +674,11 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
           <div className={s.headerControls}>
             {/* View mode toggle */}
             <div className={s.viewModeGroup}>
-              {[['compact', '☰'], ['standard', '≡'], ['table', '▤']].map(([mode, icon]) => (
+              {[
+                ['compact', '☰'],
+                ['standard', '≡'],
+                ['table', '▤'],
+              ].map(([mode, icon]) => (
                 <button
                   key={mode}
                   onClick={() => setViewMode(mode)}
@@ -632,11 +698,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
             >
               +
             </button>
-            <button
-              onClick={handleNewFolder}
-              title="New folder"
-              className={`${s.iconBtn} ${s.folderBtn}`}
-            >
+            <button onClick={handleNewFolder} title="New folder" className={`${s.iconBtn} ${s.folderBtn}`}>
               📁
             </button>
             {/* Smart folder button */}
@@ -691,11 +753,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
                   autoFocus
                   className={s.addInput}
                 />
-                <button
-                  onClick={handleAddSymbol}
-                  disabled={!addInput.trim()}
-                  className={s.addSubmitBtn}
-                >
+                <button onClick={handleAddSymbol} disabled={!addInput.trim()} className={s.addSubmitBtn}>
                   Add
                 </button>
               </div>
@@ -725,31 +783,36 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
             {/* ─── Symbol List ─── */}
             <div className={s.symbolList}>
               {filteredItems.length === 0 ? (
-                <div className={s.emptyState}>
-                  {filter ? 'No matching symbols' : 'Watchlist is empty'}
-                </div>
+                <div className={s.emptyState}>{filter ? 'No matching symbols' : 'Watchlist is empty'}</div>
               ) : (
                 <>
                   {/* ─── Folders ─── */}
-                  {folderTree.map(({ folder, items: folderItems, children }) => (
+                  {folderTree.map(({ folder, items: folderItems }) => (
                     <div
                       key={folder.id}
                       onDragOver={handleRowDragOver}
                       onDrop={(e) => handleRowDrop(e, null, folder.id)}
                     >
                       {/* Folder header */}
-                      <div
-                        className={s.folderHeader}
-                        onClick={() => toggleFolderCollapse(folder.id)}
-                      >
-                        <span className={s.folderChevron} data-collapsed={folder.collapsed || undefined}>▼</span>
+                      <div className={s.folderHeader} onClick={() => toggleFolderCollapse(folder.id)}>
+                        <span className={s.folderChevron} data-collapsed={folder.collapsed || undefined}>
+                          ▼
+                        </span>
                         <span className={s.folderIcon}>{folder.color ? '' : '📁'}</span>
                         {renamingFolder === folder.id ? (
                           <input
                             value={renameValue}
                             onChange={(e) => setRenameValue(e.target.value)}
-                            onBlur={() => { renameFolder(folder.id, renameValue || 'Folder'); setRenamingFolder(null); }}
-                            onKeyDown={(e) => { if (e.key === 'Enter') { renameFolder(folder.id, renameValue || 'Folder'); setRenamingFolder(null); } }}
+                            onBlur={() => {
+                              renameFolder(folder.id, renameValue || 'Folder');
+                              setRenamingFolder(null);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                renameFolder(folder.id, renameValue || 'Folder');
+                                setRenamingFolder(null);
+                              }
+                            }}
                             autoFocus
                             onClick={(e) => e.stopPropagation()}
                             className={s.folderRenameInput}
@@ -759,15 +822,26 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
                         )}
                         <span className={s.folderCount}>({folderItems.length})</span>
                         <button
-                          onClick={(e) => { e.stopPropagation(); setRenamingFolder(folder.id); setRenameValue(folder.name); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setRenamingFolder(folder.id);
+                            setRenameValue(folder.name);
+                          }}
                           title="Rename"
                           className={s.folderAction}
-                        >✏️</button>
+                        >
+                          ✏️
+                        </button>
                         <button
-                          onClick={(e) => { e.stopPropagation(); removeFolder(folder.id); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeFolder(folder.id);
+                          }}
                           title="Delete folder"
                           className={s.folderAction}
-                        >🗑️</button>
+                        >
+                          🗑️
+                        </button>
                       </div>
                       {/* Folder items */}
                       {!folder.collapsed && folderItems.map((item, idx) => renderSymbolRow(item, idx))}
@@ -795,9 +869,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
                 <span className={s.wsDot} data-status={wsStatus} />
                 Press <kbd className={s.kbd}>W</kbd> to toggle · {wsStatus === 'connected' ? 'live' : wsStatus}
               </span>
-              <span className={s.footerCount}>
-                {filteredItems.length} symbols
-              </span>
+              <span className={s.footerCount}>{filteredItems.length} symbols</span>
             </div>
           </>
         )}
@@ -805,11 +877,7 @@ function WatchlistQuickPanel({ isOpen, onToggle, onClose, onSymbolSelect, initia
         {/* ─── AI COPILOT TAB CONTENT ─── */}
         {activeTab === 'copilot' && (
           <div className={s.copilotWrap}>
-            <Suspense fallback={
-              <div className={s.copilotLoading}>
-                Loading AI Copilot…
-              </div>
-            }>
+            <Suspense fallback={<div className={s.copilotLoading}>Loading AI Copilot…</div>}>
               <CopilotChatInline />
             </Suspense>
           </div>

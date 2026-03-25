@@ -10,15 +10,15 @@
 //   - Lucide icons + framer-motion animations
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
 import { Search, X, ChevronDown, Layers, LayoutPanelTop, Trash2, Eye, EyeOff } from 'lucide-react';
+import React from 'react';
 import { useState, useCallback, useMemo } from 'react';
 import { INDICATORS } from '../../../charting_library/studies/indicators/registry.js';
 import { C } from '../../../constants.js';
 import { useChartToolsStore } from '../../../state/chart/useChartToolsStore';
 import { Tooltip } from '../ui/AppleHIG.jsx';
-import { alpha } from '@/shared/colorUtils';
 import st from './IndicatorPanel.module.css';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Category Definitions (P2 3.3: consolidated 9→6) ────────────
 const CATEGORIES = [
@@ -31,19 +31,55 @@ const CATEGORIES = [
     id: 'trend-channels',
     label: 'Trend & Channels',
     ids: [
-      'bb', 'vwap', 'vrvp', 'ichimoku', 'keltner', 'donchian', 'linreg',
-      'supertrend', 'psar', 'sessionVwap', 'anchoredVwap', 'liquidationLevels',
+      'bb',
+      'vwap',
+      'vrvp',
+      'ichimoku',
+      'keltner',
+      'donchian',
+      'linreg',
+      'supertrend',
+      'psar',
+      'sessionVwap',
+      'anchoredVwap',
+      'liquidationLevels',
     ],
   },
   {
     id: 'oscillators-momentum',
     label: 'Oscillators & Momentum',
     ids: [
-      'rsi', 'macd', 'stochastic', 'cci', 'williamsR', 'roc', 'aroon',
-      'momentum', 'ppo', 'dpo', 'trix', 'kst', 'coppock', 'squeeze',
-      'awesomeOsc', 'acceleratorOsc', 'chandeMO', 'chaikin', 'tsi', 'vortex',
-      'ultimateOsc', 'klinger', 'fearGreed', 'vwRsi',
-      'connorsRsi', 'schaffTrendCycle', 'ehlersFisher', 'rvi', 'stochRsi', 'elderRay', 'adxr',
+      'rsi',
+      'macd',
+      'stochastic',
+      'cci',
+      'williamsR',
+      'roc',
+      'aroon',
+      'momentum',
+      'ppo',
+      'dpo',
+      'trix',
+      'kst',
+      'coppock',
+      'squeeze',
+      'awesomeOsc',
+      'acceleratorOsc',
+      'chandeMO',
+      'chaikin',
+      'tsi',
+      'vortex',
+      'ultimateOsc',
+      'klinger',
+      'fearGreed',
+      'vwRsi',
+      'connorsRsi',
+      'schaffTrendCycle',
+      'ehlersFisher',
+      'rvi',
+      'stochRsi',
+      'elderRay',
+      'adxr',
     ],
   },
   {
@@ -54,14 +90,31 @@ const CATEGORIES = [
   {
     id: 'adaptive',
     label: 'Adaptive & Smart',
-    ids: ['kama', 'vidya', 'frama', 'adaptiveRsi', 'dynamicATR', 'regimeSwitcher', 'sigmaBands', 'mama', 'mcginleyDynamic'],
+    ids: [
+      'kama',
+      'vidya',
+      'frama',
+      'adaptiveRsi',
+      'dynamicATR',
+      'regimeSwitcher',
+      'sigmaBands',
+      'mama',
+      'mcginleyDynamic',
+    ],
   },
   {
     id: 'signals',
     label: 'Signals & Confluence',
     ids: [
-      'rvolFilter', 'pivotPoints', 'autoFib', 'heikinAshi', 'marketProfile',
-      'fvgDetector', 'wickRejection', 'confluenceScore', 'signalQuality',
+      'rvolFilter',
+      'pivotPoints',
+      'autoFib',
+      'heikinAshi',
+      'marketProfile',
+      'fvgDetector',
+      'wickRejection',
+      'confluenceScore',
+      'signalQuality',
     ],
   },
   {
@@ -70,8 +123,6 @@ const CATEGORIES = [
     ids: ['hurstExponent', 'renkoBrickCount'],
   },
 ];
-
-
 
 function IndicatorPanel({ isOpen, _onClose }) {
   const indicators = useChartToolsStore((s) => s.indicators);
@@ -137,7 +188,7 @@ function IndicatorPanel({ isOpen, _onClose }) {
 
   const handleParamChange = useCallback(
     (id, paramKey, value) => {
-      const ind = indicators.find(i => i.id === id);
+      const ind = indicators.find((i) => i.id === id);
       if (!ind) return;
       updateIndicator(id, {
         params: { ...ind.params, [paramKey]: Number(value) },
@@ -171,13 +222,10 @@ function IndicatorPanel({ isOpen, _onClose }) {
 
       {/* ── Scrollable Content ────────────────────────────────── */}
       <div className={st.scrollArea}>
-
         {/* ── Active Indicators ─────────────────────────────── */}
         {indicators.length > 0 && (
           <div className={st.activeSection}>
-            <div className={st.activeSectionLabel}>
-              Active · {indicators.length}
-            </div>
+            <div className={st.activeSectionLabel}>Active · {indicators.length}</div>
             <div className={st.activeSectionList}>
               {indicators.map((ind) => (
                 <ActiveIndicatorRow
@@ -282,15 +330,15 @@ function ActiveIndicatorRow({ ind, idx: _idx, isEditing, onToggleEdit, onToggleV
       </div>
 
       {/* Parameter editor */}
-      <div className={`${st.paramToggle} ${isEditing && def && Object.keys(def.params).length > 0 ? st.paramToggleOpen : st.paramToggleClosed}`}>
+      <div
+        className={`${st.paramToggle} ${isEditing && def && Object.keys(def.params).length > 0 ? st.paramToggleOpen : st.paramToggleClosed}`}
+      >
         <div className={st.paramInner}>
           {def && Object.keys(def.params).length > 0 && (
             <div className={st.paramGrid}>
               {Object.entries(def.params).map(([key, config]) => (
                 <div key={key} className={st.paramCol}>
-                  <label className={st.paramLabel}>
-                    {config.label || key}
-                  </label>
+                  <label className={st.paramLabel}>{config.label || key}</label>
                   <input
                     type="number"
                     value={ind.params?.[key] ?? config.default}
@@ -353,10 +401,7 @@ function CatalogIndicatorRow({ def, onAdd }) {
   return (
     <button onClick={onAdd} className={st.catalogRow}>
       {/* Color dot — column-aligned */}
-      <div
-        className={st.colorDot}
-        style={{ '--dot-color': def.outputs[0]?.color || '#787B86', boxShadow: 'none' }}
-      />
+      <div className={st.colorDot} style={{ '--dot-color': def.outputs[0]?.color || '#787B86', boxShadow: 'none' }} />
 
       {/* Name + default params */}
       <span className={st.catalogName}>

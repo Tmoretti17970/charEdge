@@ -28,7 +28,7 @@ export interface ReplaySession {
   exitIdx: number;
   currentIdx: number;
   isPlaying: boolean;
-  speed: number;  // ms per bar
+  speed: number; // ms per bar
   commentaryCache: Map<string, string>;
   step: (delta?: number) => void;
   play: () => void;
@@ -45,10 +45,7 @@ class TradeReplayEngine {
   /**
    * Create a replay session for a trade.
    */
-  createSession(
-    trade: Record<string, unknown>,
-    bars: ReplayBar[],
-  ): ReplaySession {
+  createSession(trade: Record<string, unknown>, bars: ReplayBar[]): ReplaySession {
     const entryTime = this._parseTime(trade.entryTime || trade.date);
     const exitTime = this._parseTime(trade.exitTime);
 
@@ -57,11 +54,11 @@ class TradeReplayEngine {
     let exitIdx = bars.length - 1;
 
     if (entryTime) {
-      entryIdx = bars.findIndex(b => b.time >= entryTime);
+      entryIdx = bars.findIndex((b) => b.time >= entryTime);
       if (entryIdx < 0) entryIdx = 0;
     }
     if (exitTime) {
-      exitIdx = bars.findIndex(b => b.time >= exitTime);
+      exitIdx = bars.findIndex((b) => b.time >= exitTime);
       if (exitIdx < 0) exitIdx = bars.length - 1;
     }
 
@@ -112,7 +109,7 @@ class TradeReplayEngine {
       getCommentary: async (point) => {
         if (commentaryCache.has(point)) return commentaryCache.get(point)!;
 
-        const commentary = await _generateCommentary(trade, bars, entryIdx, exitIdx, point);
+        const commentary = await generateCommentary(trade, bars, entryIdx, exitIdx, point);
         commentaryCache.set(point, commentary);
         return commentary;
       },
@@ -142,22 +139,29 @@ class TradeReplayEngine {
 
 // ─── Commentary Generator ───────────────────────────────────────
 
-async function _generateCommentary(
+async function generateCommentary(
   trade: Record<string, unknown>,
   bars: ReplayBar[],
   entryIdx: number,
   exitIdx: number,
   point: string,
 ): Promise<string> {
-  const barIdx = point === 'entry' ? entryIdx :
-                 point === 'exit' ? exitIdx :
-                 point === 'midpoint' ? Math.floor((entryIdx + exitIdx) / 2) :
-                 exitIdx;
+  const barIdx =
+    point === 'entry'
+      ? entryIdx
+      : point === 'exit'
+        ? exitIdx
+        : point === 'midpoint'
+          ? Math.floor((entryIdx + exitIdx) / 2)
+          : exitIdx;
 
   const contextBars = bars.slice(Math.max(0, barIdx - 5), barIdx + 1);
-  const barSummary = contextBars.map(b =>
-    `O:${b.open.toFixed(2)} H:${b.high.toFixed(2)} L:${b.low.toFixed(2)} C:${b.close.toFixed(2)} V:${b.volume}`
-  ).join(' | ');
+  const barSummary = contextBars
+    .map(
+      (b) =>
+        `O:${b.open.toFixed(2)} H:${b.high.toFixed(2)} L:${b.low.toFixed(2)} C:${b.close.toFixed(2)} V:${b.volume}`,
+    )
+    .join(' | ');
 
   const prompt = `Analyze this ${point} point of a ${trade.side || '?'} trade on ${trade.symbol || '?'}.
 Entry: $${trade.entryPrice || '?'} | Exit: $${trade.exitPrice || '?'} | P&L: $${typeof trade.pnl === 'number' ? (trade.pnl as number).toFixed(2) : '?'}
@@ -165,10 +169,15 @@ Entry: $${trade.entryPrice || '?'} | Exit: $${trade.exitPrice || '?'} | P&L: $${
 Recent bars at ${point} point:
 ${barSummary}
 
-${point === 'entry' ? 'Was this a good entry? What was the price action saying?' :
-  point === 'midpoint' ? 'How was the trade managed at this point? Any warning signs?' :
-  point === 'exit' ? 'Was the exit well-timed? Could it have been better?' :
-  'With hindsight, what would the optimal play have been?'}
+${
+  point === 'entry'
+    ? 'Was this a good entry? What was the price action saying?'
+    : point === 'midpoint'
+      ? 'How was the trade managed at this point? Any warning signs?'
+      : point === 'exit'
+        ? 'Was the exit well-timed? Could it have been better?'
+        : 'With hindsight, what would the optimal play have been?'
+}
 
 1-2 sentences max.`;
 
@@ -177,7 +186,10 @@ ${point === 'entry' ? 'Was this a good entry? What was the price action saying?'
     const result = await aiRouter.route({
       type: 'coach',
       messages: [
-        { role: 'system', content: 'You are a trading replay coach. Brief, specific commentary at each decision point.' },
+        {
+          role: 'system',
+          content: 'You are a trading replay coach. Brief, specific commentary at each decision point.',
+        },
         { role: 'user', content: prompt },
       ],
       maxTokens: 100,

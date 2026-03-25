@@ -79,19 +79,17 @@ export function useWebGPUCapability(): WebGPUCapability {
         }
 
         // Try to get adapter info
-        const info = (adapter as any).info || {};
+        const info = (adapter as unknown as Record<string, Record<string, string>>).info || {};
         const gpuName = info.description || info.device || info.vendor || 'Unknown GPU';
 
         // Estimate VRAM from maxBufferSize (rough heuristic)
         const limits = adapter.limits;
         const maxBuffer = limits?.maxBufferSize || 0;
-        const vramEstimateMB = maxBuffer > 0
-          ? Math.round(maxBuffer / (1024 * 1024))
-          : null;
+        const vramEstimateMB = maxBuffer > 0 ? Math.round(maxBuffer / (1024 * 1024)) : null;
 
         // Capability thresholds
         const canRun1B = true; // 135M model runs on almost any WebGPU device
-        const canRun3B = (vramEstimateMB !== null && vramEstimateMB >= 4096);
+        const canRun3B = vramEstimateMB !== null && vramEstimateMB >= 4096;
 
         const summary = canRun3B
           ? `${gpuName} — Full AI (1B + 3B models)`
@@ -126,7 +124,9 @@ export function useWebGPUCapability(): WebGPUCapability {
     }
 
     detect();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return capability;

@@ -15,15 +15,19 @@ import { TickRingBuffer } from './engine/streaming/TickRingBuffer.ts';
 import { logger } from '@/observability/logger';
 
 // Lazy ref to PriceAggregator — avoids circular dep at module parse time
-let _priceAgg: any = null;
+let _priceAgg: { ingest: (...args: unknown[]) => void } | null = null;
 // Sprint 1 Task 1.1: Lazy ref to PriceBus — unified price distribution
-let _priceBus: any = null;
+let _priceBus: { publish: (...args: unknown[]) => void } | null = null;
 
 // Sprint 9 #69: Import from extracted ws/ modules
 import {
-  WS_STATUS, streamKey, tradeStreamKey,
-  HEARTBEAT_INTERVAL_MS, PONG_TIMEOUT_MS, ALLOWED_WS_HOSTS,
-  isStreamingSupported
+  WS_STATUS,
+  streamKey,
+  tradeStreamKey,
+  HEARTBEAT_INTERVAL_MS,
+  PONG_TIMEOUT_MS,
+  ALLOWED_WS_HOSTS,
+  isStreamingSupported,
 } from './ws/constants.ts';
 import { getBinaryCodec, getStreamingBridge } from './ws/lazyImports.ts';
 // #14: Wire RTT into heartbeat — feed ping/pong to connectionQuality
@@ -242,12 +246,18 @@ class _WebSocketService {
       const klineSub = this._subs.get(subId);
       if (klineSub) {
         const idx = this._klineSubsByStream.get(klineSub.streamKey);
-        if (idx) { idx.delete(subId); if (idx.size === 0) this._klineSubsByStream.delete(klineSub.streamKey); }
+        if (idx) {
+          idx.delete(subId);
+          if (idx.size === 0) this._klineSubsByStream.delete(klineSub.streamKey);
+        }
       }
       const tradeSub = this._tradeSubs.get(subId);
       if (tradeSub) {
         const idx = this._tradeSubsByStream.get(tradeSub.streamKey);
-        if (idx) { idx.delete(subId); if (idx.size === 0) this._tradeSubsByStream.delete(tradeSub.streamKey); }
+        if (idx) {
+          idx.delete(subId);
+          if (idx.size === 0) this._tradeSubsByStream.delete(tradeSub.streamKey);
+        }
       }
       this._subs.delete(subId);
       this._tradeSubs.delete(subId);
@@ -325,8 +335,8 @@ class _WebSocketService {
     }
 
     // Compute diff
-    const toAdd = [...desired].filter(s => !this._currentStreams.has(s));
-    const toRemove = [...this._currentStreams].filter(s => !desired.has(s));
+    const toAdd = [...desired].filter((s) => !this._currentStreams.has(s));
+    const toRemove = [...this._currentStreams].filter((s) => !desired.has(s));
 
     if (toAdd.length === 0 && toRemove.length === 0) return;
 
@@ -343,13 +353,17 @@ class _WebSocketService {
   _sendSubscribe(streams) {
     if (!this._ws || this._ws.readyState !== WebSocket.OPEN) return;
     try {
-      this._ws.send(JSON.stringify({
-        method: 'SUBSCRIBE',
-        params: streams,
-        id: this._wsMsgId++,
-      }));
+      this._ws.send(
+        JSON.stringify({
+          method: 'SUBSCRIBE',
+          params: streams,
+          id: this._wsMsgId++,
+        }),
+      );
       for (const s of streams) this._currentStreams.add(s);
-    } catch (e) { logger.data.warn('Operation failed', e); }
+    } catch (e) {
+      logger.data.warn('Operation failed', e);
+    }
   }
 
   /**
@@ -360,13 +374,17 @@ class _WebSocketService {
   _sendUnsubscribe(streams) {
     if (!this._ws || this._ws.readyState !== WebSocket.OPEN) return;
     try {
-      this._ws.send(JSON.stringify({
-        method: 'UNSUBSCRIBE',
-        params: streams,
-        id: this._wsMsgId++,
-      }));
+      this._ws.send(
+        JSON.stringify({
+          method: 'UNSUBSCRIBE',
+          params: streams,
+          id: this._wsMsgId++,
+        }),
+      );
       for (const s of streams) this._currentStreams.delete(s);
-    } catch (e) { logger.data.warn('Operation failed', e); }
+    } catch (e) {
+      logger.data.warn('Operation failed', e);
+    }
   }
 
   /** @private */
@@ -405,7 +423,7 @@ class _WebSocketService {
           this._notifyStatus();
           return;
         }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (__urlErr) {
         logger.data.warn('[WebSocketService] Invalid WebSocket URL');
         this._status = WS_STATUS.DISCONNECTED;
@@ -424,8 +442,8 @@ class _WebSocketService {
 
         // If streams changed while connecting, send incremental updates
         const latest = new Set(this._getActiveStreams());
-        const added = [...latest].filter(s => !this._currentStreams.has(s));
-        const removed = [...this._currentStreams].filter(s => !latest.has(s));
+        const added = [...latest].filter((s) => !this._currentStreams.has(s));
+        const removed = [...this._currentStreams].filter((s) => !latest.has(s));
         if (added.length > 0) this._sendSubscribe(added);
         if (removed.length > 0) this._sendUnsubscribe(removed);
 
@@ -438,10 +456,14 @@ class _WebSocketService {
           let wrapper;
 
           // Sprint 5 Task 5.4: Track bandwidth
-          const dataSize = evt.data instanceof ArrayBuffer ? evt.data.byteLength
-            : evt.data instanceof Blob ? evt.data.size
-            : typeof evt.data === 'string' ? evt.data.length
-            : 0;
+          const dataSize =
+            evt.data instanceof ArrayBuffer
+              ? evt.data.byteLength
+              : evt.data instanceof Blob
+                ? evt.data.size
+                : typeof evt.data === 'string'
+                  ? evt.data.length
+                  : 0;
           this._bytesReceived += dataSize;
 
           // ── Binary-first decode (Task 1.3.2) ──
@@ -449,9 +471,7 @@ class _WebSocketService {
             this._binaryFrames++;
             const codec = _getBinaryCodec();
             if (codec) {
-              const decoded = codec.decodeAuto
-                ? codec.decodeAuto(evt.data)
-                : codec.decode(evt.data);
+              const decoded = codec.decodeAuto ? codec.decodeAuto(evt.data) : codec.decode(evt.data);
               if (decoded?.data) {
                 wrapper = decoded.data;
               } else {
@@ -499,8 +519,8 @@ class _WebSocketService {
           if (!this._rafId) {
             this._rafId = requestAnimationFrame(() => this._flushMessages());
           }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (_) {
+           
+        } catch {
           /* ignore parse errors */
         }
       };
@@ -509,7 +529,7 @@ class _WebSocketService {
         this._status = WS_STATUS.DISCONNECTED;
         this._notifyStatus();
         // A1.2: Include _tradeSubs in reconnect check — trade-only streams must also reconnect
-        if (!this._intentionalClose && (this._subs.size + this._tradeSubs.size) > 0) {
+        if (!this._intentionalClose && this._subs.size + this._tradeSubs.size > 0) {
           this._scheduleReconnect();
         }
       };
@@ -519,12 +539,12 @@ class _WebSocketService {
         this._notifyStatus();
         // onclose will fire after onerror, reconnect handled there
       };
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_) {
+       
+    } catch {
       this._status = WS_STATUS.DISCONNECTED;
       this._notifyStatus();
       // A1.2: Include _tradeSubs in reconnect check
-      if (!this._intentionalClose && (this._subs.size + this._tradeSubs.size) > 0) {
+      if (!this._intentionalClose && this._subs.size + this._tradeSubs.size > 0) {
         this._scheduleReconnect();
       }
     }
@@ -578,16 +598,32 @@ class _WebSocketService {
 
       // Feed tick into PriceAggregator to unify chart + badge price buses
       if (!_priceAgg) {
-        import('./engine/streaming/PriceAggregator.js').then(m => { _priceAgg = m.priceAggregator; }).catch(() => {});
+        import('./engine/streaming/PriceAggregator.js')
+          .then((m) => {
+            _priceAgg = m.priceAggregator;
+          })
+          .catch(() => {});
       } else {
-        try { _priceAgg.ingest(sym, 'binance-ws', bar.close, Date.now(), 0); } catch (err) { logger.data.warn('[WS] PriceAggregator ingest failed:', (err as Error)?.message); }
+        try {
+          _priceAgg.ingest(sym, 'binance-ws', bar.close, Date.now(), 0);
+        } catch (err) {
+          logger.data.warn('[WS] PriceAggregator ingest failed:', (err as Error)?.message);
+        }
       }
 
       // Sprint 1 Task 1.1: Publish to PriceBus for unified distribution
       if (!_priceBus) {
-        import('./engine/streaming/PriceBus.ts').then(m => { _priceBus = m.priceBus; }).catch(() => {});
+        import('./engine/streaming/PriceBus.ts')
+          .then((m) => {
+            _priceBus = m.priceBus;
+          })
+          .catch(() => {});
       } else {
-        try { _priceBus.publish(sym, bar.close, 'binance-ws', Date.now()); } catch (err) { logger.data.warn('[WS] PriceBus publish failed:', (err as Error)?.message); }
+        try {
+          _priceBus.publish(sym, bar.close, 'binance-ws', Date.now());
+        } catch (err) {
+          logger.data.warn('[WS] PriceBus publish failed:', (err as Error)?.message);
+        }
       }
 
       // P1 Task P2: O(1) lookup via stream index
@@ -614,7 +650,9 @@ class _WebSocketService {
           tick.side = '';
           bridge.onTick(sym, tick);
         }
-      } catch (e) { logger.data.warn('Operation failed', e); }
+      } catch (e) {
+        logger.data.warn('Operation failed', e);
+      }
     }
 
     // ── Trade events (sub-second ticks) ──
@@ -648,7 +686,9 @@ class _WebSocketService {
           tick.side = trade.isBuyerMaker ? 'sell' : 'buy';
           bridge.onTick(sym, tick);
         }
-      } catch (e) { logger.data.warn('Operation failed', e); }
+      } catch (e) {
+        logger.data.warn('Operation failed', e);
+      }
     }
   }
 
@@ -746,9 +786,7 @@ class _WebSocketService {
       // No data for 30s — connection may be dead.
       // Wait an additional PONG_TIMEOUT_MS grace period.
       if (staleness > HEARTBEAT_INTERVAL_MS + PONG_TIMEOUT_MS) {
-        logger.data.warn(
-          `[WebSocketService] Data stale for ${Math.round(staleness / 1000)}s — reconnecting`
-        );
+        logger.data.warn(`[WebSocketService] Data stale for ${Math.round(staleness / 1000)}s — reconnecting`);
         this._closeWs();
         this._scheduleReconnect();
       }
@@ -793,7 +831,7 @@ class _WebSocketService {
       bytesReceived: this._bytesReceived,
       binaryFrames: this._binaryFrames,
       textFrames: this._textFrames,
-      kbPerSec: uptimeMs > 0 ? (this._bytesReceived / 1024) / (uptimeMs / 1000) : 0,
+      kbPerSec: uptimeMs > 0 ? this._bytesReceived / 1024 / (uptimeMs / 1000) : 0,
       uptimeMs,
     };
   }
@@ -828,11 +866,12 @@ class _WebSocketService {
       try {
         // Close in both OPEN and CONNECTING states to prevent
         // "Ping received after close" from half-open sockets
-        if (this._ws.readyState === WebSocket.OPEN ||
-          this._ws.readyState === WebSocket.CONNECTING) {
+        if (this._ws.readyState === WebSocket.OPEN || this._ws.readyState === WebSocket.CONNECTING) {
           this._ws.close();
         }
-      } catch (e) { logger.data.warn('Operation failed', e); }
+      } catch (e) {
+        logger.data.warn('Operation failed', e);
+      }
       this._ws = null;
     }
     this._currentStreams.clear();

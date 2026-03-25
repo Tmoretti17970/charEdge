@@ -2,16 +2,22 @@
 // charEdge — Phase 3 Tests (AI Copilot Sprints 11–20)
 // ═══════════════════════════════════════════════════════════════════
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 // Provide localStorage shim for test env
 if (typeof globalThis.localStorage === 'undefined') {
   const store: Record<string, string> = {};
-  (globalThis as any).localStorage = {
+  (globalThis as unknown as Record<string, unknown>).localStorage = {
     getItem: (k: string) => store[k] ?? null,
-    setItem: (k: string, v: string) => { store[k] = v; },
-    removeItem: (k: string) => { delete store[k]; },
-    clear: () => { for (const k in store) delete store[k]; },
+    setItem: (k: string, v: string) => {
+      store[k] = v;
+    },
+    removeItem: (k: string) => {
+      delete store[k];
+    },
+    clear: () => {
+      for (const k in store) delete store[k];
+    },
   };
 }
 
@@ -415,7 +421,9 @@ describe('ProactiveInsightManager', () => {
 
   it('queues regime shift events', () => {
     const insight = mgr.onChartEvent({
-      type: 'regime_change', symbol: 'BTC', data: { newRegime: 'Uptrend' },
+      type: 'regime_change',
+      symbol: 'BTC',
+      data: { newRegime: 'Uptrend' },
     });
     expect(insight).not.toBeNull();
     expect(mgr.getPendingCount()).toBe(1);
@@ -423,7 +431,9 @@ describe('ProactiveInsightManager', () => {
 
   it('filters low-significance volume events', () => {
     const insight = mgr.onChartEvent({
-      type: 'volume_anomaly', symbol: 'BTC', data: { zScore: 1.5 },
+      type: 'volume_anomaly',
+      symbol: 'BTC',
+      data: { zScore: 1.5 },
     });
     expect(insight).toBeNull();
     expect(mgr.getPendingCount()).toBe(0);
@@ -431,7 +441,9 @@ describe('ProactiveInsightManager', () => {
 
   it('accepts high-significance volume events', () => {
     const insight = mgr.onChartEvent({
-      type: 'volume_anomaly', symbol: 'BTC', data: { zScore: 4.5 },
+      type: 'volume_anomaly',
+      symbol: 'BTC',
+      data: { zScore: 4.5 },
     });
     expect(insight).not.toBeNull();
     expect(insight!.priority).toBe('high');
@@ -439,7 +451,9 @@ describe('ProactiveInsightManager', () => {
 
   it('dismisses insights', () => {
     const insight = mgr.onChartEvent({
-      type: 'regime_change', symbol: 'BTC', data: { newRegime: 'Downtrend' },
+      type: 'regime_change',
+      symbol: 'BTC',
+      data: { newRegime: 'Downtrend' },
     });
     mgr.dismissInsight(insight!.id);
     expect(mgr.getPendingCount()).toBe(0);
@@ -454,7 +468,9 @@ describe('ProactiveInsightManager', () => {
   it('respects enabled toggle', () => {
     mgr.setEnabled(false);
     const insight = mgr.onChartEvent({
-      type: 'regime_change', symbol: 'BTC', data: {},
+      type: 'regime_change',
+      symbol: 'BTC',
+      data: {},
     });
     expect(insight).toBeNull();
   });

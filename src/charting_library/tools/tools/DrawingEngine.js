@@ -19,6 +19,7 @@
 //   DrawingHistory.js  — undo/redo snapshot stack
 // ═══════════════════════════════════════════════════════════════════
 
+import { createDrawingAlertService } from '../engines/DrawingAlertService.js';
 import {
   generateId,
   addDrawing as addDrawingImpl,
@@ -46,16 +47,20 @@ import {
   setDrawingLabel as setDrawingLabelImpl,
   toggleSyncAcrossTimeframes as toggleSyncImpl,
 } from '../engines/DrawingCRUD.js';
+import { createDrawingHistory } from '../engines/DrawingHistory.js';
 import { hitTestDrawingBody, hitTestNearest as hitTestNearestImpl } from '../engines/DrawingHitTest.js';
 import {
   doMagnetSnap as doMagnetSnapImpl,
   applyAngleSnap as applyAngleSnapImpl,
   getSmartGuides as getSmartGuidesImpl,
 } from '../engines/DrawingSnap.js';
+import {
+  RESIZABLE_TOOLS,
+  computeResizeHandles,
+  hitTestResizeHandle,
+  applyHandleDrag,
+} from '../engines/ResizeHandles.js';
 import { createDrawing, TOOL_POINT_COUNT } from './DrawingModel.js';
-import { RESIZABLE_TOOLS, computeResizeHandles, hitTestResizeHandle, applyHandleDrag } from '../engines/ResizeHandles.js';
-import { createDrawingHistory } from '../engines/DrawingHistory.js';
-import { createDrawingAlertService } from '../engines/DrawingAlertService.js';
 
 // ── Sub-modules ──────────────────────────────────────────────────
 
@@ -100,25 +105,28 @@ export function createDrawingEngine(options = {}) {
 
   // Undo/redo history
   const _history = createDrawingHistory();
-  function pushHistory() { if (_history) _history.push(drawings); }
+  function pushHistory() {
+    if (_history) _history.push(drawings);
+  }
 
   // Drawing alert service
   const _alertService = createDrawingAlertService({
     getDrawings: () => drawings,
     anchorToPixel,
     onAlert: (event) => {
-      if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('charEdge:drawing-alert', { detail: event }));
+      if (typeof window !== 'undefined')
+        window.dispatchEvent(new CustomEvent('charEdge:drawing-alert', { detail: event }));
     },
   });
 
   // Resize handle state
-  let _resizeHandleType = null;  // which handle ('tl','tr','bl','br','t','b','l','r')
-  let _resizeOrigPoints = null;  // original anchor points snapshot
+  let _resizeHandleType = null; // which handle ('tl','tr','bl','br','t','b','l','r')
+  let _resizeOrigPoints = null; // original anchor points snapshot
   let _hoveredResizeHandle = null; // for cursor + glow feedback
 
   // Drag momentum / inertia state
-  let _velocityHistory = [];      // last 3 { x, y, t } entries
-  let _coastAnimId = null;        // rAF id for coast loop
+  let _velocityHistory = []; // last 3 { x, y, t } entries
+  let _coastAnimId = null; // rAF id for coast loop
 
   // ── Sticky mode ──
   let stickyMode = false;
@@ -138,7 +146,7 @@ export function createDrawingEngine(options = {}) {
   let _gridTicks = [];
   let _sceneGraph = null;
   let snapStrength = 0;
-  let snapEnabled = true;   // Magnet snap on/off toggle
+  let snapEnabled = true; // Magnet snap on/off toggle
   let angleSnap = false;
   let smartGuides = true;
   let lastSnapInfo = null;
@@ -148,9 +156,18 @@ export function createDrawingEngine(options = {}) {
   let _version = 0;
 
   // ── Emit helpers ──
-  function emit() { _version++; if (onChange) onChange([...drawings]); }
-  function emitState() { _version++; if (onStateChange) onStateChange(interactionState); }
-  function setState(newState) { interactionState = newState; emitState(); }
+  function emit() {
+    _version++;
+    if (onChange) onChange([...drawings]);
+  }
+  function emitState() {
+    _version++;
+    if (onStateChange) onStateChange(interactionState);
+  }
+  function setState(newState) {
+    interactionState = newState;
+    emitState();
+  }
 
   // ── Coordinate Conversion ──
   function setCoordinateConverters(converters) {
@@ -175,15 +192,33 @@ export function createDrawingEngine(options = {}) {
   // ── CRUD context (shared state bridge for sub-module calls) ──
   function getCrudCtx() {
     return {
-      get drawings() { return drawings; },
-      set drawings(v) { drawings = v; },
-      get selectedDrawingId() { return selectedDrawingId; },
-      set selectedDrawingId(v) { selectedDrawingId = v; },
-      get selectedDrawingIds() { return selectedDrawingIds; },
-      get activeDrawing() { return activeDrawing; },
-      set activeDrawing(v) { activeDrawing = v; },
-      get activeTool() { return activeTool; },
-      set activeTool(v) { activeTool = v; },
+      get drawings() {
+        return drawings;
+      },
+      set drawings(v) {
+        drawings = v;
+      },
+      get selectedDrawingId() {
+        return selectedDrawingId;
+      },
+      set selectedDrawingId(v) {
+        selectedDrawingId = v;
+      },
+      get selectedDrawingIds() {
+        return selectedDrawingIds;
+      },
+      get activeDrawing() {
+        return activeDrawing;
+      },
+      set activeDrawing(v) {
+        activeDrawing = v;
+      },
+      get activeTool() {
+        return activeTool;
+      },
+      set activeTool(v) {
+        activeTool = v;
+      },
       anchorToPixel,
       pixelToAnchor,
       emit,
@@ -199,9 +234,19 @@ export function createDrawingEngine(options = {}) {
       return { price, time };
     }
     const result = doMagnetSnapImpl({
-      x, y, price, time, snapStrength, magnetSnap,
-      drawings, activeDrawing, anchorToPixel, priceToPixel,
-      indicatorData: _indicatorData, hoverBarIdx: _hoverBarIdx, gridTicks: _gridTicks,
+      x,
+      y,
+      price,
+      time,
+      snapStrength,
+      magnetSnap,
+      drawings,
+      activeDrawing,
+      anchorToPixel,
+      priceToPixel,
+      indicatorData: _indicatorData,
+      hoverBarIdx: _hoverBarIdx,
+      gridTicks: _gridTicks,
       visibleBars: _visibleBars,
     });
     // Enrich snapInfo with pixel coordinates for visual indicator
@@ -222,7 +267,7 @@ export function createDrawingEngine(options = {}) {
     if (_sceneGraph) {
       const nodes = _sceneGraph.queryPoint(x, y);
       if (nodes.length > 0) {
-        const candidateIds = new Set(nodes.filter(n => n.type === 'drawing').map(n => n.data?.id));
+        const candidateIds = new Set(nodes.filter((n) => n.type === 'drawing').map((n) => n.data?.id));
         if (candidateIds.size > 0) {
           candidates = [];
           for (let i = drawings.length - 1; i >= 0; i--) {
@@ -257,7 +302,7 @@ export function createDrawingEngine(options = {}) {
       const dist = Math.sqrt((x - px.x) ** 2 + (y - px.y) ** 2);
       if (dist <= ANCHOR_RADIUS + 2) return { drawing: d, anchorIdx: j };
     }
-    const points = d.points.map(p => anchorToPixel(p)).filter(Boolean);
+    const points = d.points.map((p) => anchorToPixel(p)).filter(Boolean);
     if (hitTestDrawingBody(d, x, y, points)) return { drawing: d, anchorIdx: -1 };
     return null;
   }
@@ -297,7 +342,7 @@ export function createDrawingEngine(options = {}) {
           activeDrawing = null;
           activeTool = null;
           selectedDrawingId = completedId;
-          drawings.forEach(d => (d.state = d.id === completedId ? 'selected' : 'idle'));
+          drawings.forEach((d) => (d.state = d.id === completedId ? 'selected' : 'idle'));
           setState(STATE.SELECTED);
         }
       }
@@ -307,15 +352,15 @@ export function createDrawingEngine(options = {}) {
 
     // ── Check resize handles FIRST if a shape is selected ──
     if (selectedDrawingId) {
-      const selDraw = drawings.find(d => d.id === selectedDrawingId);
+      const selDraw = drawings.find((d) => d.id === selectedDrawingId);
       if (selDraw && RESIZABLE_TOOLS.has(selDraw.type) && !selDraw.locked) {
-        const pts = selDraw.points.map(p => anchorToPixel(p)).filter(Boolean);
+        const pts = selDraw.points.map((p) => anchorToPixel(p)).filter(Boolean);
         if (pts.length >= 2) {
           const handles = computeResizeHandles(pts);
           const handleHit = hitTestResizeHandle(handles, x, y);
           if (handleHit) {
             _resizeHandleType = handleHit.type;
-            _resizeOrigPoints = selDraw.points.map(p => ({ ...p }));
+            _resizeOrigPoints = selDraw.points.map((p) => ({ ...p }));
             setState(STATE.RESIZING);
             emit();
             return true;
@@ -325,20 +370,28 @@ export function createDrawingEngine(options = {}) {
     }
 
     // ── Alt+drag to clone ──
-    if (_lastMouseEvent && _lastMouseEvent.altKey && selectedDrawingId && (interactionState === STATE.SELECTED || interactionState === STATE.IDLE)) {
-      const selDraw = drawings.find(d => d.id === selectedDrawingId);
+    if (
+      _lastMouseEvent &&
+      _lastMouseEvent.altKey &&
+      selectedDrawingId &&
+      (interactionState === STATE.SELECTED || interactionState === STATE.IDLE)
+    ) {
+      const selDraw = drawings.find((d) => d.id === selectedDrawingId);
       if (selDraw && !selDraw.locked) {
         const body = hitTestDrawingBody(selDraw, x, y, anchorToPixel);
         if (body) {
           const clonedId = duplicateDrawingImpl(getCrudCtx(), selectedDrawingId);
           if (clonedId) {
-            const clonedDrawing = drawings.find(d => d.id === clonedId);
+            const clonedDrawing = drawings.find((d) => d.id === clonedId);
             if (clonedDrawing) {
               selDraw.state = 'idle';
               selectedDrawingId = clonedId;
               clonedDrawing.state = 'selected';
               const anchor = pixelToAnchor(x, y);
-              dragPointOffsets = clonedDrawing.points.map(p => ({ dPrice: p.price - anchor.price, dTime: p.time - anchor.time }));
+              dragPointOffsets = clonedDrawing.points.map((p) => ({
+                dPrice: p.price - anchor.price,
+                dTime: p.time - anchor.time,
+              }));
               setState(STATE.MOVING);
               emit();
               return true;
@@ -367,7 +420,7 @@ export function createDrawingEngine(options = {}) {
           // Also keep in primary
           if (!selectedDrawingId) selectedDrawingId = hit.drawing.id;
         }
-        drawings.forEach(d => {
+        drawings.forEach((d) => {
           d.state = selectedDrawingIds.has(d.id) || d.id === selectedDrawingId ? 'selected' : 'idle';
         });
         setState(selectedDrawingIds.size > 0 ? STATE.SELECTED : STATE.IDLE);
@@ -378,7 +431,7 @@ export function createDrawingEngine(options = {}) {
       // ── Single-click (no Shift) ──
       selectedDrawingIds.clear();
       selectedDrawingId = hit.drawing.id;
-      drawings.forEach(d => (d.state = d.id === selectedDrawingId ? 'selected' : 'idle'));
+      drawings.forEach((d) => (d.state = d.id === selectedDrawingId ? 'selected' : 'idle'));
       if (hit.anchorIdx >= 0 && !hit.drawing.locked) {
         dragAnchorIdx = hit.anchorIdx;
         setState(STATE.DRAGGING);
@@ -390,12 +443,18 @@ export function createDrawingEngine(options = {}) {
         _multiDragOffsets = new Map();
         const allSelectedIds = new Set([selectedDrawingId, ...selectedDrawingIds]);
         for (const id of allSelectedIds) {
-          const d = drawings.find(dd => dd.id === id);
+          const d = drawings.find((dd) => dd.id === id);
           if (d && !d.locked) {
-            _multiDragOffsets.set(id, d.points.map(p => ({ dPrice: p.price - anchor.price, dTime: p.time - anchor.time })));
+            _multiDragOffsets.set(
+              id,
+              d.points.map((p) => ({ dPrice: p.price - anchor.price, dTime: p.time - anchor.time })),
+            );
           }
         }
-        dragPointOffsets = hit.drawing.points.map(p => ({ dPrice: p.price - anchor.price, dTime: p.time - anchor.time }));
+        dragPointOffsets = hit.drawing.points.map((p) => ({
+          dPrice: p.price - anchor.price,
+          dTime: p.time - anchor.time,
+        }));
         setState(STATE.MOVING);
       } else {
         setState(STATE.SELECTED);
@@ -403,17 +462,22 @@ export function createDrawingEngine(options = {}) {
       emit();
       // Open the consolidated edit popup on single-click selection
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('charEdge:edit-drawing', {
-          detail: {
-            id: hit.drawing.id, type: hit.drawing.type,
-            points: hit.drawing.points.map(p => ({ ...p })),
-            style: { ...hit.drawing.style },
-            meta: hit.drawing.meta ? { ...hit.drawing.meta } : {},
-            locked: hit.drawing.locked, visible: hit.drawing.visible,
-            syncAcrossTimeframes: hit.drawing.syncAcrossTimeframes,
-            pixelX: x, pixelY: y,
-          },
-        }));
+        window.dispatchEvent(
+          new CustomEvent('charEdge:edit-drawing', {
+            detail: {
+              id: hit.drawing.id,
+              type: hit.drawing.type,
+              points: hit.drawing.points.map((p) => ({ ...p })),
+              style: { ...hit.drawing.style },
+              meta: hit.drawing.meta ? { ...hit.drawing.meta } : {},
+              locked: hit.drawing.locked,
+              visible: hit.drawing.visible,
+              syncAcrossTimeframes: hit.drawing.syncAcrossTimeframes,
+              pixelX: x,
+              pixelY: y,
+            },
+          }),
+        );
       }
       return true;
     }
@@ -421,7 +485,7 @@ export function createDrawingEngine(options = {}) {
     if (selectedDrawingId || selectedDrawingIds.size > 0) {
       selectedDrawingId = null;
       selectedDrawingIds.clear();
-      drawings.forEach(d => (d.state = 'idle'));
+      drawings.forEach((d) => (d.state = 'idle'));
       setState(STATE.IDLE);
       emit();
     }
@@ -450,7 +514,7 @@ export function createDrawingEngine(options = {}) {
     }
 
     if (interactionState === STATE.DRAGGING && selectedDrawingId) {
-      const drawing = drawings.find(d => d.id === selectedDrawingId);
+      const drawing = drawings.find((d) => d.id === selectedDrawingId);
       if (drawing && dragAnchorIdx >= 0) {
         const rawAnchor = pixelToAnchor(x, y);
         drawing.points[dragAnchorIdx] = doMagnetSnap(x, y, rawAnchor.price, rawAnchor.time);
@@ -465,7 +529,7 @@ export function createDrawingEngine(options = {}) {
       // Move all multi-selected drawings together
       if (_multiDragOffsets && _multiDragOffsets.size > 0) {
         for (const [id, offsets] of _multiDragOffsets) {
-          const d = drawings.find(dd => dd.id === id);
+          const d = drawings.find((dd) => dd.id === id);
           if (d) {
             for (let i = 0; i < d.points.length && i < offsets.length; i++) {
               d.points[i] = { price: anchor.price + offsets[i].dPrice, time: anchor.time + offsets[i].dTime };
@@ -474,10 +538,13 @@ export function createDrawingEngine(options = {}) {
         }
       } else {
         // Single-drawing fallback
-        const drawing = drawings.find(d => d.id === selectedDrawingId);
+        const drawing = drawings.find((d) => d.id === selectedDrawingId);
         if (drawing) {
           for (let i = 0; i < drawing.points.length; i++) {
-            drawing.points[i] = { price: anchor.price + dragPointOffsets[i].dPrice, time: anchor.time + dragPointOffsets[i].dTime };
+            drawing.points[i] = {
+              price: anchor.price + dragPointOffsets[i].dPrice,
+              time: anchor.time + dragPointOffsets[i].dTime,
+            };
           }
         }
       }
@@ -491,7 +558,7 @@ export function createDrawingEngine(options = {}) {
 
     // ── Resize handle drag (with snap) ──
     if (interactionState === STATE.RESIZING && selectedDrawingId && _resizeHandleType && _resizeOrigPoints) {
-      const drawing = drawings.find(d => d.id === selectedDrawingId);
+      const drawing = drawings.find((d) => d.id === selectedDrawingId);
       if (drawing) {
         const rawAnchor = pixelToAnchor(x, y);
         const snappedAnchor = doMagnetSnap(x, y, rawAnchor.price, rawAnchor.time);
@@ -510,7 +577,10 @@ export function createDrawingEngine(options = {}) {
         for (let ai = 0; ai < hit.drawing.points.length; ai++) {
           const ap = anchorToPixel(hit.drawing.points[ai]);
           if (!ap) continue;
-          if (Math.sqrt((x - ap.x) ** 2 + (y - ap.y) ** 2) < 8) { newAnchorIdx = ai; break; }
+          if (Math.sqrt((x - ap.x) ** 2 + (y - ap.y) ** 2) < 8) {
+            newAnchorIdx = ai;
+            break;
+          }
         }
       }
       if (newHoveredId !== hoveredDrawingId || newAnchorIdx !== hoveredAnchorIdx) {
@@ -521,9 +591,9 @@ export function createDrawingEngine(options = {}) {
 
       // Resize handle hover detection
       if (selectedDrawingId) {
-        const selDraw = drawings.find(d => d.id === selectedDrawingId);
+        const selDraw = drawings.find((d) => d.id === selectedDrawingId);
         if (selDraw && RESIZABLE_TOOLS.has(selDraw.type)) {
-          const pts = selDraw.points.map(p => anchorToPixel(p)).filter(Boolean);
+          const pts = selDraw.points.map((p) => anchorToPixel(p)).filter(Boolean);
           if (pts.length >= 2) {
             const handles = computeResizeHandles(pts);
             const handleHit = hitTestResizeHandle(handles, x, y);
@@ -548,7 +618,8 @@ export function createDrawingEngine(options = {}) {
   function onMouseUp(x, y) {
     if (interactionState === STATE.CREATING && activeDrawing && activeDrawing._confirmedPoints > 0) {
       if (typeof x === 'number' && typeof y === 'number') {
-        const dx = x - clickDragStartX, dy = y - clickDragStartY;
+        const dx = x - clickDragStartX,
+          dy = y - clickDragStartY;
         if (dx * dx + dy * dy > 100) {
           const p = pixelToAnchor(x, y);
           const snapP = doMagnetSnap(x, y, p.price, p.time);
@@ -560,7 +631,8 @@ export function createDrawingEngine(options = {}) {
           activeDrawing._confirmedPoints++;
           const neededPoints = TOOL_POINT_COUNT[activeDrawing.type] || 2;
           if (activeDrawing._confirmedPoints >= neededPoints) {
-            if (activeDrawing.type && activeDrawing.style) toolStyleMemory[activeDrawing.type] = { ...activeDrawing.style };
+            if (activeDrawing.type && activeDrawing.style)
+              toolStyleMemory[activeDrawing.type] = { ...activeDrawing.style };
             activeDrawing.state = 'idle';
             if (stickyMode && stickyToolType) {
               activeDrawing = null;
@@ -575,7 +647,7 @@ export function createDrawingEngine(options = {}) {
               activeDrawing = null;
               activeTool = null;
               selectedDrawingId = completedId;
-              drawings.forEach(d => (d.state = d.id === completedId ? 'selected' : 'idle'));
+              drawings.forEach((d) => (d.state = d.id === completedId ? 'selected' : 'idle'));
               setState(STATE.SELECTED);
             }
           }
@@ -584,7 +656,11 @@ export function createDrawingEngine(options = {}) {
         }
       }
     }
-    if (interactionState === STATE.DRAGGING || interactionState === STATE.MOVING || interactionState === STATE.RESIZING) {
+    if (
+      interactionState === STATE.DRAGGING ||
+      interactionState === STATE.MOVING ||
+      interactionState === STATE.RESIZING
+    ) {
       if (interactionState === STATE.RESIZING) {
         _resizeHandleType = null;
         _resizeOrigPoints = null;
@@ -593,12 +669,12 @@ export function createDrawingEngine(options = {}) {
       if (interactionState === STATE.MOVING && selectedDrawingId && _velocityHistory.length >= 2) {
         const last = _velocityHistory[_velocityHistory.length - 1];
         const prev = _velocityHistory[_velocityHistory.length - 2];
-        const dt = (last.t - prev.t) || 16;
-        let vx = (last.x - prev.x) / dt * 16;
-        let vy = (last.y - prev.y) / dt * 16;
+        const dt = last.t - prev.t || 16;
+        let vx = ((last.x - prev.x) / dt) * 16;
+        let vy = ((last.y - prev.y) / dt) * 16;
         const FRICTION = 0.92;
         const MIN_V = 0.3;
-        const drawing = drawings.find(d => d.id === selectedDrawingId);
+        const drawing = drawings.find((d) => d.id === selectedDrawingId);
         if (drawing && (Math.abs(vx) > MIN_V || Math.abs(vy) > MIN_V)) {
           const coast = () => {
             vx *= FRICTION;
@@ -650,24 +726,49 @@ export function createDrawingEngine(options = {}) {
     const hit = hitTest(x, y);
     if (!hit) return false;
     const drawing = hit.drawing;
-    if (drawing.type === 'text' || drawing.type === 'callout' || drawing.type === 'note' || drawing.type === 'signpost') {
+    if (
+      drawing.type === 'text' ||
+      drawing.type === 'callout' ||
+      drawing.type === 'note' ||
+      drawing.type === 'signpost'
+    ) {
       const px = anchorToPixel(drawing.points[0]);
       if (px && typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('charEdge:edit-drawing-text', {
-          detail: { id: drawing.id, text: drawing.meta?.text || (drawing.type === 'callout' ? 'Price Note' : 'Text'), x: px.x, y: px.y, type: drawing.type },
-        }));
+        window.dispatchEvent(
+          new CustomEvent('charEdge:edit-drawing-text', {
+            detail: {
+              id: drawing.id,
+              text: drawing.meta?.text || (drawing.type === 'callout' ? 'Price Note' : 'Text'),
+              x: px.x,
+              y: px.y,
+              type: drawing.type,
+            },
+          }),
+        );
       }
     }
     const refPoint = anchorToPixel(drawing.points[0]);
     if (refPoint) {
       selectedDrawingId = drawing.id;
-      drawings.forEach(d => (d.state = d.id === selectedDrawingId ? 'selected' : 'idle'));
+      drawings.forEach((d) => (d.state = d.id === selectedDrawingId ? 'selected' : 'idle'));
       setState(STATE.SELECTED);
       emit();
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('charEdge:edit-drawing', {
-          detail: { id: drawing.id, type: drawing.type, points: drawing.points.map(p => ({ ...p })), style: { ...drawing.style }, meta: drawing.meta ? { ...drawing.meta } : {}, locked: drawing.locked, visible: drawing.visible, pixelX: x, pixelY: y },
-        }));
+        window.dispatchEvent(
+          new CustomEvent('charEdge:edit-drawing', {
+            detail: {
+              id: drawing.id,
+              type: drawing.type,
+              points: drawing.points.map((p) => ({ ...p })),
+              style: { ...drawing.style },
+              meta: drawing.meta ? { ...drawing.meta } : {},
+              locked: drawing.locked,
+              visible: drawing.visible,
+              pixelX: x,
+              pixelY: y,
+            },
+          }),
+        );
       }
     }
     return true;
@@ -679,29 +780,41 @@ export function createDrawingEngine(options = {}) {
   function onKeyDown(key, event) {
     if (event) _lastMouseEvent = event;
     if (key === 'Escape') {
-      if (stickyMode) { stickyMode = false; stickyToolType = null; stickyStyleOverrides = {}; }
+      if (stickyMode) {
+        stickyMode = false;
+        stickyToolType = null;
+        stickyStyleOverrides = {};
+      }
       if (interactionState === STATE.CREATING && activeDrawing) {
-        drawings = drawings.filter(d => d.id !== activeDrawing.id);
-        activeDrawing = null; activeTool = null;
-        setState(STATE.IDLE); emit(); return true;
+        drawings = drawings.filter((d) => d.id !== activeDrawing.id);
+        activeDrawing = null;
+        activeTool = null;
+        setState(STATE.IDLE);
+        emit();
+        return true;
       }
       if (selectedDrawingId) {
         selectedDrawingId = null;
-        drawings.forEach(d => (d.state = 'idle'));
-        setState(STATE.IDLE); emit(); return true;
+        drawings.forEach((d) => (d.state = 'idle'));
+        setState(STATE.IDLE);
+        emit();
+        return true;
       }
     }
     if (key === 'Backspace' && interactionState === STATE.CREATING && activeDrawing) {
       if (activeDrawing._confirmedPoints > 0) {
         activeDrawing._confirmedPoints--;
-        if (activeDrawing.points.length > activeDrawing._confirmedPoints) activeDrawing.points.length = activeDrawing._confirmedPoints;
+        if (activeDrawing.points.length > activeDrawing._confirmedPoints)
+          activeDrawing.points.length = activeDrawing._confirmedPoints;
         if (activeDrawing._confirmedPoints === 0) {
           const idx = drawings.indexOf(activeDrawing);
           if (idx >= 0) drawings.splice(idx, 1);
-          activeDrawing = null; activeTool = null;
+          activeDrawing = null;
+          activeTool = null;
           setState(STATE.IDLE);
         }
-        emit(); return true;
+        emit();
+        return true;
       }
     }
     // BUG-03: Finalize polyline (Infinity point count) with Enter key
@@ -742,22 +855,27 @@ export function createDrawingEngine(options = {}) {
       // Multi-delete: remove all selected
       const idsToRemove = new Set([...selectedDrawingIds]);
       if (selectedDrawingId) idsToRemove.add(selectedDrawingId);
-      drawings = drawings.filter(d => !idsToRemove.has(d.id));
+      drawings = drawings.filter((d) => !idsToRemove.has(d.id));
       selectedDrawingId = null;
       selectedDrawingIds.clear();
       pushHistory();
-      setState(STATE.IDLE); emit(); return true;
+      setState(STATE.IDLE);
+      emit();
+      return true;
     }
     // Arrow nudge: 1px, Shift = 10px — applies to all selected
-    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(key) && (selectedDrawingId || selectedDrawingIds.size > 0)) {
+    if (
+      ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(key) &&
+      (selectedDrawingId || selectedDrawingIds.size > 0)
+    ) {
       const allIds = new Set([...selectedDrawingIds]);
       if (selectedDrawingId) allIds.add(selectedDrawingId);
-      const step = (event && event.shiftKey) ? 10 : 1;
+      const step = event && event.shiftKey ? 10 : 1;
       const dx = key === 'ArrowRight' ? step : key === 'ArrowLeft' ? -step : 0;
       const dy = key === 'ArrowDown' ? step : key === 'ArrowUp' ? -step : 0;
       let moved = false;
       for (const id of allIds) {
-        const d = drawings.find(dd => dd.id === id);
+        const d = drawings.find((dd) => dd.id === id);
         if (d && !d.locked) {
           for (let i = 0; i < d.points.length; i++) {
             const px = anchorToPixel(d.points[i]);
@@ -768,32 +886,44 @@ export function createDrawingEngine(options = {}) {
           moved = true;
         }
       }
-      if (moved) { pushHistory(); emit(); return true; }
+      if (moved) {
+        pushHistory();
+        emit();
+        return true;
+      }
     }
     // Ctrl+D: duplicate
     if (key === 'd' && selectedDrawingId) {
       const newId = duplicateDrawingImpl(getCrudCtx(), selectedDrawingId);
-      if (newId) { selectedDrawingId = newId; pushHistory(); emit(); }
+      if (newId) {
+        selectedDrawingId = newId;
+        pushHistory();
+        emit();
+      }
       return true;
     }
     // Ctrl+L: toggle lock
     if (key === 'l' && selectedDrawingId) {
       toggleLockImpl(getCrudCtx(), selectedDrawingId);
-      emit(); return true;
+      emit();
+      return true;
     }
     // Ctrl+H: toggle visibility
     if (key === 'h' && selectedDrawingId) {
       toggleVisibilityImpl(getCrudCtx(), selectedDrawingId);
-      emit(); return true;
+      emit();
+      return true;
     }
     // [ / ]: layer ordering
     if (key === '[' && selectedDrawingId) {
       sendToBackImpl(getCrudCtx(), selectedDrawingId);
-      emit(); return true;
+      emit();
+      return true;
     }
     if (key === ']' && selectedDrawingId) {
       bringToFrontImpl(getCrudCtx(), selectedDrawingId);
-      emit(); return true;
+      emit();
+      return true;
     }
     // Undo: Ctrl+Z
     if (key === 'z' && _history && _history.canUndo()) {
@@ -802,7 +932,8 @@ export function createDrawingEngine(options = {}) {
         drawings = snapshot;
         selectedDrawingId = null;
         activeDrawing = null;
-        setState(STATE.IDLE); emit();
+        setState(STATE.IDLE);
+        emit();
       }
       return true;
     }
@@ -813,30 +944,42 @@ export function createDrawingEngine(options = {}) {
         drawings = snapshot;
         selectedDrawingId = null;
         activeDrawing = null;
-        setState(STATE.IDLE); emit();
+        setState(STATE.IDLE);
+        emit();
       }
       return true;
     }
     if (key === 'c' && interactionState === STATE.SELECTED && selectedDrawingId) {
-      const d = drawings.find(d => d.id === selectedDrawingId);
-      if (d) { clipboard = JSON.parse(JSON.stringify(d)); return true; }
+      const d = drawings.find((d) => d.id === selectedDrawingId);
+      if (d) {
+        clipboard = JSON.parse(JSON.stringify(d));
+        return true;
+      }
     }
     if (key === 'v' && clipboard) {
       const pasted = JSON.parse(JSON.stringify(clipboard));
-      pasted.id = generateId(); pasted.state = 'idle';
-      pasted.points = pasted.points.map(p => ({ price: p.price * 1.002, time: p.time + 60000 }));
+      pasted.id = generateId();
+      pasted.state = 'idle';
+      pasted.points = pasted.points.map((p) => ({ price: p.price * 1.002, time: p.time + 60000 }));
       drawings.push(pasted);
-      selectedDrawingId = pasted.id; pasted.state = 'selected';
-      setState(STATE.SELECTED); emit(); return true;
+      selectedDrawingId = pasted.id;
+      pasted.state = 'selected';
+      setState(STATE.SELECTED);
+      emit();
+      return true;
     }
     if (key === 'd' && interactionState === STATE.SELECTED && selectedDrawingId) {
-      const d = drawings.find(d => d.id === selectedDrawingId);
+      const d = drawings.find((d) => d.id === selectedDrawingId);
       if (d) {
         const dup = JSON.parse(JSON.stringify(d));
-        dup.id = generateId(); dup.state = 'selected';
-        dup.points = dup.points.map(p => ({ price: p.price * 1.003, time: p.time + 120000 }));
-        drawings.push(dup); d.state = 'idle';
-        selectedDrawingId = dup.id; emit(); return true;
+        dup.id = generateId();
+        dup.state = 'selected';
+        dup.points = dup.points.map((p) => ({ price: p.price * 1.003, time: p.time + 120000 }));
+        drawings.push(dup);
+        d.state = 'idle';
+        selectedDrawingId = dup.id;
+        emit();
+        return true;
       }
     }
     return false;
@@ -851,126 +994,275 @@ export function createDrawingEngine(options = {}) {
 
     // ── Tool activation ──
     activateTool(toolType, styleOverrides = {}) {
-      if (activeDrawing) drawings = drawings.filter(d => d.id !== activeDrawing.id);
-      if (stickyMode) { stickyToolType = toolType; stickyStyleOverrides = { ...styleOverrides }; }
-      const mergedStyle = Object.keys(styleOverrides).length > 0 ? styleOverrides : (toolStyleMemory[toolType] || {});
+      if (activeDrawing) drawings = drawings.filter((d) => d.id !== activeDrawing.id);
+      if (stickyMode) {
+        stickyToolType = toolType;
+        stickyStyleOverrides = { ...styleOverrides };
+      }
+      const mergedStyle = Object.keys(styleOverrides).length > 0 ? styleOverrides : toolStyleMemory[toolType] || {};
       activeTool = toolType;
       activeDrawing = createDrawing(toolType, null, mergedStyle);
       activeDrawing._confirmedPoints = 0;
       drawings.push(activeDrawing);
       selectedDrawingId = null;
-      drawings.forEach(d => { if (d !== activeDrawing) d.state = 'idle'; });
-      setState(STATE.CREATING); emit();
+      drawings.forEach((d) => {
+        if (d !== activeDrawing) d.state = 'idle';
+      });
+      setState(STATE.CREATING);
+      emit();
     },
 
     cancelTool() {
-      stickyMode = false; stickyToolType = null; stickyStyleOverrides = {};
-      if (activeDrawing) { drawings = drawings.filter(d => d.id !== activeDrawing.id); activeDrawing = null; activeTool = null; }
-      setState(STATE.IDLE); emit();
+      stickyMode = false;
+      stickyToolType = null;
+      stickyStyleOverrides = {};
+      if (activeDrawing) {
+        drawings = drawings.filter((d) => d.id !== activeDrawing.id);
+        activeDrawing = null;
+        activeTool = null;
+      }
+      setState(STATE.IDLE);
+      emit();
     },
 
-    get activeTool() { return activeTool; },
+    get activeTool() {
+      return activeTool;
+    },
 
     // ── Sticky mode ──
     setStickyMode(enabled) {
       stickyMode = enabled;
-      if (!enabled) { stickyToolType = null; stickyStyleOverrides = {}; }
-      else if (activeTool) { stickyToolType = activeTool; stickyStyleOverrides = activeDrawing?.style ? { ...activeDrawing.style } : {}; }
+      if (!enabled) {
+        stickyToolType = null;
+        stickyStyleOverrides = {};
+      } else if (activeTool) {
+        stickyToolType = activeTool;
+        stickyStyleOverrides = activeDrawing?.style ? { ...activeDrawing.style } : {};
+      }
     },
-    get isStickyMode() { return stickyMode; },
-    getToolStyleMemory(toolType) { return toolStyleMemory[toolType] || null; },
-    setToolStyleMemory(toolType, style) { toolStyleMemory[toolType] = { ...style }; },
+    get isStickyMode() {
+      return stickyMode;
+    },
+    getToolStyleMemory(toolType) {
+      return toolStyleMemory[toolType] || null;
+    },
+    setToolStyleMemory(toolType, style) {
+      toolStyleMemory[toolType] = { ...style };
+    },
 
     // ── Enhanced snap API ──
-    setSnapStrength(val) { snapStrength = Math.max(0, Math.min(50, val)); },
-    setSnapEnabled(val) { snapEnabled = !!val; },
-    get isSnapEnabled() { return snapEnabled; },
-    setAngleSnap(val) { angleSnap = val; },
-    setSmartGuides(val) { smartGuides = val; },
-    getSmartGuides(x, y) { return getSmartGuidesImpl(smartGuides, x, y, drawings, activeDrawing, anchorToPixel); },
-    applyAngleSnap(startPx, endX, endY) { return applyAngleSnapImpl(angleSnap, startPx, endX, endY); },
-    get lastSnapInfo() { return lastSnapInfo; },
+    setSnapStrength(val) {
+      snapStrength = Math.max(0, Math.min(50, val));
+    },
+    setSnapEnabled(val) {
+      snapEnabled = !!val;
+    },
+    get isSnapEnabled() {
+      return snapEnabled;
+    },
+    setAngleSnap(val) {
+      angleSnap = val;
+    },
+    setSmartGuides(val) {
+      smartGuides = val;
+    },
+    getSmartGuides(x, y) {
+      return getSmartGuidesImpl(smartGuides, x, y, drawings, activeDrawing, anchorToPixel);
+    },
+    applyAngleSnap(startPx, endX, endY) {
+      return applyAngleSnapImpl(angleSnap, startPx, endX, endY);
+    },
+    get lastSnapInfo() {
+      return lastSnapInfo;
+    },
 
     // ── Advanced snap data sources ──
-    setIndicatorData(indicators) { _indicatorData = indicators || []; },
-    setHoverBarIdx(idx) { _hoverBarIdx = idx; },
-    setGridTicks(ticks) { _gridTicks = ticks || []; },
-    setVisibleBars(bars) { _visibleBars = bars || []; },
+    setIndicatorData(indicators) {
+      _indicatorData = indicators || [];
+    },
+    setHoverBarIdx(idx) {
+      _hoverBarIdx = idx;
+    },
+    setGridTicks(ticks) {
+      _gridTicks = ticks || [];
+    },
+    setVisibleBars(bars) {
+      _visibleBars = bars || [];
+    },
 
     // ── Event handlers ──
-    onMouseDown, onMouseMove, onMouseUp, onDoubleClick, onKeyDown,
+    onMouseDown,
+    onMouseMove,
+    onMouseUp,
+    onDoubleClick,
+    onKeyDown,
 
     // ── Drawing management (delegated to DrawingCRUD) ──
-    get drawings() { return drawings; },
-    get selectedDrawing() { return selectedDrawingId ? drawings.find(d => d.id === selectedDrawingId) : null; },
-    get hoveredDrawingId() { return hoveredDrawingId; },
-    get hoveredAnchorIdx() { return hoveredAnchorIdx; },
-    get pixelToPrice() { return pixelToPrice; },
-    get pixelToTime() { return pixelToTime; },
-    setSceneGraph(sg) { _sceneGraph = sg; },
-    hitTestNearest(x, y) { return hitTestNearestImpl(drawings, x, y, anchorToPixel); },
+    get drawings() {
+      return drawings;
+    },
+    get selectedDrawing() {
+      return selectedDrawingId ? drawings.find((d) => d.id === selectedDrawingId) : null;
+    },
+    get hoveredDrawingId() {
+      return hoveredDrawingId;
+    },
+    get hoveredAnchorIdx() {
+      return hoveredAnchorIdx;
+    },
+    get pixelToPrice() {
+      return pixelToPrice;
+    },
+    get pixelToTime() {
+      return pixelToTime;
+    },
+    setSceneGraph(sg) {
+      _sceneGraph = sg;
+    },
+    hitTestNearest(x, y) {
+      return hitTestNearestImpl(drawings, x, y, anchorToPixel);
+    },
     // Task 1.4.9: Per-tool cursor shapes — cursor changes based on active drawing tool
     get cursorHint() {
       if (interactionState === STATE.CREATING) {
         const toolCursors = {
-          trendline: 'crosshair', ray: 'crosshair', segment: 'crosshair',
-          hline: 'crosshair', vline: 'crosshair',
-          rectangle: 'cell', ellipse: 'cell',
-          text: 'text', callout: 'text',
-          fib: 'crosshair', fibext: 'crosshair', fibarc: 'crosshair',
+          trendline: 'crosshair',
+          ray: 'crosshair',
+          segment: 'crosshair',
+          hline: 'crosshair',
+          vline: 'crosshair',
+          rectangle: 'cell',
+          ellipse: 'cell',
+          text: 'text',
+          callout: 'text',
+          fib: 'crosshair',
+          fibext: 'crosshair',
+          fibarc: 'crosshair',
           pitchfork: 'crosshair',
-          ruler: 'copy', pricerange: 'copy',
-          arrow_up: 'crosshair', arrow_down: 'crosshair',
+          ruler: 'copy',
+          pricerange: 'copy',
+          arrow_up: 'crosshair',
+          arrow_down: 'crosshair',
         };
         return (activeTool && toolCursors[activeTool]) || 'crosshair';
       }
       if (interactionState === STATE.DRAGGING || interactionState === STATE.RESIZING) return 'grabbing';
       if (interactionState === STATE.MOVING) return 'grabbing';
       if (_hoveredResizeHandle) {
-        const HANDLE_CURSORS = { tl:'nwse-resize', tr:'nesw-resize', bl:'nesw-resize', br:'nwse-resize', t:'ns-resize', b:'ns-resize', l:'ew-resize', r:'ew-resize' };
+        const HANDLE_CURSORS = {
+          tl: 'nwse-resize',
+          tr: 'nesw-resize',
+          bl: 'nesw-resize',
+          br: 'nwse-resize',
+          t: 'ns-resize',
+          b: 'ns-resize',
+          l: 'ew-resize',
+          r: 'ew-resize',
+        };
         return HANDLE_CURSORS[_hoveredResizeHandle] || 'pointer';
       }
       if (hoveredAnchorIdx >= 0) return 'grab';
       if (hoveredDrawingId) return 'pointer';
       return null;
     },
-    get selectedDrawingIds() { return selectedDrawingIds; },
-    toggleMultiSelect(id) { toggleMultiSelectImpl(getCrudCtx(), id); },
-    selectAll() { selectAllImpl(getCrudCtx()); },
-    clearMultiSelect() { clearMultiSelectImpl(getCrudCtx()); },
-    deleteSelected() { const r = deleteSelectedImpl(getCrudCtx()); if (r) drawings = r; },
-    batchUpdateStyle(style) { batchUpdateStyleImpl(getCrudCtx(), style); },
-    boxSelect(x1, y1, x2, y2) { boxSelectImpl(getCrudCtx(), x1, y1, x2, y2); },
-    copySelected() { clipboard = copySelectedImpl(getCrudCtx()); },
-    pasteFromClipboard() { pasteFromClipboardImpl(getCrudCtx(), clipboard); },
-    groupSelected() { return groupSelectedImpl(getCrudCtx()); },
-    ungroupDrawings(groupId) { ungroupDrawingsImpl(getCrudCtx(), groupId); },
-    selectGroup(groupId) { selectGroupImpl(getCrudCtx(), groupId); },
-    bulkMove(dx, dy) { bulkMoveImpl(getCrudCtx(), dx, dy); },
-    setDrawingLabel(id, label) { setDrawingLabelImpl(getCrudCtx(), id, label); },
-    toggleSyncAcrossTimeframes(id) { toggleSyncImpl(getCrudCtx(), id); },
+    get selectedDrawingIds() {
+      return selectedDrawingIds;
+    },
+    toggleMultiSelect(id) {
+      toggleMultiSelectImpl(getCrudCtx(), id);
+    },
+    selectAll() {
+      selectAllImpl(getCrudCtx());
+    },
+    clearMultiSelect() {
+      clearMultiSelectImpl(getCrudCtx());
+    },
+    deleteSelected() {
+      const r = deleteSelectedImpl(getCrudCtx());
+      if (r) drawings = r;
+    },
+    batchUpdateStyle(style) {
+      batchUpdateStyleImpl(getCrudCtx(), style);
+    },
+    boxSelect(x1, y1, x2, y2) {
+      boxSelectImpl(getCrudCtx(), x1, y1, x2, y2);
+    },
+    copySelected() {
+      clipboard = copySelectedImpl(getCrudCtx());
+    },
+    pasteFromClipboard() {
+      pasteFromClipboardImpl(getCrudCtx(), clipboard);
+    },
+    groupSelected() {
+      return groupSelectedImpl(getCrudCtx());
+    },
+    ungroupDrawings(groupId) {
+      ungroupDrawingsImpl(getCrudCtx(), groupId);
+    },
+    selectGroup(groupId) {
+      selectGroupImpl(getCrudCtx(), groupId);
+    },
+    bulkMove(dx, dy) {
+      bulkMoveImpl(getCrudCtx(), dx, dy);
+    },
+    setDrawingLabel(id, label) {
+      setDrawingLabelImpl(getCrudCtx(), id, label);
+    },
+    toggleSyncAcrossTimeframes(id) {
+      toggleSyncImpl(getCrudCtx(), id);
+    },
 
-    get state() { return interactionState; },
-    addDrawing(drawing) { addDrawingImpl(getCrudCtx(), drawing); },
-    removeDrawing(id) { const r = removeDrawingImpl(getCrudCtx(), id); if (r) drawings = r; },
-    clearAll() { const r = clearAllImpl(getCrudCtx()); if (r) drawings = r; },
-    toggleVisibility(id) { toggleVisibilityImpl(getCrudCtx(), id); },
-    toggleLock(id) { toggleLockImpl(getCrudCtx(), id); },
-    updateStyle(id, style) { updateStyleImpl(getCrudCtx(), id, style); },
-    loadDrawings(drawingArray) { const r = loadDrawingsImpl(getCrudCtx(), drawingArray); if (r) drawings = r; },
+    get state() {
+      return interactionState;
+    },
+    addDrawing(drawing) {
+      addDrawingImpl(getCrudCtx(), drawing);
+    },
+    removeDrawing(id) {
+      const r = removeDrawingImpl(getCrudCtx(), id);
+      if (r) drawings = r;
+    },
+    clearAll() {
+      const r = clearAllImpl(getCrudCtx());
+      if (r) drawings = r;
+    },
+    toggleVisibility(id) {
+      toggleVisibilityImpl(getCrudCtx(), id);
+    },
+    toggleLock(id) {
+      toggleLockImpl(getCrudCtx(), id);
+    },
+    updateStyle(id, style) {
+      updateStyleImpl(getCrudCtx(), id, style);
+    },
+    loadDrawings(drawingArray) {
+      const r = loadDrawingsImpl(getCrudCtx(), drawingArray);
+      if (r) drawings = r;
+    },
     pixelToAnchor,
     anchorToPixel,
-    duplicateDrawing(id) { return duplicateDrawingImpl(getCrudCtx(), id); },
-    bringToFront(id) { bringToFrontImpl(getCrudCtx(), id); },
-    sendToBack(id) { sendToBackImpl(getCrudCtx(), id); },
-    get activeDrawing() { return activeDrawing; },
+    duplicateDrawing(id) {
+      return duplicateDrawingImpl(getCrudCtx(), id);
+    },
+    bringToFront(id) {
+      bringToFrontImpl(getCrudCtx(), id);
+    },
+    sendToBack(id) {
+      sendToBackImpl(getCrudCtx(), id);
+    },
+    get activeDrawing() {
+      return activeDrawing;
+    },
     /** Returns bounding box of selected drawing in CSS (non-retina) pixel coords */
     getSelectedBounds() {
-      const sel = selectedDrawingId ? drawings.find(d => d.id === selectedDrawingId) : null;
+      const sel = selectedDrawingId ? drawings.find((d) => d.id === selectedDrawingId) : null;
       if (!sel || !sel.points || sel.points.length === 0) return null;
-      const pxPts = sel.points.map(p => anchorToPixel(p)).filter(Boolean);
+      const pxPts = sel.points.map((p) => anchorToPixel(p)).filter(Boolean);
       if (pxPts.length === 0) return null;
-      let top = Infinity, left = Infinity, right = -Infinity, bottom = -Infinity;
+      let top = Infinity,
+        left = Infinity,
+        right = -Infinity,
+        bottom = -Infinity;
       for (const p of pxPts) {
         if (p.x < left) left = p.x;
         if (p.x > right) right = p.x;
@@ -979,38 +1271,76 @@ export function createDrawingEngine(options = {}) {
       }
       return { top, left, right, bottom };
     },
-    get version() { return _version; },
-    get _hoveredResizeHandle() { return _hoveredResizeHandle; },
+    get version() {
+      return _version;
+    },
+    get _hoveredResizeHandle() {
+      return _hoveredResizeHandle;
+    },
     dispose() {
       if (_coastAnimId) cancelAnimationFrame(_coastAnimId);
       if (_history) _history.clear();
-      drawings = []; activeDrawing = null; activeTool = null; selectedDrawingId = null;
-      _resizeHandleType = null; _resizeOrigPoints = null; _hoveredResizeHandle = null;
-      _velocityHistory = []; _coastAnimId = null;
+      drawings = [];
+      activeDrawing = null;
+      activeTool = null;
+      selectedDrawingId = null;
+      _resizeHandleType = null;
+      _resizeOrigPoints = null;
+      _hoveredResizeHandle = null;
+      _velocityHistory = [];
+      _coastAnimId = null;
     },
     // Undo/Redo API
     undo() {
       if (!_history || !_history.canUndo()) return false;
       const snapshot = _history.undo();
-      if (snapshot) { drawings = snapshot; selectedDrawingId = null; activeDrawing = null; setState(STATE.IDLE); emit(); }
+      if (snapshot) {
+        drawings = snapshot;
+        selectedDrawingId = null;
+        activeDrawing = null;
+        setState(STATE.IDLE);
+        emit();
+      }
       return true;
     },
     redo() {
       if (!_history || !_history.canRedo()) return false;
       const snapshot = _history.redo();
-      if (snapshot) { drawings = snapshot; selectedDrawingId = null; activeDrawing = null; setState(STATE.IDLE); emit(); }
+      if (snapshot) {
+        drawings = snapshot;
+        selectedDrawingId = null;
+        activeDrawing = null;
+        setState(STATE.IDLE);
+        emit();
+      }
       return true;
     },
-    canUndo() { return _history ? _history.canUndo() : false; },
-    canRedo() { return _history ? _history.canRedo() : false; },
-    pushHistory() { pushHistory(); },
+    canUndo() {
+      return _history ? _history.canUndo() : false;
+    },
+    canRedo() {
+      return _history ? _history.canRedo() : false;
+    },
+    pushHistory() {
+      pushHistory();
+    },
 
     // Alert API
-    enableAlert(id, opts) { _alertService.enableAlert(id, opts); },
-    disableAlert(id) { _alertService.disableAlert(id); },
-    hasAlert(id) { return _alertService.hasAlert(id); },
-    getAlertedIds() { return _alertService.getAlertedIds(); },
-    onPriceTick(price) { _alertService.onPriceTick(price); },
+    enableAlert(id, opts) {
+      _alertService.enableAlert(id, opts);
+    },
+    disableAlert(id) {
+      _alertService.disableAlert(id);
+    },
+    hasAlert(id) {
+      return _alertService.hasAlert(id);
+    },
+    getAlertedIds() {
+      return _alertService.getAlertedIds();
+    },
+    onPriceTick(price) {
+      _alertService.onPriceTick(price);
+    },
 
     // Multi-select API
     getSelectedIds() {
@@ -1019,11 +1349,12 @@ export function createDrawingEngine(options = {}) {
       return [...ids];
     },
     reorderDrawing(id, newIndex) {
-      const idx = drawings.findIndex(d => d.id === id);
+      const idx = drawings.findIndex((d) => d.id === id);
       if (idx < 0 || newIndex < 0 || newIndex >= drawings.length) return;
       const [removed] = drawings.splice(idx, 1);
       drawings.splice(newIndex, 0, removed);
-      pushHistory(); emit();
+      pushHistory();
+      emit();
     },
     getDrawingsByGroup() {
       const map = new Map();

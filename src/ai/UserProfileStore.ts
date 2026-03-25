@@ -25,17 +25,17 @@ import { encryptedStore } from '../data/EncryptedStore.js';
 export type TradingStyle = 'scalper' | 'day_trader' | 'swing_trader' | 'position_trader' | 'unknown';
 
 export interface HourStats {
-  hour: number;        // 0–23
+  hour: number; // 0–23
   trades: number;
   wins: number;
   losses: number;
-  winRate: number;     // 0–1
+  winRate: number; // 0–1
   totalPnl: number;
   avgPnl: number;
 }
 
 export interface DayStats {
-  day: number;         // 0=Sun, 6=Sat
+  day: number; // 0=Sun, 6=Sat
   dayName: string;
   trades: number;
   wins: number;
@@ -75,16 +75,16 @@ export interface SymbolStats {
 }
 
 export interface TiltPattern {
-  trigger: string;          // What caused it (consecutive losses, time-based, etc.)
-  frequency: number;        // How often it happens
+  trigger: string; // What caused it (consecutive losses, time-based, etc.)
+  frequency: number; // How often it happens
   avgLossAfterTilt: number; // Average P&L during tilt
-  recoveryTime: number;     // Minutes to recover
+  recoveryTime: number; // Minutes to recover
 }
 
 export interface UserProfile {
   // ── Identity ──
   version: number;
-  lastUpdated: number;       // Unix ms
+  lastUpdated: number; // Unix ms
   totalTradesAnalyzed: number;
 
   // ── Style Classification ──
@@ -95,7 +95,7 @@ export interface UserProfile {
   preferredSide: 'long' | 'short' | 'balanced';
 
   // ── Performance Overview ──
-  overallWinRate: number;    // 0–1
+  overallWinRate: number; // 0–1
   overallProfitFactor: number;
   avgWin: number;
   avgLoss: number;
@@ -103,18 +103,18 @@ export interface UserProfile {
   largestLoss: number;
   maxConsecutiveWins: number;
   maxConsecutiveLosses: number;
-  expectancy: number;        // Expected $ per trade
+  expectancy: number; // Expected $ per trade
 
   // ── Temporal Patterns ──
-  bestHours: HourStats[];    // Top 3
-  worstHours: HourStats[];   // Bottom 3
+  bestHours: HourStats[]; // Top 3
+  worstHours: HourStats[]; // Bottom 3
   allHourStats: HourStats[];
-  bestDays: DayStats[];      // Top 2
-  worstDays: DayStats[];     // Bottom 2
+  bestDays: DayStats[]; // Top 2
+  worstDays: DayStats[]; // Bottom 2
   allDayStats: DayStats[];
 
   // ── Setup Analysis ──
-  topSetups: SetupStats[];   // By win rate (min 5 trades)
+  topSetups: SetupStats[]; // By win rate (min 5 trades)
   worstSetups: SetupStats[];
   allSetupStats: SetupStats[];
 
@@ -125,7 +125,7 @@ export interface UserProfile {
   mostDangerousEmotion: string;
 
   // ── Symbol Preferences ──
-  topSymbols: SymbolStats[];  // By trade count
+  topSymbols: SymbolStats[]; // By trade count
   allSymbolStats: SymbolStats[];
 
   // ── Position Sizing ──
@@ -138,7 +138,7 @@ export interface UserProfile {
   preferredIndicators: string[];
 
   // ── Coaching Metadata ──
-  coachingDismissals: Record<string, number>;  // Type → count of dismissals
+  coachingDismissals: Record<string, number>; // Type → count of dismissals
   coachingAcknowledgments: Record<string, number>;
   coachingEffectiveness: Record<string, number>; // Type → -1 to 1
 }
@@ -262,7 +262,11 @@ export class UserProfileStore {
     try {
       // Try encrypted store first (secure path)
       const encrypted = await encryptedStore.get('profiles', STORAGE_KEY);
-      if (encrypted && typeof encrypted === 'object' && (encrypted as any).version === PROFILE_VERSION) {
+      if (
+        encrypted &&
+        typeof encrypted === 'object' &&
+        (encrypted as Record<string, unknown>).version === PROFILE_VERSION
+      ) {
         this._profile = { ...EMPTY_PROFILE, ...(encrypted as UserProfile) };
         this._loaded = true;
         logger.boot?.info?.('[UserProfile] Loaded from encrypted store');
@@ -295,9 +299,7 @@ export class UserProfileStore {
   async rebuild(trades: TradeLike[]): Promise<UserProfile> {
     await this.load();
 
-    const closedTrades = trades.filter(t =>
-      typeof t.pnl === 'number' && !isNaN(t.pnl)
-    );
+    const closedTrades = trades.filter((t) => typeof t.pnl === 'number' && !isNaN(t.pnl));
 
     if (closedTrades.length === 0) {
       this._profile = { ...EMPTY_PROFILE, lastUpdated: Date.now() };
@@ -307,8 +309,8 @@ export class UserProfileStore {
 
     // Sort by date
     closedTrades.sort((a, b) => {
-      const da = _getDate(a);
-      const db = _getDate(b);
+      const da = getDate(a);
+      const db = getDate(b);
       return da.getTime() - db.getTime();
     });
 
@@ -352,7 +354,7 @@ export class UserProfileStore {
     this._notify();
 
     logger.boot?.info?.(
-      `[UserProfile] Rebuilt from ${closedTrades.length} trades — style: ${profile.tradingStyle}, WR: ${(profile.overallWinRate * 100).toFixed(1)}%`
+      `[UserProfile] Rebuilt from ${closedTrades.length} trades — style: ${profile.tradingStyle}, WR: ${(profile.overallWinRate * 100).toFixed(1)}%`,
     );
 
     return profile;
@@ -372,28 +374,40 @@ export class UserProfileStore {
 
     // Style
     lines.push(`Trader Style: ${p.tradingStyle.replace('_', ' ')} (${p.totalTradesAnalyzed} trades analyzed)`);
-    lines.push(`Win Rate: ${(p.overallWinRate * 100).toFixed(1)}% | PF: ${p.overallProfitFactor.toFixed(2)} | Avg Hold: ${p.avgHoldMinutes.toFixed(0)} min`);
-    lines.push(`Avg Win: $${p.avgWin.toFixed(2)} | Avg Loss: $${p.avgLoss.toFixed(2)} | Expectancy: $${p.expectancy.toFixed(2)}/trade`);
+    lines.push(
+      `Win Rate: ${(p.overallWinRate * 100).toFixed(1)}% | PF: ${p.overallProfitFactor.toFixed(2)} | Avg Hold: ${p.avgHoldMinutes.toFixed(0)} min`,
+    );
+    lines.push(
+      `Avg Win: $${p.avgWin.toFixed(2)} | Avg Loss: $${p.avgLoss.toFixed(2)} | Expectancy: $${p.expectancy.toFixed(2)}/trade`,
+    );
 
     // Side preference
     lines.push(`Side: ${p.preferredSide} | Trades/day: ${p.tradesPerDay.toFixed(1)}`);
 
     // Best/worst hours
     if (p.bestHours.length > 0) {
-      lines.push(`Best Hours: ${p.bestHours.map(h => `${h.hour}:00 (${(h.winRate * 100).toFixed(0)}% WR)`).join(', ')}`);
+      lines.push(
+        `Best Hours: ${p.bestHours.map((h) => `${h.hour}:00 (${(h.winRate * 100).toFixed(0)}% WR)`).join(', ')}`,
+      );
     }
     if (p.worstHours.length > 0) {
-      lines.push(`Worst Hours: ${p.worstHours.map(h => `${h.hour}:00 (${(h.winRate * 100).toFixed(0)}% WR)`).join(', ')}`);
+      lines.push(
+        `Worst Hours: ${p.worstHours.map((h) => `${h.hour}:00 (${(h.winRate * 100).toFixed(0)}% WR)`).join(', ')}`,
+      );
     }
 
     // Best/worst days
     if (p.bestDays.length > 0) {
-      lines.push(`Best Days: ${p.bestDays.map(d => `${d.dayName} (${(d.winRate * 100).toFixed(0)}% WR)`).join(', ')}`);
+      lines.push(
+        `Best Days: ${p.bestDays.map((d) => `${d.dayName} (${(d.winRate * 100).toFixed(0)}% WR)`).join(', ')}`,
+      );
     }
 
     // Top setups
     if (p.topSetups.length > 0) {
-      lines.push(`Top Setups: ${p.topSetups.map(s => `${s.setup} (${(s.winRate * 100).toFixed(0)}% WR, ${s.trades} trades)`).join(', ')}`);
+      lines.push(
+        `Top Setups: ${p.topSetups.map((s) => `${s.setup} (${(s.winRate * 100).toFixed(0)}% WR, ${s.trades} trades)`).join(', ')}`,
+      );
     }
 
     // Emotional insights
@@ -403,12 +417,17 @@ export class UserProfileStore {
 
     // Top symbols
     if (p.topSymbols.length > 0) {
-      lines.push(`Preferred Symbols: ${p.topSymbols.slice(0, 5).map(s => s.symbol).join(', ')}`);
+      lines.push(
+        `Preferred Symbols: ${p.topSymbols
+          .slice(0, 5)
+          .map((s) => s.symbol)
+          .join(', ')}`,
+      );
     }
 
     // Tilt patterns
     if (p.tiltPatterns.length > 0) {
-      lines.push(`Tilt Triggers: ${p.tiltPatterns.map(t => t.trigger).join(', ')}`);
+      lines.push(`Tilt Triggers: ${p.tiltPatterns.map((t) => t.trigger).join(', ')}`);
     }
 
     // Sizing
@@ -424,11 +443,9 @@ export class UserProfileStore {
    */
   recordCoachingFeedback(type: string, acknowledged: boolean): void {
     if (acknowledged) {
-      this._profile.coachingAcknowledgments[type] =
-        (this._profile.coachingAcknowledgments[type] || 0) + 1;
+      this._profile.coachingAcknowledgments[type] = (this._profile.coachingAcknowledgments[type] || 0) + 1;
     } else {
-      this._profile.coachingDismissals[type] =
-        (this._profile.coachingDismissals[type] || 0) + 1;
+      this._profile.coachingDismissals[type] = (this._profile.coachingDismissals[type] || 0) + 1;
     }
 
     // Update effectiveness score
@@ -436,8 +453,7 @@ export class UserProfileStore {
     const dismissals = this._profile.coachingDismissals[type] || 0;
     const total = acks + dismissals;
     if (total > 0) {
-      this._profile.coachingEffectiveness[type] =
-        Math.round(((acks - dismissals) / total) * 100) / 100; // -1 to 1
+      this._profile.coachingEffectiveness[type] = Math.round(((acks - dismissals) / total) * 100) / 100; // -1 to 1
     }
 
     this._persist();
@@ -447,10 +463,7 @@ export class UserProfileStore {
   /**
    * Update inferred preferences (called by chart/feature usage tracking).
    */
-  updatePreferences(updates: {
-    timeframes?: string[];
-    indicators?: string[];
-  }): void {
+  updatePreferences(updates: { timeframes?: string[]; indicators?: string[] }): void {
     if (updates.timeframes) {
       // Merge and deduplicate, keep top 5 most recent
       const merged = [...updates.timeframes, ...this._profile.preferredTimeframes];
@@ -475,12 +488,17 @@ export class UserProfileStore {
   // ── Computation Methods ─────────────────────────────────────
 
   private _computeOverallStats(trades: TradeLike[], profile: UserProfile): void {
-    let wins = 0, losses = 0;
-    let totalWinPnl = 0, totalLossPnl = 0;
-    let largestWin = 0, largestLoss = 0;
-    let curWinStreak = 0, curLossStreak = 0;
-    let maxWinStreak = 0, maxLossStreak = 0;
-    let longCount = 0, shortCount = 0;
+    let wins = 0,
+      losses = 0;
+    let totalWinPnl = 0,
+      totalLossPnl = 0;
+    let largestWin = 0,
+      largestLoss = 0;
+    let curWinStreak = 0,
+      curLossStreak = 0;
+    let maxWinStreak = 0,
+      maxLossStreak = 0;
+    let longCount = 0;
 
     for (const t of trades) {
       const pnl = t.pnl as number;
@@ -503,7 +521,6 @@ export class UserProfileStore {
 
       const side = String(t.side || '').toLowerCase();
       if (side === 'long') longCount++;
-      else if (side === 'short') shortCount++;
     }
 
     const total = wins + losses;
@@ -515,9 +532,8 @@ export class UserProfileStore {
     profile.largestLoss = largestLoss;
     profile.maxConsecutiveWins = maxWinStreak;
     profile.maxConsecutiveLosses = maxLossStreak;
-    profile.expectancy = total > 0
-      ? (profile.overallWinRate * profile.avgWin) - ((1 - profile.overallWinRate) * profile.avgLoss)
-      : 0;
+    profile.expectancy =
+      total > 0 ? profile.overallWinRate * profile.avgWin - (1 - profile.overallWinRate) * profile.avgLoss : 0;
 
     // Side preference
     const longPct = total > 0 ? longCount / total : 0.5;
@@ -528,7 +544,7 @@ export class UserProfileStore {
     const buckets = new Map<number, { wins: number; losses: number; pnl: number }>();
 
     for (const t of trades) {
-      const d = _getDate(t);
+      const d = getDate(t);
       const hour = d.getHours();
       if (!buckets.has(hour)) buckets.set(hour, { wins: 0, losses: 0, pnl: 0 });
       const b = buckets.get(hour)!;
@@ -555,7 +571,7 @@ export class UserProfileStore {
     hourStats.sort((a, b) => b.avgPnl - a.avgPnl);
     profile.allHourStats = hourStats;
 
-    const qualified = hourStats.filter(h => h.trades >= 3);
+    const qualified = hourStats.filter((h) => h.trades >= 3);
     profile.bestHours = qualified.slice(0, 3);
     profile.worstHours = qualified.slice(-3).reverse();
   }
@@ -564,7 +580,7 @@ export class UserProfileStore {
     const buckets = new Map<number, { wins: number; losses: number; pnl: number }>();
 
     for (const t of trades) {
-      const d = _getDate(t);
+      const d = getDate(t);
       const day = d.getDay();
       if (!buckets.has(day)) buckets.set(day, { wins: 0, losses: 0, pnl: 0 });
       const b = buckets.get(day)!;
@@ -592,7 +608,7 @@ export class UserProfileStore {
     dayStats.sort((a, b) => b.avgPnl - a.avgPnl);
     profile.allDayStats = dayStats;
 
-    const qualified = dayStats.filter(d => d.trades >= 3);
+    const qualified = dayStats.filter((d) => d.trades >= 3);
     profile.bestDays = qualified.slice(0, 2);
     profile.worstDays = qualified.slice(-2).reverse();
   }
@@ -601,7 +617,9 @@ export class UserProfileStore {
     const buckets = new Map<string, { wins: number; losses: number; pnl: number; holdMins: number[] }>();
 
     for (const t of trades) {
-      const setup = String(t.setup || t.setupType || t.strategy || '').toLowerCase().trim();
+      const setup = String(t.setup || t.setupType || t.strategy || '')
+        .toLowerCase()
+        .trim();
       if (!setup || setup === 'undefined' || setup === 'null') continue;
 
       if (!buckets.has(setup)) buckets.set(setup, { wins: 0, losses: 0, pnl: 0, holdMins: [] });
@@ -611,7 +629,7 @@ export class UserProfileStore {
       else b.losses++;
       b.pnl += pnl;
 
-      const hold = _getHoldMinutes(t);
+      const hold = getHoldMinutes(t);
       if (hold > 0) b.holdMins.push(hold);
     }
 
@@ -626,25 +644,28 @@ export class UserProfileStore {
         winRate: total > 0 ? b.wins / total : 0,
         totalPnl: b.pnl,
         avgPnl: total > 0 ? b.pnl / total : 0,
-        avgHoldMinutes: b.holdMins.length > 0
-          ? b.holdMins.reduce((s, v) => s + v, 0) / b.holdMins.length
-          : 0,
+        avgHoldMinutes: b.holdMins.length > 0 ? b.holdMins.reduce((s, v) => s + v, 0) / b.holdMins.length : 0,
       });
     }
 
     setupStats.sort((a, b) => b.winRate - a.winRate);
     profile.allSetupStats = setupStats;
 
-    const qualified = setupStats.filter(s => s.trades >= 5);
-    profile.topSetups = qualified.filter(s => s.winRate >= 0.5).slice(0, 5);
-    profile.worstSetups = qualified.filter(s => s.winRate < 0.5).slice(-3).reverse();
+    const qualified = setupStats.filter((s) => s.trades >= 5);
+    profile.topSetups = qualified.filter((s) => s.winRate >= 0.5).slice(0, 5);
+    profile.worstSetups = qualified
+      .filter((s) => s.winRate < 0.5)
+      .slice(-3)
+      .reverse();
   }
 
   private _computeEmotionStats(trades: TradeLike[], profile: UserProfile): void {
     const buckets = new Map<string, { wins: number; losses: number; pnl: number }>();
 
     for (const t of trades) {
-      const emotion = String(t.emotion || '').toLowerCase().trim();
+      const emotion = String(t.emotion || '')
+        .toLowerCase()
+        .trim();
       if (!emotion || emotion === 'undefined' || emotion === 'null') continue;
 
       if (!buckets.has(emotion)) buckets.set(emotion, { wins: 0, losses: 0, pnl: 0 });
@@ -706,9 +727,8 @@ export class UserProfileStore {
       patterns.push({
         trigger: `Consecutive losses (3+) — happened ${streakCount} times`,
         frequency: streakCount,
-        avgLossAfterTilt: postStreakPnl.length > 0
-          ? postStreakPnl.reduce((s, v) => s + v, 0) / postStreakPnl.length
-          : 0,
+        avgLossAfterTilt:
+          postStreakPnl.length > 0 ? postStreakPnl.reduce((s, v) => s + v, 0) / postStreakPnl.length : 0,
         recoveryTime: 0,
       });
     }
@@ -720,8 +740,8 @@ export class UserProfileStore {
       const prevTrade = trades[i - 1];
       const currTrade = trades[i];
       if (!prevTrade || !currTrade) continue;
-      const prev = _getDate(prevTrade).getTime();
-      const curr = _getDate(currTrade).getTime();
+      const prev = getDate(prevTrade).getTime();
+      const curr = getDate(currTrade).getTime();
       if (curr - prev < 10 * 60 * 1000 && curr - prev > 0) {
         rapidFireCount++;
         rapidPnl.push(currTrade.pnl as number);
@@ -732,9 +752,7 @@ export class UserProfileStore {
       patterns.push({
         trigger: `Rapid-fire trading (<10 min apart) — ${rapidFireCount} instances`,
         frequency: rapidFireCount,
-        avgLossAfterTilt: rapidPnl.length > 0
-          ? rapidPnl.reduce((s, v) => s + v, 0) / rapidPnl.length
-          : 0,
+        avgLossAfterTilt: rapidPnl.length > 0 ? rapidPnl.reduce((s, v) => s + v, 0) / rapidPnl.length : 0,
         recoveryTime: 0,
       });
     }
@@ -746,7 +764,9 @@ export class UserProfileStore {
     const buckets = new Map<string, { wins: number; losses: number; pnl: number }>();
 
     for (const t of trades) {
-      const symbol = String(t.symbol || '').toUpperCase().trim();
+      const symbol = String(t.symbol || '')
+        .toUpperCase()
+        .trim();
       if (!symbol) continue;
 
       if (!buckets.has(symbol)) buckets.set(symbol, { wins: 0, losses: 0, pnl: 0 });
@@ -778,10 +798,14 @@ export class UserProfileStore {
   private _computePositionSizing(trades: TradeLike[], profile: UserProfile): void {
     const sizes: number[] = [];
     for (const t of trades) {
-      const size = typeof t.qty === 'number' ? t.qty
-        : typeof t.quantity === 'number' ? t.quantity
-        : typeof t.positionSize === 'number' ? t.positionSize
-        : 0;
+      const size =
+        typeof t.qty === 'number'
+          ? t.qty
+          : typeof t.quantity === 'number'
+            ? t.quantity
+            : typeof t.positionSize === 'number'
+              ? t.positionSize
+              : 0;
       if (size > 0) sizes.push(size);
     }
 
@@ -802,8 +826,8 @@ export class UserProfileStore {
       const currTrade = trades[i];
       if (!prevTrade || !currTrade) continue;
       const prevPnl = prevTrade.pnl as number;
-      const prevSize = _getSize(prevTrade);
-      const currSize = _getSize(currTrade);
+      const prevSize = getSize(prevTrade);
+      const currSize = getSize(currTrade);
       if (prevPnl < 0 && prevSize > 0 && currSize > 0) {
         comparisonCount++;
         if (currSize > prevSize * 1.3) oversizeCount++;
@@ -817,7 +841,7 @@ export class UserProfileStore {
     // Compute hold times
     const holdMins: number[] = [];
     for (const t of trades) {
-      const h = _getHoldMinutes(t);
+      const h = getHoldMinutes(t);
       if (h > 0) holdMins.push(h);
     }
 
@@ -830,12 +854,10 @@ export class UserProfileStore {
     // Trades per day
     const dates = new Set<string>();
     for (const t of trades) {
-      const d = _getDate(t);
+      const d = getDate(t);
       dates.add(d.toISOString().slice(0, 10));
     }
-    profile.tradesPerDay = dates.size > 0
-      ? Math.round((trades.length / dates.size) * 10) / 10
-      : 0;
+    profile.tradesPerDay = dates.size > 0 ? Math.round((trades.length / dates.size) * 10) / 10 : 0;
 
     // Classify
     const med = profile.medianHoldMinutes;
@@ -868,21 +890,25 @@ export class UserProfileStore {
   private _notify(): void {
     const snap = { ...this._profile };
     for (const cb of this._listeners) {
-      try { cb(snap); } catch { /* ignore */ }
+      try {
+        cb(snap);
+      } catch {
+        /* ignore */
+      }
     }
   }
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
-function _getDate(t: TradeLike): Date {
+function getDate(t: TradeLike): Date {
   const raw = t.entryDate || t.date || t.entryTime;
   if (!raw) return new Date();
   const d = new Date(raw as string | number);
   return isNaN(d.getTime()) ? new Date() : d;
 }
 
-function _getHoldMinutes(t: TradeLike): number {
+function getHoldMinutes(t: TradeLike): number {
   if (typeof t.holdMinutes === 'number' && t.holdMinutes > 0) return t.holdMinutes;
   if (typeof t.holdDuration === 'number' && t.holdDuration > 0) return t.holdDuration / 60000;
 
@@ -899,11 +925,14 @@ function _getHoldMinutes(t: TradeLike): number {
   return 0;
 }
 
-function _getSize(t: TradeLike): number {
-  return typeof t.qty === 'number' ? t.qty
-    : typeof t.quantity === 'number' ? t.quantity
-    : typeof t.positionSize === 'number' ? t.positionSize
-    : 0;
+function getSize(t: TradeLike): number {
+  return typeof t.qty === 'number'
+    ? t.qty
+    : typeof t.quantity === 'number'
+      ? t.quantity
+      : typeof t.positionSize === 'number'
+        ? t.positionSize
+        : 0;
 }
 
 // ─── Singleton ──────────────────────────────────────────────────

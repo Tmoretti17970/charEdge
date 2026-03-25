@@ -24,7 +24,7 @@
 /**
  * Migration function type: takes old state, returns new state.
  */
-type MigrateFn = (state: any) => any;
+type MigrateFn = (state: Record<string, unknown>) => Record<string, unknown>;
 
 /**
  * Creates a sequential migration function for Zustand persist.
@@ -50,8 +50,8 @@ type MigrateFn = (state: any) => any;
  * ```
  */
 export function createMigration(migrations: Record<number, MigrateFn>) {
-  return (persisted: any, version: number): any => {
-    let state = persisted || {};
+  return (persisted: unknown, version: number): Record<string, unknown> => {
+    let state = (persisted || {}) as Record<string, unknown>;
 
     // Get all migration versions sorted ascending
     const versions = Object.keys(migrations)
@@ -62,7 +62,7 @@ export function createMigration(migrations: Record<number, MigrateFn>) {
     for (const v of versions) {
       if (v > version) {
         try {
-          state = migrations[v](state);
+          state = migrations[v]!(state);
         } catch (err) {
           // Migration errors are non-fatal — return state as-is
           console.warn(`[StateMigration] Migration to v${v} failed:`, err);
@@ -81,13 +81,13 @@ export function createMigration(migrations: Record<number, MigrateFn>) {
  * For stores that already use Zustand `persist({ version })`,
  * this is redundant — use `createMigration` instead.
  */
-export function withSchemaVersion<T extends Record<string, any>>(
+export function withSchemaVersion<T extends Record<string, unknown>>(
   version: number,
   defaults: Partial<T> = {},
-): (persisted: any) => T {
-  return (persisted: any): T => {
+): (persisted: unknown) => T {
+  return (persisted: unknown): T => {
     const state = (persisted || {}) as T;
-    const pv = (state as any)._schemaVersion ?? 0;
+    const pv = ((state as Record<string, unknown>)._schemaVersion as number) ?? 0;
     if (pv < version) {
       return { ...defaults, ...state, _schemaVersion: version } as T;
     }

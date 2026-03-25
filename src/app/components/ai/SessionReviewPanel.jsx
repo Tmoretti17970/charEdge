@@ -4,10 +4,9 @@
 // Dashboard widget showing the latest AI session review.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { C } from '../../../constants.js';
 import AIStreamText from './AIStreamText.jsx';
-import st from './SessionReviewPanel.module.css';
 
 const ACCENT = '#6e5ce6';
 
@@ -30,28 +29,34 @@ export default function SessionReviewPanel() {
   }, []);
 
   return (
-    <div style={{
-      background: C.bg2 || C.bg,
-      border: `1px solid ${C.bd}`,
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 12,
-    }}>
-      {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+    <div
+      style={{
+        background: C.bg2 || C.bg,
+        border: `1px solid ${C.bd}`,
+        borderRadius: 12,
+        padding: 16,
         marginBottom: 12,
-      }}>
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 12,
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 16 }}>📋</span>
-          <span style={{
-            fontSize: 13,
-            fontWeight: 700,
-            fontFamily: 'var(--tf-font)',
-            color: C.t1,
-          }}>
+          <span
+            style={{
+              fontSize: 13,
+              fontWeight: 700,
+              fontFamily: 'var(--tf-font)',
+              color: C.t1,
+            }}
+          >
             Session Review
           </span>
         </div>
@@ -76,13 +81,15 @@ export default function SessionReviewPanel() {
 
       {/* Content */}
       {!review && !loading && (
-        <div style={{
-          textAlign: 'center',
-          padding: '12px 0',
-          color: C.t3,
-          fontSize: 11,
-          fontFamily: 'var(--tf-mono)',
-        }}>
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '12px 0',
+            color: C.t3,
+            fontSize: 11,
+            fontFamily: 'var(--tf-mono)',
+          }}
+        >
           Click "Generate" after your trading session for an AI-powered review.
         </div>
       )}
@@ -118,12 +125,14 @@ export default function SessionReviewPanel() {
           )}
 
           {review.tier && (
-            <div style={{
-              marginTop: 8,
-              fontSize: 8,
-              fontFamily: 'var(--tf-mono)',
-              color: C.t3,
-            }}>
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 8,
+                fontFamily: 'var(--tf-mono)',
+                color: C.t3,
+              }}
+            >
               Via {review.tier} · {new Date(review.timestamp).toLocaleTimeString()}
             </div>
           )}

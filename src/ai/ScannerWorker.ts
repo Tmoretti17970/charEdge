@@ -1,3 +1,4 @@
+/* global WorkerGlobalScope */
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Scanner Web Worker (AI Copilot Sprint 6)
 //

@@ -7,32 +7,39 @@
 
 import React, { useMemo } from 'react';
 import { C, F, M, GLASS } from '../../../constants.js';
-import { alpha } from '@/shared/colorUtils';
-import { Card } from '../ui/UIKit.jsx';
-import { useJournalStore } from '../../../state/useJournalStore.js';
-import { useConnectorStore } from '../../../state/useConnectorStore.js';
 import { aggregatePortfolio } from '../../../data/PortfolioAggregator.js';
+import { useConnectorStore } from '../../../state/useConnectorStore.js';
+import { useJournalStore } from '../../../state/useJournalStore.js';
+import { Card } from '../ui/UIKit.jsx';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Stat Card ──────────────────────────────────────────────────
 
 function StatCard({ label, value, color, subtext }) {
   return (
-    <div style={{
-      flex: '1 1 120px',
-      padding: '12px 14px',
-      borderRadius: 10,
-      background: GLASS.subtle,
-      border: `1px solid ${alpha(C.bd, 0.15)}`,
-    }}>
-      <div style={{ fontSize: 9, fontWeight: 600, color: C.t3, fontFamily: F, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+    <div
+      style={{
+        flex: '1 1 120px',
+        padding: '12px 14px',
+        borderRadius: 10,
+        background: GLASS.subtle,
+        border: `1px solid ${alpha(C.bd, 0.15)}`,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 9,
+          fontWeight: 600,
+          color: C.t3,
+          fontFamily: F,
+          textTransform: 'uppercase',
+          letterSpacing: 0.5,
+        }}
+      >
         {label}
       </div>
-      <div style={{ fontSize: 18, fontWeight: 800, color: color || C.t1, fontFamily: M, marginTop: 4 }}>
-        {value}
-      </div>
-      {subtext && (
-        <div style={{ fontSize: 9, color: C.t3, fontFamily: M, marginTop: 2 }}>{subtext}</div>
-      )}
+      <div style={{ fontSize: 18, fontWeight: 800, color: color || C.t1, fontFamily: M, marginTop: 4 }}>{value}</div>
+      {subtext && <div style={{ fontSize: 9, color: C.t3, fontFamily: M, marginTop: 2 }}>{subtext}</div>}
     </div>
   );
 }
@@ -47,9 +54,7 @@ function AllocationBars({ data, title }) {
 
   return (
     <div style={{ marginBottom: 16 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 8 }}>
-        {title}
-      </div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 8 }}>{title}</div>
 
       {/* Stacked bar */}
       <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', marginBottom: 8 }}>
@@ -68,9 +73,14 @@ function AllocationBars({ data, title }) {
       {/* Legend */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {data.map((d, i) => (
-          <div key={d.label || d.source || i} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: C.t3, fontFamily: M }}>
+          <div
+            key={d.label || d.source || i}
+            style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: C.t3, fontFamily: M }}
+          >
             <div style={{ width: 6, height: 6, borderRadius: 2, background: colors[i % colors.length] }} />
-            <span>{d.label || d.source}: {d.count} ({((d.count / total) * 100).toFixed(0)}%)</span>
+            <span>
+              {d.label || d.source}: {d.count} ({((d.count / total) * 100).toFixed(0)}%)
+            </span>
           </div>
         ))}
       </div>
@@ -145,9 +155,7 @@ function PortfolioDashboard() {
       {/* Equity Curve (text-based sparkline) */}
       {portfolio.equityCurve.length > 2 && (
         <Card style={{ padding: 16, background: GLASS.subtle }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 8 }}>
-            Equity Curve
-          </div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 8 }}>Equity Curve</div>
           <div style={{ display: 'flex', alignItems: 'flex-end', height: 60, gap: 1 }}>
             {portfolio.equityCurve.slice(-60).map((point, i) => {
               const max = Math.max(...portfolio.equityCurve.map((p) => Math.abs(p.equity)));
@@ -167,7 +175,16 @@ function PortfolioDashboard() {
               );
             })}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8, color: C.t3, fontFamily: M, marginTop: 4 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              fontSize: 8,
+              color: C.t3,
+              fontFamily: M,
+              marginTop: 4,
+            }}
+          >
             <span>{portfolio.equityCurve[Math.max(0, portfolio.equityCurve.length - 60)]?.date}</span>
             <span>{portfolio.equityCurve[portfolio.equityCurve.length - 1]?.date}</span>
           </div>

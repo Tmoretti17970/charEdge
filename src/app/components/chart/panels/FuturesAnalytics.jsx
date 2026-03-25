@@ -9,9 +9,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect } from 'react';
-import { C } from '@/constants.js';
 import { futuresDerivedAdapter } from '../../../../data/adapters/FuturesDerivedAdapter.js';
 import s from './FuturesAnalytics.module.css';
+import { C } from '@/constants.js';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -180,7 +180,9 @@ export default function FuturesAnalytics({ onClose }) {
           <span className={s.statusLabel}>{connected ? 'LIVE' : 'OFFLINE'}</span>
         </div>
         {onClose && (
-          <button onClick={onClose} className={s.closeBtn}>×</button>
+          <button onClick={onClose} className={s.closeBtn}>
+            ×
+          </button>
         )}
       </div>
 

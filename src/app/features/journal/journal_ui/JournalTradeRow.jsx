@@ -4,13 +4,13 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState } from 'react';
-import { C, M } from '@/constants.js';
 import { fmtD } from '../../../../utils.js';
 import { Btn } from '../../../components/ui/UIKit.jsx';
 import { gradeTrade } from '../../analytics/analyticsFast.js';
 import { ContextBadge } from './JournalEvolution.jsx';
-import ScreenshotLightbox from './ScreenshotLightbox.jsx';
 import s from './JournalTradeRow.module.css';
+import ScreenshotLightbox from './ScreenshotLightbox.jsx';
+import { C, M } from '@/constants.js';
 
 const GRID_COLS = '28px 100px 80px 55px 1fr 80px 100px';
 const GRID_COLS_NO_CHECK = '100px 80px 55px 1fr 80px 100px';
@@ -238,7 +238,7 @@ function MobileRow({ trade: t, isExpanded, onClick, bulkMode, isSelected, onTogg
 
 function ExpandedDetail({
   trade: t,
-  isTablet,
+  isTablet: _isTablet,
   deleteConfirm,
   onEdit,
   onDelete,
@@ -268,7 +268,8 @@ function ExpandedDetail({
   };
 
   // Format price helper
-  const fmtPrice = (v) => v != null ? `$${Number(v).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : '—';
+  const fmtPrice = (v) =>
+    v != null ? `$${Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—';
 
   // Format duration helper
   const fmtDuration = () => {
@@ -280,7 +281,8 @@ function ExpandedDetail({
   };
 
   // Format time helper
-  const fmtTime = (ts) => ts ? new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—';
+  const fmtTime = (ts) =>
+    ts ? new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—';
 
   return (
     <div
@@ -297,50 +299,83 @@ function ExpandedDetail({
           {/* iOS-style grouped detail grid */}
           <div className={s.detailGrid}>
             <div className={s.detailCell}>
-              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>Entry</div>
-              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>{fmtPrice(t.entry)}</div>
+              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>
+                Entry
+              </div>
+              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>
+                {fmtPrice(t.entry)}
+              </div>
             </div>
             <div className={s.detailCell}>
-              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>Exit</div>
-              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>{fmtPrice(t.exit)}</div>
+              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>
+                Exit
+              </div>
+              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>
+                {fmtPrice(t.exit)}
+              </div>
             </div>
             <div className={s.detailCell}>
-              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>Stop Loss</div>
-              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>{fmtPrice(t.stopLoss)}</div>
+              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>
+                Stop Loss
+              </div>
+              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>
+                {fmtPrice(t.stopLoss)}
+              </div>
             </div>
             <div className={s.detailCell}>
-              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>Size</div>
+              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>
+                Size
+              </div>
               <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>
                 {t.qty != null
-                  ? (t.dollarAmount != null
-                      ? `${t.qty} ($${t.dollarAmount >= 1000 ? t.dollarAmount.toLocaleString(undefined, { maximumFractionDigits: 0 }) : t.dollarAmount})`
-                      : t.qty)
+                  ? t.dollarAmount != null
+                    ? `${t.qty} ($${t.dollarAmount >= 1000 ? t.dollarAmount.toLocaleString(undefined, { maximumFractionDigits: 0 }) : t.dollarAmount})`
+                    : t.qty
                   : '—'}
               </div>
             </div>
             <div className={s.detailCell}>
-              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>R-Multiple</div>
-              <div className={s.detailValue} style={{ color: t.rMultiple != null ? (t.rMultiple >= 0 ? C.g : C.r) : C.t1, fontFamily: M }}>
+              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>
+                R-Multiple
+              </div>
+              <div
+                className={s.detailValue}
+                style={{ color: t.rMultiple != null ? (t.rMultiple >= 0 ? C.g : C.r) : C.t1, fontFamily: M }}
+              >
                 {t.rMultiple != null ? `${t.rMultiple > 0 ? '+' : ''}${t.rMultiple}R` : '—'}
               </div>
             </div>
             <div className={s.detailCell}>
-              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>Duration</div>
-              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>{fmtDuration()}</div>
+              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>
+                Duration
+              </div>
+              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>
+                {fmtDuration()}
+              </div>
             </div>
             <div className={s.detailCell}>
-              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>Entry Time</div>
+              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>
+                Entry Time
+              </div>
               <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>
                 {fmtTime(t.entryTime || t.date)}
               </div>
             </div>
             <div className={s.detailCell}>
-              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>Exit Time</div>
-              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>{fmtTime(t.exitTime)}</div>
+              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>
+                Exit Time
+              </div>
+              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>
+                {fmtTime(t.exitTime)}
+              </div>
             </div>
             <div className={s.detailCell}>
-              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>Fees</div>
-              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>{t.fees != null ? `$${t.fees}` : '—'}</div>
+              <div className={s.detailLabel} style={{ color: C.t3, fontFamily: M }}>
+                Fees
+              </div>
+              <div className={s.detailValue} style={{ color: C.t1, fontFamily: M }}>
+                {t.fees != null ? `$${t.fees}` : '—'}
+              </div>
             </div>
           </div>
 
@@ -350,32 +385,59 @@ function ExpandedDetail({
               <span
                 className={s.exitPill}
                 style={{
-                  background: t.exitReason === 'take_profit' ? C.g + '18' : t.exitReason === 'stop_loss' ? C.r + '18' : C.b + '18',
+                  background:
+                    t.exitReason === 'take_profit'
+                      ? C.g + '18'
+                      : t.exitReason === 'stop_loss'
+                        ? C.r + '18'
+                        : C.b + '18',
                   color: t.exitReason === 'take_profit' ? C.g : t.exitReason === 'stop_loss' ? C.r : C.b,
                   fontFamily: M,
                 }}
               >
-                {t.exitReason === 'take_profit' ? '🎯 Take Profit' : t.exitReason === 'stop_loss' ? '🛑 Stop Loss' : '✋ Manual Close'}
+                {t.exitReason === 'take_profit'
+                  ? '🎯 Take Profit'
+                  : t.exitReason === 'stop_loss'
+                    ? '🛑 Stop Loss'
+                    : '✋ Manual Close'}
               </span>
               {t.emotion && (
-                <span style={{ fontSize: 10, color: C.t2, fontFamily: M, padding: '2px 8px', borderRadius: 6, background: C.b + '10', border: `1px solid ${C.b}15` }}>
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: C.t2,
+                    fontFamily: M,
+                    padding: '2px 8px',
+                    borderRadius: 6,
+                    background: C.b + '10',
+                    border: `1px solid ${C.b}15`,
+                  }}
+                >
                   {t.emotion}
                 </span>
               )}
-              {t.assetClass && (
-                <span style={{ fontSize: 10, color: C.t3, fontFamily: M }}>
-                  {t.assetClass}
-                </span>
-              )}
+              {t.assetClass && <span style={{ fontSize: 10, color: C.t3, fontFamily: M }}>{t.assetClass}</span>}
             </div>
           )}
 
           {/* Context */}
           {t.context && (
             <div style={{ marginBottom: 10 }}>
-              <div className={s.sectionLabel} style={{ color: C.t3, fontFamily: M }}>Context</div>
+              <div className={s.sectionLabel} style={{ color: C.t3, fontFamily: M }}>
+                Context
+              </div>
               <div className={s.contextTags}>
-                <span style={{ fontSize: 9, fontWeight: 700, fontFamily: M, padding: '2px 6px', borderRadius: 4, background: (t.context.confluenceScore ?? 0) >= 60 ? C.g + '15' : C.y + '15', color: (t.context.confluenceScore ?? 0) >= 60 ? C.g : C.y }}>
+                <span
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 700,
+                    fontFamily: M,
+                    padding: '2px 6px',
+                    borderRadius: 4,
+                    background: (t.context.confluenceScore ?? 0) >= 60 ? C.g + '15' : C.y + '15',
+                    color: (t.context.confluenceScore ?? 0) >= 60 ? C.g : C.y,
+                  }}
+                >
                   Confluence: {t.context.confluenceScore ?? 0}
                 </span>
                 {t.context.summary && <span style={{ fontSize: 9, color: C.t3 }}>{t.context.summary}</span>}
@@ -386,10 +448,22 @@ function ExpandedDetail({
           {/* Checklist */}
           {t.checklist && Object.keys(t.checklist).length > 0 && (
             <div style={{ marginBottom: 10 }}>
-              <div className={s.sectionLabel} style={{ color: C.t3, fontFamily: M }}>Checklist</div>
+              <div className={s.sectionLabel} style={{ color: C.t3, fontFamily: M }}>
+                Checklist
+              </div>
               <div className={s.checklistTags}>
                 {Object.entries(t.checklist).map(([key, val]) => (
-                  <span key={key} style={{ fontSize: 8, fontFamily: M, padding: '2px 6px', borderRadius: 4, background: val ? C.g + '10' : C.r + '10', color: val ? C.g : C.r }}>
+                  <span
+                    key={key}
+                    style={{
+                      fontSize: 8,
+                      fontFamily: M,
+                      padding: '2px 6px',
+                      borderRadius: 4,
+                      background: val ? C.g + '10' : C.r + '10',
+                      color: val ? C.g : C.r,
+                    }}
+                  >
                     {val ? '✓' : '✗'} {key}
                   </span>
                 ))}
@@ -400,10 +474,24 @@ function ExpandedDetail({
           {/* Tags */}
           {t.tags?.length > 0 && (
             <div style={{ marginBottom: 10 }}>
-              <div className={s.sectionLabel} style={{ color: C.t3, fontFamily: M }}>Tags</div>
+              <div className={s.sectionLabel} style={{ color: C.t3, fontFamily: M }}>
+                Tags
+              </div>
               <div className={s.tagList}>
                 {t.tags.map((tag, i) => (
-                  <span key={i} style={{ padding: '2px 8px', borderRadius: 6, background: C.b + '12', color: C.b, fontSize: 10, fontWeight: 600 }}>{tag}</span>
+                  <span
+                    key={i}
+                    style={{
+                      padding: '2px 8px',
+                      borderRadius: 6,
+                      background: C.b + '12',
+                      color: C.b,
+                      fontSize: 10,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {tag}
+                  </span>
                 ))}
               </div>
             </div>
@@ -411,7 +499,10 @@ function ExpandedDetail({
 
           {/* Notes */}
           {t.notes && (
-            <div className={s.notesBlock} style={{ color: C.t2, border: `1px solid ${C.bd}20`, background: `${C.bg2}` }}>
+            <div
+              className={s.notesBlock}
+              style={{ color: C.t2, border: `1px solid ${C.bd}20`, background: `${C.bg2}` }}
+            >
               {t.notes}
             </div>
           )}
@@ -425,19 +516,9 @@ function ExpandedDetail({
 
           {hasScreenshots ? (
             allScreenshots.map((shot, i) => (
-              <div
-                key={i}
-                className={s.snapshotCard}
-                onClick={() => setLightboxIdx(i)}
-              >
-                <img
-                  src={shot.data}
-                  alt={shotLabel(shot, i)}
-                  draggable={false}
-                />
-                <div className={s.snapshotLabel}>
-                  {shotLabel(shot, i)}
-                </div>
+              <div key={i} className={s.snapshotCard} onClick={() => setLightboxIdx(i)}>
+                <img src={shot.data} alt={shotLabel(shot, i)} draggable={false} />
+                <div className={s.snapshotLabel}>{shotLabel(shot, i)}</div>
               </div>
             ))
           ) : (
@@ -454,16 +535,34 @@ function ExpandedDetail({
         {deleteConfirm === t.id ? (
           <>
             <span style={{ fontSize: 11, color: C.r, alignSelf: 'center', marginRight: 4 }}>Delete this trade?</span>
-            <Btn variant="ghost" onClick={onCancelDelete} className={s.cancelBtn}>Cancel</Btn>
-            <Btn variant="danger" onClick={() => onDelete(t.id)} className={s.deleteBtn}>Confirm Delete</Btn>
+            <Btn variant="ghost" onClick={onCancelDelete} className={s.cancelBtn}>
+              Cancel
+            </Btn>
+            <Btn variant="danger" onClick={() => onDelete(t.id)} className={s.deleteBtn}>
+              Confirm Delete
+            </Btn>
           </>
         ) : (
           <>
-            {onShare && <Btn variant="ghost" onClick={() => onShare(t)} className={s.shareBtn}>📤 Share</Btn>}
-            {onReplay && <Btn variant="ghost" onClick={() => onReplay(t)} className={s.replayBtn}>⏪ Replay</Btn>}
-            <Btn variant="ghost" onClick={() => onViewChart(t)} className={s.chartBtn}>📈 Chart</Btn>
-            <Btn variant="ghost" onClick={() => onDeleteConfirm(t.id)} className={s.deleteTriggerBtn}>Delete</Btn>
-            <Btn onClick={() => onEdit(t)} className={s.editBtn}>Edit</Btn>
+            {onShare && (
+              <Btn variant="ghost" onClick={() => onShare(t)} className={s.shareBtn}>
+                📤 Share
+              </Btn>
+            )}
+            {onReplay && (
+              <Btn variant="ghost" onClick={() => onReplay(t)} className={s.replayBtn}>
+                ⏪ Replay
+              </Btn>
+            )}
+            <Btn variant="ghost" onClick={() => onViewChart(t)} className={s.chartBtn}>
+              📈 Chart
+            </Btn>
+            <Btn variant="ghost" onClick={() => onDeleteConfirm(t.id)} className={s.deleteTriggerBtn}>
+              Delete
+            </Btn>
+            <Btn onClick={() => onEdit(t)} className={s.editBtn}>
+              Edit
+            </Btn>
           </>
         )}
       </div>

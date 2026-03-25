@@ -1,7 +1,6 @@
 // Section 3: Events Today for Morning Briefing
 import { C } from '@/constants.js';
 import { alpha } from '@/shared/colorUtils';
-import st from './EventsToday.module.css';
 
 export default function EventsToday({ events }) {
   const impactColors = { high: C.r, medium: C.y, low: C.g };
@@ -52,12 +51,12 @@ export default function EventsToday({ events }) {
               >
                 {evt.impact}
               </span>
-              <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>
-                {evt.country}
-              </span>
+              <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>{evt.country}</span>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 10, fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t3, flexShrink: 0 }}>
+          <div
+            style={{ display: 'flex', gap: 10, fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t3, flexShrink: 0 }}
+          >
             {evt.previous !== '—' && (
               <span>
                 Prev: <span style={{ color: C.t2 }}>{evt.previous}</span>

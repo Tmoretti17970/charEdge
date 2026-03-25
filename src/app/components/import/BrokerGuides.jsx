@@ -7,9 +7,8 @@
 
 import React, { useState, useCallback } from 'react';
 import { C } from '../../../constants.js';
-import { alpha } from '@/shared/colorUtils';
 import BROKER_GUIDES from '../../../data/importExport/brokerGuideData.js';
-import st from './BrokerGuides.module.css';
+import { alpha } from '@/shared/colorUtils';
 
 function BrokerGuideCard({ guide, onClick, expanded }) {
   const [hovered, setHovered] = useState(false);
@@ -22,14 +21,8 @@ function BrokerGuideCard({ guide, onClick, expanded }) {
       style={{
         padding: expanded ? '14px 16px' : '10px 14px',
         borderRadius: 10,
-        border: expanded
-          ? `1px solid ${alpha(C.b, 0.3)}`
-          : `1px solid ${alpha(C.bd, 0.3)}`,
-        background: expanded
-          ? `${C.b}08`
-          : hovered
-            ? C.sf
-            : C.sf,
+        border: expanded ? `1px solid ${alpha(C.b, 0.3)}` : `1px solid ${alpha(C.bd, 0.3)}`,
+        background: expanded ? `${C.b}08` : hovered ? C.sf : C.sf,
         cursor: 'pointer',
         transition: 'all 0.15s ease',
       }}
@@ -41,7 +34,16 @@ function BrokerGuideCard({ guide, onClick, expanded }) {
           <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>{guide.name}</div>
           <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>{guide.format}</div>
         </div>
-        <span style={{ fontSize: 10, color: C.t3, transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
+        <span
+          style={{
+            fontSize: 10,
+            color: C.t3,
+            transform: expanded ? 'rotate(180deg)' : 'none',
+            transition: 'transform 0.2s',
+          }}
+        >
+          ▼
+        </span>
       </div>
 
       {/* Expanded Steps */}
@@ -49,11 +51,22 @@ function BrokerGuideCard({ guide, onClick, expanded }) {
         <div style={{ marginTop: 8 }}>
           <ol style={{ margin: 0, paddingLeft: 18, fontSize: 11, color: C.t2, lineHeight: 1.6 }}>
             {guide.steps.map((step, i) => (
-              <li key={i} style={{ marginBottom: 2 }}>{step}</li>
+              <li key={i} style={{ marginBottom: 2 }}>
+                {step}
+              </li>
             ))}
           </ol>
           {guide.tips && guide.tips.length > 0 && (
-            <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 6, background: alpha(C.y, 0.06), fontSize: 10, color: C.y }}>
+            <div
+              style={{
+                marginTop: 8,
+                padding: '6px 8px',
+                borderRadius: 6,
+                background: alpha(C.y, 0.06),
+                fontSize: 10,
+                color: C.y,
+              }}
+            >
               💡 {guide.tips[0]}
             </div>
           )}
@@ -79,9 +92,7 @@ function BrokerGuides({ searchFilter = '' }) {
 
   const guideEntries = Object.entries(BROKER_GUIDES);
   const filtered = searchFilter
-    ? guideEntries.filter(([, g]) =>
-        g.name.toLowerCase().includes(searchFilter.toLowerCase())
-      )
+    ? guideEntries.filter(([, g]) => g.name.toLowerCase().includes(searchFilter.toLowerCase()))
     : guideEntries;
 
   const handleToggle = useCallback((key) => {

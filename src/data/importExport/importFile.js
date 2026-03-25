@@ -4,9 +4,9 @@
 
 import { tradeHash } from '../../charting_library/datafeed/csv.js';
 import { normalizeBatch } from '../../charting_library/model/TradeSchema.js';
+import { generateBatchId } from '../../state/useImportHistoryStore.js';
 import { detectBroker, BROKER_PARSERS, BROKER_LABELS } from './brokerDetection.js';
 import { parseCSV } from './parseCSV.js';
-import { generateBatchId } from '../../state/useImportHistoryStore.js';
 
 /**
  * Normalize an array of imported trades through the schema validator.
@@ -28,18 +28,18 @@ export function normalizeImported(trades) {
  * @returns {Promise<{ ok: boolean, trades: Object[], broker: string, duplicates?: number, error?: string }>}
  */
 export async function importFile(file, options = {}) {
-  const { forceBroker = null, existingTrades = [] } = typeof options === 'string'
-    ? { forceBroker: options } // backwards compat: importFile(file, 'broker')
-    : (options || {});
+  const { forceBroker = null, existingTrades = [] } =
+    typeof options === 'string'
+      ? { forceBroker: options } // backwards compat: importFile(file, 'broker')
+      : options || {};
 
   try {
     const text = await file.text();
     const name = (file.name || '').toLowerCase();
 
     // Build dedup hash set from existing trades
-    const existingHashes = existingTrades.length > 0
-      ? new Set(existingTrades.filter(t => t.date && t.symbol).map(tradeHash))
-      : null;
+    const existingHashes =
+      existingTrades.length > 0 ? new Set(existingTrades.filter((t) => t.date && t.symbol).map(tradeHash)) : null;
 
     // ─── OFX / QFX Import (Sprint 6.6) ───────────────────
     if (name.endsWith('.ofx') || name.endsWith('.qfx')) {
@@ -48,8 +48,19 @@ export async function importFile(file, options = {}) {
       const { trades: normalized } = normalizeImported(result.trades);
       const { unique, duplicates } = _dedup(normalized, existingHashes);
       const batchId = generateBatchId();
-      unique.forEach(t => { t._batchId = batchId; });
-      return { ok: true, trades: unique, broker: 'ofx', brokerLabel: 'OFX/QFX', count: unique.length, duplicates, batchId, format: 'ofx' };
+      unique.forEach((t) => {
+        t._batchId = batchId;
+      });
+      return {
+        ok: true,
+        trades: unique,
+        broker: 'ofx',
+        brokerLabel: 'OFX/QFX',
+        count: unique.length,
+        duplicates,
+        batchId,
+        format: 'ofx',
+      };
     }
 
     // ─── QIF Import (Sprint 6.6) ─────────────────────────
@@ -59,8 +70,19 @@ export async function importFile(file, options = {}) {
       const { trades: normalized } = normalizeImported(result.trades);
       const { unique, duplicates } = _dedup(normalized, existingHashes);
       const batchId = generateBatchId();
-      unique.forEach(t => { t._batchId = batchId; });
-      return { ok: true, trades: unique, broker: 'qif', brokerLabel: 'QIF (Quicken)', count: unique.length, duplicates, batchId, format: 'qif' };
+      unique.forEach((t) => {
+        t._batchId = batchId;
+      });
+      return {
+        ok: true,
+        trades: unique,
+        broker: 'qif',
+        brokerLabel: 'QIF (Quicken)',
+        count: unique.length,
+        duplicates,
+        batchId,
+        format: 'qif',
+      };
     }
 
     // ─── Excel Import (Sprint 6.7) ───────────────────────
@@ -74,8 +96,19 @@ export async function importFile(file, options = {}) {
       const { trades: normalized } = normalizeImported(rows);
       const { unique, duplicates } = _dedup(normalized, existingHashes);
       const batchId = generateBatchId();
-      unique.forEach(t => { t._batchId = batchId; });
-      return { ok: true, trades: unique, broker: 'excel', brokerLabel: 'Excel', count: unique.length, duplicates, batchId, format: 'xlsx' };
+      unique.forEach((t) => {
+        t._batchId = batchId;
+      });
+      return {
+        ok: true,
+        trades: unique,
+        broker: 'excel',
+        brokerLabel: 'Excel',
+        count: unique.length,
+        duplicates,
+        batchId,
+        format: 'xlsx',
+      };
     }
 
     // ─── HTML Report Import (Sprint 6.8) ─────────────────
@@ -85,8 +118,19 @@ export async function importFile(file, options = {}) {
       const { trades: normalized } = normalizeImported(result.trades);
       const { unique, duplicates } = _dedup(normalized, existingHashes);
       const batchId = generateBatchId();
-      unique.forEach(t => { t._batchId = batchId; });
-      return { ok: true, trades: unique, broker: result.broker, brokerLabel: result.broker === 'mt5' ? 'MetaTrader 5' : result.broker === 'ctrader' ? 'cTrader' : 'HTML Report', count: unique.length, duplicates, batchId, format: 'html' };
+      unique.forEach((t) => {
+        t._batchId = batchId;
+      });
+      return {
+        ok: true,
+        trades: unique,
+        broker: result.broker,
+        brokerLabel: result.broker === 'mt5' ? 'MetaTrader 5' : result.broker === 'ctrader' ? 'cTrader' : 'HTML Report',
+        count: unique.length,
+        duplicates,
+        batchId,
+        format: 'html',
+      };
     }
 
     // ─── JSON Import ──────────────────────────────────────
@@ -108,7 +152,9 @@ export async function importFile(file, options = {}) {
 
       // Sprint 6.2: Stamp batch ID on all imported trades
       const batchId = generateBatchId();
-      unique.forEach(t => { t._batchId = batchId; });
+      unique.forEach((t) => {
+        t._batchId = batchId;
+      });
 
       return { ok: true, trades: unique, broker: 'charEdge', count: unique.length, duplicates, batchId };
     }
@@ -132,7 +178,9 @@ export async function importFile(file, options = {}) {
 
     // Sprint 6.2: Stamp batch ID on all imported trades
     const batchId = generateBatchId();
-    unique.forEach(t => { t._batchId = batchId; });
+    unique.forEach((t) => {
+      t._batchId = batchId;
+    });
 
     return {
       ok: true,
@@ -172,12 +220,11 @@ function _dedup(trades, existingHashes) {
         existingHashes.add(hash); // prevent intra-file dupes too
         unique.push(trade);
       }
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) {
+       
+    } catch {
       // If hash fails (missing fields), keep the trade
       unique.push(trade);
     }
   }
   return { unique, duplicates };
 }
-

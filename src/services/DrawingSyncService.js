@@ -14,6 +14,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import supabase from '../data/supabaseClient.ts';
+import { logger } from '@/observability/logger';
 
 const DB_NAME = 'charEdge-drawings';
 const DB_VERSION = 1;
@@ -112,11 +113,11 @@ class DrawingSyncService {
       id: key,
       symbol,
       tf,
-      drawings: drawings.map(d => ({
+      drawings: drawings.map((d) => ({
         id: d.id,
         type: d.type,
         style: { ...d.style },
-        pricePoints: d.pricePoints?.map(pp => ({ price: pp.price, time: pp.time })) || [],
+        pricePoints: d.pricePoints?.map((pp) => ({ price: pp.price, time: pp.time })) || [],
         label: d.label || '',
         text: d.text || '',
         locked: d.locked || false,
@@ -130,7 +131,7 @@ class DrawingSyncService {
     try {
       await idbPut(STORE_NAME, record);
     } catch (err) {
-      console.error('[DrawingSync] Local save failed:', err);
+      logger.data.error('[DrawingSync] Local save failed:', err);
     }
 
     // Queue for cloud sync
@@ -151,10 +152,10 @@ class DrawingSyncService {
     try {
       const all = await idbGetAll(STORE_NAME);
       const key = `${symbol}-${tf}`;
-      const record = all.find(r => r.id === key);
+      const record = all.find((r) => r.id === key);
       return record?.drawings || [];
     } catch (err) {
-      console.error('[DrawingSync] Local load failed:', err);
+      logger.data.error('[DrawingSync] Local load failed:', err);
       return [];
     }
   }
@@ -167,11 +168,9 @@ class DrawingSyncService {
   async loadAllForSymbol(symbol) {
     try {
       const all = await idbGetAll(STORE_NAME);
-      return all
-        .filter(r => r.symbol === symbol)
-        .flatMap(r => r.drawings.filter(d => d.syncAcrossTimeframes));
+      return all.filter((r) => r.symbol === symbol).flatMap((r) => r.drawings.filter((d) => d.syncAcrossTimeframes));
     } catch (err) {
-      console.error('[DrawingSync] Cross-TF load failed:', err);
+      logger.data.error('[DrawingSync] Cross-TF load failed:', err);
       return [];
     }
   }
@@ -194,7 +193,9 @@ class DrawingSyncService {
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         // Not authenticated — save locally only
         this._syncStatus = 'idle';
@@ -202,9 +203,8 @@ class DrawingSyncService {
         return;
       }
 
-      const { error } = await supabase
-        .from('drawings')
-        .upsert({
+      const { error } = await supabase.from('drawings').upsert(
+        {
           id: record.id,
           user_id: user.id,
           symbol: record.symbol,
@@ -212,14 +212,16 @@ class DrawingSyncService {
           drawings: record.drawings,
           version: record.version,
           updated_at: new Date(record.updatedAt).toISOString(),
-        }, { onConflict: 'id' });
+        },
+        { onConflict: 'id' },
+      );
 
       if (error) throw error;
 
       this._syncStatus = 'idle';
       this._notify();
     } catch (err) {
-      console.warn('[DrawingSync] Cloud sync failed, queueing:', err);
+      logger.network.warn('[DrawingSync] Cloud sync failed, queueing:', err);
       this._syncStatus = 'error';
       this._notify();
       await this._enqueue(record);
@@ -236,7 +238,9 @@ class DrawingSyncService {
     if (!supabase) return this.loadLocal(symbol, tf);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return this.loadLocal(symbol, tf);
 
       const key = `${symbol}-${tf}`;
@@ -254,7 +258,7 @@ class DrawingSyncService {
 
       // Last-write-wins merge: compare timestamps
       const all = await idbGetAll(STORE_NAME);
-      const localRecord = all.find(r => r.id === key);
+      const localRecord = all.find((r) => r.id === key);
       const cloudTime = new Date(cloudRecord.updated_at).getTime();
       const localTime = localRecord?.updatedAt || 0;
 
@@ -278,7 +282,7 @@ class DrawingSyncService {
       }
       return localRecord?.drawings || [];
     } catch (err) {
-      console.warn('[DrawingSync] Cloud pull failed:', err);
+      logger.network.warn('[DrawingSync] Cloud pull failed:', err);
       return this.loadLocal(symbol, tf);
     }
   }
@@ -295,19 +299,18 @@ class DrawingSyncService {
       await this._flushQueue();
 
       // Pull all user drawings from cloud
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: cloudRecords, error } = await supabase
-        .from('drawings')
-        .select('*')
-        .eq('user_id', user.id);
+      const { data: cloudRecords, error } = await supabase.from('drawings').select('*').eq('user_id', user.id);
 
       if (error || !cloudRecords) return;
 
       // Merge each cloud record with local
       const localAll = await idbGetAll(STORE_NAME);
-      const localMap = new Map(localAll.map(r => [r.id, r]));
+      const localMap = new Map(localAll.map((r) => [r.id, r]));
 
       for (const cloud of cloudRecords) {
         const local = localMap.get(cloud.id);
@@ -326,9 +329,9 @@ class DrawingSyncService {
         }
       }
 
-      console.log(`[DrawingSync] Boot sync: merged ${cloudRecords.length} cloud records`);
+      logger.data.info(`[DrawingSync] Boot sync: merged ${cloudRecords.length} cloud records`);
     } catch (err) {
-      console.warn('[DrawingSync] Boot sync failed:', err);
+      logger.network.warn('[DrawingSync] Boot sync failed:', err);
     }
   }
 
@@ -340,7 +343,7 @@ class DrawingSyncService {
         queuedAt: Date.now(),
       });
     } catch (err) {
-      console.error('[DrawingSync] Queue failed:', err);
+      logger.data.error('[DrawingSync] Queue failed:', err);
     }
   }
 
@@ -349,7 +352,7 @@ class DrawingSyncService {
       const queue = await idbGetAll(QUEUE_STORE);
       if (queue.length === 0) return;
 
-      console.log(`[DrawingSync] Flushing ${queue.length} queued changes`);
+      logger.data.info(`[DrawingSync] Flushing ${queue.length} queued changes`);
 
       for (const record of queue) {
         await this._syncToCloud(record);
@@ -357,14 +360,18 @@ class DrawingSyncService {
 
       await idbClear(QUEUE_STORE);
     } catch (err) {
-      console.error('[DrawingSync] Queue flush failed:', err);
+      logger.data.error('[DrawingSync] Queue flush failed:', err);
     }
   }
 
   // ─── Status & Listeners ───────────────────────────────────
 
-  get status() { return this._syncStatus; }
-  get isOnline() { return this._online; }
+  get status() {
+    return this._syncStatus;
+  }
+  get isOnline() {
+    return this._online;
+  }
 
   subscribe(listener) {
     this._listeners.add(listener);
@@ -373,7 +380,11 @@ class DrawingSyncService {
 
   _notify() {
     for (const listener of this._listeners) {
-      try { listener(this._syncStatus); } catch (_) { /* ignored */ }
+      try {
+        listener(this._syncStatus);
+      } catch {
+        /* ignored */
+      }
     }
   }
 }

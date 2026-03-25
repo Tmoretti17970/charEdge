@@ -2,10 +2,8 @@
 // charEdge — TypingDots (extracted from CopilotChatInline)
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
-import { C } from '@/constants.js';
 import AIOrb from '../design/AIOrb.jsx';
-import st from './TypingDots.module.css';
+import { C } from '@/constants.js';
 
 export default function TypingDots() {
   return (
@@ -13,10 +11,16 @@ export default function TypingDots() {
       <AIOrb size={12} animate />
       <div style={{ display: 'flex', gap: 3 }}>
         {[0, 1, 2].map((i) => (
-          <span key={i} style={{
-            width: 4, height: 4, borderRadius: '50%', background: C.t3,
-            animation: `copilotInlineDot 1.2s ease ${i * 0.2}s infinite`,
-          }} />
+          <span
+            key={i}
+            style={{
+              width: 4,
+              height: 4,
+              borderRadius: '50%',
+              background: C.t3,
+              animation: `copilotInlineDot 1.2s ease ${i * 0.2}s infinite`,
+            }}
+          />
         ))}
       </div>
     </div>

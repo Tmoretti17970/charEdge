@@ -6,8 +6,8 @@
 
 import React from 'react';
 import { useState, useRef, useEffect } from 'react';
-import { C, F } from '@/constants.js';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
+import { C, F } from '@/constants.js';
 
 const _VALID_SUFFIXES = ['m', 'h', 'D', 'd', 'W', 'w', 'M'];
 
@@ -27,7 +27,9 @@ function parseTf(input) {
   if (suffix === 'h') suffix = 'h';
   else if (suffix === 'd') suffix = 'D';
   else if (suffix === 'w') suffix = 'W';
-  else if (suffix === 'm' && num >= 1440) { suffix = 'D'; }
+  else if (suffix === 'm' && num >= 1440) {
+    suffix = 'D';
+  }
 
   // Validate ranges
   if (suffix === 'm' && (num < 1 || num > 1440)) return null;
@@ -60,29 +62,36 @@ function CustomTimeframeInput({ onClose }) {
   };
 
   return (
-    <div style={{
-      position: 'absolute',
-      top: '100%',
-      left: 0,
-      marginTop: 4,
-      background: C.sf2,
-      border: `1px solid ${C.bd}`,
-      borderRadius: 10,
-      padding: 12,
-      zIndex: 1000,
-      boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-      backdropFilter: 'blur(16px)',
-      animation: 'tfDropdownIn 0.15s ease-out',
-      minWidth: 200,
-    }}>
-      <div style={{ fontSize: 10, color: C.t3, fontFamily: F, fontWeight: 600, marginBottom: 8, letterSpacing: '0.5px' }}>
+    <div
+      style={{
+        position: 'absolute',
+        top: '100%',
+        left: 0,
+        marginTop: 4,
+        background: C.sf2,
+        border: `1px solid ${C.bd}`,
+        borderRadius: 10,
+        padding: 12,
+        zIndex: 1000,
+        boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+        backdropFilter: 'blur(16px)',
+        animation: 'tfDropdownIn 0.15s ease-out',
+        minWidth: 200,
+      }}
+    >
+      <div
+        style={{ fontSize: 10, color: C.t3, fontFamily: F, fontWeight: 600, marginBottom: 8, letterSpacing: '0.5px' }}
+      >
         CUSTOM TIMEFRAME
       </div>
       <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 6 }}>
         <input
           ref={inputRef}
           value={value}
-          onChange={(e) => { setValue(e.target.value); setError(''); }}
+          onChange={(e) => {
+            setValue(e.target.value);
+            setError('');
+          }}
           placeholder="e.g. 7m, 2h, 3D"
           style={{
             flex: 1,
@@ -95,7 +104,9 @@ function CustomTimeframeInput({ onClose }) {
             fontSize: 13,
             outline: 'none',
           }}
-          onKeyDown={(e) => { if (e.key === 'Escape') onClose?.(); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') onClose?.();
+          }}
         />
         <button
           type="submit"
@@ -114,11 +125,7 @@ function CustomTimeframeInput({ onClose }) {
           Apply
         </button>
       </form>
-      {error && (
-        <div style={{ fontSize: 10, color: '#EF5350', marginTop: 4, fontFamily: F }}>
-          {error}
-        </div>
-      )}
+      {error && <div style={{ fontSize: 10, color: '#EF5350', marginTop: 4, fontFamily: F }}>{error}</div>}
       <div style={{ fontSize: 10, color: C.t3, marginTop: 8, fontFamily: F, lineHeight: 1.4 }}>
         Formats: <span style={{ color: C.t2 }}>1m 5m 15m 30m 1h 2h 4h 1D 1W</span>
       </div>

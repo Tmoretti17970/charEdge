@@ -10,9 +10,8 @@
 import { useState, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
-import { useChartToolsStore } from '../../../state/chart/useChartToolsStore';
 import { useChartFeaturesStore } from '../../../state/chart/useChartFeaturesStore';
-
+import { useChartToolsStore } from '../../../state/chart/useChartToolsStore';
 
 const MOBILE_CHART_TYPES = [
   { id: 'candles', icon: '🕯️', label: 'Candles' },
@@ -50,8 +49,6 @@ export default function MobileChartSheet({ isOpen, onClose, onScreenshot, onFull
   const [compInput, setCompInput] = useState('');
   const [showCompare, setShowCompare] = useState(false);
 
-
-
   const isIndicatorActive = useCallback(
     (qi) => {
       return indicators.some((ind) => ind.type === qi.type && ind.params?.period === qi.params?.period);
@@ -61,7 +58,9 @@ export default function MobileChartSheet({ isOpen, onClose, onScreenshot, onFull
 
   const toggleIndicator = useCallback(
     (qi) => {
-      const match = indicators.find((ind) => (ind.indicatorId || ind.type) === qi.type && ind.params?.period === qi.params?.period);
+      const match = indicators.find(
+        (ind) => (ind.indicatorId || ind.type) === qi.type && ind.params?.period === qi.params?.period,
+      );
       if (match) {
         removeIndicator(match.id);
       } else {
@@ -252,7 +251,6 @@ export default function MobileChartSheet({ isOpen, onClose, onScreenshot, onFull
             )}
           </div>
         </Section>
-
 
         {/* ─── Actions ─────────────────────────────────────── */}
         <Section title="Actions">

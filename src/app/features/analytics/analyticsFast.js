@@ -11,6 +11,7 @@
 // Designed to run in a Web Worker.
 // ═══════════════════════════════════════════════════════════════════
 
+import { sharpeRatio, sortinoRatio } from '../../../trading/QuantMetrics';
 import { toC, fromC, MIN_SAMPLES } from './metrics/analyticsConstants.js';
 import { computeDurationStats, computeRollingWindows } from './metrics/durationStats.js';
 import { computeEmotionCorrelation } from './metrics/emotionCorrelation.js';
@@ -19,9 +20,6 @@ import { mcPropFirmPredict } from './metrics/propFirmPredict.js';
 import { computeRDistribution } from './metrics/rDistribution.js';
 import { computeStreakImpact } from './metrics/streakImpact.js';
 // #10: Single source of truth for risk-adjusted metrics
-import { sharpeRatio, sortinoRatio } from '../../../trading/QuantMetrics';
-
-
 
 /**
  * Single-pass analytics engine.
@@ -80,8 +78,10 @@ function computeFast(trades, settings = {}) {
   const durations = []; // J2.3: hold durations in minutes
   const durationPnls = []; // J2.3: paired P&L for duration correlation
   // P1-C #18: Hold time split by winners vs losers
-  let winDurationSum = 0, winDurationCount = 0;
-  let lossDurationSum = 0, lossDurationCount = 0;
+  let winDurationSum = 0,
+    winDurationCount = 0;
+  let lossDurationSum = 0,
+    lossDurationCount = 0;
   // J2.4: playbook × day-of-week matrix
   const playbookDayMap = {};
 

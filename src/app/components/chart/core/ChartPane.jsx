@@ -18,7 +18,6 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { C, M, TFS, CHART_TYPES } from '@/constants.js';
 import { fetchOHLC, warmCache } from '../../../../data/FetchService';
 import { checkSymbolAlerts } from '../../../../state/useAlertStore';
 import { useChartLinkStore, LINK_GROUP_COLORS, LINK_GROUPS } from '../../../../state/useChartLinkStore';
@@ -26,10 +25,11 @@ import { useJournalStore } from '../../../../state/useJournalStore';
 import TemplateSelector from '../../../layouts/TemplateSelector.jsx';
 import SymbolSearch from '../../ui/SymbolSearch.jsx';
 import ChartCanvas from './ChartCanvas.jsx';
+import s from './ChartPane.module.css';
 import crosshairBus from '@/charting_library/utils/CrosshairBus';
+import { TFS, CHART_TYPES } from '@/constants.js';
 import { logger } from '@/observability/logger';
 import { safeClone } from '@/shared/safeJSON';
-import s from './ChartPane.module.css';
 
 const DEFAULT_INDICATORS = [];
 
@@ -124,14 +124,12 @@ export default function ChartPane({
             try {
               const tabNode = model.getNodeById(node.getId());
               if (tabNode && tabNode._setName) tabNode._setName(`${symbol} · ${tf.toUpperCase()}`);
-            // eslint-disable-next-line unused-imports/no-unused-vars
-            } catch (_) {
+            } catch {
               /* silently fail */
             }
           });
       }
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) {
+    } catch {
       /* flexlayout may throw if node is being removed during layout change */
     }
   }, [symbol, tf, node]);
@@ -174,17 +172,19 @@ export default function ChartPane({
     warmCache(symbol, tf);
   }, [symbol]); // eslint-disable-line
 
-
   // ─── Handlers ─────────────────────────────────────────────
-  const handleSymbolSelect = useCallback((sym) => {
-    const upper = sym.toUpperCase();
-    setSymbol(upper);
-    // Broadcast to linked charts
-    const group = useChartLinkStore.getState().getLinkGroup(paneIdRef.current);
-    if (group && group !== 'none') {
-      broadcastSymbol(group, upper, paneIdRef.current);
-    }
-  }, [broadcastSymbol]);
+  const handleSymbolSelect = useCallback(
+    (sym) => {
+      const upper = sym.toUpperCase();
+      setSymbol(upper);
+      // Broadcast to linked charts
+      const group = useChartLinkStore.getState().getLinkGroup(paneIdRef.current);
+      if (group && group !== 'none') {
+        broadcastSymbol(group, upper, paneIdRef.current);
+      }
+    },
+    [broadcastSymbol],
+  );
 
   const _handleAddIndicator = useCallback((preset) => {
     setIndicators((prev) => [...prev, { ...preset }]);
@@ -234,10 +234,7 @@ export default function ChartPane({
             />
           </button>
           {showLinkMenu && (
-            <div
-              className={s.linkMenu}
-              onMouseLeave={() => setShowLinkMenu(false)}
-            >
+            <div className={s.linkMenu} onMouseLeave={() => setShowLinkMenu(false)}>
               {LINK_GROUPS.map((g) => (
                 <button
                   key={g}
@@ -274,10 +271,7 @@ export default function ChartPane({
 
         {/* Chart Type Dropdown */}
         <div className={s.typeWrap}>
-          <button
-            className={`tf-btn ${s.typeBtn}`}
-            onClick={() => setShowTypeMenu((v) => !v)}
-          >
+          <button className={`tf-btn ${s.typeBtn}`} onClick={() => setShowTypeMenu((v) => !v)}>
             {CHART_TYPES.find((ct) => ct.id === chartType)?.label || 'Candles'} ▾
           </button>
           {showTypeMenu && (
@@ -303,22 +297,14 @@ export default function ChartPane({
         <div className={s.badgeRow}>
           {/* Template selector */}
           <TemplateSelector indicators={indicators} chartType={chartType} onApply={handleApplyTemplate} />
-          {dataWarning && (
-            <span className={s.warningBadge}>
-              ⚠ {dataWarning}
-            </span>
-          )}
+          {dataWarning && <span className={s.warningBadge}>⚠ {dataWarning}</span>}
           {source && !loading && (
             <span className={s.sourceBadge} data-simulated={source === 'simulated' ? 'true' : undefined}>
               {source}
             </span>
           )}
           {/* Indicator count badge */}
-          {indicators.length > 0 && (
-            <span className={s.indBadge}>
-              {indicators.length} ind
-            </span>
-          )}
+          {indicators.length > 0 && <span className={s.indBadge}>{indicators.length} ind</span>}
         </div>
       </div>
 
@@ -343,12 +329,9 @@ export default function ChartPane({
             onCrosshairMove={handleCrosshairMove}
           />
         ) : (
-          <div className={s.noData}>
-            No data available for {symbol}
-          </div>
+          <div className={s.noData}>No data available for {symbol}</div>
         )}
       </div>
-
     </div>
   );
 }

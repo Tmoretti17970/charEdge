@@ -20,7 +20,7 @@ describe('ModelQualityTracker', () => {
   beforeEach(() => {
     storage.clear();
     // Create a fresh instance each test (reads from empty localStorage)
-    tracker = new (ModelQualityTracker as any)();
+    tracker = new ModelQualityTracker();
   });
 
   describe('recordInteraction', () => {
@@ -37,7 +37,7 @@ describe('ModelQualityTracker', () => {
     });
 
     it('counts short responses', () => {
-      tracker.recordInteraction('Hi', 50, 'small');         // short (< 50 chars)
+      tracker.recordInteraction('Hi', 50, 'small'); // short (< 50 chars)
       tracker.recordInteraction('x'.repeat(100), 50, 'small'); // not short
       const summary = tracker.getSummary();
       expect(summary.shortResponseRate).toBe(0.5);

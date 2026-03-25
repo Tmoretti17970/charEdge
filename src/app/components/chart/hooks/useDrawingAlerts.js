@@ -9,8 +9,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect } from 'react';
-import { useAlertStore } from '../../../../state/useAlertStore';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
+import { useAlertStore } from '../../../../state/useAlertStore';
 
 /**
  * Map a DrawingAlertEngine alert → useAlertStore.addAlert() params.
@@ -60,7 +60,9 @@ export function useDrawingAlerts() {
           const existing = JSON.parse(localStorage.getItem(key) || '[]');
           existing.push(alertId);
           localStorage.setItem(key, JSON.stringify(existing));
-        } catch { /* localStorage may be unavailable */ }
+        } catch {
+          /* localStorage may be unavailable */
+        }
       }
     };
 

@@ -11,12 +11,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo, useRef, useEffect, useCallback, useState, useMemo } from 'react';
-import { C } from '../../../constants.js';
-import { useWatchlistStore, enrichWithTradeStats } from '../../../state/useWatchlistStore.js';
+import { C, F, M } from '../../../constants.js';
+import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
-import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming.js';
-import st from './MarketsHeatMap.module.css';
+import { useWatchlistStore, enrichWithTradeStats } from '../../../state/useWatchlistStore.js';
 
 // ─── Squarified Treemap Layout ────────────────────────────────
 
@@ -28,23 +27,23 @@ function squarify(data, x, y, w, h) {
   if (total <= 0) return rects;
 
   let remaining = [...data];
-  let cx = x, cy = y, cw = w, ch = h;
+  let cx = x,
+    cy = y,
+    cw = w,
+    ch = h;
 
   while (remaining.length > 0) {
     const isWide = cw >= ch;
     const side = isWide ? ch : cw;
     const totalRemaining = remaining.reduce((s, d) => s + d.weight, 0);
 
-    let row = [remaining[0]];
+    const row = [remaining[0]];
     let rowWeight = remaining[0].weight;
-    let bestAspect = Infinity;
-
     for (let i = 1; i < remaining.length; i++) {
       const testWeight = rowWeight + remaining[i].weight;
       const rowLen = (testWeight / totalRemaining) * (isWide ? cw : ch);
       let worstAspect = 0;
 
-      let accum = 0;
       for (const item of [...row, remaining[i]]) {
         const itemFrac = item.weight / testWeight;
         const itemLen = itemFrac * side;
@@ -55,7 +54,6 @@ function squarify(data, x, y, w, h) {
       // Check if previous best was better
       const rowLenPrev = (rowWeight / totalRemaining) * (isWide ? cw : ch);
       let prevWorst = 0;
-      let accumPrev = 0;
       for (const item of row) {
         const itemFrac = item.weight / rowWeight;
         const itemLen = itemFrac * side;
@@ -67,7 +65,6 @@ function squarify(data, x, y, w, h) {
 
       row.push(remaining[i]);
       rowWeight += remaining[i].weight;
-      bestAspect = worstAspect;
     }
 
     // Lay out this row
@@ -81,14 +78,18 @@ function squarify(data, x, y, w, h) {
       if (isWide) {
         rects.push({
           ...item,
-          rx: cx, ry: cy + offset,
-          rw: rowLen, rh: itemSize,
+          rx: cx,
+          ry: cy + offset,
+          rw: rowLen,
+          rh: itemSize,
         });
       } else {
         rects.push({
           ...item,
-          rx: cx + offset, ry: cy,
-          rw: itemSize, rh: rowLen,
+          rx: cx + offset,
+          ry: cy,
+          rw: itemSize,
+          rh: rowLen,
         });
       }
       offset += itemSize;
@@ -187,12 +188,7 @@ function MarketsHeatMap() {
           price,
           volume,
           marketCap: item.marketCap ?? volume,
-          weight: Math.max(
-            heatmapSizeBy === 'marketCap'
-              ? (item.marketCap ?? volume)
-              : volume,
-            0.01,
-          ),
+          weight: Math.max(heatmapSizeBy === 'marketCap' ? (item.marketCap ?? volume) : volume, 0.01),
         };
       })
       .sort((a, b) => b.weight - a.weight);
@@ -269,34 +265,30 @@ function MarketsHeatMap() {
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
 
-    const hit = rectsRef.current.find(
-      (r) => mx >= r.rx && mx <= r.rx + r.rw && my >= r.ry && my <= r.ry + r.rh,
-    );
+    const hit = rectsRef.current.find((r) => mx >= r.rx && mx <= r.rx + r.rw && my >= r.ry && my <= r.ry + r.rh);
     setHovered(hit ? hit.fullSymbol : null);
     canvas.style.cursor = hit ? 'pointer' : 'default';
   }, []);
 
-  const handleClick = useCallback((e) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
+  const handleClick = useCallback(
+    (e) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
 
-    const hit = rectsRef.current.find(
-      (r) => mx >= r.rx && mx <= r.rx + r.rw && my >= r.ry && my <= r.ry + r.rh,
-    );
-    if (hit) setSelectedSymbol(hit.fullSymbol);
-  }, [setSelectedSymbol]);
+      const hit = rectsRef.current.find((r) => mx >= r.rx && mx <= r.rx + r.rw && my >= r.ry && my <= r.ry + r.rh);
+      if (hit) setSelectedSymbol(hit.fullSymbol);
+    },
+    [setSelectedSymbol],
+  );
 
   // ─── Tooltip ─────────────────────────────────────────────
   const hoveredRect = hovered ? rects.find((r) => r.fullSymbol === hovered) : null;
 
   return (
-    <div
-      ref={containerRef}
-      style={{ flex: 1, position: 'relative', overflow: 'hidden' }}
-    >
+    <div ref={containerRef} style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
       <canvas
         ref={canvasRef}
         style={{ width: '100%', height: '100%', display: 'block' }}
@@ -327,17 +319,24 @@ function MarketsHeatMap() {
             {hoveredRect.symbol}
           </div>
           <div style={{ fontSize: 11, fontFamily: 'var(--tf-mono)', color: C.t2, marginTop: 2 }}>
-            ${hoveredRect.price >= 1000
+            $
+            {hoveredRect.price >= 1000
               ? hoveredRect.price.toLocaleString('en-US', { maximumFractionDigits: 0 })
               : hoveredRect.price >= 1
-              ? hoveredRect.price.toFixed(2)
-              : hoveredRect.price.toFixed(4)}
+                ? hoveredRect.price.toFixed(2)
+                : hoveredRect.price.toFixed(4)}
           </div>
-          <div style={{
-            fontSize: 11, fontWeight: 700, fontFamily: 'var(--tf-mono)', marginTop: 2,
-            color: hoveredRect.change >= 0 ? C.g : C.r,
-          }}>
-            {hoveredRect.change >= 0 ? '+' : ''}{hoveredRect.change.toFixed(2)}%
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              fontFamily: 'var(--tf-mono)',
+              marginTop: 2,
+              color: hoveredRect.change >= 0 ? C.g : C.r,
+            }}
+          >
+            {hoveredRect.change >= 0 ? '+' : ''}
+            {hoveredRect.change.toFixed(2)}%
           </div>
         </div>
       )}

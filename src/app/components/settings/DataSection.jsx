@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C, F } from '../../../constants.js';
 import {
   connectCloud,
   disconnectCloud,
@@ -30,12 +30,12 @@ import { radii } from '../../../theme/tokens.js';
 import { computeFast } from '../../features/analytics/analyticsFast.js';
 import { generateReport, downloadReport } from '../../features/analytics/ReportGenerator.js';
 import { Card, Btn, inputStyle } from '../ui/UIKit.jsx';
-import { SectionHeader, SettingRow, AlertBanner } from './SettingsHelpers.jsx';
-import s from './DataSection.module.css';
-import StorageDashboard from './StorageDashboard.jsx';
 import AutoBackupScheduler from './AutoBackupScheduler.jsx';
 import BootWaterfall from './BootWaterfall.jsx';
+import s from './DataSection.module.css';
 import PipelineDashboard from './PipelineDashboard.jsx';
+import { SectionHeader, SettingRow, AlertBanner } from './SettingsHelpers.jsx';
+import StorageDashboard from './StorageDashboard.jsx';
 
 // ─── Cloud Sync Card (migrated from IntegrationsSection) ────────
 function CloudSyncCard() {
@@ -51,11 +51,13 @@ function CloudSyncCard() {
 
   useEffect(() => {
     try {
-      import('../../../data/StorageAdapter.js').then(mod => {
+      import('../../../data/StorageAdapter.js').then((mod) => {
         setAuth(mod.getAuth());
         setSyncStatus(mod.getSyncStatus());
       });
-    } catch { /* */ }
+    } catch {
+      /* */
+    }
   }, []);
 
   const handleConfigure = async () => {
@@ -90,26 +92,67 @@ function CloudSyncCard() {
     const result = await sync();
     setBusy(false);
     setSyncStatus(getSyncStatus());
-    setSyncMsg({ ok: result.ok, text: result.ok ? `Synced: ${result.pushed} pushed, ${result.pulled} pulled.` : `Sync errors: ${result.errors.join(', ')}` });
+    setSyncMsg({
+      ok: result.ok,
+      text: result.ok
+        ? `Synced: ${result.pushed} pushed, ${result.pulled} pulled.`
+        : `Sync errors: ${result.errors.join(', ')}`,
+    });
   };
 
   return (
     <Card className={s.cloudCardWrap}>
       <div className={s.cloudLabel}>☁️ Cloud Sync</div>
-      <div className={s.cloudHint}>Connect your own Supabase project to sync trades across devices. Everything works locally without this.</div>
+      <div className={s.cloudHint}>
+        Connect your own Supabase project to sync trades across devices. Everything works locally without this.
+      </div>
       {!auth.isAuthenticated ? (
         <>
           <div className={s.formCol}>
-            <input type="text" value={supaUrl} onChange={e => setSupaUrl(e.target.value)} placeholder="Supabase Project URL" style={inputStyle} />
-            <input type="password" value={supaKey} onChange={e => setSupaKey(e.target.value)} placeholder="Supabase Anon Key" style={inputStyle} />
-            <Btn onClick={handleConfigure} disabled={!supaUrl.trim()} style={{ fontSize: 12, padding: '7px 14px', alignSelf: 'flex-start' }}>Configure</Btn>
+            <input
+              type="text"
+              value={supaUrl}
+              onChange={(e) => setSupaUrl(e.target.value)}
+              placeholder="Supabase Project URL"
+              style={inputStyle}
+            />
+            <input
+              type="password"
+              value={supaKey}
+              onChange={(e) => setSupaKey(e.target.value)}
+              placeholder="Supabase Anon Key"
+              style={inputStyle}
+            />
+            <Btn
+              onClick={handleConfigure}
+              disabled={!supaUrl.trim()}
+              style={{ fontSize: 12, padding: '7px 14px', alignSelf: 'flex-start' }}
+            >
+              Configure
+            </Btn>
           </div>
           <div className={s.formColBorder}>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" style={inputStyle} />
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" style={inputStyle} />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+              style={inputStyle}
+            />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              style={inputStyle}
+            />
             <div className={s.btnRow}>
-              <Btn onClick={handleSignIn} disabled={busy} style={{ fontSize: 12, padding: '8px 14px' }}>{busy ? '...' : 'Sign In'}</Btn>
-              <Btn variant="ghost" onClick={handleSignUp} disabled={busy} style={{ fontSize: 12, padding: '8px 14px' }}>Sign Up</Btn>
+              <Btn onClick={handleSignIn} disabled={busy} style={{ fontSize: 12, padding: '8px 14px' }}>
+                {busy ? '...' : 'Sign In'}
+              </Btn>
+              <Btn variant="ghost" onClick={handleSignUp} disabled={busy} style={{ fontSize: 12, padding: '8px 14px' }}>
+                Sign Up
+              </Btn>
             </div>
           </div>
         </>
@@ -126,8 +169,12 @@ function CloudSyncCard() {
             </div>
           </div>
           <div className={s.btnRow}>
-            <Btn onClick={handleSync} disabled={busy} style={{ fontSize: 12, padding: '8px 14px' }}>{busy ? 'Syncing...' : '🔄 Sync Now'}</Btn>
-            <Btn variant="ghost" onClick={handleSignOut} disabled={false} style={{ fontSize: 12, padding: '8px 14px' }}>Sign Out</Btn>
+            <Btn onClick={handleSync} disabled={busy} style={{ fontSize: 12, padding: '8px 14px' }}>
+              {busy ? 'Syncing...' : '🔄 Sync Now'}
+            </Btn>
+            <Btn variant="ghost" onClick={handleSignOut} disabled={false} style={{ fontSize: 12, padding: '8px 14px' }}>
+              Sign Out
+            </Btn>
           </div>
         </>
       )}
@@ -200,8 +247,11 @@ function DataSection() {
       setImportResult({ ok: false, message: result.error });
       return;
     }
-    const parts = [`Detected: ${result.brokerLabel || result.broker}. Found ${result.count} trade${result.count !== 1 ? 's' : ''}`];
-    if (result.duplicates > 0) parts.push(`${result.duplicates} duplicate${result.duplicates !== 1 ? 's' : ''} skipped`);
+    const parts = [
+      `Detected: ${result.brokerLabel || result.broker}. Found ${result.count} trade${result.count !== 1 ? 's' : ''}`,
+    ];
+    if (result.duplicates > 0)
+      parts.push(`${result.duplicates} duplicate${result.duplicates !== 1 ? 's' : ''} skipped`);
     if (result.skipped > 0) parts.push(`${result.skipped} row${result.skipped !== 1 ? 's' : ''} skipped`);
     setImportResult({
       ok: true,
@@ -443,11 +493,18 @@ function DataSection() {
           <div>
             <div className={s.sectionLabel}>Import</div>
             <div className={s.sectionHint}>
-              Supports Tradovate, NinjaTrader, ThinkorSwim, TradeStation, IBKR, Robinhood, Webull, MT5, Binance, Coinbase, Kraken, Bybit, Fidelity, or generic CSV/JSON
+              Supports Tradovate, NinjaTrader, ThinkorSwim, TradeStation, IBKR, Robinhood, Webull, MT5, Binance,
+              Coinbase, Kraken, Bybit, Fidelity, or generic CSV/JSON
             </div>
             <SettingRow label="Choose file">
-              <input type="file" accept=".csv,.json,.txt" onChange={handleImport} disabled={importing} className="tf-input"
-                style={inputStyle} />
+              <input
+                type="file"
+                accept=".csv,.json,.txt"
+                onChange={handleImport}
+                disabled={importing}
+                className="tf-input"
+                style={inputStyle}
+              />
             </SettingRow>
             {importing && <div className={s.parseMsg}>Parsing file...</div>}
             {importResult && <AlertBanner ok={importResult.ok} message={importResult.message} />}
@@ -487,7 +544,9 @@ function DataSection() {
                     ⚠️ {importResult.duplicates} duplicate{importResult.duplicates !== 1 ? 's' : ''} detected
                   </div>
                 )}
-                <Btn onClick={confirmImport} className={s.s5}>✅ Confirm Import ({importResult.trades.length} trades)</Btn>
+                <Btn onClick={confirmImport} className={s.s5}>
+                  ✅ Confirm Import ({importResult.trades.length} trades)
+                </Btn>
               </div>
             )}
           </div>
@@ -498,9 +557,15 @@ function DataSection() {
           <div>
             <div className={s.sectionLabelMb10}>Export</div>
             <div className={s.s0}>
-              <Btn onClick={handleExportCSV} className={s.s1}>📥 Export CSV</Btn>
-              <Btn onClick={handleExportJSON} className={s.s2}>📥 Export JSON</Btn>
-              <Btn onClick={handleExportReport} className={s.s3}>📊 Performance Report</Btn>
+              <Btn onClick={handleExportCSV} className={s.s1}>
+                📥 Export CSV
+              </Btn>
+              <Btn onClick={handleExportJSON} className={s.s2}>
+                📥 Export JSON
+              </Btn>
+              <Btn onClick={handleExportReport} className={s.s3}>
+                📊 Performance Report
+              </Btn>
             </div>
           </div>
         )}
@@ -525,8 +590,9 @@ function DataSection() {
                   {!backupStatus.isConfigured ? (
                     <div>
                       <div className={s.sectionHint8}>
-                        Pick a folder on your computer. charEdge will auto-save all your data there every 60 seconds.
-                        {' '}If the folder is inside Dropbox, OneDrive, or Google Drive — it syncs to the cloud automatically. You own it.
+                        Pick a folder on your computer. charEdge will auto-save all your data there every 60 seconds. If
+                        the folder is inside Dropbox, OneDrive, or Google Drive — it syncs to the cloud automatically.
+                        You own it.
                       </div>
                       <Btn onClick={handlePickFolder} disabled={backupBusy} className={s.s7}>
                         📁 Choose Backup Folder
@@ -540,8 +606,10 @@ function DataSection() {
                           <div className={s.statusTitle}>{backupStatus.folderName}</div>
                           <div className={s.statusSubtitle}>
                             {backupStatus.isAutoSaving ? '🟢 Auto-saving every 60s' : '⏸️ Auto-save paused'}
-                            {backupStatus.lastBackup && ` · Last: ${new Date(backupStatus.lastBackup).toLocaleTimeString()}`}
-                            {backupStatus.backupCount > 0 && ` · ${backupStatus.backupCount} backup${backupStatus.backupCount !== 1 ? 's' : ''} this session`}
+                            {backupStatus.lastBackup &&
+                              ` · Last: ${new Date(backupStatus.lastBackup).toLocaleTimeString()}`}
+                            {backupStatus.backupCount > 0 &&
+                              ` · ${backupStatus.backupCount} backup${backupStatus.backupCount !== 1 ? 's' : ''} this session`}
                           </div>
                         </div>
                       </div>
@@ -555,7 +623,10 @@ function DataSection() {
                         <Btn onClick={handleRestore} disabled={backupBusy} className={s.s11}>
                           📂 Restore from Backup
                         </Btn>
-                        <Btn onClick={handleDisconnect} style={{ fontSize: 11, padding: '6px 12px', color: C.r, borderColor: C.r + '40' }}>
+                        <Btn
+                          onClick={handleDisconnect}
+                          style={{ fontSize: 11, padding: '6px 12px', color: C.r, borderColor: C.r + '40' }}
+                        >
                           ✕ Disconnect
                         </Btn>
                       </div>
@@ -612,12 +683,10 @@ function DataSection() {
                     Connect your own cloud storage. All backups are encrypted with your passphrase before upload.
                   </div>
                   <div className={s.s16}>
-                    <Btn onClick={() => handleCloudConnect('google-drive')} disabled={cloudBusy}
-                      className={s.s17}>
+                    <Btn onClick={() => handleCloudConnect('google-drive')} disabled={cloudBusy} className={s.s17}>
                       <span className={s.statusIcon}>🔵</span> Connect Google Drive
                     </Btn>
-                    <Btn onClick={() => handleCloudConnect('dropbox')} disabled={cloudBusy}
-                      className={s.s18}>
+                    <Btn onClick={() => handleCloudConnect('dropbox')} disabled={cloudBusy} className={s.s18}>
                       <span className={s.statusIcon}>🔷</span> Connect Dropbox
                     </Btn>
                   </div>
@@ -627,9 +696,7 @@ function DataSection() {
                   <div className={s.statusPaneCloud}>
                     <span className={s.statusIcon}>{cloudStatus.provider === 'google-drive' ? '🔵' : '🔷'}</span>
                     <div style={{ flex: 1 }}>
-                      <div className={s.cloudStatusTitle}>
-                        {getProviderDisplayName(cloudStatus.provider)}
-                      </div>
+                      <div className={s.cloudStatusTitle}>{getProviderDisplayName(cloudStatus.provider)}</div>
                       <div className={s.cloudStatusSub}>
                         🟢 Connected
                         {cloudStatus.lastSync && ` · Last sync: ${new Date(cloudStatus.lastSync).toLocaleTimeString()}`}
@@ -653,9 +720,7 @@ function DataSection() {
                         padding: '8px 12px',
                       }}
                     />
-                    <div className={s.passHint}>
-                      🔐 Remember this passphrase — it's needed to restore your backups
-                    </div>
+                    <div className={s.passHint}>🔐 Remember this passphrase — it's needed to restore your backups</div>
                   </div>
 
                   <div className={s.s19}>
@@ -665,7 +730,10 @@ function DataSection() {
                     <Btn onClick={handleListBackups} disabled={cloudBusy} className={s.s21}>
                       📋 List Backups
                     </Btn>
-                    <Btn onClick={handleCloudDisconnect} style={{ fontSize: 11, padding: '6px 12px', color: C.r, borderColor: C.r + '40' }}>
+                    <Btn
+                      onClick={handleCloudDisconnect}
+                      style={{ fontSize: 11, padding: '6px 12px', color: C.r, borderColor: C.r + '40' }}
+                    >
                       ✕ Disconnect
                     </Btn>
                   </div>
@@ -682,11 +750,7 @@ function DataSection() {
                               {bk.size > 0 && ` · ${(bk.size / 1024).toFixed(1)} KB`}
                             </div>
                           </div>
-                          <Btn
-                            onClick={() => handleCloudRestore(bk.name)}
-                            disabled={cloudBusy}
-                            className={s.s22}
-                          >
+                          <Btn onClick={() => handleCloudRestore(bk.name)} disabled={cloudBusy} className={s.s22}>
                             📥 Restore
                           </Btn>
                         </div>
@@ -697,9 +761,7 @@ function DataSection() {
               )}
 
               {cloudMsg && (
-                <div className={`${s.statusMsg} ${cloudMsg.ok ? s.statusMsgOk : s.statusMsgErr}`}>
-                  {cloudMsg.text}
-                </div>
+                <div className={`${s.statusMsg} ${cloudMsg.ok ? s.statusMsgOk : s.statusMsgErr}`}>{cloudMsg.text}</div>
               )}
             </div>
           </div>

@@ -7,6 +7,7 @@
 //   - Folder section drop targets for cross-folder drag
 // ═══════════════════════════════════════════════════════════════════
 
+import type React from 'react';
 import { useState, useCallback, useRef } from 'react';
 
 interface DragReorderOptions {
@@ -37,115 +38,121 @@ export function useDragReorder({ onReorder, onMoveToFolder }: DragReorderOptions
     dropIndexRef.current = idx;
   }, []);
 
-  const getDragHandlers = useCallback((idx: number, symbol?: string) => ({
-    draggable: true,
+  const getDragHandlers = useCallback(
+    (idx: number, symbol?: string) => ({
+      draggable: true,
 
-    onDragStart: (e: React.DragEvent) => {
-      dragData.current.fromIdx = idx;
-      dragData.current.startY = e.clientY;
-      dragData.current.symbol = symbol || '';
-      setDragIndex(idx);
-      setDragOffset(0);
-      if (e.dataTransfer) {
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', String(idx));
-      }
-    },
-
-    onDragOver: (e: React.DragEvent) => {
-      e.preventDefault();
-      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-      updateDropIndex(idx);
-      const dy = e.clientY - dragData.current.startY;
-      setDragOffset(dy);
-    },
-
-    onDragEnter: (e: React.DragEvent) => {
-      e.preventDefault();
-      updateDropIndex(idx);
-    },
-
-    onDrop: (e: React.DragEvent) => {
-      e.preventDefault();
-      const from = dragData.current.fromIdx;
-      if (from !== -1 && from !== idx) {
-        onReorder(from, idx);
-      }
-      _resetDragState();
-    },
-
-    onDragEnd: () => {
-      _resetDragState();
-    },
-
-    // ── Touch events for mobile/tablet ──
-    onTouchStart: (e: React.TouchEvent) => {
-      const touch = e.touches[0];
-      if (!touch) return;
-      dragData.current.fromIdx = idx;
-      dragData.current.startY = touch.clientY;
-      dragData.current.symbol = symbol || '';
-      setTimeout(() => {
-        if (dragData.current.fromIdx === idx) {
-          setDragIndex(idx);
+      onDragStart: (e: React.DragEvent) => {
+        dragData.current.fromIdx = idx;
+        dragData.current.startY = e.clientY;
+        dragData.current.symbol = symbol || '';
+        setDragIndex(idx);
+        setDragOffset(0);
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', String(idx));
         }
-      }, 150);
-    },
+      },
 
-    onTouchMove: (e: React.TouchEvent) => {
-      if (dragData.current.fromIdx === -1) return;
-      const touch = e.touches[0];
-      if (!touch) return;
-      const dy = touch.clientY - dragData.current.startY;
-      setDragOffset(dy);
+      onDragOver: (e: React.DragEvent) => {
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+        updateDropIndex(idx);
+        const dy = e.clientY - dragData.current.startY;
+        setDragOffset(dy);
+      },
 
-      const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (el) {
-        const row = el.closest('[data-row-index]') as HTMLElement | null;
-        if (row) {
-          const targetIdx = parseInt(row.getAttribute('data-row-index') || '-1', 10);
-          if (targetIdx >= 0) updateDropIndex(targetIdx);
+      onDragEnter: (e: React.DragEvent) => {
+        e.preventDefault();
+        updateDropIndex(idx);
+      },
+
+      onDrop: (e: React.DragEvent) => {
+        e.preventDefault();
+        const from = dragData.current.fromIdx;
+        if (from !== -1 && from !== idx) {
+          onReorder(from, idx);
         }
-      }
-    },
+        resetDragState();
+      },
 
-    onTouchEnd: () => {
-      const from = dragData.current.fromIdx;
-      const drop = dropIndexRef.current;
-      if (from !== -1 && drop >= 0 && from !== drop) {
-        onReorder(from, drop);
-      }
-      _resetDragState();
-    },
-  }), [onReorder, updateDropIndex]);
+      onDragEnd: () => {
+        resetDragState();
+      },
+
+      // ── Touch events for mobile/tablet ──
+      onTouchStart: (e: React.TouchEvent) => {
+        const touch = e.touches[0];
+        if (!touch) return;
+        dragData.current.fromIdx = idx;
+        dragData.current.startY = touch.clientY;
+        dragData.current.symbol = symbol || '';
+        setTimeout(() => {
+          if (dragData.current.fromIdx === idx) {
+            setDragIndex(idx);
+          }
+        }, 150);
+      },
+
+      onTouchMove: (e: React.TouchEvent) => {
+        if (dragData.current.fromIdx === -1) return;
+        const touch = e.touches[0];
+        if (!touch) return;
+        const dy = touch.clientY - dragData.current.startY;
+        setDragOffset(dy);
+
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (el) {
+          const row = el.closest('[data-row-index]') as HTMLElement | null;
+          if (row) {
+            const targetIdx = parseInt(row.getAttribute('data-row-index') || '-1', 10);
+            if (targetIdx >= 0) updateDropIndex(targetIdx);
+          }
+        }
+      },
+
+      onTouchEnd: () => {
+        const from = dragData.current.fromIdx;
+        const drop = dropIndexRef.current;
+        if (from !== -1 && drop >= 0 && from !== drop) {
+          onReorder(from, drop);
+        }
+        resetDragState();
+      },
+    }),
+    [onReorder, updateDropIndex],
+  );
 
   // ── Folder section drop targets (cross-folder drag) ──
-  const getFolderDropHandlers = useCallback((folderId: string | null) => ({
-    onDragOver: (e: React.DragEvent) => {
-      e.preventDefault();
-      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-      setDropFolderId(folderId);
-    },
+  const getFolderDropHandlers = useCallback(
+    (folderId: string | null) => ({
+      onDragOver: (e: React.DragEvent) => {
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+        setDropFolderId(folderId);
+      },
 
-    onDragEnter: (e: React.DragEvent) => {
-      e.preventDefault();
-      setDropFolderId(folderId);
-    },
+      onDragEnter: (e: React.DragEvent) => {
+        e.preventDefault();
+        setDropFolderId(folderId);
+      },
 
-    onDragLeave: () => {
-      setDropFolderId(null);
-    },
+      onDragLeave: () => {
+        setDropFolderId(null);
+      },
 
-    onDrop: (e: React.DragEvent) => {
-      e.preventDefault();
-      if (onMoveToFolder && dragData.current.symbol) {
-        onMoveToFolder(dragData.current.symbol, folderId);
-      }
-      _resetDragState();
-    },
-  }), [onMoveToFolder]);
+      onDrop: (e: React.DragEvent) => {
+        e.preventDefault();
+        if (onMoveToFolder && dragData.current.symbol) {
+          onMoveToFolder(dragData.current.symbol, folderId);
+        }
+        resetDragState();
+      },
+    }),
+    [onMoveToFolder],
+  );
 
-  function _resetDragState() {
+  function resetDragState() {
     setDragIndex(-1);
     setDropIndex(-1);
     dropIndexRef.current = -1;

@@ -8,11 +8,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useCallback } from 'react';
-import { useAlertStore } from '../../../../state/useAlertStore';
-import toast from '../../ui/Toast.jsx';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 import { useChartTradeStore } from '../../../../state/chart/useChartTradeStore';
+import { useAlertStore } from '../../../../state/useAlertStore';
+import toast from '../../ui/Toast.jsx';
 
 /**
  * Hook providing chart click handlers for trade mode.

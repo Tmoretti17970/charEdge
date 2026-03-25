@@ -11,9 +11,9 @@ import { tickerPlant } from '../../data/engine/streaming/TickerPlant.js';
 import { fetchOHLC, fetchOHLCPage, warmCache } from '../../data/FetchService';
 import useWebSocket from '../../data/hooks/useWebSocket.js';
 import { WebSocketService } from '../../data/WebSocketService';
-import { useAlertStore, checkSymbolAlerts, requestNotificationPermission } from '../../state/useAlertStore';
 import { useChartCoreStore } from '../../state/chart/useChartCoreStore';
 import { useChartFeaturesStore } from '../../state/chart/useChartFeaturesStore';
+import { useAlertStore, checkSymbolAlerts, requestNotificationPermission } from '../../state/useAlertStore';
 import { useWatchlistStore } from '../../state/useWatchlistStore.js';
 import { parseShareURL } from '@/charting_library/utils/chartExport';
 import { logger } from '@/observability/logger';
@@ -83,7 +83,7 @@ export default function useChartDataLoader() {
         prefetcher = mod.watchlistPrefetcher;
         prefetcher.start();
       })
-      .catch(() => { }); // WatchlistPrefetcher import is best-effort
+      .catch(() => {}); // WatchlistPrefetcher import is best-effort
     return () => {
       if (prefetcher) prefetcher.stop();
     };
@@ -102,7 +102,7 @@ export default function useChartDataLoader() {
         .then(({ default: toast }) => {
           toast.info(`🔔 ${e.detail.message}`);
         })
-        .catch(() => { }); // intentional: Toast import is best-effort UI
+        .catch(() => {}); // intentional: Toast import is best-effort UI
     };
     window.addEventListener('charEdge:alert-triggered', handler);
     return () => window.removeEventListener('charEdge:alert-triggered', handler);
@@ -147,15 +147,15 @@ export default function useChartDataLoader() {
           if (durationMs > 0) {
             logger.data.info(`${symbol} loaded in ${durationMs}ms (${tier}:${source})`);
             symbolSwitchTracker.record(durationMs, { symbol, source: `${tier}:${source}` });
-            try { track('symbol_switch', { symbol, durationMs, source: tier, provider: source }); } catch (_) { /* */ }
+            try {
+              track('symbol_switch', { symbol, durationMs, source: tier, provider: source });
+            } catch {
+              /* */
+            }
           }
           // ADR-001 Phase B: loader no longer writes canonical bars.
           // It only updates metadata while DatafeedService/ChartEngineWidget own bar data.
-          useChartCoreStore.getState().setDataMeta(
-            newData?.length ?? 0,
-            source,
-            newData?.[0]?.time ?? null
-          );
+          useChartCoreStore.getState().setDataMeta(newData?.length ?? 0, source, newData?.[0]?.time ?? null);
           if (newData?.length > 0) {
             const last = newData[newData.length - 1].close;
             if (last != null) queueMicrotask(() => checkSymbolAlerts(symbol, last));
@@ -294,12 +294,14 @@ export default function useChartDataLoader() {
         const cachedBars = await timeSeriesStore.read(symbol, tf, startT, oldest - 1);
         if (cachedBars?.length > 0) {
           // OPFS hit — instant render, no network needed
-          logger.data.info(
-            `[OPFS-first] Cache hit: ${cachedBars.length} bars for ${symbol}@${tf} scroll-back`
-          );
-          const formatted = cachedBars.map(b => ({
+          logger.data.info(`[OPFS-first] Cache hit: ${cachedBars.length} bars for ${symbol}@${tf} scroll-back`);
+          const formatted = cachedBars.map((b) => ({
             time: new Date(b.t).toISOString(),
-            open: b.o, high: b.h, low: b.l, close: b.c, volume: b.v,
+            open: b.o,
+            high: b.h,
+            low: b.l,
+            close: b.c,
+            volume: b.v,
           }));
           // A2.2: Guard against stale prefetch from old symbol
           if (useChartCoreStore.getState().symbol === symbol) {
@@ -367,32 +369,41 @@ export default function useChartDataLoader() {
     if (!(state.barCount > 0) || adjacentPrefetchedRef.current.has(`${symbol}:${tf}`)) return;
 
     const ADJACENT_TFS = {
-      '1m': ['5m'], '5m': ['15m', '1m'], '15m': ['1h', '5m'],
-      '1h': ['4h', '15m'], '4h': ['1D', '1h'], '1D': ['1w', '4h'], '1w': ['1D'],
+      '1m': ['5m'],
+      '5m': ['15m', '1m'],
+      '15m': ['1h', '5m'],
+      '1h': ['4h', '15m'],
+      '4h': ['1D', '1h'],
+      '1D': ['1w', '4h'],
+      '1w': ['1D'],
     };
 
     const neighbors = ADJACENT_TFS[tf];
     if (!neighbors?.length) return;
 
-    const scheduleId = typeof requestIdleCallback === 'function'
-      ? requestIdleCallback(() => {
-        adjacentPrefetchedRef.current.add(`${symbol}:${tf}`);
-        for (const adjTf of neighbors) {
-          fetchOHLC(symbol, adjTf).catch(() => { }); // fetchOHLC already writes to CacheManager
-        }
-      }, { timeout: 5000 })
-      : setTimeout(() => {
-        adjacentPrefetchedRef.current.add(`${symbol}:${tf}`);
-        for (const adjTf of neighbors) {
-          fetchOHLC(symbol, adjTf).catch(() => { });
-        }
-      }, 3000);
+    const scheduleId =
+      typeof requestIdleCallback === 'function'
+        ? requestIdleCallback(
+            () => {
+              adjacentPrefetchedRef.current.add(`${symbol}:${tf}`);
+              for (const adjTf of neighbors) {
+                fetchOHLC(symbol, adjTf).catch(() => {}); // fetchOHLC already writes to CacheManager
+              }
+            },
+            { timeout: 5000 },
+          )
+        : setTimeout(() => {
+            adjacentPrefetchedRef.current.add(`${symbol}:${tf}`);
+            for (const adjTf of neighbors) {
+              fetchOHLC(symbol, adjTf).catch(() => {});
+            }
+          }, 3000);
 
     return () => {
       if (typeof cancelIdleCallback === 'function') cancelIdleCallback(scheduleId);
       else clearTimeout(scheduleId);
     };
-  }, [symbol, tf]);  
+  }, [symbol, tf]);
 
   return {
     tick,

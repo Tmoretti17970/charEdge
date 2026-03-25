@@ -10,7 +10,6 @@ import React from 'react';
 import { useState, useRef, useEffect } from 'react';
 import { C } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
-import st from './WidgetWrapper.module.css';
 
 function WidgetWrapper({
   id,
@@ -41,7 +40,7 @@ function WidgetWrapper({
           observer.disconnect();
         }
       },
-      { rootMargin: '200px' }
+      { rootMargin: '200px' },
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -123,15 +122,8 @@ function WidgetWrapper({
 
       {/* ─── Body ─────────────────────────────────────────────── */}
       {expanded && (
-        <div
-          id={id ? `discover-widget-body-${id}` : undefined}
-          style={{ padding: title ? '16px 18px' : 0 }}
-        >
-          {visible ? (
-            children
-          ) : (
-            <WidgetSkeleton />
-          )}
+        <div id={id ? `discover-widget-body-${id}` : undefined} style={{ padding: title ? '16px 18px' : 0 }}>
+          {visible ? children : <WidgetSkeleton />}
         </div>
       )}
     </div>

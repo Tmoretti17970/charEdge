@@ -22,7 +22,7 @@ const DEFAULT_FIB_LEVELS = [
 ];
 
 export function getDefaultFibLevels() {
-  return DEFAULT_FIB_LEVELS.map(l => ({ ...l }));
+  return DEFAULT_FIB_LEVELS.map((l) => ({ ...l }));
 }
 
 export default function FibLevelEditor({ levels, onChange }) {
@@ -30,35 +30,40 @@ export default function FibLevelEditor({ levels, onChange }) {
   const [newValue, setNewValue] = useState('');
   const [savingPreset, setSavingPreset] = useState(false);
   const [presetName, setPresetName] = useState('');
-  const { fibPresets, saveFibPreset, deleteFibPreset } = useChartToolsStore();
+  const { fibPresets, saveFibPreset } = useChartToolsStore();
 
   // Ensure we have levels
-  const currentLevels = levels && levels.length > 0
-    ? levels
-    : getDefaultFibLevels();
+  const currentLevels = levels && levels.length > 0 ? levels : getDefaultFibLevels();
 
   const presetNames = useMemo(() => Object.keys(fibPresets || {}), [fibPresets]);
 
-  const updateLevel = useCallback((idx, patch) => {
-    const updated = currentLevels.map((l, i) =>
-      i === idx ? { ...l, ...patch } : l
-    );
-    onChange(updated);
-  }, [currentLevels, onChange]);
+  const updateLevel = useCallback(
+    (idx, patch) => {
+      const updated = currentLevels.map((l, i) => (i === idx ? { ...l, ...patch } : l));
+      onChange(updated);
+    },
+    [currentLevels, onChange],
+  );
 
-  const removeLevel = useCallback((idx) => {
-    const updated = currentLevels.filter((_, i) => i !== idx);
-    onChange(updated);
-  }, [currentLevels, onChange]);
+  const removeLevel = useCallback(
+    (idx) => {
+      const updated = currentLevels.filter((_, i) => i !== idx);
+      onChange(updated);
+    },
+    [currentLevels, onChange],
+  );
 
   const addLevel = useCallback(() => {
     const val = parseFloat(newValue);
     if (isNaN(val)) return;
-    const updated = [...currentLevels, {
-      value: val,
-      color: '#2962FF',
-      enabled: true,
-    }].sort((a, b) => a.value - b.value);
+    const updated = [
+      ...currentLevels,
+      {
+        value: val,
+        color: '#2962FF',
+        enabled: true,
+      },
+    ].sort((a, b) => a.value - b.value);
     onChange(updated);
     setNewValue('');
     setAddingLevel(false);
@@ -71,10 +76,13 @@ export default function FibLevelEditor({ levels, onChange }) {
     setSavingPreset(false);
   }, [presetName, currentLevels, saveFibPreset]);
 
-  const handleLoadPreset = useCallback((name) => {
-    const preset = fibPresets?.[name];
-    if (preset) onChange(preset.map(l => ({ ...l })));
-  }, [fibPresets, onChange]);
+  const handleLoadPreset = useCallback(
+    (name) => {
+      const preset = fibPresets?.[name];
+      if (preset) onChange(preset.map((l) => ({ ...l })));
+    },
+    [fibPresets, onChange],
+  );
 
   const handleResetDefaults = useCallback(() => {
     onChange(getDefaultFibLevels());
@@ -88,12 +96,17 @@ export default function FibLevelEditor({ levels, onChange }) {
         {/* Preset dropdown */}
         {presetNames.length > 0 && (
           <select
-            onChange={(e) => { if (e.target.value) handleLoadPreset(e.target.value); e.target.value = ''; }}
+            onChange={(e) => {
+              if (e.target.value) handleLoadPreset(e.target.value);
+              e.target.value = '';
+            }}
             className={s.presetSelect}
           >
             <option value="">Load preset…</option>
-            {presetNames.map(name => (
-              <option key={name} value={name}>{name}</option>
+            {presetNames.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
             ))}
           </select>
         )}
@@ -112,9 +125,7 @@ export default function FibLevelEditor({ levels, onChange }) {
             />
 
             {/* Level value */}
-            <span className={s.levelValue}>
-              {(level.value * 100).toFixed(1)}%
-            </span>
+            <span className={s.levelValue}>{(level.value * 100).toFixed(1)}%</span>
 
             {/* Color swatch */}
             <input
@@ -126,11 +137,7 @@ export default function FibLevelEditor({ levels, onChange }) {
 
             {/* Remove button (only for custom levels beyond the default 9) */}
             {idx >= 7 && (
-              <button
-                onClick={() => removeLevel(idx)}
-                className={s.removeBtn}
-                title="Remove level"
-              >
+              <button onClick={() => removeLevel(idx)} className={s.removeBtn} title="Remove level">
                 ×
               </button>
             )}
@@ -154,14 +161,24 @@ export default function FibLevelEditor({ levels, onChange }) {
             autoFocus
             className={s.customInput}
           />
-          <button onClick={addLevel} className={s.btnPrimary}>Add</button>
-          <button onClick={() => setAddingLevel(false)} className={s.btnGhost}>Cancel</button>
+          <button onClick={addLevel} className={s.btnPrimary}>
+            Add
+          </button>
+          <button onClick={() => setAddingLevel(false)} className={s.btnGhost}>
+            Cancel
+          </button>
         </div>
       ) : (
         <div className={s.actionRow}>
-          <button onClick={() => setAddingLevel(true)} className={s.btn}>+ Add Level</button>
-          <button onClick={handleResetDefaults} className={s.btn}>↺ Reset</button>
-          <button onClick={() => setSavingPreset(true)} className={s.btn}>💾 Save</button>
+          <button onClick={() => setAddingLevel(true)} className={s.btn}>
+            + Add Level
+          </button>
+          <button onClick={handleResetDefaults} className={s.btn}>
+            ↺ Reset
+          </button>
+          <button onClick={() => setSavingPreset(true)} className={s.btn}>
+            💾 Save
+          </button>
         </div>
       )}
 
@@ -171,13 +188,20 @@ export default function FibLevelEditor({ levels, onChange }) {
           <input
             value={presetName}
             onChange={(e) => setPresetName(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleSavePreset(); if (e.key === 'Escape') setSavingPreset(false); }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSavePreset();
+              if (e.key === 'Escape') setSavingPreset(false);
+            }}
             placeholder="Preset name…"
             autoFocus
             className={s.presetInput}
           />
-          <button onClick={handleSavePreset} className={s.btnPrimary}>Save</button>
-          <button onClick={() => setSavingPreset(false)} className={s.btnGhost}>Cancel</button>
+          <button onClick={handleSavePreset} className={s.btnPrimary}>
+            Save
+          </button>
+          <button onClick={() => setSavingPreset(false)} className={s.btnGhost}>
+            Cancel
+          </button>
         </div>
       )}
     </div>

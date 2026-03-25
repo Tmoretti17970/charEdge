@@ -16,9 +16,6 @@ import { C, F, M, DEPTH } from '../../../constants.js';
 import { useGamificationStore } from '../../../state/useGamificationStore';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useUserStore } from '../../../state/useUserStore';
-// eslint-disable-next-line import/order
-import { fmtD } from '../../../utils.js';
-
 // Decomposed sub-modules
 import ActiveSessionContent from './briefing/ActiveSessionContent.jsx';
 import { PhaseIndicator, btnStyle } from './briefing/BriefingPrimitives.jsx';
@@ -26,10 +23,6 @@ import { getSessionPhase, getGreeting, PHASE_CONFIG, startOfDay } from './briefi
 import PostMarketContent from './briefing/PostMarketContent.jsx';
 import PreMarketContent from './briefing/PreMarketContent.jsx';
 import { useBreakpoints } from '@/hooks/useMediaQuery';
-import { logger } from '@/observability/logger';
-
-const useDisplayUnitStore = useUserStore; // consolidated into useUserStore
-
 // ─── Component ───────────────────────────────────────────────────
 
 export default function MorningBriefing() {
@@ -54,36 +47,8 @@ export default function MorningBriefing() {
     setCollapsed(false);
   }, []);
 
-  // Trader name
-  let traderName = '';
-  try { traderName = useUserStore.getState()?.profile?.name || ''; } catch (e) { logger.ui.warn('Operation failed', e); }
-  const nameLabel = traderName || 'Trader';
-
   // Settings
   const dailyLossLimit = useUserStore((s) => s.dailyLossLimit) || 0;
-  const accountSize = useUserStore((s) => s.accountSize) || 0;
-  const riskPerTrade = useUserStore((s) => s.riskPerTrade) || 0;
-  const displayUnit = useDisplayUnitStore((s) => s.unit);
-
-  // Local reactive format function
-  const fmtPnl = (val) => {
-    if (displayUnit === 'percent') {
-      if (accountSize > 0) {
-        const pct = (val / accountSize) * 100;
-        return (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
-      }
-      return fmtD(val);
-    }
-    if (displayUnit === 'rmultiple') {
-      const risk = riskPerTrade > 0 ? riskPerTrade : (accountSize > 0 ? accountSize * 0.01 : 0);
-      if (risk > 0) {
-        const r = val / risk;
-        return (r >= 0 ? '+' : '') + r.toFixed(2) + 'R';
-      }
-      return fmtD(val);
-    }
-    return fmtD(val);
-  };
 
   // ── Compute stats ──
   const stats = useMemo(() => {
@@ -109,7 +74,8 @@ export default function MorningBriefing() {
     const todayWins = todayTrades.filter((t) => (t.pnl || 0) > 0).length;
     const todayWinRate = todayTrades.length > 0 ? Math.round((todayWins / todayTrades.length) * 100) : 0;
 
-    let todayBest = null, todayWorst = null;
+    let todayBest = null,
+      todayWorst = null;
     if (todayTrades.length > 0) {
       todayBest = todayTrades.reduce((best, t) => ((t.pnl || 0) > (best.pnl || 0) ? t : best), todayTrades[0]);
       todayWorst = todayTrades.reduce((worst, t) => ((t.pnl || 0) < (worst.pnl || 0) ? t : worst), todayTrades[0]);
@@ -119,19 +85,24 @@ export default function MorningBriefing() {
     const yestPnl = yestTrades.reduce((s, t) => s + (t.pnl || 0), 0);
     const yestWins = yestTrades.filter((t) => (t.pnl || 0) > 0).length;
     const yestWinRate = yestTrades.length > 0 ? Math.round((yestWins / yestTrades.length) * 100) : 0;
-    const yestBest = yestTrades.length > 0
-      ? yestTrades.reduce((best, t) => ((t.pnl || 0) > (best.pnl || 0) ? t : best), yestTrades[0])
-      : null;
+    const yestBest =
+      yestTrades.length > 0
+        ? yestTrades.reduce((best, t) => ((t.pnl || 0) > (best.pnl || 0) ? t : best), yestTrades[0])
+        : null;
 
     const dayKeys = [...dayMap.keys()].sort((a, b) => b - a);
-    let streak = 0, streakType = null;
+    let streak = 0,
+      streakType = null;
     for (const dayKey of dayKeys) {
       const dayTrades = dayMap.get(dayKey);
       const dayPnl = dayTrades.reduce((s, t) => s + (t.pnl || 0), 0);
       const isWin = dayPnl > 0;
-      if (streakType === null) { streakType = isWin ? 'win' : 'loss'; streak = 1; }
-      else if ((isWin && streakType === 'win') || (!isWin && streakType === 'loss')) { streak++; }
-      else break;
+      if (streakType === null) {
+        streakType = isWin ? 'win' : 'loss';
+        streak = 1;
+      } else if ((isWin && streakType === 'win') || (!isWin && streakType === 'loss')) {
+        streak++;
+      } else break;
     }
 
     let consecLosses = 0;
@@ -149,9 +120,26 @@ export default function MorningBriefing() {
     const weekPnl = weekTrades.reduce((s, t) => s + (t.pnl || 0), 0);
 
     return {
-      todayTrades, todayPnl, todayWins, todayWinRate, todayBest, todayWorst, todayCount: todayTrades.length,
-      yestTrades, yestPnl, yestWins, yestWinRate, yestBest, yestCount: yestTrades.length,
-      streak, streakType, consecLosses, ruleBreaks, weekPnl, weekCount: weekTrades.length, totalTrades: trades.length,
+      todayTrades,
+      todayPnl,
+      todayWins,
+      todayWinRate,
+      todayBest,
+      todayWorst,
+      todayCount: todayTrades.length,
+      yestTrades,
+      yestPnl,
+      yestWins,
+      yestWinRate,
+      yestBest,
+      yestCount: yestTrades.length,
+      streak,
+      streakType,
+      consecLosses,
+      ruleBreaks,
+      weekPnl,
+      weekCount: weekTrades.length,
+      totalTrades: trades.length,
     };
   }, [trades]);
 
@@ -161,41 +149,43 @@ export default function MorningBriefing() {
   const config = PHASE_CONFIG[phase];
 
   // ── Risk/streak derived values ──
-  const riskUsed = dailyLossLimit > 0 && stats ? Math.min(100, Math.round(Math.abs(Math.min(0, stats.todayPnl)) / dailyLossLimit * 100)) : 0;
+  const riskUsed =
+    dailyLossLimit > 0 && stats
+      ? Math.min(100, Math.round((Math.abs(Math.min(0, stats.todayPnl)) / dailyLossLimit) * 100))
+      : 0;
   const riskRemaining = dailyLossLimit > 0 && stats ? Math.max(0, dailyLossLimit + Math.min(0, stats.todayPnl)) : null;
-  const streakEmoji = stats?.streakType === 'win'
-    ? stats.streak >= 5 ? '🔥🔥' : stats.streak >= 3 ? '🔥' : '✅'
-    : stats?.streak >= 3 ? '⚠️' : '📉';
+  const streakEmoji =
+    stats?.streakType === 'win'
+      ? stats.streak >= 5
+        ? '🔥🔥'
+        : stats.streak >= 3
+          ? '🔥'
+          : '✅'
+      : stats?.streak >= 3
+        ? '⚠️'
+        : '📉';
   const streakText = stats
-    ? (stats.streakType === 'win'
+    ? stats.streakType === 'win'
       ? `${stats.streak}-day win streak ${streakEmoji}`
-      : `${stats.streak}-day losing streak ${streakEmoji}`)
+      : `${stats.streak}-day losing streak ${streakEmoji}`
     : '';
-
-  // Sparkline data
-  const sparklinePoints = useMemo(() => {
-    if (!trades.length) return [];
-    const now = new Date();
-    const days = [];
-    for (let i = 9; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      const dayKey = startOfDay(d).getTime();
-      const dayTrades = trades.filter(t => t.date && startOfDay(t.date).getTime() === dayKey);
-      days.push(dayTrades.reduce((s, t) => s + (t.pnl || 0), 0));
-    }
-    let cum = 0;
-    return days.map(d => { cum += d; return cum; });
-  }, [trades]);
 
   // ── No-data state ──
   if (!stats) {
     return (
-      <div className="tf-container" style={{
-        padding: '24px 28px', borderRadius: 14,
-        background: config.glass, backdropFilter: config.blur, WebkitBackdropFilter: config.blur,
-        border: config.border(C), boxShadow: `${DEPTH[2]}, ${DEPTH.innerGlow}`, marginBottom: 20,
-      }}>
+      <div
+        className="tf-container"
+        style={{
+          padding: '24px 28px',
+          borderRadius: 14,
+          background: config.glass,
+          backdropFilter: config.blur,
+          WebkitBackdropFilter: config.blur,
+          border: config.border(C),
+          boxShadow: `${DEPTH[2]}, ${DEPTH.innerGlow}`,
+          marginBottom: 20,
+        }}
+      >
         <PhaseIndicator config={config} />
         <div style={{ fontSize: 20, fontWeight: 700, color: C.t1, fontFamily: F, marginTop: 8 }}>
           {greeting.emoji} {greeting.text}
@@ -213,8 +203,16 @@ export default function MorningBriefing() {
       <button
         onClick={() => setDismissed(false)}
         style={{
-          background: 'none', border: 'none', color: C.t3, fontSize: 11, fontFamily: M,
-          cursor: 'pointer', padding: '4px 0', marginBottom: 12, opacity: 0.6, transition: 'opacity 0.15s',
+          background: 'none',
+          border: 'none',
+          color: C.t3,
+          fontSize: 11,
+          fontFamily: M,
+          cursor: 'pointer',
+          padding: '4px 0',
+          marginBottom: 12,
+          opacity: 0.6,
+          transition: 'opacity 0.15s',
         }}
         onMouseEnter={(e) => (e.target.style.opacity = 1)}
         onMouseLeave={(e) => (e.target.style.opacity = 0.6)}
@@ -228,21 +226,48 @@ export default function MorningBriefing() {
     <div
       className="tf-morning-briefing"
       style={{
-        borderRadius: 14, background: config.glass,
-        backdropFilter: config.blur, WebkitBackdropFilter: config.blur,
-        border: config.border(C), boxShadow: `${DEPTH[2]}, ${DEPTH.innerGlow}`,
-        overflow: 'hidden', marginBottom: 20, position: 'relative',
+        borderRadius: 14,
+        background: config.glass,
+        backdropFilter: config.blur,
+        WebkitBackdropFilter: config.blur,
+        border: config.border(C),
+        boxShadow: `${DEPTH[2]}, ${DEPTH.innerGlow}`,
+        overflow: 'hidden',
+        marginBottom: 20,
+        position: 'relative',
       }}
     >
       {/* Ambient gradient orbs */}
-      <div className="tf-hero-orb" style={{
-        position: 'absolute', top: -40, right: -20, width: 180, height: 180,
-        borderRadius: '50%', background: config.orbColor, filter: 'blur(60px)', pointerEvents: 'none', zIndex: 0,
-      }} />
-      <div style={{
-        position: 'absolute', bottom: -30, left: -10, width: 120, height: 120,
-        borderRadius: '50%', background: config.orbColor, filter: 'blur(40px)', opacity: 0.5, pointerEvents: 'none', zIndex: 0,
-      }} />
+      <div
+        className="tf-hero-orb"
+        style={{
+          position: 'absolute',
+          top: -40,
+          right: -20,
+          width: 180,
+          height: 180,
+          borderRadius: '50%',
+          background: config.orbColor,
+          filter: 'blur(60px)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          bottom: -30,
+          left: -10,
+          width: 120,
+          height: 120,
+          borderRadius: '50%',
+          background: config.orbColor,
+          filter: 'blur(40px)',
+          opacity: 0.5,
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
 
       {/* Phase indicator + greeting */}
       <div style={{ padding: isMobile ? '16px 20px 12px' : '20px 24px 14px', position: 'relative', zIndex: 1 }}>
@@ -250,13 +275,30 @@ export default function MorningBriefing() {
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <PhaseIndicator config={config} />
-              <button onClick={refresh} title="Refresh briefing" style={btnStyle}>↻</button>
-              <button onClick={() => setCollapsed(c => !c)} title={collapsed ? 'Expand' : 'Collapse'} style={btnStyle}>
+              <button onClick={refresh} title="Refresh briefing" style={btnStyle}>
+                ↻
+              </button>
+              <button
+                onClick={() => setCollapsed((c) => !c)}
+                title={collapsed ? 'Expand' : 'Collapse'}
+                style={btnStyle}
+              >
                 {collapsed ? '▸' : '▾'}
               </button>
-              <button onClick={() => setDismissed(true)} title="Dismiss briefing" style={btnStyle}>×</button>
+              <button onClick={() => setDismissed(true)} title="Dismiss briefing" style={btnStyle}>
+                ×
+              </button>
             </div>
-            <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: C.t1, fontFamily: F, marginTop: 8, letterSpacing: '-0.3px' }}>
+            <div
+              style={{
+                fontSize: isMobile ? 18 : 22,
+                fontWeight: 800,
+                color: C.t1,
+                fontFamily: F,
+                marginTop: 8,
+                letterSpacing: '-0.3px',
+              }}
+            >
               {greeting.emoji} {greeting.text}
             </div>
             <div style={{ fontSize: 12, color: C.t3, fontFamily: M, marginTop: 4, lineHeight: 1.5 }}>
@@ -269,20 +311,36 @@ export default function MorningBriefing() {
 
       {/* Phase-specific content (collapsible) */}
       {!collapsed && (
-        <div style={{
-          display: 'flex', gap: 0,
-          padding: isMobile ? '0 16px 16px' : '0 24px 20px',
-          flexWrap: 'wrap', position: 'relative', zIndex: 1,
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: 0,
+            padding: isMobile ? '0 16px 16px' : '0 24px 20px',
+            flexWrap: 'wrap',
+            position: 'relative',
+            zIndex: 1,
+          }}
+        >
           {phase === 'pre-market' && (
-            <PreMarketContent stats={stats} plans={activePlans} dailyLossLimit={dailyLossLimit} isMobile={isMobile} streakText={streakText} />
+            <PreMarketContent
+              stats={stats}
+              plans={activePlans}
+              dailyLossLimit={dailyLossLimit}
+              isMobile={isMobile}
+              streakText={streakText}
+            />
           )}
           {phase === 'active' && (
-            <ActiveSessionContent stats={stats} riskUsed={riskUsed} riskRemaining={riskRemaining} dailyLossLimit={dailyLossLimit} isMobile={isMobile} streakText={streakText} />
+            <ActiveSessionContent
+              stats={stats}
+              riskUsed={riskUsed}
+              riskRemaining={riskRemaining}
+              dailyLossLimit={dailyLossLimit}
+              isMobile={isMobile}
+              streakText={streakText}
+            />
           )}
-          {phase === 'post-market' && (
-            <PostMarketContent stats={stats} isMobile={isMobile} streakText={streakText} />
-          )}
+          {phase === 'post-market' && <PostMarketContent stats={stats} isMobile={isMobile} streakText={streakText} />}
         </div>
       )}
     </div>

@@ -8,6 +8,7 @@
 // No passphrase required — the key lives on-device only.
 // For passphrase-based encryption, see SecureStore.ts.
 // ═══════════════════════════════════════════════════════════════════
+/* global JsonWebKey */
 
 import { logger } from '@/observability/logger';
 
@@ -29,7 +30,7 @@ let _encryptionEnabled = true;
 /**
  * Open the dedicated key-store IDB.
  */
-function _openKeyStore(): Promise<IDBDatabase> {
+function openKeyStore(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = () => {
@@ -46,7 +47,7 @@ function _openKeyStore(): Promise<IDBDatabase> {
 /**
  * Generate a new AES-256-GCM key via Web Crypto.
  */
-async function _generateKey(): Promise<CryptoKey> {
+async function generateKey(): Promise<CryptoKey> {
   return crypto.subtle.generateKey(
     { name: 'AES-GCM', length: 256 },
     true, // extractable — needed to export/store in IDB
@@ -57,21 +58,15 @@ async function _generateKey(): Promise<CryptoKey> {
 /**
  * Export a CryptoKey to a JWK for IDB storage.
  */
-async function _exportKey(key: CryptoKey): Promise<JsonWebKey> {
+async function exportKey(key: CryptoKey): Promise<JsonWebKey> {
   return crypto.subtle.exportKey('jwk', key);
 }
 
 /**
  * Import a JWK back into a CryptoKey.
  */
-async function _importKey(jwk: JsonWebKey): Promise<CryptoKey> {
-  return crypto.subtle.importKey(
-    'jwk',
-    jwk,
-    { name: 'AES-GCM', length: 256 },
-    true,
-    ['encrypt', 'decrypt'],
-  );
+async function importKey(jwk: JsonWebKey): Promise<CryptoKey> {
+  return crypto.subtle.importKey('jwk', jwk, { name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
 }
 
 /**
@@ -82,7 +77,7 @@ export async function getDeviceKey(): Promise<CryptoKey> {
   if (_cachedKey) return _cachedKey;
 
   try {
-    const db = await _openKeyStore();
+    const db = await openKeyStore();
 
     // Try loading existing key
     const stored = await new Promise<{ id: string; jwk: JsonWebKey } | undefined>((resolve, reject) => {
@@ -93,14 +88,14 @@ export async function getDeviceKey(): Promise<CryptoKey> {
     });
 
     if (stored?.jwk) {
-      _cachedKey = await _importKey(stored.jwk);
+      _cachedKey = await importKey(stored.jwk);
       db.close();
       return _cachedKey;
     }
 
     // Generate new key
-    const key = await _generateKey();
-    const jwk = await _exportKey(key);
+    const key = await generateKey();
+    const jwk = await exportKey(key);
 
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(KEY_STORE_NAME, 'readwrite');
@@ -137,11 +132,7 @@ export async function encryptRecord<T extends Record<string, unknown>>(
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const json = JSON.stringify(record);
 
-  const ciphertext = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
-    key,
-    new TextEncoder().encode(json),
-  );
+  const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(json));
 
   const toHex = (b: Uint8Array) => Array.from(b, (v) => v.toString(16).padStart(2, '0')).join('');
   const ctB64 = btoa(String.fromCharCode(...new Uint8Array(ciphertext)));
@@ -171,8 +162,7 @@ export async function decryptRecord<T = unknown>(record: Record<string, unknown>
 
   const key = await getDeviceKey();
 
-  const fromHex = (hex: string) =>
-    new Uint8Array((hex.match(/.{2}/g) || []).map((h) => parseInt(h, 16)));
+  const fromHex = (hex: string) => new Uint8Array((hex.match(/.{2}/g) || []).map((h) => parseInt(h, 16)));
 
   const iv = fromHex(record._iv as string);
   const ctBytes = Uint8Array.from(atob(record._ct as string), (c) => c.charCodeAt(0));
@@ -195,11 +185,7 @@ export function isEncrypted(record: unknown): boolean {
  * Called once during AppBoot migration.
  * @returns number of records migrated
  */
-export async function migrateStore(
-  db: IDBDatabase,
-  storeName: string,
-  pkField = 'id',
-): Promise<number> {
+export async function migrateStore(db: IDBDatabase, storeName: string, pkField = 'id'): Promise<number> {
   if (!_encryptionEnabled || !isEncryptionSupported()) return 0;
 
   return new Promise((resolve, reject) => {

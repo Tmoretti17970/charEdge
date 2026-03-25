@@ -5,7 +5,7 @@
 // undo button. Only visible when there's change history.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { useSettingsHistory } from '../../../state/useSettingsHistory.js';
 import { radii } from '../../../theme/tokens.js';
@@ -46,14 +46,22 @@ const RecentlyChanged = memo(function RecentlyChanged() {
       <span style={{ fontSize: 13, flexShrink: 0 }}>↩️</span>
 
       {/* Change label */}
-      <span style={{ color: C.t2, fontWeight: 500, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span
+        style={{
+          color: C.t2,
+          fontWeight: 500,
+          flex: 1,
+          minWidth: 0,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
         {latest.label}
       </span>
 
       {/* Time ago */}
-      <span style={{ fontSize: 10, color: C.t3, fontFamily: M, flexShrink: 0 }}>
-        {timeAgo}
-      </span>
+      <span style={{ fontSize: 10, color: C.t3, fontFamily: M, flexShrink: 0 }}>{timeAgo}</span>
 
       {/* Undo button */}
       <button

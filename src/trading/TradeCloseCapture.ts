@@ -55,10 +55,7 @@ interface TradeCloseJournalEntry {
  * Capture the chart canvas as a hi-DPI PNG with trade annotations.
  * Reuses the same strategy as ChartSnapshotModal.
  */
-function captureChartWithAnnotations(
-  trade: ClosedTrade,
-  scale = 2,
-): string | null {
+function captureChartWithAnnotations(trade: ClosedTrade, scale = 2): string | null {
   try {
     // Find the chart canvas in the DOM
     const canvas = document.querySelector(
@@ -123,16 +120,10 @@ function captureChartWithAnnotations(
 
 // ─── Journal Entry Builder ───────────────────────────────────────
 
-function buildJournalEntry(
-  trade: ClosedTrade,
-  screenshot: string | null,
-): TradeCloseJournalEntry {
+function buildJournalEntry(trade: ClosedTrade, screenshot: string | null): TradeCloseJournalEntry {
   const holdDuration = trade.exitTime - trade.entryTime;
   const holdMinutes = Math.round(holdDuration / 60000);
-  const holdText =
-    holdMinutes < 60
-      ? `${holdMinutes}m`
-      : `${Math.floor(holdMinutes / 60)}h ${holdMinutes % 60}m`;
+  const holdText = holdMinutes < 60 ? `${holdMinutes}m` : `${Math.floor(holdMinutes / 60)}h ${holdMinutes % 60}m`;
 
   const isWin = trade.pnl >= 0;
   const emoji = isWin ? '✅' : '❌';
@@ -151,13 +142,7 @@ function buildJournalEntry(
     exitReason: trade.exitReason,
     holdDuration,
     chartScreenshot: screenshot,
-    tags: [
-      trade.symbol,
-      trade.side,
-      trade.exitReason,
-      isWin ? 'win' : 'loss',
-      'auto-captured',
-    ],
+    tags: [trade.symbol, trade.side, trade.exitReason, isWin ? 'win' : 'loss', 'auto-captured'],
     notes: `${emoji} ${trade.side.toUpperCase()} ${trade.symbol} closed via ${reasonLabel} | Entry: $${trade.entryPrice.toFixed(2)} → Exit: $${trade.exitPrice.toFixed(2)} | P&L: ${isWin ? '+' : ''}$${trade.pnl.toFixed(2)} (${trade.pnlPercent.toFixed(1)}%) | Hold: ${holdText}`,
     source: 'trade-close-capture',
   };
@@ -187,16 +172,23 @@ export function initTradeCloseCapture(): () => void {
         const entry = buildJournalEntry(trade, screenshot);
 
         // Dismiss any alerts linked to this position
-        try { dismissPositionAlerts(trade.id); } catch { /* non-fatal */ }
+        try {
+          dismissPositionAlerts(trade.id);
+        } catch {
+          /* non-fatal */
+        }
 
         // Add to journal store
         import('../state/useJournalStore').then(({ useJournalStore }) => {
-          const store = useJournalStore.getState() as any;
+          const store = useJournalStore.getState() as Record<string, unknown> & {
+            addTrade?: (...args: unknown[]) => void;
+          };
           if (store.addTrade) {
             // Compute R-Multiple if stop loss was set
-            const risk = trade.exitReason !== 'manual' && trade.entryPrice && trade.exitPrice
-              ? Math.abs(trade.exitPrice - trade.entryPrice)
-              : null;
+            const risk =
+              trade.exitReason !== 'manual' && trade.entryPrice && trade.exitPrice
+                ? Math.abs(trade.exitPrice - trade.entryPrice)
+                : null;
             const rMultiple = risk && risk > 0 ? Math.round((trade.pnl / (risk * trade.quantity)) * 100) / 100 : null;
 
             // Build screenshots array in { data, name } format for the journal row

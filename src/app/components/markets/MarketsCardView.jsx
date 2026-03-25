@@ -10,13 +10,12 @@
 
 import { memo, useCallback, useMemo } from 'react';
 import { C } from '../../../constants.js';
-import { useWatchlistStore, enrichWithTradeStats } from '../../../state/useWatchlistStore.js';
+import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
-import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming.js';
+import { useWatchlistStore, enrichWithTradeStats } from '../../../state/useWatchlistStore.js';
 import { radii, transition } from '../../../theme/tokens.js';
 import Sparkline from '../ui/Sparkline.jsx';
-import st from './MarketsCardView.module.css';
 
 const ACCENT = '#6e5ce6';
 
@@ -55,9 +54,12 @@ function MarketsCardView() {
     return enriched.filter((item) => assetClassFilters.includes(item.assetClass));
   }, [enriched, assetClassFilters]);
 
-  const handleClick = useCallback((symbol) => {
-    setSelectedSymbol(symbol);
-  }, [setSelectedSymbol]);
+  const handleClick = useCallback(
+    (symbol) => {
+      setSelectedSymbol(symbol);
+    },
+    [setSelectedSymbol],
+  );
 
   return (
     <div
@@ -102,9 +104,19 @@ function MarketsCardView() {
             }}
           >
             {/* Header: symbol + price */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+            <div
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}
+            >
               <div>
-                <div style={{ fontSize: 14, fontWeight: 800, fontFamily: 'var(--tf-font)', color: C.t1, letterSpacing: '-0.01em' }}>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 800,
+                    fontFamily: 'var(--tf-font)',
+                    color: C.t1,
+                    letterSpacing: '-0.01em',
+                  }}
+                >
                   {item.symbol?.replace('USDT', '')}
                 </div>
                 <div style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t3, marginTop: 2 }}>
@@ -115,7 +127,15 @@ function MarketsCardView() {
                 <div style={{ fontSize: 14, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: C.t1 }}>
                   {fmtPrice(item.price)}
                 </div>
-                <div style={{ fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: changeColor, marginTop: 2 }}>
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    fontFamily: 'var(--tf-mono)',
+                    color: changeColor,
+                    marginTop: 2,
+                  }}
+                >
                   {fmtChange(change)}
                 </div>
               </div>
@@ -132,9 +152,7 @@ function MarketsCardView() {
                 Vol {fmtVolume(item.volume)}
               </span>
               {item.tradeCount > 0 && (
-                <span style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
-                  {item.tradeCount} trades
-                </span>
+                <span style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3 }}>{item.tradeCount} trades</span>
               )}
             </div>
           </div>

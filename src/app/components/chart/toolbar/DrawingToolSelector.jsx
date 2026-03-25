@@ -8,7 +8,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { TOOL_DEFS, TOOL_ICONS, TIcon } from '../../../../shared/drawingToolRegistry';
+import { TOOL_DEFS, TIcon } from '../../../../shared/drawingToolRegistry';
 import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 import s from './DrawingToolSelector.module.css';
 
@@ -48,7 +48,9 @@ export default function DrawingToolSelector({ open, onClose, activeTool, setActi
   // Escape closes
   useEffect(() => {
     if (!open) return;
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
     document.addEventListener('keydown', handler, true);
     return () => document.removeEventListener('keydown', handler, true);
   }, [open, onClose]);
@@ -57,31 +59,29 @@ export default function DrawingToolSelector({ open, onClose, activeTool, setActi
   const filtered = useMemo(() => {
     if (!search.trim()) return null;
     const q = search.toLowerCase();
-    return TOOL_DEFS.filter(t =>
-      t.label.toLowerCase().includes(q) ||
-      t.id.toLowerCase().includes(q) ||
-      t.category.toLowerCase().includes(q)
+    return TOOL_DEFS.filter(
+      (t) =>
+        t.label.toLowerCase().includes(q) || t.id.toLowerCase().includes(q) || t.category.toLowerCase().includes(q),
     );
   }, [search]);
 
-  const handleSelect = useCallback((toolId) => {
-    setActiveTool(toolId);
-    onClose();
-  }, [setActiveTool, onClose]);
+  const handleSelect = useCallback(
+    (toolId) => {
+      setActiveTool(toolId);
+      onClose();
+    },
+    [setActiveTool, onClose],
+  );
 
   if (!open) return null;
 
   // Split by tier
-  const essential = TOOL_DEFS.filter(t => t.tier === 'essential');
-  const common = TOOL_DEFS.filter(t => t.tier === 'common');
-  const advanced = TOOL_DEFS.filter(t => t.tier === 'advanced');
+  const essential = TOOL_DEFS.filter((t) => t.tier === 'essential');
+  const common = TOOL_DEFS.filter((t) => t.tier === 'common');
+  const advanced = TOOL_DEFS.filter((t) => t.tier === 'advanced');
 
   return (
-    <div
-      ref={panelRef}
-      className={s.panel}
-      onMouseDown={(e) => e.stopPropagation()}
-    >
+    <div ref={panelRef} className={s.panel} onMouseDown={(e) => e.stopPropagation()}>
       {/* ─── Search ─── */}
       <div className={s.searchWrap}>
         <div className={s.searchBar}>
@@ -97,7 +97,9 @@ export default function DrawingToolSelector({ open, onClose, activeTool, setActi
             className={s.searchInput}
           />
           {search && (
-            <button onClick={() => setSearch('')} className={s.searchClear}>✕</button>
+            <button onClick={() => setSearch('')} className={s.searchClear}>
+              ✕
+            </button>
           )}
         </div>
       </div>
@@ -106,12 +108,10 @@ export default function DrawingToolSelector({ open, onClose, activeTool, setActi
       {filtered ? (
         <div className={s.searchResults}>
           {filtered.length === 0 ? (
-            <div className={s.noResults}>
-              No tools match "{search}"
-            </div>
+            <div className={s.noResults}>No tools match "{search}"</div>
           ) : (
             <div className={s.toolGrid4}>
-              {filtered.map(t => (
+              {filtered.map((t) => (
                 <ToolItem key={t.id} tool={t} active={activeTool === t.id} onSelect={handleSelect} />
               ))}
             </div>
@@ -122,25 +122,35 @@ export default function DrawingToolSelector({ open, onClose, activeTool, setActi
           {/* ─── Essential ─── */}
           <TierSection title="Essential" badge={essential.length} alwaysOpen>
             <div className={s.toolGrid3}>
-              {essential.map(t => (
+              {essential.map((t) => (
                 <ToolItem key={t.id} tool={t} active={activeTool === t.id} onSelect={handleSelect} showShortcut />
               ))}
             </div>
           </TierSection>
 
           {/* ─── Common ─── */}
-          <TierSection title="Common" badge={common.length} open={commonOpen} onToggle={() => setCommonOpen(!commonOpen)}>
+          <TierSection
+            title="Common"
+            badge={common.length}
+            open={commonOpen}
+            onToggle={() => setCommonOpen(!commonOpen)}
+          >
             <div className={s.toolGrid4}>
-              {common.map(t => (
+              {common.map((t) => (
                 <ToolItem key={t.id} tool={t} active={activeTool === t.id} onSelect={handleSelect} />
               ))}
             </div>
           </TierSection>
 
           {/* ─── Advanced ─── */}
-          <TierSection title="Advanced" badge={advanced.length} open={advancedOpen} onToggle={() => setAdvancedOpen(!advancedOpen)}>
+          <TierSection
+            title="Advanced"
+            badge={advanced.length}
+            open={advancedOpen}
+            onToggle={() => setAdvancedOpen(!advancedOpen)}
+          >
             <div className={s.toolGrid4}>
-              {advanced.map(t => (
+              {advanced.map((t) => (
                 <ToolItem key={t.id} tool={t} active={activeTool === t.id} onSelect={handleSelect} />
               ))}
             </div>
@@ -153,7 +163,12 @@ export default function DrawingToolSelector({ open, onClose, activeTool, setActi
         <span className={s.stickyLabel}>
           <svg width="11" height="11" viewBox="0 0 14 14" fill="none" className={s.stickySvg}>
             <rect x="4" y="1" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.2" fill="none" />
-            <path d="M4 5H2.5A1.5 1.5 0 001 6.5v5A1.5 1.5 0 002.5 13h5a1.5 1.5 0 001.5-1.5V10" stroke="currentColor" strokeWidth="1.2" fill="none" />
+            <path
+              d="M4 5H2.5A1.5 1.5 0 001 6.5v5A1.5 1.5 0 002.5 13h5a1.5 1.5 0 001.5-1.5V10"
+              stroke="currentColor"
+              strokeWidth="1.2"
+              fill="none"
+            />
           </svg>
           Stay in drawing mode
         </span>
@@ -177,16 +192,14 @@ function TierSection({ title, badge, children, open, onToggle, alwaysOpen }) {
         data-always-open={alwaysOpen ? 'true' : undefined}
       >
         {!alwaysOpen && (
-          <span className={s.tierArrow} data-open={isOpen || undefined}>▸</span>
+          <span className={s.tierArrow} data-open={isOpen || undefined}>
+            ▸
+          </span>
         )}
         <span className={s.tierTitle}>{title}</span>
         <span className={s.tierBadge}>{badge}</span>
       </button>
-      {isOpen && (
-        <div className={s.tierBody}>
-          {children}
-        </div>
-      )}
+      {isOpen && <div className={s.tierBody}>{children}</div>}
     </div>
   );
 }
@@ -202,14 +215,8 @@ function ToolItem({ tool, active, onSelect, showShortcut }) {
       <div className={s.toolIcon}>
         <TIcon id={tool.id} />
       </div>
-      <span className={s.toolLabel}>
-        {tool.label}
-      </span>
-      {showShortcut && tool.shortcut && (
-        <span className={s.shortcutBadge}>
-          {tool.shortcut}
-        </span>
-      )}
+      <span className={s.toolLabel}>{tool.label}</span>
+      {showShortcut && tool.shortcut && <span className={s.shortcutBadge}>{tool.shortcut}</span>}
     </button>
   );
 }

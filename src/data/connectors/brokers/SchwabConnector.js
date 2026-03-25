@@ -213,53 +213,49 @@ class SchwabConnector extends BrokerConnector {
   async fetchTrades(credentials, options = {}) {
     const trades = [];
 
-    try {
-      for (const accountNum of this._accountNumbers) {
-        let path = `/trader/v1/accounts/${accountNum}/orders?maxResults=100&status=FILLED`;
+    for (const accountNum of this._accountNumbers) {
+      let path = `/trader/v1/accounts/${accountNum}/orders?maxResults=100&status=FILLED`;
 
-        if (options.since) {
-          const fromDate = new Date(options.since).toISOString();
-          path += `&fromEnteredTime=${fromDate}`;
-        }
+      if (options.since) {
+        const fromDate = new Date(options.since).toISOString();
+        path += `&fromEnteredTime=${fromDate}`;
+      }
 
-        // Default to last 60 days if no since date
-        if (!options.since) {
-          const sixtyDaysAgo = new Date(Date.now() - 60 * 86_400_000).toISOString();
-          path += `&fromEnteredTime=${sixtyDaysAgo}`;
-        }
+      // Default to last 60 days if no since date
+      if (!options.since) {
+        const sixtyDaysAgo = new Date(Date.now() - 60 * 86_400_000).toISOString();
+        path += `&fromEnteredTime=${sixtyDaysAgo}`;
+      }
 
-        const toDate = new Date().toISOString();
-        path += `&toEnteredTime=${toDate}`;
+      const toDate = new Date().toISOString();
+      path += `&toEnteredTime=${toDate}`;
 
-        await this._waitForRateLimit();
-        const orders = await this._request(credentials, path);
+      await this._waitForRateLimit();
+      const orders = await this._request(credentials, path);
 
-        for (const order of orders || []) {
-          if (order.status !== 'FILLED') continue;
+      for (const order of orders || []) {
+        if (order.status !== 'FILLED') continue;
 
-          // Extract fills from order legs
-          for (const leg of order.orderLegCollection || []) {
-            const symbol = leg.instrument?.symbol || '';
-            const instruction = (leg.instruction || '').toUpperCase();
-            const isBuy = instruction.includes('BUY');
+        // Extract fills from order legs
+        for (const leg of order.orderLegCollection || []) {
+          const symbol = leg.instrument?.symbol || '';
+          const instruction = (leg.instruction || '').toUpperCase();
+          const isBuy = instruction.includes('BUY');
 
-            trades.push({
-              date: order.closeTime || order.enteredTime,
-              symbol,
-              side: isBuy ? 'BUY' : 'SELL',
-              quantity: parseFloat(leg.quantity || '0'),
-              price: parseFloat(order.price || order.stopPrice || '0'),
-              pnl: 0,
-              commission: parseFloat(order.commission?.commissionLegs?.[0]?.commissionAmount || '0'),
-              notes: `Schwab | ${order.orderType || 'market'} | ${leg.instrument?.assetType || ''}`,
-              _source: 'schwab',
-              assetClass: (leg.instrument?.assetType || '').toLowerCase() === 'option' ? 'options' : 'equities',
-            });
-          }
+          trades.push({
+            date: order.closeTime || order.enteredTime,
+            symbol,
+            side: isBuy ? 'BUY' : 'SELL',
+            quantity: parseFloat(leg.quantity || '0'),
+            price: parseFloat(order.price || order.stopPrice || '0'),
+            pnl: 0,
+            commission: parseFloat(order.commission?.commissionLegs?.[0]?.commissionAmount || '0'),
+            notes: `Schwab | ${order.orderType || 'market'} | ${leg.instrument?.assetType || ''}`,
+            _source: 'schwab',
+            assetClass: (leg.instrument?.assetType || '').toLowerCase() === 'option' ? 'options' : 'equities',
+          });
         }
       }
-    } catch (err) {
-      throw err;
     }
 
     return trades;

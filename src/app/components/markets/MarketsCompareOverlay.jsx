@@ -8,11 +8,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo, useRef, useEffect, useMemo, useState } from 'react';
-import { C } from '../../../constants.js';
+import { C, M } from '../../../constants.js';
 import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { radii } from '../../../theme/tokens.js';
-import st from './MarketsCompareOverlay.module.css';
 
 const COMPARE_COLORS = ['#6e5ce6', '#10B981', '#F59E0B', '#EC4899'];
 const TIME_RANGES = ['1D', '1W', '1M', '3M', '1Y'];
@@ -159,23 +158,32 @@ function MarketsCompareOverlay() {
       }}
     >
       {/* Header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '8px 16px', borderBottom: `1px solid ${C.bd}15`,
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '8px 16px',
+          borderBottom: `1px solid ${C.bd}15`,
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, fontFamily: 'var(--tf-font)', color: C.t1 }}>
-            Compare
-          </span>
+          <span style={{ fontSize: 12, fontWeight: 700, fontFamily: 'var(--tf-font)', color: C.t1 }}>Compare</span>
           {symbolData.map((sym) => (
             <span
               key={sym.symbol}
               style={{
-                display: 'inline-flex', alignItems: 'center', gap: 4,
-                fontSize: 10, fontWeight: 600, fontFamily: 'var(--tf-mono)',
-                color: C.t2, background: `${sym.color}18`,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: 10,
+                fontWeight: 600,
+                fontFamily: 'var(--tf-mono)',
+                color: C.t2,
+                background: `${sym.color}18`,
                 border: `1px solid ${sym.color}30`,
-                borderRadius: 4, padding: '2px 8px',
+                borderRadius: 4,
+                padding: '2px 8px',
               }}
             >
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: sym.color }} />
@@ -183,10 +191,17 @@ function MarketsCompareOverlay() {
               <button
                 onClick={() => removeCompareSymbol(sym.symbol)}
                 style={{
-                  background: 'none', border: 'none', color: C.t3,
-                  cursor: 'pointer', fontSize: 10, padding: 0, marginLeft: 2,
+                  background: 'none',
+                  border: 'none',
+                  color: C.t3,
+                  cursor: 'pointer',
+                  fontSize: 10,
+                  padding: 0,
+                  marginLeft: 2,
                 }}
-              >×</button>
+              >
+                ×
+              </button>
             </span>
           ))}
         </div>
@@ -198,11 +213,14 @@ function MarketsCompareOverlay() {
               key={r}
               onClick={() => setCompareTimeRange(r)}
               style={{
-                fontSize: 9, fontWeight: compareTimeRange === r ? 700 : 500,
+                fontSize: 9,
+                fontWeight: compareTimeRange === r ? 700 : 500,
                 fontFamily: 'var(--tf-mono)',
                 color: compareTimeRange === r ? C.t1 : C.t3,
                 background: compareTimeRange === r ? `${C.bd}20` : 'transparent',
-                border: 'none', borderRadius: 3, padding: '3px 6px',
+                border: 'none',
+                borderRadius: 3,
+                padding: '3px 6px',
                 cursor: 'pointer',
               }}
             >
@@ -215,10 +233,15 @@ function MarketsCompareOverlay() {
           <button
             onClick={clearCompare}
             style={{
-              fontSize: 10, fontWeight: 600, fontFamily: 'var(--tf-font)',
-              color: C.t3, background: 'transparent',
-              border: `1px solid ${C.bd}30`, borderRadius: radii.sm,
-              padding: '3px 10px', cursor: 'pointer',
+              fontSize: 10,
+              fontWeight: 600,
+              fontFamily: 'var(--tf-font)',
+              color: C.t3,
+              background: 'transparent',
+              border: `1px solid ${C.bd}30`,
+              borderRadius: radii.sm,
+              padding: '3px 10px',
+              cursor: 'pointer',
             }}
           >
             Close
@@ -230,37 +253,56 @@ function MarketsCompareOverlay() {
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         {/* Chart */}
         <div ref={containerRef} style={{ flex: 1, position: 'relative' }}>
-          <canvas
-            ref={canvasRef}
-            style={{ width: '100%', height: '100%', display: 'block' }}
-          />
+          <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
         </div>
 
         {/* Stats sidebar */}
-        <div style={{
-          width: 200, borderLeft: `1px solid ${C.bd}15`,
-          padding: '8px 12px', overflowY: 'auto',
-        }}>
+        <div
+          style={{
+            width: 200,
+            borderLeft: `1px solid ${C.bd}15`,
+            padding: '8px 12px',
+            overflowY: 'auto',
+          }}
+        >
           <div style={{ fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-font)', color: C.t3, marginBottom: 8 }}>
             STATS
           </div>
           {symbolData.map((sym) => (
             <div key={sym.symbol} style={{ marginBottom: 10 }}>
-              <div style={{
-                fontSize: 11, fontWeight: 700, fontFamily: 'var(--tf-font)', color: sym.color,
-                display: 'flex', alignItems: 'center', gap: 4,
-              }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  fontFamily: 'var(--tf-font)',
+                  color: sym.color,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: sym.color }} />
                 {sym.symbol.replace('USDT', '')}
               </div>
               <div style={{ fontSize: 10, fontFamily: 'var(--tf-mono)', color: C.t2, marginTop: 2 }}>
-                ${sym.price >= 1000 ? sym.price.toLocaleString('en-US', { maximumFractionDigits: 0 }) : sym.price >= 1 ? sym.price.toFixed(2) : sym.price.toFixed(4)}
+                $
+                {sym.price >= 1000
+                  ? sym.price.toLocaleString('en-US', { maximumFractionDigits: 0 })
+                  : sym.price >= 1
+                    ? sym.price.toFixed(2)
+                    : sym.price.toFixed(4)}
               </div>
-              <div style={{
-                fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-mono)', marginTop: 1,
-                color: sym.change >= 0 ? C.g : C.r,
-              }}>
-                {sym.change >= 0 ? '+' : ''}{sym.change.toFixed(2)}%
+              <div
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  fontFamily: 'var(--tf-mono)',
+                  marginTop: 1,
+                  color: sym.change >= 0 ? C.g : C.r,
+                }}
+              >
+                {sym.change >= 0 ? '+' : ''}
+                {sym.change.toFixed(2)}%
               </div>
             </div>
           ))}

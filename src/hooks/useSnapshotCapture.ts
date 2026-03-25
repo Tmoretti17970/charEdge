@@ -12,7 +12,6 @@
 
 import { useCallback } from 'react';
 import { useChartCoreStore } from '../state/chart/useChartCoreStore';
-import { useChartToolsStore } from '../state/chart/useChartToolsStore';
 import { createSnapshot, indicatorKey } from '../types/TradeSnapshot.js';
 import type { TradeSnapshot, TradeContext } from '../types/TradeSnapshot.js';
 

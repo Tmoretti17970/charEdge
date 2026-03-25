@@ -17,10 +17,26 @@ import s from './DrawingQuickEditor.module.css';
 // ─── Constants ───────────────────────────────────────────────────
 
 const PRESET_COLORS = [
-  '#2962FF', '#FF6D00', '#EF5350', '#26A69A', '#AB47BC',
-  '#00BCD4', '#F44336', '#E91E63', '#9C27B0', '#3F51B5',
-  '#009688', '#4CAF50', '#CDDC39', '#FF9800', '#795548',
-  '#607D8B', '#FFEB3B', '#FF5722', '#D1D4DC', '#787B86',
+  '#2962FF',
+  '#FF6D00',
+  '#EF5350',
+  '#26A69A',
+  '#AB47BC',
+  '#00BCD4',
+  '#F44336',
+  '#E91E63',
+  '#9C27B0',
+  '#3F51B5',
+  '#009688',
+  '#4CAF50',
+  '#CDDC39',
+  '#FF9800',
+  '#795548',
+  '#607D8B',
+  '#FFEB3B',
+  '#FF5722',
+  '#D1D4DC',
+  '#787B86',
 ];
 
 const DASH_OPTIONS = [
@@ -33,16 +49,22 @@ const DASH_OPTIONS = [
 const WIDTHS = [1, 1.5, 2, 3, 4, 5];
 
 const FILL_TOOLS = new Set([
-  'rect', 'triangle', 'ellipse', 'channel', 'alertzone',
-  'parallelchannel', 'pitchfork', 'callout', 'note',
-  'measure', 'pricerange', 'daterange',
+  'rect',
+  'triangle',
+  'ellipse',
+  'channel',
+  'alertzone',
+  'parallelchannel',
+  'pitchfork',
+  'callout',
+  'note',
+  'measure',
+  'pricerange',
+  'daterange',
 ]);
 
 // Sprint 13: Drawing types that support alert creation
-const ALERTABLE_TOOLS = new Set([
-  'hline', 'trendline', 'ray', 'extendedline', 'hray',
-  'channel', 'parallelchannel',
-]);
+const ALERTABLE_TOOLS = new Set(['hline', 'trendline', 'ray', 'extendedline', 'hray', 'channel', 'parallelchannel']);
 
 // ─── Main Component ──────────────────────────────────────────────
 
@@ -50,7 +72,6 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
   const editorRef = useRef(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showFillPicker, setShowFillPicker] = useState(false);
-  const [customColor, setCustomColor] = useState('#2962FF');
   const [visible, setVisible] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [showCoords, setShowCoords] = useState(false);
@@ -62,9 +83,10 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
   const [userPosition, setUserPosition] = useState(null);
   const dragOffsetRef = useRef({ mouseX: 0, mouseY: 0, corrX: 0, corrY: 0 });
 
-  // Sync points from drawing
+  // Sync points from drawing (only when drawing identity changes, not on every point move)
   useEffect(() => {
-    if (drawing?.points) setPoints(drawing.points.map(p => ({ ...p })));
+    if (drawing?.points) setPoints(drawing.points.map((p) => ({ ...p })));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [drawing?.id]);
 
   // Animate entry
@@ -152,18 +174,26 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
       y = canvasRect.top + bounds.bottom + 12;
     }
     return { x, y };
-  }, [engine, canvasRect, drawing?.id, engine?.version, expanded]);
+  }, [engine, canvasRect, expanded]);
 
   // Style update helper — also persists per-tool style memory (Sprint 7)
   const setToolStyleMemory = useChartToolsStore((st) => st.setToolStyleMemory);
-  const updateStyle = useCallback((patch) => {
-    if (!engine || !drawing) return;
-    engine.updateStyle(drawing.id, patch);
-    const merged = { ...drawing.style, ...patch };
-    const memoryStyle = { color: merged.color, lineWidth: merged.lineWidth, dash: merged.dash, ...(merged.fillColor ? { fillColor: merged.fillColor } : {}) };
-    setToolStyleMemory(drawing.type, memoryStyle);
-    engine.setToolStyleMemory?.(drawing.type, memoryStyle);
-  }, [engine, drawing, setToolStyleMemory]);
+  const updateStyle = useCallback(
+    (patch) => {
+      if (!engine || !drawing) return;
+      engine.updateStyle(drawing.id, patch);
+      const merged = { ...drawing.style, ...patch };
+      const memoryStyle = {
+        color: merged.color,
+        lineWidth: merged.lineWidth,
+        dash: merged.dash,
+        ...(merged.fillColor ? { fillColor: merged.fillColor } : {}),
+      };
+      setToolStyleMemory(drawing.type, memoryStyle);
+      engine.setToolStyleMemory?.(drawing.type, memoryStyle);
+    },
+    [engine, drawing, setToolStyleMemory],
+  );
 
   // Close on click outside
   useEffect(() => {
@@ -184,8 +214,13 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
     if (!drawing) return;
     const handler = (e) => {
       if (e.key === 'Escape') {
-        if (showFullSettings) { setShowFullSettings(false); e.stopPropagation(); }
-        else if (expanded) { setExpanded(false); e.stopPropagation(); }
+        if (showFullSettings) {
+          setShowFullSettings(false);
+          e.stopPropagation();
+        } else if (expanded) {
+          setExpanded(false);
+          e.stopPropagation();
+        }
       }
     };
     document.addEventListener('keydown', handler, true);
@@ -209,30 +244,41 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
       <DrawingSettingsDialog
         drawing={drawing}
         engine={engine}
-        onClose={() => { setShowFullSettings(false); onClose?.(); }}
+        onClose={() => {
+          setShowFullSettings(false);
+          onClose?.();
+        }}
       />
     );
   }
 
   const dashStr = JSON.stringify(currentDash);
-  const currentStyleIdx = DASH_OPTIONS.findIndex(o => JSON.stringify(o.value) === dashStr);
+  const currentStyleIdx = DASH_OPTIONS.findIndex((o) => JSON.stringify(o.value) === dashStr);
   const toolLabel = TOOL_LABELS[drawing.type] || drawing.type;
   const hasFill = FILL_TOOLS.has(drawing.type);
 
   // ─── Handlers ────────────────────────────────────────────────
-  const handleDelete = () => { engine?.removeDrawing(drawing.id); onClose?.(); };
-  const handleDuplicate = () => { engine?.duplicateDrawing(drawing.id); onClose?.(); };
+  const handleDelete = () => {
+    engine?.removeDrawing(drawing.id);
+    onClose?.();
+  };
+  const handleDuplicate = () => {
+    engine?.duplicateDrawing(drawing.id);
+    onClose?.();
+  };
   const handleToggleLock = () => engine?.toggleLock(drawing.id);
   const handleToggleVisibility = () => {
     window.dispatchEvent(new CustomEvent('charEdge:toggle-visibility', { detail: drawing.id }));
   };
   const handleToggleSync = () => {
-    const d = engine?.drawings?.find(d => d.id === drawing.id);
+    const d = engine?.drawings?.find((d) => d.id === drawing.id);
     if (d) {
       d.syncAcrossTimeframes = !d.syncAcrossTimeframes;
-      window.dispatchEvent(new CustomEvent('charEdge:update-drawing-style', {
-        detail: { id: drawing.id, style: {} },
-      }));
+      window.dispatchEvent(
+        new CustomEvent('charEdge:update-drawing-style', {
+          detail: { id: drawing.id, style: {} },
+        }),
+      );
     }
   };
 
@@ -253,9 +299,11 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
     });
     if (!drawing.meta) drawing.meta = {};
     drawing.meta._alertPrice = price;
-    window.dispatchEvent(new CustomEvent('charEdge:drawing-alert-created', {
-      detail: { drawingId: drawing.id, price, symbol },
-    }));
+    window.dispatchEvent(
+      new CustomEvent('charEdge:drawing-alert-created', {
+        detail: { drawingId: drawing.id, price, symbol },
+      }),
+    );
   };
   const handlePointChange = (idx, field, value) => {
     const num = parseFloat(value);
@@ -263,12 +311,14 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
     const newPts = [...points];
     newPts[idx] = { ...newPts[idx], [field]: num };
     setPoints(newPts);
-    const d = engine?.drawings?.find(d => d.id === drawing.id);
+    const d = engine?.drawings?.find((d) => d.id === drawing.id);
     if (d?.points[idx]) {
       d.points[idx] = { ...newPts[idx] };
-      window.dispatchEvent(new CustomEvent('charEdge:update-drawing-style', {
-        detail: { id: drawing.id, style: {} },
-      }));
+      window.dispatchEvent(
+        new CustomEvent('charEdge:update-drawing-style', {
+          detail: { id: drawing.id, style: {} },
+        }),
+      );
     }
   };
   const formatTime = (ts) => {
@@ -303,7 +353,7 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
           className={s.dragHandle}
           data-dragging={isDragging || undefined}
         >
-          {[0, 1, 2].map(i => (
+          {[0, 1, 2].map((i) => (
             <div key={i} className={s.gripRow}>
               <div className={s.gripDot} />
               <div className={s.gripDot} />
@@ -313,7 +363,7 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
         <Divider />
         {/* Color dots */}
         <div className={s.colorDotsRow}>
-          {PRESET_COLORS.slice(0, 6).map(c => (
+          {PRESET_COLORS.slice(0, 6).map((c) => (
             <button
               key={c}
               onClick={() => updateStyle({ color: c })}
@@ -327,7 +377,10 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
             />
           ))}
           <button
-            onClick={() => { setShowColorPicker(!showColorPicker); setShowFillPicker(false); }}
+            onClick={() => {
+              setShowColorPicker(!showColorPicker);
+              setShowFillPicker(false);
+            }}
             title="More colors"
             className={s.colorWheelBtn}
           />
@@ -348,9 +401,7 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
             <line x1="3" y1="7" x2="11" y2="7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
         </QBtn>
-        <span className={s.widthDisplay}>
-          {currentWidth}
-        </span>
+        <span className={s.widthDisplay}>{currentWidth}</span>
         <QBtn
           title="Thicker"
           onClick={() => {
@@ -378,9 +429,27 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
             {currentStyleIdx <= 0 ? (
               <line x1="2" y1="7" x2="14" y2="7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             ) : currentStyleIdx === 1 ? (
-              <line x1="2" y1="7" x2="14" y2="7" stroke="currentColor" strokeWidth="2" strokeDasharray="4 3" strokeLinecap="round" />
+              <line
+                x1="2"
+                y1="7"
+                x2="14"
+                y2="7"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeDasharray="4 3"
+                strokeLinecap="round"
+              />
             ) : (
-              <line x1="2" y1="7" x2="14" y2="7" stroke="currentColor" strokeWidth="2" strokeDasharray="1.5 3" strokeLinecap="round" />
+              <line
+                x1="2"
+                y1="7"
+                x2="14"
+                y2="7"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeDasharray="1.5 3"
+                strokeLinecap="round"
+              />
             )}
           </svg>
         </QBtn>
@@ -391,7 +460,12 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
         <QBtn title={isLocked ? 'Unlock' : 'Lock'} active={isLocked} onClick={handleToggleLock}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <rect x="3" y="6" width="8" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
-            <path d={isLocked ? "M5 6V4.5a2 2 0 014 0V6" : "M5 6V4.5a2 2 0 014 0"} stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+            <path
+              d={isLocked ? 'M5 6V4.5a2 2 0 014 0V6' : 'M5 6V4.5a2 2 0 014 0'}
+              stroke="currentColor"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+            />
           </svg>
         </QBtn>
 
@@ -403,7 +477,13 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
             onClick={handleCreateAlert}
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M7 1.5c-2.2 0-4 1.8-4 4v2.5l-1 1.5h10l-1-1.5V5.5c0-2.2-1.8-4-4-4z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+              <path
+                d="M7 1.5c-2.2 0-4 1.8-4 4v2.5l-1 1.5h10l-1-1.5V5.5c0-2.2-1.8-4-4-4z"
+                stroke="currentColor"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
               <path d="M5.5 11.5a1.5 1.5 0 003 0" stroke="currentColor" strokeWidth="1.2" />
             </svg>
           </QBtn>
@@ -412,19 +492,25 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
         {/* Delete */}
         <QBtn title="Delete" danger onClick={handleDelete}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M3.5 4h7M5.5 4V3a1 1 0 011-1h1a1 1 0 011 1v1M4.5 4v7a1 1 0 001 1h3a1 1 0 001-1V4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+            <path
+              d="M3.5 4h7M5.5 4V3a1 1 0 011-1h1a1 1 0 011 1v1M4.5 4v7a1 1 0 001 1h3a1 1 0 001-1V4"
+              stroke="currentColor"
+              strokeWidth="1.2"
+              strokeLinecap="round"
+            />
           </svg>
         </QBtn>
 
         {/* Gear — toggles expanded */}
-        <QBtn
-          title={expanded ? 'Collapse' : 'More options'}
-          active={expanded}
-          onClick={() => setExpanded(!expanded)}
-        >
+        <QBtn title={expanded ? 'Collapse' : 'More options'} active={expanded} onClick={() => setExpanded(!expanded)}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <circle cx="7" cy="7" r="2" stroke="currentColor" strokeWidth="1.3" />
-            <path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13M2.76 2.76l1.06 1.06M10.18 10.18l1.06 1.06M2.76 11.24l1.06-1.06M10.18 3.82l1.06-1.06" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+            <path
+              d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13M2.76 2.76l1.06 1.06M10.18 10.18l1.06 1.06M2.76 11.24l1.06-1.06M10.18 3.82l1.06-1.06"
+              stroke="currentColor"
+              strokeWidth="1"
+              strokeLinecap="round"
+            />
           </svg>
         </QBtn>
       </div>
@@ -433,7 +519,10 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
       {showColorPicker && (
         <ColorGrid
           selected={currentColor}
-          onSelect={(c) => { updateStyle({ color: c }); setShowColorPicker(false); }}
+          onSelect={(c) => {
+            updateStyle({ color: c });
+            setShowColorPicker(false);
+          }}
         />
       )}
 
@@ -443,11 +532,7 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
           {/* Tool label */}
           <div className={s.toolLabelRow}>
             <span className={s.toolLabelName}>{toolLabel}</span>
-            <button
-              onClick={() => setShowFullSettings(true)}
-              title="Full settings"
-              className={s.fullSettingsBtn}
-            >
+            <button onClick={() => setShowFullSettings(true)} title="Full settings" className={s.fullSettingsBtn}>
               Full Settings →
             </button>
           </div>
@@ -458,7 +543,10 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
               <span className={s.fillLabel}>Fill</span>
               <div className={s.fillBtnWrap}>
                 <button
-                  onClick={() => { setShowFillPicker(!showFillPicker); setShowColorPicker(false); }}
+                  onClick={() => {
+                    setShowFillPicker(!showFillPicker);
+                    setShowColorPicker(false);
+                  }}
                   className={s.fillBtn}
                   style={{ background: style.fillColor || 'rgba(41,98,255,0.1)' }}
                 />
@@ -496,11 +584,10 @@ export default function DrawingQuickEditor({ engine, drawing, canvasRect, onClos
 
           {/* Coordinates (collapsible) */}
           <div className={s.coordSection}>
-            <button
-              onClick={() => setShowCoords(!showCoords)}
-              className={s.coordToggle}
-            >
-              <span className={s.coordChevron} data-open={showCoords || undefined}>▸</span>
+            <button onClick={() => setShowCoords(!showCoords)} className={s.coordToggle}>
+              <span className={s.coordChevron} data-open={showCoords || undefined}>
+                ▸
+              </span>
               COORDINATES
             </button>
             {showCoords && (
@@ -586,12 +673,7 @@ function QBtn({ children, onClick, title, active, danger, disabled }) {
 
 function ActionBtn({ onClick, title, icon, ...rest }) {
   return (
-    <button
-      onClick={onClick}
-      title={title}
-      className={s.actionBtn}
-      {...rest}
-    >
+    <button onClick={onClick} title={title} className={s.actionBtn} {...rest}>
       {icon}
     </button>
   );
@@ -620,7 +702,7 @@ function ColorGrid({ selected, onSelect, popoverStyle = {} }) {
   return (
     <div className={s.colorGrid} style={popoverStyle}>
       <div className={s.colorGridSwatches}>
-        {PRESET_COLORS.map(c => (
+        {PRESET_COLORS.map((c) => (
           <button
             key={c}
             onClick={() => onSelect(c)}

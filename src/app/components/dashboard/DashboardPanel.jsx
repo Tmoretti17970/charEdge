@@ -12,7 +12,6 @@
 import { useMemo } from 'react';
 import { safeSum } from '../../../charting_library/model/Money.js';
 import { useTodayStats } from '../../../hooks/useTodayStats';
-import { useGamificationStore } from '../../../state/useGamificationStore';
 import { useLayoutStore } from '../../../state/useLayoutStore';
 import { useUIStore } from '../../../state/useUIStore';
 import { DashboardEmptyState } from '../ui/EmptyState.jsx';
@@ -24,17 +23,11 @@ import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 export default function DashboardPanel({ trades, result, computing, onDashboardFilter: _onDashboardFilter }) {
   const setPage = useUIStore((s) => s.setPage);
-  const goals = useGamificationStore((s) => s.goals);
-  const { isMobile, isTablet } = useBreakpoints();
+  const { isMobile } = useBreakpoints();
 
   // Dashboard layout store
   const activeWidgets = useLayoutStore((s) => s.activeWidgets);
   const activePreset = useLayoutStore((s) => s.activePreset);
-  const editMode = useLayoutStore((s) => s.editMode);
-  const setActiveWidgets = useLayoutStore((s) => s.setActiveWidgets);
-  const applyPreset = useLayoutStore((s) => s.applyPreset);
-  const toggleEditMode = useLayoutStore((s) => s.toggleEditMode);
-
 
   // ─── Computed Stats ──────────────────────────────────────────
 
@@ -90,9 +83,7 @@ export default function DashboardPanel({ trades, result, computing, onDashboardF
   if (!result) {
     return (
       <div data-container="dashboard" className={`${s.page} ${isMobile ? s.pageMobile : s.pageDesktop}`}>
-        <DashHeader
-          trades={trades}
-        />
+        <DashHeader trades={trades} />
         {computing ? (
           <DashboardSkeleton isMobile={isMobile} />
         ) : trades.length === 0 ? (

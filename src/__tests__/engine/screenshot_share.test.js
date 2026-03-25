@@ -14,7 +14,7 @@ describe('Sprint 22 · ChartSnapshotModal — Screenshot & Share Polish', () => 
   });
 
   it('applies watermark with symbol/timeframe/date', () => {
-    expect(src).toContain('watermarkText');
+    expect(src).toContain('fillText');
     expect(src).toContain('charEdge');
     expect(src).toContain('toLocaleDateString');
   });

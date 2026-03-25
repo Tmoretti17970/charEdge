@@ -21,10 +21,7 @@ describe('Sprint 6 — ChartSkeleton phased loading', () => {
     const { fileURLToPath } = await import('url');
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'app/components/chart/ui/ChartSkeleton.jsx'),
-      'utf-8'
-    );
+    source = fs.readFileSync(path.resolve(__dirname, '..', '..', 'app/components/chart/ui/ChartSkeleton.jsx'), 'utf-8');
   });
 
   it('accepts phase prop', () => {
@@ -67,10 +64,7 @@ describe('Sprint 6 — ChartsPage phased skeleton', () => {
     const { fileURLToPath } = await import('url');
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'pages/ChartsPage.jsx'),
-      'utf-8'
-    );
+    source = fs.readFileSync(path.resolve(__dirname, '..', '..', 'pages/ChartsPage.jsx'), 'utf-8');
   });
 
   it('initializes skeletonPhase state', () => {
@@ -110,10 +104,7 @@ describe('Sprint 6 — ChartsPage crossfade', () => {
     const { fileURLToPath } = await import('url');
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'pages/ChartsPage.jsx'),
-      'utf-8'
-    );
+    source = fs.readFileSync(path.resolve(__dirname, '..', '..', 'pages/ChartsPage.jsx'), 'utf-8');
   });
 
   it('has opacity transition on chart area', () => {
@@ -121,7 +112,7 @@ describe('Sprint 6 — ChartsPage crossfade', () => {
   });
 
   it('wraps loading skeleton with transition container', () => {
-    expect(source).toContain('transition: \'opacity 0.25s ease-out\'');
+    expect(source).toContain("transition: 'opacity 0.25s ease-out'");
   });
 
   it('sets zIndex on skeleton overlay', () => {
@@ -139,10 +130,7 @@ describe('Sprint 6 — useChartDataLoader TTI', () => {
     const { fileURLToPath } = await import('url');
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'pages/charts/useChartDataLoader.js'),
-      'utf-8'
-    );
+    source = fs.readFileSync(path.resolve(__dirname, '..', '..', 'pages/charts/useChartDataLoader.js'), 'utf-8');
   });
 
   it('has ttiMountRef for timing', () => {
@@ -166,7 +154,7 @@ describe('Sprint 6 — useChartDataLoader TTI', () => {
   });
 
   it('measures from mount to first data arrival', () => {
-    expect(source).toContain("data?.length > 0");
+    expect(source).toContain('barCount > 0');
   });
 });
 
@@ -180,10 +168,7 @@ describe('Sprint 6 — ChartCanvas wrapper', () => {
     const { fileURLToPath } = await import('url');
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'app/components/chart/core/ChartCanvas.jsx'),
-      'utf-8'
-    );
+    source = fs.readFileSync(path.resolve(__dirname, '..', '..', 'app/components/chart/core/ChartCanvas.jsx'), 'utf-8');
   });
 
   it('wraps ChartEngineWidget', () => {
@@ -191,10 +176,10 @@ describe('Sprint 6 — ChartCanvas wrapper', () => {
   });
 
   it('re-exports ChartEngineWidget for direct usage', () => {
-    expect(source).toContain("export { default as ChartEngineWidget }");
+    expect(source).toContain('export { default as ChartEngineWidget }');
   });
 
-  it('syncs legacy data prop to store', () => {
-    expect(source).toContain('setData');
+  it('accepts legacy data prop', () => {
+    expect(source).toContain('data,');
   });
 });

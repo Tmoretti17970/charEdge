@@ -6,9 +6,9 @@
 
 import { useMemo } from 'react';
 import { calcRiskReward, calcPositionSize } from '../../../../state/chart/tradeSlice';
-import Icon from '../../design/Icon.jsx';
 import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 import { useChartTradeStore } from '../../../../state/chart/useChartTradeStore';
+import Icon from '../../design/Icon.jsx';
 import s from './TradeEntryBar.module.css';
 
 const STEPS = [
@@ -88,10 +88,7 @@ export default function TradeEntryBar() {
       {rr?.rr > 0 && (
         <>
           <div className={s.divider} />
-          <span
-            className={s.rrValue}
-            data-quality={rr.rr >= 2 ? 'good' : rr.rr >= 1 ? 'neutral' : 'bad'}
-          >
+          <span className={s.rrValue} data-quality={rr.rr >= 2 ? 'good' : rr.rr >= 1 ? 'neutral' : 'bad'}>
             {rr.rr}R
           </span>
         </>
@@ -117,10 +114,7 @@ export default function TradeEntryBar() {
 
       {/* Skip TP */}
       {tradeStep === 'tp' && (
-        <button
-          className={s.skipBtn}
-          onClick={() => useChartTradeStore.getState().setTP(pendingEntry?.price, 0)}
-        >
+        <button className={s.skipBtn} onClick={() => useChartTradeStore.getState().setTP(pendingEntry?.price, 0)}>
           Skip TP
         </button>
       )}
@@ -135,11 +129,7 @@ export default function TradeEntryBar() {
 
 function LevelChip({ label, value, color }) {
   return (
-    <span
-      className={s.levelChip}
-      style={{ '--level-color': color }}
-      data-has-value={!!value}
-    >
+    <span className={s.levelChip} style={{ '--level-color': color }} data-has-value={!!value}>
       {label}: {value ? value.toFixed(2) : '—'}
     </span>
   );

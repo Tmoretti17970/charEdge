@@ -911,10 +911,9 @@ export class InputManager {
     this.tc.style.cursor = hint || 'crosshair';
     // Task 2.3.30: Release pointer capture after drag
     if ('releasePointerCapture' in this.tc && (e as PointerEvent).pointerId != null) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       try {
         this.tc.releasePointerCapture((e as PointerEvent).pointerId);
-      } catch (_) {
+      } catch {
         /* not captured */
       }
     }

@@ -11,11 +11,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo } from 'react';
-import { C, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useMarketsPrefsStore, ASSET_CLASSES } from '../../../state/useMarketsPrefsStore';
 import { radii, transition } from '../../../theme/tokens.js';
 import ColumnCustomizer from './ColumnCustomizer.jsx';
-import st from './MarketsToolbar.module.css';
 
 // ─── Asset class display info ──────────────────────────────────
 
@@ -32,37 +31,83 @@ const ASSET_INFO = {
 
 const VIEW_MODES = [
   {
-    id: 'list', label: 'List',
+    id: 'list',
+    label: 'List',
     icon: (
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-        <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      >
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="18" x2="21" y2="18" />
       </svg>
     ),
   },
   {
-    id: 'cards', label: 'Cards',
+    id: 'cards',
+    label: 'Cards',
     icon: (
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect x="3" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" />
+        <rect x="14" y="14" width="7" height="7" rx="1" />
       </svg>
     ),
   },
   {
-    id: 'compact', label: 'Compact',
+    id: 'compact',
+    label: 'Compact',
     icon: (
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-        <line x1="3" y1="5" x2="21" y2="5" /><line x1="3" y1="10" x2="21" y2="10" />
-        <line x1="3" y1="15" x2="21" y2="15" /><line x1="3" y1="20" x2="21" y2="20" />
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      >
+        <line x1="3" y1="5" x2="21" y2="5" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+        <line x1="3" y1="15" x2="21" y2="15" />
+        <line x1="3" y1="20" x2="21" y2="20" />
       </svg>
     ),
   },
   {
-    id: 'heatmap', label: 'Heat Map',
+    id: 'heatmap',
+    label: 'Heat Map',
     icon: (
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="10" height="10" rx="1" /><rect x="15" y="3" width="6" height="6" rx="1" />
-        <rect x="3" y="15" width="6" height="6" rx="1" /><rect x="11" y="15" width="10" height="6" rx="1" />
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect x="3" y="3" width="10" height="10" rx="1" />
+        <rect x="15" y="3" width="6" height="6" rx="1" />
+        <rect x="3" y="15" width="6" height="6" rx="1" />
+        <rect x="11" y="15" width="10" height="6" rx="1" />
         <rect x="15" y="11" width="6" height="2" rx="0.5" />
       </svg>
     ),
@@ -74,7 +119,16 @@ function ViewModeToggle() {
   const setViewMode = useMarketsPrefsStore((s) => s.setViewMode);
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 2, background: `${C.bd}15`, borderRadius: radii.sm, padding: 2 }}>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+        background: `${C.bd}15`,
+        borderRadius: radii.sm,
+        padding: 2,
+      }}
+    >
       {VIEW_MODES.map((mode) => {
         const isActive = viewMode === mode.id;
         return (
@@ -83,9 +137,14 @@ function ViewModeToggle() {
             title={mode.label}
             onClick={() => setViewMode(mode.id)}
             style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: 24, height: 22, borderRadius: 3,
-              border: 'none', cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 24,
+              height: 22,
+              borderRadius: 3,
+              border: 'none',
+              cursor: 'pointer',
               background: isActive ? `${C.b}18` : 'transparent',
               color: isActive ? C.b : C.t3,
               transition: `all ${transition.fast}`,
@@ -106,12 +165,19 @@ function CompareButton() {
 
   return (
     <button
-      onClick={() => { if (count > 0) clearCompare(); }}
+      onClick={() => {
+        if (count > 0) clearCompare();
+      }}
       title={count > 0 ? `Comparing ${count} symbols — click to clear` : 'Select rows to compare'}
       style={{
-        display: 'flex', alignItems: 'center', gap: 4,
-        padding: '4px 10px', borderRadius: radii.sm,
-        fontSize: 10, fontWeight: 600, fontFamily: 'var(--tf-mono)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '4px 10px',
+        borderRadius: radii.sm,
+        fontSize: 10,
+        fontWeight: 600,
+        fontFamily: 'var(--tf-mono)',
         border: count > 0 ? '1px solid #6e5ce640' : `1px solid ${C.bd}30`,
         background: count > 0 ? '#6e5ce612' : 'transparent',
         color: count > 0 ? '#6e5ce6' : C.t3,
@@ -119,7 +185,15 @@ function CompareButton() {
         transition: `all ${transition.fast}`,
       }}
     >
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      >
         <path d="M18 20V10M12 20V4M6 20v-6" />
       </svg>
       Compare{count > 0 ? ` (${count})` : ''}
@@ -136,9 +210,14 @@ function AlertsButton() {
       onClick={() => setAlertPickerOpen(!alertPickerOpen)}
       title="Smart Alert Templates"
       style={{
-        display: 'flex', alignItems: 'center', gap: 4,
-        padding: '4px 10px', borderRadius: radii.sm,
-        fontSize: 10, fontWeight: 600, fontFamily: 'var(--tf-mono)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '4px 10px',
+        borderRadius: radii.sm,
+        fontSize: 10,
+        fontWeight: 600,
+        fontFamily: 'var(--tf-mono)',
         border: alertPickerOpen ? '1px solid #f0b64e40' : `1px solid ${C.bd}30`,
         background: alertPickerOpen ? '#f0b64e12' : 'transparent',
         color: alertPickerOpen ? '#f0b64e' : C.t3,
@@ -151,8 +230,6 @@ function AlertsButton() {
   );
 }
 
-
-
 function SmartFolderButton() {
   const smartFolderOpen = useMarketsPrefsStore((s) => s.smartFolderOpen);
   const setSmartFolderOpen = useMarketsPrefsStore((s) => s.setSmartFolderOpen);
@@ -162,9 +239,14 @@ function SmartFolderButton() {
       onClick={() => setSmartFolderOpen(!smartFolderOpen)}
       title="Smart Folders"
       style={{
-        display: 'flex', alignItems: 'center', gap: 4,
-        padding: '4px 10px', borderRadius: radii.sm,
-        fontSize: 10, fontWeight: 600, fontFamily: 'var(--tf-mono)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '4px 10px',
+        borderRadius: radii.sm,
+        fontSize: 10,
+        fontWeight: 600,
+        fontFamily: 'var(--tf-mono)',
         border: smartFolderOpen ? `1px solid ${C.y}40` : `1px solid ${C.bd}30`,
         background: smartFolderOpen ? `${C.y}12` : 'transparent',
         color: smartFolderOpen ? C.y : C.t3,
@@ -186,9 +268,14 @@ function ScreenerButton() {
       onClick={() => setScreenerPanelOpen(!screenerPanelOpen)}
       title="Screener"
       style={{
-        display: 'flex', alignItems: 'center', gap: 4,
-        padding: '4px 10px', borderRadius: radii.sm,
-        fontSize: 10, fontWeight: 600, fontFamily: 'var(--tf-mono)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '4px 10px',
+        borderRadius: radii.sm,
+        fontSize: 10,
+        fontWeight: 600,
+        fontFamily: 'var(--tf-mono)',
         border: screenerPanelOpen ? `1px solid ${C.p}40` : `1px solid ${C.bd}30`,
         background: screenerPanelOpen ? `${C.p}12` : 'transparent',
         color: screenerPanelOpen ? C.p : C.t3,
@@ -201,8 +288,6 @@ function ScreenerButton() {
   );
 }
 
-
-
 function AnalyticsButton() {
   const performancePanelOpen = useMarketsPrefsStore((s) => s.performancePanelOpen);
   const setPerformancePanelOpen = useMarketsPrefsStore((s) => s.setPerformancePanelOpen);
@@ -212,9 +297,14 @@ function AnalyticsButton() {
       onClick={() => setPerformancePanelOpen(!performancePanelOpen)}
       title="Performance Analytics"
       style={{
-        display: 'flex', alignItems: 'center', gap: 4,
-        padding: '4px 10px', borderRadius: radii.sm,
-        fontSize: 10, fontWeight: 600, fontFamily: 'var(--tf-mono)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '4px 10px',
+        borderRadius: radii.sm,
+        fontSize: 10,
+        fontWeight: 600,
+        fontFamily: 'var(--tf-mono)',
         border: performancePanelOpen ? `1px solid ${C.cyan}40` : `1px solid ${C.bd}30`,
         background: performancePanelOpen ? `${C.cyan}12` : 'transparent',
         color: performancePanelOpen ? C.cyan : C.t3,
@@ -350,14 +440,11 @@ function MarketsToolbar() {
         {/* Sprint 22: Alerts button */}
         <AlertsButton />
 
-
         {/* Sprint 28: Smart Folders button */}
         <SmartFolderButton />
 
         {/* Sprint 29: Screener button */}
         <ScreenerButton />
-
-
 
         {/* Sprint 31: Analytics button */}
         <AnalyticsButton />
@@ -367,7 +454,7 @@ function MarketsToolbar() {
 
         {/* Group by asset class */}
         <button
-          onClick={() => groupBy === 'assetClass' ? clearGroupBy() : setGroupBy('assetClass')}
+          onClick={() => (groupBy === 'assetClass' ? clearGroupBy() : setGroupBy('assetClass'))}
           style={{
             padding: '4px 10px',
             borderRadius: radii.sm,
@@ -384,7 +471,15 @@ function MarketsToolbar() {
             gap: 4,
           }}
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          >
             <line x1="3" y1="6" x2="21" y2="6" />
             <line x1="3" y1="12" x2="15" y2="12" />
             <line x1="3" y1="18" x2="9" y2="18" />

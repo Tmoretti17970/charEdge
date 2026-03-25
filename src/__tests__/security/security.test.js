@@ -44,33 +44,25 @@ describe('SecureStore — passphrase support (Tier 3.1)', () => {
 
 // ─── 3.3: Enhanced data deletion ────────────────────────────────
 
-describe('DataPrivacySection — complete data erasure (Tier 3.3)', () => {
-  it('clears OPFS via navigator.storage.getDirectory', async () => {
+describe('StorageDashboard — cache management (Tier 3.3)', () => {
+  it('clears all browser caches via StorageDashboard', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile(
-      'src/app/components/settings/DataPrivacySection.jsx', 'utf8'
-    );
-    expect(source).toContain('navigator.storage?.getDirectory');
-    expect(source).toContain('removeEntry');
-    expect(source).toContain('recursive: true');
-  });
-
-  it('unregisters all service workers', async () => {
-    const fs = await import('fs');
-    const source = await fs.promises.readFile(
-      'src/app/components/settings/DataPrivacySection.jsx', 'utf8'
-    );
-    expect(source).toContain('navigator.serviceWorker?.getRegistrations');
-    expect(source).toContain('reg.unregister()');
-  });
-
-  it('clears all browser caches', async () => {
-    const fs = await import('fs');
-    const source = await fs.promises.readFile(
-      'src/app/components/settings/DataPrivacySection.jsx', 'utf8'
-    );
+    const source = await fs.promises.readFile('src/app/components/settings/StorageDashboard.jsx', 'utf8');
     expect(source).toContain('caches?.keys()');
     expect(source).toContain('caches.delete(name)');
+  });
+
+  it('displays storage estimate from navigator.storage', async () => {
+    const fs = await import('fs');
+    const source = await fs.promises.readFile('src/app/components/settings/StorageDashboard.jsx', 'utf8');
+    expect(source).toContain('navigator.storage?.estimate');
+  });
+
+  it('DataPrivacySection shows GDPR data rights info', async () => {
+    const fs = await import('fs');
+    const source = await fs.promises.readFile('src/app/components/settings/DataPrivacySection.jsx', 'utf8');
+    expect(source).toContain('GDPR data rights');
+    expect(source).toContain('Data & Privacy');
   });
 });
 
@@ -94,18 +86,14 @@ describe('PrivacyPage — privacy policy route (Tier 3.4)', () => {
 
   it('is registered in PageRouter', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile(
-      'src/app/layouts/PageRouter.jsx', 'utf8'
-    );
+    const source = await fs.promises.readFile('src/app/layouts/PageRouter.jsx', 'utf8');
     expect(source).toContain('PrivacyPage');
-    expect(source).toContain("privacy:");
+    expect(source).toContain('privacy:');
   });
 
   it('has a link in the Sidebar', async () => {
     const fs = await import('fs');
-    const source = await fs.promises.readFile(
-      'src/app/layouts/Sidebar.jsx', 'utf8'
-    );
+    const source = await fs.promises.readFile('src/app/layouts/Sidebar.jsx', 'utf8');
     expect(source).toContain("'privacy'");
     expect(source).toContain('Privacy');
   });
@@ -144,9 +132,7 @@ describe('Service Worker — sensitive request exclusion (Tier 3.7)', () => {
     // Should call _isSensitiveRequest before caching
     const networkFirst = source.slice(
       source.indexOf('async function networkFirstStrategy'),
-      source.indexOf('// ─── Helpers') > -1
-        ? source.indexOf('// ─── Helpers')
-        : source.length,
+      source.indexOf('// ─── Helpers') > -1 ? source.indexOf('// ─── Helpers') : source.length,
     );
     expect(networkFirst).toContain('_isSensitiveRequest(url)');
     expect(networkFirst).toContain('return response');

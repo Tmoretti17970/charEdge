@@ -4,17 +4,21 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useMemo } from 'react';
-import { C, M } from '@/constants.js';
 import { fmtD } from '../../../../utils.js';
 import { Card, AutoGrid } from '../../../components/ui/UIKit.jsx';
 import BreakdownBarChart from '../../../components/widgets/BreakdownBarChart.jsx';
 import PlaybookManager from '../../playbook/PlaybookManager.jsx';
 import { SectionLabel, MiniStat, headerRow, dataRow } from './AnalyticsPrimitives.jsx';
 import s from './StrategiesTab.module.css';
+import { C, M } from '@/constants.js';
 
 function StrategiesTab({ result, computing }) {
   if (!result || !result.bySt) {
-    return <div style={{ padding: 40, textAlign: 'center', color: C.t3 }}>{computing ? 'Computing playbooks...' : 'No playbook data available.'}</div>;
+    return (
+      <div style={{ padding: 40, textAlign: 'center', color: C.t3 }}>
+        {computing ? 'Computing playbooks...' : 'No playbook data available.'}
+      </div>
+    );
   }
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -28,11 +32,8 @@ function StrategiesTab({ result, computing }) {
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const tags = useMemo(
-    () =>
-      result.byTag
-        ? Object.values(result.byTag).sort((a, b) => b.pnl - a.pnl)
-        : [],
-    [result.byTag]
+    () => (result.byTag ? Object.values(result.byTag).sort((a, b) => b.pnl - a.pnl) : []),
+    [result.byTag],
   );
 
   const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
@@ -82,14 +83,37 @@ function StrategiesTab({ result, computing }) {
             Which playbooks win/lose on which days? Green = profitable, Red = losing.
           </div>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ borderCollapse: 'separate', borderSpacing: '2px', width: '100%', fontSize: 11, fontFamily: M }}>
+            <table
+              style={{ borderCollapse: 'separate', borderSpacing: '2px', width: '100%', fontSize: 11, fontFamily: M }}
+            >
               <thead>
                 <tr>
-                  <th style={{ padding: '6px 10px', textAlign: 'left', color: C.t3, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: 9 }}>Strategy</th>
+                  <th
+                    style={{
+                      padding: '6px 10px',
+                      textAlign: 'left',
+                      color: C.t3,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                      fontSize: 9,
+                    }}
+                  >
+                    Strategy
+                  </th>
                   {dayNames.map((d) => (
                     <th
                       key={d}
-                      style={{ padding: '6px 8px', textAlign: 'center', color: C.t3, fontWeight: 700, minWidth: 52, textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: 9 }}
+                      style={{
+                        padding: '6px 8px',
+                        textAlign: 'center',
+                        color: C.t3,
+                        fontWeight: 700,
+                        minWidth: 52,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        fontSize: 9,
+                      }}
                     >
                       {d}
                     </th>
@@ -156,11 +180,28 @@ function StrategiesTab({ result, computing }) {
         {strategies.map((s) => (
           <div key={s.name} style={{ ...dataRow, gridTemplateColumns: '1fr 80px 60px 60px 80px 70px' }}>
             <div style={{ fontWeight: 700, color: C.t1 }}>{s.name}</div>
-            <div style={{ textAlign: 'right', fontFamily: M, fontWeight: 700, color: s.pnl >= 0 ? C.g : C.r, fontVariantNumeric: 'tabular-nums' }}>
+            <div
+              style={{
+                textAlign: 'right',
+                fontFamily: M,
+                fontWeight: 700,
+                color: s.pnl >= 0 ? C.g : C.r,
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
               {fmtD(s.pnl)}
             </div>
             <div style={{ textAlign: 'right', fontFamily: M, fontVariantNumeric: 'tabular-nums' }}>{s.count}</div>
-            <div style={{ textAlign: 'right', fontFamily: M, color: s.wr >= 50 ? C.g : C.r, fontVariantNumeric: 'tabular-nums' }}>{s.wr.toFixed(0)}%</div>
+            <div
+              style={{
+                textAlign: 'right',
+                fontFamily: M,
+                color: s.wr >= 50 ? C.g : C.r,
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {s.wr.toFixed(0)}%
+            </div>
             <div
               style={{
                 textAlign: 'right',

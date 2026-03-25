@@ -13,153 +13,186 @@
 import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
-import { alpha } from '@/shared/colorUtils';
 import s from './SectorRotationMap.module.css';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Mock Sector Data ───────────────────────────────────────────
 
 const SECTORS = [
   {
-    id: 'tech', name: 'Technology', icon: '💻', weight: 28.5,
-    perf: { '1D': 1.42, '1W': 3.18, '1M': 5.64, '3M': 12.3, 'YTD': 8.9 },
+    id: 'tech',
+    name: 'Technology',
+    icon: '💻',
+    weight: 28.5,
+    perf: { '1D': 1.42, '1W': 3.18, '1M': 5.64, '3M': 12.3, YTD: 8.9 },
     flow: 2.4, // billions, positive = inflow
     cycle: 'expansion',
     topMovers: [
-      { symbol: 'NVDA', change: 4.8, price: 892.50 },
-      { symbol: 'AAPL', change: 1.2, price: 198.30 },
-      { symbol: 'MSFT', change: 0.9, price: 415.80 },
-      { symbol: 'AVGO', change: 3.1, price: 1285.00 },
-      { symbol: 'AMD', change: -0.6, price: 178.40 },
+      { symbol: 'NVDA', change: 4.8, price: 892.5 },
+      { symbol: 'AAPL', change: 1.2, price: 198.3 },
+      { symbol: 'MSFT', change: 0.9, price: 415.8 },
+      { symbol: 'AVGO', change: 3.1, price: 1285.0 },
+      { symbol: 'AMD', change: -0.6, price: 178.4 },
     ],
   },
   {
-    id: 'health', name: 'Healthcare', icon: '🏥', weight: 13.2,
-    perf: { '1D': -0.35, '1W': 0.82, '1M': -1.24, '3M': 2.10, 'YTD': 1.5 },
+    id: 'health',
+    name: 'Healthcare',
+    icon: '🏥',
+    weight: 13.2,
+    perf: { '1D': -0.35, '1W': 0.82, '1M': -1.24, '3M': 2.1, YTD: 1.5 },
     flow: -0.8,
     cycle: 'contraction',
     topMovers: [
-      { symbol: 'UNH', change: -1.2, price: 524.60 },
-      { symbol: 'JNJ', change: 0.4, price: 162.10 },
-      { symbol: 'LLY', change: 2.8, price: 785.40 },
-      { symbol: 'PFE', change: -0.8, price: 28.90 },
-      { symbol: 'ABBV', change: 0.3, price: 178.50 },
+      { symbol: 'UNH', change: -1.2, price: 524.6 },
+      { symbol: 'JNJ', change: 0.4, price: 162.1 },
+      { symbol: 'LLY', change: 2.8, price: 785.4 },
+      { symbol: 'PFE', change: -0.8, price: 28.9 },
+      { symbol: 'ABBV', change: 0.3, price: 178.5 },
     ],
   },
   {
-    id: 'finance', name: 'Financials', icon: '🏦', weight: 12.8,
-    perf: { '1D': 0.68, '1W': 1.45, '1M': 3.82, '3M': 8.4, 'YTD': 6.2 },
+    id: 'finance',
+    name: 'Financials',
+    icon: '🏦',
+    weight: 12.8,
+    perf: { '1D': 0.68, '1W': 1.45, '1M': 3.82, '3M': 8.4, YTD: 6.2 },
     flow: 1.2,
     cycle: 'expansion',
     topMovers: [
-      { symbol: 'JPM', change: 1.5, price: 198.20 },
-      { symbol: 'BAC', change: 0.8, price: 38.40 },
-      { symbol: 'GS', change: 2.1, price: 412.80 },
-      { symbol: 'V', change: 0.3, price: 282.60 },
-      { symbol: 'MA', change: 0.6, price: 468.90 },
+      { symbol: 'JPM', change: 1.5, price: 198.2 },
+      { symbol: 'BAC', change: 0.8, price: 38.4 },
+      { symbol: 'GS', change: 2.1, price: 412.8 },
+      { symbol: 'V', change: 0.3, price: 282.6 },
+      { symbol: 'MA', change: 0.6, price: 468.9 },
     ],
   },
   {
-    id: 'energy', name: 'Energy', icon: '⚡', weight: 4.2,
-    perf: { '1D': -1.85, '1W': -3.20, '1M': -5.40, '3M': -8.6, 'YTD': -12.4 },
+    id: 'energy',
+    name: 'Energy',
+    icon: '⚡',
+    weight: 4.2,
+    perf: { '1D': -1.85, '1W': -3.2, '1M': -5.4, '3M': -8.6, YTD: -12.4 },
     flow: -1.6,
     cycle: 'contraction',
     topMovers: [
-      { symbol: 'XOM', change: -2.1, price: 104.80 },
-      { symbol: 'CVX', change: -1.8, price: 152.30 },
-      { symbol: 'SLB', change: -2.5, price: 48.60 },
-      { symbol: 'COP', change: -1.4, price: 112.40 },
-      { symbol: 'EOG', change: -0.9, price: 118.20 },
+      { symbol: 'XOM', change: -2.1, price: 104.8 },
+      { symbol: 'CVX', change: -1.8, price: 152.3 },
+      { symbol: 'SLB', change: -2.5, price: 48.6 },
+      { symbol: 'COP', change: -1.4, price: 112.4 },
+      { symbol: 'EOG', change: -0.9, price: 118.2 },
     ],
   },
   {
-    id: 'consumer_d', name: 'Cons. Discretionary', icon: '🛍️', weight: 10.5,
-    perf: { '1D': 0.92, '1W': 2.10, '1M': 4.35, '3M': 6.8, 'YTD': 5.1 },
+    id: 'consumer_d',
+    name: 'Cons. Discretionary',
+    icon: '🛍️',
+    weight: 10.5,
+    perf: { '1D': 0.92, '1W': 2.1, '1M': 4.35, '3M': 6.8, YTD: 5.1 },
     flow: 0.6,
     cycle: 'peak',
     topMovers: [
-      { symbol: 'AMZN', change: 1.8, price: 185.20 },
-      { symbol: 'TSLA', change: 3.4, price: 248.60 },
-      { symbol: 'HD', change: 0.2, price: 378.90 },
-      { symbol: 'NKE', change: -0.5, price: 98.40 },
-      { symbol: 'MCD', change: 0.6, price: 294.10 },
+      { symbol: 'AMZN', change: 1.8, price: 185.2 },
+      { symbol: 'TSLA', change: 3.4, price: 248.6 },
+      { symbol: 'HD', change: 0.2, price: 378.9 },
+      { symbol: 'NKE', change: -0.5, price: 98.4 },
+      { symbol: 'MCD', change: 0.6, price: 294.1 },
     ],
   },
   {
-    id: 'consumer_s', name: 'Cons. Staples', icon: '🛒', weight: 6.8,
-    perf: { '1D': 0.12, '1W': -0.45, '1M': -0.82, '3M': 1.2, 'YTD': -0.4 },
+    id: 'consumer_s',
+    name: 'Cons. Staples',
+    icon: '🛒',
+    weight: 6.8,
+    perf: { '1D': 0.12, '1W': -0.45, '1M': -0.82, '3M': 1.2, YTD: -0.4 },
     flow: -0.2,
     cycle: 'trough',
     topMovers: [
-      { symbol: 'PG', change: 0.3, price: 168.40 },
-      { symbol: 'KO', change: 0.1, price: 62.80 },
-      { symbol: 'PEP', change: -0.2, price: 172.60 },
-      { symbol: 'COST', change: 0.8, price: 728.30 },
-      { symbol: 'WMT', change: 0.4, price: 172.80 },
+      { symbol: 'PG', change: 0.3, price: 168.4 },
+      { symbol: 'KO', change: 0.1, price: 62.8 },
+      { symbol: 'PEP', change: -0.2, price: 172.6 },
+      { symbol: 'COST', change: 0.8, price: 728.3 },
+      { symbol: 'WMT', change: 0.4, price: 172.8 },
     ],
   },
   {
-    id: 'industrial', name: 'Industrials', icon: '🏭', weight: 8.5,
-    perf: { '1D': 0.55, '1W': 1.82, '1M': 2.90, '3M': 5.4, 'YTD': 4.8 },
+    id: 'industrial',
+    name: 'Industrials',
+    icon: '🏭',
+    weight: 8.5,
+    perf: { '1D': 0.55, '1W': 1.82, '1M': 2.9, '3M': 5.4, YTD: 4.8 },
     flow: 0.4,
     cycle: 'expansion',
     topMovers: [
-      { symbol: 'CAT', change: 1.2, price: 342.80 },
-      { symbol: 'GE', change: 0.8, price: 168.40 },
-      { symbol: 'HON', change: 0.3, price: 212.50 },
-      { symbol: 'UNP', change: 0.5, price: 248.60 },
-      { symbol: 'RTX', change: 0.9, price: 98.40 },
+      { symbol: 'CAT', change: 1.2, price: 342.8 },
+      { symbol: 'GE', change: 0.8, price: 168.4 },
+      { symbol: 'HON', change: 0.3, price: 212.5 },
+      { symbol: 'UNP', change: 0.5, price: 248.6 },
+      { symbol: 'RTX', change: 0.9, price: 98.4 },
     ],
   },
   {
-    id: 'materials', name: 'Materials', icon: '🧱', weight: 2.5,
-    perf: { '1D': -0.28, '1W': 0.65, '1M': 1.42, '3M': -2.1, 'YTD': -1.8 },
+    id: 'materials',
+    name: 'Materials',
+    icon: '🧱',
+    weight: 2.5,
+    perf: { '1D': -0.28, '1W': 0.65, '1M': 1.42, '3M': -2.1, YTD: -1.8 },
     flow: -0.3,
     cycle: 'trough',
     topMovers: [
-      { symbol: 'LIN', change: 0.4, price: 442.30 },
-      { symbol: 'APD', change: -0.6, price: 268.40 },
-      { symbol: 'SHW', change: 0.2, price: 342.80 },
-      { symbol: 'FCX', change: -1.8, price: 42.60 },
-      { symbol: 'NEM', change: 1.2, price: 38.90 },
+      { symbol: 'LIN', change: 0.4, price: 442.3 },
+      { symbol: 'APD', change: -0.6, price: 268.4 },
+      { symbol: 'SHW', change: 0.2, price: 342.8 },
+      { symbol: 'FCX', change: -1.8, price: 42.6 },
+      { symbol: 'NEM', change: 1.2, price: 38.9 },
     ],
   },
   {
-    id: 'realestate', name: 'Real Estate', icon: '🏢', weight: 2.4,
-    perf: { '1D': -0.62, '1W': -1.24, '1M': -2.85, '3M': -4.2, 'YTD': -5.6 },
+    id: 'realestate',
+    name: 'Real Estate',
+    icon: '🏢',
+    weight: 2.4,
+    perf: { '1D': -0.62, '1W': -1.24, '1M': -2.85, '3M': -4.2, YTD: -5.6 },
     flow: -0.5,
     cycle: 'contraction',
     topMovers: [
-      { symbol: 'AMT', change: -0.8, price: 198.40 },
-      { symbol: 'PLD', change: -1.0, price: 128.60 },
-      { symbol: 'EQIX', change: 0.2, price: 842.30 },
-      { symbol: 'SPG', change: -0.5, price: 148.90 },
-      { symbol: 'O', change: -0.3, price: 54.20 },
+      { symbol: 'AMT', change: -0.8, price: 198.4 },
+      { symbol: 'PLD', change: -1.0, price: 128.6 },
+      { symbol: 'EQIX', change: 0.2, price: 842.3 },
+      { symbol: 'SPG', change: -0.5, price: 148.9 },
+      { symbol: 'O', change: -0.3, price: 54.2 },
     ],
   },
   {
-    id: 'utilities', name: 'Utilities', icon: '💡', weight: 2.6,
-    perf: { '1D': 0.18, '1W': -0.32, '1M': -1.10, '3M': 0.8, 'YTD': -2.1 },
+    id: 'utilities',
+    name: 'Utilities',
+    icon: '💡',
+    weight: 2.6,
+    perf: { '1D': 0.18, '1W': -0.32, '1M': -1.1, '3M': 0.8, YTD: -2.1 },
     flow: 0.1,
     cycle: 'trough',
     topMovers: [
-      { symbol: 'NEE', change: 0.4, price: 72.80 },
-      { symbol: 'DUK', change: 0.1, price: 98.40 },
-      { symbol: 'SO', change: -0.2, price: 74.60 },
-      { symbol: 'D', change: 0.3, price: 48.90 },
-      { symbol: 'AEP', change: -0.1, price: 88.20 },
+      { symbol: 'NEE', change: 0.4, price: 72.8 },
+      { symbol: 'DUK', change: 0.1, price: 98.4 },
+      { symbol: 'SO', change: -0.2, price: 74.6 },
+      { symbol: 'D', change: 0.3, price: 48.9 },
+      { symbol: 'AEP', change: -0.1, price: 88.2 },
     ],
   },
   {
-    id: 'comms', name: 'Communication', icon: '📡', weight: 8.0,
-    perf: { '1D': 1.15, '1W': 2.48, '1M': 6.20, '3M': 14.5, 'YTD': 10.2 },
+    id: 'comms',
+    name: 'Communication',
+    icon: '📡',
+    weight: 8.0,
+    perf: { '1D': 1.15, '1W': 2.48, '1M': 6.2, '3M': 14.5, YTD: 10.2 },
     flow: 1.8,
     cycle: 'expansion',
     topMovers: [
-      { symbol: 'META', change: 2.4, price: 498.60 },
-      { symbol: 'GOOGL', change: 1.6, price: 148.20 },
-      { symbol: 'NFLX', change: 0.8, price: 628.40 },
-      { symbol: 'DIS', change: -0.4, price: 112.30 },
-      { symbol: 'T', change: 0.2, price: 18.90 },
+      { symbol: 'META', change: 2.4, price: 498.6 },
+      { symbol: 'GOOGL', change: 1.6, price: 148.2 },
+      { symbol: 'NFLX', change: 0.8, price: 628.4 },
+      { symbol: 'DIS', change: -0.4, price: 112.3 },
+      { symbol: 'T', change: 0.2, price: 18.9 },
     ],
   },
 ];
@@ -194,24 +227,15 @@ function SectorRotationMap() {
   return (
     <div className={s.panelWrap}>
       {/* Header */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className={`tf-btn ${s.s0}`}
-      >
+      <button onClick={() => setCollapsed(!collapsed)} className={`tf-btn ${s.s0}`}>
         <div className={s.s1}>
           <span className={s.headerIcon}>🗺️</span>
           <h3 className={s.headerTitle}>Sector Rotation Map</h3>
-          <span
-            className={s.sectorBadge}
-            style={{ color: C.g, background: alpha(C.g, 0.1) }}
-          >
+          <span className={s.sectorBadge} style={{ color: C.g, background: alpha(C.g, 0.1) }}>
             {SECTORS.length} sectors
           </span>
         </div>
-        <span
-          className={s.chevron}
-          style={{ transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)' }}
-        >
+        <span className={s.chevron} style={{ transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)' }}>
           ▾
         </span>
       </button>
@@ -263,10 +287,7 @@ function SectorRotationMap() {
 
           {/* Drill-down back button */}
           {drillSector && (
-            <button
-              onClick={() => setDrillSector(null)}
-              className={`tf-btn ${s.backBtn}`}
-            >
+            <button onClick={() => setDrillSector(null)} className={`tf-btn ${s.backBtn}`}>
               ← All Sectors
             </button>
           )}
@@ -280,7 +301,9 @@ function SectorRotationMap() {
               <div className={s.tableHeader}>
                 <span>Sector</span>
                 {TIMEFRAMES.map((tf) => (
-                  <span key={tf} className={s.textRight} style={{ color: activeTF === tf ? C.b : undefined }}>{tf}</span>
+                  <span key={tf} className={s.textRight} style={{ color: activeTF === tf ? C.b : undefined }}>
+                    {tf}
+                  </span>
                 ))}
                 <span className={s.textRight}>Flow</span>
                 <span className={s.textRight}>Cycle</span>
@@ -356,7 +379,8 @@ function SectorRow({ sector, activeTF, onClick }) {
               borderRadius: 4,
             }}
           >
-            {val >= 0 ? '+' : ''}{val.toFixed(2)}%
+            {val >= 0 ? '+' : ''}
+            {val.toFixed(2)}%
           </div>
         );
       })}
@@ -373,10 +397,7 @@ function SectorRow({ sector, activeTF, onClick }) {
 
       {/* Cycle Badge */}
       <div className={s.textRight}>
-        <span
-          className={s.cycleBadge}
-          style={{ color: cycleMeta.color, background: alpha(cycleMeta.color, 0.1) }}
-        >
+        <span className={s.cycleBadge} style={{ color: cycleMeta.color, background: alpha(cycleMeta.color, 0.1) }}>
           {cycleMeta.icon} {cycleMeta.label.slice(0, 4)}
         </span>
       </div>
@@ -405,19 +426,14 @@ function DrillDown({ sector, activeTF }) {
         </div>
         <div className={s.drillAlignRight}>
           <div className={s.tinLabel}>{activeTF} Performance</div>
-          <div
-            className={s.drillPerfValue}
-            style={{ color: sector.perf[activeTF] >= 0 ? C.g : C.r }}
-          >
-            {sector.perf[activeTF] >= 0 ? '+' : ''}{sector.perf[activeTF].toFixed(2)}%
+          <div className={s.drillPerfValue} style={{ color: sector.perf[activeTF] >= 0 ? C.g : C.r }}>
+            {sector.perf[activeTF] >= 0 ? '+' : ''}
+            {sector.perf[activeTF].toFixed(2)}%
           </div>
         </div>
         <div className={s.drillAlignRight}>
           <div className={s.tinLabel}>Net Flow</div>
-          <div
-            className={s.drillFlowValue}
-            style={{ color: sector.flow >= 0 ? C.g : C.r }}
-          >
+          <div className={s.drillFlowValue} style={{ color: sector.flow >= 0 ? C.g : C.r }}>
             {sector.flow >= 0 ? '+' : ''}${sector.flow.toFixed(1)}B
           </div>
         </div>
@@ -447,7 +463,8 @@ function DrillDown({ sector, activeTF }) {
                 background: alpha(mover.change >= 0 ? C.g : C.r, 0.08),
               }}
             >
-              {mover.change >= 0 ? '+' : ''}{mover.change.toFixed(1)}%
+              {mover.change >= 0 ? '+' : ''}
+              {mover.change.toFixed(1)}%
             </span>
           </div>
         ))}

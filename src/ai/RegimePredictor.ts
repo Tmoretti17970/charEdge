@@ -14,7 +14,7 @@
 
 export interface RegimePrediction {
   regime: 'trending-up' | 'trending-down' | 'ranging' | 'volatile';
-  confidence: number;    // 0–100
+  confidence: number; // 0–100
   probabilities: {
     trendingUp: number;
     trendingDown: number;
@@ -74,16 +74,16 @@ class RegimePredictor {
       };
     }
 
-    const closes = slice.map(b => b.close);
+    const closes = slice.map((b) => b.close);
     const n = closes.length;
 
     // Trend: linear regression slope
     const slope = this._linRegSlope(closes);
     const avgPrice = closes.reduce((s, c) => s + c, 0) / n;
-    const normalizedSlope = slope / avgPrice * 100; // percent per bar
+    const normalizedSlope = (slope / avgPrice) * 100; // percent per bar
 
     // Volatility: ATR-like measure
-    const ranges = slice.map(b => (b.high - b.low) / ((b.high + b.low) / 2) * 100);
+    const ranges = slice.map((b) => ((b.high - b.low) / ((b.high + b.low) / 2)) * 100);
     const avgRange = ranges.reduce((s, r) => s + r, 0) / ranges.length;
 
     // Classify
@@ -91,9 +91,19 @@ class RegimePredictor {
 
     if (avgRange > 3) {
       probs.volatile = 0.5;
-      if (normalizedSlope > 0.3) { probs.trendingUp = 0.3; probs.trendingDown = 0.1; probs.ranging = 0.1; }
-      else if (normalizedSlope < -0.3) { probs.trendingDown = 0.3; probs.trendingUp = 0.1; probs.ranging = 0.1; }
-      else { probs.ranging = 0.2; probs.trendingUp = 0.15; probs.trendingDown = 0.15; }
+      if (normalizedSlope > 0.3) {
+        probs.trendingUp = 0.3;
+        probs.trendingDown = 0.1;
+        probs.ranging = 0.1;
+      } else if (normalizedSlope < -0.3) {
+        probs.trendingDown = 0.3;
+        probs.trendingUp = 0.1;
+        probs.ranging = 0.1;
+      } else {
+        probs.ranging = 0.2;
+        probs.trendingUp = 0.15;
+        probs.trendingDown = 0.15;
+      }
     } else if (normalizedSlope > 0.2) {
       probs.trendingUp = 0.6;
       probs.trendingDown = 0.05;
@@ -112,8 +122,8 @@ class RegimePredictor {
     }
 
     const entries = Object.entries(probs) as [string, number][];
-    const topRegime = entries.reduce((a, b) => b[1] > a[1] ? b : a);
-    const regimeMap: Record<string, typeof REGIMES[number]> = {
+    const topRegime = entries.reduce((a, b) => (b[1] > a[1] ? b : a));
+    const regimeMap: Record<string, (typeof REGIMES)[number]> = {
       trendingUp: 'trending-up',
       trendingDown: 'trending-down',
       ranging: 'ranging',
@@ -139,8 +149,7 @@ class RegimePredictor {
     const sequence = this._prepareSequence(bars);
     const tensor = tf.tensor3d([sequence]); // [1, LOOKBACK, 5]
 
-    const output = (model as { predict: (t: unknown) => { dataSync: () => Float32Array } })
-      .predict(tensor);
+    const output = (model as { predict: (t: unknown) => { dataSync: () => Float32Array } }).predict(tensor);
     const probs = output.dataSync();
     tensor.dispose();
 
@@ -169,7 +178,7 @@ class RegimePredictor {
     const baseP = (first.open + first.close) / 2 || 1;
     const baseV = first.volume || 1;
 
-    return slice.map(b => [
+    return slice.map((b) => [
       (b.open - baseP) / baseP,
       (b.high - baseP) / baseP,
       (b.low - baseP) / baseP,
@@ -180,7 +189,10 @@ class RegimePredictor {
 
   private _linRegSlope(values: number[]): number {
     const n = values.length;
-    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+    let sumX = 0,
+      sumY = 0,
+      sumXY = 0,
+      sumX2 = 0;
     for (let i = 0; i < n; i++) {
       sumX += i;
       sumY += values[i];
@@ -193,12 +205,14 @@ class RegimePredictor {
 
   // ─── Model Loading ──────────────────────────────────────────
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TensorFlow.js module type is dynamic and untyped
   private async _loadTF(): Promise<any> {
     if (this._tf) return this._tf;
     this._tf = await import('@tensorflow/tfjs');
     return this._tf;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TensorFlow.js module type is dynamic and untyped
   private async _getModel(tf: any): Promise<unknown | null> {
     if (this._model) return this._model;
     try {

@@ -20,7 +20,7 @@ import ChartEngineWidget from './ChartEngineWidget.jsx';
 const ChartCanvas = React.forwardRef(function ChartCanvas(
   {
     // Old props (accepted but delegated to engine)
-    data,
+    data: _data,
     _startIdx,
     _endIdx,
     _chartW,

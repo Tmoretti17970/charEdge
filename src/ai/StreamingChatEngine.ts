@@ -11,6 +11,7 @@
 
 import { promptAssembler } from './PromptAssembler';
 import type { ChartContext, PromptMode } from './PromptAssembler';
+import type { WebLLMMessage } from './WebLLMProvider';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -62,7 +63,7 @@ export class StreamingChatEngine {
     }
 
     // LLM modes — assemble prompt and route
-    const conversationCtx = this._getRecentHistory(6).map(m => ({
+    const conversationCtx = this._getRecentHistory(6).map((m) => ({
       role: m.role,
       content: m.content,
     }));
@@ -85,7 +86,7 @@ export class StreamingChatEngine {
       const { aiRouter } = await import('./AIRouter');
       const result = await aiRouter.route({
         type: 'chat',
-        messages: assembled.messages as any,
+        messages: assembled.messages as WebLLMMessage[],
         maxTokens: 512,
         temperature: mode === 'coaching' ? 0.5 : 0.3,
         stream: false,
@@ -125,9 +126,7 @@ export class StreamingChatEngine {
    */
   searchHistory(query: string): ChatMessage[] {
     const lower = query.toLowerCase();
-    return this._history.filter(m =>
-      m.content.toLowerCase().includes(lower)
-    );
+    return this._history.filter((m) => m.content.toLowerCase().includes(lower));
   }
 
   /**
@@ -157,7 +156,7 @@ export class StreamingChatEngine {
   private _quickResponse(text: string, ctx?: ChartContext | null): string {
     const lower = text.toLowerCase();
 
-    if (lower.includes('what do you see') || lower.includes('what\'s happening')) {
+    if (lower.includes('what do you see') || lower.includes("what's happening")) {
       if (ctx) {
         return `${ctx.symbol} on ${ctx.timeframe}: Price at $${ctx.price.toLocaleString()}${ctx.regime ? `, ${ctx.regime}` : ''}${ctx.rsi ? `, RSI ${ctx.rsi.toFixed(0)}` : ''}.`;
       }
@@ -166,8 +165,10 @@ export class StreamingChatEngine {
 
     if (lower.includes('should i') || lower.includes('trade this')) {
       if (ctx?.rsi) {
-        if (ctx.rsi > 70) return `${ctx.symbol} RSI is ${ctx.rsi.toFixed(0)} — overbought territory. Consider waiting for pullback.`;
-        if (ctx.rsi < 30) return `${ctx.symbol} RSI is ${ctx.rsi.toFixed(0)} — oversold territory. Watch for reversal signals.`;
+        if (ctx.rsi > 70)
+          return `${ctx.symbol} RSI is ${ctx.rsi.toFixed(0)} — overbought territory. Consider waiting for pullback.`;
+        if (ctx.rsi < 30)
+          return `${ctx.symbol} RSI is ${ctx.rsi.toFixed(0)} — oversold territory. Watch for reversal signals.`;
         return `${ctx.symbol} RSI at ${ctx.rsi.toFixed(0)} — neutral zone. Look for confluence with other signals.`;
       }
       return 'Need chart context to assess this setup. Switch to Analysis mode for deeper insight.';
@@ -184,7 +185,7 @@ export class StreamingChatEngine {
 
   private _fallbackResponse(text: string, mode: PromptMode, ctx?: ChartContext | null): string {
     if (mode === 'coaching') {
-      return 'I\'d need a loaded LLM model for coaching advice. Try loading a model in settings, or switch to Quick mode for instant insights.';
+      return "I'd need a loaded LLM model for coaching advice. Try loading a model in settings, or switch to Quick mode for instant insights.";
     }
     if (mode === 'journal') {
       return 'Journal search requires LLM processing. Try `/journal [query]` after loading a model.';
@@ -218,7 +219,11 @@ export class StreamingChatEngine {
 
   private _notifyListeners(msg: ChatMessage): void {
     for (const cb of this._listeners) {
-      try { cb(msg); } catch { /* ignore */ }
+      try {
+        cb(msg);
+      } catch {
+        /* ignore */
+      }
     }
   }
 }

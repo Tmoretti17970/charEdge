@@ -25,7 +25,7 @@ export interface PriceData {
 
 type PriceCallback = (data: PriceData) => void;
 
-class _PriceBus {
+class PriceBus {
   /** Latest price per symbol */
   private _latest: Map<string, PriceData> = new Map();
 
@@ -59,13 +59,21 @@ class _PriceBus {
     const subs = this._subscribers.get(upper);
     if (subs) {
       for (const cb of subs) {
-        try { cb(data); } catch { /* subscriber error — don't crash bus */ }
+        try {
+          cb(data);
+        } catch {
+          /* subscriber error — don't crash bus */
+        }
       }
     }
 
     // Notify global subscribers
     for (const cb of this._globalSubscribers) {
-      try { cb({ ...data, symbol: upper } as PriceData & { symbol: string }); } catch { /* */ }
+      try {
+        cb({ ...data, symbol: upper } as PriceData & { symbol: string });
+      } catch {
+        /* */
+      }
     }
   }
 
@@ -103,7 +111,9 @@ class _PriceBus {
    */
   subscribeAll(callback: PriceCallback): () => void {
     this._globalSubscribers.add(callback);
-    return () => { this._globalSubscribers.delete(callback); };
+    return () => {
+      this._globalSubscribers.delete(callback);
+    };
   }
 
   /**
@@ -166,11 +176,11 @@ class _PriceBus {
 
 // ─── Singleton + Exports ──────────────────────────────────────────
 
-export const priceBus = new _PriceBus();
+export const priceBus = new PriceBus();
 
 // Expose on window for dev-mode console access
 if (typeof window !== 'undefined') {
-  (window as any).__priceBus = priceBus;
+  (window as unknown as Record<string, unknown>).__priceBus = priceBus;
 }
 
 export default priceBus;

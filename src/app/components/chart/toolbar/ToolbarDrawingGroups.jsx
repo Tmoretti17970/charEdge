@@ -6,9 +6,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useRef, useEffect } from 'react';
-import { C } from '@/constants.js';
+import { TIcon, ALL_TOOLS, DRAWING_GROUPS } from '../../../../shared/drawingToolRegistry';
 import s from './ToolbarDrawingGroups.module.css';
-import { TOOL_ICONS, TIcon, ALL_TOOLS, DRAWING_GROUPS } from '../../../../shared/drawingToolRegistry';
 
 export { TIcon, ALL_TOOLS, DRAWING_GROUPS };
 
@@ -37,8 +36,8 @@ export default function DrawingGroup({ group, activeTool, setActiveTool }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
 
-  const isActive = group.tools.some(t => t.id === activeTool);
-  const currentToolId = group.tools.find(t => t.id === activeTool)?.id || group.tools[0].id;
+  const isActive = group.tools.some((t) => t.id === activeTool);
+  const currentToolId = group.tools.find((t) => t.id === activeTool)?.id || group.tools[0].id;
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -57,35 +56,30 @@ export default function DrawingGroup({ group, activeTool, setActiveTool }) {
 
   return (
     <div ref={containerRef} className={s.groupWrapper}>
-      <ToolbarBtn
-        active={isActive}
-        onClick={handleClick}
-        title={group.tools[0].name}
-        style={{ padding: '4px 6px' }}
-      >
+      <ToolbarBtn active={isActive} onClick={handleClick} title={group.tools[0].name} style={{ padding: '4px 6px' }}>
         <TIcon id={currentToolId} />
       </ToolbarBtn>
       {group.tools.length > 1 && (
-        <button
-          onClick={() => setOpen(!open)}
-          className={s.expandBtn}
-        >
+        <button onClick={() => setOpen(!open)} className={s.expandBtn}>
           ▼
         </button>
       )}
 
       {open && group.tools.length > 1 && (
-        <div
-          className={`tf-chart-dropdown ${s.dropdown}`}
-        >
-          {group.tools.map(tool => (
+        <div className={`tf-chart-dropdown ${s.dropdown}`}>
+          {group.tools.map((tool) => (
             <button
               key={tool.id}
               className="tf-chart-dropdown-item"
               data-active={activeTool === tool.id || undefined}
-              onClick={() => { setActiveTool(tool.id); setOpen(false); }}
+              onClick={() => {
+                setActiveTool(tool.id);
+                setOpen(false);
+              }}
             >
-              <span className={s.toolIconWrap}><TIcon id={tool.id} /></span>
+              <span className={s.toolIconWrap}>
+                <TIcon id={tool.id} />
+              </span>
               <span>{tool.name}</span>
               {activeTool === tool.id && <span className={s.checkMark}>✓</span>}
             </button>
@@ -111,7 +105,9 @@ export function MagnetSnapToggle({ enabled, strength, onToggle, onStrengthChange
 
   useEffect(() => {
     if (!showPopover) return;
-    const close = (e) => { if (btnRef.current && !btnRef.current.contains(e.target)) setShowPopover(false); };
+    const close = (e) => {
+      if (btnRef.current && !btnRef.current.contains(e.target)) setShowPopover(false);
+    };
     document.addEventListener('mousedown', close);
     return () => document.removeEventListener('mousedown', close);
   }, [showPopover]);
@@ -137,10 +133,13 @@ export function MagnetSnapToggle({ enabled, strength, onToggle, onStrengthChange
 
       {showPopover && (
         <div className={s.magnetPopover}>
-          {['weak', 'strong'].map(level => (
+          {['weak', 'strong'].map((level) => (
             <button
               key={level}
-              onClick={() => { onStrengthChange(level); setShowPopover(false); }}
+              onClick={() => {
+                onStrengthChange(level);
+                setShowPopover(false);
+              }}
               className={s.popoverItem}
               data-active={strength === level ? 'true' : undefined}
             >

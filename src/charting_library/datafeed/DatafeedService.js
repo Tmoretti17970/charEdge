@@ -112,19 +112,23 @@ class DatafeedService {
             currentEntry.status = 'ready';
             currentEntry._abortController = null;
             const source = isCrypto(symbol.replace(/USDT$|BUSD$|USD$/, ''))
-              ? 'datafeed:aggregated:crypto' : 'datafeed:aggregated:equity';
+              ? 'datafeed:aggregated:crypto'
+              : 'datafeed:aggregated:equity';
             useChartCoreStore.getState().setDataMeta(aggregated.length, source, aggregated[0]?.time ?? null);
             tickChannel.pushHistorical(key, aggregated);
-            currentEntry.subscribers.forEach(sub => {
+            currentEntry.subscribers.forEach((sub) => {
               if (sub.onHistorical) sub.onHistorical(aggregated);
             });
-            logger.engine.info(`[DatafeedService] Derived ${tf} from cached ${baseTf}: ${aggregated.length} bars (local aggregation)`);
+            logger.engine.info(
+              `[DatafeedService] Derived ${tf} from cached ${baseTf}: ${aggregated.length} bars (local aggregation)`,
+            );
             return;
           }
         }
       }
-    } catch { /* TimeAggregator import failed — fall through to normal fetch */ }
-
+    } catch {
+      /* TimeAggregator import failed — fall through to normal fetch */
+    }
 
     // Route non-crypto symbols through FetchService (Yahoo fallback chain)
     const baseSym = symbol.toUpperCase().replace(/USDT$|BUSD$|USD$/, '');
@@ -140,33 +144,55 @@ class DatafeedService {
           currentEntry.bars = cached.data;
           currentEntry.status = 'ready';
           currentEntry._abortController = null;
-          useChartCoreStore.getState().setDataMeta(cached.data.length, `datafeed:equity:${cached.tier}`, cached.data[0]?.time ?? null);
+          useChartCoreStore
+            .getState()
+            .setDataMeta(cached.data.length, `datafeed:equity:${cached.tier}`, cached.data[0]?.time ?? null);
           tickChannel.pushHistorical(key, cached.data);
-          currentEntry.subscribers.forEach(sub => {
+          currentEntry.subscribers.forEach((sub) => {
             if (sub.onHistorical) sub.onHistorical(cached.data);
           });
           if (currentEntry.subscribers.size > 0) {
             this._startPythStream(baseSym, tf, key);
           }
-          logger.engine.info(`[DatafeedService] Cache hit (${cached.tier}) for ${baseSym}@${tf}: ${cached.data.length} bars`);
+          logger.engine.info(
+            `[DatafeedService] Cache hit (${cached.tier}) for ${baseSym}@${tf}: ${cached.data.length} bars`,
+          );
           return;
         }
-      } catch (e) { logger.engine.warn('[DatafeedService] Cache read failed', e); }
+      } catch (e) {
+        logger.engine.warn('[DatafeedService] Cache read failed', e);
+      }
 
       try {
         const { fetchOHLC } = await import('../../data/FetchService.ts');
         // Map Binance-style timeframes to FetchService timeframe IDs
         const TF_MAP = {
-          '1m': '1d', '3m': '1d', '5m': '1d', '15m': '5d', '30m': '5d',
-          '1h': '1m', '2h': '1m', '4h': '3m', '6h': '3m', '8h': '3m',
-          '12h': '6m', '1d': '6m', '3d': '1y', '1w': '1y', '1M': '1y',
+          '1m': '1d',
+          '3m': '1d',
+          '5m': '1d',
+          '15m': '5d',
+          '30m': '5d',
+          '1h': '1m',
+          '2h': '1m',
+          '4h': '3m',
+          '6h': '3m',
+          '8h': '3m',
+          '12h': '6m',
+          '1d': '6m',
+          '3d': '1y',
+          '1w': '1y',
+          '1M': '1y',
         };
         const fetchTfId = TF_MAP[tf] || '3m';
         const result = await fetchOHLC(baseSym, fetchTfId);
         if (result && result.data && result.data.length > 0) {
-          const bars = result.data.map(c => ({
+          const bars = result.data.map((c) => ({
             time: typeof c.time === 'string' ? new Date(c.time).getTime() : c.time,
-            open: c.open, high: c.high, low: c.low, close: c.close, volume: c.volume || 0,
+            open: c.open,
+            high: c.high,
+            low: c.low,
+            close: c.close,
+            volume: c.volume || 0,
           }));
 
           const currentEntry = this.cache.get(key);
@@ -179,7 +205,7 @@ class DatafeedService {
           useChartCoreStore.getState().setDataMeta(bars.length, 'datafeed:equity', bars[0]?.time ?? null);
           // Push to TickChannel so ChartEngine gets bars directly (matches crypto path)
           tickChannel.pushHistorical(key, bars);
-          currentEntry.subscribers.forEach(sub => {
+          currentEntry.subscribers.forEach((sub) => {
             if (sub.onHistorical) sub.onHistorical(bars);
           });
 
@@ -187,7 +213,9 @@ class DatafeedService {
           try {
             const { cacheManager } = await import('../../data/engine/infra/CacheManager.js');
             cacheManager.write(baseSym, tf, bars, 'yahoo');
-          } catch (e) { logger.engine.warn('[DatafeedService] Cache write failed', e); }
+          } catch (e) {
+            logger.engine.warn('[DatafeedService] Cache write failed', e);
+          }
 
           // Start Pyth SSE stream for live equity/forex/commodity ticks
           if (currentEntry.subscribers.size > 0) {
@@ -195,13 +223,15 @@ class DatafeedService {
           }
           return;
         }
-      } catch (e) { logger.engine.warn('Operation failed', e); }
+      } catch (e) {
+        logger.engine.warn('Operation failed', e);
+      }
 
       // No data available from any source (expected for symbols without configured data feeds)
       entry.status = 'error';
       const msg = `No data available for ${baseSym}`;
       logger.engine.info(msg);
-      entry.subscribers.forEach(sub => {
+      entry.subscribers.forEach((sub) => {
         if (sub.onError) sub.onError(new Error(msg));
       });
       return;
@@ -210,8 +240,10 @@ class DatafeedService {
     try {
       const base = typeof window === 'undefined' ? `http://localhost:${globalThis.__TF_PORT || 3000}` : '';
       // Ensure symbol has a valid trading pair suffix for Binance (e.g., BTC → BTCUSDT)
-      const binanceSym = symbol.toUpperCase().endsWith('USDT') || symbol.toUpperCase().endsWith('BUSD')
-        ? symbol.toUpperCase() : symbol.toUpperCase() + 'USDT';
+      const binanceSym =
+        symbol.toUpperCase().endsWith('USDT') || symbol.toUpperCase().endsWith('BUSD')
+          ? symbol.toUpperCase()
+          : symbol.toUpperCase() + 'USDT';
       const url = `${base}/api/binance/v3/klines?symbol=${binanceSym}&interval=${tf}&limit=1000`;
       const res = await fetch(url, { signal });
 
@@ -238,7 +270,7 @@ class DatafeedService {
       // Notify Zustand so useChartBars subscribers re-evaluate
       useChartCoreStore.getState().setDataMeta(bars.length, 'datafeed:crypto', bars[0]?.time ?? null);
 
-      currentEntry.subscribers.forEach(sub => {
+      currentEntry.subscribers.forEach((sub) => {
         if (sub.onHistorical) sub.onHistorical(bars);
       });
 
@@ -249,7 +281,6 @@ class DatafeedService {
       if (currentEntry.subscribers.size > 0) {
         this._startWebSocket(symbol, tf, key);
       }
-
     } catch (err) {
       // Ignore AbortError — expected when user switches symbols during fetch
       if (err?.name === 'AbortError') return;
@@ -258,7 +289,7 @@ class DatafeedService {
       if (currentEntry && currentEntry.generation === gen) {
         currentEntry.status = 'error';
         currentEntry._abortController = null;
-        currentEntry.subscribers.forEach(sub => {
+        currentEntry.subscribers.forEach((sub) => {
           if (sub.onError) sub.onError(err);
         });
       }
@@ -277,7 +308,9 @@ class DatafeedService {
         if (existingWs.readyState === WebSocket.OPEN || existingWs.readyState === WebSocket.CONNECTING) {
           existingWs.close();
         }
-      } catch { /* cleanup race — ignore */ }
+      } catch {
+        /* cleanup race — ignore */
+      }
       this.sockets.delete(key);
     }
 
@@ -369,18 +402,16 @@ class DatafeedService {
           tickChannel.pushTick(key, updatedBars, bar);
 
           // Notify React subscribers (for state updates like status/barCount)
-          entry.subscribers.forEach(sub => {
+          entry.subscribers.forEach((sub) => {
             if (sub.onTick) sub.onTick(updatedBars, bar);
           });
-        }
-        else if (stream === tradeStream && msg.e === 'aggTrade') {
+        } else if (stream === tradeStream && msg.e === 'aggTrade') {
           // Process tick for footprint
           if (entry && entry.bars.length > 0) {
             const currentBar = entry.bars[entry.bars.length - 1];
             aggregator.processTrade(msg, currentBar);
           }
-        }
-        else if (stream === depthStream) {
+        } else if (stream === depthStream) {
           // Process DOM for heatmap
           aggregator.processDOMSnapshot(msg);
         }
@@ -389,7 +420,6 @@ class DatafeedService {
         logger.engine.warn('WS Parse Error', e);
       }
     };
-
   }
 
   // ─── REST Depth Polling Fallback ──────────────────────────────
@@ -418,7 +448,7 @@ class DatafeedService {
         if (data && data.bids && data.asks) {
           aggregator.processDOMSnapshot(data);
         }
-      } catch (_) {
+      } catch {
         // Silently fail — REST may also be blocked
       }
     };
@@ -463,72 +493,74 @@ class DatafeedService {
     }
 
     // Lazy import to avoid circular dependency
-    import('../../data/adapters/PythAdapter.js').then(({ pythAdapter }) => {
-      // Guard: don't start if cache was cleaned up during import
-      const entry = this.cache.get(key);
-      if (!entry || entry.subscribers.size === 0) return;
+    import('../../data/adapters/PythAdapter.js')
+      .then(({ pythAdapter }) => {
+        // Guard: don't start if cache was cleaned up during import
+        const entry = this.cache.get(key);
+        if (!entry || entry.subscribers.size === 0) return;
 
-      // Check if Pyth supports this symbol
-      if (!pythAdapter.supports(symbol)) {
-        logger.engine.info(`[DatafeedService] Pyth does not support ${symbol} — no live ticks`);
-        return;
-      }
-
-      useChartCoreStore.getState().setWsStatus(WS_STATUS.CONNECTING);
-
-      // Track whether we've calibrated the Pyth SSE against historical data
-      let calibrated = false;
-
-      const unsub = pythAdapter.subscribe(symbol, (priceData) => {
-        const currentEntry = this.cache.get(key);
-        if (!currentEntry || currentEntry.bars.length === 0) return;
-
-        const price = priceData.price;
-        if (!price || !isFinite(price)) return;
-
-        const bars = currentEntry.bars;
-        const last = bars[bars.length - 1];
-
-        // Calibration: on the first tick, check if Pyth and historical sources
-        // have a price mismatch. If >2%, snap the last bar to the Pyth price
-        // so subsequent ticks track real movement instead of creating false candles.
-        if (!calibrated) {
-          const deviation = Math.abs(price - last.close) / last.close;
-          if (deviation > 0.02) {
-            logger.engine.info(
-              `[DatafeedService] Calibrating ${symbol}: snapping last bar from ` +
-              `${last.close.toFixed(2)} → ${price.toFixed(2)} (${(deviation * 100).toFixed(1)}% source delta)`
-            );
-            // Snap the last bar so it becomes a tiny candle at the Pyth price
-            last.open = price;
-            last.high = price;
-            last.low = price;
-            last.close = price;
-          }
-          calibrated = true;
+        // Check if Pyth supports this symbol
+        if (!pythAdapter.supports(symbol)) {
+          logger.engine.info(`[DatafeedService] Pyth does not support ${symbol} — no live ticks`);
+          return;
         }
 
-        useChartCoreStore.getState().setWsStatus(WS_STATUS.CONNECTED);
+        useChartCoreStore.getState().setWsStatus(WS_STATUS.CONNECTING);
 
-        // Update the current bar's close, and adjust high/low if needed
-        last.close = price;
-        if (price > last.high) last.high = price;
-        if (price < last.low) last.low = price;
+        // Track whether we've calibrated the Pyth SSE against historical data
+        let calibrated = false;
 
-        // Push through TickChannel for direct engine delivery (rAF-batched)
-        tickChannel.pushTick(key, bars, last);
+        const unsub = pythAdapter.subscribe(symbol, (priceData) => {
+          const currentEntry = this.cache.get(key);
+          if (!currentEntry || currentEntry.bars.length === 0) return;
 
-        // Notify React subscribers
-        currentEntry.subscribers.forEach(sub => {
-          if (sub.onTick) sub.onTick(bars, last);
+          const price = priceData.price;
+          if (!price || !isFinite(price)) return;
+
+          const bars = currentEntry.bars;
+          const last = bars[bars.length - 1];
+
+          // Calibration: on the first tick, check if Pyth and historical sources
+          // have a price mismatch. If >2%, snap the last bar to the Pyth price
+          // so subsequent ticks track real movement instead of creating false candles.
+          if (!calibrated) {
+            const deviation = Math.abs(price - last.close) / last.close;
+            if (deviation > 0.02) {
+              logger.engine.info(
+                `[DatafeedService] Calibrating ${symbol}: snapping last bar from ` +
+                  `${last.close.toFixed(2)} → ${price.toFixed(2)} (${(deviation * 100).toFixed(1)}% source delta)`,
+              );
+              // Snap the last bar so it becomes a tiny candle at the Pyth price
+              last.open = price;
+              last.high = price;
+              last.low = price;
+              last.close = price;
+            }
+            calibrated = true;
+          }
+
+          useChartCoreStore.getState().setWsStatus(WS_STATUS.CONNECTED);
+
+          // Update the current bar's close, and adjust high/low if needed
+          last.close = price;
+          if (price > last.high) last.high = price;
+          if (price < last.low) last.low = price;
+
+          // Push through TickChannel for direct engine delivery (rAF-batched)
+          tickChannel.pushTick(key, bars, last);
+
+          // Notify React subscribers
+          currentEntry.subscribers.forEach((sub) => {
+            if (sub.onTick) sub.onTick(bars, last);
+          });
         });
-      });
 
-      this._pythUnsubs.set(key, unsub);
-      logger.engine.info(`[DatafeedService] Started Pyth SSE stream for ${symbol}`);
-    }).catch(err => {
-      logger.engine.warn(`[DatafeedService] Failed to start Pyth stream for ${symbol}:`, err);
-    });
+        this._pythUnsubs.set(key, unsub);
+        logger.engine.info(`[DatafeedService] Started Pyth SSE stream for ${symbol}`);
+      })
+      .catch((err) => {
+        logger.engine.warn(`[DatafeedService] Failed to start Pyth stream for ${symbol}:`, err);
+      });
   }
 
   prependBars(symbol, tf, olderBars) {
@@ -537,8 +569,8 @@ class DatafeedService {
     if (!entry || !olderBars?.length) return;
 
     // Deduplicate by timestamp
-    const existingTimes = new Set(entry.bars.map(b => b.time));
-    const newBars = olderBars.filter(b => !existingTimes.has(b.time));
+    const existingTimes = new Set(entry.bars.map((b) => b.time));
+    const newBars = olderBars.filter((b) => !existingTimes.has(b.time));
     if (newBars.length === 0) return;
 
     // Prepend in-place
@@ -574,7 +606,11 @@ class DatafeedService {
       ws.onclose = null;
       ws.onerror = null;
       if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
-        try { ws.close(); } catch { /* cleanup race — ignore */ }
+        try {
+          ws.close();
+        } catch {
+          /* cleanup race — ignore */
+        }
       }
       this.sockets.delete(key);
     }

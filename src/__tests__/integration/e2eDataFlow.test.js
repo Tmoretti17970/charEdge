@@ -27,14 +27,18 @@ function makeBinanceKlines(count, startMs = Date.now() - count * 60000) {
   return Array.from({ length: count }, (_, i) => {
     const openTime = startMs + i * 60000;
     return [
-      openTime,                    // [0] openTime
-      String(100 + i),             // [1] open
-      String(105 + i),             // [2] high
-      String(95 + i),              // [3] low
-      String(102 + i),             // [4] close
-      String(1000 + i * 10),       // [5] volume
-      openTime + 59999,            // [6] closeTime
-      '0', 0, '0', '0', '0'       // [7-11] unused fields
+      openTime, // [0] openTime
+      String(100 + i), // [1] open
+      String(105 + i), // [2] high
+      String(95 + i), // [3] low
+      String(102 + i), // [4] close
+      String(1000 + i * 10), // [5] volume
+      openTime + 59999, // [6] closeTime
+      '0',
+      0,
+      '0',
+      '0',
+      '0', // [7-11] unused fields
     ];
   });
 }
@@ -116,7 +120,7 @@ describe('E2E: Stale-while-revalidate flow', () => {
     expect(result.data).toEqual(cached.data);
 
     // Wait a tick for fire-and-forget to execute
-    await new Promise(r => setTimeout(r, 10));
+    await new Promise((r) => setTimeout(r, 10));
     expect(revalidateFn).toHaveBeenCalledOnce();
   });
 
@@ -187,7 +191,7 @@ describe('E2E: CacheManager 3-tier cache', () => {
     const bars = makeBars(5);
 
     cm.write('DOGE', '1D', bars, 'test');
-    await cm.read('DOGE', '1D', Infinity);   // hit
+    await cm.read('DOGE', '1D', Infinity); // hit
     await cm.read('MISSING', '1D', Infinity); // miss
 
     const stats = cm.getStats();
@@ -257,7 +261,7 @@ describe('E2E: DataPipelineLogger', () => {
     const recent = logger.getRecent(10);
     expect(recent.length).toBeGreaterThanOrEqual(2);
 
-    const fetchEntry = recent.find(e => e.source === 'FetchService');
+    const fetchEntry = recent.find((e) => e.source === 'FetchService');
     expect(fetchEntry).toBeDefined();
     expect(fetchEntry.level).toBe('info');
     expect(fetchEntry.message).toContain('BTC:1D');
@@ -271,7 +275,7 @@ describe('E2E: DataPipelineLogger', () => {
 
     const fetchEntries = logger.getBySource('FetchService');
     expect(fetchEntries.length).toBeGreaterThanOrEqual(2);
-    expect(fetchEntries.every(e => e.source === 'FetchService')).toBe(true);
+    expect(fetchEntries.every((e) => e.source === 'FetchService')).toBe(true);
   });
 
   it('getStats tracks error counts', () => {
@@ -287,7 +291,7 @@ describe('E2E: DataPipelineLogger', () => {
   it('subscribe receives new entries', () => {
     const received = [];
 
-    const unsub = logger.subscribe(entry => received.push(entry));
+    const unsub = logger.subscribe((entry) => received.push(entry));
     logger.info('Test', 'hello');
     logger.warn('Test', 'warning');
 
@@ -308,7 +312,7 @@ describe('E2E: FetchService structural verification', () => {
     const fs = await import('fs');
     const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
 
-    expect(source).toContain("import { pipelineLogger }");
+    expect(source).toContain('import { pipelineLogger }');
     expect(source).toContain("pipelineLogger.debug('FetchService'");
     expect(source).toContain("pipelineLogger.info('FetchService'");
     expect(source).toContain("pipelineLogger.warn('FetchService'");
@@ -318,33 +322,33 @@ describe('E2E: FetchService structural verification', () => {
     const fs = await import('fs');
     const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
 
-    expect(source).toContain("import { TFS, isCrypto, buildCacheKey }");
-    expect(source).toContain("buildCacheKey(sym, tfId)");
+    expect(source).toContain('import { TFS, isCrypto, buildCacheKey, toYahooSymbol }');
+    expect(source).toContain('buildCacheKey(sym, tfId)');
   });
 
   it('uses staleWhileRevalidate from swr.js', async () => {
     const fs = await import('fs');
     const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
 
-    expect(source).toContain("import { staleWhileRevalidate }");
-    expect(source).toContain("staleWhileRevalidate(cached,");
+    expect(source).toContain('import { staleWhileRevalidate }');
+    expect(source).toContain('staleWhileRevalidate(cached,');
   });
 
   it('has inflight deduplication', async () => {
     const fs = await import('fs');
     const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
 
-    expect(source).toContain("_inflight.has(key)");
-    expect(source).toContain("_inflight.set(key, promise)");
-    expect(source).toContain("_inflight.delete(key)");
+    expect(source).toContain('_inflight.has(key)');
+    expect(source).toContain('_inflight.set(key, promise)');
+    expect(source).toContain('_inflight.delete(key)');
   });
 
   it('has background refresh throttle (10s per key)', async () => {
     const fs = await import('fs');
     const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
 
-    expect(source).toContain("_bgRefreshTimestamps");
-    expect(source).toContain("10_000");
+    expect(source).toContain('_bgRefreshTimestamps');
+    expect(source).toContain('10_000');
   });
 
   it('warmCache targets adjacent timeframes', async () => {
@@ -440,8 +444,8 @@ describe('E2E: Full pipeline structure verification', () => {
     const doFetchStart = source.indexOf('async function _doFetch');
     const doFetchBody = source.slice(doFetchStart);
 
-    const yahooPos = doFetchBody.indexOf("withCircuitBreaker('yahoo'");
-    const opfsPos = doFetchBody.indexOf("opfsBarStore.getCandles");
+    const yahooPos = doFetchBody.indexOf('_yahooAdapter');
+    const opfsPos = doFetchBody.indexOf('opfsBarStore.getCandles');
 
     expect(opfsPos).toBeGreaterThan(yahooPos); // OPFS is AFTER all network providers
   });
@@ -450,8 +454,8 @@ describe('E2E: Full pipeline structure verification', () => {
     const fs = await import('fs');
     const source = await fs.promises.readFile('src/data/FetchService.ts', 'utf8');
 
-    expect(source).toContain("charEdge:data-warning");
-    expect(source).toContain("_lastWarning");
+    expect(source).toContain('charEdge:data-warning');
+    expect(source).toContain('_lastWarning');
   });
 });
 

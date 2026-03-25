@@ -6,16 +6,94 @@ import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
-import { alpha } from '@/shared/colorUtils';
 import st from './EarningsIntelligence.module.css';
+import { alpha } from '@/shared/colorUtils';
 
 const MOCK_EARNINGS = [
-  { symbol: 'NVDA', name: 'NVIDIA', date: '2026-02-26', time: 'AMC', expectedMove: '±8.2%', consensusEPS: '$5.60', previousEPS: '$5.16', surprise: [12.4, 8.8, 15.2, 10.6, 7.9, 22.1, 9.3, 14.5], reaction: [4.2, -2.1, 8.9, 3.4, -5.2, 16.4, -3.8, 6.1], iv: 62, ivRank: 85, sector: 'Tech' },
-  { symbol: 'MSFT', name: 'Microsoft', date: '2026-02-27', time: 'AMC', expectedMove: '±4.5%', consensusEPS: '$2.95', previousEPS: '$2.93', surprise: [3.2, 1.5, 4.8, 2.1, 5.6, 3.0, 1.8, 4.2], reaction: [1.8, -0.5, 3.2, -1.2, 2.4, 0.8, -2.1, 1.6], iv: 38, ivRank: 52, sector: 'Tech' },
-  { symbol: 'META', name: 'Meta Platforms', date: '2026-02-26', time: 'AMC', expectedMove: '±6.8%', consensusEPS: '$4.82', previousEPS: '$5.33', surprise: [18.5, 12.0, -5.2, 8.4, 22.3, 15.6, 10.8, -2.1], reaction: [12.5, 3.8, -8.4, 5.1, 20.3, -4.2, 7.6, -3.5], iv: 52, ivRank: 78, sector: 'Tech' },
-  { symbol: 'AMZN', name: 'Amazon', date: '2026-02-28', time: 'AMC', expectedMove: '±5.2%', consensusEPS: '$1.15', previousEPS: '$1.00', surprise: [15.0, 8.5, 22.0, 12.0, -3.5, 18.0, 5.5, 10.0], reaction: [6.8, -2.5, 9.4, 3.2, -6.8, 7.2, -1.5, 4.8], iv: 45, ivRank: 65, sector: 'Tech' },
-  { symbol: 'TSLA', name: 'Tesla', date: '2026-02-26', time: 'AMC', expectedMove: '±9.5%', consensusEPS: '$0.68', previousEPS: '$0.71', surprise: [-8.2, 5.5, -15.4, 12.3, -22.0, 8.8, -4.5, 18.2], reaction: [-12.0, 8.5, -9.2, 6.4, -14.5, 3.2, -7.8, 11.2], iv: 78, ivRank: 92, sector: 'Auto' },
-  { symbol: 'AAPL', name: 'Apple Inc.', date: '2026-02-27', time: 'AMC', expectedMove: '±3.8%', consensusEPS: '$2.12', previousEPS: '$2.18', surprise: [2.8, 1.2, 3.5, 0.8, 4.2, 2.0, 1.5, 3.0], reaction: [1.2, -0.8, 2.5, 0.5, -1.8, 1.0, -0.5, 1.8], iv: 32, ivRank: 45, sector: 'Tech' },
+  {
+    symbol: 'NVDA',
+    name: 'NVIDIA',
+    date: '2026-02-26',
+    time: 'AMC',
+    expectedMove: '±8.2%',
+    consensusEPS: '$5.60',
+    previousEPS: '$5.16',
+    surprise: [12.4, 8.8, 15.2, 10.6, 7.9, 22.1, 9.3, 14.5],
+    reaction: [4.2, -2.1, 8.9, 3.4, -5.2, 16.4, -3.8, 6.1],
+    iv: 62,
+    ivRank: 85,
+    sector: 'Tech',
+  },
+  {
+    symbol: 'MSFT',
+    name: 'Microsoft',
+    date: '2026-02-27',
+    time: 'AMC',
+    expectedMove: '±4.5%',
+    consensusEPS: '$2.95',
+    previousEPS: '$2.93',
+    surprise: [3.2, 1.5, 4.8, 2.1, 5.6, 3.0, 1.8, 4.2],
+    reaction: [1.8, -0.5, 3.2, -1.2, 2.4, 0.8, -2.1, 1.6],
+    iv: 38,
+    ivRank: 52,
+    sector: 'Tech',
+  },
+  {
+    symbol: 'META',
+    name: 'Meta Platforms',
+    date: '2026-02-26',
+    time: 'AMC',
+    expectedMove: '±6.8%',
+    consensusEPS: '$4.82',
+    previousEPS: '$5.33',
+    surprise: [18.5, 12.0, -5.2, 8.4, 22.3, 15.6, 10.8, -2.1],
+    reaction: [12.5, 3.8, -8.4, 5.1, 20.3, -4.2, 7.6, -3.5],
+    iv: 52,
+    ivRank: 78,
+    sector: 'Tech',
+  },
+  {
+    symbol: 'AMZN',
+    name: 'Amazon',
+    date: '2026-02-28',
+    time: 'AMC',
+    expectedMove: '±5.2%',
+    consensusEPS: '$1.15',
+    previousEPS: '$1.00',
+    surprise: [15.0, 8.5, 22.0, 12.0, -3.5, 18.0, 5.5, 10.0],
+    reaction: [6.8, -2.5, 9.4, 3.2, -6.8, 7.2, -1.5, 4.8],
+    iv: 45,
+    ivRank: 65,
+    sector: 'Tech',
+  },
+  {
+    symbol: 'TSLA',
+    name: 'Tesla',
+    date: '2026-02-26',
+    time: 'AMC',
+    expectedMove: '±9.5%',
+    consensusEPS: '$0.68',
+    previousEPS: '$0.71',
+    surprise: [-8.2, 5.5, -15.4, 12.3, -22.0, 8.8, -4.5, 18.2],
+    reaction: [-12.0, 8.5, -9.2, 6.4, -14.5, 3.2, -7.8, 11.2],
+    iv: 78,
+    ivRank: 92,
+    sector: 'Auto',
+  },
+  {
+    symbol: 'AAPL',
+    name: 'Apple Inc.',
+    date: '2026-02-27',
+    time: 'AMC',
+    expectedMove: '±3.8%',
+    consensusEPS: '$2.12',
+    previousEPS: '$2.18',
+    surprise: [2.8, 1.2, 3.5, 0.8, 4.2, 2.0, 1.5, 3.0],
+    reaction: [1.2, -0.8, 2.5, 0.5, -1.8, 1.0, -0.5, 1.8],
+    iv: 32,
+    ivRank: 45,
+    sector: 'Tech',
+  },
 ];
 
 function EarningsIntelligence() {
@@ -46,17 +124,29 @@ function EarningsIntelligence() {
         <div className={st.headerLeft}>
           <span className={st.headerIcon}>📊</span>
           <h3 className={st.headerTitle}>Earnings Intelligence</h3>
-          <span className={st.badge} style={{ color: C.b, background: alpha(C.b, 0.1) }}>{earnings.length} this week</span>
+          <span className={st.badge} style={{ color: C.b, background: alpha(C.b, 0.1) }}>
+            {earnings.length} this week
+          </span>
         </div>
-        <span className={st.chevron} style={{ color: C.t3, transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)' }}>▾</span>
+        <span className={st.chevron} style={{ color: C.t3, transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)' }}>
+          ▾
+        </span>
       </button>
 
       {!collapsed && (
         <div className={st.body}>
           <div className={st.filterRow}>
             {['all', 'watchlist'].map((f) => (
-              <button key={f} onClick={() => setFilter(f)} className={`tf-btn ${st.filterBtn}`}
-                style={{ border: `1px solid ${filter === f ? C.b : 'transparent'}`, background: filter === f ? alpha(C.b, 0.08) : 'transparent', color: filter === f ? C.b : C.t3 }}>
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`tf-btn ${st.filterBtn}`}
+                style={{
+                  border: `1px solid ${filter === f ? C.b : 'transparent'}`,
+                  background: filter === f ? alpha(C.b, 0.08) : 'transparent',
+                  color: filter === f ? C.b : C.t3,
+                }}
+              >
                 {f === 'watchlist' ? '⭐ My Watchlist' : '📋 All Earnings'}
               </button>
             ))}
@@ -72,12 +162,17 @@ function EarningsIntelligence() {
                 <div key={date}>
                   <div className={st.dateHeader} style={{ color: C.t3 }}>
                     {formatEarningsDate(date)}
-                    <span className={st.dateBubble} style={{ background: alpha(getHeatColor(items.length), 0.15), color: getHeatColor(items.length) }}>
+                    <span
+                      className={st.dateBubble}
+                      style={{ background: alpha(getHeatColor(items.length), 0.15), color: getHeatColor(items.length) }}
+                    >
                       {items.length}
                     </span>
                   </div>
                   <div className={st.cardList}>
-                    {items.map((e) => <EarningsCard key={e.symbol} data={e} />)}
+                    {items.map((e) => (
+                      <EarningsCard key={e.symbol} data={e} />
+                    ))}
                   </div>
                 </div>
               ))}
@@ -95,52 +190,100 @@ function EarningsCard({ data }) {
   const avgReaction = data.reaction.reduce((s, v) => s + Math.abs(v), 0) / data.reaction.length;
 
   return (
-    <div className={st.earningsCard} onClick={() => setExpanded(!expanded)}
-      style={{ background: alpha(C.sf, 0.5), border: `1px solid ${alpha(C.bd, 0.5)}` }}>
+    <div
+      className={st.earningsCard}
+      onClick={() => setExpanded(!expanded)}
+      style={{ background: alpha(C.sf, 0.5), border: `1px solid ${alpha(C.bd, 0.5)}` }}
+    >
       <div className={st.earningsMain}>
         <div className={st.symCol}>
           <div className={st.symName}>{data.symbol}</div>
-          <div className={st.symSub} style={{ color: C.t3 }}>{data.name}</div>
+          <div className={st.symSub} style={{ color: C.t3 }}>
+            {data.name}
+          </div>
         </div>
-        <div className={st.timeBadge} style={{ color: C.t3, background: alpha(C.t3, 0.1) }}>{data.time}</div>
+        <div className={st.timeBadge} style={{ color: C.t3, background: alpha(C.t3, 0.1) }}>
+          {data.time}
+        </div>
         <div className={st.metricCol}>
-          <div className={st.metricLabel} style={{ color: C.t3 }}>Exp. Move</div>
-          <div className={st.metricValue} style={{ color: C.y }}>{data.expectedMove}</div>
+          <div className={st.metricLabel} style={{ color: C.t3 }}>
+            Exp. Move
+          </div>
+          <div className={st.metricValue} style={{ color: C.y }}>
+            {data.expectedMove}
+          </div>
         </div>
         <div className={st.metricCol}>
-          <div className={st.metricLabel} style={{ color: C.t3 }}>Est. EPS</div>
-          <div className={st.metricValue} style={{ color: C.t1 }}>{data.consensusEPS}</div>
+          <div className={st.metricLabel} style={{ color: C.t3 }}>
+            Est. EPS
+          </div>
+          <div className={st.metricValue} style={{ color: C.t1 }}>
+            {data.consensusEPS}
+          </div>
         </div>
-        <div className={st.ivBox} style={{ background: alpha(data.ivRank > 70 ? C.r : data.ivRank > 40 ? C.y : C.g, 0.08) }}>
-          <div className={st.ivLabel} style={{ color: C.t3 }}>IV Rank</div>
-          <div className={st.ivValue} style={{ color: data.ivRank > 70 ? C.r : data.ivRank > 40 ? C.y : C.g }}>{data.ivRank}</div>
+        <div
+          className={st.ivBox}
+          style={{ background: alpha(data.ivRank > 70 ? C.r : data.ivRank > 40 ? C.y : C.g, 0.08) }}
+        >
+          <div className={st.ivLabel} style={{ color: C.t3 }}>
+            IV Rank
+          </div>
+          <div className={st.ivValue} style={{ color: data.ivRank > 70 ? C.r : data.ivRank > 40 ? C.y : C.g }}>
+            {data.ivRank}
+          </div>
         </div>
-        <span className={st.rowChevron} style={{ color: C.t3, transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>▾</span>
+        <span
+          className={st.rowChevron}
+          style={{ color: C.t3, transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+        >
+          ▾
+        </span>
       </div>
 
       {expanded && (
         <div className={st.detail} style={{ borderTop: `1px solid ${C.bd}` }}>
           <div className={st.detailGrid}>
             <div>
-              <div className={st.detailLabel} style={{ color: C.t3 }}>EPS Surprise % (Last 8 Quarters)</div>
+              <div className={st.detailLabel} style={{ color: C.t3 }}>
+                EPS Surprise % (Last 8 Quarters)
+              </div>
               <div className={st.barChart}>
                 {data.surprise.map((v, i) => (
-                  <div key={i} className={st.bar}
-                    style={{ height: `${Math.min(Math.abs(v) * 2, 40)}px`, background: v >= 0 ? alpha(C.g, 0.6) : alpha(C.r, 0.6) }}
-                    title={`Q${8 - i}: ${v > 0 ? '+' : ''}${v}%`} />
+                  <div
+                    key={i}
+                    className={st.bar}
+                    style={{
+                      height: `${Math.min(Math.abs(v) * 2, 40)}px`,
+                      background: v >= 0 ? alpha(C.g, 0.6) : alpha(C.r, 0.6),
+                    }}
+                    title={`Q${8 - i}: ${v > 0 ? '+' : ''}${v}%`}
+                  />
                 ))}
               </div>
               <div className={st.avgText} style={{ color: C.t3 }}>
-                Avg surprise: <span style={{ color: avgSurprise >= 0 ? C.g : C.r }}>{avgSurprise > 0 ? '+' : ''}{avgSurprise.toFixed(1)}%</span>
+                Avg surprise:{' '}
+                <span style={{ color: avgSurprise >= 0 ? C.g : C.r }}>
+                  {avgSurprise > 0 ? '+' : ''}
+                  {avgSurprise.toFixed(1)}%
+                </span>
               </div>
             </div>
             <div>
-              <div className={st.detailLabel} style={{ color: C.t3 }}>Post-Earnings Reaction (Last 8)</div>
+              <div className={st.detailLabel} style={{ color: C.t3 }}>
+                Post-Earnings Reaction (Last 8)
+              </div>
               <div className={st.reactionChart}>
                 {data.reaction.map((v, i) => (
-                  <div key={i} className={st.bar}
-                    style={{ height: `${Math.min(Math.abs(v) * 3, 40)}px`, background: v >= 0 ? alpha(C.g, 0.6) : alpha(C.r, 0.6), alignSelf: v >= 0 ? 'flex-end' : 'flex-start' }}
-                    title={`Q${8 - i}: ${v > 0 ? '+' : ''}${v}%`} />
+                  <div
+                    key={i}
+                    className={st.bar}
+                    style={{
+                      height: `${Math.min(Math.abs(v) * 3, 40)}px`,
+                      background: v >= 0 ? alpha(C.g, 0.6) : alpha(C.r, 0.6),
+                      alignSelf: v >= 0 ? 'flex-end' : 'flex-start',
+                    }}
+                    title={`Q${8 - i}: ${v > 0 ? '+' : ''}${v}%`}
+                  />
                 ))}
               </div>
               <div className={st.avgText} style={{ color: C.t3 }}>

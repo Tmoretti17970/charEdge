@@ -58,7 +58,7 @@ describe('UserProfileStore', () => {
         entryDate: `2025-03-10T10:00:00Z`,
         exitDate: `2025-03-10T10:30:00Z`,
         pnl: i % 2 === 0 ? 50 : -20,
-      })
+      }),
     );
 
     const profile = await store.rebuild(trades);
@@ -127,7 +127,7 @@ describe('UserProfileStore', () => {
       makeTrade({ pnl: 80, setup: 'pullback', emotion: 'confident', symbol: 'ETHUSDT' }),
     ];
 
-    const profile = await store.rebuild(trades);
+    await store.rebuild(trades);
     const summary = store.getSummaryForAI();
 
     expect(summary).toContain('Trader Style');

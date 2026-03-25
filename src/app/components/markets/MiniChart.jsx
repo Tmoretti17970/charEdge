@@ -13,17 +13,19 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
 import { C } from '../../../constants.js';
-import { radii, transition } from '../../../theme/tokens.js';
 import useHistoricalData from '../../../hooks/useHistoricalData.js';
-import st from './MiniChart.module.css';
+import { radii, transition } from '../../../theme/tokens.js';
 
 const ACCENT = '#6e5ce6';
-const GREEN  = '#22c55e';
-const RED    = '#ef4444';
+const GREEN = '#22c55e';
+const RED = '#ef4444';
 
 // ═══════════════════════════════════════════════════════════════════
 // MiniChart — Main Component
 // ═══════════════════════════════════════════════════════════════════
+
+const CHART_HEIGHT = 180;
+const PADDING = { top: 8, right: 8, bottom: 4, left: 8 };
 
 function MiniChart({ symbol }) {
   const { candles, loading, error, timeRange, setTimeRange, timeRanges } = useHistoricalData(symbol);
@@ -32,9 +34,6 @@ function MiniChart({ symbol }) {
   const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
   const [hover, setHover] = useState(null); // { x, index, candle }
   const [chartMode, setChartMode] = useState('line'); // 'line' | 'candle'
-
-  const CHART_HEIGHT = 180;
-  const PADDING = { top: 8, right: 8, bottom: 4, left: 8 };
 
   // ─── Resize observer ──────────────────────────────────────
   useEffect(() => {
@@ -51,17 +50,21 @@ function MiniChart({ symbol }) {
   }, []);
 
   // ─── Chart dimensions ─────────────────────────────────────
-  const plotArea = useMemo(() => ({
-    x: PADDING.left,
-    y: PADDING.top,
-    w: chartSize.width - PADDING.left - PADDING.right,
-    h: chartSize.height - PADDING.top - PADDING.bottom,
-  }), [chartSize]);
+  const plotArea = useMemo(
+    () => ({
+      x: PADDING.left,
+      y: PADDING.top,
+      w: chartSize.width - PADDING.left - PADDING.right,
+      h: chartSize.height - PADDING.top - PADDING.bottom,
+    }),
+    [chartSize],
+  );
 
   // ─── Price range ──────────────────────────────────────────
   const priceRange = useMemo(() => {
     if (!candles || candles.length === 0) return { min: 0, max: 1 };
-    let min = Infinity, max = -Infinity;
+    let min = Infinity,
+      max = -Infinity;
     for (const c of candles) {
       if (c.low < min) min = c.low;
       if (c.high > max) max = c.high;
@@ -71,16 +74,22 @@ function MiniChart({ symbol }) {
   }, [candles]);
 
   // ─── Scale helpers ────────────────────────────────────────
-  const scaleX = useCallback((i) => {
-    if (candles.length <= 1) return plotArea.x;
-    return plotArea.x + (i / (candles.length - 1)) * plotArea.w;
-  }, [candles, plotArea]);
+  const scaleX = useCallback(
+    (i) => {
+      if (candles.length <= 1) return plotArea.x;
+      return plotArea.x + (i / (candles.length - 1)) * plotArea.w;
+    },
+    [candles, plotArea],
+  );
 
-  const scaleY = useCallback((price) => {
-    const { min, max } = priceRange;
-    const range = max - min || 1;
-    return plotArea.y + plotArea.h - ((price - min) / range) * plotArea.h;
-  }, [priceRange, plotArea]);
+  const scaleY = useCallback(
+    (price) => {
+      const { min, max } = priceRange;
+      const range = max - min || 1;
+      return plotArea.y + plotArea.h - ((price - min) / range) * plotArea.h;
+    },
+    [priceRange, plotArea],
+  );
 
   // ─── Canvas draw ──────────────────────────────────────────
   useEffect(() => {
@@ -177,15 +186,18 @@ function MiniChart({ symbol }) {
   }, [candles, chartSize, chartMode, hover, scaleX, scaleY, plotArea]);
 
   // ─── Mouse handlers ───────────────────────────────────────
-  const handleMouseMove = useCallback((e) => {
-    if (!candles || candles.length === 0) return;
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const mx = e.clientX - rect.left;
-    const index = Math.round(((mx - PADDING.left) / plotArea.w) * (candles.length - 1));
-    const clampedIndex = Math.max(0, Math.min(candles.length - 1, index));
-    setHover({ x: mx, index: clampedIndex, candle: candles[clampedIndex] });
-  }, [candles, plotArea]);
+  const handleMouseMove = useCallback(
+    (e) => {
+      if (!candles || candles.length === 0) return;
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const mx = e.clientX - rect.left;
+      const index = Math.round(((mx - PADDING.left) / plotArea.w) * (candles.length - 1));
+      const clampedIndex = Math.max(0, Math.min(candles.length - 1, index));
+      setHover({ x: mx, index: clampedIndex, candle: candles[clampedIndex] });
+    },
+    [candles, plotArea],
+  );
 
   const handleMouseLeave = useCallback(() => setHover(null), []);
 
@@ -206,7 +218,11 @@ function MiniChart({ symbol }) {
   function fmtDateShort(iso) {
     if (!iso) return '';
     const d = new Date(iso);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    return (
+      d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) +
+      ' ' +
+      d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    );
   }
 
   return (
@@ -296,7 +312,9 @@ function MiniChart({ symbol }) {
           </>
         ) : candles?.length > 0 ? (
           <>
-            <span>{fmtDate(candles[0].time)} — {fmtDate(candles[candles.length - 1].time)}</span>
+            <span>
+              {fmtDate(candles[0].time)} — {fmtDate(candles[candles.length - 1].time)}
+            </span>
             <span style={{ color: C.t3 }}>{candles.length} bars</span>
           </>
         ) : null}

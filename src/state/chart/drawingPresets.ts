@@ -76,7 +76,9 @@ function loadUserPresets(): DrawingPreset[] {
 function saveUserPresets(presets: DrawingPreset[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(presets));
-  } catch { /* storage blocked */ }
+  } catch {
+    /* storage blocked */
+  }
 }
 
 /**
@@ -106,7 +108,7 @@ export function savePreset(preset: Omit<DrawingPreset, 'id'>): DrawingPreset {
  */
 export function deletePreset(id: string): boolean {
   const presets = loadUserPresets();
-  const filtered = presets.filter(p => p.id !== id);
+  const filtered = presets.filter((p) => p.id !== id);
   if (filtered.length === presets.length) return false;
   saveUserPresets(filtered);
   return true;
@@ -115,7 +117,17 @@ export function deletePreset(id: string): boolean {
 /**
  * Apply a preset's style to a drawing object (in-place mutation).
  */
-export function applyPreset(drawing: any, preset: DrawingPreset): void {
+interface DrawingWithStyle {
+  style: {
+    color: string;
+    lineWidth: number;
+    dash: number[];
+    fillColor?: string;
+    opacity?: number;
+  };
+}
+
+export function applyPreset(drawing: DrawingWithStyle | null | undefined, preset: DrawingPreset): void {
   if (!drawing?.style) return;
   drawing.style.color = preset.color;
   drawing.style.lineWidth = preset.lineWidth;
@@ -139,7 +151,7 @@ export function importPresets(json: string): number {
     const imported: DrawingPreset[] = JSON.parse(json);
     if (!Array.isArray(imported)) return 0;
     const existing = loadUserPresets();
-    const existingIds = new Set(existing.map(p => p.id));
+    const existingIds = new Set(existing.map((p) => p.id));
     let added = 0;
     for (const p of imported) {
       if (!p.name || !p.color) continue;

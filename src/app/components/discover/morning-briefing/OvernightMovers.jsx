@@ -1,8 +1,7 @@
 // Section 2: Overnight Movers for Morning Briefing
-import { C } from '@/constants.js';
 import { formatDisplayPrice as formatPrice } from '../../../../shared/formatting';
+import { C } from '@/constants.js';
 import { alpha } from '@/shared/colorUtils';
-import st from './OvernightMovers.module.css';
 
 export default function OvernightMovers({ movers }) {
   return (
@@ -25,16 +24,13 @@ export default function OvernightMovers({ movers }) {
             }}
           >
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
-                {m.symbol}
-              </div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>{m.symbol}</div>
               <div style={{ fontSize: 12, fontWeight: 800, color: isUp ? C.g : C.r, fontFamily: 'var(--tf-mono)' }}>
-                {isUp ? '+' : ''}{m.change.toFixed(1)}%
+                {isUp ? '+' : ''}
+                {m.change.toFixed(1)}%
               </div>
             </div>
-            <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-mono)' }}>
-              {formatPrice(m.price)}
-            </div>
+            <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-mono)' }}>{formatPrice(m.price)}</div>
           </div>
         );
       })}

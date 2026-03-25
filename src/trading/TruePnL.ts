@@ -81,8 +81,6 @@ export function computeTruePnL(trade: TradeInput): TruePnLBreakdown {
   const exit = trade.exit ?? 0;
   const qty = trade.qty ?? 1;
   const isLong = trade.side !== 'short';
-  const incomplete = trade.entry == null || trade.exit == null;
-
   // Gross P&L from price movement
   const grossPnL = isLong ? (exit - entry) * qty : (entry - exit) * qty;
 
@@ -107,9 +105,7 @@ export function computeTruePnL(trade: TradeInput): TruePnLBreakdown {
   const totalCosts = commissions + fundingRate + borrowCost + slippage;
   const netPnL = grossPnL - totalCosts;
   // Fee impact: if grossPnL is ~0 but costs > 0, fees consumed all profit → 100%
-  const feeImpactPct = Math.abs(grossPnL) > 0
-    ? (totalCosts / Math.abs(grossPnL)) * 100
-    : (totalCosts > 0 ? 100 : 0);
+  const feeImpactPct = Math.abs(grossPnL) > 0 ? (totalCosts / Math.abs(grossPnL)) * 100 : totalCosts > 0 ? 100 : 0;
 
   return {
     grossPnL: round2(grossPnL),

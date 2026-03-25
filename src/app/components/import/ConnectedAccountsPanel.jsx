@@ -7,10 +7,9 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { C, GLASS } from '../../../constants.js';
-import { alpha } from '@/shared/colorUtils';
-import { Card } from '../ui/UIKit.jsx';
 import { useConnectorStore } from '../../../state/useConnectorStore.js';
-import st from './ConnectedAccountsPanel.module.css';
+import { Card } from '../ui/UIKit.jsx';
+import { alpha } from '@/shared/colorUtils';
 
 const STATUS_CONFIG = {
   connected: { color: C.g, label: 'Connected', icon: '🟢' },
@@ -24,7 +23,12 @@ function AccountRow({ connection, onSync, onDisconnect }) {
   const statusCfg = STATUS_CONFIG[connection.status] || STATUS_CONFIG.disconnected;
 
   const lastSyncStr = connection.lastSync
-    ? new Date(connection.lastSync).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    ? new Date(connection.lastSync).toLocaleString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
     : 'Never';
 
   return (
@@ -151,12 +155,7 @@ function ConnectedAccountsPanel({ onConnectNew }) {
 
       <Card style={{ overflow: 'hidden', background: GLASS.subtle }}>
         {connections.map((conn) => (
-          <AccountRow
-            key={conn.brokerId}
-            connection={conn}
-            onSync={handleSync}
-            onDisconnect={handleDisconnect}
-          />
+          <AccountRow key={conn.brokerId} connection={conn} onSync={handleSync} onDisconnect={handleDisconnect} />
         ))}
       </Card>
     </div>

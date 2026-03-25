@@ -10,7 +10,6 @@
 
 import { niceScale, createPriceTransform } from '../CoordinateSystem.js';
 import { createTimeTransform } from '../TimeAxis.js';
-import { HeatmapRenderer } from '../../renderers/HeatmapRenderer.js';
 import { getAggregator } from '../../../data/OrderFlowAggregator.js';
 
 // Sub-stage imports
@@ -33,9 +32,19 @@ import { renderOverlays, renderVolume, transformBars, renderChartType } from './
 export function executeDataStage(fs, ctx, engine) {
   const { theme: thm, dataCtx: mCtx, webgl } = ctx;
   const {
-    bitmapWidth: bw, bitmapHeight: bh, pixelRatio: pr,
-    chartWidth: cW, mainHeight, visBars: vis, barSpacing: bSp,
-    startIdx: start, endIdx, exactStart, bars, yMin, yMax,
+    bitmapWidth: bw,
+    bitmapHeight: bh,
+    pixelRatio: pr,
+    chartWidth: cW,
+    mainHeight,
+    visBars: vis,
+    barSpacing: bSp,
+    startIdx: start,
+    endIdx,
+    exactStart,
+    bars,
+    yMin,
+    yMax,
     chartType,
   } = fs;
 
@@ -50,9 +59,23 @@ export function executeDataStage(fs, ctx, engine) {
 
   // Store computed transforms on engine for drawing engine + other consumers
   engine.state.lastRender = {
-    start, end: endIdx, vis, bSp, p2y, yMin, yMax, cW, mainH: mainHeight,
-    axW: fs.axW, txH: fs.txH, thm, pr, paneH: fs.paneHeight,
-    paneCount: fs.paneCount, paneInds: fs.paneInds, timeTransform,
+    start,
+    end: endIdx,
+    vis,
+    bSp,
+    p2y,
+    yMin,
+    yMax,
+    cW,
+    mainH: mainHeight,
+    axW: fs.axW,
+    txH: fs.txH,
+    thm,
+    pr,
+    paneH: fs.paneHeight,
+    paneCount: fs.paneCount,
+    paneInds: fs.paneInds,
+    timeTransform,
     barWidth: Math.max(1, Math.floor(bSp * 0.65 * pr)),
     _splitterHoverIdx: engine.state._splitterHoverIdx,
     collapsedPanes: fs.collapsedPanes || new Set(),
@@ -72,10 +95,10 @@ export function executeDataStage(fs, ctx, engine) {
     engine.drawingEngine.setGridTicks(nStep.ticks || []);
 
     const snapInds = fs.overlayInds
-      .filter(ind => ind.computed)
-      .map(ind => ({
+      .filter((ind) => ind.computed)
+      .map((ind) => ({
         label: ind.label || ind.shortName || ind.id,
-        outputs: (ind.outputs || []).map(out => ({
+        outputs: (ind.outputs || []).map((out) => ({
           key: out.key,
           values: ind.computed[out.key] || [],
         })),
@@ -95,7 +118,10 @@ export function executeDataStage(fs, ctx, engine) {
   // B2.4: Detect niceStep tick change → start cross-fade transition
   const niceStepKey = niceStep.ticks?.join(',') ?? '';
   if (engine._prevNiceStepKey && niceStepKey !== engine._prevNiceStepKey && !engine._niceStepTransition) {
-    const fromTicks = engine._prevNiceStepKey.split(',').map(Number).filter(n => !isNaN(n));
+    const fromTicks = engine._prevNiceStepKey
+      .split(',')
+      .map(Number)
+      .filter((n) => !isNaN(n));
     engine._niceStepTransition = {
       startTime: performance.now(),
       fromTicks,
@@ -114,21 +140,56 @@ export function executeDataStage(fs, ctx, engine) {
   }
 
   // ─── Fast path 1: Tick-only update ─────────────────────────────
-  if (handleTickUpdate(
-    mCtx, ctx, fs, engine, bars, vis,
-    changeMask, chartType, webgl,
-    p2y, pr, cBW, mainBH, mainHeight, bSp, thm,
-    start, timeTransform, yMin, yMax,
-  )) return;
+  if (
+    handleTickUpdate(
+      mCtx,
+      ctx,
+      fs,
+      engine,
+      bars,
+      vis,
+      changeMask,
+      chartType,
+      webgl,
+      p2y,
+      pr,
+      cBW,
+      mainBH,
+      mainHeight,
+      bSp,
+      thm,
+      start,
+      timeTransform,
+      yMin,
+      yMax,
+    )
+  )
+    return;
 
   // ─── Fast path 2: GPU pan ─────────────────────────────────────
   const prevFs = engine._pipeline?._prevFrameState;
-  if (handleGPUPan(
-    mCtx, ctx, fs, engine,
-    changeMask, chartType, webgl, prevFs,
-    bars, p2y, pr, cBW, mainBH, bSp, thm,
-    yMin, yMax,
-  )) return;
+  if (
+    handleGPUPan(
+      mCtx,
+      ctx,
+      fs,
+      engine,
+      changeMask,
+      chartType,
+      webgl,
+      prevFs,
+      bars,
+      p2y,
+      pr,
+      cBW,
+      mainBH,
+      bSp,
+      thm,
+      yMin,
+      yMax,
+    )
+  )
+    return;
 
   // ═══════════════════════════════════════════════════════════════════
   // FULL REDRAW (original path — zoom, resize, theme change, etc.)
@@ -168,7 +229,7 @@ export function executeDataStage(fs, ctx, engine) {
           const askBuckets = new Map();
           let maxQty = 0;
 
-          const aggregate = (levels: any[], target: Map<number, number>) => {
+          const aggregate = (levels: [string, string][], target: Map<number, number>) => {
             for (const [priceStr, qtyStr] of levels) {
               const price = parseFloat(priceStr);
               if (price < yMin || price > yMax) continue;
@@ -185,8 +246,8 @@ export function executeDataStage(fs, ctx, engine) {
           aggregate(latestSnapshot.asks || [], askBuckets);
 
           if (maxQty > 0) {
-            const askCells: Array<{x: number; y: number; w: number; h: number; intensity: number}> = [];
-            const bidCells: Array<{x: number; y: number; w: number; h: number; intensity: number}> = [];
+            const askCells: Array<{ x: number; y: number; w: number; h: number; intensity: number }> = [];
+            const bidCells: Array<{ x: number; y: number; w: number; h: number; intensity: number }> = [];
             const totalW = cW;
 
             // Build cells for asks (resistance — warm/red)
@@ -216,27 +277,55 @@ export function executeDataStage(fs, ctx, engine) {
             // Draw ask heatmap (warm/red palette)
             if (askCells.length > 0) {
               const ac = askCells;
-              const drawAsks = () => webgl.drawHeatmap(ac, { pixelRatio: 1, globalAlpha: 0.7 }, {
-                coldColor: 'rgba(255, 200, 100, 0.3)',
-                warmColor: 'rgba(255, 140, 40, 0.7)',
-                hotColor: 'rgba(255, 50, 20, 0.9)',
-              });
+              const drawAsks = () =>
+                webgl.drawHeatmap(
+                  ac,
+                  { pixelRatio: 1, globalAlpha: 0.7 },
+                  {
+                    coldColor: 'rgba(255, 200, 100, 0.3)',
+                    warmColor: 'rgba(255, 140, 40, 0.7)',
+                    hotColor: 'rgba(255, 50, 20, 0.9)',
+                  },
+                );
               if (cmdBuf) {
-                cmdBuf.push({ program: webgl.getProgram('heatmap'), blendMode: 0, texture: null, zOrder: 0, label: 'heatmap-asks', drawFn: drawAsks });
-              } else { drawAsks(); }
+                cmdBuf.push({
+                  program: webgl.getProgram('heatmap'),
+                  blendMode: 0,
+                  texture: null,
+                  zOrder: 0,
+                  label: 'heatmap-asks',
+                  drawFn: drawAsks,
+                });
+              } else {
+                drawAsks();
+              }
             }
 
             // Draw bid heatmap (blue palette)
             if (bidCells.length > 0) {
               const bc = bidCells;
-              const drawBids = () => webgl.drawHeatmap(bc, { pixelRatio: 1, globalAlpha: 0.7 }, {
-                coldColor: 'rgba(60, 120, 200, 0.3)',
-                warmColor: 'rgba(30, 144, 255, 0.7)',
-                hotColor: 'rgba(20, 100, 255, 0.9)',
-              });
+              const drawBids = () =>
+                webgl.drawHeatmap(
+                  bc,
+                  { pixelRatio: 1, globalAlpha: 0.7 },
+                  {
+                    coldColor: 'rgba(60, 120, 200, 0.3)',
+                    warmColor: 'rgba(30, 144, 255, 0.7)',
+                    hotColor: 'rgba(20, 100, 255, 0.9)',
+                  },
+                );
               if (cmdBuf) {
-                cmdBuf.push({ program: webgl.getProgram('heatmap'), blendMode: 0, texture: null, zOrder: 0, label: 'heatmap-bids', drawFn: drawBids });
-              } else { drawBids(); }
+                cmdBuf.push({
+                  program: webgl.getProgram('heatmap'),
+                  blendMode: 0,
+                  texture: null,
+                  zOrder: 0,
+                  label: 'heatmap-bids',
+                  drawFn: drawBids,
+                });
+              } else {
+                drawBids();
+              }
             }
           }
         }
@@ -256,29 +345,22 @@ export function executeDataStage(fs, ctx, engine) {
     if (cmdBuf) {
       cmdBuf.push({
         program: webgl.getProgram('fibFill'),
-        blendMode: 0, texture: null, zOrder: -1,
+        blendMode: 0,
+        texture: null,
+        zOrder: -1,
         label: 'grid-lines',
-        drawFn: () => webgl.drawGrid(
-          { horizontal: gridHorizontal },
-          { pixelRatio: pr, chartWidth: cW, mainHeight },
-          thm
-        ),
+        drawFn: () =>
+          webgl.drawGrid({ horizontal: gridHorizontal }, { pixelRatio: pr, chartWidth: cW, mainHeight }, thm),
       });
     } else {
-      webgl.drawGrid(
-        { horizontal: gridHorizontal },
-        { pixelRatio: pr, chartWidth: cW, mainHeight },
-        thm
-      );
+      webgl.drawGrid({ horizontal: gridHorizontal }, { pixelRatio: pr, chartWidth: cW, mainHeight }, thm);
     }
   } else {
     for (let gi = 0; gi < gridTicks.length; gi++) {
       const t = gridTicks[gi];
       const gy = Math.round(p2y(t) * pr);
       const isMajor = gi % 2 === 0;
-      mCtx.fillStyle = isMajor
-        ? (thm.gridLine || 'rgba(54,58,69,0.4)')
-        : (thm.gridLine || 'rgba(54,58,69,0.18)');
+      mCtx.fillStyle = isMajor ? thm.gridLine || 'rgba(54,58,69,0.4)' : thm.gridLine || 'rgba(54,58,69,0.18)';
       mCtx.fillRect(0, gy, cBW, isMajor ? Math.max(1, pr) : Math.max(1, Math.round(pr * 0.5)));
     }
   }
@@ -307,15 +389,37 @@ export function executeDataStage(fs, ctx, engine) {
 
   // ─── Bar Transforms (Renko/Range/Heikin-Ashi) ─────────────────
   const { renderBars, renderTimeTransform, renderStart } = transformBars(
-    fs, engine, bars, vis, chartType, start, endIdx, cW, timeTransform,
+    fs,
+    engine,
+    bars,
+    vis,
+    chartType,
+    start,
+    endIdx,
+    cW,
+    timeTransform,
   );
 
   // ─── Delegate to Chart Type Renderer ─────────────────────────
   renderChartType(
-    mCtx, ctx, engine, fs,
-    renderBars, renderStart, chartType, webgl,
-    p2y, pr, bSp, mainBH, mainHeight, cBW,
-    renderTimeTransform, yMin, yMax, thm,
+    mCtx,
+    ctx,
+    engine,
+    fs,
+    renderBars,
+    renderStart,
+    chartType,
+    webgl,
+    p2y,
+    pr,
+    bSp,
+    mainBH,
+    mainHeight,
+    cBW,
+    renderTimeTransform,
+    yMin,
+    yMax,
+    thm,
   );
 
   // Reset entrance animation transform
@@ -325,8 +429,7 @@ export function executeDataStage(fs, ctx, engine) {
   }
 
   // ─── Delegate overlays to extracted sub-function ──────────────
-  renderOverlays(mCtx, fs, engine, bars, vis, start, endIdx,
-    p2y, pr, cBW, mainBH, mainHeight, bSp, thm, timeTransform);
+  renderOverlays(mCtx, fs, engine, bars, vis, start, endIdx, p2y, pr, cBW, mainBH, mainHeight, bSp, thm, timeTransform);
 
   mCtx.restore();
 }

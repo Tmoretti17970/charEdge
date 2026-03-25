@@ -21,8 +21,6 @@ import { useJournalStore } from '../state/useJournalStore';
 export default function usePsychologyAlerts(candles) {
   const trades = useJournalStore((s) => s.trades);
   const [dismissed, setDismissed] = useState(new Set());
-  const lastAlertIdRef = useRef(null);
-
   // Run analysis reactively — debounced via useMemo
   const analysis = useMemo(() => {
     if (!trades?.length) return { alerts: [], sessionCurve: [], riskLevel: 'low', summary: '' };

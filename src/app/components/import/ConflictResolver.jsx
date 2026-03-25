@@ -8,7 +8,6 @@
 import React, { useState, useCallback } from 'react';
 import { C } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
-import st from './ConflictResolver.module.css';
 
 function ConflictRow({ existing, incoming, onResolve }) {
   const [hovered, setHovered] = useState(false);
@@ -28,7 +27,16 @@ function ConflictRow({ existing, incoming, onResolve }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 12, alignItems: 'start' }}>
         {/* Existing */}
         <div>
-          <div style={{ fontSize: 8, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>
+          <div
+            style={{
+              fontSize: 8,
+              fontWeight: 700,
+              color: C.t3,
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+              marginBottom: 4,
+            }}
+          >
             Existing
           </div>
           {fields.map((f) => (
@@ -41,7 +49,16 @@ function ConflictRow({ existing, incoming, onResolve }) {
 
         {/* Incoming */}
         <div>
-          <div style={{ fontSize: 8, fontWeight: 700, color: C.b, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>
+          <div
+            style={{
+              fontSize: 8,
+              fontWeight: 700,
+              color: C.b,
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+              marginBottom: 4,
+            }}
+          >
             Incoming
           </div>
           {fields.map((f) => {
@@ -143,7 +160,7 @@ function ConflictResolver({ conflicts, onResolveAll }) {
       });
       setResolutions(bulk);
     },
-    [conflicts]
+    [conflicts],
   );
 
   if (!conflicts || conflicts.length === 0) return null;
@@ -162,19 +179,49 @@ function ConflictResolver({ conflicts, onResolveAll }) {
         <div style={{ display: 'flex', gap: 4 }}>
           <button
             onClick={() => handleBulkAction('keep')}
-            style={{ fontSize: 9, padding: '3px 8px', borderRadius: 4, border: `1px solid ${alpha(C.bd, 0.3)}`, background: 'transparent', color: C.t2, cursor: 'pointer', fontFamily: 'var(--tf-font)', fontWeight: 600 }}
+            style={{
+              fontSize: 9,
+              padding: '3px 8px',
+              borderRadius: 4,
+              border: `1px solid ${alpha(C.bd, 0.3)}`,
+              background: 'transparent',
+              color: C.t2,
+              cursor: 'pointer',
+              fontFamily: 'var(--tf-font)',
+              fontWeight: 600,
+            }}
           >
             Keep All
           </button>
           <button
             onClick={() => handleBulkAction('replace')}
-            style={{ fontSize: 9, padding: '3px 8px', borderRadius: 4, border: `1px solid ${alpha(C.b, 0.2)}`, background: alpha(C.b, 0.06), color: C.b, cursor: 'pointer', fontFamily: 'var(--tf-font)', fontWeight: 600 }}
+            style={{
+              fontSize: 9,
+              padding: '3px 8px',
+              borderRadius: 4,
+              border: `1px solid ${alpha(C.b, 0.2)}`,
+              background: alpha(C.b, 0.06),
+              color: C.b,
+              cursor: 'pointer',
+              fontFamily: 'var(--tf-font)',
+              fontWeight: 600,
+            }}
           >
             Replace All
           </button>
           <button
             onClick={() => handleBulkAction('skip')}
-            style={{ fontSize: 9, padding: '3px 8px', borderRadius: 4, border: `1px solid ${alpha(C.r, 0.2)}`, background: 'transparent', color: C.t3, cursor: 'pointer', fontFamily: 'var(--tf-font)', fontWeight: 600 }}
+            style={{
+              fontSize: 9,
+              padding: '3px 8px',
+              borderRadius: 4,
+              border: `1px solid ${alpha(C.r, 0.2)}`,
+              background: 'transparent',
+              color: C.t3,
+              cursor: 'pointer',
+              fontFamily: 'var(--tf-font)',
+              fontWeight: 600,
+            }}
           >
             Skip All
           </button>

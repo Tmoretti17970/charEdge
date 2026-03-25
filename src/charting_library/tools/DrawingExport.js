@@ -5,6 +5,8 @@
 // generate shareable links, and capture drawing screenshots.
 // ═══════════════════════════════════════════════════════════════════
 
+import { logger } from '@/observability/logger';
+
 const EXPORT_VERSION = 1;
 
 /**
@@ -21,14 +23,14 @@ export function exportDrawings(drawings, symbol = '', tf = '') {
     symbol,
     tf,
     count: drawings.length,
-    drawings: drawings.map(d => ({
+    drawings: drawings.map((d) => ({
       id: d.id,
       type: d.type,
       label: d.label || '',
       locked: d.locked || false,
       visible: d.visible !== false,
       style: { ...d.style },
-      pricePoints: d.pricePoints?.map(pp => ({ price: pp.price, time: pp.time })) || [],
+      pricePoints: d.pricePoints?.map((pp) => ({ price: pp.price, time: pp.time })) || [],
       text: d.text || '',
       syncAcrossTimeframes: d.syncAcrossTimeframes || false,
       _groupId: d._groupId || null,
@@ -48,11 +50,11 @@ export function importDrawings(json) {
   try {
     const data = JSON.parse(json);
     if (!data.drawings || !Array.isArray(data.drawings)) {
-      console.warn('[DrawingExport] Invalid format: no drawings array');
+      logger.data.warn('[DrawingExport] Invalid format: no drawings array');
       return null;
     }
 
-    const imported = data.drawings.map(d => ({
+    const imported = data.drawings.map((d) => ({
       ...d,
       id: `imported-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       state: 'idle',
@@ -69,7 +71,7 @@ export function importDrawings(json) {
       },
     };
   } catch (err) {
-    console.error('[DrawingExport] Import failed:', err);
+    logger.data.error('[DrawingExport] Import failed:', err);
     return null;
   }
 }
@@ -82,10 +84,10 @@ export function importDrawings(json) {
  */
 export function generateShareLink(drawings) {
   try {
-    const compact = drawings.map(d => ({
+    const compact = drawings.map((d) => ({
       t: d.type,
       s: d.style,
-      pp: d.pricePoints?.map(pp => [pp.price, pp.time]) || [],
+      pp: d.pricePoints?.map((pp) => [pp.price, pp.time]) || [],
       l: d.label || '',
       txt: d.text || '',
     }));
@@ -93,7 +95,7 @@ export function generateShareLink(drawings) {
     const encoded = btoa(unescape(encodeURIComponent(json)));
     return `?drawings=${encoded}`;
   } catch (err) {
-    console.error('[DrawingExport] Share link generation failed:', err);
+    logger.data.error('[DrawingExport] Share link generation failed:', err);
     return '';
   }
 }
@@ -107,10 +109,10 @@ export function parseShareLink(encoded) {
   try {
     const json = decodeURIComponent(escape(atob(encoded)));
     const compact = JSON.parse(json);
-    return compact.map(d => ({
+    return compact.map((d) => ({
       type: d.t,
       style: d.s,
-      pricePoints: (d.pp || []).map(pp => ({ price: pp[0], time: pp[1] })),
+      pricePoints: (d.pp || []).map((pp) => ({ price: pp[0], time: pp[1] })),
       label: d.l || '',
       text: d.txt || '',
       id: `shared-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -119,7 +121,7 @@ export function parseShareLink(encoded) {
       visible: true,
     }));
   } catch (err) {
-    console.error('[DrawingExport] Share link parse failed:', err);
+    logger.data.error('[DrawingExport] Share link parse failed:', err);
     return null;
   }
 }
@@ -150,7 +152,10 @@ export function pickAndImportDrawings() {
     input.accept = '.json,application/json';
     input.onchange = (e) => {
       const file = e.target?.files?.[0];
-      if (!file) { resolve(null); return; }
+      if (!file) {
+        resolve(null);
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (ev) => {
         const text = ev.target?.result;

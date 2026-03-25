@@ -10,7 +10,6 @@ import { memo, useState, useCallback, useRef, useEffect } from 'react';
 import { C } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { radii, transition } from '../../../theme/tokens.js';
-import st from './TickerNotes.module.css';
 
 function TickerNotes({ symbol }) {
   const notes = useWatchlistStore((s) => s.notes || {});
@@ -37,17 +36,20 @@ function TickerNotes({ symbol }) {
     setEditing(false);
   }, [draft, symbol, setNote]);
 
-  const handleKeyDown = useCallback((e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-      e.preventDefault();
-      handleSave();
-    }
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      setDraft(savedText);
-      setEditing(false);
-    }
-  }, [handleSave, savedText]);
+  const handleKeyDown = useCallback(
+    (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handleSave();
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setDraft(savedText);
+        setEditing(false);
+      }
+    },
+    [handleSave, savedText],
+  );
 
   const handleEdit = useCallback(() => {
     setDraft(savedText);
@@ -87,20 +89,32 @@ function TickerNotes({ symbol }) {
             transition: `border ${transition.fast}`,
           }}
         />
-        <div style={{
-          display: 'flex', justifyContent: 'space-between',
-          marginTop: 5, alignItems: 'center',
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginTop: 5,
+            alignItems: 'center',
+          }}
+        >
           <span style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
             {draft.length}/{MAX_CHARS} · ⌘Enter to save
           </span>
           <div style={{ display: 'flex', gap: 6 }}>
             <button
-              onClick={() => { setDraft(savedText); setEditing(false); }}
+              onClick={() => {
+                setDraft(savedText);
+                setEditing(false);
+              }}
               style={{
-                background: 'transparent', border: `1px solid ${C.bd}30`,
-                borderRadius: radii.xs, padding: '3px 10px',
-                color: C.t3, fontSize: 10, fontFamily: 'var(--tf-mono)', cursor: 'pointer',
+                background: 'transparent',
+                border: `1px solid ${C.bd}30`,
+                borderRadius: radii.xs,
+                padding: '3px 10px',
+                color: C.t3,
+                fontSize: 10,
+                fontFamily: 'var(--tf-mono)',
+                cursor: 'pointer',
               }}
             >
               Cancel
@@ -108,9 +122,15 @@ function TickerNotes({ symbol }) {
             <button
               onClick={handleSave}
               style={{
-                background: '#6e5ce6', border: 'none',
-                borderRadius: radii.xs, padding: '3px 10px',
-                color: '#fff', fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-mono)', cursor: 'pointer',
+                background: '#6e5ce6',
+                border: 'none',
+                borderRadius: radii.xs,
+                padding: '3px 10px',
+                color: '#fff',
+                fontSize: 10,
+                fontWeight: 700,
+                fontFamily: 'var(--tf-mono)',
+                cursor: 'pointer',
               }}
             >
               Save
@@ -139,25 +159,35 @@ function TickerNotes({ symbol }) {
               whiteSpace: 'pre-wrap',
               wordBreak: 'break-word',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = `${C.sf}`; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = `${C.sf}`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+            }}
           >
             {savedText}
           </div>
-          <div style={{
-            display: 'flex', justifyContent: 'space-between',
-            marginTop: 4, alignItems: 'center',
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginTop: 4,
+              alignItems: 'center',
+            }}
+          >
             {lastEdited && (
-              <span style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3 }}>
-                Edited {lastEdited}
-              </span>
+              <span style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3 }}>Edited {lastEdited}</span>
             )}
             <button
               onClick={handleEdit}
               style={{
-                background: 'transparent', border: 'none',
-                color: C.t3, fontSize: 10, fontFamily: 'var(--tf-mono)', cursor: 'pointer',
+                background: 'transparent',
+                border: 'none',
+                color: C.t3,
+                fontSize: 10,
+                fontFamily: 'var(--tf-mono)',
+                cursor: 'pointer',
                 padding: '2px 6px',
               }}
             >

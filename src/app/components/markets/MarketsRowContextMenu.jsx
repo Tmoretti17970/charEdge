@@ -7,11 +7,10 @@
 
 import { useState, useEffect, memo, useRef } from 'react';
 import { C } from '../../../constants.js';
-import { radii, transition } from '../../../theme/tokens.js';
 import { useAlertStore } from '../../../state/useAlertStore';
 import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
 import { useWatchlistStore } from '../../../state/useWatchlistStore';
-import st from './MarketsRowContextMenu.module.css';
+import { radii, transition } from '../../../theme/tokens.js';
 
 // ─── Component ──────────────────────────────────────────────────
 
@@ -37,7 +36,9 @@ function MarketsRowContextMenu({ x, y, symbol, price, onClose }) {
 
   // Close on Escape
   useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
@@ -53,7 +54,10 @@ function MarketsRowContextMenu({ x, y, symbol, price, onClose }) {
       style: 'price',
     });
     setAlertCreated(condition);
-    setTimeout(() => { setAlertCreated(null); onClose(); }, 800);
+    setTimeout(() => {
+      setAlertCreated(null);
+      onClose();
+    }, 800);
   };
 
   // Position: keep menu within viewport
@@ -72,23 +76,39 @@ function MarketsRowContextMenu({ x, y, symbol, price, onClose }) {
   };
 
   const itemStyle = {
-    display: 'flex', alignItems: 'center', gap: 8,
-    padding: '6px 10px', borderRadius: 4,
-    fontSize: 11, fontWeight: 600, fontFamily: 'var(--tf-font)',
-    color: C.t2, background: 'transparent',
-    border: 'none', cursor: 'pointer',
-    width: '100%', textAlign: 'left',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '6px 10px',
+    borderRadius: 4,
+    fontSize: 11,
+    fontWeight: 600,
+    fontFamily: 'var(--tf-font)',
+    color: C.t2,
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    width: '100%',
+    textAlign: 'left',
     transition: `background ${transition.fast}`,
   };
 
   return (
     <div ref={menuRef} style={menuStyle}>
       {/* ── Symbol header ─────────────────────────────── */}
-      <div style={{
-        padding: '4px 10px 6px', fontSize: 9, fontWeight: 700, fontFamily: 'var(--tf-mono)',
-        color: C.t3, textTransform: 'uppercase', letterSpacing: '0.08em',
-        borderBottom: `1px solid ${C.bd}15`, marginBottom: 4,
-      }}>
+      <div
+        style={{
+          padding: '4px 10px 6px',
+          fontSize: 9,
+          fontWeight: 700,
+          fontFamily: 'var(--tf-mono)',
+          color: C.t3,
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          borderBottom: `1px solid ${C.bd}15`,
+          marginBottom: 4,
+        }}
+      >
         {symbol}
         {price > 0 && <span style={{ color: C.t2, marginLeft: 6 }}>${price.toFixed(2)}</span>}
       </div>
@@ -97,8 +117,12 @@ function MarketsRowContextMenu({ x, y, symbol, price, onClose }) {
       <button
         style={itemStyle}
         onClick={() => setShowAlertSub(!showAlertSub)}
-        onMouseEnter={(e) => { e.currentTarget.style.background = `${C.bd}15`; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = `${C.bd}15`;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent';
+        }}
       >
         <span style={{ fontSize: 13 }}>🔔</span> Set Alert
         <span style={{ marginLeft: 'auto', fontSize: 8, color: C.t3 }}>▸</span>
@@ -108,24 +132,39 @@ function MarketsRowContextMenu({ x, y, symbol, price, onClose }) {
           <button
             onClick={() => handleQuickAlert('above')}
             style={{ ...itemStyle, fontSize: 10, color: alertCreated === 'above' ? '#34c759' : C.t2 }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = `${C.bd}15`; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = `${C.bd}15`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+            }}
           >
             {alertCreated === 'above' ? '✓ Created' : '↑ Alert Above'}
           </button>
           <button
             onClick={() => handleQuickAlert('below')}
             style={{ ...itemStyle, fontSize: 10, color: alertCreated === 'below' ? '#34c759' : C.t2 }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = `${C.bd}15`; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = `${C.bd}15`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+            }}
           >
             {alertCreated === 'below' ? '✓ Created' : '↓ Alert Below'}
           </button>
           <button
-            onClick={() => { setAlertPickerOpen(true); onClose(); }}
+            onClick={() => {
+              setAlertPickerOpen(true);
+              onClose();
+            }}
             style={{ ...itemStyle, fontSize: 10, color: '#f0b64e' }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = `${C.bd}15`; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = `${C.bd}15`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+            }}
           >
             ⚡ Smart Alert...
           </button>
@@ -134,19 +173,33 @@ function MarketsRowContextMenu({ x, y, symbol, price, onClose }) {
 
       {/* ── Other actions ─────────────────────────────── */}
       <button
-        onClick={() => { addCompareSymbol(symbol); onClose(); }}
+        onClick={() => {
+          addCompareSymbol(symbol);
+          onClose();
+        }}
         style={itemStyle}
-        onMouseEnter={(e) => { e.currentTarget.style.background = `${C.bd}15`; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = `${C.bd}15`;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent';
+        }}
       >
         <span style={{ fontSize: 13 }}>📊</span> Add to Compare
       </button>
 
       <button
-        onClick={() => { setSelectedSymbol(symbol); onClose(); }}
+        onClick={() => {
+          setSelectedSymbol(symbol);
+          onClose();
+        }}
         style={itemStyle}
-        onMouseEnter={(e) => { e.currentTarget.style.background = `${C.bd}15`; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = `${C.bd}15`;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent';
+        }}
       >
         <span style={{ fontSize: 13 }}>📋</span> View Details
       </button>
@@ -154,10 +207,17 @@ function MarketsRowContextMenu({ x, y, symbol, price, onClose }) {
       <div style={{ height: 1, background: `${C.bd}15`, margin: '4px 0' }} />
 
       <button
-        onClick={() => { removeSymbol(symbol); onClose(); }}
+        onClick={() => {
+          removeSymbol(symbol);
+          onClose();
+        }}
         style={{ ...itemStyle, color: C.r }}
-        onMouseEnter={(e) => { e.currentTarget.style.background = `${C.r}08`; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = `${C.r}08`;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent';
+        }}
       >
         <span style={{ fontSize: 13 }}>🗑</span> Remove from Watchlist
       </button>

@@ -5,8 +5,8 @@
 
 import React from 'react';
 import { useState } from 'react';
-import { C, F, M } from '@/constants.js';
 import { fmtD } from '../../../../utils.js';
+import { C, F, M } from '@/constants.js';
 
 function JournalFilterBar({
   filter,
@@ -59,8 +59,14 @@ function JournalFilterBar({
             outline: 'none',
             transition: 'border-color 0.15s, box-shadow 0.15s',
           }}
-          onFocus={(e) => { e.target.style.borderColor = C.b; e.target.style.boxShadow = `0 0 0 2px ${C.b}20`; }}
-          onBlur={(e) => { e.target.style.borderColor = C.bd; e.target.style.boxShadow = 'none'; }}
+          onFocus={(e) => {
+            e.target.style.borderColor = C.b;
+            e.target.style.boxShadow = `0 0 0 2px ${C.b}20`;
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = C.bd;
+            e.target.style.boxShadow = 'none';
+          }}
         />
 
         {/* Filters Toggle (Sprint 12) */}
@@ -103,7 +109,16 @@ function JournalFilterBar({
         </button>
 
         {/* Summary (always visible) */}
-        <div style={{ fontSize: 11, fontFamily: M, color: C.t3, whiteSpace: 'nowrap', marginLeft: 'auto', fontVariantNumeric: 'tabular-nums' }}>
+        <div
+          style={{
+            fontSize: 11,
+            fontFamily: M,
+            color: C.t3,
+            whiteSpace: 'nowrap',
+            marginLeft: 'auto',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
           <span style={{ color: summary.pnl >= 0 ? C.g : C.r, fontWeight: 700 }}>{fmtD(summary.pnl)}</span>
           {' · '}
           <span style={{ color: C.g }}>{summary.wins}W</span> <span style={{ color: C.r }}>{summary.losses}L</span>
@@ -112,11 +127,20 @@ function JournalFilterBar({
 
       {/* Sprint 12: Collapsible filter controls */}
       {showFilters && (
-        <div style={{
-          display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center', flexWrap: 'wrap',
-          padding: '10px 12px', background: C.bg2, borderRadius: 8, border: `1px solid ${C.bd}`,
-          animation: 'tfSubTabsIn 0.2s ease forwards',
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: 8,
+            marginBottom: 8,
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            padding: '10px 12px',
+            background: C.bg2,
+            borderRadius: 8,
+            border: `1px solid ${C.bd}`,
+            animation: 'tfSubTabsIn 0.2s ease forwards',
+          }}
+        >
           {/* Side Filter */}
           {['all', 'long', 'short'].map((s) => (
             <button

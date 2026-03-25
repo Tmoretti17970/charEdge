@@ -29,8 +29,8 @@ async function _getDB() {
   try {
     _db = await openUnifiedDB();
     return _db;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (_) {
+     
+  } catch {
     logger.data.warn('[StorageService] UnifiedDB unavailable — using in-memory fallback');
     _memFallback = new Map();
     // Initialize both flat stores and account-specific stores for fallback
@@ -57,58 +57,46 @@ async function _getDB() {
 
 // ─── Low-level Helpers ──────────────────────────────────────────
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function _idbPut(db, table, item) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const record = (isEncryptionEnabled() && isEncryptionSupported())
-        ? await encryptRecord(item)
-        : item;
-      const tx = db.transaction(table, 'readwrite');
-      const store = tx.objectStore(table);
-      const req = store.put(record);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => {
-        const err = req.error || tx.error;
-        if (err?.name === 'QuotaExceededError') {
-          err.isQuotaError = true;
-          err.message = `Storage quota exceeded writing to "${table}". Run quotaRecovery() to free space.`;
-        }
-        reject(err);
-      };
-    } catch (err) {
+async function _idbPut(db, table, item) {
+  const record = isEncryptionEnabled() && isEncryptionSupported() ? await encryptRecord(item) : item;
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(table, 'readwrite');
+    const store = tx.objectStore(table);
+    const req = store.put(record);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => {
+      const err = req.error || tx.error;
+      if (err?.name === 'QuotaExceededError') {
+        err.isQuotaError = true;
+        err.message = `Storage quota exceeded writing to "${table}". Run quotaRecovery() to free space.`;
+      }
       reject(err);
-    }
+    };
   });
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function _idbBulkPut(db, table, items) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const shouldEncrypt = isEncryptionEnabled() && isEncryptionSupported();
-      const records = shouldEncrypt
-        ? await Promise.all(items.map((item) => encryptRecord(item)))
-        : items;
-      const tx = db.transaction(table, 'readwrite');
-      const store = tx.objectStore(table);
-      for (const record of records) store.put(record);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => {
-        const err = tx.error;
-        if (err?.name === 'QuotaExceededError') {
-          err.isQuotaError = true;
-          err.message = `Storage quota exceeded during bulk write to "${table}".`;
-        }
-        reject(err);
-      };
-      tx.onabort = () => {
-        const err = tx.error;
-        if (err?.name === 'QuotaExceededError') err.isQuotaError = true;
-        reject(err || new Error('Transaction aborted'));
-      };
-    } catch (err) {
+async function _idbBulkPut(db, table, items) {
+  const shouldEncrypt = isEncryptionEnabled() && isEncryptionSupported();
+  const records = shouldEncrypt ? await Promise.all(items.map((item) => encryptRecord(item))) : items;
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(table, 'readwrite');
+    const store = tx.objectStore(table);
+    for (const record of records) store.put(record);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => {
+      const err = tx.error;
+      if (err?.name === 'QuotaExceededError') {
+        err.isQuotaError = true;
+        err.message = `Storage quota exceeded during bulk write to "${table}".`;
+      }
       reject(err);
-    }
+    };
+    tx.onabort = () => {
+      const err = tx.error;
+      if (err?.name === 'QuotaExceededError') err.isQuotaError = true;
+      reject(err || new Error('Transaction aborted'));
+    };
   });
 }
 
@@ -187,8 +175,8 @@ function _idbWhere(db, table, field, value) {
     let req;
     try {
       req = store.index(field).getAll(value);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_) {
+       
+    } catch {
       // Index doesn't exist — fall back to full scan
       req = store.getAll();
       req.onsuccess = () => resolve((req.result || []).filter((r) => r[field] === value));
@@ -210,8 +198,8 @@ function _idbWhereRange(db, table, field, lower, upper) {
       const req = store.index(field).getAll(range);
       req.onsuccess = () => resolve(req.result || []);
       req.onerror = () => reject(req.error);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_) {
+       
+    } catch {
       const req = store.getAll();
       req.onsuccess = () => resolve((req.result || []).filter((r) => r[field] >= lower && r[field] <= upper));
       req.onerror = () => reject(req.error);
@@ -595,7 +583,9 @@ const StorageService = {
         try {
           if (db) await _idbClear(db, store);
           freedItems++;
-        } catch { /* store may not exist — skip */ }
+        } catch {
+          /* store may not exist — skip */
+        }
       }
 
       // 2. Re-check quota after clearing caches
@@ -628,7 +618,11 @@ const StorageService = {
       }
 
       logger.data.warn(`[StorageService] Quota recovery: cleared caches + removed ${removeCount} oldest trades`);
-      return { ok: true, freed: freedItems + removeCount, message: `Removed ${removeCount} oldest trades after clearing caches` };
+      return {
+        ok: true,
+        freed: freedItems + removeCount,
+        message: `Removed ${removeCount} oldest trades after clearing caches`,
+      };
     } catch (e) {
       return { ok: false, freed: 0, error: e.message };
     }

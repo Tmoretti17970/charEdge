@@ -8,22 +8,16 @@
 // Re-renders through React only when positions are added/removed.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useEffect, useRef, useCallback, useMemo } from 'react';
-import { F } from '@/constants.js';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { useOpenPositions } from '../../../../hooks/useOpenPositions.js';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
+import { F } from '@/constants.js';
 
 function PositionLineOverlay({ symbol, engineRef }) {
   const openPositions = useOpenPositions(symbol);
   const containerRef = useRef(null);
   // Store refs to each line's root div keyed by position id
   const lineRefsMap = useRef(new Map());
-
-  // Memoize position IDs so React only re-renders when positions change
-  const positionIds = useMemo(
-    () => openPositions.map((p) => p.id).join(','),
-    [openPositions],
-  );
 
   // RAF loop: mutate DOM directly — no React state updates
   const rafRef = useRef(null);

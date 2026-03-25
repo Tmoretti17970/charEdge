@@ -53,7 +53,7 @@ const useWatchlistStore = create((set, get) => ({
   items: [],
   folders: [],
   loaded: false,
-  notes: {},  // Sprint 37: Record<symbol, { text: string, updatedAt: string }>
+  notes: {}, // Sprint 37: Record<symbol, { text: string, updatedAt: string }>
 
   // ─── Notes Actions (Sprint 37) ─────────────────────────────────
 
@@ -233,9 +233,7 @@ const useWatchlistStore = create((set, get) => ({
 
       return {
         folders: s.folders.filter((f) => !allFolderIds.has(f.id)),
-        items: s.items.map((i) =>
-          i.folderId && allFolderIds.has(i.folderId) ? { ...i, folderId: null } : i,
-        ),
+        items: s.items.map((i) => (i.folderId && allFolderIds.has(i.folderId) ? { ...i, folderId: null } : i)),
       };
     });
   },
@@ -257,9 +255,7 @@ const useWatchlistStore = create((set, get) => ({
    */
   toggleFolderCollapse: (folderId) => {
     set((s) => ({
-      folders: s.folders.map((f) =>
-        f.id === folderId ? { ...f, collapsed: !f.collapsed } : f,
-      ),
+      folders: s.folders.map((f) => (f.id === folderId ? { ...f, collapsed: !f.collapsed } : f)),
     }));
   },
 
@@ -280,9 +276,7 @@ const useWatchlistStore = create((set, get) => ({
       current = parent?.parentId || null;
     }
     set((s) => ({
-      folders: s.folders.map((f) =>
-        f.id === folderId ? { ...f, parentId: newParentId } : f,
-      ),
+      folders: s.folders.map((f) => (f.id === folderId ? { ...f, parentId: newParentId } : f)),
     }));
   },
 
@@ -352,18 +346,20 @@ const useWatchlistStore = create((set, get) => ({
     if (data && typeof data === 'object' && !Array.isArray(data) && data.items) {
       // New format: { items, folders }
       set({
-        items: Array.isArray(data.items) && data.items.length > 0
-          ? data.items.map((i) => ({ ...i, folderId: i.folderId || null }))
-          : [...DEFAULT_WATCHLIST],
+        items:
+          Array.isArray(data.items) && data.items.length > 0
+            ? data.items.map((i) => ({ ...i, folderId: i.folderId || null }))
+            : [...DEFAULT_WATCHLIST],
         folders: Array.isArray(data.folders) ? data.folders : [],
         loaded: true,
       });
     } else {
       // Legacy format: just items array
       set({
-        items: Array.isArray(data) && data.length > 0
-          ? data.map((i) => ({ ...i, folderId: i.folderId || null }))
-          : [...DEFAULT_WATCHLIST],
+        items:
+          Array.isArray(data) && data.length > 0
+            ? data.map((i) => ({ ...i, folderId: i.folderId || null }))
+            : [...DEFAULT_WATCHLIST],
         folders: [],
         loaded: true,
       });
@@ -468,9 +464,9 @@ function evaluateSmartFolders(items, folders, tickerMap = {}, indicatorMap = {})
     // Check each smart folder
     for (const sf of smartFolders) {
       const matches = sf.rules.every((rule) => {
-        const val = _resolveField(item, rule.field, tickerMap, indicatorMap);
+        const val = resolveField(item, rule.field, tickerMap, indicatorMap);
         if (val === null || val === undefined) return false;
-        return _evalOp(val, rule.op, rule.value);
+        return evalOp(val, rule.op, rule.value);
       });
       if (matches) return { ...item, folderId: sf.id };
     }
@@ -483,36 +479,53 @@ function evaluateSmartFolders(items, folders, tickerMap = {}, indicatorMap = {})
 /**
  * Resolve a field value from item, ticker, or indicator data.
  */
-function _resolveField(item, field, tickerMap, indicatorMap) {
+function resolveField(item, field, tickerMap, indicatorMap) {
   const ticker = tickerMap[item.symbol] || {};
   const indicators = indicatorMap[item.symbol] || {};
 
   switch (field) {
-    case 'assetClass': return item.assetClass;
-    case 'symbol': return item.symbol;
-    case 'changePercent': return ticker.priceChangePercent ? parseFloat(ticker.priceChangePercent) : null;
-    case 'volume': return ticker.volume ? parseFloat(ticker.volume) : null;
-    case 'price': return ticker.lastPrice ? parseFloat(ticker.lastPrice) : null;
-    case 'rsi': return indicators.rsi ?? null;
-    case 'atr': return indicators.atr ?? null;
-    case 'bbWidth': return indicators.bbWidth ?? null;
-    case 'sentiment': return indicators.sentiment ?? null;
-    default: return null;
+    case 'assetClass':
+      return item.assetClass;
+    case 'symbol':
+      return item.symbol;
+    case 'changePercent':
+      return ticker.priceChangePercent ? parseFloat(ticker.priceChangePercent) : null;
+    case 'volume':
+      return ticker.volume ? parseFloat(ticker.volume) : null;
+    case 'price':
+      return ticker.lastPrice ? parseFloat(ticker.lastPrice) : null;
+    case 'rsi':
+      return indicators.rsi ?? null;
+    case 'atr':
+      return indicators.atr ?? null;
+    case 'bbWidth':
+      return indicators.bbWidth ?? null;
+    case 'sentiment':
+      return indicators.sentiment ?? null;
+    default:
+      return null;
   }
 }
 
 /**
  * Evaluate a single rule operation.
  */
-function _evalOp(val, op, target) {
+function evalOp(val, op, target) {
   switch (op) {
-    case '>=': return Number(val) >= Number(target);
-    case '<=': return Number(val) <= Number(target);
-    case '>': return Number(val) > Number(target);
-    case '<': return Number(val) < Number(target);
-    case '==': return String(val).toLowerCase() === String(target).toLowerCase();
-    case '!=': return String(val).toLowerCase() !== String(target).toLowerCase();
-    default: return false;
+    case '>=':
+      return Number(val) >= Number(target);
+    case '<=':
+      return Number(val) <= Number(target);
+    case '>':
+      return Number(val) > Number(target);
+    case '<':
+      return Number(val) < Number(target);
+    case '==':
+      return String(val).toLowerCase() === String(target).toLowerCase();
+    case '!=':
+      return String(val).toLowerCase() !== String(target).toLowerCase();
+    default:
+      return false;
   }
 }
 

@@ -17,13 +17,13 @@ import { persist } from 'zustand/middleware';
 
 // ─── Types ──────────────────────────────────────────────────────
 
-export type SuggestionType = 
-  | 'resistance'     // alert near resistance level
-  | 'support'        // alert near support level
-  | 'stopLoss'       // stop-loss reminder after trade
-  | 'watchlist52w'   // 52W alerts for watchlist items
-  | 'percentMove'    // alert on significant % move
-  | 'roundNumber';   // alert at round price levels
+export type SuggestionType =
+  | 'resistance' // alert near resistance level
+  | 'support' // alert near support level
+  | 'stopLoss' // stop-loss reminder after trade
+  | 'watchlist52w' // 52W alerts for watchlist items
+  | 'percentMove' // alert on significant % move
+  | 'roundNumber'; // alert at round price levels
 
 export interface AlertSuggestion {
   id: string;
@@ -51,7 +51,7 @@ interface SuggestionState {
   dismissedIds: string[];
   /** Dismissed suggestion types per symbol (e.g. "AAPL:resistance") */
   dismissedTypes: string[];
-  
+
   addSuggestion: (s: AlertSuggestion) => void;
   dismiss: (id: string) => void;
   dismissType: (symbol: string, type: SuggestionType) => void;
@@ -69,26 +69,29 @@ export const useSuggestionStore = create<SuggestionState>()(
       dismissedIds: [],
       dismissedTypes: [],
 
-      addSuggestion: (s) => set((state) => {
-        // Don't add if already dismissed
-        if (state.dismissedIds.includes(s.id)) return state;
-        if (state.dismissedTypes.includes(`${s.symbol}:${s.type}`)) return state;
-        // Don't add duplicates
-        if (state.suggestions.some((existing) => existing.id === s.id)) return state;
-        
-        const updated = [s, ...state.suggestions].slice(0, MAX_SUGGESTIONS);
-        return { suggestions: updated };
-      }),
+      addSuggestion: (s) =>
+        set((state) => {
+          // Don't add if already dismissed
+          if (state.dismissedIds.includes(s.id)) return state;
+          if (state.dismissedTypes.includes(`${s.symbol}:${s.type}`)) return state;
+          // Don't add duplicates
+          if (state.suggestions.some((existing) => existing.id === s.id)) return state;
 
-      dismiss: (id) => set((state) => ({
-        suggestions: state.suggestions.filter((s) => s.id !== id),
-        dismissedIds: [...state.dismissedIds.slice(-50), id], // keep last 50
-      })),
+          const updated = [s, ...state.suggestions].slice(0, MAX_SUGGESTIONS);
+          return { suggestions: updated };
+        }),
 
-      dismissType: (symbol, type) => set((state) => ({
-        suggestions: state.suggestions.filter((s) => !(s.symbol === symbol && s.type === type)),
-        dismissedTypes: [...state.dismissedTypes.slice(-30), `${symbol}:${type}`],
-      })),
+      dismiss: (id) =>
+        set((state) => ({
+          suggestions: state.suggestions.filter((s) => s.id !== id),
+          dismissedIds: [...state.dismissedIds.slice(-50), id], // keep last 50
+        })),
+
+      dismissType: (symbol, type) =>
+        set((state) => ({
+          suggestions: state.suggestions.filter((s) => !(s.symbol === symbol && s.type === type)),
+          dismissedTypes: [...state.dismissedTypes.slice(-30), `${symbol}:${type}`],
+        })),
 
       clear: () => set({ suggestions: [] }),
 
@@ -109,9 +112,9 @@ export const useSuggestionStore = create<SuggestionState>()(
  * Call this when viewing a chart or after price updates.
  */
 export function generatePriceSuggestions(
-  symbol: string, 
-  currentPrice: number, 
-  high52w?: number, 
+  symbol: string,
+  currentPrice: number,
+  high52w?: number,
   low52w?: number,
 ): void {
   const store = useSuggestionStore.getState();
@@ -119,8 +122,7 @@ export function generatePriceSuggestions(
   // 1. Round number alerts (nearest $10/$100/$1000 milestone)
   const magnitude = currentPrice > 1000 ? 100 : currentPrice > 100 ? 10 : 1;
   const nextRound = Math.ceil(currentPrice / magnitude) * magnitude;
-  const prevRound = Math.floor(currentPrice / magnitude) * magnitude;
-  
+
   if (nextRound !== currentPrice && !store.isTypeDismissed(symbol, 'roundNumber')) {
     const id = `${symbol}-round-${nextRound}`;
     if (!store.isDismissed(id)) {
@@ -201,19 +203,16 @@ export function generatePriceSuggestions(
 /**
  * Suggest a stop-loss alert after a trade entry.
  */
-export function suggestStopLossAlert(
-  symbol: string, 
-  entryPrice: number, 
-  side: 'long' | 'short' = 'long',
-): void {
+export function suggestStopLossAlert(symbol: string, entryPrice: number, side: 'long' | 'short' = 'long'): void {
   const store = useSuggestionStore.getState();
   if (store.isTypeDismissed(symbol, 'stopLoss')) return;
 
   const slPercent = 0.02; // -2% default
-  const slPrice = side === 'long' 
-    ? Math.round(entryPrice * (1 - slPercent) * 100) / 100
-    : Math.round(entryPrice * (1 + slPercent) * 100) / 100;
-  
+  const slPrice =
+    side === 'long'
+      ? Math.round(entryPrice * (1 - slPercent) * 100) / 100
+      : Math.round(entryPrice * (1 + slPercent) * 100) / 100;
+
   const id = `${symbol}-sl-${slPrice}`;
   if (store.isDismissed(id)) return;
 

@@ -6,7 +6,6 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useMemo } from 'react';
-import { C } from '../../../constants.js';
 import { useAlertStore } from '../../../state/useAlertStore';
 import st from './AlertHistoryPanel.module.css';
 
@@ -21,7 +20,8 @@ function OutcomeBadge({ value, label }) {
         background: (isGreen ? '#26A69A' : '#EF5350') + '15',
       }}
     >
-      {label}: {isGreen ? '+' : ''}{value.toFixed(1)}%
+      {label}: {isGreen ? '+' : ''}
+      {value.toFixed(1)}%
     </span>
   );
 }
@@ -50,7 +50,11 @@ function AlertHistoryPanel() {
     if (withOutcome.length === 0) return null;
     const wins = withOutcome.filter((e) => (e.outcome15m || 0) > 0).length;
     const avg = withOutcome.reduce((sum, e) => sum + (e.outcome15m || 0), 0) / withOutcome.length;
-    return { total: withOutcome.length, winRate: (wins / withOutcome.length * 100).toFixed(0), avgOutcome: avg.toFixed(2) };
+    return {
+      total: withOutcome.length,
+      winRate: ((wins / withOutcome.length) * 100).toFixed(0),
+      avgOutcome: avg.toFixed(2),
+    };
   }, [entries]);
 
   return (
@@ -59,7 +63,9 @@ function AlertHistoryPanel() {
         <span className={st.title}>📊 Alert History</span>
         <div className={st.headerRight}>
           <span className={st.entryCount}>{entries.length} entries</span>
-          <button onClick={clearHistory} className={st.clearBtn}>Clear</button>
+          <button onClick={clearHistory} className={st.clearBtn}>
+            Clear
+          </button>
         </div>
       </div>
 
@@ -83,8 +89,12 @@ function AlertHistoryPanel() {
 
       {stats && (
         <div className={st.summary}>
-          <span>Win Rate: <b className={st.summaryBold}>{stats.winRate}%</b></span>
-          <span>Avg: <b style={{ color: parseFloat(stats.avgOutcome) >= 0 ? '#26A69A' : '#EF5350' }}>{stats.avgOutcome}%</b></span>
+          <span>
+            Win Rate: <b className={st.summaryBold}>{stats.winRate}%</b>
+          </span>
+          <span>
+            Avg: <b style={{ color: parseFloat(stats.avgOutcome) >= 0 ? '#26A69A' : '#EF5350' }}>{stats.avgOutcome}%</b>
+          </span>
           <span>N={stats.total}</span>
         </div>
       )}
@@ -93,9 +103,7 @@ function AlertHistoryPanel() {
         <div className={st.empty}>
           <div className={st.emptyIcon}>📊</div>
           <div>No alert history yet</div>
-          <div className={st.emptyHint}>
-            Triggered alerts will appear here with outcome tracking.
-          </div>
+          <div className={st.emptyHint}>Triggered alerts will appear here with outcome tracking.</div>
         </div>
       ) : (
         filtered.map((entry) => (
@@ -110,21 +118,22 @@ function AlertHistoryPanel() {
                 <span className={st.entryCond}>{entry.condition.replace('_', ' ')}</span>
               </div>
               <span className={st.entryTime}>
-                {new Date(entry.triggeredAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                {new Date(entry.triggeredAt).toLocaleString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
               </span>
             </div>
             <div className={st.outcomeRow}>
-              <span className={st.entryPrice}>
-                @${entry.triggerPrice.toFixed(2)}
-              </span>
+              <span className={st.entryPrice}>@${entry.triggerPrice.toFixed(2)}</span>
               <span className={st.entryArrow}>→</span>
               <OutcomeBadge value={entry.outcome5m} label="+5m" />
               <OutcomeBadge value={entry.outcome15m} label="+15m" />
               <OutcomeBadge value={entry.outcome1h} label="+1h" />
             </div>
-            {entry.note && (
-              <div className={st.entryNote}>{entry.note}</div>
-            )}
+            {entry.note && <div className={st.entryNote}>{entry.note}</div>}
           </div>
         ))
       )}

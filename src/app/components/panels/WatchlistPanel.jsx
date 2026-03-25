@@ -12,15 +12,20 @@
 import React from 'react';
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { C } from '../../../constants.js';
+import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useUIStore } from '../../../state/useUIStore';
 import { useWatchlistStore, groupByAssetClass, enrichWithTradeStats } from '../../../state/useWatchlistStore.js';
-import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
 import st from './WatchlistPanel.module.css';
 
 const ASSET_ICONS = {
-  futures: '📊', stocks: '📈', crypto: '₿', etf: '🏦',
-  forex: '💱', options: '⚡', other: '📋',
+  futures: '📊',
+  stocks: '📈',
+  crypto: '₿',
+  etf: '🏦',
+  forex: '💱',
+  options: '⚡',
+  other: '📋',
 };
 
 function WatchlistPanel({ compact = false }) {
@@ -40,7 +45,7 @@ function WatchlistPanel({ compact = false }) {
   useEffect(() => {
     let mounted = true;
     import('../../../data/FetchService.ts').then(async ({ fetch24hTicker, fetchSparkline }) => {
-      const symbolsToFetch = items.filter(i => !tickers[i.symbol]).map(i => i.symbol);
+      const symbolsToFetch = items.filter((i) => !tickers[i.symbol]).map((i) => i.symbol);
       if (symbolsToFetch.length > 0) {
         const tickerResults = await fetch24hTicker(symbolsToFetch);
         const newTickers = { ...tickers };
@@ -52,7 +57,7 @@ function WatchlistPanel({ compact = false }) {
       }
 
       const { batchGetQuotes } = await import('../../../data/QuoteService.js');
-      const missingSparklines = items.filter(i => !sparklines[i.symbol]).map(i => i.symbol);
+      const missingSparklines = items.filter((i) => !sparklines[i.symbol]).map((i) => i.symbol);
       if (missingSparklines.length > 0) {
         const quoteMap = await batchGetQuotes(missingSparklines);
         const newSparklines = { ...sparklines };
@@ -67,7 +72,7 @@ function WatchlistPanel({ compact = false }) {
         }
         if (stillMissing.length > 0) {
           const sparkPromises = stillMissing.map(async (sym) => {
-            const item = items.find(i => i.symbol === sym);
+            const item = items.find((i) => i.symbol === sym);
             const sData = await fetchSparkline(sym, item?.assetClass === 'crypto');
             return { symbol: sym, data: sData };
           });
@@ -79,8 +84,10 @@ function WatchlistPanel({ compact = false }) {
         if (mounted) setSparklines(newSparklines);
       }
     });
-    return () => { mounted = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      mounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
 
   const processedItems = useMemo(() => {
@@ -103,11 +110,17 @@ function WatchlistPanel({ compact = false }) {
 
   const handleAdd = useCallback(() => {
     const sym = inputValue.trim().toUpperCase();
-    if (sym) { addSymbol({ symbol: sym }); setInputValue(''); }
+    if (sym) {
+      addSymbol({ symbol: sym });
+      setInputValue('');
+    }
   }, [inputValue, addSymbol]);
 
   const handleClickSymbol = useCallback(
-    (symbol) => { setChartSymbol(symbol); setPage('charts'); },
+    (symbol) => {
+      setChartSymbol(symbol);
+      setPage('charts');
+    },
     [setChartSymbol, setPage],
   );
 
@@ -141,7 +154,9 @@ function WatchlistPanel({ compact = false }) {
           className={`tf-btn ${st.addBtn} ${!inputValue.trim() ? st.addBtnDisabled : ''}`}
           onClick={handleAdd}
           disabled={!inputValue.trim()}
-        >+</button>
+        >
+          +
+        </button>
       </div>
 
       {/* Groups */}
@@ -187,13 +202,12 @@ function WatchlistRow({ item, ticker, sparkline, sentiment, onClick, onRemove })
           <div className={st.rowSymbol}>{item.symbol}</div>
           {ticker && (
             <div className={st.rowChange} style={{ color: changeColor }}>
-              {isPositive ? '+' : ''}{parseFloat(ticker.priceChangePercent).toFixed(2)}%
+              {isPositive ? '+' : ''}
+              {parseFloat(ticker.priceChangePercent).toFixed(2)}%
             </div>
           )}
         </div>
-        {item.name !== item.symbol && (
-          <div className={st.rowName}>{item.name}</div>
-        )}
+        {item.name !== item.symbol && <div className={st.rowName}>{item.name}</div>}
       </div>
 
       {sentiment && (
@@ -224,9 +238,14 @@ function WatchlistRow({ item, ticker, sparkline, sentiment, onClick, onRemove })
 
       <button
         className={`tf-btn ${st.removeBtn}`}
-        onClick={(e) => { e.stopPropagation(); onRemove(); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
         title="Remove from watchlist"
-      >✕</button>
+      >
+        ✕
+      </button>
     </div>
   );
 }
@@ -238,16 +257,26 @@ function SVGSparkline({ data, color }) {
   const min = Math.min(...data);
   const max = Math.max(...data);
   const range = max - min || 1;
-  const w = 40; const h = 20;
-  const points = data.map((val, i) => {
-    const x = (i / (data.length - 1)) * w;
-    const y = h - ((val - min) / range) * h;
-    return `${x},${y}`;
-  }).join(' L ');
+  const w = 40;
+  const h = 20;
+  const points = data
+    .map((val, i) => {
+      const x = (i / (data.length - 1)) * w;
+      const y = h - ((val - min) / range) * h;
+      return `${x},${y}`;
+    })
+    .join(' L ');
 
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
-      <path d={`M ${points}`} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d={`M ${points}`}
+        fill="none"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

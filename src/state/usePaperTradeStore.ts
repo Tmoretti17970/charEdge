@@ -47,9 +47,13 @@ export function offTradeClose(fn: TradeCloseListener) {
   _onTradeCloseListeners.delete(fn);
 }
 
-function _emitTradeClose(trade: ReturnType<typeof createClosedTrade>, reason: string) {
+function emitTradeClose(trade: ReturnType<typeof createClosedTrade>, reason: string) {
   for (const fn of _onTradeCloseListeners) {
-    try { fn(trade, reason); } catch { /* listener errors are non-fatal */ }
+    try {
+      fn(trade, reason);
+    } catch {
+      /* listener errors are non-fatal */
+    }
   }
 }
 
@@ -64,21 +68,27 @@ const usePaperTradeStore = create(
       equity: 10000,
 
       // ─── Positions ─────────────────────────────────────
-      positions: [],     // Open positions
-      orders: [],        // Pending orders
-      tradeHistory: [],  // Closed trades
+      positions: [], // Open positions
+      orders: [], // Pending orders
+      tradeHistory: [], // Closed trades
       equityCurve: [10000],
 
       // ─── Settings ──────────────────────────────────────
-      slippageBps: 1,     // 0.01% slippage (realistic for crypto exchanges)
-      commissionPerTrade: 1.00,
+      slippageBps: 1, // 0.01% slippage (realistic for crypto exchanges)
+      commissionPerTrade: 1.0,
       enabled: false,
 
       // ─── Actions ───────────────────────────────────────
 
-      enable() { set({ enabled: true }); },
-      disable() { set({ enabled: false }); },
-      toggle() { set(s => ({ enabled: !s.enabled })); },
+      enable() {
+        set({ enabled: true });
+      },
+      disable() {
+        set({ enabled: false });
+      },
+      toggle() {
+        set((s) => ({ enabled: !s.enabled }));
+      },
 
       setBalance(balance) {
         set({ balance, initialBalance: balance, equity: balance, equityCurve: [balance] });
@@ -107,9 +117,7 @@ const usePaperTradeStore = create(
             fillPrice = currentPrice; // Use exact price (no slippage)
           } else {
             const slippage = currentPrice * (slippageBps / 10000);
-            fillPrice = order.side === POSITION_SIDE.LONG
-              ? currentPrice + slippage
-              : currentPrice - slippage;
+            fillPrice = order.side === POSITION_SIDE.LONG ? currentPrice + slippage : currentPrice - slippage;
           }
 
           const _cost = fillPrice * order.quantity;
@@ -128,22 +136,18 @@ const usePaperTradeStore = create(
             commission,
           };
 
-          set(s => ({
+          set((s) => ({
             balance: s.balance - commission,
             positions: [...s.positions, position],
           }));
 
           // Auto-create SL/TP alerts for the new position
           if (position.stopLoss || position.takeProfit) {
-            import('./useAlertStore').then(({ addPositionAlerts }) => {
-              addPositionAlerts(
-                position.id,
-                position.symbol,
-                position.side,
-                position.stopLoss,
-                position.takeProfit,
-              );
-            }).catch(() => {}); // non-fatal
+            import('./useAlertStore')
+              .then(({ addPositionAlerts }) => {
+                addPositionAlerts(position.id, position.symbol, position.side, position.stopLoss, position.takeProfit);
+              })
+              .catch(() => {}); // non-fatal
           }
 
           return { filled: true, position };
@@ -157,7 +161,7 @@ const usePaperTradeStore = create(
           status: 'pending',
         };
 
-        set(s => ({ orders: [...s.orders, pendingOrder] }));
+        set((s) => ({ orders: [...s.orders, pendingOrder] }));
         return { filled: false, order: pendingOrder };
       },
 
@@ -174,13 +178,11 @@ const usePaperTradeStore = create(
         let newBalance = balance;
 
         // Check open positions for SL/TP
-        const remainingPositions = positions.filter(pos => {
+        const remainingPositions = positions.filter((pos) => {
           if (pos.symbol !== symbol) return true;
 
           const isLong = pos.side === POSITION_SIDE.LONG;
-          const pnl = isLong
-            ? (price - pos.entryPrice) * pos.quantity
-            : (pos.entryPrice - price) * pos.quantity;
+          const pnl = isLong ? (price - pos.entryPrice) * pos.quantity : (pos.entryPrice - price) * pos.quantity;
 
           // Check stop loss
           if (pos.stopLoss != null) {
@@ -192,7 +194,7 @@ const usePaperTradeStore = create(
               newBalance += exitPnl - commissionPerTrade;
               const slTrade = createClosedTrade(pos, pos.stopLoss, exitPnl, 'stop_loss');
               closedTrades.push(slTrade);
-              queueMicrotask(() => _emitTradeClose(slTrade, 'stop_loss'));
+              queueMicrotask(() => emitTradeClose(slTrade, 'stop_loss'));
               return false;
             }
           }
@@ -207,7 +209,7 @@ const usePaperTradeStore = create(
               newBalance += exitPnl - commissionPerTrade;
               const tpTrade = createClosedTrade(pos, pos.takeProfit, exitPnl, 'take_profit');
               closedTrades.push(tpTrade);
-              queueMicrotask(() => _emitTradeClose(tpTrade, 'take_profit'));
+              queueMicrotask(() => emitTradeClose(tpTrade, 'take_profit'));
               return false;
             }
           }
@@ -219,7 +221,7 @@ const usePaperTradeStore = create(
 
         // Check pending orders
         const slippage = price * (slippageBps / 10000);
-        const remainingOrders = orders.filter(ord => {
+        const remainingOrders = orders.filter((ord) => {
           if (ord.symbol !== symbol || ord.status !== 'pending') return true;
 
           let shouldFill = false;
@@ -268,7 +270,7 @@ const usePaperTradeStore = create(
         const unrealizedTotal = remainingPositions.reduce((s, p) => s + p.unrealizedPnL, 0);
         const newEquity = newBalance + unrealizedTotal;
 
-        set(s => ({
+        set((s) => ({
           positions: remainingPositions,
           orders: remainingOrders,
           balance: newBalance,
@@ -283,42 +285,41 @@ const usePaperTradeStore = create(
        */
       closePosition(positionId, currentPrice) {
         const { positions, _balance, commissionPerTrade, slippageBps } = get();
-        const pos = positions.find(p => p.id === positionId);
+        const pos = positions.find((p) => p.id === positionId);
         if (!pos) return;
 
         const slippage = currentPrice * (slippageBps / 10000);
-        const exitPrice = pos.side === POSITION_SIDE.LONG
-          ? currentPrice - slippage
-          : currentPrice + slippage;
+        const exitPrice = pos.side === POSITION_SIDE.LONG ? currentPrice - slippage : currentPrice + slippage;
 
-        const pnl = pos.side === POSITION_SIDE.LONG
-          ? (exitPrice - pos.entryPrice) * pos.quantity
-          : (pos.entryPrice - exitPrice) * pos.quantity;
+        const pnl =
+          pos.side === POSITION_SIDE.LONG
+            ? (exitPrice - pos.entryPrice) * pos.quantity
+            : (pos.entryPrice - exitPrice) * pos.quantity;
 
         const trade = createClosedTrade(pos, exitPrice, pnl, 'manual');
 
-        set(s => ({
-          positions: s.positions.filter(p => p.id !== positionId),
+        set((s) => ({
+          positions: s.positions.filter((p) => p.id !== positionId),
           balance: s.balance + pnl - commissionPerTrade,
           tradeHistory: [trade, ...s.tradeHistory].slice(0, 500),
         }));
 
-        queueMicrotask(() => _emitTradeClose(trade, 'manual'));
+        queueMicrotask(() => emitTradeClose(trade, 'manual'));
       },
 
       /**
        * Update SL/TP levels on an open position (e.g., from dragging lines).
        */
       updatePositionLevels(positionId: string, levels: { stopLoss?: number | null; takeProfit?: number | null }) {
-        set(s => ({
-          positions: s.positions.map(p =>
+        set((s) => ({
+          positions: s.positions.map((p) =>
             p.id === positionId
               ? {
                   ...p,
                   ...(levels.stopLoss !== undefined ? { stopLoss: levels.stopLoss } : {}),
                   ...(levels.takeProfit !== undefined ? { takeProfit: levels.takeProfit } : {}),
                 }
-              : p
+              : p,
           ),
         }));
       },
@@ -327,8 +328,8 @@ const usePaperTradeStore = create(
        * Cancel a pending order.
        */
       cancelOrder(orderId) {
-        set(s => ({
-          orders: s.orders.filter(o => o.id !== orderId),
+        set((s) => ({
+          orders: s.orders.filter((o) => o.id !== orderId),
         }));
       },
 
@@ -364,8 +365,8 @@ const usePaperTradeStore = create(
         const trades = tradeHistory;
         if (!trades.length) return null;
 
-        const wins = trades.filter(t => t.pnl > 0);
-        const losses = trades.filter(t => t.pnl <= 0);
+        const wins = trades.filter((t) => t.pnl > 0);
+        const losses = trades.filter((t) => t.pnl <= 0);
         const totalPnL = trades.reduce((s, t) => s + t.pnl, 0);
         const grossProfit = wins.reduce((s, t) => s + t.pnl, 0);
         const grossLoss = Math.abs(losses.reduce((s, t) => s + t.pnl, 0));
@@ -415,9 +416,8 @@ function createClosedTrade(position, exitPrice, pnl, reason) {
     entryTime: position.entryTime,
     exitTime: Date.now(),
     pnl: Math.round(pnl * 100) / 100,
-    pnlPercent: position.entryPrice > 0
-      ? Math.round((pnl / (position.entryPrice * position.quantity)) * 10000) / 100
-      : 0,
+    pnlPercent:
+      position.entryPrice > 0 ? Math.round((pnl / (position.entryPrice * position.quantity)) * 10000) / 100 : 0,
     exitReason: reason,
     commission: position.commission || 0,
   };

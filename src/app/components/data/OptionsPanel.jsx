@@ -15,7 +15,6 @@ import React from 'react';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { C } from '../../../constants.js';
 import { logger } from '@/observability/logger';
-import st from './OptionsPanel.module.css';
 
 // ─── Styles ────────────────────────────────────────────────────
 
@@ -120,7 +119,14 @@ function Sparkline({ data, width = 140, height = 32, color = C.b }) {
 
   return (
     <svg width={width} height={height} style={{ display: 'block' }}>
-      <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <polyline
+        points={points}
+        fill="none"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -129,7 +135,7 @@ function Sparkline({ data, width = 140, height = 32, color = C.b }) {
 
 function TermStructureChart({ data }) {
   if (!data?.length) return null;
-  const maxPrice = Math.max(...data.map(d => d.price || 0));
+  const maxPrice = Math.max(...data.map((d) => d.price || 0));
 
   return (
     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 80, marginTop: 8 }}>
@@ -141,14 +147,18 @@ function TermStructureChart({ data }) {
             <span style={{ fontSize: 11, fontWeight: 700, fontFamily: 'var(--tf-mono)', color: C.t1 }}>
               {d.price?.toFixed(1) || '—'}
             </span>
-            <div style={{
-              width: '100%',
-              height: h,
-              borderRadius: '4px 4px 0 0',
-              background: isVIX ? C.b : `${C.b}60`,
-              transition: 'height 0.4s ease',
-            }} />
-            <span style={{ fontSize: 9, color: C.t3, textAlign: 'center', lineHeight: 1.2, fontFamily: 'var(--tf-font)' }}>
+            <div
+              style={{
+                width: '100%',
+                height: h,
+                borderRadius: '4px 4px 0 0',
+                background: isVIX ? C.b : `${C.b}60`,
+                transition: 'height 0.4s ease',
+              }}
+            />
+            <span
+              style={{ fontSize: 9, color: C.t3, textAlign: 'center', lineHeight: 1.2, fontFamily: 'var(--tf-font)' }}
+            >
               {d.month}
             </span>
           </div>
@@ -163,11 +173,11 @@ function TermStructureChart({ data }) {
 function RegimeBadge({ regime }) {
   if (!regime) return null;
   const configs = {
-    extreme_low:  { emoji: '😴', bg: `#4CAF5020`, color: '#4CAF50', label: 'Complacent' },
-    low:          { emoji: '😊', bg: `#4CAF5015`, color: '#66BB6A', label: 'Calm' },
-    normal:       { emoji: '😐', bg: `${C.b}15`, color: C.b, label: 'Normal' },
-    elevated:     { emoji: '😰', bg: `#FFA72615`, color: '#FFA726', label: 'Elevated' },
-    high:         { emoji: '😱', bg: `#f4433615`, color: '#f44336', label: 'Panic' },
+    extreme_low: { emoji: '😴', bg: `#4CAF5020`, color: '#4CAF50', label: 'Complacent' },
+    low: { emoji: '😊', bg: `#4CAF5015`, color: '#66BB6A', label: 'Calm' },
+    normal: { emoji: '😐', bg: `${C.b}15`, color: C.b, label: 'Normal' },
+    elevated: { emoji: '😰', bg: `#FFA72615`, color: '#FFA726', label: 'Elevated' },
+    high: { emoji: '😱', bg: `#f4433615`, color: '#f44336', label: 'Panic' },
     extreme_high: { emoji: '🚨', bg: `#f4433625`, color: '#e53935', label: 'Crisis' },
   };
   const c = configs[regime] || configs.normal;
@@ -183,7 +193,7 @@ function RegimeBadge({ regime }) {
 function PCRatioChart({ data, maxItems = 20 }) {
   if (!data?.length) return null;
   const items = data.slice(0, maxItems).reverse();
-  const maxRatio = Math.max(...items.map(d => d.pcRatio || 0), 1.5);
+  const maxRatio = Math.max(...items.map((d) => d.pcRatio || 0), 1.5);
 
   return (
     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 1, height: 50, marginTop: 6 }}>
@@ -191,15 +201,19 @@ function PCRatioChart({ data, maxItems = 20 }) {
         const h = maxRatio > 0 ? ((d.pcRatio || 0) / maxRatio) * 44 : 0;
         const color = d.pcRatio > 1.0 ? '#f44336' : d.pcRatio > 0.7 ? '#FFA726' : '#4CAF50';
         return (
-          <div key={i} title={`${d.date}: ${d.pcRatio?.toFixed(2)}`} style={{
-            flex: 1,
-            height: h,
-            minWidth: 3,
-            borderRadius: '2px 2px 0 0',
-            background: color,
-            opacity: 0.7,
-            transition: 'height 0.3s ease',
-          }} />
+          <div
+            key={i}
+            title={`${d.date}: ${d.pcRatio?.toFixed(2)}`}
+            style={{
+              flex: 1,
+              height: h,
+              minWidth: 3,
+              borderRadius: '2px 2px 0 0',
+              background: color,
+              opacity: 0.7,
+              transition: 'height 0.3s ease',
+            }}
+          />
         );
       })}
     </div>
@@ -257,9 +271,13 @@ function OptionsPanel({ _symbol = 'SPY' }) {
   }, [fetchOptionsData]);
 
   const latestPC = pcRatioData[0];
-  const pcSparkData = useMemo(() =>
-    pcRatioData.slice(0, 20).reverse().map(d => d.pcRatio),
-    [pcRatioData]
+  const pcSparkData = useMemo(
+    () =>
+      pcRatioData
+        .slice(0, 20)
+        .reverse()
+        .map((d) => d.pcRatio),
+    [pcRatioData],
   );
 
   return (
@@ -270,7 +288,9 @@ function OptionsPanel({ _symbol = 'SPY' }) {
           <div style={S.title}>📊 Options Intelligence</div>
           <div style={S.subtitle}>Free CBOE data · P/C Ratio, VIX, Term Structure</div>
         </div>
-        <button onClick={fetchOptionsData} style={S.btn}>↻ Refresh</button>
+        <button onClick={fetchOptionsData} style={S.btn}>
+          ↻ Refresh
+        </button>
       </div>
 
       {loading && !vix ? (
@@ -286,21 +306,20 @@ function OptionsPanel({ _symbol = 'SPY' }) {
               </span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {vixRegime && <RegimeBadge regime={vixRegime.regime} />}
-                <span style={{
-                  fontSize: 12,
-                  fontFamily: 'var(--tf-mono)',
-                  fontWeight: 600,
-                  color: (vix?.change || 0) >= 0 ? '#f44336' : '#4CAF50'
-                }}>
-                  {vix?.change >= 0 ? '+' : ''}{vix?.change?.toFixed(2) || '0.00'} ({vix?.changePct?.toFixed(1) || '0.0'}%)
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontFamily: 'var(--tf-mono)',
+                    fontWeight: 600,
+                    color: (vix?.change || 0) >= 0 ? '#f44336' : '#4CAF50',
+                  }}
+                >
+                  {vix?.change >= 0 ? '+' : ''}
+                  {vix?.change?.toFixed(2) || '0.00'} ({vix?.changePct?.toFixed(1) || '0.0'}%)
                 </span>
               </div>
             </div>
-            {vixRegime && (
-              <div style={{ fontSize: 11, color: C.t3, lineHeight: 1.5 }}>
-                {vixRegime.description}
-              </div>
-            )}
+            {vixRegime && <div style={{ fontSize: 11, color: C.t3, lineHeight: 1.5 }}>{vixRegime.description}</div>}
           </div>
 
           {/* VIX Term Structure */}
@@ -309,12 +328,17 @@ function OptionsPanel({ _symbol = 'SPY' }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={S.sectionTitle}>📈 VIX Term Structure</div>
                 {vixRegime?.termShape && (
-                  <span style={S.badge(
-                    vixRegime.termShape === 'contango' ? '#4CAF5015' : '#FFA72615',
-                    vixRegime.termShape === 'contango' ? '#4CAF50' : '#FFA726'
-                  )}>
-                    {vixRegime.termShape === 'contango' ? '📐 Contango' :
-                     vixRegime.termShape === 'backwardation' ? '⚠️ Backwardation' : '➖ Flat'}
+                  <span
+                    style={S.badge(
+                      vixRegime.termShape === 'contango' ? '#4CAF5015' : '#FFA72615',
+                      vixRegime.termShape === 'contango' ? '#4CAF50' : '#FFA726',
+                    )}
+                  >
+                    {vixRegime.termShape === 'contango'
+                      ? '📐 Contango'
+                      : vixRegime.termShape === 'backwardation'
+                        ? '⚠️ Backwardation'
+                        : '➖ Flat'}
                   </span>
                 )}
               </div>
@@ -323,8 +347,8 @@ function OptionsPanel({ _symbol = 'SPY' }) {
                 {vixRegime?.termShape === 'contango'
                   ? 'Normal — future vol priced higher. Markets expect stability near-term.'
                   : vixRegime?.termShape === 'backwardation'
-                  ? 'Inverted — near-term fear exceeds long-term. Historically rare, signals stress.'
-                  : 'Flat term structure — no strong curve signal.'}
+                    ? 'Inverted — near-term fear exceeds long-term. Historically rare, signals stress.'
+                    : 'Flat term structure — no strong curve signal.'}
               </div>
             </div>
           )}
@@ -337,7 +361,10 @@ function OptionsPanel({ _symbol = 'SPY' }) {
                 {latestPC?.pcRatio?.toFixed(2) || '—'}
               </span>
               <div style={{ flex: 1 }}>
-                <Sparkline data={pcSparkData} width={120} height={28}
+                <Sparkline
+                  data={pcSparkData}
+                  width={120}
+                  height={28}
                   color={latestPC?.pcRatio > 1.0 ? '#f44336' : latestPC?.pcRatio > 0.7 ? '#FFA726' : '#4CAF50'}
                 />
               </div>
@@ -345,23 +372,27 @@ function OptionsPanel({ _symbol = 'SPY' }) {
             {pcAnalysis && (
               <>
                 <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
-                  <span style={S.badge(
-                    pcAnalysis.signal.includes('bullish') ? '#4CAF5015' :
-                    pcAnalysis.signal.includes('bearish') ? '#f4433615' : `${C.b}15`,
-                    pcAnalysis.signal.includes('bullish') ? '#4CAF50' :
-                    pcAnalysis.signal.includes('bearish') ? '#f44336' : C.b,
-                  )}>
+                  <span
+                    style={S.badge(
+                      pcAnalysis.signal.includes('bullish')
+                        ? '#4CAF5015'
+                        : pcAnalysis.signal.includes('bearish')
+                          ? '#f4433615'
+                          : `${C.b}15`,
+                      pcAnalysis.signal.includes('bullish')
+                        ? '#4CAF50'
+                        : pcAnalysis.signal.includes('bearish')
+                          ? '#f44336'
+                          : C.b,
+                    )}
+                  >
                     {pcAnalysis.signal.replace(/_/g, ' ').toUpperCase()}
                   </span>
                   {pcAnalysis.zscore !== 0 && (
-                    <span style={S.badge(`${C.t3}12`, C.t2)}>
-                      z-score: {pcAnalysis.zscore}
-                    </span>
+                    <span style={S.badge(`${C.t3}12`, C.t2)}>z-score: {pcAnalysis.zscore}</span>
                   )}
                 </div>
-                <div style={{ fontSize: 11, color: C.t3, lineHeight: 1.5 }}>
-                  {pcAnalysis.description}
-                </div>
+                <div style={{ fontSize: 11, color: C.t3, lineHeight: 1.5 }}>{pcAnalysis.description}</div>
               </>
             )}
           </div>
@@ -371,7 +402,9 @@ function OptionsPanel({ _symbol = 'SPY' }) {
             <div style={S.section}>
               <div style={S.sectionTitle}>📊 30-Day P/C History</div>
               <PCRatioChart data={pcRatioData} maxItems={30} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 10, color: C.t3 }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 10, color: C.t3 }}
+              >
                 <span>30d ago</span>
                 <span>Today</span>
               </div>
@@ -380,15 +413,21 @@ function OptionsPanel({ _symbol = 'SPY' }) {
                 <div style={{ display: 'flex', gap: 16, marginTop: 10, fontSize: 11 }}>
                   <div>
                     <span style={{ color: C.t3 }}>Calls: </span>
-                    <span style={{ fontWeight: 600, fontFamily: 'var(--tf-mono)', color: '#4CAF50' }}>{fmtNum(latestPC.callVolume)}</span>
+                    <span style={{ fontWeight: 600, fontFamily: 'var(--tf-mono)', color: '#4CAF50' }}>
+                      {fmtNum(latestPC.callVolume)}
+                    </span>
                   </div>
                   <div>
                     <span style={{ color: C.t3 }}>Puts: </span>
-                    <span style={{ fontWeight: 600, fontFamily: 'var(--tf-mono)', color: '#f44336' }}>{fmtNum(latestPC.putVolume)}</span>
+                    <span style={{ fontWeight: 600, fontFamily: 'var(--tf-mono)', color: '#f44336' }}>
+                      {fmtNum(latestPC.putVolume)}
+                    </span>
                   </div>
                   <div>
                     <span style={{ color: C.t3 }}>Total: </span>
-                    <span style={{ fontWeight: 600, fontFamily: 'var(--tf-mono)' }}>{fmtNum(latestPC.totalVolume)}</span>
+                    <span style={{ fontWeight: 600, fontFamily: 'var(--tf-mono)' }}>
+                      {fmtNum(latestPC.totalVolume)}
+                    </span>
                   </div>
                 </div>
               )}
@@ -397,8 +436,9 @@ function OptionsPanel({ _symbol = 'SPY' }) {
 
           {/* Educational note */}
           <div style={{ fontSize: 10, color: C.t3, lineHeight: 1.6, opacity: 0.7, padding: '0 4px' }}>
-            💡 <strong>Reading the P/C ratio:</strong> &gt;1.0 = more puts traded (bearish sentiment), &lt;0.7 = more calls (bullish).
-            Extreme readings are often contrarian signals. VIX term structure in backwardation signals acute fear.
+            💡 <strong>Reading the P/C ratio:</strong> &gt;1.0 = more puts traded (bearish sentiment), &lt;0.7 = more
+            calls (bullish). Extreme readings are often contrarian signals. VIX term structure in backwardation signals
+            acute fear.
           </div>
         </>
       )}

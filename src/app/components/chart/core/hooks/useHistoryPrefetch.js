@@ -13,8 +13,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useRef } from 'react';
-import { useChartCoreStore } from '../../../../../state/chart/useChartCoreStore';
 import { datafeedService } from '../../../../../charting_library/datafeed/DatafeedService.js';
+import { useChartCoreStore } from '../../../../../state/chart/useChartCoreStore';
 import { logger } from '@/observability/logger';
 
 /**
@@ -58,9 +58,7 @@ export function useHistoryPrefetch(symbol, tf) {
         const { barCount } = useChartCoreStore.getState();
         useChartCoreStore.getState().prependData(result.data, barCount);
 
-        logger.data.info(
-          `[ScrollPrefetcher] Momentum-prefetched ${result.data.length} bars for ${sym}@${tfId}`
-        );
+        logger.data.info(`[ScrollPrefetcher] Momentum-prefetched ${result.data.length} bars for ${sym}@${tfId}`);
         return result.data;
       });
     };
@@ -86,7 +84,9 @@ export function useHistoryPrefetch(symbol, tf) {
         const scrollOffset = event?.detail?.scrollOffset ?? 0;
         const visibleBars = event?.detail?.visibleBars ?? 100;
         mod.scrollPrefetcher.onScroll(scrollOffset, visibleBars, barCount);
-      } catch { /* non-critical */ }
+      } catch {
+        /* non-critical */
+      }
 
       try {
         // Get the oldest bar time from the Zustand store
@@ -124,7 +124,7 @@ export function useHistoryPrefetch(symbol, tf) {
         }
 
         logger.data.info(
-          `[useHistoryPrefetch] Loaded ${result.data.length} older bars for ${symbol}@${tf}. hasMore=${result.hasMore}`
+          `[useHistoryPrefetch] Loaded ${result.data.length} older bars for ${symbol}@${tf}. hasMore=${result.hasMore}`,
         );
       } catch (err) {
         logger.data.warn('[useHistoryPrefetch] Failed to load history:', err);
@@ -138,4 +138,3 @@ export function useHistoryPrefetch(symbol, tf) {
     return () => window.removeEventListener('charEdge:prefetch-history', handlePrefetch);
   }, [symbol, tf]);
 }
-

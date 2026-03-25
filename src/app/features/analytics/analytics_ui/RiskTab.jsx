@@ -4,16 +4,20 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { C, M } from '@/constants.js';
 import { Card, StatCard, AutoGrid } from '../../../components/ui/UIKit.jsx';
 import RDistributionChart from '../../../components/widgets/RDistributionChart.jsx';
 import RiskSimulator from '../../../components/widgets/RiskSimulator.jsx';
 import { SectionLabel, DrawdownChart } from './AnalyticsPrimitives.jsx';
 import StreakAnalysis from './StreakAnalysis.jsx';
+import { C, M } from '@/constants.js';
 
 function RiskTab({ result, trades, computing }) {
   if (!result || typeof result.maxDd === 'undefined') {
-    return <div style={{ padding: 40, textAlign: 'center', color: C.t3 }}>{computing ? 'Computing risk profile...' : 'No risk data available.'}</div>;
+    return (
+      <div style={{ padding: 40, textAlign: 'center', color: C.t3 }}>
+        {computing ? 'Computing risk profile...' : 'No risk data available.'}
+      </div>
+    );
   }
 
   return (
@@ -53,35 +57,49 @@ function RiskTab({ result, trades, computing }) {
         />
         <StatCard
           label="Avg Hold Time"
-          value={result.avgHoldTime > 0
-            ? (result.avgHoldTime >= 60
-              ? `${Math.floor(result.avgHoldTime / 60)}h ${Math.round(result.avgHoldTime % 60)}m`
-              : `${Math.round(result.avgHoldTime)}m`)
-            : '—'}
+          value={
+            result.avgHoldTime > 0
+              ? result.avgHoldTime >= 60
+                ? `${Math.floor(result.avgHoldTime / 60)}h ${Math.round(result.avgHoldTime % 60)}m`
+                : `${Math.round(result.avgHoldTime)}m`
+              : '—'
+          }
           color={C.t2}
         />
         <StatCard
           label="Hold Time (Winners)"
-          value={result.avgHoldTimeWinners > 0
-            ? (result.avgHoldTimeWinners >= 60
-              ? `${Math.floor(result.avgHoldTimeWinners / 60)}h ${Math.round(result.avgHoldTimeWinners % 60)}m`
-              : `${Math.round(result.avgHoldTimeWinners)}m`)
-            : '—'}
+          value={
+            result.avgHoldTimeWinners > 0
+              ? result.avgHoldTimeWinners >= 60
+                ? `${Math.floor(result.avgHoldTimeWinners / 60)}h ${Math.round(result.avgHoldTimeWinners % 60)}m`
+                : `${Math.round(result.avgHoldTimeWinners)}m`
+              : '—'
+          }
           color={C.g}
         />
         <StatCard
           label="Hold Time (Losers)"
-          value={result.avgHoldTimeLosers > 0
-            ? (result.avgHoldTimeLosers >= 60
-              ? `${Math.floor(result.avgHoldTimeLosers / 60)}h ${Math.round(result.avgHoldTimeLosers % 60)}m`
-              : `${Math.round(result.avgHoldTimeLosers)}m`)
-            : '—'}
+          value={
+            result.avgHoldTimeLosers > 0
+              ? result.avgHoldTimeLosers >= 60
+                ? `${Math.floor(result.avgHoldTimeLosers / 60)}h ${Math.round(result.avgHoldTimeLosers % 60)}m`
+                : `${Math.round(result.avgHoldTimeLosers)}m`
+              : '—'
+          }
           color={result.avgHoldTimeLosers > result.avgHoldTimeWinners * 2 ? C.r : C.y}
         />
         <StatCard label="Best Streak" value={`${result.best} wins`} color={C.g} />
         <StatCard label="Worst Streak" value={`${result.worst} losses`} color={C.r} />
-        <StatCard label="Consec 3+ Loss" value={`${result.consLoss3.toFixed(1)}%`} color={result.consLoss3 > 3 ? C.r : C.t2} />
-        <StatCard label="Consec 5+ Loss" value={`${result.consLoss5.toFixed(1)}%`} color={result.consLoss5 > 0.5 ? C.r : C.g} />
+        <StatCard
+          label="Consec 3+ Loss"
+          value={`${result.consLoss3.toFixed(1)}%`}
+          color={result.consLoss3 > 3 ? C.r : C.t2}
+        />
+        <StatCard
+          label="Consec 5+ Loss"
+          value={`${result.consLoss5.toFixed(1)}%`}
+          color={result.consLoss5 > 0.5 ? C.r : C.g}
+        />
       </AutoGrid>
 
       {/* Sprint 3: Streak Analysis */}

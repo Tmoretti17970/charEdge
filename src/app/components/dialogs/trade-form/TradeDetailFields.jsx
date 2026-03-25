@@ -3,11 +3,11 @@
 // Extracted from TradeFormModal for manageability.
 // ═══════════════════════════════════════════════════════════════════
 
-import { C, F, EMOJIS } from '@/constants.js';
 import { TradeChecklistPanel, TradeNotesEditor } from '../../../features/journal/journal_ui/JournalEvolution.jsx';
 import { inputStyle } from '../../ui/UIKit.jsx';
 import Field from './Field.jsx';
 import { ASSET_CLASSES } from './tradeConstants.js';
+import { C, F, EMOJIS } from '@/constants.js';
 
 const STRATEGY_COLORS = {
   'Trend Following': '#00D4AA',

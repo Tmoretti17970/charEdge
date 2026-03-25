@@ -172,9 +172,7 @@ export function executeUIStage(fs, ctx, engine) {
       // Bull/bear colored pill
       const lastBar = bars[bars.length - 1];
       const priceBull = lastBar ? cursorPrice >= lastBar.close : true;
-      const pillColor = priceBull
-        ? (thm.bullCandle || '#26A69A')
-        : (thm.bearCandle || '#EF5350');
+      const pillColor = priceBull ? thm.bullCandle || '#26A69A' : thm.bearCandle || '#EF5350';
       tCtx.fillStyle = pillColor;
       tCtx.beginPath();
       tCtx.roundRect(plX, plY, plW, plH, plR);
@@ -308,9 +306,8 @@ function formatVolume(v) {
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function drawLegendBar(tCtx, fs, bars, R, pr, thm, engine) {
   const S = engine.state;
-  const LX = Math.round(8 * pr);   // left margin
-  let LY = Math.round(8 * pr);     // top margin
-  const lineH = Math.round(16 * pr);
+  const LX = Math.round(8 * pr); // left margin
+  let LY = Math.round(8 * pr); // top margin
   const smallFs = Math.round(11 * pr);
   const tinyFs = Math.round(10 * pr);
   const hitRegions = [];
@@ -379,8 +376,7 @@ function drawLegendBar(tCtx, fs, bars, R, pr, thm, engine) {
   S._legendEndX = cx / pr;
 
   // Expose as CSS custom property on tf-chart-area for React overlays
-  const chartArea = engine.topCanvas?.closest?.('.tf-chart-area')
-    || engine.topCanvas?.parentElement?.parentElement;
+  const chartArea = engine.topCanvas?.closest?.('.tf-chart-area') || engine.topCanvas?.parentElement?.parentElement;
   if (chartArea) {
     (chartArea as HTMLElement).style.setProperty('--legend-end-x', `${Math.round(cx / pr)}px`);
   }
@@ -404,15 +400,19 @@ function drawTooltip(tCtx, hoverBar, bx, by, pr, R, thm, topCanvas, engine) {
     { label: 'C', value: formatPrice(hoverBar.close), color: vc },
   ];
   if (hoverBar.volume != null) {
-    const vol = hoverBar.volume >= 1e9 ? (hoverBar.volume / 1e9).toFixed(1) + 'B'
-      : hoverBar.volume >= 1e6 ? (hoverBar.volume / 1e6).toFixed(1) + 'M'
-        : hoverBar.volume >= 1e3 ? (hoverBar.volume / 1e3).toFixed(1) + 'K'
-          : hoverBar.volume.toFixed(0);
+    const vol =
+      hoverBar.volume >= 1e9
+        ? (hoverBar.volume / 1e9).toFixed(1) + 'B'
+        : hoverBar.volume >= 1e6
+          ? (hoverBar.volume / 1e6).toFixed(1) + 'M'
+          : hoverBar.volume >= 1e3
+            ? (hoverBar.volume / 1e3).toFixed(1) + 'K'
+            : hoverBar.volume.toFixed(0);
     lines.push({ label: 'V', value: vol, color: thm.textSecondary || '#787B86' });
   }
 
   // Indicator values
-  const overlays = engine.indicators.filter(ind => ind.mode === 'overlay' && ind.computed);
+  const overlays = engine.indicators.filter((ind) => ind.mode === 'overlay' && ind.computed);
   for (const ind of overlays.slice(0, 3)) {
     for (const out of ind.outputs) {
       const vals = ind.computed[out.key];
@@ -457,7 +457,7 @@ function drawTooltip(tCtx, hoverBar, bx, by, pr, R, thm, topCanvas, engine) {
   tCtx.closePath();
   tCtx.fill();
   tCtx.globalAlpha = 1;
-  tCtx.strokeStyle = (thm.gridLine || 'rgba(54,58,69,0.5)');
+  tCtx.strokeStyle = thm.gridLine || 'rgba(54,58,69,0.5)';
   tCtx.lineWidth = Math.max(1, pr);
   tCtx.stroke();
 
@@ -533,17 +533,20 @@ function _drawBarCountdown(tCtx, fs, bars, R, pr) {
   }
 }
 
- 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function drawMagnetDot(tCtx, fs, bars, R, pr, S) {
   const bar = bars[fs.hoverIdx];
   if (!bar || !R.p2y) return;
 
   const ohlc = [bar.open, bar.high, bar.low, bar.close];
-  let closestP = bar.close, closestDist = Infinity;
+  let closestP = bar.close,
+    closestDist = Infinity;
   for (const p of ohlc) {
     const py = Math.abs(R.p2y(p) * pr - S.mouseY * pr);
-    if (py < closestDist) { closestDist = py; closestP = p; }
+    if (py < closestDist) {
+      closestDist = py;
+      closestP = p;
+    }
   }
   const snapX = Math.round(R.timeTransform.indexToPixel(fs.hoverIdx) * pr);
   const snapY = Math.round(R.p2y(closestP) * pr);
@@ -568,9 +571,7 @@ function drawPaneSplitters(tCtx, R, pr, topCanvas) {
     const isHovered = hoverIdx === i;
 
     // Sprint 11: Highlight splitter on hover
-    const splitterColor = isHovered
-      ? '#2962FF'
-      : (R.thm.gridLine || 'rgba(54,58,69,0.5)');
+    const splitterColor = isHovered ? '#2962FF' : R.thm.gridLine || 'rgba(54,58,69,0.5)';
     const splitterH = isHovered ? Math.round(4 * pr) : Math.round(3 * pr);
 
     tCtx.fillStyle = splitterColor;
@@ -590,7 +591,7 @@ function drawPaneSplitters(tCtx, R, pr, topCanvas) {
       tCtx.fill();
     } else {
       // Grip dots (3 dots centered on splitter)
-      tCtx.fillStyle = isHovered ? '#5B9CF6' : (R.thm.axisText || '#787B86');
+      tCtx.fillStyle = isHovered ? '#5B9CF6' : R.thm.axisText || '#787B86';
       for (let d = -1; d <= 1; d++) {
         tCtx.beginPath();
         tCtx.arc(midX + d * Math.round(6 * pr), splitterY, Math.round(1.5 * pr), 0, Math.PI * 2);
@@ -604,7 +605,7 @@ function drawPaneSplitters(tCtx, R, pr, topCanvas) {
  * Scroll-to-now floating button — appears when user has scrolled away from
  * the latest bar (scrollOffset > 5). TradingView-style right-pointing chevron.
  */
- 
+
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function drawScrollToNow(tCtx, fs, R, pr, S, thm) {
   if (S.scrollOffset <= 5 || fs.compact) {
@@ -693,4 +694,3 @@ function _syncCrosshairNode(sceneGraph, mouseX, mouseY, chartWidth, chartHeight)
     node.visible = false;
   }
 }
-

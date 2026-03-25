@@ -16,14 +16,12 @@
 
 import { memo, useMemo } from 'react';
 import { C } from '../../../constants.js';
-import { radii, transition } from '../../../theme/tokens.js';
 import useHistoricalData from '../../../hooks/useHistoricalData.js';
-import st from './TechnicalSnapshot.module.css';
+import { radii, transition } from '../../../theme/tokens.js';
 
-const ACCENT = '#6e5ce6';
-const GREEN  = '#22c55e';
-const RED    = '#ef4444';
-const AMBER  = '#f59e0b';
+const GREEN = '#22c55e';
+const RED = '#ef4444';
+const AMBER = '#f59e0b';
 
 // ═══════════════════════════════════════════════════════════════════
 // Lightweight indicator calculations
@@ -31,7 +29,8 @@ const AMBER  = '#f59e0b';
 
 function calcRSI(closes, period = 14) {
   if (closes.length < period + 1) return null;
-  let gains = 0, losses = 0;
+  let gains = 0,
+    losses = 0;
   for (let i = 1; i <= period; i++) {
     const d = closes[i] - closes[i - 1];
     if (d > 0) gains += d;
@@ -48,7 +47,7 @@ function calcRSI(closes, period = 14) {
 
   if (avgLoss === 0) return 100;
   const rs = avgGain / avgLoss;
-  return 100 - (100 / (1 + rs));
+  return 100 - 100 / (1 + rs);
 }
 
 function calcSMA(closes, period) {
@@ -72,9 +71,9 @@ function calcATR(candles, period = 14) {
 function calcVolumeTrend(candles, window = 10) {
   if (candles.length < window * 2) return 'n/a';
   const recent = candles.slice(-window);
-  const prior  = candles.slice(-(window * 2), -window);
+  const prior = candles.slice(-(window * 2), -window);
   const recentAvg = recent.reduce((s, c) => s + c.volume, 0) / window;
-  const priorAvg  = prior.reduce((s, c) => s + c.volume, 0)  / window;
+  const priorAvg = prior.reduce((s, c) => s + c.volume, 0) / window;
   if (priorAvg === 0) return 'n/a';
   const pct = ((recentAvg - priorAvg) / priorAvg) * 100;
   if (pct > 20) return 'rising';
@@ -103,22 +102,36 @@ function TechnicalSnapshot({ symbol }) {
     // 24h range from recent candles
     const recent24 = candles.slice(-24);
     const high24 = Math.max(...recent24.map((c) => c.high));
-    const low24  = Math.min(...recent24.map((c) => c.low));
+    const low24 = Math.min(...recent24.map((c) => c.low));
     const rangePos = high24 !== low24 ? ((last - low24) / (high24 - low24)) * 100 : 50;
 
     // Overall signal
     let signals = 0;
-    if (rsi != null) { if (rsi > 60) signals++; else if (rsi < 40) signals--; }
-    if (sma20 != null && last > sma20) signals++; else if (sma20 != null) signals--;
-    if (sma50 != null && last > sma50) signals++; else if (sma50 != null) signals--;
+    if (rsi != null) {
+      if (rsi > 60) signals++;
+      else if (rsi < 40) signals--;
+    }
+    if (sma20 != null && last > sma20) signals++;
+    else if (sma20 != null) signals--;
+    if (sma50 != null && last > sma50) signals++;
+    else if (sma50 != null) signals--;
     if (volTrend === 'rising') signals++;
 
     const overallSignal = signals >= 2 ? 'Bullish' : signals <= -2 ? 'Bearish' : 'Neutral';
     const signalColor = overallSignal === 'Bullish' ? GREEN : overallSignal === 'Bearish' ? RED : AMBER;
 
     return {
-      rsi, sma20, sma50, atr, volTrend, high24, low24, rangePos, last,
-      overallSignal, signalColor,
+      rsi,
+      sma20,
+      sma50,
+      atr,
+      volTrend,
+      high24,
+      low24,
+      rangePos,
+      last,
+      overallSignal,
+      signalColor,
     };
   }, [candles]);
 
@@ -203,10 +216,30 @@ function TechnicalSnapshot({ symbol }) {
         }}
       >
         <MetricRow label="RSI (14)" value={metrics.rsi?.toFixed(1)} color={rsiColor} sub={rsiLabel} />
-        <MetricRow label="SMA 20" value={`$${fmtP(metrics.sma20)}`} color={metrics.last > metrics.sma20 ? GREEN : RED} sub={metrics.last > metrics.sma20 ? 'Above' : 'Below'} />
-        <MetricRow label="SMA 50" value={metrics.sma50 ? `$${fmtP(metrics.sma50)}` : '—'} color={metrics.sma50 ? (metrics.last > metrics.sma50 ? GREEN : RED) : C.t3} sub={metrics.sma50 ? (metrics.last > metrics.sma50 ? 'Above' : 'Below') : 'N/A'} />
-        <MetricRow label="ATR (14)" value={metrics.atr ? `$${fmtP(metrics.atr)}` : '—'} color={C.t1} sub={metrics.atr ? `${((metrics.atr / metrics.last) * 100).toFixed(2)}%` : ''} />
-        <MetricRow label="Volume" value={metrics.volTrend} color={metrics.volTrend === 'rising' ? GREEN : metrics.volTrend === 'falling' ? RED : C.t2} sub="vs prior" />
+        <MetricRow
+          label="SMA 20"
+          value={`$${fmtP(metrics.sma20)}`}
+          color={metrics.last > metrics.sma20 ? GREEN : RED}
+          sub={metrics.last > metrics.sma20 ? 'Above' : 'Below'}
+        />
+        <MetricRow
+          label="SMA 50"
+          value={metrics.sma50 ? `$${fmtP(metrics.sma50)}` : '—'}
+          color={metrics.sma50 ? (metrics.last > metrics.sma50 ? GREEN : RED) : C.t3}
+          sub={metrics.sma50 ? (metrics.last > metrics.sma50 ? 'Above' : 'Below') : 'N/A'}
+        />
+        <MetricRow
+          label="ATR (14)"
+          value={metrics.atr ? `$${fmtP(metrics.atr)}` : '—'}
+          color={C.t1}
+          sub={metrics.atr ? `${((metrics.atr / metrics.last) * 100).toFixed(2)}%` : ''}
+        />
+        <MetricRow
+          label="Volume"
+          value={metrics.volTrend}
+          color={metrics.volTrend === 'rising' ? GREEN : metrics.volTrend === 'falling' ? RED : C.t2}
+          sub="vs prior"
+        />
       </div>
 
       {/* ─── 24h Range Bar ─────────────────────────── */}
@@ -265,18 +298,20 @@ function MetricRow({ label, value, color, sub }) {
         borderBottom: `1px solid ${C.bd}08`,
       }}
     >
-      <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)', fontWeight: 500 }}>
-        {label}
-      </span>
+      <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)', fontWeight: 500 }}>{label}</span>
       <div style={{ textAlign: 'right' }}>
-        <span style={{ fontSize: 11, fontWeight: 700, fontFamily: 'var(--tf-mono)', color, fontVariantNumeric: 'tabular-nums' }}>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            fontFamily: 'var(--tf-mono)',
+            color,
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
           {value}
         </span>
-        {sub && (
-          <span style={{ fontSize: 8, color: C.t3, fontFamily: 'var(--tf-mono)', marginLeft: 4 }}>
-            {sub}
-          </span>
-        )}
+        {sub && <span style={{ fontSize: 8, color: C.t3, fontFamily: 'var(--tf-mono)', marginLeft: 4 }}>{sub}</span>}
       </div>
     </div>
   );

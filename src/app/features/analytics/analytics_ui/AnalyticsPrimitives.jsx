@@ -5,8 +5,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useMemo } from 'react';
-import { C, F, M } from '@/constants.js';
 import ChartWrapperInline from '../../../components/chart/core/ChartWrapper.jsx';
+import { C, F, M } from '@/constants.js';
 
 // ─── Section Label ──────────────────────────────────────────────
 
@@ -36,10 +36,30 @@ export function SectionLabel({ text }) {
 export function MiniStat({ label, value, color }) {
   return (
     <div style={{ padding: '6px 8px', background: C.bg2, borderRadius: 6, border: `1px solid ${C.bd}30` }}>
-      <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, fontFamily: M, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>
+      <div
+        style={{
+          fontSize: 9,
+          fontWeight: 700,
+          color: C.t3,
+          fontFamily: M,
+          textTransform: 'uppercase',
+          letterSpacing: '0.04em',
+          marginBottom: 2,
+        }}
+      >
         {label}
       </div>
-      <div style={{ fontSize: 13, fontWeight: 700, color: color || C.t1, fontFamily: M, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+      <div
+        style={{
+          fontSize: 13,
+          fontWeight: 700,
+          color: color || C.t1,
+          fontFamily: M,
+          fontVariantNumeric: 'tabular-nums',
+        }}
+      >
+        {value}
+      </div>
     </div>
   );
 }

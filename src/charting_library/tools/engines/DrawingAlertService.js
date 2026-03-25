@@ -17,8 +17,12 @@
  */
 
 const ALERTABLE_TYPES = new Set([
-  'trendline', 'extendedLine', 'ray', 'horizontalLine',
-  'fibRetracement', 'fibExtension',
+  'trendline',
+  'extendedLine',
+  'ray',
+  'horizontalLine',
+  'fibRetracement',
+  'fibExtension',
 ]);
 
 /**
@@ -28,10 +32,10 @@ const ALERTABLE_TYPES = new Set([
  * @param {(point: {price:number, time:number}) => {x:number,y:number}|null} opts.anchorToPixel
  * @param {(alert: DrawingAlertEvent) => void} opts.onAlert - callback when alert triggers
  */
-export function createDrawingAlertService({ getDrawings, anchorToPixel, onAlert }) {
+export function createDrawingAlertService({ getDrawings, anchorToPixel: _anchorToPixel, onAlert }) {
   let lastPrice = null;
-  let enabledAlerts = new Map(); // drawingId → { enabled: true, label?, oneShot? }
-  let firedCache = new Set(); // drawingId keys that have fired (for one-shot)
+  const enabledAlerts = new Map(); // drawingId → { enabled: true, label?, oneShot? }
+  const firedCache = new Set(); // drawingId keys that have fired (for one-shot)
 
   /**
    * Enable an alert on a specific drawing.
@@ -171,8 +175,9 @@ export function createDrawingAlertService({ getDrawings, anchorToPixel, onAlert 
    */
   function checkCross(prevPrice, currentPrice, levelPrice) {
     if (prevPrice === null || currentPrice === null) return false;
-    return (prevPrice < levelPrice && currentPrice >= levelPrice) ||
-           (prevPrice > levelPrice && currentPrice <= levelPrice);
+    return (
+      (prevPrice < levelPrice && currentPrice >= levelPrice) || (prevPrice > levelPrice && currentPrice <= levelPrice)
+    );
   }
 
   /**

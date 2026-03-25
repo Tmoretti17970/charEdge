@@ -14,20 +14,19 @@
 
 import React, { useState, useEffect, useRef, useCallback, useLayoutEffect, Suspense } from 'react';
 import AIOrb from '../app/components/design/AIOrb.jsx';
-import { Btn } from '../app/components/ui/UIKit.jsx';
 import MarketsCardView from '../app/components/markets/MarketsCardView.jsx';
 import MarketsCompactView from '../app/components/markets/MarketsCompactView.jsx';
-import MarketsWatchlistTabs from '../app/components/markets/MarketsWatchlistTabs.jsx';
 import MarketsCompareOverlay from '../app/components/markets/MarketsCompareOverlay.jsx';
-import SmartAlertPicker from '../app/components/markets/SmartAlertPicker.jsx';
 import MarketsCopilotPanel from '../app/components/markets/MarketsCopilotPanel.jsx';
+import MarketsGridSkeleton from '../app/components/markets/MarketsGridSkeleton.jsx';
 import MarketsHeatMap from '../app/components/markets/MarketsHeatMap.jsx';
 import MarketsMobileView from '../app/components/markets/MarketsMobileView.jsx';
 import MarketsSearchBar from '../app/components/markets/MarketsSearchBar.jsx';
 import MarketsToolbar from '../app/components/markets/MarketsToolbar.jsx';
 import MarketsWatchlistGrid from '../app/components/markets/MarketsWatchlistGrid.jsx';
-import MarketsGridSkeleton from '../app/components/markets/MarketsGridSkeleton.jsx';
-import { MarketsGridEmpty, MarketsGridError } from '../app/components/markets/MarketsGridSkeleton.jsx';
+import MarketsWatchlistTabs from '../app/components/markets/MarketsWatchlistTabs.jsx';
+import SmartAlertPicker from '../app/components/markets/SmartAlertPicker.jsx';
+import { Btn } from '../app/components/ui/UIKit.jsx';
 import { C, F, M } from '../constants.js';
 import useCopilotChat from '../hooks/useCopilotChat';
 import { useMarketsKeyboard } from '../hooks/useMarketsKeyboard';
@@ -213,10 +212,13 @@ function MarketsPage() {
   // ─── Keyboard navigation (Sprint 50) ──────────────────────
   const onSelectRow = useCallback((symbol) => setSelectedSymbol(symbol), [setSelectedSymbol]);
   const onRemoveRow = useCallback((symbol) => removeSymbol(symbol), [removeSymbol]);
-  const onDoubleClickRow = useCallback((symbol) => {
-    setChartSymbol(symbol);
-    setPage('charts');
-  }, [setChartSymbol, setPage]);
+  const onDoubleClickRow = useCallback(
+    (symbol) => {
+      setChartSymbol(symbol);
+      setPage('charts');
+    },
+    [setChartSymbol, setPage],
+  );
 
   const { focusedIndex, setFocusedIndex } = useMarketsKeyboard({
     items,
@@ -491,24 +493,13 @@ function MarketsPage() {
             {/* Lazy-loaded slide-over panels */}
             <Suspense fallback={null}>
               {/* Smart Folder Manager (Sprint 28) */}
-              <SmartFolderManager
-                open={smartFolderOpen}
-                onClose={() => setSmartFolderOpen(false)}
-              />
+              <SmartFolderManager open={smartFolderOpen} onClose={() => setSmartFolderOpen(false)} />
 
               {/* Screener Panel (Sprint 29) */}
-              <MarketsScreenerPanel
-                open={screenerPanelOpen}
-                onClose={() => setScreenerPanelOpen(false)}
-              />
-
-
+              <MarketsScreenerPanel open={screenerPanelOpen} onClose={() => setScreenerPanelOpen(false)} />
 
               {/* Performance Analytics Panel (Sprint 31) */}
-              <MarketsPerformancePanel
-                open={performancePanelOpen}
-                onClose={() => setPerformancePanelOpen(false)}
-              />
+              <MarketsPerformancePanel open={performancePanelOpen} onClose={() => setPerformancePanelOpen(false)} />
             </Suspense>
           </div>
         </>
@@ -589,8 +580,7 @@ function EmptyState({ addSymbol }) {
             fontFamily: F,
           }}
         >
-          Add symbols to see live prices, sparklines, volume, and your
-          trading P&L — all in one view.
+          Add symbols to see live prices, sparklines, volume, and your trading P&L — all in one view.
         </p>
       </div>
 
@@ -650,7 +640,9 @@ function EmptyState({ addSymbol }) {
         <span style={{ margin: '0 4px', opacity: 0.3 }}>·</span>
         <span style={{ background: `${C.bd}80`, borderRadius: 4, padding: '2px 6px', fontWeight: 600 }}>2</span> Charts
         <span style={{ margin: '0 4px', opacity: 0.3 }}>·</span>
-        <span style={{ background: ACCENT_GLOW, color: ACCENT, borderRadius: 4, padding: '2px 6px', fontWeight: 700 }}>3</span>
+        <span style={{ background: ACCENT_GLOW, color: ACCENT, borderRadius: 4, padding: '2px 6px', fontWeight: 700 }}>
+          3
+        </span>
         <span style={{ color: ACCENT, fontWeight: 600 }}>Markets</span>
       </div>
     </div>

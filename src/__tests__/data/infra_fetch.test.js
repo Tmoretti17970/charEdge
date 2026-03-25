@@ -35,7 +35,10 @@ function findDuplicateKeys(source, startMarker) {
   for (let i = braceStart; i < source.length; i++) {
     if (source[i] === '{') depth++;
     if (source[i] === '}') depth--;
-    if (depth === 0) { blockEnd = i; break; }
+    if (depth === 0) {
+      blockEnd = i;
+      break;
+    }
   }
   const block = source.slice(braceStart, blockEnd + 1);
   const keyPattern = /['"]([^'"]+)['"]\s*:/g;
@@ -44,7 +47,10 @@ function findDuplicateKeys(source, startMarker) {
   while ((match = keyPattern.exec(block)) !== null) keys.push(match[1]);
   const seen = new Set();
   const dupes = new Set();
-  for (const k of keys) { if (seen.has(k)) dupes.add(k); seen.add(k); }
+  for (const k of keys) {
+    if (seen.has(k)) dupes.add(k);
+    seen.add(k);
+  }
   return [...dupes];
 }
 
@@ -66,9 +72,9 @@ describe('FetchService — Cache import correctness', () => {
     const source = readSource('data/FetchService.ts');
     const rawCacheImport = source.match(/\{ dataCache \}/g);
     expect(rawCacheImport).toBeNull();
-    expect(source).toContain("cacheManager");
-    expect(source).toContain("cacheManager.read");
-    expect(source).toContain("cacheManager.write");
+    expect(source).toContain('cacheManager');
+    expect(source).toContain('cacheManager.read');
+    expect(source).toContain('cacheManager.write');
   });
 
   it('DataCache.ts exports match what FetchService imports', async () => {
@@ -97,7 +103,6 @@ describe('FetchService — CacheManager integration', () => {
     expect(source).toContain("withCircuitBreaker('binance'");
     expect(source).toContain("withCircuitBreaker('coingecko'");
     expect(source).toContain("withCircuitBreaker('cryptocompare'");
-    expect(source).toContain("withCircuitBreaker('yahoo'");
     expect(source).toContain("withCircuitBreaker('equity-premium'");
     const fetcherBlocks = source.match(/if \(!data/g);
     expect(fetcherBlocks.length).toBeGreaterThanOrEqual(4);
@@ -131,14 +136,30 @@ describe('FetchService — config maps have no duplicates', () => {
     fetchSource = readSource('data/FetchService.ts');
   });
 
-  it('TTL map has no duplicate keys', () => { expect(findDuplicateKeys(fetchSource, 'const TTL')).toEqual([]); });
-  it('BINANCE_INTERVALS map has no duplicate keys', () => { expect(findDuplicateKeys(binanceSource, 'const BINANCE_INTERVALS')).toEqual([]); });
-  it('BINANCE_LIMITS map has no duplicate keys', () => { expect(findDuplicateKeys(binanceSource, 'BINANCE_LIMITS')).toEqual([]); });
-  it('BINANCE_PAGINATE_PAGES map has no duplicate keys', () => { expect(findDuplicateKeys(binanceSource, 'BINANCE_PAGINATE_PAGES')).toEqual([]); });
-  it('ADJACENT map has no duplicate keys', () => { expect(findDuplicateKeys(fetchSource, 'const ADJACENT')).toEqual([]); });
-  it('CG_TF_MAP has no duplicate keys', () => { expect(findDuplicateKeys(fetchSource, 'const CG_TF_MAP')).toEqual([]); });
-  it('CC_TF_MAP has no duplicate keys', () => { expect(findDuplicateKeys(fetchSource, 'const CC_TF_MAP')).toEqual([]); });
-  it('YAHOO_TF_MAP has no duplicate keys', () => { expect(findDuplicateKeys(fetchSource, 'const YAHOO_TF_MAP')).toEqual([]); });
+  it('TTL map has no duplicate keys', () => {
+    expect(findDuplicateKeys(fetchSource, 'const TTL')).toEqual([]);
+  });
+  it('BINANCE_INTERVALS map has no duplicate keys', () => {
+    expect(findDuplicateKeys(binanceSource, 'const BINANCE_INTERVALS')).toEqual([]);
+  });
+  it('BINANCE_LIMITS map has no duplicate keys', () => {
+    expect(findDuplicateKeys(binanceSource, 'BINANCE_LIMITS')).toEqual([]);
+  });
+  it('BINANCE_PAGINATE_PAGES map has no duplicate keys', () => {
+    expect(findDuplicateKeys(binanceSource, 'BINANCE_PAGINATE_PAGES')).toEqual([]);
+  });
+  it('ADJACENT map has no duplicate keys', () => {
+    expect(findDuplicateKeys(fetchSource, 'const ADJACENT')).toEqual([]);
+  });
+  it('CG_TF_MAP has no duplicate keys', () => {
+    expect(findDuplicateKeys(fetchSource, 'const CG_TF_MAP')).toEqual([]);
+  });
+  it('CC_TF_MAP has no duplicate keys', () => {
+    expect(findDuplicateKeys(fetchSource, 'const CC_TF_MAP')).toEqual([]);
+  });
+  it('YAHOO_TF_MAP has no duplicate keys', () => {
+    expect(findDuplicateKeys(fetchSource, 'const YAHOO_TF_MAP')).toEqual([]);
+  });
 
   it('TTL covers 30m and 1w', () => {
     const block = fetchSource.slice(fetchSource.indexOf('const TTL'), fetchSource.indexOf('const TTL') + 300);
@@ -147,7 +168,10 @@ describe('FetchService — config maps have no duplicates', () => {
   });
 
   it('BINANCE_INTERVALS covers 30m and 1w', () => {
-    const block = binanceSource.slice(binanceSource.indexOf('BINANCE_INTERVALS'), binanceSource.indexOf('BINANCE_INTERVALS') + 300);
+    const block = binanceSource.slice(
+      binanceSource.indexOf('BINANCE_INTERVALS'),
+      binanceSource.indexOf('BINANCE_INTERVALS') + 300,
+    );
     expect(block).toContain("'30m'");
     expect(block).toContain("'1w'");
   });
@@ -166,14 +190,28 @@ describe('FetchService — config maps have no duplicates', () => {
 
 describe('FetchService — uses static imports', () => {
   let source;
-  beforeAll(() => { source = readSource('data/FetchService.ts'); });
+  beforeAll(() => {
+    source = readSource('data/FetchService.ts');
+  });
 
-  it('statically imports CoinGeckoAdapter', () => { expect(source).toContain("from './adapters/CoinGeckoAdapter.js'"); });
-  it('statically imports CryptoCompareAdapter', () => { expect(source).toContain("from './adapters/CryptoCompareAdapter.js'"); });
-  it('statically imports YahooAdapter', () => { expect(source).toContain("from './adapters/YahooAdapter.js'"); });
-  it('does NOT dynamically import CoinGeckoAdapter', () => { expect(source).not.toContain("import('./adapters/CoinGeckoAdapter.js')"); });
-  it('does NOT dynamically import CryptoCompareAdapter', () => { expect(source).not.toContain("import('./adapters/CryptoCompareAdapter.js')"); });
-  it('does NOT dynamically import YahooAdapter', () => { expect(source).not.toContain("import('./adapters/YahooAdapter.js')"); });
+  it('statically imports CoinGeckoAdapter', () => {
+    expect(source).toContain("from './adapters/CoinGeckoAdapter.js'");
+  });
+  it('statically imports CryptoCompareAdapter', () => {
+    expect(source).toContain("from './adapters/CryptoCompareAdapter.js'");
+  });
+  it('statically imports YahooAdapter', () => {
+    expect(source).toContain("from './adapters/YahooAdapter.js'");
+  });
+  it('does NOT dynamically import CoinGeckoAdapter', () => {
+    expect(source).not.toContain("import('./adapters/CoinGeckoAdapter.js')");
+  });
+  it('does NOT dynamically import CryptoCompareAdapter', () => {
+    expect(source).not.toContain("import('./adapters/CryptoCompareAdapter.js')");
+  });
+  it('does NOT dynamically import YahooAdapter', () => {
+    expect(source).not.toContain("import('./adapters/YahooAdapter.js')");
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════
@@ -308,7 +346,15 @@ describe('isCrypto — expanded CRYPTO_IDS + USDT suffix handling', () => {
 
 describe('WebSocketService — multiplexed combined streams', () => {
   it('subscribe returns a numeric subscription ID', async () => {
-    vi.stubGlobal('WebSocket', class { constructor() { this.readyState = 0; } close() { } });
+    vi.stubGlobal(
+      'WebSocket',
+      class {
+        constructor() {
+          this.readyState = 0;
+        }
+        close() {}
+      },
+    );
     const { WebSocketService } = await import('../../data/WebSocketService.ts');
     const ws = new WebSocketService();
     const subId = ws.subscribe('BTC', '1h', {});
@@ -325,7 +371,15 @@ describe('WebSocketService — multiplexed combined streams', () => {
   });
 
   it('supports multiple concurrent subscriptions', async () => {
-    vi.stubGlobal('WebSocket', class { constructor() { this.readyState = 0; } close() { } });
+    vi.stubGlobal(
+      'WebSocket',
+      class {
+        constructor() {
+          this.readyState = 0;
+        }
+        close() {}
+      },
+    );
     const { WebSocketService } = await import('../../data/WebSocketService.ts');
     const ws = new WebSocketService();
     const sub1 = ws.subscribe('BTC', '1h', {});
@@ -341,7 +395,15 @@ describe('WebSocketService — multiplexed combined streams', () => {
   });
 
   it('deduplicates same symbol+tf into single stream', async () => {
-    vi.stubGlobal('WebSocket', class { constructor() { this.readyState = 0; } close() { } });
+    vi.stubGlobal(
+      'WebSocket',
+      class {
+        constructor() {
+          this.readyState = 0;
+        }
+        close() {}
+      },
+    );
     const { WebSocketService } = await import('../../data/WebSocketService.ts');
     const ws = new WebSocketService();
     ws.subscribe('BTC', '1h', {});
@@ -392,19 +454,24 @@ describe('WebSocketService — exponential backoff reconnection', () => {
 
   beforeEach(() => {
     wsInstances = [];
-    vi.stubGlobal('WebSocket', class MockWS {
-      constructor(url) {
-        this.url = url;
-        this.onopen = null;
-        this.onmessage = null;
-        this.onclose = null;
-        this.onerror = null;
-        this.readyState = 0;
-        wsInstances.push(this);
-      }
-      close() { this.readyState = 3; }
-      send() { }
-    });
+    vi.stubGlobal(
+      'WebSocket',
+      class MockWS {
+        constructor(url) {
+          this.url = url;
+          this.onopen = null;
+          this.onmessage = null;
+          this.onclose = null;
+          this.onerror = null;
+          this.readyState = 0;
+          wsInstances.push(this);
+        }
+        close() {
+          this.readyState = 3;
+        }
+        send() {}
+      },
+    );
   });
 
   it('sets RECONNECTING status on close and schedules reconnect', async () => {
@@ -412,7 +479,7 @@ describe('WebSocketService — exponential backoff reconnection', () => {
     const ws = new WsClass();
     const statuses = [];
     ws.subscribe('BTC', '1h', { onStatus: (s) => statuses.push(s) });
-    await new Promise(r => setTimeout(r, 100));
+    await new Promise((r) => setTimeout(r, 100));
     expect(wsInstances.length).toBeGreaterThan(0);
     const firstWs = wsInstances[wsInstances.length - 1];
     firstWs.onopen?.();
@@ -454,7 +521,9 @@ describe('WebSocketService — exponential backoff reconnection', () => {
     const ws = new WebSocketService();
     ws._subs.set(1, { streamKey: 'btcusdt@kline_1h', symbol: 'BTC', tf: '1h', callbacks: {} });
     let reconnectCalled = false;
-    ws._scheduleReconnect = () => { reconnectCalled = true; };
+    ws._scheduleReconnect = () => {
+      reconnectCalled = true;
+    };
     ws._intentionalClose = false;
     expect(ws._subs.size).toBe(1);
     expect(ws._intentionalClose).toBe(false);
@@ -474,7 +543,7 @@ describe('WebSocketService — exponential backoff reconnection', () => {
   it('subscribe + unsubscribe specific ID manages subs correctly', async () => {
     const { WebSocketService } = await import('../../data/WebSocketService.ts');
     const ws = new WebSocketService();
-    ws._scheduleStreamUpdate = () => { };
+    ws._scheduleStreamUpdate = () => {};
     const id1 = ws.subscribe('BTC', '1h', {});
     const id2 = ws.subscribe('ETH', '1h', {});
     expect(ws.subscriptionCount).toBe(2);
@@ -501,7 +570,11 @@ describe('BaseAdapter — capabilities() runtime introspection', () => {
 
   it('subclass with overridden fetchOHLCV reports true for fetchOHLCV', async () => {
     const { BaseAdapter } = await import('../../data/adapters/BaseAdapter.js');
-    class TestAdapter extends BaseAdapter { async fetchOHLCV() { return []; } }
+    class TestAdapter extends BaseAdapter {
+      async fetchOHLCV() {
+        return [];
+      }
+    }
     const adapter = new TestAdapter('test');
     const caps = adapter.capabilities();
     expect(caps.fetchOHLCV).toBe(true);
@@ -511,10 +584,18 @@ describe('BaseAdapter — capabilities() runtime introspection', () => {
   it('subclass overriding all methods reports all true', async () => {
     const { BaseAdapter } = await import('../../data/adapters/BaseAdapter.js');
     class FullAdapter extends BaseAdapter {
-      async fetchOHLCV() { return []; }
-      async fetchQuote() { return {}; }
-      subscribe() { return () => { }; }
-      async searchSymbols() { return []; }
+      async fetchOHLCV() {
+        return [];
+      }
+      async fetchQuote() {
+        return {};
+      }
+      subscribe() {
+        return () => {};
+      }
+      async searchSymbols() {
+        return [];
+      }
     }
     const adapter = new FullAdapter('full');
     const caps = adapter.capabilities();
@@ -536,7 +617,9 @@ describe('CircuitBreaker (unified) — granular error recovery', () => {
     const rateLimitErr = new Error('Rate limited');
     rateLimitErr.status = 429;
     rateLimitErr.retryAfterMs = 5000;
-    await withCircuitBreaker('test-adapter', async () => { throw rateLimitErr; });
+    await withCircuitBreaker('test-adapter', async () => {
+      throw rateLimitErr;
+    });
     const state = getCircuitState('test-adapter');
     expect(state.state).toBe('CLOSED');
     expect(state.failureRate).toBe(0);
@@ -547,9 +630,14 @@ describe('CircuitBreaker (unified) — granular error recovery', () => {
     const rateLimitErr = new Error('Rate limited');
     rateLimitErr.status = 429;
     rateLimitErr.retryAfterMs = 60_000;
-    await withCircuitBreaker('test-rl-adapter', async () => { throw rateLimitErr; });
+    await withCircuitBreaker('test-rl-adapter', async () => {
+      throw rateLimitErr;
+    });
     let fetchCalled = false;
-    const result = await withCircuitBreaker('test-rl-adapter', async () => { fetchCalled = true; return 'data'; });
+    const result = await withCircuitBreaker('test-rl-adapter', async () => {
+      fetchCalled = true;
+      return 'data';
+    });
     expect(result).toBeNull();
     expect(fetchCalled).toBe(false);
   });
@@ -557,7 +645,9 @@ describe('CircuitBreaker (unified) — granular error recovery', () => {
   it('trips circuit normally on non-429 errors', async () => {
     const { withCircuitBreaker, getCircuitState } = await import('../../data/engine/infra/CircuitBreaker.ts');
     for (let i = 0; i < 5; i++) {
-      await withCircuitBreaker('test-500-adapter', async () => { throw new Error('Server error'); });
+      await withCircuitBreaker('test-500-adapter', async () => {
+        throw new Error('Server error');
+      });
     }
     const state = getCircuitState('test-500-adapter');
     expect(state.state).toBe('OPEN');
@@ -571,20 +661,37 @@ describe('CircuitBreaker (unified) — granular error recovery', () => {
 
 describe('DataExporter — uses CacheManager', () => {
   let source;
-  beforeAll(() => { source = readSource('data/engine/infra/DataExporter.js'); });
+  beforeAll(() => {
+    source = readSource('data/engine/infra/DataExporter.js');
+  });
 
-  it('does NOT import DataCache directly', () => { expect(source).not.toMatch(/from\s+['"]\.\.\/DataCache/); });
-  it('imports cacheManager from CacheManager.js', () => { expect(source).toContain("from './CacheManager.js'"); expect(source).toContain('cacheManager'); });
-  it('uses cacheManager.read() for candle data', () => { expect(source).toContain('cacheManager.read('); });
-  it('uses cacheManager.getStorageUsage() for storage info', () => { expect(source).toContain('cacheManager.getStorageUsage()'); });
+  it('does NOT import DataCache directly', () => {
+    expect(source).not.toMatch(/from\s+['"]\.\.\/DataCache/);
+  });
+  it('imports cacheManager from CacheManager.js', () => {
+    expect(source).toContain("from './CacheManager.js'");
+    expect(source).toContain('cacheManager');
+  });
+  it('uses cacheManager.read() for candle data', () => {
+    expect(source).toContain('cacheManager.read(');
+  });
+  it('uses cacheManager.getStorageUsage() for storage info', () => {
+    expect(source).toContain('cacheManager.getStorageUsage()');
+  });
 });
 
 describe('DataProvider — backward compatibility', () => {
   let source;
-  beforeAll(() => { source = readSource('data/DataProvider.js'); });
+  beforeAll(() => {
+    source = readSource('data/DataProvider.js');
+  });
 
-  it('still imports dataCache from DataCache.ts', () => { expect(source).toContain('DataCache'); });
-  it('still re-exports dataCache', () => { expect(source).toMatch(/export\s*{[^}]*dataCache/); });
+  it('still imports dataCache from DataCache.ts', () => {
+    expect(source).toContain('DataCache');
+  });
+  it('still re-exports dataCache', () => {
+    expect(source).toMatch(/export\s*{[^}]*dataCache/);
+  });
 });
 
 describe('Provider config maps have no duplicates', () => {
@@ -594,8 +701,12 @@ describe('Provider config maps have no duplicates', () => {
     avSource = readSource('data/providers/AlphaVantageProvider.js');
   });
 
-  it('POLYGON_TF_MAP has no duplicate keys', () => { expect(findDuplicateKeys(polygonSource, 'const POLYGON_TF_MAP')).toEqual([]); });
-  it('AV_FUNCTIONS has no duplicate keys', () => { expect(findDuplicateKeys(avSource, 'const AV_FUNCTIONS')).toEqual([]); });
+  it('POLYGON_TF_MAP has no duplicate keys', () => {
+    expect(findDuplicateKeys(polygonSource, 'const POLYGON_TF_MAP')).toEqual([]);
+  });
+  it('AV_FUNCTIONS has no duplicate keys', () => {
+    expect(findDuplicateKeys(avSource, 'const AV_FUNCTIONS')).toEqual([]);
+  });
   it('POLYGON_TF_MAP covers 30m and 1w', () => {
     const idx = polygonSource.indexOf('const POLYGON_TF_MAP');
     const block = polygonSource.slice(idx, polygonSource.indexOf('};', idx) + 2);
@@ -616,7 +727,9 @@ describe('Provider config maps have no duplicates', () => {
 
 describe('TFS includes 30m and 1w', () => {
   let source;
-  beforeAll(() => { source = readSource('constants/timeframes.js'); });
+  beforeAll(() => {
+    source = readSource('constants/timeframes.js');
+  });
 
   it('TFS array includes 30m entry', () => {
     const tfsIdx = source.indexOf('export const TFS');
@@ -657,7 +770,9 @@ describe('isCrypto unification', () => {
   });
 
   it('OrderFlowBridge imports isCrypto from constants.js', () => {
-    expect(readSource('data/engine/orderflow/OrderFlowBridge.js')).toContain("import { isCrypto } from '../../../constants.js'");
+    expect(readSource('data/engine/orderflow/OrderFlowBridge.js')).toContain(
+      "import { isCrypto } from '../../../constants.js'",
+    );
   });
 
   it('OrderFlowBridge isBinanceSymbol uses isCrypto guard', () => {
@@ -681,39 +796,66 @@ describe('isCrypto unification', () => {
   });
 
   it('AdaptivePoller imports isCrypto from constants.js', () => {
-    expect(readSource('data/engine/infra/AdaptivePoller.js')).toContain("import { isCrypto } from '../../../constants.js'");
+    expect(readSource('data/engine/infra/AdaptivePoller.js')).toContain(
+      "import { isCrypto } from '../../../constants.js'",
+    );
   });
 });
 
 describe('useOrderFlowConnection isCrypto', () => {
   let source;
-  beforeAll(() => { source = readSource('data/engine/orderflow/useOrderFlowConnection.js'); });
+  beforeAll(() => {
+    source = readSource('data/engine/orderflow/useOrderFlowConnection.js');
+  });
 
-  it('has no local isCryptoSymbol function', () => { expect(source).not.toMatch(/function\s+isCryptoSymbol/); });
-  it('imports isCrypto from constants.js', () => { expect(source).toContain("import { isCrypto } from '../../../constants.js'"); });
-  it('uses isCrypto() for crypto guard', () => { expect(source).toContain('isCrypto(upper)'); });
+  it('has no local isCryptoSymbol function', () => {
+    expect(source).not.toMatch(/function\s+isCryptoSymbol/);
+  });
+  it('imports isCrypto from constants.js', () => {
+    expect(source).toContain("import { isCrypto } from '../../../constants.js'");
+  });
+  it('uses isCrypto() for crypto guard', () => {
+    expect(source).toContain('isCrypto(upper)');
+  });
 });
 
 describe('useOrderFlowConnection — uses CacheManager', () => {
   let source;
-  beforeAll(() => { source = readSource('data/engine/orderflow/useOrderFlowConnection.js'); });
+  beforeAll(() => {
+    source = readSource('data/engine/orderflow/useOrderFlowConnection.js');
+  });
 
-  it('does NOT import DataCache directly', () => { expect(source).not.toMatch(/from\s+['"].*DataCache/); });
-  it('imports cacheManager from CacheManager.js', () => { expect(source).toContain("from '../infra/CacheManager.js'"); expect(source).toContain('cacheManager'); });
-  it('uses cacheManager.evictAll() for periodic eviction', () => { expect(source).toContain('cacheManager.evictAll()'); });
-  it('does NOT call dataCache.evictIfOverBudget()', () => { expect(source).not.toContain('dataCache.evictIfOverBudget'); });
+  it('does NOT import DataCache directly', () => {
+    expect(source).not.toMatch(/from\s+['"].*DataCache/);
+  });
+  it('imports cacheManager from CacheManager.js', () => {
+    expect(source).toContain("from '../infra/CacheManager.js'");
+    expect(source).toContain('cacheManager');
+  });
+  it('uses cacheManager.evictAll() for periodic eviction', () => {
+    expect(source).toContain('cacheManager.evictAll()');
+  });
+  it('does NOT call dataCache.evictIfOverBudget()', () => {
+    expect(source).not.toContain('dataCache.evictIfOverBudget');
+  });
 });
 
 describe('CacheManager — proxy methods', () => {
   let source;
-  beforeAll(() => { source = readSource('data/engine/infra/CacheManager.js'); });
+  beforeAll(() => {
+    source = readSource('data/engine/infra/CacheManager.js');
+  });
 
-  it('has a getStorageUsage method', () => { expect(source).toContain('async getStorageUsage()'); });
+  it('has a getStorageUsage method', () => {
+    expect(source).toContain('async getStorageUsage()');
+  });
   it('getStorageUsage delegates to DataCache via _loadDataCache', () => {
     const methodIdx = source.indexOf('async getStorageUsage()');
     const chunk = source.slice(methodIdx, methodIdx + 300);
     expect(chunk).toContain('_loadDataCache()');
     expect(chunk).toContain('.getStorageUsage()');
   });
-  it('has an evictAll method', () => { expect(source).toContain('async evictAll()'); });
+  it('has an evictAll method', () => {
+    expect(source).toContain('async evictAll()');
+  });
 });

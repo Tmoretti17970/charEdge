@@ -11,7 +11,7 @@
 
 import React from 'react';
 import { useState, useMemo } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useGamificationStore } from '../../../state/useGamificationStore';
 import {
   comparePeriods,
@@ -129,7 +129,9 @@ function CompareTab({ trades }) {
           <div className={s.cardPnl} style={{ color: curr.pnl >= 0 ? C.g : C.r }}>
             {fmtD(curr.pnl)}
           </div>
-          <div className={s.cardMeta}>{curr.trades} trades · {curr.winRate.toFixed(0)}% WR</div>
+          <div className={s.cardMeta}>
+            {curr.trades} trades · {curr.winRate.toFixed(0)}% WR
+          </div>
         </div>
 
         <div className={s.compareCard} style={{ borderLeft: `3px solid ${C.t3}` }}>
@@ -137,7 +139,9 @@ function CompareTab({ trades }) {
           <div className={s.cardPnl} style={{ color: prev.pnl >= 0 ? C.g : C.r }}>
             {fmtD(prev.pnl)}
           </div>
-          <div className={s.cardMeta}>{prev.trades} trades · {prev.winRate.toFixed(0)}% WR</div>
+          <div className={s.cardMeta}>
+            {prev.trades} trades · {prev.winRate.toFixed(0)}% WR
+          </div>
         </div>
       </div>
 
@@ -272,12 +276,7 @@ function GoalsTab({ trades }) {
           <span className={s.goalEmoji}>🚫</span>
           <span className={s.goalLabel}>Daily Loss Limit</span>
           <label className={s.s8}>
-            <input
-              type="checkbox"
-              checked={dailyLossEnabled}
-              onChange={toggleDailyLoss}
-              className={s.s9}
-            />
+            <input type="checkbox" checked={dailyLossEnabled} onChange={toggleDailyLoss} className={s.s9} />
           </label>
         </div>
         {dailyLossEnabled && (
@@ -291,10 +290,7 @@ function GoalsTab({ trades }) {
               className={s.goalInput}
             />
             {progress.dailyLoss && (
-              <span
-                className={s.riskStatus}
-                style={{ color: progress.dailyLoss.breached ? C.r : C.t3 }}
-              >
+              <span className={s.riskStatus} style={{ color: progress.dailyLoss.breached ? C.r : C.t3 }}>
                 {progress.dailyLoss.breached ? '⚠ BREACHED' : `${progress.dailyLoss.pct.toFixed(0)}% used`}
               </span>
             )}
@@ -375,7 +371,9 @@ function EquityTab({ trades }) {
         <div className={s.sparkLabel}>Last {recentDays.length} Days</div>
         <div className={s.sparkChars}>
           {recentDays.map((c, i) => (
-            <span key={i} style={{ color: c.dayPnl >= 0 ? C.g : C.r }}>{sparkline[i]}</span>
+            <span key={i} style={{ color: c.dayPnl >= 0 ? C.g : C.r }}>
+              {sparkline[i]}
+            </span>
           ))}
         </div>
         <div className={s.sparkRange}>
@@ -392,7 +390,9 @@ function EquityTab({ trades }) {
         .map((day, _i) => (
           <div key={day.date} className={s.dayRow}>
             <span className={s.dayDate}>{day.date}</span>
-            <span className={s.dayCount}>{day.trades} trade{day.trades !== 1 ? 's' : ''}</span>
+            <span className={s.dayCount}>
+              {day.trades} trade{day.trades !== 1 ? 's' : ''}
+            </span>
             <span className={s.dayPnl} style={{ color: day.dayPnl >= 0 ? C.g : C.r }}>
               {fmtD(day.dayPnl)}
             </span>

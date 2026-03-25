@@ -5,11 +5,10 @@
 // Handles: scheduling, dedup, batch stamping, visibility pause.
 // ═══════════════════════════════════════════════════════════════════
 
-import { getActiveConnectors } from './ConnectorRegistry.js';
-import { importFile } from '../importExport/importFile.js';
 import { generateBatchId } from '../../state/useImportHistoryStore.js';
 import { useImportHistoryStore } from '../../state/useImportHistoryStore.js';
 import { useJournalStore } from '../../state/useJournalStore.js';
+import { getActiveConnectors } from './ConnectorRegistry.js';
 import { logger } from '@/observability/logger';
 
 let _syncInterval = null;
@@ -97,7 +96,7 @@ export async function syncAll() {
         const existingHashes = new Set(
           existingTrades
             .filter((t) => t.date && t.symbol)
-            .map((t) => `${t.date}|${t.symbol}|${t.side}|${t.quantity}|${t.price}`)
+            .map((t) => `${t.date}|${t.symbol}|${t.side}|${t.quantity}|${t.price}`),
         );
 
         const unique = syncResult.trades.filter((t) => {
@@ -134,7 +133,9 @@ export async function syncAll() {
 
   _isRunning = false;
   _emit('sync_complete', results);
-  logger.data.info(`[SyncEngine] Sync complete: ${results.length} connectors, ${results.reduce((s, r) => s + r.tradeCount, 0)} new trades`);
+  logger.data.info(
+    `[SyncEngine] Sync complete: ${results.length} connectors, ${results.reduce((s, r) => s + r.tradeCount, 0)} new trades`,
+  );
 
   return { results };
 }
@@ -163,7 +164,11 @@ export function onSyncEvent(fn) {
 
 function _emit(event, data) {
   for (const fn of _syncListeners) {
-    try { fn(event, data); } catch { /* ignore */ }
+    try {
+      fn(event, data);
+    } catch {
+      /* ignore */
+    }
   }
 }
 

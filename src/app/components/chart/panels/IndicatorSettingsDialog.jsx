@@ -7,7 +7,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { INDICATORS as INDICATOR_REGISTRY } from '../../../../charting_library/studies/indicators/registry.js';
-import { C, F } from '@/constants.js';
 import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 import {
   ColorSwatch,
@@ -20,6 +19,7 @@ import {
 } from '../../settings/SettingsControls.jsx';
 import SettingsTabShell from '../../settings/SettingsTabShell.jsx';
 import s from './IndicatorSettingsDialog.module.css';
+import { C } from '@/constants.js';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -106,7 +106,7 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
   const updateIndicatorBands = useChartToolsStore((s) => s.updateIndicatorBands);
 
   // Sprint 4: Look up by stable ID instead of array index
-  const indicator = indicators?.find(ind => ind.id === indicatorStableId);
+  const indicator = indicators?.find((ind) => ind.id === indicatorStableId);
   const indicatorId = indicator?.indicatorId;
   const registryDef = indicatorId ? INDICATOR_REGISTRY?.[indicatorId] : null;
 
@@ -127,29 +127,38 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
     setLocalParams(defaults);
     setLocalColor(indicator.color || registryDef.outputs?.[0]?.color || '#2962FF');
     setTemplates(listTemplates(indicatorId));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [indicatorStableId, indicatorId]);
 
   // ─── Live preview ─────────────────────────────────────────────
-  const applyParams = useCallback((newParams, newColor) => {
-    updateIndicator(indicatorStableId, {
-      params: { ...newParams },
-      color: newColor,
-    });
-  }, [indicatorStableId, updateIndicator]);
+  const applyParams = useCallback(
+    (newParams, newColor) => {
+      updateIndicator(indicatorStableId, {
+        params: { ...newParams },
+        color: newColor,
+      });
+    },
+    [indicatorStableId, updateIndicator],
+  );
 
-  const handleParamChange = useCallback((key, value) => {
-    setLocalParams((prev) => {
-      const next = { ...prev, [key]: value };
-      applyParams(next, localColor);
-      return next;
-    });
-  }, [applyParams, localColor]);
+  const handleParamChange = useCallback(
+    (key, value) => {
+      setLocalParams((prev) => {
+        const next = { ...prev, [key]: value };
+        applyParams(next, localColor);
+        return next;
+      });
+    },
+    [applyParams, localColor],
+  );
 
-  const handleColorChange = useCallback((color) => {
-    setLocalColor(color);
-    applyParams(localParams, color);
-  }, [applyParams, localParams]);
+  const handleColorChange = useCallback(
+    (color) => {
+      setLocalColor(color);
+      applyParams(localParams, color);
+    },
+    [applyParams, localParams],
+  );
 
   // ─── Reset ────────────────────────────────────────────────────
   const handleReset = useCallback(() => {
@@ -173,13 +182,16 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
     setTemplateName('');
   }, [indicatorId, localParams, localColor, templateName]);
 
-  const handleLoadTemplate = useCallback((name) => {
-    const config = loadTemplate(indicatorId, name);
-    if (!config) return;
-    setLocalParams(config.params || {});
-    setLocalColor(config.color || localColor);
-    applyParams(config.params || localParams, config.color || localColor);
-  }, [indicatorId, applyParams, localParams, localColor]);
+  const handleLoadTemplate = useCallback(
+    (name) => {
+      const config = loadTemplate(indicatorId, name);
+      if (!config) return;
+      setLocalParams(config.params || {});
+      setLocalColor(config.color || localColor);
+      applyParams(config.params || localParams, config.color || localColor);
+    },
+    [indicatorId, applyParams, localParams, localColor],
+  );
 
   if (!indicator || !registryDef) return null;
 
@@ -198,7 +210,9 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
           placeholder="Template name..."
           value={templateName}
           onChange={(e) => setTemplateName(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') handleSaveTemplate(); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSaveTemplate();
+          }}
           className={s.templateInput}
         />
         <button onClick={handleSaveTemplate} disabled={!templateName.trim()} className={s.templateSaveBtn}>
@@ -226,7 +240,10 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
       onTabChange={setActiveTab}
       onClose={onClose}
       onOk={onClose}
-      onCancel={() => { handleReset(); onClose(); }}
+      onCancel={() => {
+        handleReset();
+        onClose();
+      }}
       footerExtra={templateFooter}
     >
       {/* ═══ Inputs Tab ══════════════════════════════════════════ */}
@@ -299,8 +316,7 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
           {/* Info tooltip area */}
           <div className={s.infoBox}>
             💡 {registryDef.name} — {registryDef.mode === 'overlay' ? 'Overlay indicator' : 'Pane indicator'}.
-            {Object.keys(registryDef.params || {}).length > 0 &&
-              ` Adjust parameters above for live preview.`}
+            {Object.keys(registryDef.params || {}).length > 0 && ` Adjust parameters above for live preview.`}
           </div>
         </div>
       )}
@@ -311,11 +327,7 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
           <SectionLabel>Line Style</SectionLabel>
 
           {/* Primary color (backward compat) */}
-          <ColorSwatch
-            label="Primary Color"
-            color={localColor}
-            onChange={handleColorChange}
-          />
+          <ColorSwatch label="Primary Color" color={localColor} onChange={handleColorChange} />
 
           {/* Per-output styling */}
           {outputs.length > 1 && (
@@ -333,7 +345,9 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
                     <div className={s.outputHeader}>
                       <span className={s.outputName}>{out.label || out.key}</span>
                       <button
-                        onClick={() => updateIndicatorOutputStyle(indicatorStableId, out.key, { visible: !style.visible })}
+                        onClick={() =>
+                          updateIndicatorOutputStyle(indicatorStableId, out.key, { visible: !style.visible })
+                        }
                         title={style.visible ? 'Hide' : 'Show'}
                         className={s.visToggleBtn}
                         style={{ color: style.visible ? C.b : C.t3 }}
@@ -402,7 +416,9 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
           <Toggle
             label="Show on all timeframes"
             checked={visibility.showAll !== false}
-            onChange={(v) => setIndicatorVisibility(indicatorStableId, { showAll: v, timeframes: v ? [] : visibility.timeframes })}
+            onChange={(v) =>
+              setIndicatorVisibility(indicatorStableId, { showAll: v, timeframes: v ? [] : visibility.timeframes })
+            }
           />
 
           {!visibility.showAll && (
@@ -414,9 +430,7 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
                     key={tf.id}
                     onClick={() => {
                       const tfs = visibility.timeframes || [];
-                      const next = isActive
-                        ? tfs.filter((t) => t !== tf.id)
-                        : [...tfs, tf.id];
+                      const next = isActive ? tfs.filter((t) => t !== tf.id) : [...tfs, tf.id];
                       setIndicatorVisibility(indicatorStableId, { showAll: false, timeframes: next });
                     }}
                     className={s.tfBtn}
@@ -436,7 +450,10 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
               <div className={s.paneBox}>
                 📐 This indicator renders in a separate pane below the main chart.
                 {registryDef.paneConfig?.min !== undefined && (
-                  <> Scale: {registryDef.paneConfig.min} – {registryDef.paneConfig.max}.</>
+                  <>
+                    {' '}
+                    Scale: {registryDef.paneConfig.min} – {registryDef.paneConfig.max}.
+                  </>
                 )}
               </div>
             </>
@@ -444,7 +461,9 @@ export default function IndicatorSettingsDialog({ indicatorIdx: indicatorStableI
 
           {/* Reset button */}
           <div className={s.resetSection}>
-            <button onClick={handleReset} className={s.resetBtn}>Reset to Default</button>
+            <button onClick={handleReset} className={s.resetBtn}>
+              Reset to Default
+            </button>
           </div>
         </div>
       )}

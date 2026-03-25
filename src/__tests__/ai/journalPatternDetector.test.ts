@@ -30,7 +30,7 @@ function makeLosser(overrides: Record<string, unknown> = {}) {
 }
 
 function hasPattern(patterns: DetectedPattern[], type: string): boolean {
-  return patterns.some(p => p.type === type);
+  return patterns.some((p) => p.type === type);
 }
 
 // ─── Tests ──────────────────────────────────────────────────────
@@ -38,10 +38,7 @@ function hasPattern(patterns: DetectedPattern[], type: string): boolean {
 describe('JournalPatternDetector', () => {
   describe('Core Stats', () => {
     it('calculates win rate correctly', () => {
-      const trades = [
-        makeWinner(), makeWinner(), makeWinner(),
-        makeLosser(), makeLosser(),
-      ];
+      const trades = [makeWinner(), makeWinner(), makeWinner(), makeLosser(), makeLosser()];
       const result = journalPatternDetector.analyze(trades);
       expect(result.winRate).toBeCloseTo(0.6, 1);
       expect(result.totalTrades).toBe(5);
@@ -86,44 +83,38 @@ describe('JournalPatternDetector', () => {
         { symbol: 'BTC', side: 'long' }, // no pnl
         makeLosser(),
       ];
-      const result = journalPatternDetector.analyze(trades as any);
+      const result = journalPatternDetector.analyze(
+        trades as unknown as Parameters<typeof journalPatternDetector.analyze>[0],
+      );
       expect(result.totalTrades).toBe(2);
     });
   });
 
   describe('Streak Detection', () => {
     it('detects current winning streak', () => {
-      const trades = [
-        makeLosser(), makeWinner(), makeWinner(), makeWinner(),
-      ];
+      const trades = [makeLosser(), makeWinner(), makeWinner(), makeWinner()];
       const result = journalPatternDetector.analyze(trades);
       expect(result.streaks.current.type).toBe('win');
       expect(result.streaks.current.count).toBe(3);
     });
 
     it('detects current losing streak', () => {
-      const trades = [
-        makeWinner(), makeLosser(), makeLosser(), makeLosser(), makeLosser(),
-      ];
+      const trades = [makeWinner(), makeLosser(), makeLosser(), makeLosser(), makeLosser()];
       const result = journalPatternDetector.analyze(trades);
       expect(result.streaks.current.type).toBe('loss');
       expect(result.streaks.current.count).toBe(4);
     });
 
     it('generates streak pattern for 3+ wins', () => {
-      const trades = [
-        makeLosser(), makeWinner(), makeWinner(), makeWinner(),
-      ];
+      const trades = [makeLosser(), makeWinner(), makeWinner(), makeWinner()];
       const result = journalPatternDetector.analyze(trades);
       expect(hasPattern(result.patterns, 'streak')).toBe(true);
     });
 
     it('generates streak pattern for 3+ losses with warning severity', () => {
-      const trades = [
-        makeWinner(), makeLosser(), makeLosser(), makeLosser(),
-      ];
+      const trades = [makeWinner(), makeLosser(), makeLosser(), makeLosser()];
       const result = journalPatternDetector.analyze(trades);
-      const streakPattern = result.patterns.find(p => p.type === 'streak');
+      const streakPattern = result.patterns.find((p) => p.type === 'streak');
       expect(streakPattern).toBeDefined();
       expect(streakPattern!.severity).toBe('warning');
     });
@@ -131,14 +122,16 @@ describe('JournalPatternDetector', () => {
 
   describe('Overtrading Detection', () => {
     it('detects overtrading on high-activity days with worse win rate', () => {
-      const trades: any[] = [];
+      const trades: ReturnType<typeof makeTrade>[] = [];
       // 3 days with 6+ trades each (high activity, low win rate - 1/6)
       for (let d = 1; d <= 3; d++) {
         for (let i = 0; i < 6; i++) {
-          trades.push(makeTrade({
-            pnl: i === 0 ? 100 : -50,
-            entryDate: `2025-03-${String(d).padStart(2, '0')}T${String(9 + i).padStart(2, '0')}:00:00Z`,
-          }));
+          trades.push(
+            makeTrade({
+              pnl: i === 0 ? 100 : -50,
+              entryDate: `2025-03-${String(d).padStart(2, '0')}T${String(9 + i).padStart(2, '0')}:00:00Z`,
+            }),
+          );
         }
       }
       // 3 days with normal activity (high win rate - 2/2)
@@ -235,14 +228,16 @@ describe('JournalPatternDetector', () => {
   describe('Pattern Sorting', () => {
     it('sorts patterns by severity (critical first)', () => {
       // Create conditions that trigger multiple severity levels
-      const trades: any[] = [];
+      const trades: ReturnType<typeof makeTrade>[] = [];
       // 5+ losses in a row for critical streak
       for (let i = 0; i < 6; i++) {
         trades.push(makeLosser({ entryDate: `2025-03-01T${String(10 + i).padStart(2, '0')}:00:00Z` }));
       }
       // Add some winners at the end
       for (let i = 0; i < 5; i++) {
-        trades.push(makeWinner({ setup: 'breakout', entryDate: `2025-03-15T${String(10 + i).padStart(2, '0')}:00:00Z` }));
+        trades.push(
+          makeWinner({ setup: 'breakout', entryDate: `2025-03-15T${String(10 + i).padStart(2, '0')}:00:00Z` }),
+        );
       }
 
       const result = journalPatternDetector.analyze(trades);

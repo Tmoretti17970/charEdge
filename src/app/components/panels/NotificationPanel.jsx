@@ -15,13 +15,13 @@
 
 import React from 'react';
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C, M } from '../../../constants.js';
 import { useAlertStore } from '../../../state/useAlertStore';
 import { useNotificationStore } from '../../../state/useNotificationStore';
 import { usePriceTracker } from '../../../state/usePriceTracker';
 import { radii } from '../../../theme/tokens.js';
-import { useHotkeys } from '@/hooks/useHotkeys';
 import css from './NotificationPanel.module.css';
+import { useHotkeys } from '@/hooks/useHotkeys';
 
 // ─── Constants ────────────────────────────────────────────────────
 
@@ -188,17 +188,16 @@ function NotificationPanel({ initialTab = null }) {
       <div onClick={closePanel} className={css.backdrop} />
 
       {/* Panel */}
-      <div
-        className={css.panel}
-        style={{ background: C.bg2 || C.sf, borderLeft: `1px solid ${C.bd}` }}
-      >
+      <div className={css.panel} style={{ background: C.bg2 || C.sf, borderLeft: `1px solid ${C.bd}` }}>
         {/* Header */}
         <div className={css.headerWrap} style={{ borderBottom: `1px solid ${C.bd}` }}>
           <div className={css.headerRow}>
             <div className={css.headerLeft}>
               <span className={css.headerTitle}>Notifications</span>
               {entries.length > 0 && (
-                <span className={css.headerBadge} style={{ background: C.b }}>{entries.length}</span>
+                <span className={css.headerBadge} style={{ background: C.b }}>
+                  {entries.length}
+                </span>
               )}
             </div>
             <div className={css.headerActions}>
@@ -211,7 +210,9 @@ function NotificationPanel({ initialTab = null }) {
                   Clear All
                 </button>
               )}
-              <button className={`tf-btn ${css.closeBtn}`} onClick={closePanel}>✕</button>
+              <button className={`tf-btn ${css.closeBtn}`} onClick={closePanel}>
+                ✕
+              </button>
             </div>
           </div>
 
@@ -264,7 +265,12 @@ function NotificationPanel({ initialTab = null }) {
                     </div>
                   )}
                   {Object.entries(grouped).map(([label, items]) => (
-                    <TimeGroup key={label} label={activeTab === 'alerts' ? null : label} entries={items} onDismiss={handleDismiss} />
+                    <TimeGroup
+                      key={label}
+                      label={activeTab === 'alerts' ? null : label}
+                      entries={items}
+                      onDismiss={handleDismiss}
+                    />
                   ))}
                 </>
               )}
@@ -278,7 +284,9 @@ function NotificationPanel({ initialTab = null }) {
             className={`tf-btn ${css.settingsLink}`}
             onClick={() => {
               closePanel();
-              window.dispatchEvent(new CustomEvent('charEdge:navigate', { detail: { page: 'settings', section: 'notifications' } }));
+              window.dispatchEvent(
+                new CustomEvent('charEdge:navigate', { detail: { page: 'settings', section: 'notifications' } }),
+              );
             }}
             style={{ color: C.b }}
           >
@@ -317,12 +325,12 @@ function AlertManagementSection() {
   const highProximity = usePriceTracker((s) => {
     const stat = s.stats[symbol.toUpperCase()];
     if (!stat || stat.high52w === 0) return null;
-    return ((stat.lastPrice - stat.high52w) / stat.high52w * 100);
+    return ((stat.lastPrice - stat.high52w) / stat.high52w) * 100;
   });
   const lowProximity = usePriceTracker((s) => {
     const stat = s.stats[symbol.toUpperCase()];
     if (!stat || stat.low52w === 0) return null;
-    return ((stat.lastPrice - stat.low52w) / stat.low52w * 100);
+    return ((stat.lastPrice - stat.low52w) / stat.low52w) * 100;
   });
 
   const handleAdd = useCallback(() => {
@@ -339,10 +347,13 @@ function AlertManagementSection() {
     setNote('');
   }, [symbol, condition, price, note, repeating, addAlert]);
 
-  const handlePresetClick = useCallback((presetId) => {
-    if (!symbol.trim()) return;
-    addMarketAlert({ symbol: symbol.trim().toUpperCase(), preset: presetId });
-  }, [symbol, addMarketAlert]);
+  const handlePresetClick = useCallback(
+    (presetId) => {
+      if (!symbol.trim()) return;
+      addMarketAlert({ symbol: symbol.trim().toUpperCase(), preset: presetId });
+    },
+    [symbol, addMarketAlert],
+  );
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') handleAdd();
@@ -362,7 +373,6 @@ function AlertManagementSection() {
 
   return (
     <div className={css.alertWrap}>
-
       {/* ─── Quick Presets ─────────────────────────── */}
       <div className={css.presetSection}>
         <div className={css.presetHeader}>
@@ -383,8 +393,7 @@ function AlertManagementSection() {
             />
           </div>
           {highProximity != null && Math.abs(highProximity) < 3 && (
-            <span className={css.proximityBadge}
-              style={{ background: '#10b98115', color: '#10b981' }}>
+            <span className={css.proximityBadge} style={{ background: '#10b98115', color: '#10b981' }}>
               🌟 {Math.abs(highProximity).toFixed(1)}% from 52W High
             </span>
           )}
@@ -400,17 +409,21 @@ function AlertManagementSection() {
                 background: `${preset.color}08`,
                 color: preset.color,
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = `${preset.color}20`; e.currentTarget.style.borderColor = `${preset.color}50`; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = `${preset.color}08`; e.currentTarget.style.borderColor = `${preset.color}25`; }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = `${preset.color}20`;
+                e.currentTarget.style.borderColor = `${preset.color}50`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = `${preset.color}08`;
+                e.currentTarget.style.borderColor = `${preset.color}25`;
+              }}
             >
               {preset.label}
             </button>
           ))}
         </div>
         {lowProximity != null && Math.abs(lowProximity) < 5 && (
-          <div className={css.lowWarning}>
-            ⚠️ Within {lowProximity.toFixed(1)}% of 52-Week Low
-          </div>
+          <div className={css.lowWarning}>⚠️ Within {lowProximity.toFixed(1)}% of 52-Week Low</div>
         )}
       </div>
 
@@ -430,8 +443,7 @@ function AlertManagementSection() {
 
       {/* ─── Alert Creation Form ───────────────────── */}
       {showForm && (
-        <div className={css.alertForm}
-          style={{ background: C.sf, border: `1px solid ${C.bd}` }}>
+        <div className={css.alertForm} style={{ background: C.sf, border: `1px solid ${C.bd}` }}>
           <div className={css.formRow}>
             <input
               aria-label="Alert symbol"
@@ -448,7 +460,9 @@ function AlertManagementSection() {
               style={{ ...inputStyle, flex: 1, cursor: 'pointer', appearance: 'none' }}
             >
               {CONDITIONS.map((c) => (
-                <option key={c.id} value={c.id}>{c.label}</option>
+                <option key={c.id} value={c.id}>
+                  {c.label}
+                </option>
               ))}
             </select>
             <input
@@ -512,7 +526,9 @@ function AlertManagementSection() {
             <span className={css.sectionHeading} style={{ marginBottom: 0 }}>
               Triggered ({triggeredAlerts.length})
             </span>
-            <button className={`tf-btn ${css.clearTriggeredBtn}`} onClick={clearTriggered}>Clear all</button>
+            <button className={`tf-btn ${css.clearTriggeredBtn}`} onClick={clearTriggered}>
+              Clear all
+            </button>
           </div>
           <div className={css.colGapSm}>
             {triggeredAlerts.map((alert) => (
@@ -527,9 +543,7 @@ function AlertManagementSection() {
         <div className={css.alertEmptyState}>
           <div className={css.alertEmptyIcon}>🔔</div>
           <div className={css.alertEmptyTitle}>No alerts yet</div>
-          <div className={css.alertEmptyDesc}>
-            Use quick presets above or create a custom alert to get started.
-          </div>
+          <div className={css.alertEmptyDesc}>Use quick presets above or create a custom alert to get started.</div>
         </div>
       )}
     </div>
@@ -542,8 +556,16 @@ function AlertManagementSection() {
 function AlertCard({ alert, onToggle, onRemove, triggered = false }) {
   const [hovered, setHovered] = useState(false);
 
-  const condIcons = { above: '↑', below: '↓', cross_above: '↗', cross_below: '↘',
-    '52w_high': '🌟', '52w_low': '⚠️', percent_above: '📈', percent_below: '📉' };
+  const condIcons = {
+    above: '↑',
+    below: '↓',
+    cross_above: '↗',
+    cross_below: '↘',
+    '52w_high': '🌟',
+    '52w_low': '⚠️',
+    percent_above: '📈',
+    percent_below: '📉',
+  };
 
   const severityColor = triggered ? C.g : C.b;
   const iconChar = condIcons[alert.condition] || '🔔';
@@ -559,8 +581,7 @@ function AlertCard({ alert, onToggle, onRemove, triggered = false }) {
         opacity: triggered ? 0.7 : 1,
       }}
     >
-      <div className={css.alertIcon}
-        style={{ background: severityColor + '12', color: severityColor }}>
+      <div className={css.alertIcon} style={{ background: severityColor + '12', color: severityColor }}>
         {iconChar}
       </div>
 
@@ -578,38 +599,46 @@ function AlertCard({ alert, onToggle, onRemove, triggered = false }) {
             </span>
           )}
           {alert.repeating && (
-            <span className={css.repeatBadge} style={{ background: C.bd + '40' }}>REPEAT</span>
+            <span className={css.repeatBadge} style={{ background: C.bd + '40' }}>
+              REPEAT
+            </span>
           )}
-          {alert.note && (
-            <span className={css.noteText}>{alert.note}</span>
-          )}
+          {alert.note && <span className={css.noteText}>{alert.note}</span>}
         </div>
         <div className={css.metaRow}>
-          <span className={css.catPill}
-            style={{ background: severityColor + '10', color: severityColor }}>
-            {alert.alertCategory === '52w_range' ? '🌟 52W Range'
-              : alert.alertCategory === 'percent_change' ? '📊 % Change'
+          <span className={css.catPill} style={{ background: severityColor + '10', color: severityColor }}>
+            {alert.alertCategory === '52w_range'
+              ? '🌟 52W Range'
+              : alert.alertCategory === 'percent_change'
+                ? '📊 % Change'
                 : '💰 Price'}
           </span>
           <span className={css.dot}>·</span>
-          <span>{triggered ? `Triggered ${formatAlertTime(alert.triggeredAt)}` : `Created ${formatAlertTime(alert.createdAt)}`}</span>
+          <span>
+            {triggered
+              ? `Triggered ${formatAlertTime(alert.triggeredAt)}`
+              : `Created ${formatAlertTime(alert.createdAt)}`}
+          </span>
         </div>
       </div>
 
-      <div className={css.alertActions}
-        style={{ opacity: hovered ? 1 : 0.5 }}>
+      <div className={css.alertActions} style={{ opacity: hovered ? 1 : 0.5 }}>
         <button
           className={`tf-btn ${css.alertActionBtn}`}
           onClick={() => onToggle(alert.id)}
           title={alert.active ? 'Pause' : 'Re-arm'}
           style={{ color: alert.active ? C.t2 : C.g, fontSize: 12 }}
-        >{alert.active ? '⏸' : '▶'}</button>
+        >
+          {alert.active ? '⏸' : '▶'}
+        </button>
         <button
           className={`tf-btn ${css.alertActionBtn}`}
           onClick={() => onRemove(alert.id)}
           title="Delete"
           style={{ color: C.r + '80', fontSize: 11 }}
-        >✕</button>
+        >
+          ✕
+        </button>
       </div>
     </div>
   );
@@ -620,9 +649,7 @@ function AlertCard({ alert, onToggle, onRemove, triggered = false }) {
 function TimeGroup({ label, entries, onDismiss }) {
   return (
     <div>
-      {label && (
-        <div className={css.timeGroupLabel}>{label}</div>
-      )}
+      {label && <div className={css.timeGroupLabel}>{label}</div>}
       {entries.map((entry) => (
         <NotificationEntry key={entry.id} entry={entry} onDismiss={onDismiss} />
       ))}
@@ -647,16 +674,14 @@ function NotificationEntry({ entry, onDismiss }) {
         background: hovered ? `${C.b}06` : 'transparent',
       }}
     >
-      <div className={css.entryIcon}
-        style={{ background: style.color + '12', color: style.color }}>
+      <div className={css.entryIcon} style={{ background: style.color + '12', color: style.color }}>
         {style.icon}
       </div>
 
       <div className={css.flex1}>
         <div className={css.entryMessage}>{entry.message}</div>
         <div className={css.entryMeta}>
-          <span className={css.catPill}
-            style={{ background: style.color + '10', color: style.color }}>
+          <span className={css.catPill} style={{ background: style.color + '10', color: style.color }}>
             {catLabel}
           </span>
           <span className={css.dot}>·</span>
@@ -687,11 +712,7 @@ export function NotificationBell() {
   const toggle = useNotificationStore((s) => s.toggleLogPanel);
 
   return (
-    <button
-      className={`tf-btn ${css.bellBtn}`}
-      onClick={toggle}
-      title="Notifications (Ctrl+.)"
-    >
+    <button className={`tf-btn ${css.bellBtn}`} onClick={toggle} title="Notifications (Ctrl+.)">
       🔔
       {unreadCount > 0 && (
         <span className={css.bellBadge} style={{ background: C.r }}>

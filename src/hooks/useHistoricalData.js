@@ -11,23 +11,27 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef } from 'react';
-import { fetchBinanceBatch, toBinancePair } from '../data/BinanceClient.js';
 import { isCrypto } from '../constants.js';
+import { fetchBinanceBatch, toBinancePair } from '../data/BinanceClient.js';
 
 // ─── Time range presets ────────────────────────────────────────
 
 export const TIME_RANGES = [
-  { id: '1D', label: '1D', interval: '5m',  limit: 288 },   // 5min × 288 = 24h
-  { id: '1W', label: '1W', interval: '30m', limit: 336 },   // 30min × 336 = 7d
-  { id: '1M', label: '1M', interval: '4h',  limit: 180 },   // 4h × 180 = 30d
-  { id: '3M', label: '3M', interval: '1d',  limit: 90 },    // 1d × 90
-  { id: '1Y', label: '1Y', interval: '1d',  limit: 365 },   // 1d × 365
-  { id: 'ALL', label: 'ALL', interval: '1w', limit: 500 },   // 1w × 500 ~10yr
+  { id: '1D', label: '1D', interval: '5m', limit: 288 }, // 5min × 288 = 24h
+  { id: '1W', label: '1W', interval: '30m', limit: 336 }, // 30min × 336 = 7d
+  { id: '1M', label: '1M', interval: '4h', limit: 180 }, // 4h × 180 = 30d
+  { id: '3M', label: '3M', interval: '1d', limit: 90 }, // 1d × 90
+  { id: '1Y', label: '1Y', interval: '1d', limit: 365 }, // 1d × 365
+  { id: 'ALL', label: 'ALL', interval: '1w', limit: 500 }, // 1w × 500 ~10yr
 ];
 
 /** Map hook time-range intervals to FetchService TF IDs */
 const INTERVAL_TO_TF = {
-  '5m': '5m', '30m': '30m', '4h': '4h', '1d': '1D', '1w': '1w',
+  '5m': '5m',
+  '30m': '30m',
+  '4h': '4h',
+  '1d': '1D',
+  '1w': '1w',
 };
 
 const DEFAULT_RANGE = '1M';
@@ -35,7 +39,9 @@ const DEFAULT_RANGE = '1M';
 // ─── In-memory cache ───────────────────────────────────────────
 
 const _cache = new Map();
-function cacheKey(symbol, rangeId) { return `${symbol}:${rangeId}`; }
+function cacheKey(symbol, rangeId) {
+  return `${symbol}:${rangeId}`;
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // Hook
@@ -50,7 +56,9 @@ export default function useHistoricalData(symbol) {
 
   useEffect(() => {
     mountedRef.current = true;
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -109,7 +117,9 @@ export default function useHistoricalData(symbol) {
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [symbol, timeRange]);
 
   return { candles, loading, error, timeRange, setTimeRange, timeRanges: TIME_RANGES };

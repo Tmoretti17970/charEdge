@@ -6,7 +6,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
-import { C, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming.js';
 import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
 import { useJournalStore } from '../../../state/useJournalStore';
@@ -21,9 +21,11 @@ let _cachedAlertStore = null;
 function getAlertSymbols() {
   try {
     if (!_cachedAlertStore) {
-      import('../../../state/useAlertStore.ts').then((mod) => {
-        _cachedAlertStore = mod.default;
-      }).catch(() => {});
+      import('../../../state/useAlertStore.ts')
+        .then((mod) => {
+          _cachedAlertStore = mod.default;
+        })
+        .catch(() => {});
       return new Set();
     }
     if (!_cachedAlertStore) return new Set();
@@ -33,7 +35,9 @@ function getAlertSymbols() {
       if (a.active && a.symbol) syms.add(a.symbol.toUpperCase());
     }
     return syms;
-  } catch { return new Set(); }
+  } catch {
+    return new Set();
+  }
 }
 
 // ─── Popular suggestions for empty state (Sprint 12) ───────────
@@ -120,7 +124,9 @@ export default function HomeWatchlist({ isMobile }) {
       });
     });
 
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
 
@@ -195,16 +201,10 @@ export default function HomeWatchlist({ isMobile }) {
       <div className={s.empty}>
         <div className={s.emptyIcon}>📊</div>
         <div className={s.emptyTitle}>Start tracking your assets</div>
-        <div className={s.emptyDesc}>
-          Add symbols to see live prices, sparklines, and your trading P&L
-        </div>
+        <div className={s.emptyDesc}>Add symbols to see live prices, sparklines, and your trading P&L</div>
         <div className={s.emptyActions}>
           {POPULAR.map((item) => (
-            <button
-              key={item.symbol}
-              className={`tf-btn ${s.emptyBtn}`}
-              onClick={() => addSymbol(item)}
-            >
+            <button key={item.symbol} className={`tf-btn ${s.emptyBtn}`} onClick={() => addSymbol(item)}>
               + {item.symbol}
             </button>
           ))}
@@ -228,11 +228,7 @@ export default function HomeWatchlist({ isMobile }) {
           )}
         </div>
         <div className={s.headerRight}>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className={s.sortSelect}
-          >
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className={s.sortSelect}>
             {SORT_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
@@ -252,11 +248,7 @@ export default function HomeWatchlist({ isMobile }) {
           placeholder="Add symbol (e.g. BTC, AAPL)..."
           className={s.addInput}
         />
-        <button
-          className={`tf-btn ${s.addBtn}`}
-          onClick={handleAdd}
-          disabled={!inputValue.trim()}
-        >
+        <button className={`tf-btn ${s.addBtn}`} onClick={handleAdd} disabled={!inputValue.trim()}>
           + Add
         </button>
       </div>
@@ -283,9 +275,7 @@ export default function HomeWatchlist({ isMobile }) {
 
         {/* All Assets */}
         <div>
-          {sortBy === 'default' && topMovers.length > 0 && (
-            <div className={s.sectionLabel}>All Assets</div>
-          )}
+          {sortBy === 'default' && topMovers.length > 0 && <div className={s.sectionLabel}>All Assets</div>}
           {sortedItems.map((item) => (
             <WatchlistRow
               key={item.symbol}
@@ -302,14 +292,7 @@ export default function HomeWatchlist({ isMobile }) {
   );
 }
 
-const WatchlistRow = memo(function WatchlistRow({
-  item,
-  sparkline,
-  isMobile,
-  onClick,
-  onRemove,
-  compact = false,
-}) {
+const WatchlistRow = memo(function WatchlistRow({ item, sparkline, isMobile, onClick, onRemove, compact = false }) {
   const [hovered, setHovered] = useState(false);
   const [swipeX, setSwipeX] = useState(0);
   const [showContextMenu, setShowContextMenu] = useState(false);
@@ -338,7 +321,10 @@ const WatchlistRow = memo(function WatchlistRow({
     clearTimeout(touchRef.current.timer);
     const dx = e.touches[0].clientX - touchRef.current.startX;
     const dy = Math.abs(e.touches[0].clientY - touchRef.current.startY);
-    if (dy > 20) { setSwipeX(0); return; }
+    if (dy > 20) {
+      setSwipeX(0);
+      return;
+    }
     if (dx < 0) setSwipeX(Math.max(dx, -100));
   }, []);
 
@@ -369,27 +355,19 @@ const WatchlistRow = memo(function WatchlistRow({
           <div className={s.symbolRow}>
             <span className={s.symbolName}>{item.symbol}</span>
             {hasAlert && (
-              <span className={s.alertIcon} title="Has active alert">🔔</span>
+              <span className={s.alertIcon} title="Has active alert">
+                🔔
+              </span>
             )}
-            {item.assetClass && item.assetClass !== 'other' && (
-              <span className={s.assetBadge}>{item.assetClass}</span>
-            )}
+            {item.assetClass && item.assetClass !== 'other' && <span className={s.assetBadge}>{item.assetClass}</span>}
           </div>
-          {item.name && item.name !== item.symbol && (
-            <div className={s.itemName}>{item.name}</div>
-          )}
+          {item.name && item.name !== item.symbol && <div className={s.itemName}>{item.name}</div>}
         </div>
 
         {/* Sparkline */}
         <div className={s.sparkCell} data-mobile={isMobile || undefined}>
           {sparkline && sparkline.length > 1 ? (
-            <Sparkline
-              data={sparkline}
-              width={isMobile ? 50 : 70}
-              height={24}
-              color={changeColor}
-              showArea={false}
-            />
+            <Sparkline data={sparkline} width={isMobile ? 50 : 70} height={24} color={changeColor} showArea={false} />
           ) : (
             <div className={s.sparkPlaceholder}>···</div>
           )}
@@ -449,15 +427,24 @@ const WatchlistRow = memo(function WatchlistRow({
           <div className={s.contextSheet} onClick={(e) => e.stopPropagation()}>
             <div className={s.contextTitle}>{item.symbol}</div>
             {[
-              { label: '📈 View Chart', action: () => { onClick(); setShowContextMenu(false); } },
+              {
+                label: '📈 View Chart',
+                action: () => {
+                  onClick();
+                  setShowContextMenu(false);
+                },
+              },
               { label: '🔔 Set Alert', action: () => setShowContextMenu(false) },
-              { label: '❌ Remove', action: () => { onRemove(); setShowContextMenu(false); }, danger: true },
+              {
+                label: '❌ Remove',
+                action: () => {
+                  onRemove();
+                  setShowContextMenu(false);
+                },
+                danger: true,
+              },
             ].map((opt) => (
-              <button
-                key={opt.label}
-                onClick={opt.action}
-                className={opt.danger ? s.contextBtnDanger : s.contextBtn}
-              >
+              <button key={opt.label} onClick={opt.action} className={opt.danger ? s.contextBtnDanger : s.contextBtn}>
                 {opt.label}
               </button>
             ))}

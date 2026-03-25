@@ -5,343 +5,362 @@
 // All messages flow through useCopilotChat Zustand store.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import useHomeSummary from '../../../hooks/useHomeSummary.js';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import useCopilotChat from '../../../hooks/useCopilotChat';
+import useHomeSummary from '../../../hooks/useHomeSummary.js';
 import AIOrb from '../design/AIOrb.jsx';
 import st from './AICopilotPopover.module.css';
 
 // ─── Quick Action Presets ───────────────────────────────────────
 
 const PRESETS = [
-    { id: 'best', label: 'Best trade this week', emoji: '🏆' },
-    { id: 'risk', label: 'Risk assessment', emoji: '🛡️' },
-    { id: 'week', label: 'Week analysis', emoji: '📊' },
-    { id: 'tips', label: 'Suggestions', emoji: '💡' },
+  { id: 'best', label: 'Best trade this week', emoji: '🏆' },
+  { id: 'risk', label: 'Risk assessment', emoji: '🛡️' },
+  { id: 'week', label: 'Week analysis', emoji: '📊' },
+  { id: 'tips', label: 'Suggestions', emoji: '💡' },
 ];
 
 // ─── Relative Time Formatter ─────────────────────────────────────
 
 function relativeTime(ts) {
-    const diff = Date.now() - ts;
-    if (diff < 60_000) return 'just now';
-    if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-    if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
-    return new Date(ts).toLocaleDateString();
+  const diff = Date.now() - ts;
+  if (diff < 60_000) return 'just now';
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  return new Date(ts).toLocaleDateString();
 }
 
 // ─── Component ──────────────────────────────────────────────────
 
 export default function AICopilotPopover({ anchorRef, onClose }) {
-    const popoverRef = useRef(null);
-    const messagesEndRef = useRef(null);
-    const textareaRef = useRef(null);
-    const summary = useHomeSummary();
+  const popoverRef = useRef(null);
+  const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
+  const summary = useHomeSummary();
 
-    // Zustand store
-    const messages = useCopilotChat((s) => s.messages);
-    const isStreaming = useCopilotChat((s) => s.isStreaming);
-    const streamingText = useCopilotChat((s) => s.streamingText);
-    const error = useCopilotChat((s) => s.error);
-    const sendMessage = useCopilotChat((s) => s.sendMessage);
-    const retryLast = useCopilotChat((s) => s.retryLast);
-    const loadHistory = useCopilotChat((s) => s.loadHistory);
-    const newConversation = useCopilotChat((s) => s.newConversation);
-    const clearAllHistory = useCopilotChat((s) => s.clearAllHistory);
+  // Zustand store
+  const messages = useCopilotChat((s) => s.messages);
+  const isStreaming = useCopilotChat((s) => s.isStreaming);
+  const streamingText = useCopilotChat((s) => s.streamingText);
+  const error = useCopilotChat((s) => s.error);
+  const sendMessage = useCopilotChat((s) => s.sendMessage);
+  const retryLast = useCopilotChat((s) => s.retryLast);
+  const loadHistory = useCopilotChat((s) => s.loadHistory);
+  const newConversation = useCopilotChat((s) => s.newConversation);
+  const clearAllHistory = useCopilotChat((s) => s.clearAllHistory);
 
-    // Local state
-    const [input, setInput] = useState('');
-    const [showClearConfirm, setShowClearConfirm] = useState(false);
+  // Local state
+  const [input, setInput] = useState('');
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
-    // Auto-focus textarea on mount
-    useEffect(() => {
-        const t = setTimeout(() => textareaRef.current?.focus(), 100);
-        return () => clearTimeout(t);
-    }, []);
+  // Auto-focus textarea on mount
+  useEffect(() => {
+    const t = setTimeout(() => textareaRef.current?.focus(), 100);
+    return () => clearTimeout(t);
+  }, []);
 
-    // Load history from IndexedDB on mount
-    useEffect(() => { loadHistory(); }, [loadHistory]);
+  // Load history from IndexedDB on mount
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
 
-    // Auto-scroll to bottom on new messages or streaming
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, streamingText]);
+  // Auto-scroll to bottom on new messages or streaming
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, streamingText]);
 
-    // Click-outside dismiss
-    useEffect(() => {
-        function handleClickOutside(e) {
-            if (
-                popoverRef.current &&
-                !popoverRef.current.contains(e.target) &&
-                anchorRef?.current &&
-                !anchorRef.current.contains(e.target)
-            ) {
-                onClose();
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [onClose, anchorRef]);
+  // Click-outside dismiss
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (
+        popoverRef.current &&
+        !popoverRef.current.contains(e.target) &&
+        anchorRef?.current &&
+        !anchorRef.current.contains(e.target)
+      ) {
+        onClose();
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onClose, anchorRef]);
 
-    // Escape dismiss
-    useEffect(() => {
-        function handleKey(e) {
-            if (e.key === 'Escape') {
-                e.preventDefault();
-                onClose();
-            }
-        }
-        window.addEventListener('keydown', handleKey);
-        return () => window.removeEventListener('keydown', handleKey);
-    }, [onClose]);
+  // Escape dismiss
+  useEffect(() => {
+    function handleKey(e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [onClose]);
 
-    // ─── Send Message ────────────────────────────────────────
+  // ─── Send Message ────────────────────────────────────────
 
-    const handleSend = useCallback(() => {
-        const text = input.trim();
-        if (!text || isStreaming) return;
-        setInput('');
-        sendMessage(text);
-        if (textareaRef.current) textareaRef.current.style.height = 'auto';
-    }, [input, isStreaming, sendMessage]);
+  const handleSend = useCallback(() => {
+    const text = input.trim();
+    if (!text || isStreaming) return;
+    setInput('');
+    sendMessage(text);
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
+  }, [input, isStreaming, sendMessage]);
 
-    const handlePreset = useCallback((preset) => {
-        if (isStreaming) return;
-        sendMessage(`${preset.emoji} ${preset.label}`);
-    }, [isStreaming, sendMessage]);
+  const handlePreset = useCallback(
+    (preset) => {
+      if (isStreaming) return;
+      sendMessage(`${preset.emoji} ${preset.label}`);
+    },
+    [isStreaming, sendMessage],
+  );
 
-    const handleKeyDown = useCallback((e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSend();
-        }
-    }, [handleSend]);
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    },
+    [handleSend],
+  );
 
-    const handleInputChange = useCallback((e) => {
-        setInput(e.target.value);
-        const ta = e.target;
-        ta.style.height = 'auto';
-        ta.style.height = Math.min(ta.scrollHeight, 96) + 'px';
-    }, []);
+  const handleInputChange = useCallback((e) => {
+    setInput(e.target.value);
+    const ta = e.target;
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 96) + 'px';
+  }, []);
 
-    // Position below anchor
-    const getPosition = useCallback(() => {
-        if (!anchorRef?.current) return { top: 60, left: 80 };
-        const rect = anchorRef.current.getBoundingClientRect();
-        return {
-            top: rect.bottom + 10,
-            left: Math.min(rect.left, window.innerWidth - 396),
-        };
-    }, [anchorRef]);
+  // Position below anchor
+  const getPosition = useCallback(() => {
+    if (!anchorRef?.current) return { top: 60, left: 80 };
+    const rect = anchorRef.current.getBoundingClientRect();
+    return {
+      top: rect.bottom + 10,
+      left: Math.min(rect.left, window.innerWidth - 396),
+    };
+  }, [anchorRef]);
 
-    const pos = getPosition();
-    const hasMessages = messages.length > 0;
-    const isReady = input.trim() && !isStreaming;
+  const pos = getPosition();
+  const hasMessages = messages.length > 0;
+  const isReady = input.trim() && !isStreaming;
 
-    return (
-        <div
-            ref={popoverRef}
-            id="tf-copilot-panel"
-            role="dialog"
-            aria-label="AI Copilot"
-            className={st.popover}
-            style={{ top: pos.top, left: pos.left }}
-        >
-            {/* ─── Header ──────────────────────────────────────── */}
-            <div className={st.header}>
-                <div className={st.headerLeft}>
-                    <AIOrb size={18} glow animate={isStreaming} />
-                    <span className={st.headerTitle}>charEdge Copilot</span>
-                    {isStreaming && <span className={st.headerStatus}>thinking…</span>}
-                </div>
-                <div className={st.headerRight}>
-                    {messages.length > 0 && (
-                        <button onClick={newConversation} title="New conversation" className={st.ghostBtnSm}>
-                            ＋
-                        </button>
-                    )}
-                    <button onClick={onClose} aria-label="Close copilot" className={st.ghostBtnLg}>
-                        ✕
-                    </button>
-                </div>
-            </div>
-
-            {/* Clear history confirmation */}
-            {showClearConfirm && (
-                <div className={st.clearBar}>
-                    <span>Clear all conversation history?</span>
-                    <div className={st.clearBarActions}>
-                        <button className={st.clearBtnDanger} onClick={() => { clearAllHistory(); setShowClearConfirm(false); }}>
-                            Clear
-                        </button>
-                        <button className={st.clearBtnCancel} onClick={() => setShowClearConfirm(false)}>
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {/* ─── Message Area ─────────────────────────────────── */}
-            <div className={`${st.messages} ${hasMessages ? st.messagesHas : ''}`}>
-                {!hasMessages && !isStreaming ? (
-                    <EmptyState summary={summary} />
-                ) : (
-                    <>
-                        {messages.map((msg) => (
-                            <ChatMessage key={msg.id} message={msg} isStreaming={false} />
-                        ))}
-
-                        {isStreaming && streamingText && (
-                            <ChatMessage
-                                message={{
-                                    id: '__streaming',
-                                    role: 'assistant',
-                                    content: streamingText,
-                                    timestamp: Date.now(),
-                                    tier: 'L3',
-                                }}
-                                isStreaming
-                            />
-                        )}
-
-                        {isStreaming && !streamingText && <TypingIndicator />}
-
-                        {error && (
-                            <div className={st.errorBanner}>
-                                <span>⚠️ {error}</span>
-                                <button className={st.retryBtn} onClick={retryLast}>Retry ↻</button>
-                            </div>
-                        )}
-
-                        <div ref={messagesEndRef} />
-                    </>
-                )}
-            </div>
-
-            {/* ─── Preset Chips ─────────────────────────────────── */}
-            {!hasMessages && (
-                <div className={st.presetArea}>
-                    <div className={st.presetGrid}>
-                        {PRESETS.map((p) => (
-                            <button
-                                key={p.id}
-                                className={st.presetPill}
-                                disabled={isStreaming}
-                                onClick={() => handlePreset(p)}
-                            >
-                                <span className={st.presetEmoji}>{p.emoji}</span>
-                                {p.label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* ─── Input Area ──────────────────────────────────── */}
-            <div className={st.inputArea}>
-                <textarea
-                    ref={textareaRef}
-                    id="tf-copilot-input"
-                    value={input}
-                    onChange={handleInputChange}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Ask anything about your trades…"
-                    rows={1}
-                    className={st.textarea}
-                />
-                <button
-                    onClick={handleSend}
-                    disabled={!isReady}
-                    aria-label="Send message"
-                    id="tf-copilot-send"
-                    className={st.sendBtn}
-                    data-ready={isReady ? 'true' : undefined}
-                >
-                    ↑
-                </button>
-            </div>
-
-            {/* ─── Footer Hint ─────────────────────────────────── */}
-            <div className={st.footer}>
-                <kbd className={st.kbd}>⌘K</kbd>
-                to toggle
-            </div>
+  return (
+    <div
+      ref={popoverRef}
+      id="tf-copilot-panel"
+      role="dialog"
+      aria-label="AI Copilot"
+      className={st.popover}
+      style={{ top: pos.top, left: pos.left }}
+    >
+      {/* ─── Header ──────────────────────────────────────── */}
+      <div className={st.header}>
+        <div className={st.headerLeft}>
+          <AIOrb size={18} glow animate={isStreaming} />
+          <span className={st.headerTitle}>charEdge Copilot</span>
+          {isStreaming && <span className={st.headerStatus}>thinking…</span>}
         </div>
-    );
+        <div className={st.headerRight}>
+          {messages.length > 0 && (
+            <button onClick={newConversation} title="New conversation" className={st.ghostBtnSm}>
+              ＋
+            </button>
+          )}
+          <button onClick={onClose} aria-label="Close copilot" className={st.ghostBtnLg}>
+            ✕
+          </button>
+        </div>
+      </div>
+
+      {/* Clear history confirmation */}
+      {showClearConfirm && (
+        <div className={st.clearBar}>
+          <span>Clear all conversation history?</span>
+          <div className={st.clearBarActions}>
+            <button
+              className={st.clearBtnDanger}
+              onClick={() => {
+                clearAllHistory();
+                setShowClearConfirm(false);
+              }}
+            >
+              Clear
+            </button>
+            <button className={st.clearBtnCancel} onClick={() => setShowClearConfirm(false)}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Message Area ─────────────────────────────────── */}
+      <div className={`${st.messages} ${hasMessages ? st.messagesHas : ''}`}>
+        {!hasMessages && !isStreaming ? (
+          <EmptyState summary={summary} />
+        ) : (
+          <>
+            {messages.map((msg) => (
+              <ChatMessage key={msg.id} message={msg} isStreaming={false} />
+            ))}
+
+            {isStreaming && streamingText && (
+              <ChatMessage
+                message={{
+                  id: '__streaming',
+                  role: 'assistant',
+                  content: streamingText,
+                  timestamp: Date.now(),
+                  tier: 'L3',
+                }}
+                isStreaming
+              />
+            )}
+
+            {isStreaming && !streamingText && <TypingIndicator />}
+
+            {error && (
+              <div className={st.errorBanner}>
+                <span>⚠️ {error}</span>
+                <button className={st.retryBtn} onClick={retryLast}>
+                  Retry ↻
+                </button>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </>
+        )}
+      </div>
+
+      {/* ─── Preset Chips ─────────────────────────────────── */}
+      {!hasMessages && (
+        <div className={st.presetArea}>
+          <div className={st.presetGrid}>
+            {PRESETS.map((p) => (
+              <button key={p.id} className={st.presetPill} disabled={isStreaming} onClick={() => handlePreset(p)}>
+                <span className={st.presetEmoji}>{p.emoji}</span>
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ─── Input Area ──────────────────────────────────── */}
+      <div className={st.inputArea}>
+        <textarea
+          ref={textareaRef}
+          id="tf-copilot-input"
+          value={input}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          placeholder="Ask anything about your trades…"
+          rows={1}
+          className={st.textarea}
+        />
+        <button
+          onClick={handleSend}
+          disabled={!isReady}
+          aria-label="Send message"
+          id="tf-copilot-send"
+          className={st.sendBtn}
+          data-ready={isReady ? 'true' : undefined}
+        >
+          ↑
+        </button>
+      </div>
+
+      {/* ─── Footer Hint ─────────────────────────────────── */}
+      <div className={st.footer}>
+        <kbd className={st.kbd}>⌘K</kbd>
+        to toggle
+      </div>
+    </div>
+  );
 }
 
 // ─── Chat Message Bubble ────────────────────────────────────────
 
 function ChatMessage({ message, isStreaming: streaming }) {
-    const role = message.role === 'user' ? 'user' : 'assistant';
+  const role = message.role === 'user' ? 'user' : 'assistant';
 
-    return (
-        <div className={st.msgWrap} data-role={role}>
-            <div className={st.msgBubble} data-role={role}>
-                {message.content}
-                {streaming && <span className={st.streamCursor} />}
-            </div>
-            <div className={st.msgMeta}>
-                <span>{relativeTime(message.timestamp)}</span>
-                {role === 'assistant' && message.tier && (
-                    <span
-                        className={st.tierBadge}
-                        style={{
-                            background: `var(--tf-${message.tier === 'L1' ? 'g' : 'p'}-15, rgba(0,0,0,0.1))`,
-                            color: `var(--tf-${message.tier === 'L1' ? 'g' : 'p'})`,
-                        }}
-                    >
-                        {message.tier}
-                    </span>
-                )}
-            </div>
-        </div>
-    );
+  return (
+    <div className={st.msgWrap} data-role={role}>
+      <div className={st.msgBubble} data-role={role}>
+        {message.content}
+        {streaming && <span className={st.streamCursor} />}
+      </div>
+      <div className={st.msgMeta}>
+        <span>{relativeTime(message.timestamp)}</span>
+        {role === 'assistant' && message.tier && (
+          <span
+            className={st.tierBadge}
+            style={{
+              background: `var(--tf-${message.tier === 'L1' ? 'g' : 'p'}-15, rgba(0,0,0,0.1))`,
+              color: `var(--tf-${message.tier === 'L1' ? 'g' : 'p'})`,
+            }}
+          >
+            {message.tier}
+          </span>
+        )}
+      </div>
+    </div>
+  );
 }
 
 // ─── Typing Indicator ───────────────────────────────────────────
 
 function TypingIndicator() {
-    return (
-        <div className={st.typing}>
-            <AIOrb size={14} animate />
-            <div className={st.typingDots}>
-                <span className={st.typingDot} />
-                <span className={st.typingDot} />
-                <span className={st.typingDot} />
-            </div>
-        </div>
-    );
+  return (
+    <div className={st.typing}>
+      <AIOrb size={14} animate />
+      <div className={st.typingDots}>
+        <span className={st.typingDot} />
+        <span className={st.typingDot} />
+        <span className={st.typingDot} />
+      </div>
+    </div>
+  );
 }
 
 // ─── Empty State (briefing) ──────────────────────────────────────
 
 function EmptyState({ summary }) {
-    const stats = [];
-    if (summary.todayTradeCount > 0) {
-        stats.push({ label: 'Today', value: `${summary.todayTradeCount} trades`, color: 'var(--tf-info)' });
-        stats.push({ label: 'Win Rate', value: `${summary.todayWinRate}%`, color: summary.todayWinRate >= 50 ? 'var(--tf-g)' : 'var(--tf-r)' });
-    }
-    if (summary.weekTrend !== 0) {
-        stats.push({ label: 'Week', value: `${summary.weekTrend >= 0 ? '+' : ''}${summary.weekTrend}%`, color: summary.weekTrend >= 0 ? 'var(--tf-g)' : 'var(--tf-r)' });
-    }
+  const stats = [];
+  if (summary.todayTradeCount > 0) {
+    stats.push({ label: 'Today', value: `${summary.todayTradeCount} trades`, color: 'var(--tf-info)' });
+    stats.push({
+      label: 'Win Rate',
+      value: `${summary.todayWinRate}%`,
+      color: summary.todayWinRate >= 50 ? 'var(--tf-g)' : 'var(--tf-r)',
+    });
+  }
+  if (summary.weekTrend !== 0) {
+    stats.push({
+      label: 'Week',
+      value: `${summary.weekTrend >= 0 ? '+' : ''}${summary.weekTrend}%`,
+      color: summary.weekTrend >= 0 ? 'var(--tf-g)' : 'var(--tf-r)',
+    });
+  }
 
-    return (
-        <div>
-            <div className={st.emptyHeader}>📊 Your Day at a Glance</div>
-            <p className={st.emptyBriefing}>{summary.briefing}</p>
-            {stats.length > 0 && (
-                <div className={st.statRow}>
-                    {stats.map((s) => (
-                        <div key={s.label} className={st.statChip} style={{ '--dyn-color': s.color }}>
-                            <span style={{ color: 'var(--tf-t3)' }}>{s.label}</span>
-                            <span style={{ color: 'var(--dyn-color)' }}>{s.value}</span>
-                        </div>
-                    ))}
-                </div>
-            )}
+  return (
+    <div>
+      <div className={st.emptyHeader}>📊 Your Day at a Glance</div>
+      <p className={st.emptyBriefing}>{summary.briefing}</p>
+      {stats.length > 0 && (
+        <div className={st.statRow}>
+          {stats.map((s) => (
+            <div key={s.label} className={st.statChip} style={{ '--dyn-color': s.color }}>
+              <span style={{ color: 'var(--tf-t3)' }}>{s.label}</span>
+              <span style={{ color: 'var(--dyn-color)' }}>{s.value}</span>
+            </div>
+          ))}
         </div>
-    );
+      )}
+    </div>
+  );
 }
 
 export { AICopilotPopover };

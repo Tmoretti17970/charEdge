@@ -1,3 +1,4 @@
+/* global require */
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — AI Router (Sprint 1 rewrite)
 //
@@ -27,9 +28,10 @@ import { groqAdapter } from './GroqAdapter';
 import { conversationMemory } from './ConversationMemory';
 import { classifyHybrid } from './IntentClassifier';
 // Sprint 5 Task 5.1.1: Lazy-load TradingKnowledgeBase (151KB) — only when AI copilot needs it
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TradingKnowledgeBase module type is complex and lazily loaded
 let _tkbPromise: Promise<any> | null = null;
-function _getTKB() {
-  if (!_tkbPromise) _tkbPromise = import('./TradingKnowledgeBase').then(m => m.tradingKnowledgeBase);
+function getTKB() {
+  if (!_tkbPromise) _tkbPromise = import('./TradingKnowledgeBase').then((m) => m.tradingKnowledgeBase);
   return _tkbPromise;
 }
 import { chartContextAnalyzer } from './ChartContextAnalyzer';
@@ -46,15 +48,15 @@ import { tfidfClassifier } from './IntentClassifier';
 export type AITier = 'L1' | 'L2' | 'L3' | 'L4';
 
 export type AIRequestType =
-  | 'classify'         // Quick classification → L1/L2
-  | 'explain'          // Natural language explanation → L3
-  | 'analyze'          // Deep analysis → L3/L4
-  | 'coach'            // Behavioral coaching → L3
-  | 'narrate'          // Market narrative → L3
-  | 'grade'            // Trade grading → L3
-  | 'journal'          // Journal enhancement → L3
-  | 'chat'             // Conversational → L3/L4/L1
-  | 'complex';         // Long/complex reasoning → L4
+  | 'classify' // Quick classification → L1/L2
+  | 'explain' // Natural language explanation → L3
+  | 'analyze' // Deep analysis → L3/L4
+  | 'coach' // Behavioral coaching → L3
+  | 'narrate' // Market narrative → L3
+  | 'grade' // Trade grading → L3
+  | 'journal' // Journal enhancement → L3
+  | 'chat' // Conversational → L3/L4/L1
+  | 'complex'; // Long/complex reasoning → L4
 
 export interface AIRequest {
   type: AIRequestType;
@@ -62,7 +64,7 @@ export interface AIRequest {
   maxTokens?: number;
   temperature?: number;
   stream?: boolean;
-  signal?: AbortSignal;  // Phase 2 Task #22: abort signal for cancellation
+  signal?: AbortSignal; // Phase 2 Task #22: abort signal for cancellation
 }
 
 export interface AIResponse {
@@ -159,9 +161,7 @@ const INTENT_PATTERNS: Array<{ intent: L1Intent; patterns: RegExp[] }> = [
   },
   {
     intent: 'command',
-    patterns: [
-      /^\//,
-    ],
+    patterns: [/^\//],
   },
   {
     intent: 'risk',
@@ -223,15 +223,15 @@ export function classifyIntent(text: string): { intent: L1Intent; confidence: nu
 // ─── Routing Table ──────────────────────────────────────────────
 
 const TIER_MAP: Record<AIRequestType, AITier[]> = {
-  classify:   ['L1', 'L2'],
-  explain:    ['L3', 'L4', 'L1'],
-  analyze:    ['L3', 'L4', 'L1'],
-  coach:      ['L3', 'L4', 'L1'],
-  narrate:    ['L3', 'L4', 'L1'],
-  grade:      ['L3', 'L4', 'L1'],
-  journal:    ['L3', 'L4', 'L1'],
-  chat:       ['L3', 'L4', 'L1'],   // Sprint 1: added L1 fallback
-  complex:    ['L4', 'L3'],
+  classify: ['L1', 'L2'],
+  explain: ['L3', 'L4', 'L1'],
+  analyze: ['L3', 'L4', 'L1'],
+  coach: ['L3', 'L4', 'L1'],
+  narrate: ['L3', 'L4', 'L1'],
+  grade: ['L3', 'L4', 'L1'],
+  journal: ['L3', 'L4', 'L1'],
+  chat: ['L3', 'L4', 'L1'], // Sprint 1: added L1 fallback
+  complex: ['L4', 'L3'],
 };
 
 // ─── Router Class ───────────────────────────────────────────────
@@ -265,11 +265,9 @@ class AIRouter {
     if (contextTypes.includes(request.type)) {
       const context = conversationMemory.getRecentContext(5);
       if (context.length > 0) {
-        const contextStr = context
-          .map(m => `${m.role === 'user' ? 'User' : 'AI'}: ${m.content}`)
-          .join('\n');
+        const contextStr = context.map((m) => `${m.role === 'user' ? 'User' : 'AI'}: ${m.content}`).join('\n');
         // Prepend conversation context as a system message
-        const sysIdx = request.messages.findIndex(m => m.role === 'system');
+        const sysIdx = request.messages.findIndex((m) => m.role === 'system');
         if (sysIdx >= 0) {
           const sysMsg = request.messages[sysIdx];
           if (sysMsg) {
@@ -283,11 +281,15 @@ class AIRouter {
     }
 
     // Store the user message
-    const userMsg = request.messages.find(m => m.role === 'user');
+    const userMsg = request.messages.find((m) => m.role === 'user');
     if (userMsg) {
-      conversationMemory.addMessage('user', userMsg.content, {
-        requestType: request.type,
-      }).catch(() => { /* non-critical */ });
+      conversationMemory
+        .addMessage('user', userMsg.content, {
+          requestType: request.type,
+        })
+        .catch(() => {
+          /* non-critical */
+        });
     }
 
     try {
@@ -307,11 +309,15 @@ class AIRouter {
       }
 
       // Store the AI response
-      conversationMemory.addMessage('assistant', result.content, {
-        requestType: request.type,
-        tier: result.tier,
-        model: result.model,
-      }).catch(() => { /* non-critical */ });
+      conversationMemory
+        .addMessage('assistant', result.content, {
+          requestType: request.type,
+          tier: result.tier,
+          model: result.model,
+        })
+        .catch(() => {
+          /* non-critical */
+        });
 
       return result;
     } catch (err: unknown) {
@@ -344,15 +350,17 @@ class AIRouter {
 
     if (tier === 'L3' && webLLMProvider.isLoaded) {
       let tokensUsed = 0;
-      for await (const token of webLLMProvider.streamChat(
-        request.messages,
-        request.maxTokens,
-        request.temperature,
-      )) {
+      for await (const token of webLLMProvider.streamChat(request.messages, request.maxTokens, request.temperature)) {
         tokensUsed++;
         yield token;
       }
-      return { content: '', tier: 'L3', model: webLLMProvider.status.modelId || 'webllm', tokensUsed, latencyMs: performance.now() - start };
+      return {
+        content: '',
+        tier: 'L3',
+        model: webLLMProvider.status.modelId || 'webllm',
+        tokensUsed,
+        latencyMs: performance.now() - start,
+      };
     }
 
     // L4 streaming: try Gemini → Groq
@@ -360,21 +368,41 @@ class AIRouter {
       try {
         if (geminiAdapter.isAvailable) {
           let tokensUsed = 0;
-          for await (const token of geminiAdapter.stream(request.messages, { maxTokens: request.maxTokens, temperature: request.temperature })) {
+          for await (const token of geminiAdapter.stream(request.messages, {
+            maxTokens: request.maxTokens,
+            temperature: request.temperature,
+          })) {
             tokensUsed++;
             yield token;
           }
-          return { content: '', tier: 'L4', model: geminiAdapter.model, tokensUsed, latencyMs: performance.now() - start };
+          return {
+            content: '',
+            tier: 'L4',
+            model: geminiAdapter.model,
+            tokensUsed,
+            latencyMs: performance.now() - start,
+          };
         }
         if (groqAdapter.isAvailable) {
           let tokensUsed = 0;
-          for await (const token of groqAdapter.stream(request.messages, { maxTokens: request.maxTokens, temperature: request.temperature })) {
+          for await (const token of groqAdapter.stream(request.messages, {
+            maxTokens: request.maxTokens,
+            temperature: request.temperature,
+          })) {
             tokensUsed++;
             yield token;
           }
-          return { content: '', tier: 'L4', model: groqAdapter.model, tokensUsed, latencyMs: performance.now() - start };
+          return {
+            content: '',
+            tier: 'L4',
+            model: groqAdapter.model,
+            tokensUsed,
+            latencyMs: performance.now() - start,
+          };
         }
-      } catch { /* fall through to non-streaming */ }
+      } catch {
+        /* fall through to non-streaming */
+      }
     }
 
     // Non-streaming fallback (includes L1)
@@ -429,8 +457,8 @@ class AIRouter {
    * No more echoes — returns genuinely useful template responses.
    */
   private async _routeL1(request: AIRequest, start: number): Promise<AIResponse> {
-    const userMsg = request.messages.find(m => m.role === 'user')?.content || '';
-    const sysMsg = request.messages.find(m => m.role === 'system')?.content || '';
+    const userMsg = request.messages.find((m) => m.role === 'user')?.content || '';
+    const sysMsg = request.messages.find((m) => m.role === 'system')?.content || '';
     const { intent, confidence } = await classifyHybrid(userMsg);
 
     let content: string;
@@ -438,50 +466,51 @@ class AIRouter {
     // Phase 2 Task #21: Ask for clarification on low confidence
     if (intent !== 'unknown' && intent !== 'greeting' && confidence < 0.4 && confidence > 0) {
       const suggestions = this._getSuggestionsForIntent(intent);
-      content = `I think you might be asking about **${intent.replace(/_/g, ' ')}**, but I'm not sure.\n\n` +
+      content =
+        `I think you might be asking about **${intent.replace(/_/g, ' ')}**, but I'm not sure.\n\n` +
         `Did you mean one of these?\n${suggestions}\n\n` +
         `You can also try rephrasing your question, or type **/help** to see all available commands.`;
     } else {
       switch (intent) {
-          case 'educational':
-            content = await this._handleEducational(userMsg);
-            break;
-          case 'chart_analysis':
-            content = await this._handleChartAnalysis(userMsg, sysMsg);
-            break;
-          case 'coaching':
-            content = this._handleCoaching(userMsg, sysMsg);
-            break;
-          case 'journal':
-            content = this._handleJournal(userMsg, sysMsg);
-            break;
-          case 'greeting':
-            content = this._handleGreeting();
-            break;
-          case 'risk':
-            content = this._handleRisk();
-            break;
-          case 'scanner':
-            content = this._handleScanner();
-            break;
-          case 'trade_grade':
-            content = this._handleTradeGrade();
-            break;
-          case 'journal_search':
-            content = await this._handleJournalSearch(userMsg);
-            break;
-          case 'personal_model':
-            content = await this._handlePersonalModel(userMsg);
-            break;
-          case 'command':
-            content = 'Type your command and I\'ll handle it. Use **/help** to see all available commands.';
-            break;
-          case 'unknown':
-          default:
-            content = await this._handleUnknown(userMsg, sysMsg);
-            break;
-        }
+        case 'educational':
+          content = await this._handleEducational(userMsg);
+          break;
+        case 'chart_analysis':
+          content = await this._handleChartAnalysis(userMsg, sysMsg);
+          break;
+        case 'coaching':
+          content = this._handleCoaching(userMsg, sysMsg);
+          break;
+        case 'journal':
+          content = this._handleJournal(userMsg, sysMsg);
+          break;
+        case 'greeting':
+          content = this._handleGreeting();
+          break;
+        case 'risk':
+          content = this._handleRisk();
+          break;
+        case 'scanner':
+          content = this._handleScanner();
+          break;
+        case 'trade_grade':
+          content = this._handleTradeGrade();
+          break;
+        case 'journal_search':
+          content = await this._handleJournalSearch(userMsg);
+          break;
+        case 'personal_model':
+          content = await this._handlePersonalModel(userMsg);
+          break;
+        case 'command':
+          content = "Type your command and I'll handle it. Use **/help** to see all available commands.";
+          break;
+        case 'unknown':
+        default:
+          content = await this._handleUnknown(userMsg, sysMsg);
+          break;
       }
+    }
 
     return {
       content,
@@ -495,7 +524,7 @@ class AIRouter {
   // ─── L1 Intent Handlers ────────────────────────────────────
 
   private async _handleEducational(query: string): Promise<string> {
-    const tkb = await _getTKB();
+    const tkb = await getTKB();
     const result = tkb.lookup(query);
     if (result && result.score >= 0.3) {
       return tkb.formatForCopilot(result.entry);
@@ -505,20 +534,22 @@ class AIRouter {
     const related = tkb.search(query, 3);
     const firstRelated = related[0];
     if (related.length > 0 && firstRelated && firstRelated.score >= 0.15) {
-      const suggestions = related.map(r => `• **${r.entry.name}**`).join('\n');
+      const suggestions = related.map((r) => `• **${r.entry.name}**`).join('\n');
       return `I'm not sure about that exact topic, but here are some related concepts:\n\n${suggestions}\n\nAsk about any of these for a detailed explanation.`;
     }
 
-    return 'I don\'t have a built-in answer for that topic yet. Try asking about common trading concepts like RSI, MACD, support/resistance, position sizing, or candlestick patterns.\n\nFor more advanced questions, download an AI model in **Settings → Intelligence** for deeper analysis.';
+    return "I don't have a built-in answer for that topic yet. Try asking about common trading concepts like RSI, MACD, support/resistance, position sizing, or candlestick patterns.\n\nFor more advanced questions, download an AI model in **Settings → Intelligence** for deeper analysis.";
   }
 
   private async _handleChartAnalysis(query: string, systemContext: string): Promise<string> {
     // Sprint 32: Detect chart pattern keywords for ChartQueryProcessor
-    const PATTERN_KEYWORDS = /\b(double\s+top|double\s+bottom|head\s+and\s+shoulders|triangle|wedge|flag|pennant|channel|breakout|breakdown|support|resistance|trend\s*line|cup\s+and\s+handle)\b/i;
+    const PATTERN_KEYWORDS =
+      /\b(double\s+top|double\s+bottom|head\s+and\s+shoulders|triangle|wedge|flag|pennant|channel|breakout|breakdown|support|resistance|trend\s*line|cup\s+and\s+handle)\b/i;
     const patternMatch = query.match(PATTERN_KEYWORDS);
 
     // Sprint 46: Detect multi-timeframe confluence keywords
-    const MTF_KEYWORDS = /\b(aligned|confluence|multi.?time\s*frame|timeframes|across\s+(?:1h|4h|daily|weekly)|all\s+time\s*frames)\b/i;
+    const MTF_KEYWORDS =
+      /\b(aligned|confluence|multi.?time\s*frame|timeframes|across\s+(?:1h|4h|daily|weekly)|all\s+time\s*frames)\b/i;
     const mtfMatch = query.match(MTF_KEYWORDS);
 
     // Extract chart context from system message if available
@@ -544,7 +575,9 @@ class AIRouter {
           if (confluenceText) {
             return `📊 **Multi-Timeframe Confluence: ${symbol || chartMatch[1]}**\n\n${confluenceText}`;
           }
-        } catch { /* fall through */ }
+        } catch {
+          /* fall through */
+        }
       }
 
       // Sprint 32: If pattern detected, use ChartQueryProcessor for rich answer
@@ -563,7 +596,9 @@ class AIRouter {
           if (result.answer) {
             return `📊 **Pattern Analysis: ${patternMatch[1]}**\n\n${result.answer}`;
           }
-        } catch { /* fall through to general analysis */ }
+        } catch {
+          /* fall through to general analysis */
+        }
       }
 
       // Build extended context for analyzer
@@ -593,13 +628,15 @@ class AIRouter {
 
       if (analysis.confluenceScore < 4) {
         parts.push('');
-        parts.push('For deeper AI-powered analysis with pattern detection and trade recommendations, download an AI model in **Settings → Intelligence**.');
+        parts.push(
+          'For deeper AI-powered analysis with pattern detection and trade recommendations, download an AI model in **Settings → Intelligence**.',
+        );
       }
 
       return parts.join('\n');
     }
 
-    return 'I can see you\'re asking about chart analysis. Open a chart and I\'ll have more context to work with — I can see the current symbol, price, indicators, and market regime.\n\nFor full AI-powered analysis, download a model in **Settings → Intelligence**.';
+    return "I can see you're asking about chart analysis. Open a chart and I'll have more context to work with — I can see the current symbol, price, indicators, and market regime.\n\nFor full AI-powered analysis, download a model in **Settings → Intelligence**.";
   }
 
   private _handleCoaching(query: string, systemContext: string): string {
@@ -607,13 +644,10 @@ class AIRouter {
 
     // Try to get AdaptiveCoach formatting
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { adaptiveCoach } = require('./AdaptiveCoach');
 
       // Determine coaching category from query
       const category = this._detectCoachingCategory(query);
-      const tone = adaptiveCoach.getToneForCategory(category);
-
       const dna = this._getDNA();
       if (dna) {
         parts.push(`*Based on your trading profile: ${dna}*\n`);
@@ -625,12 +659,11 @@ class AIRouter {
 
       // Sprint 22: Enrich with pattern insights if available
       try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { default: useJournalStore } = require('@/state/useJournalStore');
         const trades = useJournalStore.getState().trades || [];
         if (trades.length >= 10) {
           const analysis = journalPatternDetector.analyze(trades);
-          const warnings = analysis.patterns.filter(p => p.severity === 'warning' || p.severity === 'critical');
+          const warnings = analysis.patterns.filter((p) => p.severity === 'warning' || p.severity === 'critical');
           if (warnings.length > 0) {
             parts.push('\n\n**From your journal data:**');
             for (const w of warnings.slice(0, 2)) {
@@ -638,7 +671,9 @@ class AIRouter {
             }
           }
         }
-      } catch { /* journal not available */ }
+      } catch {
+        /* journal not available */
+      }
     } catch {
       // AdaptiveCoach not available, use raw template
       parts.push(this._getCoachingTemplate(query, systemContext));
@@ -653,7 +688,6 @@ class AIRouter {
 
     // Sprint 22: Try structured pattern analysis from journal store
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { default: useJournalStore } = require('@/state/useJournalStore');
       const trades = useJournalStore.getState().trades || [];
 
@@ -667,7 +701,9 @@ class AIRouter {
           parts.push(`*Your profile: ${dna}*`);
         }
 
-        parts.push('\nFor deeper AI-powered analysis and pattern detection, download a model in **Settings → Intelligence**.');
+        parts.push(
+          '\nFor deeper AI-powered analysis and pattern detection, download a model in **Settings → Intelligence**.',
+        );
         return parts.join('\n');
       }
     } catch {
@@ -682,7 +718,7 @@ class AIRouter {
 
       const tradeLines = systemContext
         .split('\n')
-        .filter(l => /^\d+\./.test(l.trim()))
+        .filter((l) => /^\d+\./.test(l.trim()))
         .slice(0, 5);
 
       if (tradeLines.length > 0) {
@@ -696,7 +732,9 @@ class AIRouter {
       parts.push(`*Your profile: ${dna}*\n`);
     }
 
-    parts.push('For detailed trade analysis, pattern detection, and AI-powered journal insights, download a model in **Settings → Intelligence**.');
+    parts.push(
+      'For detailed trade analysis, pattern detection, and AI-powered journal insights, download a model in **Settings → Intelligence**.',
+    );
 
     return parts.join('\n');
   }
@@ -710,7 +748,8 @@ class AIRouter {
       const { journalRAG } = await import('./JournalRAG');
       const { default: useJournalStore } = await import('@/state/useJournalStore');
 
-      const trades = (useJournalStore as any).getState().trades || [];
+      const store = useJournalStore as unknown as { getState: () => Record<string, unknown> };
+      const trades = (store.getState().trades || []) as Record<string, unknown>[];
       if (trades.length === 0) {
         return '📓 No trades found in your journal yet. Start logging trades to use journal search!';
       }
@@ -726,15 +765,21 @@ class AIRouter {
 
       // Try to find matching trade objects for card formatting
       const matchedTrades = trades
-        .filter((t: any) => {
+        .filter((t: Record<string, unknown>) => {
           const content = `${t.symbol || ''} ${t.side || ''} ${t.setup || ''} ${t.notes || ''}`.toLowerCase();
-          const queryTerms = query.toLowerCase().split(/\s+/).filter((w: string) => w.length > 2);
+          const queryTerms = query
+            .toLowerCase()
+            .split(/\s+/)
+            .filter((w: string) => w.length > 2);
           return queryTerms.some((term: string) => content.includes(term));
         })
         .slice(0, 5);
 
       if (matchedTrades.length > 0) {
-        return tradeCardFormatter.formatSearchResults(query, matchedTrades);
+        return tradeCardFormatter.formatSearchResults(
+          query,
+          matchedTrades as unknown as import('./TradeCardFormatter').TradeForCard[],
+        );
       }
 
       // Fallback: return RAG context as markdown
@@ -758,32 +803,39 @@ class AIRouter {
         }
 
         const { default: useJournalStore } = await import('@/state/useJournalStore');
-        const trades = (useJournalStore as any).getState().trades || [];
+        const store = useJournalStore as unknown as { getState: () => Record<string, unknown> };
+        const trades = (store.getState().trades || []) as Record<string, unknown>[];
 
         if (trades.length < 20) {
           return `🧠 Need at least **20 trades** to train your personal model. You have ${trades.length} trades currently. Keep journaling!`;
         }
 
         const result = await personalModelTrainer.train(trades);
-        return `🧠 **Personal Model Trained!**\n\n` +
+        return (
+          `🧠 **Personal Model Trained!**\n\n` +
           `- **Trades Used:** ${result.sampleSize}\n` +
           `- **Accuracy:** ${result.accuracy}%\n` +
           `- **Loss:** ${result.finalLoss}\n` +
           `- **Epochs:** ${result.epochs}\n\n` +
-          `Your model is ready. Ask me to "score this setup" for predictions.`;
+          `Your model is ready. Ask me to "score this setup" for predictions.`
+        );
       }
 
       // Prediction request
       const prediction = await personalModelTrainer.predict({});
       const emoji = prediction.signal === 'green' ? '🟢' : prediction.signal === 'red' ? '🔴' : '🟡';
 
-      return `🧠 **Setup Score**\n\n` +
+      return (
+        `🧠 **Setup Score**\n\n` +
         `${emoji} **Win Probability:** ${Math.round(prediction.winProbability * 100)}%\n` +
         `**Confidence:** ${prediction.confidence}%\n` +
         `**Signal:** ${prediction.signal.toUpperCase()}\n\n` +
-        (prediction.confidence < 30 ? '_Low confidence — consider training with more trades._' : '_Based on your trading history pattern._');
-    } catch (e: any) {
-      if (e?.message?.includes('at least 20')) {
+        (prediction.confidence < 30
+          ? '_Low confidence — consider training with more trades._'
+          : '_Based on your trading history pattern._')
+      );
+    } catch (e: unknown) {
+      if (e instanceof Error && e.message?.includes('at least 20')) {
         return `🧠 ${e.message}`;
       }
       return '🧠 Personal model is not available yet. Make sure you have enough trades and try "train my model" first.';
@@ -792,7 +844,6 @@ class AIRouter {
 
   private _handleRisk(): string {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { default: useJournalStore } = require('@/state/useJournalStore');
       const trades = useJournalStore.getState().trades || [];
       const analysis = portfolioRiskAnalyzer.analyze(trades);
@@ -836,22 +887,21 @@ class AIRouter {
 
   private _handleTradeGrade(): string {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { default: useJournalStore } = require('@/state/useJournalStore');
       const trades = useJournalStore.getState().trades || [];
 
       // Find most recent closed trade
       const closed = trades
-        .filter((t: any) => typeof t.pnl === 'number' && !isNaN(t.pnl))
-        .sort((a: any, b: any) => {
-          const dateA = new Date(a.exitDate || a.entryDate || a.date || 0).getTime();
-          const dateB = new Date(b.exitDate || b.entryDate || b.date || 0).getTime();
+        .filter((t: Record<string, unknown>) => typeof t.pnl === 'number' && !isNaN(t.pnl as number))
+        .sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+          const dateA = new Date(String(a.exitDate || a.entryDate || a.date || 0)).getTime();
+          const dateB = new Date(String(b.exitDate || b.entryDate || b.date || 0)).getTime();
           return dateB - dateA;
         });
 
       const lastTrade = closed[0];
       if (!lastTrade) {
-        return '📝 **No closed trades to grade.**\n\nClose a trade and ask me to grade it — I\'ll analyze your entry, exit, and risk management with a letter grade (A+ through F).';
+        return "📝 **No closed trades to grade.**\n\nClose a trade and ask me to grade it — I'll analyze your entry, exit, and risk management with a letter grade (A+ through F).";
       }
 
       const grade = tradeGrader.grade(lastTrade, trades);
@@ -872,17 +922,19 @@ class AIRouter {
     const dna = this._getDNA();
     const personalNote = dna ? `\n\n*${dna}*` : '';
 
-    return `👋 Hey! I\'m your trading copilot. Here\'s what I can help with:\n\n` +
+    return (
+      `👋 Hey! I'm your trading copilot. Here's what I can help with:\n\n` +
       `• **Ask questions** — "What is RSI?" or "How does position sizing work?"\n` +
       `• **Chart analysis** — Open a chart and ask "What do you see?"\n` +
       `• **Trade review** — "How did I do this week?" or "Best trade?"\n` +
       `• **Commands** — Type **/help** to see all slash commands\n` +
-      `\nI work offline with instant template responses. For deeper AI analysis, download a model in **Settings → Intelligence**.${personalNote}`;
+      `\nI work offline with instant template responses. For deeper AI analysis, download a model in **Settings → Intelligence**.${personalNote}`
+    );
   }
 
   private async _handleUnknown(query: string, systemContext: string): Promise<string> {
     // Try knowledge base as a last resort
-    const tkb = await _getTKB();
+    const tkb = await getTKB();
     const kbResult = tkb.lookup(query);
     if (kbResult && kbResult.score >= 0.4) {
       return tkb.formatForCopilot(kbResult.entry);
@@ -891,21 +943,25 @@ class AIRouter {
     // Check if we have chart context to provide something useful
     const chartMatch = systemContext.match(/--- Current Chart: (.+?) ---/);
     if (chartMatch) {
-      return `I can see you\'re viewing **${chartMatch[1]}**. I can help with:\n\n` +
+      return (
+        `I can see you're viewing **${chartMatch[1]}**. I can help with:\n\n` +
         `• Chart analysis — "What do you see?"\n` +
         `• Trading concepts — "What is RSI?"\n` +
         `• Trade review — "How did I do?"\n` +
         `• Commands — **/scan**, **/dna**, **/risk**\n\n` +
-        `For advanced conversations, download an AI model in **Settings → Intelligence**.`;
+        `For advanced conversations, download an AI model in **Settings → Intelligence**.`
+      );
     }
 
-    return `I can answer trading questions, analyze charts, review your journal, and more.\n\n` +
+    return (
+      `I can answer trading questions, analyze charts, review your journal, and more.\n\n` +
       `Try asking:\n` +
       `• "What is MACD?"\n` +
       `• "How should I size my positions?"\n` +
       `• "Show me my best trade"\n` +
       `• **/help** for all commands\n\n` +
-      `For deeper AI conversations, download a model in **Settings → Intelligence**.`;
+      `For deeper AI conversations, download a model in **Settings → Intelligence**.`
+    );
   }
 
   // ─── L1 Helpers ────────────────────────────────────────────
@@ -913,7 +969,7 @@ class AIRouter {
   private _getDNA(): string {
     try {
       // Dynamic import to avoid circular deps at module level
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
+
       const { traderDNA } = require('./TraderDNA');
       const dna = traderDNA.getDNAForPrompt();
       if (dna && dna.length > 10) {
@@ -921,11 +977,15 @@ class AIRouter {
         const firstLine = dna.split('\n')[0] || dna.slice(0, 100);
         return firstLine;
       }
-    } catch { /* not available */ }
+    } catch {
+      /* not available */
+    }
     return '';
   }
 
-  private _detectCoachingCategory(query: string): 'risk' | 'psychology' | 'timing' | 'performance' | 'improvement' | 'tilt' | 'overtrading' {
+  private _detectCoachingCategory(
+    query: string,
+  ): 'risk' | 'psychology' | 'timing' | 'performance' | 'improvement' | 'tilt' | 'overtrading' {
     const q = query.toLowerCase();
     if (/tilt|emotional|anger|frustrat/i.test(q)) return 'tilt';
     if (/overtrad|too many|bored|addic/i.test(q)) return 'overtrading';
@@ -949,7 +1009,7 @@ class AIRouter {
       journal_search: ['"Find my BTC trades"', '"Search for winning trades"', '"Show breakout trades"'],
     };
     const suggestions = map[intent] || ['Try rephrasing your question.'];
-    return suggestions.map(s => `• ${s}`).join('\n');
+    return suggestions.map((s) => `• ${s}`).join('\n');
   }
 
   private _getCoachingTemplate(query: string, _systemContext: string): string {
@@ -977,11 +1037,7 @@ class AIRouter {
   // ─── L3/L4/Fallback Routes ─────────────────────────────────
 
   private async _routeL3(request: AIRequest, start: number): Promise<AIResponse> {
-    const result = await webLLMProvider.chat(
-      request.messages,
-      request.maxTokens || 512,
-      request.temperature ?? 0.3,
-    );
+    const result = await webLLMProvider.chat(request.messages, request.maxTokens || 512, request.temperature ?? 0.3);
 
     return {
       content: result.content,
@@ -1001,8 +1057,16 @@ class AIRouter {
           maxTokens: request.maxTokens,
           temperature: request.temperature,
         });
-        return { content: result.content, tier: 'L4', model: result.model, tokensUsed: result.tokensUsed, latencyMs: performance.now() - start };
-      } catch { /* fall through */ }
+        return {
+          content: result.content,
+          tier: 'L4',
+          model: result.model,
+          tokensUsed: result.tokensUsed,
+          latencyMs: performance.now() - start,
+        };
+      } catch {
+        /* fall through */
+      }
     }
 
     if (geminiAdapter.isAvailable) {
@@ -1011,8 +1075,16 @@ class AIRouter {
           maxTokens: request.maxTokens,
           temperature: request.temperature,
         });
-        return { content: result.content, tier: 'L4', model: result.model, tokensUsed: result.tokensUsed, latencyMs: performance.now() - start };
-      } catch { /* fall through */ }
+        return {
+          content: result.content,
+          tier: 'L4',
+          model: result.model,
+          tokensUsed: result.tokensUsed,
+          latencyMs: performance.now() - start,
+        };
+      } catch {
+        /* fall through */
+      }
     }
 
     if (!speedCritical && groqAdapter.isAvailable) {
@@ -1021,8 +1093,16 @@ class AIRouter {
           maxTokens: request.maxTokens,
           temperature: request.temperature,
         });
-        return { content: result.content, tier: 'L4', model: result.model, tokensUsed: result.tokensUsed, latencyMs: performance.now() - start };
-      } catch { /* fall through */ }
+        return {
+          content: result.content,
+          tier: 'L4',
+          model: result.model,
+          tokensUsed: result.tokensUsed,
+          latencyMs: performance.now() - start,
+        };
+      } catch {
+        /* fall through */
+      }
     }
 
     const { llmService } = await import('./LLMService.js');
@@ -1030,7 +1110,13 @@ class AIRouter {
       throw new Error('No cloud LLM available (Gemini, Groq, or LLMService)');
     }
     const response = await llmService.chatDirect(request.messages);
-    return { content: response.content, tier: 'L4', model: response.model, tokensUsed: response.tokensUsed, latencyMs: performance.now() - start };
+    return {
+      content: response.content,
+      tier: 'L4',
+      model: response.model,
+      tokensUsed: response.tokensUsed,
+      latencyMs: performance.now() - start,
+    };
   }
 
   private async _routeFallback(tier: AITier, request: AIRequest, start: number): Promise<AIResponse> {

@@ -28,10 +28,10 @@ export interface PredictionResult {
 }
 
 interface TradeFeatures {
-  hour: number;        // 0–23
-  dayOfWeek: number;   // 0–6
-  setupIdx: number;    // encoded setup type
-  emotionIdx: number;  // encoded emotion
+  hour: number; // 0–23
+  dayOfWeek: number; // 0–6
+  setupIdx: number; // encoded setup type
+  emotionIdx: number; // encoded emotion
   holdMinutes: number;
   positionSize: number;
 }
@@ -40,12 +40,24 @@ interface TradeFeatures {
 
 const MODEL_KEY = 'charEdge-personal-model';
 const SETUP_MAP: Record<string, number> = {
-  breakout: 1, breakdown: 2, pullback: 3, reversal: 4,
-  continuation: 5, scalp: 6, swing: 7, momentum: 8,
+  breakout: 1,
+  breakdown: 2,
+  pullback: 3,
+  reversal: 4,
+  continuation: 5,
+  scalp: 6,
+  swing: 7,
+  momentum: 8,
 };
 const EMOTION_MAP: Record<string, number> = {
-  calm: 1, confident: 2, anxious: 3, fearful: 4,
-  greedy: 5, frustrated: 6, revenge: 7, neutral: 8,
+  calm: 1,
+  confident: 2,
+  anxious: 3,
+  fearful: 4,
+  greedy: 5,
+  frustrated: 6,
+  revenge: 7,
+  neutral: 8,
 };
 
 // ─── Trainer ────────────────────────────────────────────────────
@@ -96,9 +108,7 @@ class PersonalModelTrainer {
       await this._saveModel(model);
 
       const finalLoss = history.history.loss[history.history.loss.length - 1] as number;
-      const acc = history.history.acc
-        ? (history.history.acc[history.history.acc.length - 1] as number)
-        : 0;
+      const acc = history.history.acc ? (history.history.acc[history.history.acc.length - 1] as number) : 0;
 
       // Cleanup tensors
       xs.dispose();
@@ -145,8 +155,7 @@ class PersonalModelTrainer {
     });
 
     const tensor = tf.tensor2d([features]);
-    const prediction = (model as { predict: (t: unknown) => { dataSync: () => Float32Array } })
-      .predict(tensor);
+    const prediction = (model as { predict: (t: unknown) => { dataSync: () => Float32Array } }).predict(tensor);
     const prob = prediction.dataSync()[0];
     tensor.dispose();
 
@@ -160,11 +169,16 @@ class PersonalModelTrainer {
     };
   }
 
-  get isTraining() { return this._isTraining; }
-  get lastTraining() { return this._lastTraining; }
+  get isTraining() {
+    return this._isTraining;
+  }
+  get lastTraining() {
+    return this._lastTraining;
+  }
 
   // ─── Data Prep ───────────────────────────────────────────────
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TensorFlow.js has no published type for the tf namespace object
   private _prepareData(tf: any, trades: Record<string, unknown>[]) {
     const features: number[][] = [];
     const labels: number[] = [];
@@ -172,7 +186,7 @@ class PersonalModelTrainer {
     for (const t of trades) {
       if (typeof t.pnl !== 'number') continue;
 
-      const d = t.entryTime ? new Date(t.entryTime as string | number) : new Date(t.date as string || '');
+      const d = t.entryTime ? new Date(t.entryTime as string | number) : new Date((t.date as string) || '');
       const f: TradeFeatures = {
         hour: isNaN(d.getTime()) ? 12 : d.getHours(),
         dayOfWeek: isNaN(d.getTime()) ? 3 : d.getDay(),
@@ -205,6 +219,7 @@ class PersonalModelTrainer {
 
   // ─── Model Loading/Saving ───────────────────────────────────
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TensorFlow.js module type is dynamic and untyped
   private async _loadTF(): Promise<any> {
     if (this._tf) return this._tf;
     this._tf = await import('@tensorflow/tfjs');
@@ -223,10 +238,13 @@ class PersonalModelTrainer {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TensorFlow.js model type varies by architecture
   private async _saveModel(model: any): Promise<void> {
     try {
       await model.save(`indexeddb://${MODEL_KEY}`);
-    } catch { /* IndexedDB save failed — non-critical */ }
+    } catch {
+      /* IndexedDB save failed — non-critical */
+    }
   }
 }
 

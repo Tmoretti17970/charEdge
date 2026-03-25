@@ -15,7 +15,6 @@ import { C } from '../../../constants.js';
 import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { radii, transition } from '../../../theme/tokens.js';
-import st from './MarketsWatchlistTabs.module.css';
 
 const ACCENT = '#6e5ce6';
 
@@ -38,10 +37,7 @@ function MarketsWatchlistTabs() {
   const rootFolders = folders.filter((f) => !f.parentId);
 
   // Count items per folder
-  const countFor = useCallback(
-    (folderId) => items.filter((i) => i.folderId === folderId).length,
-    [items],
-  );
+  const countFor = useCallback((folderId) => items.filter((i) => i.folderId === folderId).length, [items]);
 
   // ─── Create new watchlist ──────────────────────────────
   const handleAdd = useCallback(() => {
@@ -106,14 +102,10 @@ function MarketsWatchlistTabs() {
         }}
       >
         {/* "All" tab */}
-        <TabButton
-          label={`All (${items.length})`}
-          active={activeId === null}
-          onClick={() => setActiveId(null)}
-        />
+        <TabButton label={`All (${items.length})`} active={activeId === null} onClick={() => setActiveId(null)} />
 
         {/* Folder tabs */}
-        {rootFolders.map((folder) => (
+        {rootFolders.map((folder) =>
           renaming === folder.id ? (
             <input
               key={folder.id}
@@ -127,11 +119,16 @@ function MarketsWatchlistTabs() {
               }}
               autoFocus
               style={{
-                fontSize: 11, fontFamily: 'var(--tf-font)', fontWeight: 600,
-                background: `${C.bd}20`, color: C.t1,
+                fontSize: 11,
+                fontFamily: 'var(--tf-font)',
+                fontWeight: 600,
+                background: `${C.bd}20`,
+                color: C.t1,
                 border: `1px solid ${ACCENT}50`,
-                borderRadius: radii.sm, padding: '4px 10px',
-                outline: 'none', width: 90,
+                borderRadius: radii.sm,
+                padding: '4px 10px',
+                outline: 'none',
+                width: 90,
               }}
             />
           ) : (
@@ -144,22 +141,35 @@ function MarketsWatchlistTabs() {
               onContextMenu={(e) => handleContextMenu(e, folder)}
               color={folder.color}
             />
-          )
-        ))}
+          ),
+        )}
 
         {/* Add button */}
         <button
           onClick={handleAdd}
           title="New watchlist"
           style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: 24, height: 24, borderRadius: radii.sm,
-            border: `1px dashed ${C.bd}40`, background: 'transparent',
-            color: C.t3, cursor: 'pointer', fontSize: 14,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 24,
+            height: 24,
+            borderRadius: radii.sm,
+            border: `1px dashed ${C.bd}40`,
+            background: 'transparent',
+            color: C.t3,
+            cursor: 'pointer',
+            fontSize: 14,
             transition: `all ${transition.fast}`,
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${C.bd}40`; e.currentTarget.style.color = C.t3; }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = ACCENT;
+            e.currentTarget.style.color = ACCENT;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = `${C.bd}40`;
+            e.currentTarget.style.color = C.t3;
+          }}
         >
           +
         </button>
@@ -199,7 +209,9 @@ function TabButton({ label, active, onClick, onDoubleClick, onContextMenu, color
       onDoubleClick={onDoubleClick}
       onContextMenu={onContextMenu}
       style={{
-        fontSize: 11, fontFamily: 'var(--tf-font)', fontWeight: active ? 700 : 500,
+        fontSize: 11,
+        fontFamily: 'var(--tf-font)',
+        fontWeight: active ? 700 : 500,
         color: active ? C.t1 : C.t3,
         background: active ? `${ACCENT}18` : 'transparent',
         border: active ? `1px solid ${ACCENT}30` : '1px solid transparent',
@@ -223,16 +235,26 @@ function MenuButton({ label, onClick, danger }) {
     <button
       onClick={onClick}
       style={{
-        display: 'block', width: '100%', textAlign: 'left',
-        fontSize: 11, fontFamily: 'var(--tf-font)', fontWeight: 500,
+        display: 'block',
+        width: '100%',
+        textAlign: 'left',
+        fontSize: 11,
+        fontFamily: 'var(--tf-font)',
+        fontWeight: 500,
         color: danger ? C.r : C.t2,
-        background: 'transparent', border: 'none',
-        padding: '6px 12px', borderRadius: 4,
+        background: 'transparent',
+        border: 'none',
+        padding: '6px 12px',
+        borderRadius: 4,
         cursor: 'pointer',
         transition: `background ${transition.fast}`,
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = `${C.bd}20`; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = `${C.bd}20`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = 'transparent';
+      }}
     >
       {label}
     </button>

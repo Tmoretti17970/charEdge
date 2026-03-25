@@ -4,16 +4,20 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useMemo } from 'react';
-import { C, M } from '@/constants.js';
 import { fmtD } from '../../../../utils.js';
 import TimeBarChart from '../../../components/chart/TimeBarChart.jsx';
 import { Card } from '../../../components/ui/UIKit.jsx';
 import ProfitHeatmap from '../../../components/widgets/ProfitHeatmap.jsx';
 import { SectionLabel, formatDuration } from './AnalyticsPrimitives.jsx';
+import { C, M } from '@/constants.js';
 
 function TimingTab({ result, computing }) {
   if (!result || !result.byH) {
-    return <div style={{ padding: 40, textAlign: 'center', color: C.t3 }}>{computing ? 'Computing timing...' : 'No timing data available.'}</div>;
+    return (
+      <div style={{ padding: 40, textAlign: 'center', color: C.t3 }}>
+        {computing ? 'Computing timing...' : 'No timing data available.'}
+      </div>
+    );
   }
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -98,7 +102,16 @@ function TimingTab({ result, computing }) {
                       >
                         {fmtD(b.avgPnl)}
                       </div>
-                      <div style={{ width: 55, fontSize: 10, fontFamily: M, color: C.t3, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                      <div
+                        style={{
+                          width: 55,
+                          fontSize: 10,
+                          fontFamily: M,
+                          color: C.t3,
+                          textAlign: 'right',
+                          fontVariantNumeric: 'tabular-nums',
+                        }}
+                      >
                         {b.count}t · {b.winRate.toFixed(0)}%
                       </div>
                     </div>

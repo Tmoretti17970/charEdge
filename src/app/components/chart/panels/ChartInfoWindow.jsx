@@ -6,9 +6,9 @@
 
 import { useMemo } from 'react';
 import { INDICATORS } from '../../../../charting_library/studies/indicators/registry.js';
-import { logger } from '@/observability/logger';
 import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 import s from './ChartInfoWindow.module.css';
+import { logger } from '@/observability/logger';
 
 function fmt(v) {
   if (v == null || isNaN(v)) return '—';
@@ -51,7 +51,9 @@ export default function ChartInfoWindow({ data, barIdx, mouseY }) {
             result.push({ label: `${def.shortName || regId}`, color: ind.color || out.color || '#AAA', value: val });
           }
         }
-      } catch (e) { logger.ui.warn('Operation failed', e); }
+      } catch (e) {
+        logger.ui.warn('Operation failed', e);
+      }
     }
     return result;
   }, [bar, indicators, data, barIdx]);
@@ -61,19 +63,27 @@ export default function ChartInfoWindow({ data, barIdx, mouseY }) {
   const isUp = bar.close >= bar.open;
   const changeColor = isUp ? 'var(--tf-green)' : 'var(--tf-red)';
   const delta = prevBar ? bar.close - prevBar.close : 0;
-  const deltaPct = prevBar?.close ? ((delta / prevBar.close) * 100) : 0;
+  const deltaPct = prevBar?.close ? (delta / prevBar.close) * 100 : 0;
   const isDeltaUp = delta >= 0;
   const deltaColor = isDeltaUp ? 'var(--tf-green)' : 'var(--tf-red)';
 
   return (
     <>
       <div className={`tf-fade-in ${s.pricePill}`} style={{ top: Math.max(4, Math.min((mouseY || 100) - 14, 600)) }}>
-        <span className={s.priceValue} style={{ color: changeColor }}>{fmt(bar.close)}</span>
+        <span className={s.priceValue} style={{ color: changeColor }}>
+          {fmt(bar.close)}
+        </span>
         {prevBar && (
           <>
             <span className={s.pipeSep} />
-            <span className={s.deltaValue} style={{ color: deltaColor }}>{isDeltaUp ? '+' : ''}{fmt(delta)}</span>
-            <span className={s.deltaPct} style={{ color: deltaColor }}>{isDeltaUp ? '+' : ''}{deltaPct.toFixed(2)}%</span>
+            <span className={s.deltaValue} style={{ color: deltaColor }}>
+              {isDeltaUp ? '+' : ''}
+              {fmt(delta)}
+            </span>
+            <span className={s.deltaPct} style={{ color: deltaColor }}>
+              {isDeltaUp ? '+' : ''}
+              {deltaPct.toFixed(2)}%
+            </span>
           </>
         )}
       </div>
@@ -84,7 +94,9 @@ export default function ChartInfoWindow({ data, barIdx, mouseY }) {
             <span key={i} className={s.indItem}>
               <span className={s.indDot} style={{ background: iv.color }} />
               <span className={s.indLabel}>{iv.label}</span>
-              <span className={s.indValue} style={{ color: iv.color }}>{fmt(iv.value)}</span>
+              <span className={s.indValue} style={{ color: iv.color }}>
+                {fmt(iv.value)}
+              </span>
             </span>
           ))}
         </div>

@@ -9,7 +9,7 @@
 
 import React from 'react';
 import { useMemo, useState } from 'react';
-import { C, F, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { usePropFirmStore, computeEvaluation, PRESETS } from '../../../state/usePropFirmStore.js';
 import { fmtD } from '../../../utils.js';
@@ -36,9 +36,7 @@ function ProgressBar({ label, current, limit, progress, color, inverse }) {
   return (
     <div className={s.progressWrap}>
       <div className={s.s0}>
-        <span className={s.progressLabel}>
-          {label}
-        </span>
+        <span className={s.progressLabel}>{label}</span>
         <span className={s.progressValue} style={{ color: color || barColor }}>
           {fmtD(current)} <span className={s.progressValueSub}>/ {fmtD(limit)}</span>
         </span>
@@ -103,10 +101,7 @@ function DayCounter({ profile, evaluation }) {
         </div>
         <div className={s.counterStatus}>
           <div className={s.counterLabel}>STATUS</div>
-          <div
-            className={s.statusLabel}
-            style={{ color: status === 'passed' ? C.g : status === 'failed' ? C.r : C.b }}
-          >
+          <div className={s.statusLabel} style={{ color: status === 'passed' ? C.g : status === 'failed' ? C.r : C.b }}>
             {status === 'passed' ? '✅ PASSED' : status === 'failed' ? '❌ FAILED' : '⏳ Active'}
           </div>
         </div>
@@ -114,9 +109,7 @@ function DayCounter({ profile, evaluation }) {
 
       {/* Mini Calendar Grid */}
       {calendarDays30.length > 0 && (
-        <div
-          className={s.s2}
-        >
+        <div className={s.s2}>
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
             <div key={i} className={s.calDayHeader}>
               {d}
@@ -166,10 +159,7 @@ function PropFirmSetup({ onSelect }) {
 
   if (!showSetup) {
     return (
-      <button
-        className={`tf-btn ${s.setupBtn}`}
-        onClick={() => setShowSetup(true)}
-      >
+      <button className={`tf-btn ${s.setupBtn}`} onClick={() => setShowSetup(true)}>
         🏢 Track Prop Firm Evaluation
       </button>
     );
@@ -188,25 +178,16 @@ function PropFirmSetup({ onSelect }) {
     <Card className={s.setupCardWrap}>
       <div className={s.s3}>
         <div className={s.setupTitle}>Select Prop Firm</div>
-        <button
-          className={`tf-btn ${s.closeBtn}`}
-          onClick={() => setShowSetup(false)}
-        >
+        <button className={`tf-btn ${s.closeBtn}`} onClick={() => setShowSetup(false)}>
           ✕
         </button>
       </div>
       {Object.entries(grouped).map(([firm, presets]) => (
         <div key={firm} className={s.firmGroup}>
-          <div className={s.firmLabel}>
-            {firmLabels[firm] || firm}
-          </div>
+          <div className={s.firmLabel}>{firmLabels[firm] || firm}</div>
           <div className={s.s4}>
             {presets.map((p) => (
-              <button
-                className={`tf-btn ${s.presetBtn}`}
-                key={p.id}
-                onClick={() => onSelect(p.id)}
-              >
+              <button className={`tf-btn ${s.presetBtn}`} key={p.id} onClick={() => onSelect(p.id)}>
                 {p.name}
               </button>
             ))}
@@ -261,20 +242,13 @@ function PropFirmWidget() {
             {fmtD(activeProfile.accountSize)} account · Started {new Date(activeProfile.startDate).toLocaleDateString()}
           </div>
         </div>
-        <button
-          className={`tf-btn ${s.clearBtn}`}
-          onClick={clearActive}
-        >
+        <button className={`tf-btn ${s.clearBtn}`} onClick={clearActive}>
           ✕ Clear
         </button>
       </div>
 
       {/* Fail banner */}
-      {status === 'failed' && failReason && (
-        <div className={`${s.banner} ${s.bannerFail}`}>
-          ❌ {failReason}
-        </div>
-      )}
+      {status === 'failed' && failReason && <div className={`${s.banner} ${s.bannerFail}`}>❌ {failReason}</div>}
 
       {/* Pass banner */}
       {status === 'passed' && (
@@ -329,11 +303,17 @@ function PropFirmWidget() {
           High: <strong className={`${s.statVal} ${s.statGreen}`}>{fmtD(evaluation.equityHigh)}</strong>
         </span>
         <span>
-          Cum P&L: <strong className={s.statVal} style={{ color: evaluation.cumPnl >= 0 ? C.g : C.r }}>{fmtD(evaluation.cumPnl)}</strong>
+          Cum P&L:{' '}
+          <strong className={s.statVal} style={{ color: evaluation.cumPnl >= 0 ? C.g : C.r }}>
+            {fmtD(evaluation.cumPnl)}
+          </strong>
         </span>
         <span>
           Today:{' '}
-          <strong className={s.statVal} style={{ color: evaluation.dailyPnl >= 0 ? C.g : evaluation.dailyPnl < 0 ? C.r : C.t3 }}>
+          <strong
+            className={s.statVal}
+            style={{ color: evaluation.dailyPnl >= 0 ? C.g : evaluation.dailyPnl < 0 ? C.r : C.t3 }}
+          >
             {fmtD(evaluation.dailyPnl)}
           </strong>
         </span>
@@ -358,7 +338,9 @@ function PropFirmWidget() {
             </div>
             {/* Fail probability */}
             <div className={s.mcCenter}>
-              <div className={s.mcFailRate} style={{ color: C.r + 'cc' }}>{prediction.failRate.toFixed(0)}%</div>
+              <div className={s.mcFailRate} style={{ color: C.r + 'cc' }}>
+                {prediction.failRate.toFixed(0)}%
+              </div>
               <div className={s.mcLabel}>FAIL</div>
             </div>
             {/* Visual bar */}

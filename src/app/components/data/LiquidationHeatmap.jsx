@@ -16,11 +16,9 @@
 
 import React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
-
 import { binanceFuturesAdapter } from '../../../data/adapters/BinanceFuturesAdapter.js';
 import { bybitFuturesAdapter } from '../../../data/adapters/BybitFuturesAdapter.js';
 import { logger } from '@/observability/logger';
-import st from './LiquidationHeatmap.module.css';
 
 // ─── Constants ─────────────────────────────────────────────────
 
@@ -79,7 +77,7 @@ function computeLiquidationZones(currentPrice, oiValue) {
       leverage,
       estimatedLiquidations: oiShare / 2, // Half the OI is long
       type: 'long',
-      distancePct: ((currentPrice - longLiqPrice) / currentPrice * 100).toFixed(1),
+      distancePct: (((currentPrice - longLiqPrice) / currentPrice) * 100).toFixed(1),
     });
 
     shortZones.push({
@@ -89,7 +87,7 @@ function computeLiquidationZones(currentPrice, oiValue) {
       leverage,
       estimatedLiquidations: oiShare / 2, // Half the OI is short
       type: 'short',
-      distancePct: ((shortLiqPrice - currentPrice) / currentPrice * 100).toFixed(1),
+      distancePct: (((shortLiqPrice - currentPrice) / currentPrice) * 100).toFixed(1),
     });
   }
 
@@ -99,52 +97,86 @@ function computeLiquidationZones(currentPrice, oiValue) {
 // ─── Heatmap Bar ───────────────────────────────────────────────
 
 function HeatmapBar({ zone, maxValue, side }) {
-  const pct = maxValue > 0 ? (zone.estimatedLiquidations / maxValue) : 0;
+  const pct = maxValue > 0 ? zone.estimatedLiquidations / maxValue : 0;
   const isLong = side === 'long';
 
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 6,
-      padding: '3px 0',
-    }}>
-      <span style={{
-        fontSize: 9, fontFamily: 'var(--tf-mono)', color: 'var(--tf-t3, #888)',
-        width: 24, textAlign: 'right',
-      }}>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '3px 0',
+      }}
+    >
+      <span
+        style={{
+          fontSize: 9,
+          fontFamily: 'var(--tf-mono)',
+          color: 'var(--tf-t3, #888)',
+          width: 24,
+          textAlign: 'right',
+        }}
+      >
         {zone.leverage}×
       </span>
-      <span style={{
-        fontSize: 10, fontFamily: 'var(--tf-mono)', color: 'var(--tf-t1, #fff)',
-        width: 60, fontWeight: 600,
-      }}>
+      <span
+        style={{
+          fontSize: 10,
+          fontFamily: 'var(--tf-mono)',
+          color: 'var(--tf-t1, #fff)',
+          width: 60,
+          fontWeight: 600,
+        }}
+      >
         ${fmtPrice(zone.price)}
       </span>
-      <div style={{
-        flex: 1, height: 12, borderRadius: 3,
-        background: 'var(--tf-bd, #2a2d36)', overflow: 'hidden',
-        position: 'relative',
-      }}>
-        <div style={{
-          width: `${Math.max(2, pct * 100)}%`,
-          height: '100%',
+      <div
+        style={{
+          flex: 1,
+          height: 12,
           borderRadius: 3,
-          background: isLong
-            ? `linear-gradient(90deg, #ef444420, #ef4444${Math.round(30 + pct * 70).toString(16).padStart(2, '0')})`
-            : `linear-gradient(90deg, #22c55e20, #22c55e${Math.round(30 + pct * 70).toString(16).padStart(2, '0')})`,
-          transition: 'width 0.5s ease',
-        }} />
+          background: 'var(--tf-bd, #2a2d36)',
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+      >
+        <div
+          style={{
+            width: `${Math.max(2, pct * 100)}%`,
+            height: '100%',
+            borderRadius: 3,
+            background: isLong
+              ? `linear-gradient(90deg, #ef444420, #ef4444${Math.round(30 + pct * 70)
+                  .toString(16)
+                  .padStart(2, '0')})`
+              : `linear-gradient(90deg, #22c55e20, #22c55e${Math.round(30 + pct * 70)
+                  .toString(16)
+                  .padStart(2, '0')})`,
+            transition: 'width 0.5s ease',
+          }}
+        />
       </div>
-      <span style={{
-        fontSize: 9, fontFamily: 'var(--tf-mono)',
-        color: isLong ? '#ef4444' : '#22c55e',
-        width: 45, textAlign: 'right',
-      }}>
+      <span
+        style={{
+          fontSize: 9,
+          fontFamily: 'var(--tf-mono)',
+          color: isLong ? '#ef4444' : '#22c55e',
+          width: 45,
+          textAlign: 'right',
+        }}
+      >
         ${fmtNum(zone.estimatedLiquidations)}
       </span>
-      <span style={{
-        fontSize: 8, fontFamily: 'var(--tf-mono)', color: 'var(--tf-t3, #888)',
-        width: 30, textAlign: 'right',
-      }}>
+      <span
+        style={{
+          fontSize: 8,
+          fontFamily: 'var(--tf-mono)',
+          color: 'var(--tf-t3, #888)',
+          width: 30,
+          textAlign: 'right',
+        }}
+      >
         {zone.distancePct}%
       </span>
     </div>
@@ -162,12 +194,20 @@ function LiquidationFlash({ events }) {
         const isLong = ev.side === 'sell' || ev.type === 'long_liquidation';
         const value = (ev.price || 0) * (ev.quantity || ev.qty || 0);
         return (
-          <div key={`${ev.time || ev.timestamp}-${i}`} style={{
-            display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, fontFamily: 'var(--tf-mono)',
-            padding: '2px 6px', borderRadius: 4,
-            background: `${isLong ? '#ef4444' : '#22c55e'}08`,
-            animation: i === 0 ? 'fadeIn 0.3s ease' : undefined,
-          }}>
+          <div
+            key={`${ev.time || ev.timestamp}-${i}`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              fontSize: 9,
+              fontFamily: 'var(--tf-mono)',
+              padding: '2px 6px',
+              borderRadius: 4,
+              background: `${isLong ? '#ef4444' : '#22c55e'}08`,
+              animation: i === 0 ? 'fadeIn 0.3s ease' : undefined,
+            }}
+          >
             <span style={{ fontSize: 10 }}>{isLong ? '🔴' : '🟢'}</span>
             <span style={{ color: 'var(--tf-t1, #fff)', fontWeight: 600 }}>${fmtNum(value)}</span>
             <span style={{ color: 'var(--tf-t3, #888)' }}>@{fmtPrice(ev.price)}</span>
@@ -197,15 +237,19 @@ function LiquidationHeatmap({ symbol = 'BTCUSDT', currentPrice }) {
         bybitFuturesAdapter.getOpenInterest(symbol),
       ]);
 
-      const binValue = binOI.status === 'fulfilled' ? (binOI.value?.openInterest || 0) * (currentPrice || price || 1) : 0;
-      const bybitValue = bybitOI.status === 'fulfilled' ? (bybitOI.value?.openInterest || 0) * (currentPrice || price || 1) : 0;
+      const binValue =
+        binOI.status === 'fulfilled' ? (binOI.value?.openInterest || 0) * (currentPrice || price || 1) : 0;
+      const bybitValue =
+        bybitOI.status === 'fulfilled' ? (bybitOI.value?.openInterest || 0) * (currentPrice || price || 1) : 0;
 
       setOiData({
         binance: binOI.value,
         bybit: bybitOI.value,
         totalOIValue: binValue + bybitValue,
       });
-    } catch (e) { logger.ui.warn('Operation failed', e); }
+    } catch (e) {
+      logger.ui.warn('Operation failed', e);
+    }
   }, [symbol, currentPrice, price]);
 
   useEffect(() => {
@@ -216,19 +260,25 @@ function LiquidationHeatmap({ symbol = 'BTCUSDT', currentPrice }) {
     // Subscribe to liquidation feeds
     const binUnsub = binanceFuturesAdapter.subscribeLiquidations((liq) => {
       if (liq.symbol?.toUpperCase().includes(symbol.replace('USDT', ''))) {
-        setLiquidationEvents(prev => [{ ...liq, exchange: 'binance' }, ...prev].slice(0, 20));
+        setLiquidationEvents((prev) => [{ ...liq, exchange: 'binance' }, ...prev].slice(0, 20));
       }
     });
     unsubs.current.push(binUnsub);
 
     const bybitUnsub = bybitFuturesAdapter.subscribeLiquidations(symbol, (liq) => {
-      setLiquidationEvents(prev => [{ ...liq, exchange: 'bybit' }, ...prev].slice(0, 20));
+      setLiquidationEvents((prev) => [{ ...liq, exchange: 'bybit' }, ...prev].slice(0, 20));
     });
     unsubs.current.push(bybitUnsub);
 
     return () => {
       clearInterval(timer);
-      for (const u of unsubs.current) { try { u(); } catch (e) { logger.ui.warn('Operation failed', e); } }
+      for (const u of unsubs.current) {
+        try {
+          u();
+        } catch (e) {
+          logger.ui.warn('Operation failed', e);
+        }
+      }
       unsubs.current = [];
     };
   }, [symbol, currentPrice, fetchOI]);
@@ -236,17 +286,23 @@ function LiquidationHeatmap({ symbol = 'BTCUSDT', currentPrice }) {
   const effectivePrice = currentPrice || price || 0;
   const zones = computeLiquidationZones(effectivePrice, oiData?.totalOIValue || 0);
   const maxLiq = Math.max(
-    ...zones.longZones.map(z => z.estimatedLiquidations),
-    ...zones.shortZones.map(z => z.estimatedLiquidations),
+    ...zones.longZones.map((z) => z.estimatedLiquidations),
+    ...zones.shortZones.map((z) => z.estimatedLiquidations),
     1,
   );
 
   return (
-    <div style={{
-      padding: 14, fontFamily: 'var(--tf-font)',
-      display: 'flex', flexDirection: 'column', gap: 10,
-      height: '100%', overflowY: 'auto',
-    }}>
+    <div
+      style={{
+        padding: 14,
+        fontFamily: 'var(--tf-font)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+        height: '100%',
+        overflowY: 'auto',
+      }}
+    >
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
@@ -260,34 +316,48 @@ function LiquidationHeatmap({ symbol = 'BTCUSDT', currentPrice }) {
       </div>
 
       {/* Short Liquidation Zones (above current price) */}
-      <div style={{
-        background: 'var(--tf-sf, #1a1d26)', border: '1px solid var(--tf-bd, #2a2d36)',
-        borderRadius: 10, padding: '10px 12px',
-      }}>
-        <div style={{
-          fontSize: 10, fontWeight: 600, textTransform: 'uppercase',
-          color: '#22c55e', marginBottom: 6, letterSpacing: '0.5px',
-        }}>
+      <div
+        style={{
+          background: 'var(--tf-sf, #1a1d26)',
+          border: '1px solid var(--tf-bd, #2a2d36)',
+          borderRadius: 10,
+          padding: '10px 12px',
+        }}
+      >
+        <div
+          style={{
+            fontSize: 10,
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            color: '#22c55e',
+            marginBottom: 6,
+            letterSpacing: '0.5px',
+          }}
+        >
           ▲ Short Liquidation Zones (above price)
         </div>
         {zones.shortZones.length > 0 ? (
-          zones.shortZones.slice().reverse().map((z, i) => (
-            <HeatmapBar key={`short-${i}`} zone={z} maxValue={maxLiq} side="short" />
-          ))
+          zones.shortZones
+            .slice()
+            .reverse()
+            .map((z, i) => <HeatmapBar key={`short-${i}`} zone={z} maxValue={maxLiq} side="short" />)
         ) : (
-          <div style={{ fontSize: 10, color: 'var(--tf-t3, #888)', textAlign: 'center', padding: 8 }}>
-            No data yet
-          </div>
+          <div style={{ fontSize: 10, color: 'var(--tf-t3, #888)', textAlign: 'center', padding: 8 }}>No data yet</div>
         )}
       </div>
 
       {/* Current Price Marker */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        padding: '6px 12px', borderRadius: 8,
-        background: 'linear-gradient(90deg, #6366f120, transparent)',
-        border: '1px solid #6366f140',
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '6px 12px',
+          borderRadius: 8,
+          background: 'linear-gradient(90deg, #6366f120, transparent)',
+          border: '1px solid #6366f140',
+        }}
+      >
         <span style={{ fontSize: 12 }}>📍</span>
         <span style={{ fontSize: 12, fontFamily: 'var(--tf-mono)', fontWeight: 800, color: '#6366f1' }}>
           ${fmtPrice(effectivePrice)}
@@ -296,37 +366,52 @@ function LiquidationHeatmap({ symbol = 'BTCUSDT', currentPrice }) {
       </div>
 
       {/* Long Liquidation Zones (below current price) */}
-      <div style={{
-        background: 'var(--tf-sf, #1a1d26)', border: '1px solid var(--tf-bd, #2a2d36)',
-        borderRadius: 10, padding: '10px 12px',
-      }}>
-        <div style={{
-          fontSize: 10, fontWeight: 600, textTransform: 'uppercase',
-          color: '#ef4444', marginBottom: 6, letterSpacing: '0.5px',
-        }}>
+      <div
+        style={{
+          background: 'var(--tf-sf, #1a1d26)',
+          border: '1px solid var(--tf-bd, #2a2d36)',
+          borderRadius: 10,
+          padding: '10px 12px',
+        }}
+      >
+        <div
+          style={{
+            fontSize: 10,
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            color: '#ef4444',
+            marginBottom: 6,
+            letterSpacing: '0.5px',
+          }}
+        >
           ▼ Long Liquidation Zones (below price)
         </div>
         {zones.longZones.length > 0 ? (
-          zones.longZones.map((z, i) => (
-            <HeatmapBar key={`long-${i}`} zone={z} maxValue={maxLiq} side="long" />
-          ))
+          zones.longZones.map((z, i) => <HeatmapBar key={`long-${i}`} zone={z} maxValue={maxLiq} side="long" />)
         ) : (
-          <div style={{ fontSize: 10, color: 'var(--tf-t3, #888)', textAlign: 'center', padding: 8 }}>
-            No data yet
-          </div>
+          <div style={{ fontSize: 10, color: 'var(--tf-t3, #888)', textAlign: 'center', padding: 8 }}>No data yet</div>
         )}
       </div>
 
       {/* Recent Liquidation Events */}
       {liquidationEvents.length > 0 && (
-        <div style={{
-          background: 'var(--tf-sf, #1a1d26)', border: '1px solid var(--tf-bd, #2a2d36)',
-          borderRadius: 10, padding: '10px 12px',
-        }}>
-          <div style={{
-            fontSize: 10, fontWeight: 600, textTransform: 'uppercase',
-            color: 'var(--tf-t3, #888)', marginBottom: 6,
-          }}>
+        <div
+          style={{
+            background: 'var(--tf-sf, #1a1d26)',
+            border: '1px solid var(--tf-bd, #2a2d36)',
+            borderRadius: 10,
+            padding: '10px 12px',
+          }}
+        >
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              color: 'var(--tf-t3, #888)',
+              marginBottom: 6,
+            }}
+          >
             ⚡ Recent Liquidations
           </div>
           <LiquidationFlash events={liquidationEvents} />

@@ -4,7 +4,6 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState } from 'react';
-import { C, M } from '@/constants.js';
 import { fmtD } from '../../../../utils.js';
 import { Card, StatCard, AutoGrid } from '../../../components/ui/UIKit.jsx';
 import BreakdownBarChart from '../../../components/widgets/BreakdownBarChart.jsx';
@@ -12,6 +11,7 @@ import DailyPnlChart from '../../../components/widgets/DailyPnlChart.jsx';
 import EquityCurveChart from '../../../components/widgets/EquityCurveChart.jsx';
 import WinRateDonut from '../../../components/widgets/WinRateDonut.jsx';
 import { SectionLabel, MiniStat } from './AnalyticsPrimitives.jsx';
+import { C, M } from '@/constants.js';
 
 function OverviewTab({ result, _trades }) {
   const [showBenchmark, setShowBenchmark] = useState(false);
@@ -51,7 +51,18 @@ function OverviewTab({ result, _trades }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <SectionLabel text="Equity Curve" />
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, color: showDrawdown ? C.r : C.t3, cursor: 'pointer', fontFamily: M, fontWeight: 700 }}>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 10,
+                color: showDrawdown ? C.r : C.t3,
+                cursor: 'pointer',
+                fontFamily: M,
+                fontWeight: 700,
+              }}
+            >
               <input
                 type="checkbox"
                 checked={showDrawdown}
@@ -60,7 +71,18 @@ function OverviewTab({ result, _trades }) {
               />
               Drawdown Overlay
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, color: showBenchmark ? C.b : C.t3, cursor: 'pointer', fontFamily: M, fontWeight: 700 }}>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 10,
+                color: showBenchmark ? C.b : C.t3,
+                cursor: 'pointer',
+                fontFamily: M,
+                fontWeight: 700,
+              }}
+            >
               <input
                 type="checkbox"
                 checked={showBenchmark}
@@ -148,7 +170,19 @@ function OverviewTab({ result, _trades }) {
                   />
                   <MiniStat label="Expectancy" value={fmtD(data.expectancy)} color={data.expectancy >= 0 ? C.g : C.r} />
                 </div>
-                <div style={{ fontSize: 9, color: C.t3, fontFamily: M, marginTop: 8, paddingTop: 6, borderTop: `1px solid ${C.bd}30`, fontVariantNumeric: 'tabular-nums' }}>{data.days} trading days</div>
+                <div
+                  style={{
+                    fontSize: 9,
+                    color: C.t3,
+                    fontFamily: M,
+                    marginTop: 8,
+                    paddingTop: 6,
+                    borderTop: `1px solid ${C.bd}30`,
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
+                  {data.days} trading days
+                </div>
               </Card>
             ))}
           </AutoGrid>

@@ -16,25 +16,24 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useRef, memo, useMemo, useCallback } from 'react';
-import DetailJournalSection from './DetailJournalSection.jsx';
+import { detectPeers } from '../../../charting_library/ai/PeerGroupEngine.js';
 import { C } from '../../../constants.js';
-import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
-import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
 import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming.js';
+import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
+import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
+import { usePriceTracker } from '../../../state/usePriceTracker';
+import { useUIStore } from '../../../state/useUIStore';
+import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { radii, transition } from '../../../theme/tokens.js';
+import AITickerNarrative from './AITickerNarrative.jsx';
+import DetailJournalSection from './DetailJournalSection.jsx';
 import MiniChart from './MiniChart.jsx';
 import TechnicalSnapshot from './TechnicalSnapshot.jsx';
 import TickerNewsFeed from './TickerNewsFeed.jsx';
-import AITickerNarrative from './AITickerNarrative.jsx';
-import { detectPeers } from '../../../charting_library/ai/PeerGroupEngine.js';
-import WeekRangeBar from './WeekRangeBar.jsx';
+import TickerNotes from './TickerNotes.jsx';
 import TradingActivityInsights from './TradingActivityInsights.jsx';
 import VolumeProfileBar from './VolumeProfileBar.jsx';
-import TickerNotes from './TickerNotes.jsx';
-import { usePriceTracker } from '../../../state/usePriceTracker';
-import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
-import { useUIStore } from '../../../state/useUIStore';
-import st from './MarketsDetailPanel.module.css';
+import WeekRangeBar from './WeekRangeBar.jsx';
 
 // ─── Asset class colors (shared with grid) ─────────────────────
 
@@ -106,10 +105,14 @@ function MarketsDetailPanel() {
   // Pre-compute price stats (avoid inline getState() calls in JSX)
   const priceStats = useMemo(() => {
     if (!selectedSymbol) return null;
+    // livePrice triggers recompute when price ticks
+    void livePrice;
     try {
       return usePriceTracker.getState().getStats?.(selectedSymbol) ?? null;
-    } catch { return null; }
-  }, [selectedSymbol, livePrice]); // re-eval when price ticks
+    } catch {
+      return null;
+    }
+  }, [selectedSymbol, livePrice]);
 
   // ─── Keyboard: Escape closes ─────────────────────────────
   useEffect(() => {
@@ -308,7 +311,12 @@ function MarketsDetailPanel() {
                 fontFamily: 'var(--tf-mono)',
               }}
             >
-              Vol {volume >= 1_000_000 ? `${(volume / 1_000_000).toFixed(1)}M` : volume >= 1_000 ? `${(volume / 1_000).toFixed(1)}K` : volume.toFixed(0)}
+              Vol{' '}
+              {volume >= 1_000_000
+                ? `${(volume / 1_000_000).toFixed(1)}M`
+                : volume >= 1_000
+                  ? `${(volume / 1_000).toFixed(1)}K`
+                  : volume.toFixed(0)}
             </span>
           )}
         </div>
@@ -358,11 +366,7 @@ function MarketsDetailPanel() {
 
         {/* Sprint 36: Volume Profile */}
         <DetailSection title="Volume Profile" icon="📊">
-          <VolumeProfileBar
-            currentVolume={volume}
-            avgVolume={volume ? volume * 0.8 : null}
-            expanded
-          />
+          <VolumeProfileBar currentVolume={volume} avgVolume={volume ? volume * 0.8 : null} expanded />
         </DetailSection>
 
         {/* Sprint 35: Trading Activity */}
@@ -499,13 +503,20 @@ function SimilarAssets({ symbol, items }) {
             key={peer.symbol}
             onClick={() => setSelectedSymbol(peer.symbol)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              padding: '6px 8px', borderRadius: 6,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '6px 8px',
+              borderRadius: 6,
               cursor: 'pointer',
               transition: `background ${transition.fast}`,
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = `${C.bd}15`; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = `${C.bd}15`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+            }}
           >
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 11, fontWeight: 700, fontFamily: 'var(--tf-font)', color: C.t1 }}>
@@ -515,11 +526,16 @@ function SimilarAssets({ symbol, items }) {
                 {(peer.similarity * 100).toFixed(0)}% similar
               </div>
             </div>
-            <span style={{
-              fontSize: 10, fontWeight: 700, fontFamily: 'var(--tf-mono)',
-              color: (peer.change ?? 0) >= 0 ? C.g : C.r,
-            }}>
-              {(peer.change ?? 0) >= 0 ? '+' : ''}{(peer.change ?? 0).toFixed(2)}%
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                fontFamily: 'var(--tf-mono)',
+                color: (peer.change ?? 0) >= 0 ? C.g : C.r,
+              }}
+            >
+              {(peer.change ?? 0) >= 0 ? '+' : ''}
+              {(peer.change ?? 0).toFixed(2)}%
             </span>
             <button
               onClick={(e) => {
@@ -529,9 +545,14 @@ function SimilarAssets({ symbol, items }) {
               }}
               title="Compare"
               style={{
-                background: 'transparent', border: `1px solid ${C.bd}30`,
-                borderRadius: 4, fontSize: 8, fontFamily: 'var(--tf-mono)',
-                color: C.t3, cursor: 'pointer', padding: '2px 6px',
+                background: 'transparent',
+                border: `1px solid ${C.bd}30`,
+                borderRadius: 4,
+                fontSize: 8,
+                fontFamily: 'var(--tf-mono)',
+                color: C.t3,
+                cursor: 'pointer',
+                padding: '2px 6px',
               }}
             >
               ⟷

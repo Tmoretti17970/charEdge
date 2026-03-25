@@ -13,10 +13,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
-import { F, M, GLASS } from '@/constants.js';
-import { useAlertStore } from '../../../../state/useAlertStore';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
+import { useAlertStore } from '../../../../state/useAlertStore';
 import Icon from '../../design/Icon.jsx';
+import { F, M, GLASS } from '@/constants.js';
 
 // ─── Severity helpers (pure — no DOM) ───────────────────────────
 
@@ -73,7 +73,6 @@ const OVERLAY_CSS = `
   }
 `;
 
-
 function AlertLinesOverlay({ symbol, engineRef }) {
   const allAlerts = useAlertStore((s) => s.alerts);
 
@@ -81,19 +80,11 @@ function AlertLinesOverlay({ symbol, engineRef }) {
   const alerts = useMemo(() => {
     if (!allAlerts) return [];
     if (Array.isArray(allAlerts)) {
-      return allAlerts.filter(
-        (a) => a.active !== false && (a.symbol || '').toUpperCase() === symbol.toUpperCase(),
-      );
+      return allAlerts.filter((a) => a.active !== false && (a.symbol || '').toUpperCase() === symbol.toUpperCase());
     }
     const list = allAlerts[symbol] || allAlerts[symbol?.toUpperCase()] || [];
     return Array.isArray(list) ? list.filter((a) => a.active !== false) : [];
   }, [allAlerts, symbol]);
-
-  // Stable key for detecting adds/removes
-  const alertKey = useMemo(
-    () => alerts.map((a) => a.id || `${a.price}-${a.condition}`).join(','),
-    [alerts],
-  );
 
   const lineRefsMap = useRef(new Map());
   const rafRef = useRef(null);
@@ -107,45 +98,49 @@ function AlertLinesOverlay({ symbol, engineRef }) {
   }, []);
 
   // ─── Drag handlers ─────────────────────────────────────────
-  const handleDragStart = useCallback((e, alert) => {
-    // Stop propagation at all levels to prevent chart panning
-    e.stopPropagation();
-    e.stopImmediatePropagation?.();
-    e.preventDefault();
+  const handleDragStart = useCallback(
+    (e, alert) => {
+      // Stop propagation at all levels to prevent chart panning
+      e.stopPropagation();
+      e.stopImmediatePropagation?.();
+      e.preventDefault();
 
-    const eng = engineRef?.current;
-    if (!eng) return;
+      const eng = engineRef?.current;
+      if (!eng) return;
 
-    const id = alert.id || `${alert.price}-${alert.condition}`;
-    const el = lineRefsMap.current.get(id);
-    if (!el) return;
+      const id = alert.id || `${alert.price}-${alert.condition}`;
+      const el = lineRefsMap.current.get(id);
+      if (!el) return;
 
-    const container = el.parentElement;
-    if (!container) return;
+      const container = el.parentElement;
+      if (!container) return;
 
-    const labelEl = el.querySelector('[data-alert-label]');
-    if (labelEl) labelEl.classList.add('dragging');
+      const labelEl = el.querySelector('[data-alert-label]');
+      if (labelEl) labelEl.classList.add('dragging');
 
-    // Use engine's price transform for pixel-perfect conversion
-    const yToPrice = eng._lastPriceTransform?.yToPrice
-      || ((y) => {
-        const R = eng.state?.lastRender;
-        if (!R || !R.mainH) return alert.price;
-        return R.yMin + ((R.mainH - y) / R.mainH) * (R.yMax - R.yMin);
-      });
+      // Use engine's price transform for pixel-perfect conversion
+      const yToPrice =
+        eng._lastPriceTransform?.yToPrice ||
+        ((y) => {
+          const R = eng.state?.lastRender;
+          if (!R || !R.mainH) return alert.price;
+          return R.yMin + ((R.mainH - y) / R.mainH) * (R.yMax - R.yMin);
+        });
 
-    dragRef.current = {
-      id,
-      alertId: alert.id,
-      el,
-      yToPrice,
-      containerRect: container.getBoundingClientRect(),
-    };
+      dragRef.current = {
+        id,
+        alertId: alert.id,
+        el,
+        yToPrice,
+        containerRect: container.getBoundingClientRect(),
+      };
 
-    // Block chart panning while dragging
-    document.body.style.cursor = 'grabbing';
-    document.body.style.userSelect = 'none';
-  }, [engineRef]);
+      // Block chart panning while dragging
+      document.body.style.cursor = 'grabbing';
+      document.body.style.userSelect = 'none';
+    },
+    [engineRef],
+  );
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -264,21 +259,14 @@ function AlertLinesOverlay({ symbol, engineRef }) {
       // Update label colors
       const labelEl = el.querySelector('[data-alert-label]');
       if (labelEl) {
-        const bg = severity === 'urgent'
-          ? `${color}18`
-          : severity === 'warning'
-            ? `${color}12`
-            : 'rgba(255,255,255,0.04)';
-        const bd = severity === 'urgent'
-          ? `${color}40`
-          : severity === 'warning'
-            ? `${color}30`
-            : 'rgba(255,255,255,0.08)';
+        const bg =
+          severity === 'urgent' ? `${color}18` : severity === 'warning' ? `${color}12` : 'rgba(255,255,255,0.04)';
+        const bd =
+          severity === 'urgent' ? `${color}40` : severity === 'warning' ? `${color}30` : 'rgba(255,255,255,0.08)';
 
         labelEl.style.background = bg;
         labelEl.style.borderColor = bd;
-        labelEl.style.animation =
-          severity === 'urgent' ? 'alertPulse 2.5s ease-in-out infinite' : 'none';
+        labelEl.style.animation = severity === 'urgent' ? 'alertPulse 2.5s ease-in-out infinite' : 'none';
 
         // Icon color
         const iconEl = labelEl.querySelector('[data-bell]');
@@ -301,7 +289,7 @@ function AlertLinesOverlay({ symbol, engineRef }) {
     }
 
     rafRef.current = requestAnimationFrame(tick);
-  }, [engineRef, alerts]);
+  }, [engineRef, symbol]);
 
   useEffect(() => {
     if (!alerts.length) return;

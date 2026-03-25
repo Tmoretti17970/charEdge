@@ -1,8 +1,8 @@
 // Checklist Tab for InsightsPanel
 import { useState, useCallback } from 'react';
-import { C } from '@/constants.js';
 import { useChecklistStore } from '../../../../state/useChecklistStore.js';
 import st from './ChecklistTab.module.css';
+import { C } from '@/constants.js';
 
 export default function ChecklistTab() {
   const items = useChecklistStore((s) => s.items);
@@ -37,8 +37,12 @@ export default function ChecklistTab() {
           <div className={st.statusHint}>Complete all required items before entering</div>
         </div>
         <div className={st.headerBtns}>
-          <button className={`tf-btn ${st.miniBtn}`} onClick={checkAll}>All ✓</button>
-          <button className={`tf-btn ${st.miniBtn}`} onClick={resetChecks}>Reset</button>
+          <button className={`tf-btn ${st.miniBtn}`} onClick={checkAll}>
+            All ✓
+          </button>
+          <button className={`tf-btn ${st.miniBtn}`} onClick={resetChecks}>
+            Reset
+          </button>
         </div>
       </div>
 
@@ -57,7 +61,9 @@ export default function ChecklistTab() {
           <div className={st.sectionLabel}>Required</div>
           {requiredItems.map((item) => (
             <ChecklistItem
-              key={item.id} item={item} checked={!!checked[item.id]}
+              key={item.id}
+              item={item}
+              checked={!!checked[item.id]}
               onToggle={() => toggleCheck(item.id)}
               onRemove={showCustomize ? () => removeItem(item.id) : null}
             />
@@ -70,7 +76,9 @@ export default function ChecklistTab() {
           <div className={st.sectionLabel}>Optional</div>
           {optionalItems.map((item) => (
             <ChecklistItem
-              key={item.id} item={item} checked={!!checked[item.id]}
+              key={item.id}
+              item={item}
+              checked={!!checked[item.id]}
               onToggle={() => toggleCheck(item.id)}
               onRemove={showCustomize ? () => removeItem(item.id) : null}
             />
@@ -92,7 +100,9 @@ export default function ChecklistTab() {
             <input
               value={newLabel}
               onChange={(e) => setNewLabel(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleAddItem(); }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleAddItem();
+              }}
               placeholder="Add checklist item..."
               className={st.addInput}
             />
@@ -100,7 +110,9 @@ export default function ChecklistTab() {
               className={`tf-btn ${st.addBtn} ${!newLabel.trim() ? st.addBtnDisabled : ''}`}
               onClick={handleAddItem}
               disabled={!newLabel.trim()}
-            >Add</button>
+            >
+              Add
+            </button>
           </div>
         )}
       </div>
@@ -111,19 +123,20 @@ export default function ChecklistTab() {
 function ChecklistItem({ item, checked, onToggle, onRemove }) {
   return (
     <div onClick={onToggle} className={`${st.item} ${checked ? st.itemChecked : ''}`}>
-      <div className={`${st.checkbox} ${checked ? st.checkboxOn : st.checkboxOff}`}>
-        {checked ? '✓' : ''}
-      </div>
+      <div className={`${st.checkbox} ${checked ? st.checkboxOn : st.checkboxOff}`}>{checked ? '✓' : ''}</div>
       <span className={st.itemEmoji}>{item.emoji}</span>
-      <span className={`${st.itemLabel} ${checked ? st.itemLabelChecked : st.itemLabelUnchecked}`}>
-        {item.label}
-      </span>
+      <span className={`${st.itemLabel} ${checked ? st.itemLabelChecked : st.itemLabelUnchecked}`}>{item.label}</span>
       {item.required && !checked && <span className={st.reqBadge}>REQ</span>}
       {onRemove && (
         <button
           className={`tf-btn ${st.removeItemBtn}`}
-          onClick={(e) => { e.stopPropagation(); onRemove(); }}
-        >×</button>
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+        >
+          ×
+        </button>
       )}
     </div>
   );

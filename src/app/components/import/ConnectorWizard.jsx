@@ -6,11 +6,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useCallback } from 'react';
-import { C, GLASS } from '../../../constants.js';
-import { alpha } from '@/shared/colorUtils';
-import { Card, Btn } from '../ui/UIKit.jsx';
+import { C } from '../../../constants.js';
 import BROKER_GUIDES from '../../../data/importExport/brokerGuideData.js';
-import st from './ConnectorWizard.module.css';
+import { Card } from '../ui/UIKit.jsx';
+import { alpha } from '@/shared/colorUtils';
 
 const STEPS = ['select', 'credentials', 'testing', 'success'];
 
@@ -50,7 +49,16 @@ function BrokerSelect({ onSelect }) {
         if (brokers.length === 0) return null;
         return (
           <div key={cat} style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>
+            <div
+              style={{
+                fontSize: 9,
+                fontWeight: 700,
+                color: C.t3,
+                textTransform: 'uppercase',
+                letterSpacing: 1,
+                marginBottom: 6,
+              }}
+            >
               {label}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
@@ -74,7 +82,9 @@ function BrokerSelect({ onSelect }) {
                   }}
                 >
                   <span style={{ fontSize: 20 }}>{broker.logo}</span>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: C.t1, fontFamily: 'var(--tf-font)' }}>{broker.name}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: C.t1, fontFamily: 'var(--tf-font)' }}>
+                    {broker.name}
+                  </span>
                 </button>
               ))}
             </div>
@@ -115,7 +125,18 @@ function CredentialForm({ broker, values, onChange, onSubmit, onBack }) {
       </div>
 
       {guide && (
-        <div style={{ padding: '8px 10px', borderRadius: 6, background: alpha(C.b, 0.04), border: `1px solid ${alpha(C.b, 0.1)}`, marginBottom: 14, fontSize: 10, color: C.t3, lineHeight: 1.5 }}>
+        <div
+          style={{
+            padding: '8px 10px',
+            borderRadius: 6,
+            background: alpha(C.b, 0.04),
+            border: `1px solid ${alpha(C.b, 0.1)}`,
+            marginBottom: 14,
+            fontSize: 10,
+            color: C.t3,
+            lineHeight: 1.5,
+          }}
+        >
           <div style={{ fontWeight: 700, color: C.t2, marginBottom: 4 }}>How to get your credentials:</div>
           <ol style={{ margin: 0, paddingLeft: 16 }}>
             {guide.steps.slice(0, 3).map((step, i) => (
@@ -128,11 +149,22 @@ function CredentialForm({ broker, values, onChange, onSubmit, onBack }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
         {broker.fields.map((field) => (
           <div key={field}>
-            <label style={{ fontSize: 10, fontWeight: 600, color: C.t2, fontFamily: 'var(--tf-mono)', marginBottom: 3, display: 'block' }}>
+            <label
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                color: C.t2,
+                fontFamily: 'var(--tf-mono)',
+                marginBottom: 3,
+                display: 'block',
+              }}
+            >
               {fieldLabels[field] || field}
             </label>
             <input
-              type={field.includes('password') || field.includes('secret') || field.includes('Key') ? 'password' : 'text'}
+              type={
+                field.includes('password') || field.includes('secret') || field.includes('Key') ? 'password' : 'text'
+              }
               value={values[field] || ''}
               onChange={(e) => onChange(field, e.target.value)}
               placeholder={`Enter ${fieldLabels[field] || field}`}
@@ -154,7 +186,17 @@ function CredentialForm({ broker, values, onChange, onSubmit, onBack }) {
       </div>
 
       <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between' }}>
-        <button onClick={onBack} style={{ fontSize: 11, color: C.t3, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--tf-font)' }}>
+        <button
+          onClick={onBack}
+          style={{
+            fontSize: 11,
+            color: C.t3,
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontFamily: 'var(--tf-font)',
+          }}
+        >
           ← Back
         </button>
         <button
@@ -188,9 +230,7 @@ function TestingStep({ broker }) {
       <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
         Testing connection to {broker.name}...
       </div>
-      <div style={{ fontSize: 11, color: C.t3, marginTop: 4 }}>
-        Verifying credentials and API access
-      </div>
+      <div style={{ fontSize: 11, color: C.t3, marginTop: 4 }}>Verifying credentials and API access</div>
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
@@ -202,7 +242,15 @@ function ResultStep({ broker, success, error, onFinish, onRetry }) {
   return (
     <div style={{ textAlign: 'center', padding: '24px 0' }}>
       <div style={{ fontSize: 40, marginBottom: 12 }}>{success ? '✅' : '❌'}</div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: success ? C.g : C.r, fontFamily: 'var(--tf-font)', marginBottom: 6 }}>
+      <div
+        style={{
+          fontSize: 15,
+          fontWeight: 700,
+          color: success ? C.g : C.r,
+          fontFamily: 'var(--tf-font)',
+          marginBottom: 6,
+        }}
+      >
         {success ? `${broker.name} Connected!` : 'Connection Failed'}
       </div>
       <div style={{ fontSize: 11, color: C.t3, marginBottom: 20, maxWidth: 300, margin: '0 auto 20px' }}>
@@ -213,13 +261,36 @@ function ResultStep({ broker, success, error, onFinish, onRetry }) {
       {success ? (
         <button
           onClick={onFinish}
-          style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: C.b, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: 'var(--tf-font)', cursor: 'pointer' }}
+          style={{
+            padding: '8px 24px',
+            borderRadius: 8,
+            border: 'none',
+            background: C.b,
+            color: '#fff',
+            fontSize: 12,
+            fontWeight: 700,
+            fontFamily: 'var(--tf-font)',
+            cursor: 'pointer',
+          }}
         >
           Done
         </button>
       ) : (
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-          <button onClick={onRetry} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${alpha(C.bd, 0.3)}`, background: 'transparent', color: C.t2, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--tf-font)' }}>
+          <button
+            onClick={onRetry}
+            style={{
+              padding: '8px 18px',
+              borderRadius: 8,
+              border: `1px solid ${alpha(C.bd, 0.3)}`,
+              background: 'transparent',
+              color: C.t2,
+              fontSize: 11,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'var(--tf-font)',
+            }}
+          >
             Try Again
           </button>
         </div>
@@ -285,10 +356,21 @@ function ConnectorWizard({ isOpen, onClose }) {
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+      }}
       onClick={onClose}
     >
-      <Card onClick={(e) => e.stopPropagation()} style={{ padding: 24, maxWidth: 440, width: '90%', maxHeight: '80vh', overflowY: 'auto' }}>
+      <Card
+        onClick={(e) => e.stopPropagation()}
+        style={{ padding: 24, maxWidth: 440, width: '90%', maxHeight: '80vh', overflowY: 'auto' }}
+      >
         {/* Progress dots */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 16 }}>
           {STEPS.map((s, i) => (

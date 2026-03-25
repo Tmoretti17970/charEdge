@@ -4,8 +4,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback } from 'react';
-import { C, M } from '@/constants.js';
 import { MobileRow, MobileBtn, mobileInput } from '../MobilePrimitives.jsx';
+import { C, M } from '@/constants.js';
 
 const AVATAR_OPTIONS = ['🔥', '🐂', '🐻', '🦈', '🦅', '🐺', '🦁', '🐲', '🦊', '🎯', '💎', '⚡', '🌊', '🏔️', '🎲', '🧠'];
 

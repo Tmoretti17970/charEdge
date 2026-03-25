@@ -7,10 +7,10 @@
 import { useMemo, useCallback, useState } from 'react';
 import { formatPrice } from '../../../../charting_library/core/CoordinateSystem.js';
 import { INDICATORS } from '../../../../charting_library/studies/indicators/registry.js';
-import { C, F } from '@/constants.js';
 import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 import Icon from '../../design/Icon.jsx';
 import s from './IndicatorLegendHeader.module.css';
+import { C } from '@/constants.js';
 
 /**
  * Format large numbers compactly: 1234567 → 1.23M
@@ -74,8 +74,7 @@ export default function IndicatorLegendHeader({ data, hoverIdx, _onEditIndicator
                 });
               }
             }
-            // eslint-disable-next-line unused-imports/no-unused-vars
-          } catch (_) {
+          } catch {
             // Computation failed — show without values
           }
         }
@@ -132,7 +131,8 @@ export default function IndicatorLegendHeader({ data, hoverIdx, _onEditIndicator
             className={s.itemRow}
             data-hidden={!item.visible}
             style={{
-              '--item-bg': editIdx === item.indId ? `${C.b}18` : hoveredIdx === item.indId ? `${C.sf2}E8` : `${C.sf2}B0`,
+              '--item-bg':
+                editIdx === item.indId ? `${C.b}18` : hoveredIdx === item.indId ? `${C.sf2}E8` : `${C.sf2}B0`,
               '--item-border': editIdx === item.indId ? C.b : hoveredIdx === item.indId ? C.bd2 : C.bd,
             }}
           >
@@ -156,12 +156,20 @@ export default function IndicatorLegendHeader({ data, hoverIdx, _onEditIndicator
             )}
 
             {/* Eye toggle — always visible */}
-            <button onClick={(e) => handleToggleVis(e, item.indId)} title={item.visible ? 'Hide' : 'Show'} className={s.eyeBtn}>
+            <button
+              onClick={(e) => handleToggleVis(e, item.indId)}
+              title={item.visible ? 'Hide' : 'Show'}
+              className={s.eyeBtn}
+            >
               {item.visible ? <Icon name="eye" size={9} /> : <Icon name="eye-off" size={9} />}
             </button>
 
             {/* × Remove button — always visible */}
-            <button onClick={(e) => handleRemove(e, item.indId)} title="Remove indicator" className={`tf-hover-danger ${s.removeBtn}`}>
+            <button
+              onClick={(e) => handleRemove(e, item.indId)}
+              title="Remove indicator"
+              className={`tf-hover-danger ${s.removeBtn}`}
+            >
               ×
             </button>
           </div>
@@ -239,8 +247,19 @@ function IndicatorQuickEdit({ idx, indicator, onClose, updateIndicator, removeIn
       <div className={s.popoverHeader}>
         <span className={s.popoverTitle}>{def?.shortName || regId}</span>
         <div className={s.popoverActions}>
-          <button onClick={() => { onClose(); removeIndicator(idx); }} title="Delete indicator" className={s.deleteBtn}>🗑</button>
-          <button onClick={onClose} className={s.closePopoverBtn}>×</button>
+          <button
+            onClick={() => {
+              onClose();
+              removeIndicator(idx);
+            }}
+            title="Delete indicator"
+            className={s.deleteBtn}
+          >
+            🗑
+          </button>
+          <button onClick={onClose} className={s.closePopoverBtn}>
+            ×
+          </button>
         </div>
       </div>
 

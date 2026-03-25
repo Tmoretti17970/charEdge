@@ -11,7 +11,6 @@ import s from './CrosshairHUD.module.css';
 
 const HUD_OFFSET = 16;
 const EDGE_MARGIN = 12;
-const HUD_MIN = 120;
 const HUD_MAX = 220;
 const HUD_HEIGHT = 200;
 
@@ -23,39 +22,42 @@ function CrosshairHUD({ crosshairBus, chartRef, visible = true }) {
   const prevCloseRef = useRef(null);
   const [flashChange, setFlashChange] = useState(false);
 
-  const handleCrosshairMove = useCallback(({ x, y, barData }) => {
-    if (!barData || !visible) {
-      setIsVisible(false);
-      return;
-    }
+  const handleCrosshairMove = useCallback(
+    ({ x, y, barData }) => {
+      if (!barData || !visible) {
+        setIsVisible(false);
+        return;
+      }
 
-    const chart = chartRef?.current;
-    const cw = chart?.offsetWidth || window.innerWidth;
-    const ch = chart?.offsetHeight || window.innerHeight;
+      const chart = chartRef?.current;
+      const cw = chart?.offsetWidth || window.innerWidth;
+      const ch = chart?.offsetHeight || window.innerHeight;
 
-    let hudX = x + HUD_OFFSET;
-    let hudY = y + HUD_OFFSET;
+      let hudX = x + HUD_OFFSET;
+      let hudY = y + HUD_OFFSET;
 
-    if (hudX + HUD_MAX + EDGE_MARGIN > cw) {
-      hudX = x - HUD_MAX - HUD_OFFSET;
-    }
-    if (hudY + HUD_HEIGHT + EDGE_MARGIN > ch) {
-      hudY = y - HUD_HEIGHT - HUD_OFFSET;
-    }
+      if (hudX + HUD_MAX + EDGE_MARGIN > cw) {
+        hudX = x - HUD_MAX - HUD_OFFSET;
+      }
+      if (hudY + HUD_HEIGHT + EDGE_MARGIN > ch) {
+        hudY = y - HUD_HEIGHT - HUD_OFFSET;
+      }
 
-    hudX = Math.max(EDGE_MARGIN, hudX);
-    hudY = Math.max(EDGE_MARGIN, hudY);
+      hudX = Math.max(EDGE_MARGIN, hudX);
+      hudY = Math.max(EDGE_MARGIN, hudY);
 
-    setPosition({ x: hudX, y: hudY });
-    setData(barData);
-    setIsVisible(true);
+      setPosition({ x: hudX, y: hudY });
+      setData(barData);
+      setIsVisible(true);
 
-    if (prevCloseRef.current !== null && barData.close !== prevCloseRef.current) {
-      setFlashChange(true);
-      setTimeout(() => setFlashChange(false), 200);
-    }
-    prevCloseRef.current = barData.close;
-  }, [visible, chartRef]);
+      if (prevCloseRef.current !== null && barData.close !== prevCloseRef.current) {
+        setFlashChange(true);
+        setTimeout(() => setFlashChange(false), 200);
+      }
+      prevCloseRef.current = barData.close;
+    },
+    [visible, chartRef],
+  );
 
   const handleCrosshairLeave = useCallback(() => {
     setIsVisible(false);
@@ -78,7 +80,8 @@ function CrosshairHUD({ crosshairBus, chartRef, visible = true }) {
   const isUp = change >= 0;
   const changeColor = isUp ? 'var(--tf-green)' : 'var(--tf-red)';
 
-  const formatPrice = (v) => typeof v === 'number' ? v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 }) : '—';
+  const formatPrice = (v) =>
+    typeof v === 'number' ? v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 }) : '—';
   const formatVol = (v) => {
     if (!v) return '—';
     if (v >= 1e9) return (v / 1e9).toFixed(2) + 'B';
@@ -103,17 +106,17 @@ function CrosshairHUD({ crosshairBus, chartRef, visible = true }) {
         <span className={s.ohlcvLabel}>L</span>
         <span className={s.ohlcvLow}>{formatPrice(data.low)}</span>
         <span className={s.ohlcvLabel}>C</span>
-        <span className={s.ohlcvClose} style={{ color: changeColor }}>{formatPrice(data.close)}</span>
+        <span className={s.ohlcvClose} style={{ color: changeColor }}>
+          {formatPrice(data.close)}
+        </span>
         <span className={s.ohlcvLabel}>V</span>
         <span>{formatVol(data.volume)}</span>
       </div>
 
       {/* Change line */}
-      <div
-        className={s.changeLine}
-        style={{ color: changeColor, opacity: flashChange ? 0.5 : 1 }}
-      >
-        {isUp ? '▲' : '▼'} {change >= 0 ? '+' : ''}{formatPrice(change)} ({changePct}%)
+      <div className={s.changeLine} style={{ color: changeColor, opacity: flashChange ? 0.5 : 1 }}>
+        {isUp ? '▲' : '▼'} {change >= 0 ? '+' : ''}
+        {formatPrice(change)} ({changePct}%)
       </div>
 
       {/* Indicator values */}

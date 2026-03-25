@@ -1,7 +1,6 @@
 // Section 5: Edge Insights for Morning Briefing
 import { C } from '@/constants.js';
 import { alpha } from '@/shared/colorUtils';
-import st from './EdgeInsights.module.css';
 
 export default function EdgeInsights({ insights }) {
   const typeColors = { positive: C.g, caution: C.y, info: C.b };

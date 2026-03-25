@@ -6,7 +6,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { temporalEngine, TemporalEngine } from '../../charting_library/core/TemporalEngine.ts';
+import { temporalEngine } from '../../charting_library/core/TemporalEngine.ts';
 import { formatTimeLabel } from '../../charting_library/core/barCountdown.js';
 
 describe('TemporalEngine — Offset & Zone Support', () => {

@@ -6,10 +6,6 @@
 // Color: green > 0.7, yellow 0.4–0.7, red < 0.4
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
-
-const METER_ID = { n: 0 };
-
 /**
  * AIConfidenceMeter — visual confidence indicator.
  *
@@ -29,16 +25,14 @@ export default function AIConfidenceMeter({
   style = {},
 }) {
   const clamped = Math.max(0, Math.min(1, value));
-  const color = clamped >= 0.7
-    ? 'var(--ai-confidence-high, #34C759)'
-    : clamped >= 0.4
-      ? 'var(--ai-confidence-mid, #f0b64e)'
-      : 'var(--ai-confidence-low, #FF3B30)';
+  const color =
+    clamped >= 0.7
+      ? 'var(--ai-confidence-high, #34C759)'
+      : clamped >= 0.4
+        ? 'var(--ai-confidence-mid, #f0b64e)'
+        : 'var(--ai-confidence-low, #FF3B30)';
 
   const pct = Math.round(clamped * 100);
-
-  // Ring variant helpers — must be called before any early return (Rules of Hooks)
-  const id = React.useMemo(() => `ai-conf-${++METER_ID.n}`, []);
 
   if (variant === 'bar') {
     return (

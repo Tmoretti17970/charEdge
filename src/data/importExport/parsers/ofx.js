@@ -39,10 +39,10 @@ export function parseOFX(text) {
       // Extract common fields using OFX tags
       const dateMatch = raw.match(/<DTTRADE>([\d]+)/);
       const symbolMatch = raw.match(/<TICKER>(.*?)(?:<|$)/m) || raw.match(/<SECID>[\s\S]*?<UNIQUEID>(.*?)(?:<|$)/m);
-      const qtyMatch = raw.match(/<UNITS>([\d.\-]+)/);
-      const priceMatch = raw.match(/<UNITPRICE>([\d.\-]+)/);
-      const totalMatch = raw.match(/<TOTAL>([\d.\-]+)/);
-      const commMatch = raw.match(/<COMMISSION>([\d.\-]+)/) || raw.match(/<FEES>([\d.\-]+)/);
+      const qtyMatch = raw.match(/<UNITS>([\d.-]+)/);
+      const priceMatch = raw.match(/<UNITPRICE>([\d.-]+)/);
+      const totalMatch = raw.match(/<TOTAL>([\d.-]+)/);
+      const commMatch = raw.match(/<COMMISSION>([\d.-]+)/) || raw.match(/<FEES>([\d.-]+)/);
       const memoMatch = raw.match(/<MEMO>(.*?)(?:<|$)/m);
 
       if (dateMatch) {
@@ -69,7 +69,7 @@ export function parseOFX(text) {
       const stmtTrans = text.match(/<STMTTRN>[\s\S]*?<\/STMTTRN>/gi) || [];
       for (const raw of stmtTrans) {
         const dateMatch = raw.match(/<DTPOSTED>([\d]+)/);
-        const amountMatch = raw.match(/<TRNAMT>([\d.\-]+)/);
+        const amountMatch = raw.match(/<TRNAMT>([\d.-]+)/);
         const nameMatch = raw.match(/<NAME>(.*?)(?:<|$)/m);
         const memoMatch = raw.match(/<MEMO>(.*?)(?:<|$)/m);
 

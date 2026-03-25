@@ -15,7 +15,7 @@ import s from './DashboardPanel.module.css';
 
 // ─── DashHeader ────────────────────────────────────────────────
 
-export function DashHeader({ trades }) {
+export function DashHeader({ trades: _trades }) {
   return (
     <div className={s.dashHeader}>
       <div className={s.dashHeaderLeft}>

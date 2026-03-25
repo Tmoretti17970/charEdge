@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import { C, F, M } from '../../../constants.js';
 import { MOCK_COMMENTS, MOCK_PROFILES } from '../../../data/socialMockData.js';
 import { useSocialStore } from '../../../state/useSocialStore.js';
-import { alpha } from '@/shared/colorUtils';
 import s from './ChartIdeasFeed.module.css';
+import { alpha } from '@/shared/colorUtils';
 
 function timeAgo(ts) {
   const diff = Date.now() - ts;
@@ -79,8 +79,12 @@ function MiniChart({ symbol, width = 320, height = 80 }) {
       {[0.25, 0.5, 0.75].map((pct) => (
         <line
           key={pct}
-          x1={0} y1={height * pct} x2={width} y2={height * pct}
-          stroke={alpha(C.bd, 0.3)} strokeWidth={0.5}
+          x1={0}
+          y1={height * pct}
+          x2={width}
+          y2={height * pct}
+          stroke={alpha(C.bd, 0.3)}
+          strokeWidth={0.5}
         />
       ))}
       {/* Candles */}
@@ -92,8 +96,13 @@ function MiniChart({ symbol, width = 320, height = 80 }) {
           <g key={i}>
             {/* Wick */}
             <line
-              x1={x} y1={yScale(bar.high)} x2={x} y2={yScale(bar.low)}
-              stroke={color} strokeWidth={1} opacity={0.6}
+              x1={x}
+              y1={yScale(bar.high)}
+              x2={x}
+              y2={yScale(bar.low)}
+              stroke={color}
+              strokeWidth={1}
+              opacity={0.6}
             />
             {/* Body */}
             <rect
@@ -144,7 +153,10 @@ function ReactionBar({ _snapshotId }) {
         return (
           <button
             key={emoji}
-            onClick={(e) => { e.stopPropagation(); handleReact(emoji); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleReact(emoji);
+            }}
             className="tf-reaction-pop"
             style={{
               padding: '3px 8px',
@@ -160,11 +172,7 @@ function ReactionBar({ _snapshotId }) {
             }}
           >
             {emoji}
-            {count > 0 && (
-              <span style={{ fontSize: 10, color: C.t2, fontFamily: M, fontWeight: 700 }}>
-                {count}
-              </span>
-            )}
+            {count > 0 && <span style={{ fontSize: 10, color: C.t2, fontFamily: M, fontWeight: 700 }}>{count}</span>}
           </button>
         );
       })}
@@ -184,9 +192,7 @@ function EmptyFeedState({ zenMode, onPostIdea }) {
         border: `1px solid ${C.bd}`,
       }}
     >
-      <div className={`tf-empty-float ${s.s1}`}>
-        {zenMode ? '🔭' : '💡'}
-      </div>
+      <div className={`tf-empty-float ${s.s1}`}>{zenMode ? '🔭' : '💡'}</div>
       <h3
         style={{
           margin: '0 0 8px',
@@ -244,12 +250,9 @@ function SnapshotCard({ snapshot, profile, onLike, onProfileClick, onBookmark, i
   const [localComments, setLocalComments] = useState([]);
   const [copied, setCopied] = useState(false);
 
-  const trustScore = profile?.trustScore || (profile ? 60 + (profile.username.length * 5) % 40 : 0);
+  const trustScore = profile?.trustScore || (profile ? 60 + ((profile.username.length * 5) % 40) : 0);
 
-  const snapshotComments = [
-    ...MOCK_COMMENTS.filter((c) => c.snapshotId === snapshot.id),
-    ...localComments,
-  ];
+  const snapshotComments = [...MOCK_COMMENTS.filter((c) => c.snapshotId === snapshot.id), ...localComments];
 
   const handleReply = () => {
     if (!replyText.trim()) return;
@@ -309,7 +312,17 @@ function SnapshotCard({ snapshot, profile, onLike, onProfileClick, onBookmark, i
           {profile?.avatar || '👤'}
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: F, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 700,
+              color: C.t1,
+              fontFamily: F,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
             {profile?.displayName || profile?.username || 'Unknown'}
             {trustScore > 0 && <TrustBadge score={trustScore} />}
           </div>
@@ -340,8 +353,15 @@ function SnapshotCard({ snapshot, profile, onLike, onProfileClick, onBookmark, i
       {/* Description */}
       <p
         style={{
-          margin: '0 0 14px 0', fontSize: 13, color: C.t2, lineHeight: 1.5, fontFamily: F,
-          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+          margin: '0 0 14px 0',
+          fontSize: 13,
+          color: C.t2,
+          lineHeight: 1.5,
+          fontFamily: F,
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
         }}
       >
         {snapshot.description}
@@ -354,11 +374,32 @@ function SnapshotCard({ snapshot, profile, onLike, onProfileClick, onBookmark, i
 
       {/* Indicators & Timeframe */}
       <div className={s.s3}>
-        <span style={{ padding: '3px 8px', borderRadius: 5, background: C.sf, color: C.t2, fontSize: 10, fontWeight: 600, fontFamily: M }}>
+        <span
+          style={{
+            padding: '3px 8px',
+            borderRadius: 5,
+            background: C.sf,
+            color: C.t2,
+            fontSize: 10,
+            fontWeight: 600,
+            fontFamily: M,
+          }}
+        >
           {snapshot.timeframe}
         </span>
         {snapshot.indicators?.map((ind, i) => (
-          <span key={i} style={{ padding: '3px 8px', borderRadius: 5, background: alpha(ind.color || C.p, 0.12), color: ind.color || C.p, fontSize: 10, fontWeight: 600, fontFamily: M }}>
+          <span
+            key={i}
+            style={{
+              padding: '3px 8px',
+              borderRadius: 5,
+              background: alpha(ind.color || C.p, 0.12),
+              color: ind.color || C.p,
+              fontSize: 10,
+              fontWeight: 600,
+              fontFamily: M,
+            }}
+          >
             {ind.type.toUpperCase()}
           </span>
         ))}
@@ -368,7 +409,18 @@ function SnapshotCard({ snapshot, profile, onLike, onProfileClick, onBookmark, i
       {snapshot.tags?.length > 0 && (
         <div className={s.s4}>
           {snapshot.tags.map((tag) => (
-            <span key={tag} style={{ padding: '2px 8px', borderRadius: 4, background: alpha(C.cyan, 0.08), color: C.cyan, fontSize: 10, fontWeight: 600, fontFamily: F }}>
+            <span
+              key={tag}
+              style={{
+                padding: '2px 8px',
+                borderRadius: 4,
+                background: alpha(C.cyan, 0.08),
+                color: C.cyan,
+                fontSize: 10,
+                fontWeight: 600,
+                fontFamily: F,
+              }}
+            >
               #{tag}
             </span>
           ))}
@@ -390,12 +442,24 @@ function SnapshotCard({ snapshot, profile, onLike, onProfileClick, onBookmark, i
       >
         {/* Like */}
         <span
-          onClick={(e) => { e.stopPropagation(); onLike(snapshot.id); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onLike(snapshot.id);
+          }}
           className={s.s5}
           onMouseEnter={(e) => (e.currentTarget.style.color = C.r)}
           onMouseLeave={(e) => (e.currentTarget.style.color = C.t3)}
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
           {snapshot.likes}
@@ -403,12 +467,35 @@ function SnapshotCard({ snapshot, profile, onLike, onProfileClick, onBookmark, i
 
         {/* Comment */}
         <span
-          onClick={(e) => { e.stopPropagation(); setShowComments(!showComments); }}
-          style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', transition: 'color 0.15s', color: showComments ? C.b : C.t3 }}
-          onMouseEnter={(e) => { if (!showComments) e.currentTarget.style.color = C.b; }}
-          onMouseLeave={(e) => { if (!showComments) e.currentTarget.style.color = C.t3; }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowComments(!showComments);
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+            cursor: 'pointer',
+            transition: 'color 0.15s',
+            color: showComments ? C.b : C.t3,
+          }}
+          onMouseEnter={(e) => {
+            if (!showComments) e.currentTarget.style.color = C.b;
+          }}
+          onMouseLeave={(e) => {
+            if (!showComments) e.currentTarget.style.color = C.t3;
+          }}
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
           </svg>
           {snapshotComments.length}
@@ -416,13 +503,36 @@ function SnapshotCard({ snapshot, profile, onLike, onProfileClick, onBookmark, i
 
         {/* Bookmark */}
         <span
-          onClick={(e) => { e.stopPropagation(); onBookmark(snapshot.id); }}
-          style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', transition: 'color 0.15s', color: isBookmarked ? C.y : C.t3 }}
-          onMouseEnter={(e) => { if (!isBookmarked) e.currentTarget.style.color = C.y; }}
-          onMouseLeave={(e) => { if (!isBookmarked) e.currentTarget.style.color = isBookmarked ? C.y : C.t3; }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onBookmark(snapshot.id);
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            cursor: 'pointer',
+            transition: 'color 0.15s',
+            color: isBookmarked ? C.y : C.t3,
+          }}
+          onMouseEnter={(e) => {
+            if (!isBookmarked) e.currentTarget.style.color = C.y;
+          }}
+          onMouseLeave={(e) => {
+            if (!isBookmarked) e.currentTarget.style.color = isBookmarked ? C.y : C.t3;
+          }}
           title={isBookmarked ? 'Saved' : 'Save for later'}
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill={isBookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill={isBookmarked ? 'currentColor' : 'none'}
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
           </svg>
         </span>
@@ -435,7 +545,16 @@ function SnapshotCard({ snapshot, profile, onLike, onProfileClick, onBookmark, i
           onMouseLeave={(e) => (e.currentTarget.style.color = C.t3)}
           title="Copy link"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <circle cx="18" cy="5" r="3" />
             <circle cx="6" cy="12" r="3" />
             <circle cx="18" cy="19" r="3" />
@@ -479,10 +598,15 @@ function SnapshotCard({ snapshot, profile, onLike, onProfileClick, onBookmark, i
                 >
                   <div
                     style={{
-                      width: 28, height: 28, borderRadius: '50%',
-                      background: alpha(C.b, 0.1), display: 'flex',
-                      alignItems: 'center', justifyContent: 'center',
-                      fontSize: 14, flexShrink: 0,
+                      width: 28,
+                      height: 28,
+                      borderRadius: '50%',
+                      background: alpha(C.b, 0.1),
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 14,
+                      flexShrink: 0,
                     }}
                   >
                     {commentAuthor?.avatar || '👤'}
@@ -492,9 +616,7 @@ function SnapshotCard({ snapshot, profile, onLike, onProfileClick, onBookmark, i
                       <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: F }}>
                         {commentAuthor?.displayName || commentAuthor?.username || 'You'}
                       </span>
-                      <span style={{ fontSize: 10, color: C.t3, fontFamily: M }}>
-                        {timeAgo(comment.createdAt)}
-                      </span>
+                      <span style={{ fontSize: 10, color: C.t3, fontFamily: M }}>{timeAgo(comment.createdAt)}</span>
                     </div>
                     <div style={{ fontSize: 12, color: C.t2, lineHeight: 1.4 }}>{comment.text}</div>
                     {/* Reaction bar on each comment */}
@@ -509,10 +631,15 @@ function SnapshotCard({ snapshot, profile, onLike, onProfileClick, onBookmark, i
           <div className={s.s8}>
             <div
               style={{
-                width: 28, height: 28, borderRadius: '50%',
-                background: alpha(C.b, 0.1), display: 'flex',
-                alignItems: 'center', justifyContent: 'center',
-                fontSize: 14, flexShrink: 0,
+                width: 28,
+                height: 28,
+                borderRadius: '50%',
+                background: alpha(C.b, 0.1),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 14,
+                flexShrink: 0,
               }}
             >
               🔥
@@ -521,23 +648,36 @@ function SnapshotCard({ snapshot, profile, onLike, onProfileClick, onBookmark, i
               type="text"
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleReply(); }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleReply();
+              }}
               placeholder="Add a comment..."
               style={{
-                flex: 1, padding: '8px 12px', borderRadius: 8,
-                border: `1px solid ${C.bd}`, background: C.bg,
-                color: C.t1, fontSize: 12, fontFamily: F, outline: 'none',
+                flex: 1,
+                padding: '8px 12px',
+                borderRadius: 8,
+                border: `1px solid ${C.bd}`,
+                background: C.bg,
+                color: C.t1,
+                fontSize: 12,
+                fontFamily: F,
+                outline: 'none',
               }}
             />
             <button
               onClick={handleReply}
               disabled={!replyText.trim()}
               style={{
-                padding: '6px 14px', borderRadius: 8, border: 'none',
+                padding: '6px 14px',
+                borderRadius: 8,
+                border: 'none',
                 background: replyText.trim() ? C.b : C.sf,
                 color: replyText.trim() ? '#fff' : C.t3,
-                fontSize: 12, fontWeight: 700, cursor: replyText.trim() ? 'pointer' : 'default',
-                fontFamily: F, transition: 'all 0.15s',
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: replyText.trim() ? 'pointer' : 'default',
+                fontFamily: F,
+                transition: 'all 0.15s',
               }}
             >
               Reply
@@ -569,7 +709,7 @@ function ChartIdeasFeed({ zenMode = false, onPostIdea }) {
 
   useEffect(() => {
     loadFeed({ reset: true });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -578,13 +718,13 @@ function ChartIdeasFeed({ zenMode = false, onPostIdea }) {
       authorIds.forEach((id) => fetchProfile(id));
       setProfilesFetched(true);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feed, profilesFetched]);
 
   const displayFeed = zenMode
     ? feed.filter((snapshot) => {
         const profile = profileCache[snapshot.authorId];
-        const score = profile?.trustScore || (profile ? 60 + (profile.username.length * 5) % 40 : 0);
+        const score = profile?.trustScore || (profile ? 60 + ((profile.username.length * 5) % 40) : 0);
         return score >= 80;
       })
     : feed;
@@ -593,21 +733,24 @@ function ChartIdeasFeed({ zenMode = false, onPostIdea }) {
     <div className={s.s9}>
       {/* Header */}
       <div className={s.s10}>
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>
-          💡 Chart Ideas
-        </h3>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: F }}>💡 Chart Ideas</h3>
         <div className={s.s11}>
           {['recent', 'popular'].map((s) => (
             <button
               key={s}
               onClick={() => setFeedSort(s)}
               style={{
-                padding: '5px 12px', borderRadius: 8,
+                padding: '5px 12px',
+                borderRadius: 8,
                 border: `1px solid ${feedSort === s ? C.b : C.bd}`,
                 background: feedSort === s ? alpha(C.b, 0.12) : 'transparent',
                 color: feedSort === s ? C.b : C.t3,
-                cursor: 'pointer', fontSize: 11, fontWeight: 700,
-                fontFamily: F, textTransform: 'capitalize', transition: 'all 0.2s',
+                cursor: 'pointer',
+                fontSize: 11,
+                fontWeight: 700,
+                fontFamily: F,
+                textTransform: 'capitalize',
+                transition: 'all 0.2s',
               }}
             >
               {s}
@@ -644,14 +787,26 @@ function ChartIdeasFeed({ zenMode = false, onPostIdea }) {
           onClick={() => loadFeed()}
           className="tf-btn"
           style={{
-            padding: '10px 20px', borderRadius: 10,
-            border: `1px solid ${C.bd}`, background: 'transparent',
-            color: C.t2, cursor: 'pointer', fontSize: 13,
-            fontWeight: 600, fontFamily: F, transition: 'all 0.2s',
+            padding: '10px 20px',
+            borderRadius: 10,
+            border: `1px solid ${C.bd}`,
+            background: 'transparent',
+            color: C.t2,
+            cursor: 'pointer',
+            fontSize: 13,
+            fontWeight: 600,
+            fontFamily: F,
+            transition: 'all 0.2s',
             alignSelf: 'center',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = C.b; e.currentTarget.style.color = C.b; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.bd; e.currentTarget.style.color = C.t2; }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = C.b;
+            e.currentTarget.style.color = C.b;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = C.bd;
+            e.currentTarget.style.color = C.t2;
+          }}
         >
           Load More Ideas
         </button>

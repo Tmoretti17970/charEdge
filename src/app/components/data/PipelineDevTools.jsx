@@ -12,7 +12,6 @@
 import React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { logger } from '@/observability/logger';
-import st from './PipelineDevTools.module.css';
 
 // ─── Styles ────────────────────────────────────────────────────
 
@@ -138,7 +137,7 @@ function PipelineDevTools() {
     const handler = (e) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'D') {
         e.preventDefault();
-        setVisible(prev => !prev);
+        setVisible((prev) => !prev);
       }
     };
     window.addEventListener('keydown', handler);
@@ -155,58 +154,69 @@ function PipelineDevTools() {
         const { pipelineLogger } = await import('../../../data/engine/infra/DataPipelineLogger.js');
         snap.logger = pipelineLogger.getStats();
         snap.recentErrors = pipelineLogger.getRecentErrors(5);
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      } catch (_) { snap.logger = null; }
+      } catch {
+        snap.logger = null;
+      }
 
       // Pipeline Health Monitor
       try {
         const { pipelineHealthMonitor } = await import('../../../data/engine/infra/PipelineHealthMonitor.js');
         snap.health = pipelineHealthMonitor.getHealthSnapshot();
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      } catch (_) { snap.health = null; }
+      } catch {
+        snap.health = null;
+      }
 
       // Compute Worker Pool
       try {
         const { computePool } = await import('../../../data/engine/infra/ComputeWorkerPool.js');
         snap.workerPool = computePool.getStats();
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      } catch (_) { snap.workerPool = null; }
+      } catch {
+        snap.workerPool = null;
+      }
 
       // Ticker Plant
       try {
         const { tickerPlant } = await import('../../../data/engine/streaming/TickerPlant.ts');
         snap.tickerPlant = tickerPlant.getHealth();
         snap.adapterHealth = tickerPlant.getAdapterHealth?.() || {};
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      } catch (_) { snap.tickerPlant = null; snap.adapterHealth = {}; }
+      } catch {
+        snap.tickerPlant = null;
+        snap.adapterHealth = {};
+      }
 
       // Tick Persistence
       try {
         const { tickPersistence } = await import('../../../data/engine/streaming/TickPersistence.js');
         snap.persistence = tickPersistence.getStats();
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      } catch (_) { snap.persistence = null; }
+      } catch {
+        snap.persistence = null;
+      }
 
       // Memory Budget
       try {
         const { memoryBudget } = await import('../../../data/engine/infra/MemoryBudget.js');
         snap.memory = memoryBudget.getSnapshot();
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      } catch (_) { snap.memory = null; }
+      } catch {
+        snap.memory = null;
+      }
 
       // Streaming Indicator Bridge
       try {
-        const { streamingIndicatorBridge } = await import('../../../data/engine/indicators/StreamingIndicatorBridge.js');
+        const { streamingIndicatorBridge } =
+          await import('../../../data/engine/indicators/StreamingIndicatorBridge.js');
         snap.indicators = {
           workerActive: streamingIndicatorBridge.isWorkerActive?.() || false,
           activeSymbols: streamingIndicatorBridge.getActiveSymbols(),
         };
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      } catch (_) { snap.indicators = null; }
+      } catch {
+        snap.indicators = null;
+      }
 
       snap.timestamp = Date.now();
       setSnapshot(snap);
-    } catch (e) { logger.ui.warn('Operation failed', e); }
+    } catch (e) {
+      logger.ui.warn('Operation failed', e);
+    }
   }, []);
 
   useEffect(() => {
@@ -219,14 +229,18 @@ function PipelineDevTools() {
         intervalRef.current = null;
       }
     }
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [visible, collectSnapshot]);
 
   const handleExportTelemetry = useCallback(async () => {
     try {
       const { pipelineLogger } = await import('../../../data/engine/infra/DataPipelineLogger.js');
       pipelineLogger.exportTelemetry({ download: true });
-    } catch (e) { logger.ui.warn('Operation failed', e); }
+    } catch (e) {
+      logger.ui.warn('Operation failed', e);
+    }
   }, []);
 
   if (!visible) return null;
@@ -238,7 +252,9 @@ function PipelineDevTools() {
       {/* Header */}
       <div style={styles.header}>
         <span style={styles.title}>⚡ Pipeline Dev Tools</span>
-        <button style={styles.closeBtn} onClick={() => setVisible(false)}>✕ Close</button>
+        <button style={styles.closeBtn} onClick={() => setVisible(false)}>
+          ✕ Close
+        </button>
       </div>
 
       {/* Pipeline Health */}
@@ -251,7 +267,9 @@ function PipelineDevTools() {
           </div>
           {s.health.issues?.length > 0 && (
             <div style={{ color: '#ffa726', marginTop: '4px', fontSize: '10px' }}>
-              {s.health.issues.map((iss, i) => <div key={i}>⚠ {iss}</div>)}
+              {s.health.issues.map((iss, i) => (
+                <div key={i}>⚠ {iss}</div>
+              ))}
             </div>
           )}
         </div>
@@ -264,13 +282,15 @@ function PipelineDevTools() {
           <div style={styles.row}>
             <span style={styles.label}>Usage</span>
             <span style={scoreStyle(100 - (s.memory.usedPercent || 0))}>
-              {(s.memory.usedMB || 0).toFixed(1)} / {(s.memory.budgetMB || 200).toFixed(0)} MB
-              ({(s.memory.usedPercent || 0).toFixed(1)}%)
+              {(s.memory.usedMB || 0).toFixed(1)} / {(s.memory.budgetMB || 200).toFixed(0)} MB (
+              {(s.memory.usedPercent || 0).toFixed(1)}%)
             </span>
           </div>
           <div style={styles.row}>
             <span style={styles.label}>Level</span>
-            <span style={styles.badge(healthColor(s.memory.level || 'healthy'))}>{(s.memory.level || 'healthy').toUpperCase()}</span>
+            <span style={styles.badge(healthColor(s.memory.level || 'healthy'))}>
+              {(s.memory.level || 'healthy').toUpperCase()}
+            </span>
           </div>
         </div>
       )}
@@ -299,10 +319,14 @@ function PipelineDevTools() {
             <span style={styles.label}>Total Tasks</span>
             <span style={styles.value}>{s.workerPool.totalSubmitted}</span>
           </div>
-          {s.workerPool.workerStats?.map(w => (
+          {s.workerPool.workerStats?.map((w) => (
             <div key={w.id} style={{ ...styles.row, fontSize: '10px', color: '#667788' }}>
-              <span>W{w.id}: {w.specialization || '—'}</span>
-              <span>{w.tasksCompleted} done {w.busy ? '🔴' : '🟢'}</span>
+              <span>
+                W{w.id}: {w.specialization || '—'}
+              </span>
+              <span>
+                {w.tasksCompleted} done {w.busy ? '🔴' : '🟢'}
+              </span>
             </div>
           ))}
         </div>
@@ -349,11 +373,15 @@ function PipelineDevTools() {
           <div style={styles.sectionTitle}>Tick Persistence</div>
           <div style={styles.row}>
             <span style={styles.label}>Enqueued / Flushed</span>
-            <span style={styles.value}>{s.persistence.totalEnqueued} / {s.persistence.totalFlushed}</span>
+            <span style={styles.value}>
+              {s.persistence.totalEnqueued} / {s.persistence.totalFlushed}
+            </span>
           </div>
           <div style={styles.row}>
             <span style={styles.label}>Pending</span>
-            <span style={s.persistence.pendingFlush > 100 ? styles.warn : styles.value}>{s.persistence.pendingFlush}</span>
+            <span style={s.persistence.pendingFlush > 100 ? styles.warn : styles.value}>
+              {s.persistence.pendingFlush}
+            </span>
           </div>
           <div style={styles.row}>
             <span style={styles.label}>Active Symbols</span>
@@ -393,7 +421,15 @@ function PipelineDevTools() {
         <div style={styles.section}>
           <div style={styles.sectionTitle}>Recent Errors</div>
           {s.recentErrors.map((err, i) => (
-            <div key={i} style={{ fontSize: '10px', color: '#ff8a80', padding: '2px 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+            <div
+              key={i}
+              style={{
+                fontSize: '10px',
+                color: '#ff8a80',
+                padding: '2px 0',
+                borderBottom: '1px solid rgba(255,255,255,0.03)',
+              }}
+            >
               <span style={{ color: '#667788' }}>[{err.source}]</span> {err.message}
             </div>
           ))}

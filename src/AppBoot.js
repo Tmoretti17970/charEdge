@@ -25,8 +25,8 @@ import { migrateAllTrades } from './charting_library/model/Money.js';
 import { encryptedStore } from './data/EncryptedStore.js';
 import { initApiKeys } from './data/providers/ApiKeyStore.js';
 import { StorageService } from './data/StorageService';
-import { getActiveAccountId } from './state/useAccountStore';
 import { initTelemetry } from './observability/telemetry';
+import { getActiveAccountId } from './state/useAccountStore';
 import { useAnalyticsStore } from './state/useAnalyticsStore';
 import { useGamificationStore } from './state/useGamificationStore';
 import { useJournalStore, initAccountSwitchListener, prewarmAccountCache } from './state/useJournalStore';
@@ -58,7 +58,7 @@ function _collectBootMetrics() {
         { name: 'Post-Boot Setup', duration: phase3, color: '#7c4dff' },
       ],
     };
-  } catch (_) {
+  } catch {
     return null;
   }
 }
@@ -77,17 +77,30 @@ export async function loadFromStorage() {
 
   // Sprint 2 Task 2.1: Encrypt existing unencrypted trade data (one-time migration)
   try {
-    const { getDeviceKey, isEncryptionSupported, isEncryptionEnabled, migrateStore } = await import('./data/StorageEncryption');
+    const { getDeviceKey, isEncryptionSupported, isEncryptionEnabled, migrateStore } =
+      await import('./data/StorageEncryption');
     if (isEncryptionSupported() && isEncryptionEnabled()) {
       await getDeviceKey(); // Ensure device key exists before reads
       const { openUnifiedDB } = await import('./data/UnifiedDB.js');
       const migrationDb = await openUnifiedDB();
-      const stores = ['trades', 'trades_real', 'trades_demo', 'playbooks', 'playbooks_real', 'playbooks_demo', 'notes', 'notes_real', 'notes_demo'];
+      const stores = [
+        'trades',
+        'trades_real',
+        'trades_demo',
+        'playbooks',
+        'playbooks_real',
+        'playbooks_demo',
+        'notes',
+        'notes_real',
+        'notes_demo',
+      ];
       let totalMigrated = 0;
       for (const store of stores) {
         try {
           totalMigrated += await migrateStore(migrationDb, store);
-        } catch { /* store may not exist yet */ }
+        } catch {
+          /* store may not exist yet */
+        }
       }
       if (totalMigrated > 0) logger.boot.info(`Encrypted ${totalMigrated} previously-unencrypted records`);
       migrationDb.close();
@@ -127,7 +140,11 @@ export async function loadFromStorage() {
   ]);
   logger.boot.info('Phase 1 complete.');
   performance.mark('boot:phase1:end');
-  try { performance.measure('boot:phase1', 'boot:phase1:start', 'boot:phase1:end'); } catch (_) { /* */ }
+  try {
+    performance.measure('boot:phase1', 'boot:phase1:start', 'boot:phase1:end');
+  } catch {
+    /* */
+  }
 
   return {
     tradesResult,
@@ -229,7 +246,11 @@ export async function hydrateStores(raw) {
 
   logger.boot.info('Phase 2 complete.');
   performance.mark('boot:phase2:end');
-  try { performance.measure('boot:phase2', 'boot:phase2:start', 'boot:phase2:end'); } catch (_) { /* */ }
+  try {
+    performance.measure('boot:phase2', 'boot:phase2:start', 'boot:phase2:end');
+  } catch {
+    /* */
+  }
   return trades;
 }
 
@@ -317,7 +338,11 @@ export async function postBoot(trades) {
 
   logger.boot.info('Phase 3 complete.');
   performance.mark('boot:phase3:end');
-  try { performance.measure('boot:phase3', 'boot:phase3:start', 'boot:phase3:end'); } catch (_) { /* */ }
+  try {
+    performance.measure('boot:phase3', 'boot:phase3:start', 'boot:phase3:end');
+  } catch {
+    /* */
+  }
   return unsubs;
 }
 
@@ -353,10 +378,14 @@ export function useAppBoot() {
         const bootMetrics = _collectBootMetrics();
         if (bootMetrics) {
           logger.boot.info(
-            `Phase 1: ${bootMetrics.phase1}ms | Phase 2: ${bootMetrics.phase2}ms | Phase 3: ${bootMetrics.phase3}ms | Total: ${bootMetrics.total}ms`
+            `Phase 1: ${bootMetrics.phase1}ms | Phase 2: ${bootMetrics.phase2}ms | Phase 3: ${bootMetrics.phase3}ms | Total: ${bootMetrics.total}ms`,
           );
           if (typeof window !== 'undefined') window.__charEdge_bootMetrics = bootMetrics;
-          try { track('boot_complete', bootMetrics); } catch (_) { /* telemetry best-effort */ }
+          try {
+            track('boot_complete', bootMetrics);
+          } catch {
+            /* telemetry best-effort */
+          }
         }
 
         if (!cancelled) {

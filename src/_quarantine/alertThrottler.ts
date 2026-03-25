@@ -12,7 +12,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useNotificationPreferences } from './useNotificationPreferences';
-import { notify, notifyPriceAlert } from './notificationRouter';
+import { notify } from './notificationRouter';
 import type { NotificationPayload } from './notificationRouter';
 
 // ─── Types ──────────────────────────────────────────────────────
@@ -21,10 +21,10 @@ type FrequencyMode = 'instant' | 'balanced' | 'quiet';
 
 interface ThrottleRecord {
   lastFired: number;
-  count: number;           // alerts suppressed since last fire
-  suppressed: string[];    // messages that were batched
+  count: number; // alerts suppressed since last fire
+  suppressed: string[]; // messages that were batched
   lastPrice: number;
-  basePrice: number;       // price at first alert (for % change detection)
+  basePrice: number; // price at first alert (for % change detection)
 }
 
 // ─── State ──────────────────────────────────────────────────────

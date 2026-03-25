@@ -11,18 +11,18 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { C } from '../../../constants.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
-import { alpha } from '@/shared/colorUtils';
 import s from './ResearchPanel.module.css';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Simulated mini-prices (in production, use live feed) ────────
 const MOCK_PRICES = {
-  ES:   { price: 5285.50, change: +0.42 },
-  NQ:   { price: 18452.25, change: +0.67 },
-  BTC:  { price: 68425.00, change: +2.14 },
-  ETH:  { price: 3842.18, change: +1.89 },
+  ES: { price: 5285.5, change: +0.42 },
+  NQ: { price: 18452.25, change: +0.67 },
+  BTC: { price: 68425.0, change: +2.14 },
+  ETH: { price: 3842.18, change: +1.89 },
   AAPL: { price: 189.72, change: -0.31 },
-  SPY:  { price: 528.45, change: +0.38 },
-  SOL:  { price: 148.62, change: +4.21 },
+  SPY: { price: 528.45, change: +0.38 },
+  SOL: { price: 148.62, change: +4.21 },
   DOGE: { price: 0.1245, change: -1.02 },
 };
 
@@ -42,7 +42,7 @@ function generateQuickResponse(query, trades) {
   const q = query.toLowerCase();
   const count = trades.length;
   const recent = trades.slice(0, 20);
-  const wins = recent.filter(t => (t.pnl || 0) > 0).length;
+  const wins = recent.filter((t) => (t.pnl || 0) > 0).length;
   const winRate = recent.length > 0 ? ((wins / recent.length) * 100).toFixed(0) : 0;
 
   if (q.includes('summary') || q.includes('quick') || q.includes('30-second'))
@@ -63,9 +63,11 @@ function generateQuickResponse(query, trades) {
 function ResearchPanel({ onCompose }) {
   const [collapsed, setCollapsed] = useState(false);
   const [notes, setNotes] = useState(() => {
-    try { return localStorage.getItem('tf-research-notes') || ''; }
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    catch (_) { return ''; }
+    try {
+      return localStorage.getItem('tf-research-notes') || '';
+    } catch {
+      return '';
+    }
   });
   const [copilotInput, setCopilotInput] = useState('');
   const [copilotMessages, setCopilotMessages] = useState([]);
@@ -78,8 +80,11 @@ function ResearchPanel({ onCompose }) {
   // Persist notes
   const saveNotes = useCallback((val) => {
     setNotes(val);
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    try { localStorage.setItem('tf-research-notes', val); } catch (_) { /* storage may be blocked */ }
+    try {
+      localStorage.setItem('tf-research-notes', val);
+    } catch {
+      /* storage may be blocked */
+    }
   }, []);
 
   // Auto-scroll copilot
@@ -100,11 +105,11 @@ function ResearchPanel({ onCompose }) {
     const q = copilotInput.trim();
     if (!q) return;
     setCopilotInput('');
-    setCopilotMessages(prev => [...prev, { role: 'user', text: q }]);
+    setCopilotMessages((prev) => [...prev, { role: 'user', text: q }]);
     setIsTyping(true);
-    await new Promise(r => setTimeout(r, 600 + Math.random() * 400));
+    await new Promise((r) => setTimeout(r, 600 + Math.random() * 400));
     const response = generateQuickResponse(q, trades);
-    setCopilotMessages(prev => [...prev, { role: 'ai', text: response }]);
+    setCopilotMessages((prev) => [...prev, { role: 'ai', text: response }]);
     setIsTyping(false);
   };
 
@@ -129,18 +134,34 @@ function ResearchPanel({ onCompose }) {
           onClick={() => setCollapsed(false)}
           title="Expand Research Panel"
           style={{
-            width: 32, height: 32, borderRadius: 8, border: 'none',
-            background: alpha(C.b, 0.1), color: C.b,
-            cursor: 'pointer', fontSize: 14, fontWeight: 700,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 32,
+            height: 32,
+            borderRadius: 8,
+            border: 'none',
+            background: alpha(C.b, 0.1),
+            color: C.b,
+            cursor: 'pointer',
+            fontSize: 14,
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
           ◀
         </button>
-        <div title="Watchlist" className={s.s0}>📋</div>
-        <div title="Fear & Greed" className={s.s1}>🌡️</div>
-        <div title="Notes" className={s.s2}>📝</div>
-        <div title="AI Copilot" className={s.s3}>🤖</div>
+        <div title="Watchlist" className={s.s0}>
+          📋
+        </div>
+        <div title="Fear & Greed" className={s.s1}>
+          🌡️
+        </div>
+        <div title="Notes" className={s.s2}>
+          📝
+        </div>
+        <div title="AI Copilot" className={s.s3}>
+          🤖
+        </div>
       </div>
     );
   }
@@ -174,18 +195,22 @@ function ResearchPanel({ onCompose }) {
           flexShrink: 0,
         }}
       >
-        <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
-          Research
-        </span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>Research</span>
         <div className={s.s4}>
           {onCompose && (
             <button
               onClick={onCompose}
               style={{
-                padding: '4px 10px', borderRadius: 8, border: 'none',
+                padding: '4px 10px',
+                borderRadius: 8,
+                border: 'none',
                 background: `linear-gradient(135deg, ${C.b}, ${C.bH})`,
-                color: '#fff', fontSize: 11, fontWeight: 700, fontFamily: 'var(--tf-font)',
-                cursor: 'pointer', transition: 'all 0.15s',
+                color: '#fff',
+                fontSize: 11,
+                fontWeight: 700,
+                fontFamily: 'var(--tf-font)',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
               }}
             >
               + Compose
@@ -194,10 +219,17 @@ function ResearchPanel({ onCompose }) {
           <button
             onClick={() => setCollapsed(true)}
             style={{
-              width: 24, height: 24, borderRadius: 6, border: `1px solid ${C.bd}`,
-              background: 'transparent', color: C.t3,
-              cursor: 'pointer', fontSize: 10,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 24,
+              height: 24,
+              borderRadius: 6,
+              border: `1px solid ${C.bd}`,
+              background: 'transparent',
+              color: C.t3,
+              cursor: 'pointer',
+              fontSize: 10,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             ▶
@@ -209,7 +241,17 @@ function ResearchPanel({ onCompose }) {
       <div className={s.s5}>
         {/* ── Watchlist Mini-Prices ──────────────────────────── */}
         <div style={{ padding: '12px 14px', borderBottom: `1px solid ${alpha(C.bd, 0.5)}` }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, fontFamily: 'var(--tf-font)' }}>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              color: C.t3,
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+              marginBottom: 8,
+              fontFamily: 'var(--tf-font)',
+            }}
+          >
             Watchlist
           </div>
           <div className={s.s6}>
@@ -220,26 +262,33 @@ function ResearchPanel({ onCompose }) {
                 <div
                   key={item.symbol}
                   className={s.s7}
-                  onMouseEnter={(e) => e.currentTarget.style.background = alpha(C.t3, 0.06)}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = alpha(C.t3, 0.06))}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >
                   <div>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-mono)' }}>{item.symbol}</span>
-                    <span style={{ fontSize: 10, color: C.t3, marginLeft: 6, fontFamily: 'var(--tf-font)' }}>{item.name}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-mono)' }}>
+                      {item.symbol}
+                    </span>
+                    <span style={{ fontSize: 10, color: C.t3, marginLeft: 6, fontFamily: 'var(--tf-font)' }}>
+                      {item.name}
+                    </span>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-mono)' }}>
                       {p.price > 1000 ? p.price.toLocaleString() : p.price.toFixed(4)}
                     </div>
                     <div style={{ fontSize: 10, fontWeight: 600, color: changeColor, fontFamily: 'var(--tf-mono)' }}>
-                      {p.change >= 0 ? '+' : ''}{p.change.toFixed(2)}%
+                      {p.change >= 0 ? '+' : ''}
+                      {p.change.toFixed(2)}%
                     </div>
                   </div>
                 </div>
               );
             })}
             {watchlist.length === 0 && (
-              <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)', textAlign: 'center', padding: 12 }}>
+              <div
+                style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)', textAlign: 'center', padding: 12 }}
+              >
                 No symbols in watchlist
               </div>
             )}
@@ -248,7 +297,17 @@ function ResearchPanel({ onCompose }) {
 
         {/* ── Fear & Greed Mini ──────────────────────────────── */}
         <div style={{ padding: '12px 14px', borderBottom: `1px solid ${alpha(C.bd, 0.5)}` }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, fontFamily: 'var(--tf-font)' }}>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              color: C.t3,
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+              marginBottom: 8,
+              fontFamily: 'var(--tf-font)',
+            }}
+          >
             Market Sentiment
           </div>
           <div
@@ -264,19 +323,28 @@ function ResearchPanel({ onCompose }) {
             {/* Mini gauge */}
             <div
               style={{
-                width: 44, height: 44,
+                width: 44,
+                height: 44,
                 borderRadius: '50%',
                 background: `conic-gradient(${getGradientColor(MOCK_FG.value)} ${MOCK_FG.value * 3.6}deg, ${alpha(C.t3, 0.1)} 0deg)`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 flexShrink: 0,
               }}
             >
               <div
                 style={{
-                  width: 34, height: 34, borderRadius: '50%',
+                  width: 34,
+                  height: 34,
+                  borderRadius: '50%',
                   background: C.bg2,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 800, color: getGradientColor(MOCK_FG.value),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 13,
+                  fontWeight: 800,
+                  color: getGradientColor(MOCK_FG.value),
                   fontFamily: 'var(--tf-mono)',
                 }}
               >
@@ -284,7 +352,14 @@ function ResearchPanel({ onCompose }) {
               </div>
             </div>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: getGradientColor(MOCK_FG.value), fontFamily: 'var(--tf-font)' }}>
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: getGradientColor(MOCK_FG.value),
+                  fontFamily: 'var(--tf-font)',
+                }}
+              >
                 {MOCK_FG.label}
               </div>
               <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)' }}>Fear & Greed Index</div>
@@ -294,7 +369,17 @@ function ResearchPanel({ onCompose }) {
 
         {/* ── Quick Notes ────────────────────────────────────── */}
         <div style={{ padding: '12px 14px', borderBottom: `1px solid ${alpha(C.bd, 0.5)}` }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, fontFamily: 'var(--tf-font)' }}>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              color: C.t3,
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+              marginBottom: 8,
+              fontFamily: 'var(--tf-font)',
+            }}
+          >
             Quick Notes
           </div>
           <textarea
@@ -321,17 +406,31 @@ function ResearchPanel({ onCompose }) {
 
         {/* ── AI Copilot ─────────────────────────────────────── */}
         <div className={s.s8}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, fontFamily: 'var(--tf-font)' }}>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              color: C.t3,
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+              fontFamily: 'var(--tf-font)',
+            }}
+          >
             AI Copilot
           </div>
 
           {/* Messages */}
-          <div
-            ref={scrollRef}
-            className={s.s9}
-          >
+          <div ref={scrollRef} className={s.s9}>
             {copilotMessages.length === 0 && (
-              <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)', textAlign: 'center', padding: '16px 8px' }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: C.t3,
+                  fontFamily: 'var(--tf-font)',
+                  textAlign: 'center',
+                  padding: '16px 8px',
+                }}
+              >
                 Ask about markets, your trades, or setups...
               </div>
             )}
@@ -357,7 +456,16 @@ function ResearchPanel({ onCompose }) {
             ))}
             {isTyping && (
               <div className={s.s10}>
-                <div className="tf-spin" style={{ width: 10, height: 10, borderRadius: '50%', border: `2px solid ${C.bd}`, borderTopColor: C.p }} />
+                <div
+                  className="tf-spin"
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    border: `2px solid ${C.bd}`,
+                    borderTopColor: C.p,
+                  }}
+                />
                 <span style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)' }}>Analyzing...</span>
               </div>
             )}
@@ -369,13 +477,23 @@ function ResearchPanel({ onCompose }) {
               {['30s summary', 'Bear case', 'Best setup'].map((label) => (
                 <button
                   key={label}
-                  onClick={() => { setCopilotInput(label); setTimeout(() => { setCopilotInput(label); handleCopilotSend(); }, 10); }}
+                  onClick={() => {
+                    setCopilotInput(label);
+                    setTimeout(() => {
+                      setCopilotInput(label);
+                      handleCopilotSend();
+                    }, 10);
+                  }}
                   style={{
-                    padding: '4px 8px', borderRadius: 6,
+                    padding: '4px 8px',
+                    borderRadius: 6,
                     border: `1px solid ${C.bd}`,
                     background: alpha(C.sf, 0.4),
-                    color: C.t2, fontSize: 10, fontWeight: 600,
-                    fontFamily: 'var(--tf-font)', cursor: 'pointer',
+                    color: C.t2,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    fontFamily: 'var(--tf-font)',
+                    cursor: 'pointer',
                     transition: 'all 0.15s',
                   }}
                 >
@@ -390,7 +508,12 @@ function ResearchPanel({ onCompose }) {
             <input
               value={copilotInput}
               onChange={(e) => setCopilotInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCopilotSend(); } }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleCopilotSend();
+                }
+              }}
               placeholder="Ask the copilot..."
               style={{
                 flex: 1,

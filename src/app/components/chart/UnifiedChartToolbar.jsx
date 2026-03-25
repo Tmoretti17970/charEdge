@@ -9,26 +9,31 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useRef, useEffect, useCallback, useLayoutEffect, useMemo, Suspense } from 'react';
-import st from './UnifiedChartToolbar.module.css';
 import { C, TFS } from '../../../constants.js';
-import { useUserStore } from '../../../state/useUserStore';
-import { CHART_COLOR_PRESETS } from '../../../state/user/themeSlice';
+import { SymbolRegistry } from '../../../data/SymbolRegistry.js';
 import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
 import { useChartFeaturesStore } from '../../../state/chart/useChartFeaturesStore';
 import { useChartToolsStore } from '../../../state/chart/useChartToolsStore';
+import { CHART_COLOR_PRESETS } from '../../../state/user/themeSlice';
+import { useUserStore } from '../../../state/useUserStore';
+import {
+  dollarToQty,
+  qtyToDollar,
+  getQtyLabel,
+  formatQty,
+  formatDollar,
+  getUsdStep,
+  getQtyStep,
+  getQtyPrecision,
+} from '../../../utils/positionSizeUtils.js';
 import ChartTypeSelector from './toolbar/ChartTypeSelector.jsx';
 import DrawingToolSelector from './toolbar/DrawingToolSelector.jsx';
+import st from './UnifiedChartToolbar.module.css';
 import { useHotkeys } from '@/hooks/useHotkeys';
 import { useBreakpoints } from '@/hooks/useMediaQuery';
 import { useAccountStore, ACCOUNTS } from '@/state/useAccountStore';
-import { SymbolRegistry } from '../../../data/SymbolRegistry.js';
-import {
-  dollarToQty, qtyToDollar, getQtyLabel, formatQty, formatDollar,
-  getUsdStep, getQtyStep, getQtyPrecision,
-} from '../../../utils/positionSizeUtils.js';
 
 // Extracted sub-components
-
 
 // Lazy-load CommandCenterMenu to prevent chunk evaluation order issues
 const CommandCenterMenu = React.lazy(() => import('./toolbar/CommandCenterMenu.jsx'));
@@ -59,10 +64,6 @@ function ToolbarBtn({ children, active, onClick, disabled, title, style, 'aria-l
   );
 }
 
-function Divider() {
-  return <div className="tf-chart-divider" />;
-}
-
 // ─── Chart Color Picker (dropdown) ───────────────────────────────
 function ChartColorPicker() {
   const [open, setOpen] = useState(false);
@@ -82,11 +83,7 @@ function ChartColorPicker() {
 
   return (
     <div ref={ref} className={st.capsuleRelative}>
-      <ToolbarBtn
-        onClick={() => setOpen(!open)}
-        title={`Chart Colors: ${activePreset.label}`}
-        active={open}
-      >
+      <ToolbarBtn onClick={() => setOpen(!open)} title={`Chart Colors: ${activePreset.label}`} active={open}>
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <circle cx="5" cy="5" r="3" fill={activePreset.bull} opacity="0.9" />
           <circle cx="9" cy="9" r="3" fill={activePreset.bear} opacity="0.9" />
@@ -100,15 +97,26 @@ function ChartColorPicker() {
             return (
               <button
                 key={preset.id}
-                onClick={() => { setChartColorPreset(preset.id); setOpen(false); }}
+                onClick={() => {
+                  setChartColorPreset(preset.id);
+                  setOpen(false);
+                }}
                 className={st.colorPresetBtn}
                 data-active={active ? 'true' : undefined}
-                onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = `${C.t3}15`; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = ''; }}
+                onMouseEnter={(e) => {
+                  if (!active) e.currentTarget.style.background = `${C.t3}15`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '';
+                }}
               >
                 <div className={st.colorPresetBars}>
                   {[preset.bull, preset.bear, preset.bull, preset.bear].map((clr, i) => (
-                    <div key={i} className={st.colorPresetBar} style={{ height: [12, 16, 10, 14][i], background: clr }} />
+                    <div
+                      key={i}
+                      className={st.colorPresetBar}
+                      style={{ height: [12, 16, 10, 14][i], background: clr }}
+                    />
                   ))}
                 </div>
                 <span className={st.colorPresetLabel} data-active={active ? 'true' : 'false'}>
@@ -158,10 +166,7 @@ function TimeframeCapsule({ tf, setTf, showCustomTf, toggleCustomTf }) {
     <div className={`tf-chart-tf-group ${st.capsuleRelative}`} ref={groupRef}>
       {/* Animated capsule background */}
       {capsule.ready && (
-        <div
-          className={`tf-capsule-slider ${st.capsuleSlider}`}
-          style={{ left: capsule.left, width: capsule.width }}
-        />
+        <div className={`tf-capsule-slider ${st.capsuleSlider}`} style={{ left: capsule.left, width: capsule.width }} />
       )}
       {TFS.map((t) => (
         <button
@@ -224,7 +229,6 @@ export default function UnifiedChartToolbar({
   layoutMode,
   setLayoutMode,
   // Batch 2: AI Analysis removed — copilot lives in side panel now
-
 }) {
   const { isMobile } = useBreakpoints();
   const [searchModalOpen, setSearchModalOpen] = useState(false);
@@ -335,9 +339,7 @@ export default function UnifiedChartToolbar({
       aria-label="Chart toolbar"
     >
       {/* P2 2.6: Compact mode indicator */}
-      {isMobile && (
-        <div className={st.compactDot} title="Compact mode — some controls hidden" />
-      )}
+      {isMobile && <div className={st.compactDot} title="Compact mode — some controls hidden" />}
       {/* ─── Navigation Capsule (Ticker + Timeframes) ──────────── */}
       <div className="tf-nav-capsule">
         <button
@@ -361,11 +363,7 @@ export default function UnifiedChartToolbar({
         <div className="tf-tools-capsule">
           <ChartTypeSelector chartType={chartType} setChartType={setChartType} />
           <div className="tf-tools-capsule__divider" />
-          <ToolbarBtn
-            active={showIndicators}
-            onClick={() => setShowIndicators(!showIndicators)}
-            title="Indicators"
-          >
+          <ToolbarBtn active={showIndicators} onClick={() => setShowIndicators(!showIndicators)} title="Indicators">
             ƒx
           </ToolbarBtn>
           <div className="tf-tools-capsule__divider" />
@@ -402,11 +400,7 @@ export default function UnifiedChartToolbar({
 
       {/* Mobile: indicators only (no capsule) */}
       {isMobile && (
-        <ToolbarBtn
-          active={showIndicators}
-          onClick={() => setShowIndicators(!showIndicators)}
-          title="Indicators"
-        >
+        <ToolbarBtn active={showIndicators} onClick={() => setShowIndicators(!showIndicators)} title="Indicators">
           ƒx
         </ToolbarBtn>
       )}
@@ -427,20 +421,14 @@ export default function UnifiedChartToolbar({
                 title={`Trading as ${acct.label} — click to switch`}
                 style={{ '--acct-color': acct.color }}
               >
-                <span
-                  className={`tf-trade-capsule__account-dot ${st.acctDot}`}
-                />
+                <span className={`tf-trade-capsule__account-dot ${st.acctDot}`} />
                 {acct.label}
               </button>
             );
           })()}
 
           {/* BUY */}
-          <button
-            className="tf-trade-capsule__buy"
-            onClick={() => dispatchInstantTrade('long')}
-            title="Buy (B)"
-          >
+          <button className="tf-trade-capsule__buy" onClick={() => dispatchInstantTrade('long')} title="Buy (B)">
             BUY
           </button>
 
@@ -448,15 +436,17 @@ export default function UnifiedChartToolbar({
           <div className="tf-trade-capsule__sizer">
             <div
               className="tf-trade-capsule__sizer-row"
-              title={sizeMode === 'usd'
-                ? 'Dollar amount — click label to switch to qty'
-                : `Quantity (${qtyLabel}) — click label to switch to USD`}
+              title={
+                sizeMode === 'usd'
+                  ? 'Dollar amount — click label to switch to qty'
+                  : `Quantity (${qtyLabel}) — click label to switch to USD`
+              }
             >
               <button
                 className="tf-trade-capsule__stepper"
                 onClick={() => {
                   const step = sizeMode === 'usd' ? getUsdStep(sizeValue) : getQtyStep(sizeValue, assetClass);
-                  const min = sizeMode === 'usd' ? 1 : (assetClass === 'crypto' ? 0.00000001 : 1);
+                  const min = sizeMode === 'usd' ? 1 : assetClass === 'crypto' ? 0.00000001 : 1;
                   setSizeValue((v) => Math.max(min, +((v || 0) - step).toFixed(getQtyPrecision(assetClass))));
                 }}
               >
@@ -478,7 +468,10 @@ export default function UnifiedChartToolbar({
                 value={sizeValue}
                 onChange={(e) => {
                   const raw = e.target.value;
-                  if (raw === '' || raw === '0') { setSizeValue(0); return; }
+                  if (raw === '' || raw === '0') {
+                    setSizeValue(0);
+                    return;
+                  }
                   const v = parseFloat(raw);
                   if (!isNaN(v) && v >= 0) setSizeValue(v);
                 }}
@@ -501,11 +494,7 @@ export default function UnifiedChartToolbar({
             </div>
             {/* Converted value hint */}
             {livePrice > 0 && sizeValue > 0 && (
-              <div
-                className="tf-trade-capsule__hint"
-                onClick={toggleSizeMode}
-                title="Click to switch input mode"
-              >
+              <div className="tf-trade-capsule__hint" onClick={toggleSizeMode} title="Click to switch input mode">
                 {sizeMode === 'usd'
                   ? `≈ ${formatQty(resolvedQty, assetClass)} ${qtyLabel}`
                   : `≈ ${formatDollar(resolvedDollar)}`}
@@ -514,11 +503,7 @@ export default function UnifiedChartToolbar({
           </div>
 
           {/* SELL */}
-          <button
-            className="tf-trade-capsule__sell"
-            onClick={() => dispatchInstantTrade('short')}
-            title="Sell (S)"
-          >
+          <button className="tf-trade-capsule__sell" onClick={() => dispatchInstantTrade('short')} title="Sell (S)">
             SELL
           </button>
 

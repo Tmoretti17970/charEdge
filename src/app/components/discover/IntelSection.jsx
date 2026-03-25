@@ -29,7 +29,6 @@ import SocialValidation from './SocialValidation.jsx';
 import TechnicalScanner from './TechnicalScanner.jsx';
 import VolatilityDashboard from './VolatilityDashboard.jsx';
 import { alpha } from '@/shared/colorUtils';
-import st from './IntelSection.module.css';
 
 // Social widgets quarantined — see src/_quarantine/p2p/README.md
 

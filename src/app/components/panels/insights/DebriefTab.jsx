@@ -1,8 +1,8 @@
 // Debrief Tab for InsightsPanel
 import { useState, useMemo } from 'react';
-import { C } from '@/constants.js';
 import { generateDebrief, generateWeeklyDebrief } from '../../../features/journal/DailyDebrief.js';
 import st from './DebriefTab.module.css';
+import { C } from '@/constants.js';
 
 export default function DebriefTab({ trades }) {
   const [mode, setMode] = useState('daily');
@@ -25,15 +25,21 @@ export default function DebriefTab({ trades }) {
         <button
           className={`tf-btn ${st.modeBtn} ${mode === 'daily' ? st.modeBtnActive : st.modeBtnInactive}`}
           onClick={() => setMode('daily')}
-        >Daily</button>
+        >
+          Daily
+        </button>
         <button
           className={`tf-btn ${st.modeBtn} ${mode === 'weekly' ? st.modeBtnActive : st.modeBtnInactive}`}
           onClick={() => setMode('weekly')}
-        >Weekly</button>
+        >
+          Weekly
+        </button>
 
         {mode === 'daily' && (
           <div className={st.dateNav}>
-            <button className={`tf-btn ${st.navBtn}`} onClick={() => setDateOffset((d) => d - 1)}>◀</button>
+            <button className={`tf-btn ${st.navBtn}`} onClick={() => setDateOffset((d) => d - 1)}>
+              ◀
+            </button>
             <span className={st.dateLabel}>
               {dateOffset === 0 ? 'Today' : dateOffset === -1 ? 'Yesterday' : targetDate}
             </span>
@@ -41,7 +47,9 @@ export default function DebriefTab({ trades }) {
               className={`tf-btn ${st.navBtn} ${dateOffset >= 0 ? st.navBtnDisabled : ''}`}
               onClick={() => setDateOffset((d) => Math.min(d + 1, 0))}
               disabled={dateOffset >= 0}
-            >▶</button>
+            >
+              ▶
+            </button>
           </div>
         )}
       </div>
@@ -67,7 +75,10 @@ function DailyContent({ debrief }) {
       <div className={st.headline}>
         {debrief.headline}
         {debrief.grade && (
-          <span className={st.gradeBadge} style={{ color: debrief.grade.startsWith('A') ? C.g : debrief.grade.startsWith('D') ? C.r : C.y }}>
+          <span
+            className={st.gradeBadge}
+            style={{ color: debrief.grade.startsWith('A') ? C.g : debrief.grade.startsWith('D') ? C.r : C.y }}
+          >
             Grade {debrief.grade}
           </span>
         )}
@@ -77,7 +88,9 @@ function DailyContent({ debrief }) {
         <div key={i} className={st.section}>
           <div className={st.sectionTitle}>{sec.title}</div>
           {sec.items.map((item, j) => (
-            <div key={j} className={st.sectionItem}>{item}</div>
+            <div key={j} className={st.sectionItem}>
+              {item}
+            </div>
           ))}
         </div>
       ))}
@@ -124,7 +137,9 @@ function WeeklyContent({ summary }) {
         ].map((stat, i) => (
           <div key={i} className={st.statCard}>
             <div className={st.statLabel}>{stat.label}</div>
-            <div className={st.statValue} style={{ color: stat.color }}>{stat.value}</div>
+            <div className={st.statValue} style={{ color: stat.color }}>
+              {stat.value}
+            </div>
           </div>
         ))}
       </div>

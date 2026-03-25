@@ -58,9 +58,10 @@ interface PipelineLogger {
 
 declare const process: { env?: { NODE_ENV?: string } } | undefined;
 
-const isProd: boolean = typeof import.meta !== 'undefined'
-  ? !import.meta.env?.DEV
-  : typeof process !== 'undefined' && process?.env?.NODE_ENV === 'production';
+const isProd: boolean =
+  typeof import.meta !== 'undefined'
+    ? !import.meta.env?.DEV
+    : typeof process !== 'undefined' && process?.env?.NODE_ENV === 'production';
 
 // ─── Log Levels ──────────────────────────────────────────────────
 const LEVELS: Record<LogLevel, number> = { debug: 0, info: 1, warn: 2, error: 3 };
@@ -90,7 +91,6 @@ const _logTransports: LogTransport[] = [];
 
 // Default JSON console transport for production (machine-readable)
 const _defaultJsonTransport: LogTransport = (entry) => {
-   
   console.log(JSON.stringify(entry));
 };
 
@@ -103,13 +103,15 @@ function _getErrorReporter(): ErrorReporter | null {
   if (_reportError) return _reportError;
   try {
     const handler = (globalThis as Record<string, unknown>).__charEdge_errorHandler__ as
-      { reportError?: ErrorReporter } | undefined;
+      | { reportError?: ErrorReporter }
+      | undefined;
     if (handler?.reportError) {
       _reportError = handler.reportError;
       return _reportError;
     }
-  // eslint-disable-next-line no-console
-  } catch (e) { console.warn('[logger] _getErrorReporter lookup failed', e); }
+  } catch (e) {
+    console.warn('[logger] _getErrorReporter lookup failed', e);
+  }
   return null;
 }
 
@@ -120,14 +122,14 @@ let _pipelineLogger: PipelineLogger | null = null;
 function _getPipelineLogger(): PipelineLogger | null {
   if (_pipelineLogger) return _pipelineLogger;
   try {
-    const pl = (globalThis as Record<string, unknown>).__charEdge_pipelineLogger__ as
-      PipelineLogger | undefined;
+    const pl = (globalThis as Record<string, unknown>).__charEdge_pipelineLogger__ as PipelineLogger | undefined;
     if (pl) {
       _pipelineLogger = pl;
       return _pipelineLogger;
     }
-  // eslint-disable-next-line no-console
-  } catch (e) { console.warn('[logger] _getPipelineLogger lookup failed', e); }
+  } catch (e) {
+    console.warn('[logger] _getPipelineLogger lookup failed', e);
+  }
   return null;
 }
 
@@ -144,12 +146,18 @@ function _log(level: LogLevel, tag: string, message: string, extra?: unknown): v
       level,
       tag,
       message,
-      ...(extra !== undefined && extra !== null ? { extra: extra instanceof Error ? { name: extra.name, message: extra.message, stack: extra.stack } : extra } : {}),
+      ...(extra !== undefined && extra !== null
+        ? { extra: extra instanceof Error ? { name: extra.name, message: extra.message, stack: extra.stack } : extra }
+        : {}),
     };
     const transports = _logTransports.length > 0 ? _logTransports : [_defaultJsonTransport];
     for (const transport of transports) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      try { transport(entry); } catch (_) { /* transport error — non-critical */ }
+       
+      try {
+        transport(entry);
+      } catch {
+        /* transport error — non-critical */
+      }
     }
   }
 

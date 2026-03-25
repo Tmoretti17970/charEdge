@@ -16,7 +16,7 @@ class PlaidClient extends BrokerConnector {
       id: 'plaid',
       name: 'Plaid (Investments)',
       logo: '🏦',
-      requiredFields: [],  // Uses Plaid Link — no direct credentials
+      requiredFields: [], // Uses Plaid Link — no direct credentials
       rateLimit: 60,
       syncIntervalMs: 60 * 60 * 1000, // Hourly sync
     });
@@ -135,37 +135,33 @@ class PlaidClient extends BrokerConnector {
   async fetchTrades(/* credentials, options */) {
     const trades = [];
 
-    try {
-      const data = await this.getTransactions();
-      const securities = new Map();
+    const data = await this.getTransactions();
+    const securities = new Map();
 
-      // Build security lookup
-      for (const sec of data?.securities || []) {
-        securities.set(sec.security_id, sec);
-      }
+    // Build security lookup
+    for (const sec of data?.securities || []) {
+      securities.set(sec.security_id, sec);
+    }
 
-      for (const tx of data?.investment_transactions || []) {
-        const security = securities.get(tx.security_id);
-        const symbol = security?.ticker_symbol || security?.name || 'UNKNOWN';
-        const type = (tx.type || '').toLowerCase();
+    for (const tx of data?.investment_transactions || []) {
+      const security = securities.get(tx.security_id);
+      const symbol = security?.ticker_symbol || security?.name || 'UNKNOWN';
+      const type = (tx.type || '').toLowerCase();
 
-        if (!['buy', 'sell'].includes(type)) continue;
+      if (!['buy', 'sell'].includes(type)) continue;
 
-        trades.push({
-          date: tx.date,
-          symbol,
-          side: type === 'sell' ? 'SELL' : 'BUY',
-          quantity: Math.abs(tx.quantity || 0),
-          price: tx.price || 0,
-          pnl: 0,
-          commission: Math.abs(tx.fees || 0),
-          notes: `Plaid | ${tx.name || ''}`,
-          _source: 'plaid',
-          _accountId: tx.account_id,
-        });
-      }
-    } catch (err) {
-      throw err;
+      trades.push({
+        date: tx.date,
+        symbol,
+        side: type === 'sell' ? 'SELL' : 'BUY',
+        quantity: Math.abs(tx.quantity || 0),
+        price: tx.price || 0,
+        pnl: 0,
+        commission: Math.abs(tx.fees || 0),
+        notes: `Plaid | ${tx.name || ''}`,
+        _source: 'plaid',
+        _accountId: tx.account_id,
+      });
     }
 
     return trades;
@@ -188,7 +184,7 @@ class PlaidClient extends BrokerConnector {
       ],
       tips: [
         'Plaid supports 10,000+ financial institutions',
-        'Used as a fallback when SnapTrade doesn\'t cover your broker',
+        "Used as a fallback when SnapTrade doesn't cover your broker",
         'charEdge never stores your broker login — Plaid handles it securely',
       ],
       url: 'https://plaid.com',

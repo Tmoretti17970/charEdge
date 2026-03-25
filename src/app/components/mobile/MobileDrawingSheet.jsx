@@ -17,7 +17,9 @@ import { useChartToolsStore } from '../../../state/chart/useChartToolsStore';
 
 const TOOL_CATEGORIES = [
   {
-    id: 'lines', label: 'Lines', icon: '╲',
+    id: 'lines',
+    label: 'Lines',
+    icon: '╲',
     tools: [
       { id: null, icon: '✛', label: 'Cursor' },
       { id: 'trendline', icon: '╲', label: 'Trend' },
@@ -28,7 +30,9 @@ const TOOL_CATEGORIES = [
     ],
   },
   {
-    id: 'shapes', label: 'Shapes', icon: '▢',
+    id: 'shapes',
+    label: 'Shapes',
+    icon: '▢',
     tools: [
       { id: 'rect', icon: '▢', label: 'Rect' },
       { id: 'ellipse', icon: '⬭', label: 'Ellipse' },
@@ -39,7 +43,9 @@ const TOOL_CATEGORIES = [
     ],
   },
   {
-    id: 'fib', label: 'Fib', icon: '▦',
+    id: 'fib',
+    label: 'Fib',
+    icon: '▦',
     tools: [
       { id: 'fib', icon: '▦', label: 'Retrace' },
       { id: 'fibext', icon: '▥', label: 'Extension' },
@@ -50,7 +56,9 @@ const TOOL_CATEGORIES = [
     ],
   },
   {
-    id: 'patterns', label: 'Patterns', icon: '∿',
+    id: 'patterns',
+    label: 'Patterns',
+    icon: '∿',
     tools: [
       { id: 'elliott', icon: '∿', label: 'Elliott' },
       { id: 'gannfan', icon: '◿', label: 'Gann Fan' },
@@ -60,7 +68,9 @@ const TOOL_CATEGORIES = [
     ],
   },
   {
-    id: 'measure', label: 'Measure', icon: '↔',
+    id: 'measure',
+    label: 'Measure',
+    icon: '↔',
     tools: [
       { id: 'measure', icon: '↔', label: 'Measure' },
       { id: 'pricerange', icon: '$↕', label: 'Price' },
@@ -76,8 +86,9 @@ function haptic(style = 'light') {
     if (navigator.vibrate) {
       navigator.vibrate(style === 'heavy' ? 25 : style === 'medium' ? 15 : 8);
     }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (_) { /* no haptics available */ }
+  } catch {
+    /* no haptics available */
+  }
 }
 
 /**
@@ -134,16 +145,22 @@ export default function MobileDrawingSheet() {
     (e) => {
       const y = e.changedTouches?.[0]?.clientY ?? e.clientY;
       const delta = touchStartY - y;
-      if (delta > 30) { setExpanded(true); haptic('light'); }
-      else if (delta < -30) { setExpanded(false); haptic('light'); }
+      if (delta > 30) {
+        setExpanded(true);
+        haptic('light');
+      } else if (delta < -30) {
+        setExpanded(false);
+        haptic('light');
+      }
     },
     [touchStartY],
   );
 
-  const activeCat = TOOL_CATEGORIES.find(c => c.id === activeCategory) || TOOL_CATEGORIES[0];
-  const activeLabel = activeCat.tools.find((t) => t.id === activeTool)?.label
-    || TOOL_CATEGORIES.flatMap(c => c.tools).find(t => t.id === activeTool)?.label
-    || '';
+  const activeCat = TOOL_CATEGORIES.find((c) => c.id === activeCategory) || TOOL_CATEGORIES[0];
+  const activeLabel =
+    activeCat.tools.find((t) => t.id === activeTool)?.label ||
+    TOOL_CATEGORIES.flatMap((c) => c.tools).find((t) => t.id === activeTool)?.label ||
+    '';
 
   return (
     <div
@@ -176,20 +193,28 @@ export default function MobileDrawingSheet() {
             border: '1px solid rgba(41, 98, 255, 0.25)',
           }}
         >
-          <span style={{
-            fontSize: 11, fontWeight: 600, fontFamily: M,
-            color: C.b,
-          }}>
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              fontFamily: M,
+              color: C.b,
+            }}
+          >
             ✎ {activeLabel} — tap chart to place points
           </span>
           <button
             onClick={handleCancelDrawing}
             style={{
-              padding: '3px 10px', borderRadius: 6,
+              padding: '3px 10px',
+              borderRadius: 6,
               background: 'rgba(239,83,80,0.15)',
               border: '1px solid rgba(239,83,80,0.25)',
-              color: '#EF5350', fontSize: 10, fontWeight: 600,
-              fontFamily: M, cursor: 'pointer',
+              color: '#EF5350',
+              fontSize: 10,
+              fontWeight: 600,
+              fontFamily: M,
+              cursor: 'pointer',
               touchAction: 'manipulation',
             }}
           >
@@ -219,21 +244,34 @@ export default function MobileDrawingSheet() {
         <div style={{ width: 32, height: 3, borderRadius: 2, background: C.t3 + '60' }} />
 
         {activeTool && (
-          <div style={{
-            position: 'absolute', left: 12,
-            fontSize: 10, fontWeight: 700, fontFamily: M,
-            color: C.b, background: C.b + '15',
-            padding: '2px 8px', borderRadius: 10,
-          }}>
+          <div
+            style={{
+              position: 'absolute',
+              left: 12,
+              fontSize: 10,
+              fontWeight: 700,
+              fontFamily: M,
+              color: C.b,
+              background: C.b + '15',
+              padding: '2px 8px',
+              borderRadius: 10,
+            }}
+          >
             {activeLabel}
           </div>
         )}
 
         {drawings.length > 0 && (
-          <div style={{
-            position: 'absolute', right: 12,
-            fontSize: 9, fontWeight: 600, fontFamily: M, color: C.t3,
-          }}>
+          <div
+            style={{
+              position: 'absolute',
+              right: 12,
+              fontSize: 9,
+              fontWeight: 600,
+              fontFamily: M,
+              color: C.t3,
+            }}
+          >
             {drawings.length} drawing{drawings.length !== 1 ? 's' : ''}
           </div>
         )}
@@ -241,20 +279,29 @@ export default function MobileDrawingSheet() {
 
       {/* ─── Tool Panel ────────────────────────────────────── */}
       <div style={{ background: C.sf, borderTop: `1px solid ${C.bd}`, padding: '0 0 12px' }}>
-
         {/* Category tabs */}
-        <div style={{
-          display: 'flex', gap: 0, borderBottom: `1px solid ${C.bd}`,
-          overflowX: 'auto', scrollbarWidth: 'none',
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: 0,
+            borderBottom: `1px solid ${C.bd}`,
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+          }}
+        >
           {TOOL_CATEGORIES.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => { setActiveCategory(cat.id); haptic('light'); }}
+              onClick={() => {
+                setActiveCategory(cat.id);
+                haptic('light');
+              }}
               style={{
                 flex: '0 0 auto',
                 padding: '8px 14px',
-                fontSize: 10, fontWeight: 600, fontFamily: M,
+                fontSize: 10,
+                fontWeight: 600,
+                fontFamily: M,
                 color: activeCategory === cat.id ? C.b : C.t3,
                 background: 'transparent',
                 border: 'none',
@@ -302,10 +349,15 @@ export default function MobileDrawingSheet() {
               }}
             >
               <span style={{ fontSize: 16, lineHeight: 1 }}>{tool.icon}</span>
-              <span style={{
-                fontSize: 8, fontWeight: 600, fontFamily: M,
-                marginTop: 2, whiteSpace: 'nowrap',
-              }}>
+              <span
+                style={{
+                  fontSize: 8,
+                  fontWeight: 600,
+                  fontFamily: M,
+                  marginTop: 2,
+                  whiteSpace: 'nowrap',
+                }}
+              >
                 {tool.label}
               </span>
             </button>
@@ -313,22 +365,46 @@ export default function MobileDrawingSheet() {
         </div>
 
         {/* Utilities row */}
-        <div style={{
-          display: 'flex', gap: 8, padding: '10px 12px 0',
-          justifyContent: 'center',
-        }}>
-          <UtilPill label={`🧲 Magnet ${magnetMode ? 'ON' : 'OFF'}`} active={magnetMode} onClick={() => { toggleMagnetMode(); haptic('light'); }} />
+        <div
+          style={{
+            display: 'flex',
+            gap: 8,
+            padding: '10px 12px 0',
+            justifyContent: 'center',
+          }}
+        >
+          <UtilPill
+            label={`🧲 Magnet ${magnetMode ? 'ON' : 'OFF'}`}
+            active={magnetMode}
+            onClick={() => {
+              toggleMagnetMode();
+              haptic('light');
+            }}
+          />
           {drawings.length > 0 && (
-            <UtilPill label={`🗑 Clear (${drawings.length})`} active={false} color={C.r} onClick={() => { clearAllDrawings(); haptic('heavy'); }} />
+            <UtilPill
+              label={`🗑 Clear (${drawings.length})`}
+              active={false}
+              color={C.r}
+              onClick={() => {
+                clearAllDrawings();
+                haptic('heavy');
+              }}
+            />
           )}
         </div>
 
         {/* Two-finger pan hint */}
         {isDrawing && (
-          <div style={{
-            textAlign: 'center', padding: '8px 0 0',
-            fontSize: 9, color: C.t3 + '80', fontFamily: M,
-          }}>
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '8px 0 0',
+              fontSize: 9,
+              color: C.t3 + '80',
+              fontFamily: M,
+            }}
+          >
             💡 Two-finger drag to pan while drawing
           </div>
         )}

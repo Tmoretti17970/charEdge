@@ -17,27 +17,24 @@
 
 import { useState } from 'react';
 import { C } from '../../../constants.js';
-// eslint-disable-next-line import/order
+import AppearanceSection from '../settings/AppearanceSection.jsx';
+import IntelligenceSection from '../settings/IntelligenceSection.jsx';
+import NotificationsSection from '../settings/NotificationsSection.jsx';
 import { AccordionSection } from './MobilePrimitives.jsx';
-
-// Section content components
 import DangerContent from './sections/DangerContent.jsx';
 import DataContent from './sections/DataContent.jsx';
 import IntegrationsContent from './sections/IntegrationsContent.jsx';
 import ProfileContent from './sections/ProfileContent.jsx';
-import IntelligenceSection from '../settings/IntelligenceSection.jsx';
-import AppearanceSection from '../settings/AppearanceSection.jsx';
-import NotificationsSection from '../settings/NotificationsSection.jsx';
 
 // ─── Section Definitions ────────────────────────────────────────
 
 const SECTIONS = [
-  { id: 'account',  label: 'Account',           icon: '👤' },
-  { id: 'app',      label: 'App',               icon: '🎨' },
-  { id: 'ai',       label: 'AI',                icon: '🧠' },
-  { id: 'alerts',   label: 'Alerts',            icon: '🔔' },
-  { id: 'data',     label: 'Data',              icon: '💾' },
-  { id: 'privacy',  label: 'Privacy & Security', icon: '🔒' },
+  { id: 'account', label: 'Account', icon: '👤' },
+  { id: 'app', label: 'App', icon: '🎨' },
+  { id: 'ai', label: 'AI', icon: '🧠' },
+  { id: 'alerts', label: 'Alerts', icon: '🔔' },
+  { id: 'data', label: 'Data', icon: '💾' },
+  { id: 'privacy', label: 'Privacy & Security', icon: '🔒' },
 ];
 
 // ─── Section Content Map ────────────────────────────────────────

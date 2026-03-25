@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock VectorStore with in-memory implementation before imports
 vi.mock('../ai/VectorStore', async (importOriginal) => {
-  const orig = await importOriginal() as Record<string, unknown>;
+  const orig = (await importOriginal()) as Record<string, unknown>;
 
   // In-memory store
   const entries = new Map<string, { id: string; vector: number[]; text: string; metadata: Record<string, unknown> }>();
@@ -20,8 +20,8 @@ vi.mock('../ai/VectorStore', async (importOriginal) => {
       },
       search: async (queryVector: number[], topK = 5, minSimilarity = 0.3) => {
         return [...entries.values()]
-          .map(entry => ({ entry, similarity: cos(queryVector, entry.vector) }))
-          .filter(r => r.similarity >= minSimilarity)
+          .map((entry) => ({ entry, similarity: cos(queryVector, entry.vector) }))
+          .filter((r) => r.similarity >= minSimilarity)
           .sort((a, b) => b.similarity - a.similarity)
           .slice(0, topK);
       },
@@ -71,7 +71,7 @@ describe('tradeToText', () => {
     const text = tradeToText({
       symbol: 'BTCUSDT',
       side: 'long',
-      pnl: 150.50,
+      pnl: 150.5,
       entryDate: '2024-01-15T10:30:00Z',
       setup: 'breakout',
       emotion: 'confident',
@@ -89,7 +89,7 @@ describe('tradeToText', () => {
     const text = tradeToText({
       symbol: 'ETHUSDT',
       side: 'short',
-      pnl: -75.00,
+      pnl: -75.0,
       emotion: 'frustrated',
     });
 
@@ -172,13 +172,20 @@ describe('JournalRAG', () => {
     const count = await rag.indexAllTrades([
       { id: 'b1', symbol: 'A', side: 'long', pnl: 100 },
       { id: 'b2', symbol: 'B', side: 'long' },
-    ] as any);
+    ] as unknown as Parameters<typeof rag.indexAllTrades>[0]);
     expect(count).toBe(1);
   });
 
   it('query returns results with context', async () => {
     await rag.indexAllTrades([
-      { id: 'c1', symbol: 'BTCUSDT', side: 'long', pnl: 300, setup: 'breakout', notes: 'BTC breakout trade with volume' },
+      {
+        id: 'c1',
+        symbol: 'BTCUSDT',
+        side: 'long',
+        pnl: 300,
+        setup: 'breakout',
+        notes: 'BTC breakout trade with volume',
+      },
       { id: 'c2', symbol: 'ETHUSDT', side: 'short', pnl: -50, setup: 'fade', notes: 'ETH fade at resistance failed' },
     ]);
     const result = await rag.query('BTC breakout', 5);

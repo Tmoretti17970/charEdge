@@ -22,18 +22,15 @@ describe('Sprint 4 — InputManager inertia constants', () => {
     const { fileURLToPath } = await import('url');
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'charting_library/core/inputConstants.ts'),
-      'utf-8'
-    );
+    source = fs.readFileSync(path.resolve(__dirname, '..', '..', 'charting_library/core/inputConstants.ts'), 'utf-8');
   });
 
   it('FRICTION is 0.96 (TradingView-class momentum)', () => {
     expect(source).toContain('FRICTION = 0.96');
   });
 
-  it('MIN_VELOCITY is 0.3 (stop threshold)', () => {
-    expect(source).toContain('MIN_VELOCITY = 0.3');
+  it('MIN_VELOCITY is 0.15 (stop threshold)', () => {
+    expect(source).toContain('MIN_VELOCITY = 0.15');
   });
 
   it('ZOOM_LERP is 0.25 (snappy zoom easing)', () => {
@@ -55,10 +52,7 @@ describe('Sprint 4 — InputManager velocity sampling', () => {
     const { fileURLToPath } = await import('url');
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'charting_library/core/InputManager.ts'),
-      'utf-8'
-    );
+    source = fs.readFileSync(path.resolve(__dirname, '..', '..', 'charting_library/core/InputManager.ts'), 'utf-8');
   });
 
   it('uses 3-sample velocity ring buffer', () => {
@@ -90,18 +84,15 @@ describe('Sprint 4 — InputManager rubber-band overscroll', () => {
     const { fileURLToPath } = await import('url');
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'charting_library/core/inputConstants.ts'),
-      'utf-8'
-    );
+    source = fs.readFileSync(path.resolve(__dirname, '..', '..', 'charting_library/core/inputConstants.ts'), 'utf-8');
   });
 
   it('OVERSCROLL_MAX is 40 bars', () => {
     expect(source).toContain('OVERSCROLL_MAX = 40');
   });
 
-  it('OVERSCROLL_SPRING is 0.85 (spring-back per frame)', () => {
-    expect(source).toContain('OVERSCROLL_SPRING = 0.85');
+  it('OVERSCROLL_SPRING is 0.88 (spring-back per frame)', () => {
+    expect(source).toContain('OVERSCROLL_SPRING = 0.88');
   });
 
   it('applies spring-back when scrollOffset < minScroll', () => {
@@ -131,10 +122,7 @@ describe('Sprint 4 — InputManager CSS will-change', () => {
     const { fileURLToPath } = await import('url');
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'charting_library/core/InputManager.ts'),
-      'utf-8'
-    );
+    source = fs.readFileSync(path.resolve(__dirname, '..', '..', 'charting_library/core/InputManager.ts'), 'utf-8');
   });
 
   it('has _setWillChange method', () => {
@@ -173,10 +161,7 @@ describe('Sprint 4 — ChartAnimations easing functions', () => {
     const { fileURLToPath } = await import('url');
     const path = await import('path');
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    source = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'charting_library/core/ChartAnimations.js'),
-      'utf-8'
-    );
+    source = fs.readFileSync(path.resolve(__dirname, '..', '..', 'charting_library/core/ChartAnimations.js'), 'utf-8');
   });
 
   it('has spring easing function', () => {

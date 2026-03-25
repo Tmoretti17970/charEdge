@@ -1,8 +1,13 @@
+import { getStalenessThreshold } from './AssetClassConfig.ts';
 import { logger } from '@/observability/logger';
 
 // Sprint 1 Task 1.1: Lazy ref to PriceBus — avoids circular dep
 let _priceBus = null;
-import('./PriceBus.ts').then(m => { _priceBus = m.priceBus; }).catch(() => {});
+import('./PriceBus.ts')
+  .then((m) => {
+    _priceBus = m.priceBus;
+  })
+  .catch(() => {});
 // ═══════════════════════════════════════════════════════════════════
 // charEdge v11 — Price Aggregator Engine
 //
@@ -24,26 +29,24 @@ import('./PriceBus.ts').then(m => { _priceBus = m.priceBus; }).catch(() => {});
 //   // → { price: 97000.85, confidence: 'high', sources: 2, ... }
 // ═══════════════════════════════════════════════════════════════════
 
-import { getStalenessThreshold } from './AssetClassConfig.ts';
-
 // ─── Configuration ──────────────────────────────────────────────
 
 const CONFIG = {
-  STALENESS_THRESHOLD_MS: 5000,     // Source considered stale after 5s
-  OUTLIER_SIGMA: 3.0,               // Reject prices > 3 std devs from rolling mean
-  ROLLING_WINDOW: 20,               // Rolling window for mean/stddev calculation
-  AGGREGATION_INTERVAL_MS: 100,     // Run aggregation every 100ms
-  MAX_SOURCES_PER_SYMBOL: 8,        // Max concurrent sources per symbol
-  PRICE_HISTORY_LENGTH: 50,         // Price history per source for analytics
+  STALENESS_THRESHOLD_MS: 5000, // Source considered stale after 5s
+  OUTLIER_SIGMA: 3.0, // Reject prices > 3 std devs from rolling mean
+  ROLLING_WINDOW: 20, // Rolling window for mean/stddev calculation
+  AGGREGATION_INTERVAL_MS: 100, // Run aggregation every 100ms
+  MAX_SOURCES_PER_SYMBOL: 8, // Max concurrent sources per symbol
+  PRICE_HISTORY_LENGTH: 50, // Price history per source for analytics
 };
 
 // ─── Confidence Levels ──────────────────────────────────────────
 
 export const CONFIDENCE = {
-  HIGH: 'high',     // 3+ fresh, non-outlier sources
-  MEDIUM: 'medium',   // 2 fresh sources
-  LOW: 'low',      // 1 fresh source
-  STALE: 'stale',    // 0 fresh sources, using last known price
+  HIGH: 'high', // 3+ fresh, non-outlier sources
+  MEDIUM: 'medium', // 2 fresh sources
+  LOW: 'low', // 1 fresh source
+  STALE: 'stale', // 0 fresh sources, using last known price
 };
 
 // ─── Helper Functions ───────────────────────────────────────────
@@ -52,9 +55,7 @@ function median(arr) {
   if (arr.length === 0) return 0;
   const sorted = [...arr].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 !== 0
-    ? sorted[mid]
-    : (sorted[mid - 1] + sorted[mid]) / 2;
+  return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
 function mean(arr) {
@@ -75,11 +76,11 @@ function stddev(arr, avg = null) {
 class SourceBuffer {
   constructor(sourceId, symbol = '') {
     this.sourceId = sourceId;
-    this.symbol = symbol;  // Sprint 5 Task 5.3: for asset-class-aware staleness
+    this.symbol = symbol; // Sprint 5 Task 5.3: for asset-class-aware staleness
     this.price = 0;
     this.timestamp = 0;
-    this.confidence = 0;       // Source-level confidence (from Pyth, etc.)
-    this.history = [];         // Rolling price history for stats
+    this.confidence = 0; // Source-level confidence (from Pyth, etc.)
+    this.history = []; // Rolling price history for stats
     this.updateCount = 0;
     this.lastStaleCheck = false;
   }
@@ -100,7 +101,7 @@ class SourceBuffer {
   get isFresh() {
     // Sprint 5 Task 5.3.2: Dynamic staleness per asset class
     const threshold = this.symbol ? getStalenessThreshold(this.symbol) : CONFIG.STALENESS_THRESHOLD_MS;
-    return (Date.now() - this.timestamp) < threshold;
+    return Date.now() - this.timestamp < threshold;
   }
 
   get age() {
@@ -122,8 +123,8 @@ class SourceBuffer {
 class SymbolState {
   constructor(symbol) {
     this.symbol = symbol;
-    this.sources = new Map();    // sourceId → SourceBuffer
-    this.lastAggregated = null;  // Last aggregated result
+    this.sources = new Map(); // sourceId → SourceBuffer
+    this.lastAggregated = null; // Last aggregated result
     this.subscribers = new Set(); // Callbacks to notify on updates
   }
 
@@ -166,12 +167,12 @@ class SymbolState {
 
     if (validSources.length >= 3) {
       // 3+ valid sources → use median
-      price = median(validSources.map(s => s.price));
+      price = median(validSources.map((s) => s.price));
       confidence = CONFIDENCE.HIGH;
       method = 'median';
     } else if (validSources.length === 2) {
       // 2 valid sources → use mean
-      price = mean(validSources.map(s => s.price));
+      price = mean(validSources.map((s) => s.price));
       confidence = CONFIDENCE.MEDIUM;
       method = 'mean';
     } else if (validSources.length === 1) {
@@ -198,26 +199,34 @@ class SymbolState {
       totalSources: this.sources.size,
       freshSources: freshSources.length,
       staleSources: staleSources.length,
-      sourcesUsed: validSources.map(s => s.sourceId),
-      spread: validSources.length >= 2
-        ? Math.abs(Math.max(...validSources.map(s => s.price)) - Math.min(...validSources.map(s => s.price)))
-        : 0,
+      sourcesUsed: validSources.map((s) => s.sourceId),
+      spread:
+        validSources.length >= 2
+          ? Math.abs(Math.max(...validSources.map((s) => s.price)) - Math.min(...validSources.map((s) => s.price)))
+          : 0,
       timestamp: now,
-      latency: validSources.length > 0
-        ? Math.min(...validSources.map(s => s.age))
-        : (this.lastAggregated?.latency || 0),
+      latency:
+        validSources.length > 0 ? Math.min(...validSources.map((s) => s.age)) : this.lastAggregated?.latency || 0,
     };
 
     this.lastAggregated = aggregation;
 
     // Notify subscribers
     for (const cb of this.subscribers) {
-      try { cb(aggregation); } catch (e) { logger.data.warn('Operation failed', e); }
+      try {
+        cb(aggregation);
+      } catch (e) {
+        logger.data.warn('Operation failed', e);
+      }
     }
 
     // Sprint 1 Task 1.1: Publish aggregated price to PriceBus
     if (_priceBus) {
-      try { _priceBus.publish(this.symbol, aggregation.price, 'aggregator', Date.now()); } catch {}
+      try {
+        _priceBus.publish(this.symbol, aggregation.price, 'aggregator', Date.now());
+      } catch {
+        /* PriceBus publish best-effort */
+      }
     }
 
     return aggregation;
@@ -231,13 +240,13 @@ class SymbolState {
   _rejectOutliers(sources) {
     if (sources.length < 3) return sources; // Need 3+ to detect outliers
 
-    const prices = sources.map(s => s.price);
+    const prices = sources.map((s) => s.price);
     const avg = mean(prices);
     const sd = stddev(prices, avg);
 
     if (sd === 0) return sources; // All identical — no outliers
 
-    return sources.filter(s => {
+    return sources.filter((s) => {
       const zScore = Math.abs(s.price - avg) / sd;
       return zScore <= CONFIG.OUTLIER_SIGMA;
     });
@@ -249,7 +258,7 @@ class SymbolState {
 export class PriceAggregator {
   constructor(config = {}) {
     this._config = { ...CONFIG, ...config };
-    this._symbols = new Map();     // symbol → SymbolState
+    this._symbols = new Map(); // symbol → SymbolState
     this._sourceHealth = new Map(); // sourceId → { updates, errors, lastSeen }
     this._running = false;
     this._intervalId = null;
@@ -314,7 +323,7 @@ export class PriceAggregator {
    */
   subscribe(symbol, callback) {
     const upper = symbol?.toUpperCase();
-    if (!upper) return () => { };
+    if (!upper) return () => {};
 
     let state = this._symbols.get(upper);
     if (!state) {
@@ -372,7 +381,7 @@ export class PriceAggregator {
       health[id] = {
         ...stats,
         // Sprint 1 Task 1.4.1: Use Date.now() — consistent with ingest timestamps
-        isHealthy: (Date.now() - stats.lastSeen) < this._config.STALENESS_THRESHOLD_MS * 2,
+        isHealthy: Date.now() - stats.lastSeen < this._config.STALENESS_THRESHOLD_MS * 2,
       };
     }
     return health;
@@ -388,7 +397,7 @@ export class PriceAggregator {
     for (const [sym, state] of this._symbols) {
       symbols[sym] = {
         sources: state.sources.size,
-        freshSources: Array.from(state.sources.values()).filter(s => s.isFresh).length,
+        freshSources: Array.from(state.sources.values()).filter((s) => s.isFresh).length,
         lastPrice: state.lastAggregated?.price || null,
         confidence: state.lastAggregated?.confidence || 'none',
       };

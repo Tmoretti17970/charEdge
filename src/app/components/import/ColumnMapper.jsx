@@ -6,11 +6,10 @@
 // Users click to assign/unassign mappings when auto-detection fails.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { C } from '../../../constants.js';
-import { alpha } from '@/shared/colorUtils';
 import { autoMapColumns, getTargetFields } from '../../data/importExport/columnMatcher.js';
-import st from './ColumnMapper.module.css';
+import { alpha } from '@/shared/colorUtils';
 
 // ─── Confidence Badge ───────────────────────────────────────────
 
@@ -47,16 +46,8 @@ function SourceColumn({ header, mapped, active, onClick, confidence }) {
         width: '100%',
         padding: '6px 10px',
         borderRadius: 6,
-        border: active
-          ? `2px solid ${C.b}`
-          : mapped
-            ? `1px solid ${alpha(C.g, 0.3)}`
-            : `1px solid ${alpha(C.bd, 0.3)}`,
-        background: active
-          ? alpha(C.b, 0.08)
-          : mapped
-            ? alpha(C.g, 0.04)
-            : alpha(C.sf, 0.5),
+        border: active ? `2px solid ${C.b}` : mapped ? `1px solid ${alpha(C.g, 0.3)}` : `1px solid ${alpha(C.bd, 0.3)}`,
+        background: active ? alpha(C.b, 0.08) : mapped ? alpha(C.g, 0.04) : alpha(C.sf, 0.5),
         cursor: 'pointer',
         transition: 'all 0.1s ease',
         textAlign: 'left',
@@ -89,26 +80,28 @@ function TargetField({ field, mappedFrom, active, onClick }) {
           : mappedFrom
             ? `1px solid ${alpha(C.g, 0.3)}`
             : `1px solid ${alpha(C.bd, 0.3)}`,
-        background: active
-          ? alpha(C.b, 0.08)
-          : mappedFrom
-            ? alpha(C.g, 0.04)
-            : alpha(C.sf, 0.5),
+        background: active ? alpha(C.b, 0.08) : mappedFrom ? alpha(C.g, 0.04) : alpha(C.sf, 0.5),
         cursor: 'pointer',
         transition: 'all 0.1s ease',
         textAlign: 'left',
       }}
     >
       <div>
-        <span style={{ fontSize: 11, fontWeight: 600, fontFamily: 'var(--tf-font)', color: C.t1 }}>
-          {field.label}
-        </span>
-        {field.required && (
-          <span style={{ fontSize: 8, color: C.r, marginLeft: 4, fontWeight: 700 }}>REQ</span>
-        )}
+        <span style={{ fontSize: 11, fontWeight: 600, fontFamily: 'var(--tf-font)', color: C.t1 }}>{field.label}</span>
+        {field.required && <span style={{ fontSize: 8, color: C.r, marginLeft: 4, fontWeight: 700 }}>REQ</span>}
       </div>
       {mappedFrom && (
-        <span style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: C.t3, maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span
+          style={{
+            fontSize: 9,
+            fontFamily: 'var(--tf-mono)',
+            color: C.t3,
+            maxWidth: 80,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
           ← {mappedFrom}
         </span>
       )}
@@ -143,9 +136,7 @@ function ColumnMapper({ headers, onMappingComplete, initialMapping }) {
 
   // Check required fields
   const requiredMet = useMemo(() => {
-    return targetFields
-      .filter((f) => f.required)
-      .every((f) => reverseMap[f.key]);
+    return targetFields.filter((f) => f.required).every((f) => reverseMap[f.key]);
   }, [targetFields, reverseMap]);
 
   // Handle source column click
@@ -158,7 +149,7 @@ function ColumnMapper({ headers, onMappingComplete, initialMapping }) {
         setSelectedSource(header);
       }
     },
-    [selectedSource]
+    [selectedSource],
   );
 
   // Handle target field click
@@ -178,14 +169,8 @@ function ColumnMapper({ headers, onMappingComplete, initialMapping }) {
       });
       setSelectedSource(null);
     },
-    [selectedSource]
+    [selectedSource],
   );
-
-  // Clear a mapping
-  const handleClear = useCallback((header) => {
-    setMapping((prev) => ({ ...prev, [header]: null }));
-    setConfidence((prev) => ({ ...prev, [header]: 0 }));
-  }, []);
 
   // Apply mapping
   const handleApply = useCallback(() => {
@@ -207,15 +192,11 @@ function ColumnMapper({ headers, onMappingComplete, initialMapping }) {
       {/* ─── Header ──────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'var(--tf-font)', color: C.t1 }}>
-            Column Mapping
-          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'var(--tf-font)', color: C.t1 }}>Column Mapping</div>
           <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-mono)', marginTop: 2 }}>
             {mappedCount} of {(headers || []).length} columns mapped
             {selectedSource && (
-              <span style={{ color: C.b, marginLeft: 6 }}>
-                → Select a target field for "{selectedSource}"
-              </span>
+              <span style={{ color: C.b, marginLeft: 6 }}>→ Select a target field for "{selectedSource}"</span>
             )}
           </div>
         </div>
@@ -241,7 +222,16 @@ function ColumnMapper({ headers, onMappingComplete, initialMapping }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         {/* Source Columns */}
         <div>
-          <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>
+          <div
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              color: C.t3,
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+              marginBottom: 6,
+            }}
+          >
             CSV Columns
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -260,7 +250,16 @@ function ColumnMapper({ headers, onMappingComplete, initialMapping }) {
 
         {/* Target Fields */}
         <div>
-          <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>
+          <div
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              color: C.t3,
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+              marginBottom: 6,
+            }}
+          >
             charEdge Fields
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>

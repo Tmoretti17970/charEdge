@@ -16,8 +16,8 @@
 import React from 'react';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { C, F, M } from '../../constants.js';
-import { useUserStore } from '../../state/useUserStore';
 import { useUIStore } from '../../state/useUIStore';
+import { useUserStore } from '../../state/useUserStore';
 import { space, radii, text, transition, preset } from '../../theme/tokens.js';
 import { Btn } from '../components/ui/UIKit.jsx';
 import s from './OnboardingWizard.module.css';
@@ -121,12 +121,7 @@ function AnimatedPriceLine({ width = 460, height = 200 }) {
     return () => cancelAnimationFrame(animRef.current);
   }, [width, height]);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{ width, height, borderRadius: radii.md, display: 'block' }}
-    />
-  );
+  return <canvas ref={canvasRef} style={{ width, height, borderRadius: radii.md, display: 'block' }} />;
 }
 
 // ─── Stats ticker (simulated) ────────────────────────────────────
@@ -155,12 +150,17 @@ function LiveStatsTicker() {
       <span style={{ fontFamily: M, fontSize: 22, fontWeight: 600, color: isUp ? '#22c55e' : '#ef4444' }}>
         ${stats.price.toLocaleString()}
       </span>
-      <span style={{
-        fontFamily: M, fontSize: 13, fontWeight: 500,
-        color: isUp ? '#22c55e' : '#ef4444',
-        padding: '2px 8px', borderRadius: 6,
-        background: isUp ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
-      }}>
+      <span
+        style={{
+          fontFamily: M,
+          fontSize: 13,
+          fontWeight: 500,
+          color: isUp ? '#22c55e' : '#ef4444',
+          padding: '2px 8px',
+          borderRadius: 6,
+          background: isUp ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+        }}
+      >
         {isUp ? '▲' : '▼'} {Math.abs(stats.change)}%
       </span>
     </div>
@@ -344,9 +344,7 @@ function OnboardingWizard() {
               </button>
             )}
             {wizardStep < STEPS.length - 1 ? (
-              <Btn onClick={goNext}>
-                {wizardStep === 0 ? 'Let\'s Go →' : 'Continue →'}
-              </Btn>
+              <Btn onClick={goNext}>{wizardStep === 0 ? "Let's Go →" : 'Continue →'}</Btn>
             ) : (
               <Btn onClick={completeWizard}>Start Trading →</Btn>
             )}
@@ -364,23 +362,27 @@ function StepLiveChartHero() {
   return (
     <div>
       {/* Live chart preview */}
-      <div style={{
-        borderRadius: radii.lg,
-        overflow: 'hidden',
-        background: 'rgba(0,0,0,0.3)',
-        border: `1px solid ${C.bd}40`,
-        marginBottom: space[4],
-      }}>
+      <div
+        style={{
+          borderRadius: radii.lg,
+          overflow: 'hidden',
+          background: 'rgba(0,0,0,0.3)',
+          border: `1px solid ${C.bd}40`,
+          marginBottom: space[4],
+        }}
+      >
         <LiveStatsTicker />
         <AnimatedPriceLine width={460} height={160} />
       </div>
 
       {/* Value props — compact 2×2 grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: space[2],
-      }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: space[2],
+        }}
+      >
         <FeatureChip icon="📈" label="Real-Time Charts" />
         <FeatureChip icon="📒" label="Smart Journal" />
         <FeatureChip icon="🧠" label="AI Co-Pilot" />
@@ -444,18 +446,18 @@ function StepComplete() {
 
   return (
     <div>
-      <p style={{ ...text.body, marginBottom: space[4] }}>
-        You're all set! Choose what to do first:
-      </p>
+      <p style={{ ...text.body, marginBottom: space[4] }}>You're all set! Choose what to do first:</p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: space[3] }}>
         <ActionCTA
           icon="📥"
           title="Import Trades"
           desc="Upload CSV from your broker — format is auto-detected."
-          onClick={() => handleAction(() => {
-            setPage('import');
-          })}
+          onClick={() =>
+            handleAction(() => {
+              setPage('import');
+            })
+          }
         />
         <ActionCTA
           icon="📈"
@@ -467,9 +469,11 @@ function StepComplete() {
           icon="📒"
           title="Log First Trade"
           desc="Start building your journal — more data = sharper insights."
-          onClick={() => handleAction(() => {
-            window.dispatchEvent(new CustomEvent('tf:openTradeForm'));
-          })}
+          onClick={() =>
+            handleAction(() => {
+              window.dispatchEvent(new CustomEvent('tf:openTradeForm'));
+            })
+          }
         />
       </div>
 
@@ -484,8 +488,8 @@ function StepComplete() {
         }}
       >
         <p style={{ ...text.captionSm, margin: 0, lineHeight: 1.5, opacity: 0.8 }}>
-          ⚠️ <strong>Disclaimer:</strong> charEdge is not financial advice. All analytics, metrics,
-          and coaching features are for educational purposes only. Trade at your own risk.
+          ⚠️ <strong>Disclaimer:</strong> charEdge is not financial advice. All analytics, metrics, and coaching
+          features are for educational purposes only. Trade at your own risk.
         </p>
       </div>
     </div>
@@ -494,6 +498,7 @@ function StepComplete() {
 
 // ─── Shared Sub-components ───────────────────────────────────────
 
+// eslint-disable-next-line unused-imports/no-unused-vars
 function FeatureHighlight({ icon, title, desc }) {
   return (
     <div
@@ -542,22 +547,35 @@ function ActionCTA({ icon, title, desc, onClick }) {
         <div style={{ ...text.h3, fontSize: 13, marginBottom: 2 }}>{title}</div>
         <div style={{ ...text.bodyXs, color: C.t3 }}>{desc}</div>
       </div>
-      <span style={{ marginLeft: 'auto', fontSize: 14, color: C.b, alignSelf: 'center', opacity: hovered ? 1 : 0.4, transition: 'opacity 0.15s' }}>→</span>
+      <span
+        style={{
+          marginLeft: 'auto',
+          fontSize: 14,
+          color: C.b,
+          alignSelf: 'center',
+          opacity: hovered ? 1 : 0.4,
+          transition: 'opacity 0.15s',
+        }}
+      >
+        →
+      </span>
     </button>
   );
 }
 
 function FeatureChip({ icon, label }) {
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 8,
-      padding: `${space[2]}px ${space[3]}px`,
-      background: C.sf2,
-      borderRadius: radii.md,
-      border: `1px solid ${C.bd}30`,
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: `${space[2]}px ${space[3]}px`,
+        background: C.sf2,
+        borderRadius: radii.md,
+        border: `1px solid ${C.bd}30`,
+      }}
+    >
       <span style={{ fontSize: 16 }}>{icon}</span>
       <span style={{ ...text.bodySm, fontWeight: 500 }}>{label}</span>
     </div>

@@ -42,26 +42,35 @@ export function useCommandPalette() {
 
   // ─── Toggle ──────────────────────────────────────────────────
 
-  const toggle = useCallback(() => setIsOpen(prev => !prev), []);
+  const toggle = useCallback(() => setIsOpen((prev) => !prev), []);
   const open = useCallback(() => setIsOpen(true), []);
-  const close = useCallback(() => { setIsOpen(false); setQuery(''); }, []);
+  const close = useCallback(() => {
+    setIsOpen(false);
+    setQuery('');
+  }, []);
 
   // ─── Registry ────────────────────────────────────────────────
 
-  const register = useCallback((
-    id: string,
-    label: string,
-    action: () => void,
-    category = 'General',
-    opts?: { icon?: string; shortcut?: string; keywords?: string[] },
-  ) => {
-    registryRef.current.set(id, {
-      id, label, action, category,
-      icon: opts?.icon,
-      shortcut: opts?.shortcut,
-      keywords: opts?.keywords,
-    });
-  }, []);
+  const register = useCallback(
+    (
+      id: string,
+      label: string,
+      action: () => void,
+      category = 'General',
+      opts?: { icon?: string; shortcut?: string; keywords?: string[] },
+    ) => {
+      registryRef.current.set(id, {
+        id,
+        label,
+        action,
+        category,
+        icon: opts?.icon,
+        shortcut: opts?.shortcut,
+        keywords: opts?.keywords,
+      });
+    },
+    [],
+  );
 
   const unregister = useCallback((id: string) => {
     registryRef.current.delete(id);
@@ -73,38 +82,39 @@ export function useCommandPalette() {
     const commands = [...registryRef.current.values()];
     if (!q.trim()) {
       // Return recent + all commands
-      const recent = _getRecent();
+      const recent = getRecent();
       const recentSet = new Set(recent);
-      const recentCmds = recent
-        .map(id => registryRef.current.get(id))
-        .filter(Boolean) as Command[];
-      const rest = commands.filter(c => !recentSet.has(c.id));
+      const recentCmds = recent.map((id) => registryRef.current.get(id)).filter(Boolean) as Command[];
+      const rest = commands.filter((c) => !recentSet.has(c.id));
 
       return [
-        ...recentCmds.map(c => ({ command: c, score: 100, highlights: [] })),
-        ...rest.map(c => ({ command: c, score: 50, highlights: [] })),
+        ...recentCmds.map((c) => ({ command: c, score: 100, highlights: [] })),
+        ...rest.map((c) => ({ command: c, score: 50, highlights: [] })),
       ];
     }
 
     return commands
-      .map(cmd => {
-        const { score, highlights } = _fuzzyMatch(q, cmd.label, cmd.keywords);
+      .map((cmd) => {
+        const { score, highlights } = fuzzyMatch(q, cmd.label, cmd.keywords);
         return { command: cmd, score, highlights };
       })
-      .filter(m => m.score > 0)
+      .filter((m) => m.score > 0)
       .sort((a, b) => b.score - a.score);
   }, []);
 
   // ─── Execute ─────────────────────────────────────────────────
 
-  const execute = useCallback((id: string) => {
-    const cmd = registryRef.current.get(id);
-    if (cmd) {
-      cmd.action();
-      _addRecent(id);
-      close();
-    }
-  }, [close]);
+  const execute = useCallback(
+    (id: string) => {
+      const cmd = registryRef.current.get(id);
+      if (cmd) {
+        cmd.action();
+        addRecent(id);
+        close();
+      }
+    },
+    [close],
+  );
 
   // ─── Keyboard Shortcut ───────────────────────────────────────
 
@@ -139,11 +149,7 @@ export function useCommandPalette() {
 
 // ─── Fuzzy Match ────────────────────────────────────────────────
 
-function _fuzzyMatch(
-  query: string,
-  label: string,
-  keywords?: string[],
-): { score: number; highlights: number[] } {
+function fuzzyMatch(query: string, label: string, keywords?: string[]): { score: number; highlights: number[] } {
   const q = query.toLowerCase();
   const l = label.toLowerCase();
   const highlights: number[] = [];
@@ -193,18 +199,22 @@ function _fuzzyMatch(
 
 // ─── Recent Commands ────────────────────────────────────────────
 
-function _getRecent(): string[] {
+function getRecent(): string[] {
   try {
     return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
-function _addRecent(id: string): void {
+function addRecent(id: string): void {
   try {
-    const recent = _getRecent().filter(r => r !== id);
+    const recent = getRecent().filter((r) => r !== id);
     recent.unshift(id);
     localStorage.setItem(RECENT_KEY, JSON.stringify(recent.slice(0, MAX_RECENT)));
-  } catch { /* */ }
+  } catch {
+    /* */
+  }
 }
 
 export default useCommandPalette;

@@ -4,8 +4,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback } from 'react';
-import { logger } from '@/observability/logger';
 import s from './HotkeyCustomizationPanel.module.css';
+import { logger } from '@/observability/logger';
 
 const STORAGE_KEY = 'charEdge-hotkeys';
 
@@ -37,13 +37,17 @@ function loadHotkeys() {
       const parsed = JSON.parse(stored);
       return DEFAULT_HOTKEYS.map((hk) => ({ ...hk, key: parsed[hk.id] || hk.defaultKey }));
     }
-  } catch (e) { logger.ui.warn('Operation failed', e); }
+  } catch (e) {
+    logger.ui.warn('Operation failed', e);
+  }
   return DEFAULT_HOTKEYS.map((hk) => ({ ...hk }));
 }
 
 function saveHotkeys(hotkeys) {
   const map = {};
-  hotkeys.forEach((hk) => { map[hk.id] = hk.key; });
+  hotkeys.forEach((hk) => {
+    map[hk.id] = hk.key;
+  });
   localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
 }
 
@@ -53,16 +57,27 @@ export default function HotkeyCustomizationPanel({ onClose }) {
   const [listening, setListening] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
-  const handleRebind = useCallback((id) => { setEditingId(id); setListening(true); }, []);
+  const handleRebind = useCallback((id) => {
+    setEditingId(id);
+    setListening(true);
+  }, []);
 
   useEffect(() => {
     if (!listening || !editingId) return;
     setCountdown(5);
     const countdownTimer = setInterval(() => {
-      setCountdown((c) => { if (c <= 1) { setEditingId(null); setListening(false); return 0; } return c - 1; });
+      setCountdown((c) => {
+        if (c <= 1) {
+          setEditingId(null);
+          setListening(false);
+          return 0;
+        }
+        return c - 1;
+      });
     }, 1000);
     const handler = (e) => {
-      e.preventDefault(); e.stopPropagation();
+      e.preventDefault();
+      e.stopPropagation();
       let keyStr = '';
       if (e.ctrlKey || e.metaKey) keyStr += 'Ctrl+';
       if (e.shiftKey) keyStr += 'Shift+';
@@ -70,15 +85,28 @@ export default function HotkeyCustomizationPanel({ onClose }) {
       const key = e.key === ' ' ? 'Space' : e.key.length === 1 ? e.key.toUpperCase() : e.key;
       if (!['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) {
         keyStr += key;
-        setHotkeys((prev) => { const updated = prev.map((hk) => hk.id === editingId ? { ...hk, key: keyStr } : hk); saveHotkeys(updated); return updated; });
-        setEditingId(null); setListening(false); setCountdown(0);
+        setHotkeys((prev) => {
+          const updated = prev.map((hk) => (hk.id === editingId ? { ...hk, key: keyStr } : hk));
+          saveHotkeys(updated);
+          return updated;
+        });
+        setEditingId(null);
+        setListening(false);
+        setCountdown(0);
       }
     };
     window.addEventListener('keydown', handler, true);
-    return () => { window.removeEventListener('keydown', handler, true); clearInterval(countdownTimer); };
+    return () => {
+      window.removeEventListener('keydown', handler, true);
+      clearInterval(countdownTimer);
+    };
   }, [listening, editingId]);
 
-  const resetAll = useCallback(() => { const reset = DEFAULT_HOTKEYS.map((hk) => ({ ...hk })); setHotkeys(reset); saveHotkeys(reset); }, []);
+  const resetAll = useCallback(() => {
+    const reset = DEFAULT_HOTKEYS.map((hk) => ({ ...hk }));
+    setHotkeys(reset);
+    saveHotkeys(reset);
+  }, []);
   const categories = [...new Set(hotkeys.map((hk) => hk.category))];
 
   return (
@@ -86,22 +114,32 @@ export default function HotkeyCustomizationPanel({ onClose }) {
       <div className={s.header}>
         <span className={s.headerTitle}>⌨️ Keyboard Shortcuts</span>
         <div className={s.headerActions}>
-          <button onClick={resetAll} className={s.resetBtn}>Reset All</button>
-          <button onClick={onClose} className={s.closeBtn}>×</button>
+          <button onClick={resetAll} className={s.resetBtn}>
+            Reset All
+          </button>
+          <button onClick={onClose} className={s.closeBtn}>
+            ×
+          </button>
         </div>
       </div>
       <div className={s.body}>
         {categories.map((cat) => (
           <div key={cat}>
             <div className={s.catLabel}>{cat.toUpperCase()}</div>
-            {hotkeys.filter((hk) => hk.category === cat).map((hk) => (
-              <div key={hk.id} className={s.hotkeyRow}>
-                <span className={s.hotkeyLabel}>{hk.label}</span>
-                <button onClick={() => handleRebind(hk.id)} className={s.hotkeyBtn} data-editing={editingId === hk.id || undefined}>
-                  {editingId === hk.id ? `Press key... ${countdown}s` : hk.key}
-                </button>
-              </div>
-            ))}
+            {hotkeys
+              .filter((hk) => hk.category === cat)
+              .map((hk) => (
+                <div key={hk.id} className={s.hotkeyRow}>
+                  <span className={s.hotkeyLabel}>{hk.label}</span>
+                  <button
+                    onClick={() => handleRebind(hk.id)}
+                    className={s.hotkeyBtn}
+                    data-editing={editingId === hk.id || undefined}
+                  >
+                    {editingId === hk.id ? `Press key... ${countdown}s` : hk.key}
+                  </button>
+                </div>
+              ))}
           </div>
         ))}
       </div>

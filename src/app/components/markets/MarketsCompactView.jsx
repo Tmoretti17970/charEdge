@@ -7,12 +7,11 @@
 
 import { memo, useCallback, useMemo } from 'react';
 import { C } from '../../../constants.js';
-import { useWatchlistStore, enrichWithTradeStats } from '../../../state/useWatchlistStore.js';
+import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming.js';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useMarketsPrefsStore } from '../../../state/useMarketsPrefsStore';
-import useWatchlistStreaming from '../../../hooks/useWatchlistStreaming.js';
+import { useWatchlistStore, enrichWithTradeStats } from '../../../state/useWatchlistStore.js';
 import { transition } from '../../../theme/tokens.js';
-import st from './MarketsCompactView.module.css';
 
 function fmtPrice(val) {
   if (val == null || isNaN(val)) return '—';
@@ -41,9 +40,12 @@ function MarketsCompactView() {
     return enriched.filter((item) => assetClassFilters.includes(item.assetClass));
   }, [enriched, assetClassFilters]);
 
-  const handleClick = useCallback((symbol) => {
-    setSelectedSymbol(symbol);
-  }, [setSelectedSymbol]);
+  const handleClick = useCallback(
+    (symbol) => {
+      setSelectedSymbol(symbol);
+    },
+    [setSelectedSymbol],
+  );
 
   return (
     <div
@@ -82,38 +84,44 @@ function MarketsCompactView() {
             }}
           >
             {/* Symbol */}
-            <span style={{
-              fontSize: 11,
-              fontWeight: 700,
-              fontFamily: 'var(--tf-font)',
-              color: C.t1,
-              minWidth: 60,
-            }}>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                fontFamily: 'var(--tf-font)',
+                color: C.t1,
+                minWidth: 60,
+              }}
+            >
               {item.symbol?.replace('USDT', '')}
             </span>
 
             {/* Price */}
-            <span style={{
-              fontSize: 11,
-              fontWeight: 600,
-              fontFamily: 'var(--tf-mono)',
-              color: C.t1,
-              flex: 1,
-              textAlign: 'right',
-              paddingRight: 8,
-            }}>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                fontFamily: 'var(--tf-mono)',
+                color: C.t1,
+                flex: 1,
+                textAlign: 'right',
+                paddingRight: 8,
+              }}
+            >
               {fmtPrice(item.price)}
             </span>
 
             {/* Change */}
-            <span style={{
-              fontSize: 10,
-              fontWeight: 700,
-              fontFamily: 'var(--tf-mono)',
-              color: isUp ? C.g : C.r,
-              minWidth: 55,
-              textAlign: 'right',
-            }}>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                fontFamily: 'var(--tf-mono)',
+                color: isUp ? C.g : C.r,
+                minWidth: 55,
+                textAlign: 'right',
+              }}
+            >
               {fmtChange(change)}
             </span>
           </div>

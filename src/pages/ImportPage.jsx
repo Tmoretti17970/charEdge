@@ -10,12 +10,12 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import CSVImportModal from '../app/components/dialogs/CSVImportModal.jsx';
+import BrokerGuides from '../app/components/import/BrokerGuides.jsx';
 import { C, F, M } from '../constants.js';
 import { useImportHistoryStore } from '../state/useImportHistoryStore.js';
 import { useJournalStore } from '../state/useJournalStore.js';
 import { fmtD } from '../utils.js';
-import CSVImportModal from '../app/components/dialogs/CSVImportModal.jsx';
-import BrokerGuides from '../app/components/import/BrokerGuides.jsx';
 
 // Phase 7: Lazy-loaded connector components
 const ConnectedAccountsPanel = lazy(() => import('../app/components/import/ConnectedAccountsPanel.jsx'));
@@ -27,54 +27,91 @@ const PropFirmDashboard = lazy(() => import('../app/components/import/PropFirmDa
 // ─── Import Format Cards ────────────────────────────────────────
 
 const IMPORT_FORMATS = [
-  { id: 'csv', icon: '📄', label: 'CSV / TSV', desc: 'Upload CSV files from any broker', badge: '15 brokers', available: true },
+  {
+    id: 'csv',
+    icon: '📄',
+    label: 'CSV / TSV',
+    desc: 'Upload CSV files from any broker',
+    badge: '15 brokers',
+    available: true,
+  },
   { id: 'json', icon: '📋', label: 'JSON', desc: 'Import charEdge JSON backups', badge: null, available: true },
-  { id: 'clipboard', icon: '📎', label: 'Clipboard Paste', desc: 'Paste from spreadsheets or web tables', badge: 'NEW', available: true },
-  { id: 'excel', icon: '📊', label: 'Excel (.xlsx)', desc: 'Import Excel workbooks directly', badge: 'NEW', available: true },
-  { id: 'ofx', icon: '🏦', label: 'OFX / QFX / QIF', desc: 'Bank & brokerage statement formats', badge: 'NEW', available: true },
-  { id: 'html', icon: '🌐', label: 'HTML Statement', desc: 'MT5 & cTrader HTML reports', badge: 'NEW', available: true },
+  {
+    id: 'clipboard',
+    icon: '📎',
+    label: 'Clipboard Paste',
+    desc: 'Paste from spreadsheets or web tables',
+    badge: 'NEW',
+    available: true,
+  },
+  {
+    id: 'excel',
+    icon: '📊',
+    label: 'Excel (.xlsx)',
+    desc: 'Import Excel workbooks directly',
+    badge: 'NEW',
+    available: true,
+  },
+  {
+    id: 'ofx',
+    icon: '🏦',
+    label: 'OFX / QFX / QIF',
+    desc: 'Bank & brokerage statement formats',
+    badge: 'NEW',
+    available: true,
+  },
+  {
+    id: 'html',
+    icon: '🌐',
+    label: 'HTML Statement',
+    desc: 'MT5 & cTrader HTML reports',
+    badge: 'NEW',
+    available: true,
+  },
 ];
 
 // ─── Stat Card ──────────────────────────────────────────────────
 
 function StatCard({ label, value, sub, color }) {
   return (
-    <div style={{
-      padding: '14px 16px',
-      borderRadius: 10,
-      background: C.sf,
-      border: `1px solid ${C.bd}30`,
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      flex: 1,
-    }}>
-      <div style={{
-        fontSize: 9,
-        fontWeight: 700,
-        textTransform: 'uppercase',
-        letterSpacing: '0.06em',
-        color: C.t3,
-        fontFamily: M,
-        marginBottom: 5,
-      }}>
+    <div
+      style={{
+        padding: '14px 16px',
+        borderRadius: 10,
+        background: C.sf,
+        border: `1px solid ${C.bd}30`,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        flex: 1,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 9,
+          fontWeight: 700,
+          textTransform: 'uppercase',
+          letterSpacing: '0.06em',
+          color: C.t3,
+          fontFamily: M,
+          marginBottom: 5,
+        }}
+      >
         {label}
       </div>
-      <div style={{
-        fontSize: 22,
-        fontWeight: 800,
-        fontFamily: M,
-        color: color || C.t1,
-        lineHeight: 1.1,
-        fontVariantNumeric: 'tabular-nums',
-      }}>
+      <div
+        style={{
+          fontSize: 22,
+          fontWeight: 800,
+          fontFamily: M,
+          color: color || C.t1,
+          lineHeight: 1.1,
+          fontVariantNumeric: 'tabular-nums',
+        }}
+      >
         {value}
       </div>
-      {sub && (
-        <div style={{ fontSize: 10, color: C.t3, fontFamily: M, marginTop: 3 }}>
-          {sub}
-        </div>
-      )}
+      {sub && <div style={{ fontSize: 10, color: C.t3, fontFamily: M, marginTop: 3 }}>{sub}</div>}
     </div>
   );
 }
@@ -100,9 +137,7 @@ function FormatCard({ format, onClick }) {
         border: hovered && !disabled ? `1px solid ${C.b}30` : `1px solid ${C.bd}25`,
         transition: 'all 0.18s ease',
         transform: hovered && !disabled ? 'translateY(-1px)' : 'none',
-        boxShadow: hovered && !disabled
-          ? `0 4px 12px rgba(0,0,0,0.08), 0 0 0 1px ${C.b}10`
-          : 'none',
+        boxShadow: hovered && !disabled ? `0 4px 12px rgba(0,0,0,0.08), 0 0 0 1px ${C.b}10` : 'none',
         position: 'relative',
         overflow: 'hidden',
         textAlign: 'left',
@@ -113,37 +148,37 @@ function FormatCard({ format, onClick }) {
         color: C.t1,
       }}
     >
-      <span style={{
-        fontSize: 24,
-        flexShrink: 0,
-        lineHeight: 1,
-        filter: hovered ? 'none' : 'saturate(0.85)',
-        transition: 'filter 0.15s',
-      }}>
+      <span
+        style={{
+          fontSize: 24,
+          flexShrink: 0,
+          lineHeight: 1,
+          filter: hovered ? 'none' : 'saturate(0.85)',
+          transition: 'filter 0.15s',
+        }}
+      >
         {format.icon}
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 1 }}>
-          {format.label}
-        </div>
-        <div style={{ fontSize: 10, color: C.t3, lineHeight: 1.3, fontFamily: F }}>
-          {format.desc}
-        </div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: F, marginBottom: 1 }}>{format.label}</div>
+        <div style={{ fontSize: 10, color: C.t3, lineHeight: 1.3, fontFamily: F }}>{format.desc}</div>
       </div>
       {format.badge && (
-        <span style={{
-          position: 'absolute',
-          top: 6,
-          right: 6,
-          fontSize: 7,
-          fontWeight: 700,
-          fontFamily: M,
-          padding: '1px 5px',
-          borderRadius: 3,
-          background: format.badge === 'NEW' ? `${C.g}18` : `${C.b}18`,
-          color: format.badge === 'NEW' ? C.g : C.b,
-          letterSpacing: '0.04em',
-        }}>
+        <span
+          style={{
+            position: 'absolute',
+            top: 6,
+            right: 6,
+            fontSize: 7,
+            fontWeight: 700,
+            fontFamily: M,
+            padding: '1px 5px',
+            borderRadius: 3,
+            background: format.badge === 'NEW' ? `${C.g}18` : `${C.b}18`,
+            color: format.badge === 'NEW' ? C.g : C.b,
+            letterSpacing: '0.04em',
+          }}
+        >
           {format.badge}
         </span>
       )}
@@ -157,10 +192,13 @@ function HistoryRow({ batch, onRollback }) {
   const [hovered, setHovered] = useState(false);
   const isRolledBack = batch.status === 'rolled_back';
   const dateStr = new Date(batch.timestamp).toLocaleDateString(undefined, {
-    month: 'short', day: 'numeric', year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
   });
   const timeStr = new Date(batch.timestamp).toLocaleTimeString([], {
-    hour: '2-digit', minute: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
   });
 
   return (
@@ -187,27 +225,45 @@ function HistoryRow({ batch, onRollback }) {
           <span style={{ fontSize: 10, color: C.t3, fontFamily: M }}>{batch.fileName}</span>
         </div>
         <div style={{ display: 'flex', gap: 8, fontSize: 10, color: C.t3, fontFamily: M, marginTop: 1 }}>
-          <span>{batch.tradeCount} trade{batch.tradeCount !== 1 ? 's' : ''}</span>
+          <span>
+            {batch.tradeCount} trade{batch.tradeCount !== 1 ? 's' : ''}
+          </span>
           {batch.duplicatesSkipped > 0 && <span>· {batch.duplicatesSkipped} dupes skipped</span>}
-          <span>· {dateStr} {timeStr}</span>
+          <span>
+            · {dateStr} {timeStr}
+          </span>
           {isRolledBack && <span style={{ color: C.y, fontWeight: 700 }}>Rolled back</span>}
         </div>
       </div>
-      <div style={{
-        fontSize: 12, fontFamily: M, fontWeight: 700,
-        color: (batch.totalPnl || 0) >= 0 ? C.g : C.r,
-        fontVariantNumeric: 'tabular-nums', flexShrink: 0,
-      }}>
+      <div
+        style={{
+          fontSize: 12,
+          fontFamily: M,
+          fontWeight: 700,
+          color: (batch.totalPnl || 0) >= 0 ? C.g : C.r,
+          fontVariantNumeric: 'tabular-nums',
+          flexShrink: 0,
+        }}
+      >
         {fmtD(batch.totalPnl || 0)}
       </div>
       {!isRolledBack && hovered && (
         <button
-          onClick={(e) => { e.stopPropagation(); onRollback(batch.id); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRollback(batch.id);
+          }}
           style={{
-            fontSize: 10, padding: '2px 7px', flexShrink: 0,
-            borderRadius: 5, border: `1px solid ${C.bd}40`,
-            background: 'transparent', color: C.t3, fontFamily: F,
-            fontWeight: 600, cursor: 'pointer',
+            fontSize: 10,
+            padding: '2px 7px',
+            flexShrink: 0,
+            borderRadius: 5,
+            border: `1px solid ${C.bd}40`,
+            background: 'transparent',
+            color: C.t3,
+            fontFamily: F,
+            fontWeight: 600,
+            cursor: 'pointer',
           }}
         >
           Rollback
@@ -250,24 +306,28 @@ function ImportPage() {
   }, [rollbackConfirm]);
 
   return (
-    <div style={{
-      padding: '24px 28px',
-      maxWidth: 920,
-      margin: '0 auto',
-      width: '100%',
-      color: C.t1,
-    }}>
+    <div
+      style={{
+        padding: '24px 28px',
+        maxWidth: 920,
+        margin: '0 auto',
+        width: '100%',
+        color: C.t1,
+      }}
+    >
       {/* ─── Header ──────────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
         <div>
-          <h1 style={{
-            fontSize: 18,
-            fontWeight: 800,
-            fontFamily: F,
-            color: C.t1,
-            margin: 0,
-            letterSpacing: '-0.02em',
-          }}>
+          <h1
+            style={{
+              fontSize: 18,
+              fontWeight: 800,
+              fontFamily: F,
+              color: C.t1,
+              margin: 0,
+              letterSpacing: '-0.02em',
+            }}
+          >
             📥 Import Hub
           </h1>
           <p style={{ fontSize: 11, color: C.t3, margin: '3px 0 0', fontFamily: F }}>
@@ -319,12 +379,7 @@ function ImportPage() {
           value={stats.brokers.length}
           sub={stats.brokers.slice(0, 3).join(', ') || 'None'}
         />
-        <StatCard
-          label="Journal Size"
-          value={trades.length.toLocaleString()}
-          sub="total trades"
-          color={C.b}
-        />
+        <StatCard label="Journal Size" value={trades.length.toLocaleString()} sub="total trades" color={C.b} />
       </div>
 
       {/* ─── Connected Accounts (Phase 7) ──────────────── */}
@@ -334,14 +389,16 @@ function ImportPage() {
 
       {/* ─── Import Formats ──────────────────────────────── */}
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{
-          fontSize: 12,
-          fontWeight: 700,
-          color: C.t2,
-          fontFamily: F,
-          marginBottom: 8,
-          letterSpacing: '-0.01em',
-        }}>
+        <h2
+          style={{
+            fontSize: 12,
+            fontWeight: 700,
+            color: C.t2,
+            fontFamily: F,
+            marginBottom: 8,
+            letterSpacing: '-0.01em',
+          }}
+        >
           Import Sources
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
@@ -364,10 +421,16 @@ function ImportPage() {
       {/* ─── Import History ──────────────────────────────── */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <h2 style={{
-            fontSize: 12, fontWeight: 700, color: C.t2, fontFamily: F, margin: 0,
-            letterSpacing: '-0.01em',
-          }}>
+          <h2
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: C.t2,
+              fontFamily: F,
+              margin: 0,
+              letterSpacing: '-0.01em',
+            }}
+          >
             Import History
           </h2>
           {batches.length > 0 && (
@@ -378,26 +441,24 @@ function ImportPage() {
           )}
         </div>
 
-        <div style={{
-          borderRadius: 10,
-          overflow: 'hidden',
-          background: C.sf,
-          border: `1px solid ${C.bd}25`,
-        }}>
+        <div
+          style={{
+            borderRadius: 10,
+            overflow: 'hidden',
+            background: C.sf,
+            border: `1px solid ${C.bd}25`,
+          }}
+        >
           {batches.length === 0 ? (
             <div style={{ padding: 36, textAlign: 'center' }}>
               <div style={{ fontSize: 28, marginBottom: 8, opacity: 0.3 }}>📥</div>
               <div style={{ fontSize: 12, fontWeight: 600, color: C.t2, marginBottom: 3, fontFamily: F }}>
                 No imports yet
               </div>
-              <div style={{ fontSize: 10, color: C.t3, fontFamily: F }}>
-                Import your first trades to get started
-              </div>
+              <div style={{ fontSize: 10, color: C.t3, fontFamily: F }}>Import your first trades to get started</div>
             </div>
           ) : (
-            batches.slice(0, 20).map((batch) => (
-              <HistoryRow key={batch.id} batch={batch} onRollback={handleRollback} />
-            ))
+            batches.slice(0, 20).map((batch) => <HistoryRow key={batch.id} batch={batch} onRollback={handleRollback} />)
           )}
         </div>
       </div>
@@ -406,18 +467,19 @@ function ImportPage() {
       <CSVImportModal isOpen={csvModalOpen} onClose={() => setCsvModalOpen(false)} />
 
       {/* ─── Connector Wizard Modal (Phase 7) ────────────── */}
-      <Suspense fallback={null}>
-        {wizardOpen && <ConnectorWizard onClose={() => setWizardOpen(false)} />}
-      </Suspense>
+      <Suspense fallback={null}>{wizardOpen && <ConnectorWizard onClose={() => setWizardOpen(false)} />}</Suspense>
 
       {/* ─── Rollback Confirmation ────────────────────────── */}
       {rollbackConfirm && (
         <div
           style={{
-            position: 'fixed', inset: 0,
+            position: 'fixed',
+            inset: 0,
             background: 'rgba(0,0,0,0.5)',
             backdropFilter: 'blur(4px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             zIndex: 9999,
           }}
           onClick={() => setRollbackConfirm(null)}
@@ -425,7 +487,9 @@ function ImportPage() {
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              padding: 24, maxWidth: 380, width: '90%',
+              padding: 24,
+              maxWidth: 380,
+              width: '90%',
               borderRadius: 14,
               background: C.bg2,
               border: `1px solid ${C.bd}40`,
@@ -442,9 +506,14 @@ function ImportPage() {
               <button
                 onClick={() => setRollbackConfirm(null)}
                 style={{
-                  padding: '6px 14px', borderRadius: 8,
-                  border: `1px solid ${C.bd}40`, background: 'transparent',
-                  color: C.t2, fontSize: 12, fontWeight: 600, fontFamily: F,
+                  padding: '6px 14px',
+                  borderRadius: 8,
+                  border: `1px solid ${C.bd}40`,
+                  background: 'transparent',
+                  color: C.t2,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  fontFamily: F,
                   cursor: 'pointer',
                 }}
               >
@@ -453,9 +522,14 @@ function ImportPage() {
               <button
                 onClick={confirmRollback}
                 style={{
-                  padding: '6px 14px', borderRadius: 8,
-                  border: 'none', background: C.r,
-                  color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: F,
+                  padding: '6px 14px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: C.r,
+                  color: '#fff',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  fontFamily: F,
                   cursor: 'pointer',
                 }}
               >

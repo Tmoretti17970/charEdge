@@ -16,13 +16,15 @@ import ChartCanvas from '../app/components/chart/core/ChartCanvas.jsx';
 import ChartSkeleton from '../app/components/chart/ui/ChartSkeleton.jsx';
 import UnifiedChartToolbar from '../app/components/chart/UnifiedChartToolbar.jsx';
 import Coachmark from '../app/components/ui/Coachmark.jsx';
-import DataSourceBadge from '../app/components/ui/DataSourceBadge.jsx';
 import ConnectionStatus from '../app/components/ui/ConnectionStatus.jsx';
-import OfflineBadge from '../app/components/ui/OfflineBadge.jsx';
+import DataSourceBadge from '../app/components/ui/DataSourceBadge.jsx';
 import NoDataState from '../app/components/ui/NoDataState.jsx';
+import OfflineBadge from '../app/components/ui/OfflineBadge.jsx';
 import { C } from '../constants.js';
 import { fetchSymbolSearch } from '../data/FetchService';
 // Extracted sub-modules
+import { smartAlertBridge } from '../data/SmartAlertBridge';
+import { useAlertOutcomeTracker } from '../hooks/useAlertOutcomeTracker';
 import { useHotkeys } from '../hooks/useHotkeys';
 import { DRAWING_TOOL_SHORTCUTS, TIMEFRAME_SHORTCUTS } from '../shared/drawingToolIds';
 import { useChartFeaturesStore } from '../state/chart/useChartFeaturesStore';
@@ -34,8 +36,6 @@ import useChartDataLoader from './charts/useChartDataLoader.js';
 import useChartDrawingHandler from './charts/useChartDrawingHandler.js';
 import useChartLocalState from './charts/useChartLocalState.js';
 import useChartMouseHandlers from './charts/useChartMouseHandlers.js';
-import { smartAlertBridge } from '../data/SmartAlertBridge';
-import { useAlertOutcomeTracker } from '../hooks/useAlertOutcomeTracker';
 
 const ChartMinimap = React.lazy(() => import('../app/components/chart/ui/ChartMinimap.jsx'));
 const UnifiedStatusBar = React.lazy(() => import('../app/components/chart/ui/UnifiedStatusBar.jsx'));
@@ -142,8 +142,6 @@ function ChartsPageInner({ _mountTime }) {
     setShowMobileShare,
     isLandscapeFullscreen,
     setIsLandscapeFullscreen,
-    showCopilot,
-    setShowCopilot,
     showShortcuts,
     setShowShortcuts,
     snapshotModalOpen,
@@ -198,7 +196,7 @@ function ChartsPageInner({ _mountTime }) {
   useEffect(() => {
     smartAlertBridge.start([symbol]);
     return () => smartAlertBridge.stop();
-  }, []);
+  }, [symbol]);
 
   // F3: Track current symbol
   useEffect(() => {
@@ -226,12 +224,16 @@ function ChartsPageInner({ _mountTime }) {
       { key: 'ctrl+s', handler: () => setShowSnapshotPublisher(true), description: 'Save snapshot' },
       // Cmd+K / Ctrl+K → toggle AI Copilot (opens in side panel copilot tab)
       // Skip if user is typing in an input/textarea (e.g., copilot chat)
-      { key: 'ctrl+k', handler: (e) => {
-        const tag = document?.activeElement?.tagName;
-        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-        setShowWatchlistPanel(true);
-        window.dispatchEvent(new CustomEvent('charEdge:open-copilot-tab'));
-      }, description: 'Toggle AI Copilot' },
+      {
+        key: 'ctrl+k',
+        handler: (_e) => {
+          const tag = document?.activeElement?.tagName;
+          if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+          setShowWatchlistPanel(true);
+          window.dispatchEvent(new CustomEvent('charEdge:open-copilot-tab'));
+        },
+        description: 'Toggle AI Copilot',
+      },
       // ? → keyboard shortcuts overlay
       { key: 'shift+/', handler: () => setShowShortcuts((prev) => !prev), description: 'Show shortcuts' },
       // Timeframe shortcuts: 1-6
@@ -370,8 +372,6 @@ function ChartsPageInner({ _mountTime }) {
           dataLoading={dataLoading}
           layoutMode={layoutMode}
           setLayoutMode={setLayoutMode}
-
-
         />
       )}
 
@@ -450,7 +450,15 @@ function ChartsPageInner({ _mountTime }) {
           <div style={{ marginLeft: 'auto', paddingRight: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
             <ConnectionStatus
               status={dataLoading ? 'loading' : 'ready'}
-              feedStatus={wsSupported ? (isLive ? 'connected' : wsStatus === 'reconnecting' ? 'connecting' : 'disconnected') : 'disconnected'}
+              feedStatus={
+                wsSupported
+                  ? isLive
+                    ? 'connected'
+                    : wsStatus === 'reconnecting'
+                      ? 'connecting'
+                      : 'disconnected'
+                  : 'disconnected'
+              }
               latencyTier={wsSupported && isLive ? 'realtime' : !wsSupported ? 'delayed' : undefined}
             />
             <OfflineBadge />
@@ -477,7 +485,6 @@ function ChartsPageInner({ _mountTime }) {
         </div>
       ) : (
         <div style={{ flex: 1, display: 'flex', minHeight: 0, position: 'relative' }}>
-
           {!isMobile && (
             <Suspense fallback={null}>
               <FocusMode
@@ -582,7 +589,6 @@ function ChartsPageInner({ _mountTime }) {
                 toggleQuickJournal={toggleQuickJournal}
                 radialMenu={radialMenu}
                 setRadialMenu={setRadialMenu}
-
                 setShowIndicators={setShowIndicators}
                 setShowSnapshotPublisher={setShowSnapshotPublisher}
                 chartAnalysisOpen={chartAnalysisOpen}

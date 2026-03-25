@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import { describe, it, expect } from 'vitest';
 
 const src = fs.readFileSync('src/app/components/dashboard/HomeWatchlist.jsx', 'utf8');
+const cssSrc = fs.readFileSync('src/app/components/dashboard/HomeWatchlist.module.css', 'utf8');
 const layoutSrc = fs.readFileSync('src/app/components/dashboard/DashboardNarrativeLayout.jsx', 'utf8');
 
 describe('HomeWatchlist — Data Wiring (Sprints 6–8)', () => {
@@ -94,15 +95,16 @@ describe('HomeWatchlist — Layout Integration (Sprints 13–14)', () => {
     expect(layoutSrc).toContain('<HomeWatchlist');
   });
 
-  it('heatmap moved to Show More section (Sprint 14)', () => {
-    // Heatmap should appear AFTER the Show More button logic
+  it('heatmap moved to Performance Overview section (Sprint 14)', () => {
+    // Heatmap should appear in Performance Overview, BEFORE Show More
     const showMoreIdx = layoutSrc.indexOf('Show More');
-    const heatmapIdx = layoutSrc.indexOf('Activity Heatmap');
-    expect(heatmapIdx).toBeGreaterThan(showMoreIdx);
+    const heatmapIdx = layoutSrc.indexOf('Trade Heatmap');
+    expect(heatmapIdx).toBeGreaterThan(-1);
+    expect(heatmapIdx).toBeLessThan(showMoreIdx);
   });
 
   it('Show More badge shows +5', () => {
-    expect(layoutSrc).toContain('+5');
+    expect(layoutSrc).toContain('+2');
   });
 });
 
@@ -127,6 +129,6 @@ describe('HomeWatchlist — Row Features', () => {
   });
 
   it('uses tabular-nums for price alignment', () => {
-    expect(src).toContain('tabular-nums');
+    expect(cssSrc).toContain('tabular-nums');
   });
 });

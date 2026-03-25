@@ -7,14 +7,14 @@
 import { useState, useMemo } from 'react';
 import { captureChartState } from '../../../../charting_library/tools/ChartJournalPipeline.js';
 import { captureChartScreenshot } from '../../../../hooks/useAutoScreenshot.js';
-import { EMOJIS } from '@/constants.js';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
+import { useChartTradeStore } from '../../../../state/chart/useChartTradeStore';
 import { useJournalStore } from '../../../../state/useJournalStore';
 import { uid } from '../../../../utils.js';
 import toast from '../../ui/Toast.jsx';
 import s from './QuickJournalPanel.module.css';
-import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
-import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
-import { useChartTradeStore } from '../../../../state/chart/useChartTradeStore';
+import { EMOJIS } from '@/constants.js';
 
 const SIDES = ['long', 'short'];
 
@@ -81,14 +81,18 @@ export default function QuickJournalPanel({ onClose }) {
           const chartState = useChartCoreStore.getState();
           const shot = captureChartScreenshot(chartState.symbol, chartState.tf);
           return shot ? [shot] : [];
-        } catch { return []; }
+        } catch {
+          return [];
+        }
       })(),
       _source: 'chart-quick-journal',
       chartContext: (() => {
         try {
           const chartState = useChartCoreStore.getState();
           return captureChartState(chartState);
-        } catch { return null; }
+        } catch {
+          return null;
+        }
       })(),
     };
 
@@ -103,7 +107,9 @@ export default function QuickJournalPanel({ onClose }) {
       {/* Header */}
       <div className={s.header}>
         <span className={s.headerTitle}>📝 Quick Journal — {symbol}</span>
-        <button className={s.closeBtn} onClick={onClose}>✕</button>
+        <button className={s.closeBtn} onClick={onClose}>
+          ✕
+        </button>
       </div>
 
       <div className={s.body}>
@@ -198,11 +204,7 @@ export default function QuickJournalPanel({ onClose }) {
 
 function LevelBadge({ label, value, color }) {
   return (
-    <div
-      className={s.levelBadge}
-      style={{ '--level-color': color }}
-      data-has-value={!!value || undefined}
-    >
+    <div className={s.levelBadge} style={{ '--level-color': color }} data-has-value={!!value || undefined}>
       <div className={s.levelBadgeLabel}>{label}</div>
       <div className={s.levelBadgeValue} data-has-value={!!value || undefined}>
         {value ? value.toFixed(2) : '—'}

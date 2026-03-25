@@ -15,14 +15,24 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useRef } from 'react';
-import { useUIStore } from '../state/useUIStore';
 import { useChartCoreStore } from '../state/chart/useChartCoreStore';
+import { useUIStore } from '../state/useUIStore';
 
 // Valid page keys (must match PageRouter PAGES map)
 const VALID_PAGES = new Set([
-  'dashboard', 'journal', 'charts', 'markets', 'charolette',
-  'settings', 'telemetry', 'changelog', 'privacy', 'terms',
-  'landing', 'speedtest', 'import',
+  'dashboard',
+  'journal',
+  'charts',
+  'markets',
+  'charolette',
+  'settings',
+  'telemetry',
+  'changelog',
+  'privacy',
+  'terms',
+  'landing',
+  'speedtest',
+  'import',
 ]);
 
 /**

@@ -7,15 +7,20 @@
 import React from 'react';
 import { useState } from 'react';
 import { C } from '../../../constants.js';
-import { alpha } from '@/shared/colorUtils';
 import s from './VolatilityDashboard.module.css';
+import { alpha } from '@/shared/colorUtils';
 
 const VIX_CURRENT = 18.4;
 const VIX_CHANGE = -1.2;
 
 const REGIME = VIX_CURRENT < 15 ? 'low' : VIX_CURRENT < 20 ? 'normal' : VIX_CURRENT < 30 ? 'elevated' : 'extreme';
 const REGIME_META = {
-  low: { label: 'Low Vol', color: C.g, icon: '🟢', tip: 'Complacency — good for selling premium. Watch for vol expansion.' },
+  low: {
+    label: 'Low Vol',
+    color: C.g,
+    icon: '🟢',
+    tip: 'Complacency — good for selling premium. Watch for vol expansion.',
+  },
   normal: { label: 'Normal', color: '#f0b64e', icon: '🟡', tip: 'Standard conditions. Balanced approach to sizing.' },
   elevated: { label: 'Elevated', color: '#e8642c', icon: '🟠', tip: 'Reduce size. Focus on defined-risk trades.' },
   extreme: { label: 'Extreme', color: C.r, icon: '🔴', tip: 'Crisis mode. Small size only. Hedge existing positions.' },
@@ -61,16 +66,36 @@ function VolatilityDashboard() {
 
   return (
     <div style={{ background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 16, overflow: 'hidden' }}>
-      <button onClick={() => setCollapsed(!collapsed)}
-        className={`tf-btn ${s.s0}`}>
+      <button onClick={() => setCollapsed(!collapsed)} className={`tf-btn ${s.s0}`}>
         <div className={s.s1}>
           <span style={{ fontSize: 18 }}>📉</span>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>Volatility Dashboard</h3>
-          <span style={{ fontSize: 10, fontWeight: 700, color: regimeMeta.color, background: alpha(regimeMeta.color, 0.1), padding: '2px 7px', borderRadius: 4, fontFamily: 'var(--tf-mono)' }}>
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
+            Volatility Dashboard
+          </h3>
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              color: regimeMeta.color,
+              background: alpha(regimeMeta.color, 0.1),
+              padding: '2px 7px',
+              borderRadius: 4,
+              fontFamily: 'var(--tf-mono)',
+            }}
+          >
             {regimeMeta.icon} VIX {VIX_CURRENT}
           </span>
         </div>
-        <span style={{ color: C.t3, fontSize: 11, transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.2s ease' }}>▾</span>
+        <span
+          style={{
+            color: C.t3,
+            fontSize: 11,
+            transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)',
+            transition: 'transform 0.2s ease',
+          }}
+        >
+          ▾
+        </span>
       </button>
 
       {!collapsed && (
@@ -78,32 +103,89 @@ function VolatilityDashboard() {
           {/* VIX Hero */}
           <div className={s.s2}>
             {/* Current VIX */}
-            <div style={{ padding: '14px 16px', background: alpha(regimeMeta.color, 0.06), border: `1px solid ${alpha(regimeMeta.color, 0.15)}`, borderRadius: 10, textAlign: 'center' }}>
+            <div
+              style={{
+                padding: '14px 16px',
+                background: alpha(regimeMeta.color, 0.06),
+                border: `1px solid ${alpha(regimeMeta.color, 0.15)}`,
+                borderRadius: 10,
+                textAlign: 'center',
+              }}
+            >
               <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)', marginBottom: 2 }}>VIX Index</div>
-              <div style={{ fontSize: 28, fontWeight: 700, color: regimeMeta.color, fontFamily: 'var(--tf-mono)' }}>{VIX_CURRENT}</div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: VIX_CHANGE < 0 ? C.g : C.r, fontFamily: 'var(--tf-mono)' }}>{VIX_CHANGE > 0 ? '+' : ''}{VIX_CHANGE}</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: regimeMeta.color, fontFamily: 'var(--tf-mono)' }}>
+                {VIX_CURRENT}
+              </div>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: VIX_CHANGE < 0 ? C.g : C.r,
+                  fontFamily: 'var(--tf-mono)',
+                }}
+              >
+                {VIX_CHANGE > 0 ? '+' : ''}
+                {VIX_CHANGE}
+              </div>
             </div>
 
             {/* Regime */}
-            <div style={{ padding: '14px 16px', background: alpha(C.sf, 0.5), border: `1px solid ${alpha(C.bd, 0.5)}`, borderRadius: 10 }}>
+            <div
+              style={{
+                padding: '14px 16px',
+                background: alpha(C.sf, 0.5),
+                border: `1px solid ${alpha(C.bd, 0.5)}`,
+                borderRadius: 10,
+              }}
+            >
               <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)', marginBottom: 2 }}>Regime</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: regimeMeta.color, fontFamily: 'var(--tf-font)' }}>{regimeMeta.label}</div>
-              <div style={{ fontSize: 9, color: C.t2, fontFamily: 'var(--tf-font)', marginTop: 4, lineHeight: 1.4 }}>{regimeMeta.tip}</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: regimeMeta.color, fontFamily: 'var(--tf-font)' }}>
+                {regimeMeta.label}
+              </div>
+              <div style={{ fontSize: 9, color: C.t2, fontFamily: 'var(--tf-font)', marginTop: 4, lineHeight: 1.4 }}>
+                {regimeMeta.tip}
+              </div>
             </div>
 
             {/* Position Sizing */}
-            <div style={{ padding: '14px 16px', background: alpha(C.sf, 0.5), border: `1px solid ${alpha(C.bd, 0.5)}`, borderRadius: 10 }}>
-              <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)', marginBottom: 2 }}>Suggested Max Size</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-mono)' }}>{sizing.maxPct}%</div>
-              <div style={{ fontSize: 9, color: C.t2, fontFamily: 'var(--tf-font)', marginTop: 4, lineHeight: 1.4 }}>{sizing.tip}</div>
+            <div
+              style={{
+                padding: '14px 16px',
+                background: alpha(C.sf, 0.5),
+                border: `1px solid ${alpha(C.bd, 0.5)}`,
+                borderRadius: 10,
+              }}
+            >
+              <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)', marginBottom: 2 }}>
+                Suggested Max Size
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-mono)' }}>
+                {sizing.maxPct}%
+              </div>
+              <div style={{ fontSize: 9, color: C.t2, fontFamily: 'var(--tf-font)', marginTop: 4, lineHeight: 1.4 }}>
+                {sizing.tip}
+              </div>
             </div>
           </div>
 
           {/* Term Structure */}
           <div style={{ marginBottom: 16 }}>
             <div className={s.s3}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: C.t3, fontFamily: 'var(--tf-font)', textTransform: 'uppercase', letterSpacing: 0.5 }}>VIX Term Structure</div>
-              <span style={{ fontSize: 10, fontWeight: 600, color: isContango ? C.g : C.r, fontFamily: 'var(--tf-font)' }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: C.t3,
+                  fontFamily: 'var(--tf-font)',
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                }}
+              >
+                VIX Term Structure
+              </div>
+              <span
+                style={{ fontSize: 10, fontWeight: 600, color: isContango ? C.g : C.r, fontFamily: 'var(--tf-font)' }}
+              >
                 {isContango ? '📈 Contango (Normal)' : '📉 Backwardation (Fear)'}
               </span>
             </div>
@@ -113,7 +195,14 @@ function VolatilityDashboard() {
                 return (
                   <div key={i} className={s.s5}>
                     <span style={{ fontSize: 9, color: C.t2, fontFamily: 'var(--tf-mono)' }}>{t.value}</span>
-                    <div style={{ width: '100%', height: `${Math.max(pct, 10)}%`, background: `linear-gradient(180deg, ${alpha(i === 0 ? regimeMeta.color : C.t3, 0.6)}, ${alpha(i === 0 ? regimeMeta.color : C.t3, 0.2)})`, borderRadius: 3 }} />
+                    <div
+                      style={{
+                        width: '100%',
+                        height: `${Math.max(pct, 10)}%`,
+                        background: `linear-gradient(180deg, ${alpha(i === 0 ? regimeMeta.color : C.t3, 0.6)}, ${alpha(i === 0 ? regimeMeta.color : C.t3, 0.2)})`,
+                        borderRadius: 3,
+                      }}
+                    />
                     <span style={{ fontSize: 8, color: C.t3, fontFamily: 'var(--tf-mono)' }}>{t.label}</span>
                   </div>
                 );
@@ -122,31 +211,96 @@ function VolatilityDashboard() {
           </div>
 
           {/* Per-Symbol IV vs HV */}
-          <div style={{ fontSize: 11, fontWeight: 700, color: C.t3, fontFamily: 'var(--tf-font)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Symbol Volatility</div>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: C.t3,
+              fontFamily: 'var(--tf-font)',
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+              marginBottom: 8,
+            }}
+          >
+            Symbol Volatility
+          </div>
           <div className={s.s6}>
             {SYMBOL_VOL.map((sv) => {
               const rm = REGIME_META[sv.regime];
               const ivOverHv = sv.iv > sv.hv;
               return (
-                <div key={sv.symbol} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: alpha(C.sf, 0.5), border: `1px solid ${alpha(C.bd, 0.3)}`, borderRadius: 8 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)', minWidth: 45 }}>{sv.symbol}</span>
+                <div
+                  key={sv.symbol}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '8px 12px',
+                    background: alpha(C.sf, 0.5),
+                    border: `1px solid ${alpha(C.bd, 0.3)}`,
+                    borderRadius: 8,
+                  }}
+                >
+                  <span
+                    style={{ fontSize: 12, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)', minWidth: 45 }}
+                  >
+                    {sv.symbol}
+                  </span>
                   <div className={s.s7}>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>IV</div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: ivOverHv ? C.y : C.g, fontFamily: 'var(--tf-mono)' }}>{sv.iv}</div>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: ivOverHv ? C.y : C.g,
+                          fontFamily: 'var(--tf-mono)',
+                        }}
+                      >
+                        {sv.iv}
+                      </div>
                     </div>
                     <span style={{ fontSize: 10, color: C.t3 }}>vs</span>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>HV</div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: C.t2, fontFamily: 'var(--tf-mono)' }}>{sv.hv}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: C.t2, fontFamily: 'var(--tf-mono)' }}>
+                        {sv.hv}
+                      </div>
                     </div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>IV Rank</div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: sv.ivRank > 70 ? C.r : sv.ivRank > 40 ? C.y : C.g, fontFamily: 'var(--tf-mono)' }}>{sv.ivRank}</div>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: sv.ivRank > 70 ? C.r : sv.ivRank > 40 ? C.y : C.g,
+                        fontFamily: 'var(--tf-mono)',
+                      }}
+                    >
+                      {sv.ivRank}
+                    </div>
                   </div>
-                  <span style={{ fontSize: 9, fontWeight: 600, color: rm.color, background: alpha(rm.color, 0.1), padding: '2px 6px', borderRadius: 4, fontFamily: 'var(--tf-font)' }}>{rm.label}</span>
-                  {sv.alert && <span style={{ fontSize: 9, color: C.y, fontFamily: 'var(--tf-font)', fontWeight: 600, maxWidth: 150 }}>⚡ {sv.alert}</span>}
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 600,
+                      color: rm.color,
+                      background: alpha(rm.color, 0.1),
+                      padding: '2px 6px',
+                      borderRadius: 4,
+                      fontFamily: 'var(--tf-font)',
+                    }}
+                  >
+                    {rm.label}
+                  </span>
+                  {sv.alert && (
+                    <span
+                      style={{ fontSize: 9, color: C.y, fontFamily: 'var(--tf-font)', fontWeight: 600, maxWidth: 150 }}
+                    >
+                      ⚡ {sv.alert}
+                    </span>
+                  )}
                 </div>
               );
             })}

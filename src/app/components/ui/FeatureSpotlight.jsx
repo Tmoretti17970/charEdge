@@ -6,10 +6,10 @@
 // Dismissable + persists in useUserStore.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { C, F } from '../../../constants.js';
-import { radii, space } from '../../../theme/tokens.js';
 import { useFeatureDiscovery } from '../../../hooks/useFeatureDiscovery.js';
+import { radii, space } from '../../../theme/tokens.js';
 import { Card } from './UIKit.jsx';
 
 function FeatureSpotlightCard({ feature, icon, title, desc, onDismiss }) {
@@ -110,8 +110,12 @@ function FeatureSpotlightCard({ feature, icon, title, desc, onDismiss }) {
           transition: 'opacity 0.15s',
           flexShrink: 0,
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.5'; }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.opacity = '1';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.opacity = '0.5';
+        }}
         title="Dismiss"
       >
         ✕

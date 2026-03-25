@@ -28,10 +28,10 @@ import { useCooldownEnforcer } from '../hooks/useCooldownEnforcer.js';
 // Modals
 
 // §4.12: Liquid Glass trailing inspector
+import { useAccountStore } from '../state/useAccountStore';
 import { useAnalyticsStore } from '../state/useAnalyticsStore';
 // eslint-disable-next-line import/order
 import { useJournalStore } from '../state/useJournalStore';
-import { useAccountStore } from '../state/useAccountStore';
 
 // Extracted hooks + components
 // eslint-disable-next-line import/order
@@ -62,6 +62,7 @@ export default function JournalPage() {
         const { genDemoData } = await import('../data/demoData.js');
         const demo = genDemoData();
         if (cancelled || !demo.trades?.length) return;
+        // eslint-disable-next-line no-console
         console.info(`[JournalPage] Fallback seeding ${demo.trades.length} demo trades`);
         useJournalStore.getState().hydrate({
           trades: demo.trades,
@@ -70,10 +71,13 @@ export default function JournalPage() {
           tradePlans: [],
         });
       } catch (err) {
+        // eslint-disable-next-line no-console
         console.warn('[JournalPage] Fallback demo seed failed:', err);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [isDemo, trades.length, switching]);
 
   // ─── Journal tab state ──────────────────────────────────────
@@ -222,14 +226,16 @@ export default function JournalPage() {
       />
 
       {/* ─── Full-Height Work Area (crossfade during account switch) ──── */}
-      <div style={{
-        flex: 1,
-        minHeight: 0,
-        overflow: 'auto',
-        opacity: switching ? 0.6 : 1,
-        transition: 'opacity 0.15s ease-out',
-        willChange: switching ? 'opacity' : 'auto',
-      }}>
+      <div
+        style={{
+          flex: 1,
+          minHeight: 0,
+          overflow: 'auto',
+          opacity: switching ? 0.6 : 1,
+          transition: 'opacity 0.15s ease-out',
+          willChange: switching ? 'opacity' : 'auto',
+        }}
+      >
         <JournalTopPane
           journalTab={journalTab}
           result={result}

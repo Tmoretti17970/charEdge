@@ -12,12 +12,12 @@
 //   const intel = computeIntel('BTC', bars, ticker);
 // ═══════════════════════════════════════════════════════════════════
 
-import { rsi } from '../../charting_library/studies/indicators/rsi.js';
-import { sma, ema } from '../../charting_library/studies/indicators/movingAverages.js';
 import { atr } from '../../charting_library/studies/indicators/atr.js';
-import { pivotPoints } from '../../charting_library/studies/indicators/pivotPoints.js';
 import { bollingerBands } from '../../charting_library/studies/indicators/bollingerBands.js';
 import { closes, highs, lows, volumes } from '../../charting_library/studies/indicators/helpers.js';
+import { sma, ema } from '../../charting_library/studies/indicators/movingAverages.js';
+import { pivotPoints } from '../../charting_library/studies/indicators/pivotPoints.js';
+import { rsi } from '../../charting_library/studies/indicators/rsi.js';
 
 // ─── Configuration ─────────────────────────────────────────────
 
@@ -43,21 +43,27 @@ export async function fetchBarsForIntel(symbol, tf = '1h') {
     const { dataCache } = await import('../DataCache.js');
     const cached = await dataCache.getCandles(symbol, tf);
     if (cached && cached.length >= MIN_BARS) return cached;
-  } catch { /* DataCache unavailable */ }
+  } catch {
+    /* DataCache unavailable */
+  }
 
   // Try OPFSBarStore
   try {
     const { opfsBarStore } = await import('../engine/infra/OPFSBarStore.js');
     const opfs = await opfsBarStore.getCandles(symbol, tf);
     if (opfs && opfs.length >= MIN_BARS) return opfs;
-  } catch { /* OPFS unavailable */ }
+  } catch {
+    /* OPFS unavailable */
+  }
 
   // Fallback: fetch fresh via FetchService
   try {
     const { default: fetchOHLC } = await import('../FetchService');
     const bars = await fetchOHLC(symbol, tf);
     return bars || [];
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 // ─── Core computation ──────────────────────────────────────────
@@ -92,7 +98,7 @@ export function computeIntel(symbol, bars, ticker) {
     priority: 0,
     sparkline: [],
     trendDirection: 'neutral', // 'up', 'down', 'neutral'
-    volatilityRank: 'normal',  // 'low', 'normal', 'high'
+    volatilityRank: 'normal', // 'low', 'normal', 'high'
   };
 
   // ─── Price from ticker ───────────────────────────────────────
@@ -161,7 +167,7 @@ export function computeIntel(symbol, bars, ticker) {
     result.bbUpper = bb.upper[len - 1] || null;
     result.bbLower = bb.lower[len - 1] || null;
     if (result.bbUpper && result.bbLower) {
-      result.bbWidth = ((result.bbUpper - result.bbLower) / lastPrice * 100).toFixed(2);
+      result.bbWidth = (((result.bbUpper - result.bbLower) / lastPrice) * 100).toFixed(2);
     }
   }
 
@@ -180,7 +186,9 @@ export function computeIntel(symbol, bars, ticker) {
         if (result.support && result.resistance) break;
       }
     }
-  } catch { /* pivot computation may fail with insufficient data */ }
+  } catch {
+    /* pivot computation may fail with insufficient data */
+  }
 
   // ─── Sparkline (last 24 closes) ──────────────────────────────
   result.sparkline = c.slice(-24);
@@ -351,7 +359,7 @@ export async function batchComputeIntel(symbols, tickerMap = {}, tf = '1h') {
       } catch {
         return computeIntel(sym, [], tickerMap[sym]);
       }
-    })
+    }),
   );
   return results.sort((a, b) => b.priority - a.priority);
 }

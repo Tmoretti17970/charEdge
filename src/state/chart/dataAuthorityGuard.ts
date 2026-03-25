@@ -1,14 +1,13 @@
-const ALLOWED_STACK_PATTERNS = [
-  'ChartEngineWidget.jsx',
-  'charting_library/datafeed/DatafeedService',
-  'TickChannel',
-];
+const ALLOWED_STACK_PATTERNS = ['ChartEngineWidget.jsx', 'charting_library/datafeed/DatafeedService', 'TickChannel'];
 
 const warnedCallsites = new Set<string>();
 
 function getStackLine(stack: string | undefined): string {
   if (!stack) return 'unknown';
-  const lines = stack.split('\n').map((l) => l.trim()).filter(Boolean);
+  const lines = stack
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
   return lines[2] || lines[1] || lines[0] || 'unknown';
 }
 
@@ -26,12 +25,9 @@ export function warnIfNonCanonicalChartDataWrite(source: string | null | undefin
   warnedCallsites.add(key);
 
   // Phase A guardrail: detect and inventory non-canonical writes.
-  // eslint-disable-next-line no-console
-  console.warn(
-    `[ADR-001] Non-canonical chart data write detected via setData(source="${source || 'unknown'}").`,
-    {
-      callsite,
-      note: 'Route chart bars through DatafeedService/ChartEngineWidget canonical path.',
-    }
-  );
+
+  console.warn(`[ADR-001] Non-canonical chart data write detected via setData(source="${source || 'unknown'}").`, {
+    callsite,
+    note: 'Route chart bars through DatafeedService/ChartEngineWidget canonical path.',
+  });
 }

@@ -4,16 +4,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { C, F } from '@/constants.js';
-import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
-import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
-import {
-  useWorkspaceStore,
-  BUILT_IN_PRESETS,
-  captureState,
-  restoreState,
-} from '../../../../state/useWorkspaceStore';
+import { useWorkspaceStore, BUILT_IN_PRESETS, captureState, restoreState } from '../../../../state/useWorkspaceStore';
 import w from './WorkspacePresets.module.css';
 
 export default function WorkspacePresets() {
@@ -41,15 +33,18 @@ export default function WorkspacePresets() {
   }, [open]);
 
   // Apply a built-in preset
-  const handleApply = useCallback((presetId) => {
-    const state = applyPreset(presetId);
-    if (state) {
-      restoreState(state, {
-        chartStore: useChartCoreStore,
-      });
-    }
-    setOpen(false);
-  }, [applyPreset]);
+  const handleApply = useCallback(
+    (presetId) => {
+      const state = applyPreset(presetId);
+      if (state) {
+        restoreState(state, {
+          chartStore: useChartCoreStore,
+        });
+      }
+      setOpen(false);
+    },
+    [applyPreset],
+  );
 
   // Apply a custom workspace
   const handleLoadCustom = useCallback((ws) => {
@@ -98,8 +93,6 @@ export default function WorkspacePresets() {
 
   // Find active label
   const builtIn = BUILT_IN_PRESETS.find((p) => p.id === activePreset);
-  const customWs = workspaces.find((w) => w.id === activePreset);
-  const activeLabel = builtIn?.name || customWs?.name || null;
   const _activeIcon = builtIn?.icon || '📂';
 
   return (
@@ -138,13 +131,9 @@ export default function WorkspacePresets() {
                   <div className={w.presetName} data-active={isActive ? 'true' : undefined}>
                     {preset.name}
                   </div>
-                  <div className={w.presetDesc}>
-                    {preset.description}
-                  </div>
+                  <div className={w.presetDesc}>{preset.description}</div>
                 </div>
-                {isActive && (
-                  <span className={w.checkMark}>✓</span>
-                )}
+                {isActive && <span className={w.checkMark}>✓</span>}
               </button>
             );
           })}
@@ -176,7 +165,10 @@ export default function WorkspacePresets() {
                           onChange={(e) => setRenameValue(e.target.value)}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') commitRename();
-                            if (e.key === 'Escape') { setRenamingId(null); setRenameValue(''); }
+                            if (e.key === 'Escape') {
+                              setRenamingId(null);
+                              setRenameValue('');
+                            }
                             e.stopPropagation();
                           }}
                           onBlur={commitRename}
@@ -188,13 +180,14 @@ export default function WorkspacePresets() {
                           {ws.name}
                         </span>
                       )}
-                      {isActive && (
-                        <span className={w.customCheckMark}>✓</span>
-                      )}
+                      {isActive && <span className={w.customCheckMark}>✓</span>}
                     </button>
                     <button
                       className={w.deleteBtn}
-                      onClick={(e) => { e.stopPropagation(); remove(ws.id); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        remove(ws.id);
+                      }}
                       title="Delete preset"
                     >
                       ×
@@ -213,7 +206,10 @@ export default function WorkspacePresets() {
                 autoFocus
                 value={saveName}
                 onChange={(e) => setSaveName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setSaving(false); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSave();
+                  if (e.key === 'Escape') setSaving(false);
+                }}
                 placeholder="Preset name…"
                 className={w.saveInput}
               />
@@ -222,10 +218,7 @@ export default function WorkspacePresets() {
               </button>
             </div>
           ) : (
-            <button
-              className={`tf-chart-dropdown-item ${w.savePresetBtn}`}
-              onClick={() => setSaving(true)}
-            >
+            <button className={`tf-chart-dropdown-item ${w.savePresetBtn}`} onClick={() => setSaving(true)}>
               <span className={w.addPresetIcon}>+</span>
               Save Current as Preset
             </button>

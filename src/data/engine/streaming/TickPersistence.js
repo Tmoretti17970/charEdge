@@ -34,23 +34,19 @@ import { pipelineLogger } from '../infra/DataPipelineLogger.js';
 const STORE_NAME = 'ticks';
 const META_STORE = 'tickMeta'; // Renamed from 'meta' to avoid collision with cache meta
 
-const FLUSH_INTERVAL_MS = 5000;       // Flush every 5 seconds
-const FLUSH_THRESHOLD = 500;          // Or when buffer hits 500 ticks
-const MAX_RING_SIZE = 2000;           // Hot cache ring buffer per symbol
-const RETENTION_DAYS = 7;             // Keep 7 days of tick data
+const FLUSH_INTERVAL_MS = 5000; // Flush every 5 seconds
+const FLUSH_THRESHOLD = 500; // Or when buffer hits 500 ticks
+const MAX_RING_SIZE = 2000; // Hot cache ring buffer per symbol
+const RETENTION_DAYS = 7; // Keep 7 days of tick data
 const RETENTION_MS = RETENTION_DAYS * 86400000;
 const EVICTION_CHECK_INTERVAL = 30 * 60 * 1000; // Check every 30 min
-const _BATCH_SIZE = 200;               // IDB batch write size
+const _BATCH_SIZE = 200; // IDB batch write size
 
 // ─── Helpers ───────────────────────────────────────────────────
 
-const rIC = typeof requestIdleCallback === 'function'
-  ? requestIdleCallback
-  : (cb) => setTimeout(cb, 1);
+const rIC = typeof requestIdleCallback === 'function' ? requestIdleCallback : (cb) => setTimeout(cb, 1);
 
-const cIC = typeof cancelIdleCallback === 'function'
-  ? cancelIdleCallback
-  : clearTimeout;
+const cIC = typeof cancelIdleCallback === 'function' ? cancelIdleCallback : clearTimeout;
 
 // ─── Database Manager ──────────────────────────────────────────
 // Delegates to UnifiedDB — single database for all charEdge data.
@@ -58,14 +54,17 @@ const cIC = typeof cancelIdleCallback === 'function'
 let _db = null;
 
 function openTickDB() {
-  return openUnifiedDB().then((db) => { _db = db; return db; });
+  return openUnifiedDB().then((db) => {
+    _db = db;
+    return db;
+  });
 }
 
 // ─── Per-Symbol TypedArray Ring Buffer ─────────────────────────
 // Struct-of-arrays layout: [price, volume, time, side] per tick
 // Each tick = 4 Float64 slots = 32 bytes. No GC pressure.
 
-const FIELDS_PER_TICK = 4;  // price, volume, time, side
+const FIELDS_PER_TICK = 4; // price, volume, time, side
 
 class TypedRingBuffer {
   constructor(capacity) {
@@ -97,7 +96,7 @@ class TypedRingBuffer {
         price: this._data[idx],
         volume: this._data[idx + 1],
         time: this._data[idx + 2],
-        side: this._data[idx + 3],    // 1 = buy, 0 = sell
+        side: this._data[idx + 3], // 1 = buy, 0 = sell
       });
     }
     this.count = 0;
@@ -123,17 +122,21 @@ class TypedRingBuffer {
   }
 
   // Estimated memory usage in bytes
-  get memoryBytes() { return this._data.byteLength; }
+  get memoryBytes() {
+    return this._data.byteLength;
+  }
 
-  get size() { return this.count; }
+  get size() {
+    return this.count;
+  }
 }
 
 // ─── Tick Persistence Engine ───────────────────────────────────
 
 class _TickPersistence {
   constructor() {
-    this._buffers = new Map();         // symbol → RingBuffer
-    this._pendingFlush = new Map();    // symbol → tick[]  (awaiting IDB write)
+    this._buffers = new Map(); // symbol → RingBuffer
+    this._pendingFlush = new Map(); // symbol → tick[]  (awaiting IDB write)
     this._flushTimer = null;
     this._evictionTimer = null;
     this._idleHandle = null;
@@ -141,9 +144,9 @@ class _TickPersistence {
     this._totalFlushed = 0;
     this._enabled = typeof indexedDB !== 'undefined';
     this._started = false;
-    this._metaCache = new Map();       // symbol → { totalTicks, firstTime, lastTime }
+    this._metaCache = new Map(); // symbol → { totalTicks, firstTime, lastTime }
     this._consecutiveFailures = 0;
-    this._maxRetries = 3;              // Drop ticks after this many consecutive failures
+    this._maxRetries = 3; // Drop ticks after this many consecutive failures
 
     if (this._enabled) {
       this._start();
@@ -174,7 +177,7 @@ class _TickPersistence {
       tick.price,
       tick.volume,
       tick.time || Date.now(),
-      tick.side === 'buy' ? 1 : 0  // Bitwise encoding for compactness
+      tick.side === 'buy' ? 1 : 0, // Bitwise encoding for compactness
     );
 
     this._totalEnqueued++;
@@ -226,8 +229,7 @@ class _TickPersistence {
         };
         req.onerror = () => resolve([]);
       });
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) {
+    } catch {
       return [];
     }
   }
@@ -278,7 +280,7 @@ class _TickPersistence {
           if (cursor) {
             const cursorValue = cursor.value;
             buffer.push(
-              `${cursorValue.time},${cursorValue.price},${cursorValue.volume},${cursorValue.side === 1 ? 'buy' : 'sell'},${cursorValue.source || ''}`
+              `${cursorValue.time},${cursorValue.price},${cursorValue.volume},${cursorValue.side === 1 ? 'buy' : 'sell'},${cursorValue.source || ''}`,
             );
             if (buffer.length >= CHUNK_SIZE) {
               chunks.push(buffer.join('\n') + '\n');
@@ -295,8 +297,7 @@ class _TickPersistence {
         };
         req.onerror = () => resolve();
       });
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) {
+    } catch {
       // IDB error — return header-only blob
     }
 
@@ -313,14 +314,18 @@ class _TickPersistence {
    */
   async exportJSON(symbol, fromTime = 0, toTime = Date.now()) {
     const ticks = await this.getTickRange(symbol, fromTime, toTime, Infinity);
-    return JSON.stringify({
-      symbol: (symbol || '').toUpperCase(),
-      exportTime: new Date().toISOString(),
-      tickCount: ticks.length,
-      fromTime,
-      toTime,
-      ticks,
-    }, null, 2);
+    return JSON.stringify(
+      {
+        symbol: (symbol || '').toUpperCase(),
+        exportTime: new Date().toISOString(),
+        tickCount: ticks.length,
+        fromTime,
+        toTime,
+        ticks,
+      },
+      null,
+      2,
+    );
   }
 
   /**
@@ -368,24 +373,21 @@ class _TickPersistence {
         const req = store.getAll();
         req.onsuccess = () => {
           const inventory = {};
-          for (const meta of (req.result || [])) {
+          for (const meta of req.result || []) {
             inventory[meta.symbol] = {
               totalTicks: meta.totalTicks || 0,
               firstTime: meta.firstTime,
               lastTime: meta.lastTime,
               firstDate: meta.firstTime ? new Date(meta.firstTime).toISOString().slice(0, 10) : null,
               lastDate: meta.lastTime ? new Date(meta.lastTime).toISOString().slice(0, 10) : null,
-              daysCovered: meta.firstTime && meta.lastTime
-                ? Math.ceil((meta.lastTime - meta.firstTime) / 86400000)
-                : 0,
+              daysCovered: meta.firstTime && meta.lastTime ? Math.ceil((meta.lastTime - meta.firstTime) / 86400000) : 0,
             };
           }
           resolve(inventory);
         };
         req.onerror = () => resolve({});
       });
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) {
+    } catch {
       return {};
     }
   }
@@ -472,12 +474,15 @@ class _TickPersistence {
   _scheduleFlush() {
     if (this._idleHandle) return; // Already scheduled
 
-    this._idleHandle = rIC(() => {
-      this._idleHandle = null;
-      this._flushAll().catch((err) => {
-        pipelineLogger.warn('TickPersistence', 'Scheduled flush failed', err);
-      });
-    }, { timeout: 2000 }); // Max 2 second deadline
+    this._idleHandle = rIC(
+      () => {
+        this._idleHandle = null;
+        this._flushAll().catch((err) => {
+          pipelineLogger.warn('TickPersistence', 'Scheduled flush failed', err);
+        });
+      },
+      { timeout: 2000 },
+    ); // Max 2 second deadline
   }
 
   /** @private — Flush all symbol buffers to IndexedDB */
@@ -509,8 +514,11 @@ class _TickPersistence {
       this._consecutiveFailures++;
 
       if (this._consecutiveFailures <= this._maxRetries) {
-        pipelineLogger.debug('TickPersistence',
-          `Flush failed (attempt ${this._consecutiveFailures}/${this._maxRetries}) — re-enqueuing ticks`, err);
+        pipelineLogger.debug(
+          'TickPersistence',
+          `Flush failed (attempt ${this._consecutiveFailures}/${this._maxRetries}) — re-enqueuing ticks`,
+          err,
+        );
         // Re-enqueue failed ticks WITHOUT triggering a new flush
         for (const [symbol, ticks] of allTicks) {
           let ring = this._buffers.get(symbol);
@@ -525,11 +533,19 @@ class _TickPersistence {
       } else if (this._consecutiveFailures === this._maxRetries + 1) {
         // Log once when giving up, then self-disable to stop all IDB calls
         const totalDropped = [...allTicks.values()].reduce((s, t) => s + t.length, 0);
-        pipelineLogger.debug('TickPersistence',
-          `Flush failed ${this._maxRetries} times — dropping ${totalDropped} ticks. Disabling persistence.`);
+        pipelineLogger.debug(
+          'TickPersistence',
+          `Flush failed ${this._maxRetries} times — dropping ${totalDropped} ticks. Disabling persistence.`,
+        );
         // Stop the flush timer so we never call openUnifiedDB again
-        if (this._flushTimer) { clearInterval(this._flushTimer); this._flushTimer = null; }
-        if (this._evictionTimer) { clearInterval(this._evictionTimer); this._evictionTimer = null; }
+        if (this._flushTimer) {
+          clearInterval(this._flushTimer);
+          this._flushTimer = null;
+        }
+        if (this._evictionTimer) {
+          clearInterval(this._evictionTimer);
+          this._evictionTimer = null;
+        }
         this._enabled = false;
       }
       // else: silently drop ticks to avoid console spam
@@ -600,8 +616,7 @@ class _TickPersistence {
         }
         this._totalFlushed += ticks.length;
       }
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) {
+    } catch {
       // Best effort — page is unloading
     }
   }
@@ -617,7 +632,7 @@ class _TickPersistence {
         let tx;
         try {
           tx = db.transaction(STORE_NAME, 'readwrite');
-        } catch (e) {
+        } catch {
           // InvalidStateError: DB connection is closing (HMR, version change, etc.)
           // Reset cached DB so next call gets a fresh connection
           _db = null;

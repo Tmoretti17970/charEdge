@@ -11,24 +11,14 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { C, F, M } from '../../../constants.js';
-import { space, radii, text } from '../../../theme/tokens.js';
-import { Card, Btn } from './UIKit.jsx';
+import { C } from '../../../constants.js';
+import { text } from '../../../theme/tokens.js';
 import s from './EmptyState.module.css';
+import { Card, Btn } from './UIKit.jsx';
 
 // ─── Core EmptyState (enhanced) ─────────────────────────────────
 
-function EmptyState({
-  icon,
-  title,
-  message,
-  actionLabel,
-  onAction,
-  secondaryLabel,
-  onSecondary,
-  children,
-  preview,
-}) {
+function EmptyState({ icon, title, message, actionLabel, onAction, secondaryLabel, onSecondary, children, preview }) {
   return (
     <Card className={`tf-fade-scale ${s.s0}`}>
       {/* Aspirational preview (blurred mockup) */}
@@ -56,9 +46,13 @@ function EmptyState({
           </div>
         )}
 
-        <h3 className={s.title} style={{ ...text.h2 }}>{title}</h3>
+        <h3 className={s.title} style={{ ...text.h2 }}>
+          {title}
+        </h3>
 
-        <p className={s.message} style={{ ...text.body }}>{message}</p>
+        <p className={s.message} style={{ ...text.body }}>
+          {message}
+        </p>
 
         {(actionLabel || secondaryLabel) && (
           <div className={s.actionRow}>
@@ -87,7 +81,7 @@ export function DashboardEmptyState({ onGoToJournal, onImportTrades }) {
       message="Log your first trade to unlock performance analytics, equity tracking, and personalized insights."
       actionLabel="Log Your First Trade →"
       onAction={onGoToJournal}
-      secondaryLabel={onImportTrades ? "📥 Import Trades" : undefined}
+      secondaryLabel={onImportTrades ? '📥 Import Trades' : undefined}
       onSecondary={onImportTrades}
       preview={<DashboardPreview />}
     >
@@ -119,7 +113,9 @@ export function JournalEmptyState({ onAddTrade, onImportCSV }) {
       preview={<JournalPreview />}
     >
       <div className={s.tipsBox}>
-        <div className={s.tipsLabel} style={{ ...text.label }}>Quick Start Tips</div>
+        <div className={s.tipsLabel} style={{ ...text.label }}>
+          Quick Start Tips
+        </div>
         <TipItem text="Log trades right after closing — emotions are freshest" />
         <TipItem text="Add your strategy name to unlock pattern detection" />
         <TipItem text="Track emotional state to spot tilt before it costs you" />
@@ -237,7 +233,9 @@ export function MilestoneBar({ tradeCount }) {
 function FeatureRoadmap({ items, current }) {
   return (
     <div className={s.roadmapWrap}>
-      <div className={s.roadmapLabel} style={{ ...text.label }}>What unlocks as you trade</div>
+      <div className={s.roadmapLabel} style={{ ...text.label }}>
+        What unlocks as you trade
+      </div>
       {items.map((item, i) => {
         const unlocked = current >= item.trades;
         return (
@@ -246,10 +244,7 @@ function FeatureRoadmap({ items, current }) {
             className={`tf-stagger-${i + 1} ${s.roadmapItem}`}
             style={{ background: unlocked ? C.b + '08' : 'transparent' }}
           >
-            <div
-              className={s.roadmapIcon}
-              style={{ background: unlocked ? C.b + '20' : C.bd + '30' }}
-            >
+            <div className={s.roadmapIcon} style={{ background: unlocked ? C.b + '20' : C.bd + '30' }}>
               {unlocked ? '✓' : item.icon}
             </div>
             <div className={s.s3}>
@@ -282,7 +277,9 @@ function DashboardPreview() {
     <div className={s.s4}>
       <div className={s.heroStat} style={{ background: C.g + '15' }}>
         <div className={s.heroLabel}>Today's P&L</div>
-        <div className={s.heroValue} style={{ color: C.g }}>+$1,247.50</div>
+        <div className={s.heroValue} style={{ color: C.g }}>
+          +$1,247.50
+        </div>
       </div>
       <div className={s.s5}>
         <div className={s.secondaryStat}>
@@ -332,7 +329,9 @@ function JournalPreview() {
               {r.side}
             </span>
           </div>
-          <span className={s.journalPnl} style={{ color: r.color }}>{r.pnl}</span>
+          <span className={s.journalPnl} style={{ color: r.color }}>
+            {r.pnl}
+          </span>
         </div>
       ))}
     </div>
@@ -393,9 +392,7 @@ export function CalendarEmptyState({ onAddTrade }) {
 
 export function StreakEmptyState() {
   return (
-    <WidgetEmptyState
-      message="Trading streaks track consecutive winning days. Log trades to start building your streak."
-    />
+    <WidgetEmptyState message="Trading streaks track consecutive winning days. Log trades to start building your streak." />
   );
 }
 
@@ -471,4 +468,3 @@ export function PlaybooksEmptyState({ onAddTrade }) {
 }
 
 export default React.memo(EmptyState);
-

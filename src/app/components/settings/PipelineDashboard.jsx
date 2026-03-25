@@ -35,7 +35,9 @@ function StatRow({ label, value, valueColor }) {
   return (
     <div className={st.statRow}>
       <span className={st.statLabel}>{label}</span>
-      <span className={st.statValue} style={{ color: valueColor || C.t1 }}>{value}</span>
+      <span className={st.statValue} style={{ color: valueColor || C.t1 }}>
+        {value}
+      </span>
     </div>
   );
 }
@@ -56,24 +58,59 @@ function PipelineDashboard() {
   const collectData = useCallback(async () => {
     try {
       const snap = {};
-      try { const { cacheManager } = await import('../../../data/engine/infra/CacheManager.js'); snap.cache = cacheManager.getStats(); } catch (_) { snap.cache = null; }
-      try { const { getAllCircuitStates } = await import('../../../data/engine/infra/CircuitBreaker.ts'); snap.circuits = getAllCircuitStates(); } catch (_) { snap.circuits = {}; }
+      try {
+        const { cacheManager } = await import('../../../data/engine/infra/CacheManager.js');
+        snap.cache = cacheManager.getStats();
+      } catch {
+        snap.cache = null;
+      }
+      try {
+        const { getAllCircuitStates } = await import('../../../data/engine/infra/CircuitBreaker.ts');
+        snap.circuits = getAllCircuitStates();
+      } catch {
+        snap.circuits = {};
+      }
       try {
         const { apiMeter } = await import('../../../data/engine/infra/ApiMeter.js');
-        snap.api = apiMeter.getStats(); snap.apiTopProviders = apiMeter.getTopProviders();
+        snap.api = apiMeter.getStats();
+        snap.apiTopProviders = apiMeter.getTopProviders();
         snap.apiRateLimits = {};
-        for (const provider of Object.keys(snap.api)) snap.apiRateLimits[provider] = apiMeter.getRateLimitPercent(provider);
-      } catch (_) { snap.api = {}; }
-      try { const { symbolSwitchTracker } = await import('../../../observability/SymbolSwitchTracker.js'); snap.latency = symbolSwitchTracker.getPercentiles(); } catch (_) { snap.latency = null; }
-      try { const { errorBudget } = await import('../../../observability/ErrorBudget.ts'); snap.errorBudget = errorBudget.getStatus(); } catch (_) { snap.errorBudget = null; }
+        for (const provider of Object.keys(snap.api))
+          snap.apiRateLimits[provider] = apiMeter.getRateLimitPercent(provider);
+      } catch {
+        snap.api = {};
+      }
+      try {
+        const { symbolSwitchTracker } = await import('../../../observability/SymbolSwitchTracker.js');
+        snap.latency = symbolSwitchTracker.getPercentiles();
+      } catch {
+        snap.latency = null;
+      }
+      try {
+        const { errorBudget } = await import('../../../observability/ErrorBudget.ts');
+        snap.errorBudget = errorBudget.getStatus();
+      } catch {
+        snap.errorBudget = null;
+      }
       setData(snap);
-    } catch (_) { /* best effort */ }
+    } catch {
+      /* best effort */
+    }
   }, []);
 
   useEffect(() => {
-    if (expanded) { collectData(); intervalRef.current = setInterval(collectData, 2000); }
-    else { if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; } }
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    if (expanded) {
+      collectData();
+      intervalRef.current = setInterval(collectData, 2000);
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [expanded, collectData]);
 
   return (
@@ -94,8 +131,11 @@ function PipelineDashboard() {
           {data.cache && (
             <DashSection title="Cache Performance" icon="💾">
               <StatRow label="Memory Entries" value={`${data.cache.memorySize} / ${data.cache.maxSize}`} />
-              <StatRow label="Overall Hit Rate" value={`${data.cache.hitRate}%`}
-                valueColor={data.cache.hitRate >= 80 ? '#4ecdc4' : data.cache.hitRate >= 50 ? '#ffa726' : '#ef5350'} />
+              <StatRow
+                label="Overall Hit Rate"
+                value={`${data.cache.hitRate}%`}
+                valueColor={data.cache.hitRate >= 80 ? '#4ecdc4' : data.cache.hitRate >= 50 ? '#ffa726' : '#ef5350'}
+              />
               <div className={st.cacheMeta}>
                 <span>Memory: {data.cache.hits?.memory || 0}</span>
                 <span>IDB: {data.cache.hits?.idb || 0}</span>
@@ -111,7 +151,10 @@ function PipelineDashboard() {
                 <div key={name} className={st.provRow}>
                   <span className={st.provName}>{name}</span>
                   <div className={st.provRight}>
-                    <span className={st.stateBadge} style={{ background: stateColor(stats.state) + '20', color: stateColor(stats.state) }}>
+                    <span
+                      className={st.stateBadge}
+                      style={{ background: stateColor(stats.state) + '20', color: stateColor(stats.state) }}
+                    >
                       {stats.state}
                     </span>
                     {stats.failureRate > 0 && (
@@ -135,7 +178,9 @@ function PipelineDashboard() {
                       {rlPct > 0 && (
                         <>
                           <MiniBar pct={rlPct} color={rateLimitColor(rlPct)} />
-                          <span className={st.rlPct} style={{ color: rateLimitColor(rlPct) }}>{rlPct}%</span>
+                          <span className={st.rlPct} style={{ color: rateLimitColor(rlPct) }}>
+                            {rlPct}%
+                          </span>
                         </>
                       )}
                     </div>
@@ -150,19 +195,27 @@ function PipelineDashboard() {
               <div className={st.latencyRow}>
                 <div>
                   <div className={st.latencyLabel}>P50</div>
-                  <div className={st.latencyValue} style={{ color: data.latency.p50 < 500 ? '#4ecdc4' : '#ffa726' }}>{data.latency.p50}ms</div>
+                  <div className={st.latencyValue} style={{ color: data.latency.p50 < 500 ? '#4ecdc4' : '#ffa726' }}>
+                    {data.latency.p50}ms
+                  </div>
                 </div>
                 <div>
                   <div className={st.latencyLabel}>P95</div>
-                  <div className={st.latencyValue} style={{ color: data.latency.p95 < 3000 ? '#4ecdc4' : '#ef5350' }}>{data.latency.p95}ms</div>
+                  <div className={st.latencyValue} style={{ color: data.latency.p95 < 3000 ? '#4ecdc4' : '#ef5350' }}>
+                    {data.latency.p95}ms
+                  </div>
                 </div>
                 <div>
                   <div className={st.latencyLabel}>Avg</div>
-                  <div className={st.latencyValue} style={{ color: C.t1 }}>{data.latency.avg}ms</div>
+                  <div className={st.latencyValue} style={{ color: C.t1 }}>
+                    {data.latency.avg}ms
+                  </div>
                 </div>
                 <div>
                   <div className={st.latencyLabel}>Samples</div>
-                  <div className={st.latencyValue} style={{ color: C.t1 }}>{data.latency.count}</div>
+                  <div className={st.latencyValue} style={{ color: C.t1 }}>
+                    {data.latency.count}
+                  </div>
                 </div>
               </div>
             </DashSection>

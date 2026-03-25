@@ -16,8 +16,8 @@
 // ─── Types ──────────────────────────────────────────────────────
 
 export interface SentimentBadge {
-  score: number;            // 0-100 (0=extreme fear, 100=extreme greed)
-  label: string;            // 'Extreme Fear', 'Fear', 'Neutral', 'Greed', 'Extreme Greed'
+  score: number; // 0-100 (0=extreme fear, 100=extreme greed)
+  label: string; // 'Extreme Fear', 'Fear', 'Neutral', 'Greed', 'Extreme Greed'
   emoji: string;
   source: string;
 }
@@ -59,9 +59,7 @@ export class SentimentFeed {
     const fearGreed = await this.getFearGreedIndex();
     const trending = await this.getTrending();
 
-    const overallSentiment = fearGreed
-      ? this._classifySentiment(fearGreed.score)
-      : 'neutral';
+    const overallSentiment = fearGreed ? this._classifySentiment(fearGreed.score) : 'neutral';
 
     const summary = this._buildSummary(fearGreed, trending, overallSentiment);
 
@@ -116,13 +114,15 @@ export class SentimentFeed {
       if (!res.ok) return [];
 
       const data = await res.json();
-      const coins: TrendingCoin[] = (data?.coins || []).slice(0, 7).map((c: any) => ({
-        id: c.item?.id || '',
-        name: c.item?.name || '',
-        symbol: c.item?.symbol || '',
-        marketCapRank: c.item?.market_cap_rank || 0,
-        score: c.item?.score || 0,
-      }));
+      const coins: TrendingCoin[] = (data?.coins || [])
+        .slice(0, 7)
+        .map((c: Record<string, Record<string, unknown>>) => ({
+          id: c.item?.id || '',
+          name: c.item?.name || '',
+          symbol: c.item?.symbol || '',
+          marketCapRank: c.item?.market_cap_rank || 0,
+          score: c.item?.score || 0,
+        }));
 
       this._setCache('trending', coins, this._defaultTTL);
       return coins;
@@ -175,11 +175,7 @@ export class SentimentFeed {
 
   // ── Summary ─────────────────────────────────────────────────
 
-  private _buildSummary(
-    fearGreed: SentimentBadge | null,
-    trending: TrendingCoin[],
-    overall: string,
-  ): string {
+  private _buildSummary(fearGreed: SentimentBadge | null, trending: TrendingCoin[], overall: string): string {
     const parts: string[] = [];
 
     if (fearGreed) {
@@ -187,7 +183,7 @@ export class SentimentFeed {
     }
 
     if (trending.length > 0) {
-      const names = trending.slice(0, 3).map(c => c.symbol.toUpperCase());
+      const names = trending.slice(0, 3).map((c) => c.symbol.toUpperCase());
       parts.push(`Trending: ${names.join(', ')}`);
     }
 

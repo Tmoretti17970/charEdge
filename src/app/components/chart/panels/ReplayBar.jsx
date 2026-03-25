@@ -4,14 +4,14 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useRef, useMemo, useCallback, useState } from 'react';
-import { C, M } from '@/constants.js';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
+import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 import { useJournalStore } from '../../../../state/useJournalStore';
 import { fmtD } from '../../../../utils.js';
 import { useChartBars } from '../../../hooks/useChartBars.js';
 import { Btn } from '../../ui/UIKit.jsx';
-import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
-import { useChartFeaturesStore } from '../../../../state/chart/useChartFeaturesStore';
 import s from './ReplayBar.module.css';
+import { C } from '@/constants.js';
 
 const SPEEDS = [
   { label: '0.5×', ms: 1000 },
@@ -268,11 +268,15 @@ export default function ReplayBar() {
           </span>
           <span>
             <span className={s.statLabel}>P&L: </span>
-            <span className={`${s.statValue} ${s.dynColor}`} style={{ '--dyn-color': stats.totalPnl >= 0 ? C.g : C.r }}>{fmtD(stats.totalPnl)}</span>
+            <span className={`${s.statValue} ${s.dynColor}`} style={{ '--dyn-color': stats.totalPnl >= 0 ? C.g : C.r }}>
+              {fmtD(stats.totalPnl)}
+            </span>
           </span>
           <span>
             <span className={s.statLabel}>Win: </span>
-            <span className={`${s.statValue} ${s.dynColor}`} style={{ '--dyn-color': stats.wr >= 50 ? C.g : C.r }}>{stats.wr.toFixed(0)}%</span>
+            <span className={`${s.statValue} ${s.dynColor}`} style={{ '--dyn-color': stats.wr >= 50 ? C.g : C.r }}>
+              {stats.wr.toFixed(0)}%
+            </span>
           </span>
         </div>
       )}
@@ -299,22 +303,25 @@ export default function ReplayBar() {
               style={{ '--ann-color': trade.pnl >= 0 ? C.g : C.r }}
             >
               <div className={s.annotationHeader}>
-                <span className={`${s.annotationPL} ${s.dynColor}`} style={{ '--dyn-color': trade.pnl >= 0 ? C.g : C.r }}>
+                <span
+                  className={`${s.annotationPL} ${s.dynColor}`}
+                  style={{ '--dyn-color': trade.pnl >= 0 ? C.g : C.r }}
+                >
                   {trade.side?.toUpperCase() || '—'} {fmtD(trade.pnl)}
                 </span>
                 {trade.playbook && <span className={s.annotationPlaybook}>{trade.playbook}</span>}
                 {trade.emotion && <span className={s.annotationEmotion}>{trade.emotion}</span>}
                 {trade.rMultiple != null && (
-                  <span className={`${s.annotationR} ${s.dynColor}`} style={{ '--dyn-color': trade.rMultiple >= 0 ? C.g : C.r }}>
-                    {trade.rMultiple > 0 ? '+' : ''}{trade.rMultiple.toFixed(1)}R
+                  <span
+                    className={`${s.annotationR} ${s.dynColor}`}
+                    style={{ '--dyn-color': trade.rMultiple >= 0 ? C.g : C.r }}
+                  >
+                    {trade.rMultiple > 0 ? '+' : ''}
+                    {trade.rMultiple.toFixed(1)}R
                   </span>
                 )}
               </div>
-              {trade.notes && (
-                <div className={s.annotationNotes}>
-                  {trade.notes}
-                </div>
-              )}
+              {trade.notes && <div className={s.annotationNotes}>{trade.notes}</div>}
             </div>
           ))}
         </div>
@@ -337,10 +344,6 @@ function CtrlBtn({ children, onClick, title, disabled, active }) {
       {children}
     </button>
   );
-}
-
-function Divider() {
-  return <div className={s.divider} />;
 }
 
 export { ReplayBar };

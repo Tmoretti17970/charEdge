@@ -15,7 +15,6 @@ import React from 'react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { C } from '../../../constants.js';
 import { logger } from '@/observability/logger';
-import st from './InstitutionalPanel.module.css';
 
 // ─── Styles ────────────────────────────────────────────────────
 
@@ -130,9 +129,9 @@ const S = {
 
 function fmtNum(n) {
   if (n == null || isNaN(n)) return '—';
-  if (n >= 1e9) return `${(n/1e9).toFixed(1)}B`;
-  if (n >= 1e6) return `${(n/1e6).toFixed(1)}M`;
-  if (n >= 1e3) return `${(n/1e3).toFixed(1)}K`;
+  if (n >= 1e9) return `${(n / 1e9).toFixed(1)}B`;
+  if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+  if (n >= 1e3) return `${(n / 1e3).toFixed(1)}K`;
   return n.toLocaleString();
 }
 
@@ -143,9 +142,9 @@ function fmtPct(n) {
 
 function fmtMoney(n) {
   if (n == null || isNaN(n)) return '—';
-  if (n >= 1e9) return `$${(n/1e9).toFixed(2)}B`;
-  if (n >= 1e6) return `$${(n/1e6).toFixed(1)}M`;
-  if (n >= 1e3) return `$${(n/1e3).toFixed(0)}K`;
+  if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
+  if (n >= 1e6) return `$${(n / 1e6).toFixed(1)}M`;
+  if (n >= 1e3) return `$${(n / 1e3).toFixed(0)}K`;
   return `$${n.toLocaleString()}`;
 }
 
@@ -208,7 +207,9 @@ function InstitutionalPanel({ symbol = 'AAPL' }) {
     };
 
     loadInstitutionalData();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [symbol, isEquity]);
 
   // Watch symbol for real-time SEC filings
@@ -224,15 +225,17 @@ function InstitutionalPanel({ symbol = 'AAPL' }) {
         // Subscribe to new filings
         unsubscribe = secFilingMonitor.onFiling((filing) => {
           if (filing.symbol === symbol.toUpperCase()) {
-            setFilings(prev => [filing, ...prev].slice(0, 50));
+            setFilings((prev) => [filing, ...prev].slice(0, 50));
           }
         });
-      } catch (e) { logger.ui.warn('Operation failed', e); }
+      } catch (e) {
+        logger.ui.warn('Operation failed', e);
+      }
     })();
     return () => {
       if (unsubscribe) unsubscribe();
       import('../../../data/engine/market/SECFilingMonitor.js')
-        .then(m => m.secFilingMonitor.unwatch(symbol))
+        .then((m) => m.secFilingMonitor.unwatch(symbol))
         .catch(() => {}); // intentional: cleanup unwatch is best-effort
     };
   }, [symbol, isEquity]);
@@ -252,7 +255,8 @@ function InstitutionalPanel({ symbol = 'AAPL' }) {
         <div style={S.header}>🏛 Institutional Data</div>
         <div style={S.empty}>
           Institutional data (short interest, dark pools, 13F filings) is only available for US-listed equities.
-          <br/><br/>
+          <br />
+          <br />
           Switch to a US equity symbol like <strong>AAPL</strong>, <strong>TSLA</strong>, or <strong>SPY</strong>.
         </div>
       </div>
@@ -261,16 +265,22 @@ function InstitutionalPanel({ symbol = 'AAPL' }) {
 
   return (
     <div style={S.container}>
-      <div style={S.header}>
-        🏛 Institutional Data — {symbol.toUpperCase()}
-      </div>
+      <div style={S.header}>🏛 Institutional Data — {symbol.toUpperCase()}</div>
 
       {/* Tab Bar */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 16, background: `${C.t3}10`, borderRadius: 8, padding: 3 }}>
-        <button style={S.tab(tab === 'short')} onClick={() => setTab('short')}>Short Interest</button>
-        <button style={S.tab(tab === 'darkpool')} onClick={() => setTab('darkpool')}>Dark Pool</button>
-        <button style={S.tab(tab === 'filings')} onClick={() => setTab('filings')}>Filings</button>
-        <button style={S.tab(tab === 'holdings')} onClick={() => setTab('holdings')}>13F Holdings</button>
+        <button style={S.tab(tab === 'short')} onClick={() => setTab('short')}>
+          Short Interest
+        </button>
+        <button style={S.tab(tab === 'darkpool')} onClick={() => setTab('darkpool')}>
+          Dark Pool
+        </button>
+        <button style={S.tab(tab === 'filings')} onClick={() => setTab('filings')}>
+          Filings
+        </button>
+        <button style={S.tab(tab === 'holdings')} onClick={() => setTab('holdings')}>
+          13F Holdings
+        </button>
       </div>
 
       {loading && <div style={S.empty}>Loading institutional data…</div>}
@@ -287,14 +297,26 @@ function InstitutionalPanel({ symbol = 'AAPL' }) {
             </div>
             <div style={S.row}>
               <span style={S.label}>Days to Cover</span>
-              <span style={{ ...S.val, color: (latestSI?.daysToCover || 0) > 5 ? '#f44336' : (latestSI?.daysToCover || 0) > 2 ? '#FFA726' : '#4CAF50' }}>
+              <span
+                style={{
+                  ...S.val,
+                  color:
+                    (latestSI?.daysToCover || 0) > 5
+                      ? '#f44336'
+                      : (latestSI?.daysToCover || 0) > 2
+                        ? '#FFA726'
+                        : '#4CAF50',
+                }}
+              >
                 {latestSI?.daysToCover?.toFixed(1) || '—'}
               </span>
             </div>
             <div style={S.row}>
               <span style={S.label}>Change</span>
               <span style={{ ...S.val, color: (latestSI?.changePercent || 0) > 0 ? '#f44336' : '#4CAF50' }}>
-                {latestSI?.changePercent ? `${latestSI.changePercent > 0 ? '+' : ''}${latestSI.changePercent.toFixed(1)}%` : '—'}
+                {latestSI?.changePercent
+                  ? `${latestSI.changePercent > 0 ? '+' : ''}${latestSI.changePercent.toFixed(1)}%`
+                  : '—'}
               </span>
             </div>
             <div style={S.row}>
@@ -316,11 +338,13 @@ function InstitutionalPanel({ symbol = 'AAPL' }) {
                       {d.date}
                     </span>
                     <div style={S.barContainer}>
-                      <div style={{
-                        ...S.bar,
-                        width: `${Math.min(d.shortRatio, 100)}%`,
-                        background: d.shortRatio > 50 ? '#f44336' : d.shortRatio > 30 ? '#FFA726' : '#4CAF50',
-                      }} />
+                      <div
+                        style={{
+                          ...S.bar,
+                          width: `${Math.min(d.shortRatio, 100)}%`,
+                          background: d.shortRatio > 50 ? '#f44336' : d.shortRatio > 30 ? '#FFA726' : '#4CAF50',
+                        }}
+                      />
                     </div>
                     <span style={{ ...S.val, width: 40, textAlign: 'right', fontSize: 11 }}>
                       {d.shortRatio.toFixed(0)}%
@@ -418,21 +442,38 @@ function InstitutionalPanel({ symbol = 'AAPL' }) {
                     transition: 'background 0.15s ease',
                     fontSize: 12,
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = `${C.b}12`}
-                  onMouseLeave={e => e.currentTarget.style.background = `${C.t3}08`}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = `${C.b}12`)}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = `${C.t3}08`)}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
-                    <span style={S.badge(
-                      f.type?.includes('8-K') ? '#FFA726' :
-                      f.type?.includes('10-K') ? '#4CAF50' :
-                      f.type?.includes('13F') ? '#2196F3' :
-                      f.type?.includes('4') ? '#AB47BC' : C.t2
-                    )}>{f.type}</span>
+                    <span
+                      style={S.badge(
+                        f.type?.includes('8-K')
+                          ? '#FFA726'
+                          : f.type?.includes('10-K')
+                            ? '#4CAF50'
+                            : f.type?.includes('13F')
+                              ? '#2196F3'
+                              : f.type?.includes('4')
+                                ? '#AB47BC'
+                                : C.t2,
+                      )}
+                    >
+                      {f.type}
+                    </span>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {f.title || f.description || f.type}
                     </span>
                   </div>
-                  <span style={{ color: C.t3, fontSize: 11, flexShrink: 0, marginLeft: 8, fontVariantNumeric: 'tabular-nums' }}>
+                  <span
+                    style={{
+                      color: C.t3,
+                      fontSize: 11,
+                      flexShrink: 0,
+                      marginLeft: 8,
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
                     {f.date}
                   </span>
                 </a>
@@ -444,9 +485,7 @@ function InstitutionalPanel({ symbol = 'AAPL' }) {
         </div>
       )}
 
-      {!loading && !error && tab === 'holdings' && (
-        <Holdings13F symbol={symbol} />
-      )}
+      {!loading && !error && tab === 'holdings' && <Holdings13F symbol={symbol} />}
     </div>
   );
 }
@@ -469,8 +508,9 @@ function Holdings13F({ symbol }) {
       const { edgarAdapter } = await import('../../../data/adapters/EdgarAdapter.js');
       const results = await edgarAdapter.searchInstitutions(searchQuery, 10);
       setInstitutions(results);
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) { setInstitutions([]); }
+    } catch {
+      setInstitutions([]);
+    }
     setLoadingSearch(false);
   }, [searchQuery]);
 
@@ -485,12 +525,15 @@ function Holdings13F({ symbol }) {
         const { edgarAdapter } = await import('../../../data/adapters/EdgarAdapter.js');
         const h = await edgarAdapter.fetch13FHoldings(selectedFund.cik, 30);
         if (!cancelled) setHoldings(h);
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      } catch (_) { if (!cancelled) setHoldings([]); }
+      } catch {
+        if (!cancelled) setHoldings([]);
+      }
       if (!cancelled) setLoadingHoldings(false);
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [selectedFund]);
 
   return (
@@ -502,8 +545,8 @@ function Holdings13F({ symbol }) {
           <input
             type="text"
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSearch()}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="Berkshire, Citadel, Bridgewater…"
             style={{
               flex: 1,
@@ -583,11 +626,18 @@ function Holdings13F({ symbol }) {
               </thead>
               <tbody>
                 {holdings.map((h, i) => (
-                  <tr key={i} style={{
-                    background: h.nameOfIssuer.toUpperCase().includes(symbol.toUpperCase()) ? `${C.b}10` : 'transparent',
-                  }}>
+                  <tr
+                    key={i}
+                    style={{
+                      background: h.nameOfIssuer.toUpperCase().includes(symbol.toUpperCase())
+                        ? `${C.b}10`
+                        : 'transparent',
+                    }}
+                  >
                     <td style={S.td}>
-                      <div style={{ fontWeight: h.nameOfIssuer.toUpperCase().includes(symbol.toUpperCase()) ? 700 : 400 }}>
+                      <div
+                        style={{ fontWeight: h.nameOfIssuer.toUpperCase().includes(symbol.toUpperCase()) ? 700 : 400 }}
+                      >
                         {h.nameOfIssuer}
                       </div>
                       <div style={{ color: C.t3, fontSize: 10 }}>{h.titleOfClass}</div>
@@ -610,7 +660,8 @@ function Holdings13F({ symbol }) {
           <div style={S.sectionTitle}>💡 Try Searching</div>
           <div style={{ fontSize: 12, color: C.t3, lineHeight: 1.6 }}>
             Search for any institutional investor to view their quarterly 13F holdings from SEC filings.
-            <br/><br/>
+            <br />
+            <br />
             Popular searches: <strong>Berkshire</strong>, <strong>Citadel</strong>, <strong>Bridgewater</strong>,
             <strong> Renaissance</strong>, <strong>Vanguard</strong>, <strong>BlackRock</strong>
           </div>

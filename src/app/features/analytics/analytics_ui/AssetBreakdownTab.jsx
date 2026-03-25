@@ -4,16 +4,13 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useMemo } from 'react';
-import { C, M } from '@/constants.js';
 import { Card, AutoGrid } from '../../../components/ui/UIKit.jsx';
 import { SectionLabel } from './AnalyticsPrimitives.jsx';
+import { C, M } from '@/constants.js';
 import { groupTradesBy } from '@/trading/groupTradesBy';
 
 function AssetBreakdownTab({ trades, computing }) {
-  const groups = useMemo(
-    () => groupTradesBy(trades || [], (t) => t.symbol, { sort: 'pnl', dir: 'desc' }),
-    [trades],
-  );
+  const groups = useMemo(() => groupTradesBy(trades || [], (t) => t.symbol, { sort: 'pnl', dir: 'desc' }), [trades]);
 
   if (!groups.length) {
     return (
@@ -54,7 +51,7 @@ function AssetBreakdownTab({ trades, computing }) {
               {groups.map((g) => {
                 const winColor = g.winRate > 50 ? C.g : g.winRate === 50 ? C.y : C.r;
                 const pnlColor = g.pnl >= 0 ? C.g : C.r;
-                const barWidth = Math.abs(g.pnl) / maxPnl * 100;
+                const barWidth = (Math.abs(g.pnl) / maxPnl) * 100;
                 return (
                   <tr
                     key={g.key}
@@ -73,9 +70,7 @@ function AssetBreakdownTab({ trades, computing }) {
                     <td style={{ padding: '8px 12px', textAlign: 'right', color: pnlColor, fontWeight: 600 }}>
                       ${g.pnl.toFixed(2)}
                     </td>
-                    <td style={{ padding: '8px 12px', textAlign: 'right', color: pnlColor }}>
-                      ${g.avgPnl.toFixed(2)}
-                    </td>
+                    <td style={{ padding: '8px 12px', textAlign: 'right', color: pnlColor }}>${g.avgPnl.toFixed(2)}</td>
                     <td style={{ padding: '8px 12px', textAlign: 'right', color: C.t2 }}>
                       {g.profitFactor === Infinity ? '∞' : g.profitFactor.toFixed(2)}
                     </td>
@@ -113,9 +108,7 @@ function AssetBreakdownTab({ trades, computing }) {
         {groups.slice(0, 4).map((g) => (
           <Card key={g.key} style={{ padding: 12, textAlign: 'center' }}>
             <div style={{ fontSize: 10, color: C.t3, marginBottom: 4 }}>{g.key}</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: g.pnl >= 0 ? C.g : C.r }}>
-              {g.winRate.toFixed(0)}%
-            </div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: g.pnl >= 0 ? C.g : C.r }}>{g.winRate.toFixed(0)}%</div>
             <div style={{ fontSize: 10, color: C.t3 }}>{g.count} trades</div>
           </Card>
         ))}

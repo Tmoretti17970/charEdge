@@ -13,21 +13,21 @@
 //   // result.equity   → [10000, 10050, 9980, ...]
 // ═══════════════════════════════════════════════════════════════════
 
+import { sharpeRatio as _sharpeRatio, sortinoRatio as _sortinoRatio } from '../../trading/QuantMetrics';
 import { Calc } from '../model/Calc.js';
 // #10: Single source of truth for risk-adjusted metrics
-import { sharpeRatio as _sharpeRatio, sortinoRatio as _sortinoRatio } from '../../trading/QuantMetrics';
 
 // ─── Default Configuration ───────────────────────────────────────
 
 const DEFAULT_CONFIG = {
   initialCapital: 10000,
-  commissionPerTrade: 0,      // Flat fee per trade
-  commissionPercent: 0,       // Percentage of trade value
-  slippageTicks: 0,           // Slippage in price ticks
-  slippagePercent: 0,         // Slippage as percentage
-  maxOpenPositions: 1,        // Simultaneous positions
-  positionSizePercent: 100,   // % of equity to use per trade
-  riskPerTradePercent: 0,     // Risk-based sizing (0 = disabled)
+  commissionPerTrade: 0, // Flat fee per trade
+  commissionPercent: 0, // Percentage of trade value
+  slippageTicks: 0, // Slippage in price ticks
+  slippagePercent: 0, // Slippage as percentage
+  maxOpenPositions: 1, // Simultaneous positions
+  positionSizePercent: 100, // % of equity to use per trade
+  riskPerTradePercent: 0, // Risk-based sizing (0 = disabled)
 };
 
 // ─── Strategy Signal Constants ───────────────────────────────────
@@ -43,17 +43,17 @@ export const SIGNAL = {
 
 class Position {
   constructor(side, entryPrice, entryTime, entryIdx, size, stopLoss, takeProfit) {
-    this.side = side;           // 'long' | 'short'
+    this.side = side; // 'long' | 'short'
     this.entryPrice = entryPrice;
     this.entryTime = entryTime;
     this.entryIdx = entryIdx;
-    this.size = size;           // Number of units/contracts
+    this.size = size; // Number of units/contracts
     this.stopLoss = stopLoss || null;
     this.takeProfit = takeProfit || null;
     this.exitPrice = null;
     this.exitTime = null;
     this.exitIdx = null;
-    this.exitReason = null;     // 'signal' | 'stop_loss' | 'take_profit'
+    this.exitReason = null; // 'signal' | 'stop_loss' | 'take_profit'
     this.pnl = 0;
     this.pnlPercent = 0;
     this.rMultiple = null;
@@ -65,9 +65,8 @@ class Position {
     this.exitIdx = exitIdx;
     this.exitReason = reason;
 
-    const rawPnl = this.side === 'long'
-      ? (exitPrice - this.entryPrice) * this.size
-      : (this.entryPrice - exitPrice) * this.size;
+    const rawPnl =
+      this.side === 'long' ? (exitPrice - this.entryPrice) * this.size : (this.entryPrice - exitPrice) * this.size;
     this.pnl = rawPnl;
     this.pnlPercent = ((exitPrice - this.entryPrice) / this.entryPrice) * 100 * (this.side === 'short' ? -1 : 1);
 
@@ -77,8 +76,12 @@ class Position {
     }
   }
 
-  get isOpen() { return this.exitPrice === null; }
-  get isWin() { return this.pnl > 0; }
+  get isOpen() {
+    return this.exitPrice === null;
+  }
+  get isWin() {
+    return this.pnl > 0;
+  }
   get holdingBars() {
     return this.exitIdx !== null ? this.exitIdx - this.entryIdx : 0;
   }
@@ -147,13 +150,16 @@ export function runBacktest(bars, strategy, config = {}) {
     const _prevBar = bars[i - 1];
     context.barIndex = i;
     context.equity = equity;
-    context.position = openPosition ? {
-      side: openPosition.side,
-      entryPrice: openPosition.entryPrice,
-      unrealizedPnl: openPosition.side === 'long'
-        ? (bar.close - openPosition.entryPrice) * openPosition.size
-        : (openPosition.entryPrice - bar.close) * openPosition.size,
-    } : null;
+    context.position = openPosition
+      ? {
+          side: openPosition.side,
+          entryPrice: openPosition.entryPrice,
+          unrealizedPnl:
+            openPosition.side === 'long'
+              ? (bar.close - openPosition.entryPrice) * openPosition.size
+              : (openPosition.entryPrice - bar.close) * openPosition.size,
+        }
+      : null;
 
     // ─── Check stop loss / take profit on open position ───────────
     if (openPosition) {
@@ -187,8 +193,7 @@ export function runBacktest(bars, strategy, config = {}) {
     let signal;
     try {
       signal = strategy.onBar(bar, i, context);
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_e) {
+    } catch {
       // Strategy error on this bar — skip
       equityCurve.push(equity);
       continue;
@@ -197,9 +202,9 @@ export function runBacktest(bars, strategy, config = {}) {
     if (!signal) {
       // Update equity with unrealized P&L for curve
       const unrealized = openPosition
-        ? (openPosition.side === 'long'
+        ? openPosition.side === 'long'
           ? (bar.close - openPosition.entryPrice) * openPosition.size
-          : (openPosition.entryPrice - bar.close) * openPosition.size)
+          : (openPosition.entryPrice - bar.close) * openPosition.size
         : 0;
       equityCurve.push(equity + unrealized);
       updateDrawdown();
@@ -209,7 +214,11 @@ export function runBacktest(bars, strategy, config = {}) {
     const sig = signal.signal || signal;
 
     // ─── Close existing position ──────────────────────────────────
-    if (sig === SIGNAL.CLOSE || (sig === SIGNAL.LONG && openPosition?.side === 'short') || (sig === SIGNAL.SHORT && openPosition?.side === 'long')) {
+    if (
+      sig === SIGNAL.CLOSE ||
+      (sig === SIGNAL.LONG && openPosition?.side === 'short') ||
+      (sig === SIGNAL.SHORT && openPosition?.side === 'long')
+    ) {
       if (openPosition) {
         const exitPrice = applySlippage(bar.open, openPosition.side === 'long' ? -1 : 1, cfg);
         openPosition.close(exitPrice, bar.time, i, 'signal');
@@ -229,7 +238,11 @@ export function runBacktest(bars, strategy, config = {}) {
       equity -= commission;
 
       openPosition = new Position(
-        side, entryPrice, bar.time, i, size,
+        side,
+        entryPrice,
+        bar.time,
+        i,
+        size,
         signal.stopLoss || null,
         signal.takeProfit || null,
       );
@@ -237,9 +250,9 @@ export function runBacktest(bars, strategy, config = {}) {
 
     // Update equity curve with unrealized P&L
     const unrealized = openPosition
-      ? (openPosition.side === 'long'
+      ? openPosition.side === 'long'
         ? (bar.close - openPosition.entryPrice) * openPosition.size
-        : (openPosition.entryPrice - bar.close) * openPosition.size)
+        : (openPosition.entryPrice - bar.close) * openPosition.size
       : 0;
     equityCurve.push(equity + unrealized);
     updateDrawdown();
@@ -272,7 +285,7 @@ export function runBacktest(bars, strategy, config = {}) {
     success: true,
     strategy: strategy.name || 'Unnamed Strategy',
     config: cfg,
-    trades: trades.map(t => ({
+    trades: trades.map((t) => ({
       side: t.side,
       entryPrice: t.entryPrice,
       exitPrice: t.exitPrice,
@@ -298,24 +311,40 @@ function computeMetrics(trades, equityCurve, cfg, execMs) {
   const totalTrades = trades.length;
   if (totalTrades === 0) {
     return {
-      totalTrades: 0, netPnL: 0, netPnLPercent: 0,
-      winRate: 0, lossRate: 0,
-      avgWin: 0, avgLoss: 0, avgTrade: 0,
-      profitFactor: 0, expectancy: 0,
-      maxDrawdown: 0, maxDrawdownPercent: 0,
-      sharpeRatio: 0, sortinoRatio: 0, calmarRatio: 0,
-      maxConsecutiveWins: 0, maxConsecutiveLosses: 0,
-      avgHoldingBars: 0, longestTrade: 0, shortestTrade: 0,
-      longTrades: 0, shortTrades: 0, longWinRate: 0, shortWinRate: 0,
-      totalReturn: 0, annualizedReturn: 0,
+      totalTrades: 0,
+      netPnL: 0,
+      netPnLPercent: 0,
+      winRate: 0,
+      lossRate: 0,
+      avgWin: 0,
+      avgLoss: 0,
+      avgTrade: 0,
+      profitFactor: 0,
+      expectancy: 0,
+      maxDrawdown: 0,
+      maxDrawdownPercent: 0,
+      sharpeRatio: 0,
+      sortinoRatio: 0,
+      calmarRatio: 0,
+      maxConsecutiveWins: 0,
+      maxConsecutiveLosses: 0,
+      avgHoldingBars: 0,
+      longestTrade: 0,
+      shortestTrade: 0,
+      longTrades: 0,
+      shortTrades: 0,
+      longWinRate: 0,
+      shortWinRate: 0,
+      totalReturn: 0,
+      annualizedReturn: 0,
       execMs: round2(execMs),
     };
   }
 
-  const wins = trades.filter(t => t.isWin);
-  const losses = trades.filter(t => !t.isWin);
-  const longs = trades.filter(t => t.side === 'long');
-  const shorts = trades.filter(t => t.side === 'short');
+  const wins = trades.filter((t) => t.isWin);
+  const losses = trades.filter((t) => !t.isWin);
+  const longs = trades.filter((t) => t.side === 'long');
+  const shorts = trades.filter((t) => t.side === 'short');
 
   const grossProfit = wins.reduce((s, t) => s + t.pnl, 0);
   const grossLoss = Math.abs(losses.reduce((s, t) => s + t.pnl, 0));
@@ -335,11 +364,12 @@ function computeMetrics(trades, equityCurve, cfg, execMs) {
   const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? Infinity : 0;
 
   // Expectancy (avg win * win rate - avg loss * loss rate)
-  const expectancy = (avgWin * (winRate / 100)) - (avgLoss * (lossRate / 100));
+  const expectancy = avgWin * (winRate / 100) - avgLoss * (lossRate / 100);
 
   // Drawdown
   let peakEq = equityCurve[0];
-  let maxDD = 0, maxDDPct = 0;
+  let maxDD = 0,
+    maxDDPct = 0;
   for (const eq of equityCurve) {
     if (eq > peakEq) peakEq = eq;
     const dd = peakEq - eq;
@@ -361,7 +391,10 @@ function computeMetrics(trades, equityCurve, cfg, execMs) {
   const calmarRatio = maxDDPct > 0 ? totalReturn / maxDDPct : 0;
 
   // Consecutive wins/losses
-  let consWins = 0, consLosses = 0, maxConsWins = 0, maxConsLosses = 0;
+  let consWins = 0,
+    consLosses = 0,
+    maxConsWins = 0,
+    maxConsLosses = 0;
   for (const t of trades) {
     if (t.isWin) {
       consWins++;
@@ -375,7 +408,7 @@ function computeMetrics(trades, equityCurve, cfg, execMs) {
   }
 
   // Holding periods
-  const holdingBars = trades.map(t => t.holdingBars);
+  const holdingBars = trades.map((t) => t.holdingBars);
   const avgHoldingBars = holdingBars.reduce((s, h) => s + h, 0) / totalTrades;
 
   return {
@@ -402,12 +435,12 @@ function computeMetrics(trades, equityCurve, cfg, execMs) {
     maxConsecutiveLosses: maxConsLosses,
     avgHoldingBars: round2(avgHoldingBars),
     // #11: Safe reduce instead of Math.max/min(...spread) to avoid stack overflow
-    longestTrade: holdingBars.reduce((a, b) => a > b ? a : b, 0),
-    shortestTrade: holdingBars.reduce((a, b) => a < b ? a : b, Infinity),
+    longestTrade: holdingBars.reduce((a, b) => (a > b ? a : b), 0),
+    shortestTrade: holdingBars.reduce((a, b) => (a < b ? a : b), Infinity),
     longTrades: longs.length,
     shortTrades: shorts.length,
-    longWinRate: longs.length > 0 ? round2((longs.filter(t => t.isWin).length / longs.length) * 100) : 0,
-    shortWinRate: shorts.length > 0 ? round2((shorts.filter(t => t.isWin).length / shorts.length) * 100) : 0,
+    longWinRate: longs.length > 0 ? round2((longs.filter((t) => t.isWin).length / longs.length) * 100) : 0,
+    shortWinRate: shorts.length > 0 ? round2((shorts.filter((t) => t.isWin).length / shorts.length) * 100) : 0,
     totalReturn: round2(totalReturn),
     execMs: round2(execMs),
   };
@@ -418,12 +451,12 @@ function computeMetrics(trades, equityCurve, cfg, execMs) {
 function applySlippage(price, direction, cfg) {
   // direction: 1 = slippage against buyer, -1 = against seller
   const tickSlip = price * (cfg.slippagePercent / 100) + cfg.slippageTicks * 0.01;
-  return price + (tickSlip * direction);
+  return price + tickSlip * direction;
 }
 
 function getCommission(position, cfg) {
   const value = position.entryPrice * position.size;
-  return cfg.commissionPerTrade + (value * cfg.commissionPercent / 100);
+  return cfg.commissionPerTrade + (value * cfg.commissionPercent) / 100;
 }
 
 function round2(n) {
@@ -449,7 +482,7 @@ export const PRESET_STRATEGIES = {
     name: 'SMA Crossover (20/50)',
     description: 'Buys when fast SMA crosses above slow SMA, sells on cross below.',
     init(bars) {
-      const closes = bars.map(b => b.close);
+      const closes = bars.map((b) => b.close);
       return {
         fastSMA: Calc.sma(closes, 20),
         slowSMA: Calc.sma(closes, 50),
@@ -480,7 +513,7 @@ export const PRESET_STRATEGIES = {
     name: 'RSI Mean Reversion',
     description: 'Buys when RSI drops below 30, sells when RSI rises above 70.',
     init(bars) {
-      const closes = bars.map(b => b.close);
+      const closes = bars.map((b) => b.close);
       return { rsi: Calc.rsi(closes, 14) };
     },
     onBar(bar, idx, ctx) {
@@ -501,8 +534,8 @@ export const PRESET_STRATEGIES = {
     name: 'Donchian Breakout (20)',
     description: 'Buys on 20-bar high breakout, sells on 20-bar low breakdown.',
     init(bars) {
-      const h = bars.map(b => b.high);
-      const l = bars.map(b => b.low);
+      const h = bars.map((b) => b.high);
+      const l = bars.map((b) => b.low);
       return {
         highest: Calc.highest(h, 20),
         lowest: Calc.lowest(l, 20),
@@ -529,7 +562,7 @@ export const PRESET_STRATEGIES = {
     name: 'EMA Trend Follow (9/21)',
     description: 'Long when 9 EMA above 21 EMA and price above both. Exits on cross below.',
     init(bars) {
-      const closes = bars.map(b => b.close);
+      const closes = bars.map((b) => b.close);
       return {
         ema9: Calc.ema(closes, 9),
         ema21: Calc.ema(closes, 21),
@@ -558,7 +591,7 @@ export const PRESET_STRATEGIES = {
     name: 'MACD Crossover',
     description: 'Long on MACD line crossing above signal, exit on cross below.',
     init(bars) {
-      const closes = bars.map(b => b.close);
+      const closes = bars.map((b) => b.close);
       return { macd: Calc.macd(closes, 12, 26, 9) };
     },
     onBar(bar, idx, ctx) {

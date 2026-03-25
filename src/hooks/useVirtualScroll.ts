@@ -14,6 +14,7 @@
 //   });
 // ═══════════════════════════════════════════════════════════════════
 
+import type React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface VirtualScrollOptions {
@@ -51,7 +52,6 @@ export function useVirtualScroll({
   overscan = 5,
   enabled = true,
 }: VirtualScrollOptions): VirtualScrollResult {
-
   const [scrollState, setScrollState] = useState({ scrollTop: 0, containerHeight: 0 });
   const rafId = useRef<number | null>(null);
 
@@ -89,7 +89,7 @@ export function useVirtualScroll({
     let resizeObserver: ResizeObserver | null = null;
     if (typeof ResizeObserver !== 'undefined') {
       resizeObserver = new ResizeObserver(() => {
-        setScrollState(prev => ({
+        setScrollState((prev) => ({
           ...prev,
           containerHeight: el.clientHeight,
         }));

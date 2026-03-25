@@ -5,8 +5,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useBreakpoints } from '@/hooks/useMediaQuery';
 import s from './ToolbarSlidePanel.module.css';
+import { useBreakpoints } from '@/hooks/useMediaQuery';
 
 export default function ToolbarSlidePanel({ isOpen, onClose, title, children, width = 280 }) {
   const [mounted, setMounted] = useState(false);
@@ -19,27 +19,51 @@ export default function ToolbarSlidePanel({ isOpen, onClose, title, children, wi
   const [dragOffset, setDragOffset] = useState(0);
 
   useEffect(() => {
-    if (isOpen) { setMounted(true); }
-    else { const t = setTimeout(() => setMounted(false), 300); return () => clearTimeout(t); }
+    if (isOpen) {
+      setMounted(true);
+    } else {
+      const t = setTimeout(() => setMounted(false), 300);
+      return () => clearTimeout(t);
+    }
   }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
-    const handler = (e) => { if (panelRef.current && !panelRef.current.contains(e.target)) onClose(); };
+    const handler = (e) => {
+      if (panelRef.current && !panelRef.current.contains(e.target)) onClose();
+    };
     const t = setTimeout(() => document.addEventListener('mousedown', handler), 50);
-    return () => { clearTimeout(t); document.removeEventListener('mousedown', handler); };
+    return () => {
+      clearTimeout(t);
+      document.removeEventListener('mousedown', handler);
+    };
   }, [isOpen, onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
-    const handler = (e) => { if (e.key === 'Escape') { e.preventDefault(); onClose(); } };
+    const handler = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [isOpen, onClose]);
 
-  const onTouchStart = useCallback((e) => { touchStartY.current = e.touches[0].clientY; touchDeltaY.current = 0; }, []);
-  const onTouchMove = useCallback((e) => { const d = e.touches[0].clientY - touchStartY.current; touchDeltaY.current = d; if (d > 0) setDragOffset(d); }, []);
-  const onTouchEnd = useCallback(() => { if (touchDeltaY.current > 80) onClose(); setDragOffset(0); }, [onClose]);
+  const onTouchStart = useCallback((e) => {
+    touchStartY.current = e.touches[0].clientY;
+    touchDeltaY.current = 0;
+  }, []);
+  const onTouchMove = useCallback((e) => {
+    const d = e.touches[0].clientY - touchStartY.current;
+    touchDeltaY.current = d;
+    if (d > 0) setDragOffset(d);
+  }, []);
+  const onTouchEnd = useCallback(() => {
+    if (touchDeltaY.current > 80) onClose();
+    setDragOffset(0);
+  }, [onClose]);
 
   if (!mounted && !isOpen) return null;
 
@@ -62,7 +86,9 @@ export default function ToolbarSlidePanel({ isOpen, onClose, title, children, wi
         </div>
         <div className={s.header}>
           <div className={s.headerTitle}>{title}</div>
-          <button onClick={onClose} className={s.closeBtn}>✕</button>
+          <button onClick={onClose} className={s.closeBtn}>
+            ✕
+          </button>
         </div>
         <div className={s.mobileContent}>{children}</div>
       </div>
@@ -70,15 +96,12 @@ export default function ToolbarSlidePanel({ isOpen, onClose, title, children, wi
   }
 
   return (
-    <div
-      ref={panelRef}
-      className={`tf-toolbar-slide ${s.desktopSlide}`}
-      style={{ width }}
-      data-open={isOpen}
-    >
+    <div ref={panelRef} className={`tf-toolbar-slide ${s.desktopSlide}`} style={{ width }} data-open={isOpen}>
       <div className={s.header}>
         <div className={s.headerTitle}>{title}</div>
-        <button onClick={onClose} className={s.closeBtn}>✕</button>
+        <button onClick={onClose} className={s.closeBtn}>
+          ✕
+        </button>
       </div>
       <div className={s.content}>{children}</div>
     </div>

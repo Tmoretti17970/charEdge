@@ -15,7 +15,6 @@
 import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { logger } from '@/observability/logger';
-import st from './DataHealthPanel.module.css';
 // ─── Styles ────────────────────────────────────────────────────
 
 const s = {
@@ -130,52 +129,60 @@ function DataHealthPanel() {
       try {
         const { memoryBudget } = await import('../../data/engine/MemoryBudget.js');
         result.memory = memoryBudget.getStatus();
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      } catch (_) { result.memory = null; }
+      } catch {
+        result.memory = null;
+      }
 
       // Circuit breaker states
       try {
         const { getAllCircuitStates } = await import('../../../data/engine/infra/CircuitBreaker');
         result.circuits = getAllCircuitStates?.() || {};
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      } catch (_) { result.circuits = {}; }
+      } catch {
+        result.circuits = {};
+      }
 
       // OPFS usage
       try {
         const { opfsBarStore } = await import('../../data/engine/OPFSBarStore.js');
         result.opfs = opfsBarStore.getStats?.() || {};
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      } catch (_) { result.opfs = {}; }
+      } catch {
+        result.opfs = {};
+      }
 
       // IndexedDB cache stats
       try {
         const { dataCache } = await import('../../data/DataCache.ts');
-        result.idb = await dataCache.getStats?.() || {};
-        result.storage = await dataCache.getStorageUsage?.() || {};
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      } catch (_) { result.idb = {}; result.storage = {}; }
+        result.idb = (await dataCache.getStats?.()) || {};
+        result.storage = (await dataCache.getStorageUsage?.()) || {};
+      } catch {
+        result.idb = {};
+        result.storage = {};
+      }
 
       // FetchService cache stats
       try {
         const { cacheStats } = await import('../../data/FetchService.ts');
         result.fetchCache = cacheStats?.() || {};
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      } catch (_) { result.fetchCache = {}; }
+      } catch {
+        result.fetchCache = {};
+      }
 
       // Bandwidth
       try {
         const { getBandwidthMonitor } = await import('../../data/engine/BandwidthMonitor.js');
         const bw = getBandwidthMonitor?.();
         result.bandwidth = bw?.getReport?.() || {};
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      } catch (_) { result.bandwidth = {}; }
+      } catch {
+        result.bandwidth = {};
+      }
 
       // Event bus stats
       try {
         const { dataEventBus } = await import('../../data/engine/DataEventBus.js');
         result.events = dataEventBus.getStats?.() || {};
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      } catch (_) { result.events = {}; }
+      } catch {
+        result.events = {};
+      }
 
       // Streaming indicators
       try {
@@ -184,8 +191,9 @@ function DataHealthPanel() {
           active: streamingIndicatorBridge.getActiveSymbols?.() || {},
           workerActive: streamingIndicatorBridge.isWorkerActive?.() || false,
         };
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      } catch (_) { result.indicators = {}; }
+      } catch {
+        result.indicators = {};
+      }
 
       setData(result);
     } catch (err) {
@@ -210,7 +218,9 @@ function DataHealthPanel() {
     <div style={s.panel}>
       <div style={s.title}>
         <span>📊</span> Data Health Dashboard
-        <button style={s.refreshBtn} onClick={refresh}>⟳ Refresh</button>
+        <button style={s.refreshBtn} onClick={refresh}>
+          ⟳ Refresh
+        </button>
       </div>
 
       {/* Memory Budget */}
@@ -317,14 +327,14 @@ function DataHealthPanel() {
               {data.indicators.workerActive ? 'Active (off-thread)' : 'Main thread fallback'}
             </span>
           </div>
-          {data.indicators.active && Object.keys(data.indicators.active).length > 0 && (
+          {data.indicators.active &&
+            Object.keys(data.indicators.active).length > 0 &&
             Object.entries(data.indicators.active).map(([sym, inds]) => (
               <div key={sym} style={s.row}>
                 <span style={s.label}>{sym}</span>
                 <span style={s.value}>{Array.isArray(inds) ? inds.join(', ') : String(inds)}</span>
               </div>
-            ))
-          )}
+            ))}
         </div>
       )}
 

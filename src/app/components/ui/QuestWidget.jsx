@@ -5,7 +5,7 @@
 // goal. Only visible when gamification is enabled and a goal is active.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { memo, useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { C, M } from '../../../constants.js';
 import { useGamificationStore } from '../../../state/useGamificationStore';
 
@@ -69,12 +69,8 @@ const QuestWidget = memo(function QuestWidget() {
 
       {/* Quest info */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: C.t1 }}>
-          {label}
-        </div>
-        <div style={{ fontSize: 10, color: C.t3, marginTop: 1 }}>
-          Target: ${activeGoal.target.toLocaleString()}
-        </div>
+        <div style={{ fontSize: 11, fontWeight: 600, color: C.t1 }}>{label}</div>
+        <div style={{ fontSize: 10, color: C.t3, marginTop: 1 }}>Target: ${activeGoal.target.toLocaleString()}</div>
       </div>
 
       {/* Level badge */}

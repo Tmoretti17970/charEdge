@@ -11,7 +11,6 @@ import { useState } from 'react';
 import { C } from '../../../constants.js';
 import { useDataStore } from '../../../state/useDataStore.js';
 import { alpha } from '@/shared/colorUtils';
-import st from './DiscoverMetrics.module.css';
 
 function DiscoverMetrics() {
   const [expanded, setExpanded] = useState(false);
@@ -71,7 +70,14 @@ function DiscoverMetrics() {
             Discover Engagement Metrics
           </span>
         </div>
-        <span style={{ fontSize: 10, color: C.t3, transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+        <span
+          style={{
+            fontSize: 10,
+            color: C.t3,
+            transform: expanded ? 'rotate(180deg)' : 'none',
+            transition: 'transform 0.2s',
+          }}
+        >
           ▼
         </span>
       </button>
@@ -89,7 +95,9 @@ function DiscoverMetrics() {
           {/* Top Widgets by Engagement */}
           {topWidgets.length > 0 && (
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: C.t2, fontFamily: 'var(--tf-font)', marginBottom: 8 }}>
+              <div
+                style={{ fontSize: 12, fontWeight: 700, color: C.t2, fontFamily: 'var(--tf-font)', marginBottom: 8 }}
+              >
                 🏆 Most Engaged Widgets
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -122,7 +130,9 @@ function DiscoverMetrics() {
           {/* Least Used Widgets */}
           {bottomWidgets.length > 0 && rankings.length > 5 && (
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: C.t2, fontFamily: 'var(--tf-font)', marginBottom: 8 }}>
+              <div
+                style={{ fontSize: 12, fontWeight: 700, color: C.t2, fontFamily: 'var(--tf-font)', marginBottom: 8 }}
+              >
                 💤 Least Engaged Widgets
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -141,9 +151,7 @@ function DiscoverMetrics() {
                     }}
                   >
                     <span style={{ color: C.t3 }}>{w.id}</span>
-                    <span style={{ color: C.t3, fontFamily: 'var(--tf-mono)', fontSize: 11 }}>
-                      {w.clicks} clicks
-                    </span>
+                    <span style={{ color: C.t3, fontFamily: 'var(--tf-mono)', fontSize: 11 }}>{w.clicks} clicks</span>
                   </div>
                 ))}
               </div>
@@ -198,17 +206,11 @@ function MetricCard({ label, value, sub, color }) {
         textAlign: 'center',
       }}
     >
-      <div style={{ fontSize: 18, fontWeight: 800, color: color || C.t1, fontFamily: 'var(--tf-mono)' }}>
-        {value}
-      </div>
+      <div style={{ fontSize: 18, fontWeight: 800, color: color || C.t1, fontFamily: 'var(--tf-mono)' }}>{value}</div>
       <div style={{ fontSize: 11, color: C.t2, fontWeight: 600, fontFamily: 'var(--tf-font)', marginTop: 2 }}>
         {label}
       </div>
-      {sub && (
-        <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)', marginTop: 2 }}>
-          {sub}
-        </div>
-      )}
+      {sub && <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)', marginTop: 2 }}>{sub}</div>}
     </div>
   );
 }

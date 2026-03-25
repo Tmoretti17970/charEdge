@@ -4,10 +4,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useRef, useMemo } from 'react';
-import { C, F } from '@/constants.js';
+import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 import { useChartStore } from '../../../../state/useChartStore';
 import { useChartBars } from '../../../hooks/useChartBars.js';
-import { useChartCoreStore } from '../../../../state/chart/useChartCoreStore';
 import s from './ChartAnnotationsPanel.module.css';
 
 const EMOJI_OPTIONS = ['📌', '⚠️', '🎯', '💡', '🚀', '🔴', '🟢', '📊', '🧠', '❓'];
@@ -15,11 +14,11 @@ const EMOJI_OPTIONS = ['📌', '⚠️', '🎯', '💡', '🚀', '🔴', '🟢',
 // P2 1.3: Sanitize annotation text — strip HTML tags and limit length
 function sanitizeAnnotation(text) {
   return text
-    .replace(/<[^>]*>/g, '')         // Strip HTML tags
-    .replace(/&/g, '&amp;')          // Encode ampersands
-    .replace(/</g, '&lt;')           // Encode angle brackets
-    .replace(/>/g, '&gt;')           // Encode angle brackets
-    .slice(0, 500);                  // Cap length at 500 chars
+    .replace(/<[^>]*>/g, '') // Strip HTML tags
+    .replace(/&/g, '&amp;') // Encode ampersands
+    .replace(/</g, '&lt;') // Encode angle brackets
+    .replace(/>/g, '&gt;') // Encode angle brackets
+    .slice(0, 500); // Cap length at 500 chars
 }
 
 export default function ChartAnnotationsPanel({ _onClose }) {
@@ -79,12 +78,8 @@ export default function ChartAnnotationsPanel({ _onClose }) {
       <div className={s.header}>
         <div className={s.headerLeft}>
           <span className={s.headerEmoji}>📝</span>
-          <span className={s.headerTitle}>
-            Annotations — {symbol}
-          </span>
-          <span className={s.headerBadge}>
-            {annotations.length}
-          </span>
+          <span className={s.headerTitle}>Annotations — {symbol}</span>
+          <span className={s.headerBadge}>{annotations.length}</span>
         </div>
       </div>
 
@@ -116,7 +111,8 @@ export default function ChartAnnotationsPanel({ _onClose }) {
           </button>
         </div>
         <div className={s.metaLine}>
-          Price: {currentPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} · {new Date().toLocaleTimeString()}
+          Price: {currentPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} ·{' '}
+          {new Date().toLocaleTimeString()}
         </div>
       </form>
 
@@ -129,16 +125,11 @@ export default function ChartAnnotationsPanel({ _onClose }) {
             <div className={s.emptyEmoji}>📝</div>
             No annotations yet.
             <br />
-            <span className={s.emptyHint}>
-              Add notes about key levels, patterns, or ideas.
-            </span>
+            <span className={s.emptyHint}>Add notes about key levels, patterns, or ideas.</span>
           </div>
         ) : (
           sortedAnnotations.map((ann) => (
-            <div
-              key={ann.id}
-              className={s.card}
-            >
+            <div key={ann.id} className={s.card}>
               <div className={s.cardBody}>
                 <span className={s.cardEmoji}>{ann.emoji}</span>
                 <div className={s.cardContent}>
@@ -159,22 +150,19 @@ export default function ChartAnnotationsPanel({ _onClose }) {
                       </button>
                     </div>
                   ) : (
-                    <div
-                      className={s.cardText}
-                      onClick={() => handleStartEdit(ann)}
-                    >
+                    <div className={s.cardText} onClick={() => handleStartEdit(ann)}>
                       {ann.text}
                     </div>
                   )}
                   <div className={s.cardMeta}>
-                    <span>
-                      {ann.price?.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                    </span>
+                    <span>{ann.price?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                     <span>·</span>
                     <span>
                       {new Date(ann.createdAt).toLocaleString(undefined, {
-                        month: 'short', day: 'numeric',
-                        hour: '2-digit', minute: '2-digit',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
                       })}
                     </span>
                   </div>

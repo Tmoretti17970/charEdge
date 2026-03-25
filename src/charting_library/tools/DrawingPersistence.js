@@ -57,7 +57,7 @@ export async function saveDrawings(symbol, timeframe, drawings) {
       const serialized = {
         id: d.id,
         type: d.type,
-        points: d.points.map(p => ({ price: p.price, time: p.time })),
+        points: d.points.map((p) => ({ price: p.price, time: p.time })),
         style: { ...d.style },
         locked: d.locked || false,
         visible: d.visible !== false,
@@ -74,13 +74,8 @@ export async function saveDrawings(symbol, timeframe, drawings) {
     }
 
     // Save local drawings
-    let tx;
-    try {
-      tx = db.transaction(STORE_NAME, 'readwrite');
-    } catch (e) {
-      // InvalidStateError: DB connection closing during symbol switch — fall through to localStorage fallback
-      throw e;
-    }
+    // InvalidStateError: DB connection closing during symbol switch — falls through to localStorage fallback
+    const tx = db.transaction(STORE_NAME, 'readwrite');
     const store = tx.objectStore(STORE_NAME);
     store.put({ key, drawings: localDrawings, updatedAt: Date.now() });
 
@@ -137,15 +132,19 @@ export async function saveDrawings(symbol, timeframe, drawings) {
     // Fallback: try localStorage
     try {
       const key = buildKey(symbol, timeframe);
-      const data = drawings.map(d => ({
-        id: d.id, type: d.type,
-        points: d.points.map(p => ({ price: p.price, time: p.time })),
-        style: { ...d.style }, locked: d.locked || false,
-        visible: d.visible !== false, meta: d.meta || {},
+      const data = drawings.map((d) => ({
+        id: d.id,
+        type: d.type,
+        points: d.points.map((p) => ({ price: p.price, time: p.time })),
+        style: { ...d.style },
+        locked: d.locked || false,
+        visible: d.visible !== false,
+        meta: d.meta || {},
       }));
       localStorage.setItem(`tf-drawings-${key}`, JSON.stringify(data));
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) { /* storage may be blocked */ }
+    } catch {
+      /* storage may be blocked */
+    }
   }
 }
 
@@ -189,7 +188,7 @@ export async function loadDrawings(symbol, timeframe) {
 
     // Merge local + synced, avoiding duplicates by ID
     const allDrawings = [...localResult];
-    const existingIds = new Set(allDrawings.map(d => d.id));
+    const existingIds = new Set(allDrawings.map((d) => d.id));
     for (const sd of syncResult) {
       if (!existingIds.has(sd.id)) {
         allDrawings.push({ ...sd, syncAcrossTimeframes: true });
@@ -197,7 +196,7 @@ export async function loadDrawings(symbol, timeframe) {
     }
 
     // Hydrate back to runtime state
-    return allDrawings.map(d => ({
+    return allDrawings.map((d) => ({
       ...d,
       state: 'idle',
       locked: d.locked || false,
@@ -211,10 +210,11 @@ export async function loadDrawings(symbol, timeframe) {
       const key = buildKey(symbol, timeframe);
       const raw = localStorage.getItem(`tf-drawings-${key}`);
       if (raw) {
-        return JSON.parse(raw).map(d => ({ ...d, state: 'idle' }));
+        return JSON.parse(raw).map((d) => ({ ...d, state: 'idle' }));
       }
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) { /* storage may be blocked */ }
+    } catch {
+      /* storage may be blocked */
+    }
     return [];
   } finally {
     _loadingInProgress = false; // BUG-06: release load gate
@@ -257,8 +257,7 @@ export async function listDrawingKeys() {
       req.onsuccess = () => resolve(req.result || []);
       req.onerror = () => resolve([]);
     });
-  // eslint-disable-next-line unused-imports/no-unused-vars
-  } catch (_) {
+  } catch {
     return [];
   }
 }
@@ -307,7 +306,7 @@ export async function listVersions(symbol, timeframe) {
       };
       req.onerror = () => resolve([]);
     });
-  } catch (_) {
+  } catch {
     return [];
   }
 }
@@ -330,12 +329,15 @@ export async function recoverDrawings(symbol, timeframe, versionIndex) {
       req.onsuccess = () => {
         const versions = req.result?.versions || [];
         const target = versions[versionIndex];
-        if (!target) { resolve([]); return; }
-        resolve(target.drawings.map(d => ({ ...d, state: 'idle' })));
+        if (!target) {
+          resolve([]);
+          return;
+        }
+        resolve(target.drawings.map((d) => ({ ...d, state: 'idle' })));
       };
       req.onerror = () => resolve([]);
     });
-  } catch (_) {
+  } catch {
     return [];
   }
 }
@@ -346,9 +348,10 @@ export async function recoverDrawings(symbol, timeframe, versionIndex) {
  * @param {Object[]} drawings
  */
 export function captureSessionSnapshot(drawings) {
-  _sessionSnapshot = drawings.map(d => ({
-    id: d.id, type: d.type,
-    points: d.points.map(p => ({ price: p.price, time: p.time })),
+  _sessionSnapshot = drawings.map((d) => ({
+    id: d.id,
+    type: d.type,
+    points: d.points.map((p) => ({ price: p.price, time: p.time })),
     style: { ...d.style },
     locked: d.locked || false,
     visible: d.visible !== false,
@@ -362,5 +365,5 @@ export function captureSessionSnapshot(drawings) {
  * @returns {Object[]|null}
  */
 export function getSessionSnapshot() {
-  return _sessionSnapshot ? _sessionSnapshot.map(d => ({ ...d, state: 'idle' })) : null;
+  return _sessionSnapshot ? _sessionSnapshot.map((d) => ({ ...d, state: 'idle' })) : null;
 }

@@ -1,8 +1,8 @@
 // Patterns Tab for InsightsPanel
 import { useMemo } from 'react';
 import { detectPatterns, gradePatterns } from '../../../../charting_library/studies/PatternDetector.js';
-import { C } from '@/constants.js';
 import st from './PatternsTab.module.css';
+import { C } from '@/constants.js';
 
 function getSevColor(severity) {
   return { danger: C.r, warning: C.y, positive: C.g, info: C.b }[severity];
@@ -37,11 +37,7 @@ export default function PatternsTab({ trades }) {
       </div>
 
       {insights.map((ins) => (
-        <div
-          key={ins.id}
-          className={st.insightCard}
-          style={{ '--sev-color': getSevColor(ins.severity) || C.b }}
-        >
+        <div key={ins.id} className={st.insightCard} style={{ '--sev-color': getSevColor(ins.severity) || C.b }}>
           <div className={st.insightHeader}>
             <span className={st.insightEmoji}>{SEV_EMOJI[ins.severity]}</span>
             <span className={st.insightTitle}>{ins.title}</span>

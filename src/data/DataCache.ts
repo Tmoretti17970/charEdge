@@ -35,19 +35,19 @@ const _DB_NAME = 'charEdge-unified'; // For reference — actual open is in Unif
 
 // Store definitions with TTL configs
 const STORES = {
-  candles: { keyPath: 'key', ttl: 86400000 },      // 24 hours
-  quotes: { keyPath: 'key', ttl: 30000 },           // 30 seconds
-  fundamentals: { keyPath: 'key', ttl: 3600000 },   // 1 hour
-  economic: { keyPath: 'key', ttl: 1800000 },       // 30 min
-  news: { keyPath: 'key', ttl: 300000 },            // 5 min
-  sentiment: { keyPath: 'key', ttl: 600000 },       // 10 min
-  indicators: { keyPath: 'key', ttl: 300000 },      // 5 min
-  derivedData: { keyPath: 'key', ttl: 3600000 },     // 1 hour
+  candles: { keyPath: 'key', ttl: 86400000 }, // 24 hours
+  quotes: { keyPath: 'key', ttl: 30000 }, // 30 seconds
+  fundamentals: { keyPath: 'key', ttl: 3600000 }, // 1 hour
+  economic: { keyPath: 'key', ttl: 1800000 }, // 30 min
+  news: { keyPath: 'key', ttl: 300000 }, // 5 min
+  sentiment: { keyPath: 'key', ttl: 600000 }, // 10 min
+  indicators: { keyPath: 'key', ttl: 300000 }, // 5 min
+  derivedData: { keyPath: 'key', ttl: 3600000 }, // 1 hour
   volumeProfiles: { keyPath: 'key', ttl: 86400000 }, // 24 hours
-  filings: { keyPath: 'key', ttl: Infinity },         // Permanent
-  meta: { keyPath: 'key', ttl: Infinity },           // Permanent
-  drawings: { keyPath: 'key', ttl: Infinity },       // Permanent (user drawings)
-  snapshots: { keyPath: 'key', ttl: 1800000 },       // 30 min (session state)
+  filings: { keyPath: 'key', ttl: Infinity }, // Permanent
+  meta: { keyPath: 'key', ttl: Infinity }, // Permanent
+  drawings: { keyPath: 'key', ttl: Infinity }, // Permanent (user drawings)
+  snapshots: { keyPath: 'key', ttl: 1800000 }, // 30 min (session state)
 };
 
 // ─── Database Manager ──────────────────────────────────────────
@@ -59,8 +59,9 @@ function openDB() {
 
 // Sprint 9: Validate IDB record structure before returning to callers.
 // Catches corrupted entries from partial writes, version mismatches, or storage errors.
-function _isValidRecord(record: any, storeName?: string): boolean {
-  if (!record || typeof record !== 'object') return false;
+function isValidRecord(rec: unknown, storeName?: string): boolean {
+  if (!rec || typeof rec !== 'object') return false;
+  const record = rec as Record<string, unknown>;
   // All records must have a 'data' field and a numeric timestamp
   if (!('data' in record)) return false;
   if (typeof record.timestamp !== 'number' || isNaN(record.timestamp)) return false;
@@ -81,8 +82,8 @@ async function dbGet(storeName, key) {
       req.onsuccess = () => resolve(req.result || null);
       req.onerror = () => resolve(null);
     });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (_) {
+     
+  } catch {
     return null;
   }
 }
@@ -97,8 +98,8 @@ async function dbPut(storeName, key, data) {
       tx.oncomplete = () => resolve(true);
       tx.onerror = () => resolve(false);
     });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (_) {
+     
+  } catch {
     return false;
   }
 }
@@ -113,8 +114,8 @@ async function dbDelete(storeName, key) {
       tx.oncomplete = () => resolve(true);
       tx.onerror = () => resolve(false);
     });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (_) {
+     
+  } catch {
     return false;
   }
 }
@@ -129,8 +130,8 @@ async function dbClearStore(storeName) {
       tx.oncomplete = () => resolve(true);
       tx.onerror = () => resolve(false);
     });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (_) {
+     
+  } catch {
     return false;
   }
 }
@@ -175,7 +176,7 @@ class _DataCache {
     const record = await dbGet('candles', key);
     if (!record) return null;
     // Sprint 9: Validate record structure before returning
-    if (!_isValidRecord(record, 'candles')) {
+    if (!isValidRecord(record, 'candles')) {
       logger.data.warn(`[DataCache] Corrupted candle record for ${key} — discarding`);
       await dbDelete('candles', key);
       return null;
@@ -199,7 +200,7 @@ class _DataCache {
       const existing = await dbGet('candles', key);
       if (existing?.data?.length) {
         const lastExistingTime = existing.data[existing.data.length - 1].time;
-        const newCandles = candles.filter(c => c.time > lastExistingTime);
+        const newCandles = candles.filter((c) => c.time > lastExistingTime);
         if (newCandles.length > 0) {
           const merged = [...existing.data, ...newCandles];
           // Cap at 5000 candles to prevent unbounded growth
@@ -391,12 +392,14 @@ class _DataCache {
       if (navigator?.storage?.estimate) {
         const est = await navigator.storage.estimate();
         return {
-          usedMB: Math.round((est.usage || 0) / 1048576 * 10) / 10,
+          usedMB: Math.round(((est.usage || 0) / 1048576) * 10) / 10,
           quotaMB: Math.round((est.quota || 0) / 1048576),
           pct: est.quota > 0 ? Math.round((est.usage / est.quota) * 1000) / 10 : 0,
         };
       }
-    } catch (e) { logger.data.warn('Operation failed', e); }
+    } catch (e) {
+      logger.data.warn('Operation failed', e);
+    }
     return { usedMB: 0, quotaMB: 0, pct: 0 };
   }
 
@@ -408,7 +411,7 @@ class _DataCache {
    */
   async evictStaleRecords() {
     let total = 0;
-    const storeNames = Object.keys(STORES).filter(s => STORES[s].ttl !== Infinity);
+    const storeNames = Object.keys(STORES).filter((s) => STORES[s].ttl !== Infinity);
 
     for (const storeName of storeNames) {
       try {
@@ -437,7 +440,7 @@ class _DataCache {
               const record = cursor.value;
               // With index: all records in range are stale → delete unconditionally
               // Without index: check timestamp manually
-              if (store.indexNames.contains('timestamp') || (record.timestamp && (now - record.timestamp > ttl))) {
+              if (store.indexNames.contains('timestamp') || (record.timestamp && now - record.timestamp > ttl)) {
                 cursor.delete();
                 total++;
               }
@@ -447,7 +450,9 @@ class _DataCache {
           tx.oncomplete = () => resolve();
           tx.onerror = () => resolve();
         });
-      } catch (e) { logger.data.warn('Operation failed', e); }
+      } catch (e) {
+        logger.data.warn('Operation failed', e);
+      }
     }
 
     if (total > 0) {
@@ -484,7 +489,9 @@ class _DataCache {
           tx.oncomplete = () => resolve();
           tx.onerror = () => resolve();
         });
-      } catch (e) { logger.data.warn('Operation failed', e); }
+      } catch (e) {
+        logger.data.warn('Operation failed', e);
+      }
 
       const recheck = await this.getStorageUsage();
       if (recheck.pct < 70) {
@@ -516,12 +523,16 @@ class _DataCache {
       }
 
       // Stale — return immediately but refresh in background
-      fetchFn().then(async (freshData) => {
-        if (freshData != null) {
-          await dbPut(store, key, freshData);
-          if (onRefresh) onRefresh(freshData);
-        }
-      }).catch((err) => { logger.data.warn('[DataCache] Background refresh failed:', err?.message); });
+      fetchFn()
+        .then(async (freshData) => {
+          if (freshData != null) {
+            await dbPut(store, key, freshData);
+            if (onRefresh) onRefresh(freshData);
+          }
+        })
+        .catch((err) => {
+          logger.data.warn('[DataCache] Background refresh failed:', err?.message);
+        });
 
       return record.data; // Return stale data
     }
@@ -533,8 +544,8 @@ class _DataCache {
         await dbPut(store, key, data);
       }
       return data;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_) {
+       
+    } catch {
       return null;
     }
   }
@@ -577,8 +588,8 @@ class _DataCache {
           };
         });
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_) {
+       
+    } catch {
       // IndexedDB not available
     }
     return stats;
@@ -613,7 +624,7 @@ class _DataCache {
           req.onsuccess = (event) => {
             const cursor = event.target.result;
             if (cursor) {
-              if (store.indexNames.contains('timestamp') || (now - cursor.value.timestamp > config.ttl * 2)) {
+              if (store.indexNames.contains('timestamp') || now - cursor.value.timestamp > config.ttl * 2) {
                 cursor.delete();
               }
               cursor.continue();
@@ -624,8 +635,8 @@ class _DataCache {
           tx.onerror = () => resolve();
         });
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_) {
+       
+    } catch {
       // Silent
     }
   }

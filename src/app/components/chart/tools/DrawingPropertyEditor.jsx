@@ -5,15 +5,30 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { C } from '@/constants.js';
 import { useChartToolsStore } from '../../../../state/chart/useChartToolsStore';
 import s from './DrawingPropertyEditor.module.css';
 
 const PRESET_COLORS = [
-  '#2962FF', '#FF6D00', '#EF5350', '#26A69A', '#AB47BC',
-  '#00BCD4', '#F44336', '#E91E63', '#9C27B0', '#3F51B5',
-  '#009688', '#4CAF50', '#CDDC39', '#FF9800', '#795548',
-  '#607D8B', '#FFEB3B', '#FF5722', '#D1D4DC', '#787B86',
+  '#2962FF',
+  '#FF6D00',
+  '#EF5350',
+  '#26A69A',
+  '#AB47BC',
+  '#00BCD4',
+  '#F44336',
+  '#E91E63',
+  '#9C27B0',
+  '#3F51B5',
+  '#009688',
+  '#4CAF50',
+  '#CDDC39',
+  '#FF9800',
+  '#795548',
+  '#607D8B',
+  '#FFEB3B',
+  '#FF5722',
+  '#D1D4DC',
+  '#787B86',
 ];
 
 const _LINE_WIDTHS = [1, 2, 3, 4, 5];
@@ -48,21 +63,22 @@ export default function DrawingPropertyEditor() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const updateStyle = useCallback((key, value) => {
-    if (!selectedDrawingId) return;
-    // Also update via DrawingEngine event for real-time canvas refresh
-    window.dispatchEvent(new CustomEvent('charEdge:update-drawing-style', {
-      detail: { id: selectedDrawingId, style: { [key]: value } }
-    }));
-    // Update store
-    setDrawings(
-      drawings.map((d) =>
-        d.id === selectedDrawingId
-          ? { ...d, style: { ...d.style, [key]: value } }
-          : d
-      )
-    );
-  }, [selectedDrawingId, drawings, setDrawings]);
+  const updateStyle = useCallback(
+    (key, value) => {
+      if (!selectedDrawingId) return;
+      // Also update via DrawingEngine event for real-time canvas refresh
+      window.dispatchEvent(
+        new CustomEvent('charEdge:update-drawing-style', {
+          detail: { id: selectedDrawingId, style: { [key]: value } },
+        }),
+      );
+      // Update store
+      setDrawings(
+        drawings.map((d) => (d.id === selectedDrawingId ? { ...d, style: { ...d.style, [key]: value } } : d)),
+      );
+    },
+    [selectedDrawingId, drawings, setDrawings],
+  );
 
   const handleDelete = useCallback(() => {
     if (!selectedDrawingId) return;
@@ -74,7 +90,7 @@ export default function DrawingPropertyEditor() {
     const newDrawing = {
       ...drawing,
       id: `d_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-      points: drawing.points.map(p => ({
+      points: drawing.points.map((p) => ({
         ...p,
         price: p.price * 1.001, // Offset slightly
       })),
@@ -96,7 +112,8 @@ export default function DrawingPropertyEditor() {
   if (!drawing) return null;
 
   const style = drawing.style || {};
-  const hasFill = style.fillColor !== undefined || ['rect', 'triangle', 'ellipse', 'channel', 'alertzone'].includes(drawing.type);
+  const hasFill =
+    style.fillColor !== undefined || ['rect', 'triangle', 'ellipse', 'channel', 'alertzone'].includes(drawing.type);
 
   return (
     <div ref={containerRef} className={`tf-fade-in ${s.toolbar}`}>
@@ -104,7 +121,10 @@ export default function DrawingPropertyEditor() {
       <div className={s.pickerWrap}>
         <EditorBtn
           title="Line Color"
-          onClick={() => { setShowColorPicker(!showColorPicker); setShowFillPicker(false); }}
+          onClick={() => {
+            setShowColorPicker(!showColorPicker);
+            setShowFillPicker(false);
+          }}
         >
           <div className={s.colorSwatch} style={{ '--swatch-bg': style.color || '#2962FF' }} />
         </EditorBtn>
@@ -112,9 +132,15 @@ export default function DrawingPropertyEditor() {
         {showColorPicker && (
           <ColorPalette
             selected={style.color}
-            onSelect={(c) => { updateStyle('color', c); setShowColorPicker(false); }}
+            onSelect={(c) => {
+              updateStyle('color', c);
+              setShowColorPicker(false);
+            }}
             customColor={customColor}
-            onCustomChange={(c) => { setCustomColor(c); updateStyle('color', c); }}
+            onCustomChange={(c) => {
+              setCustomColor(c);
+              updateStyle('color', c);
+            }}
           />
         )}
       </div>
@@ -127,7 +153,10 @@ export default function DrawingPropertyEditor() {
           <div className={s.pickerWrap}>
             <EditorBtn
               title="Fill Color"
-              onClick={() => { setShowFillPicker(!showFillPicker); setShowColorPicker(false); }}
+              onClick={() => {
+                setShowFillPicker(!showFillPicker);
+                setShowColorPicker(false);
+              }}
             >
               <div className={s.fillSwatch} style={{ '--swatch-bg': style.fillColor || 'rgba(41, 98, 255, 0.1)' }}>
                 <span className={s.fillIcon}>▧</span>
@@ -144,7 +173,10 @@ export default function DrawingPropertyEditor() {
                   setShowFillPicker(false);
                 }}
                 customColor={customColor}
-                onCustomChange={(c) => { setCustomColor(c); updateStyle('fillColor', c + '1A'); }}
+                onCustomChange={(c) => {
+                  setCustomColor(c);
+                  updateStyle('fillColor', c + '1A');
+                }}
               />
             )}
           </div>
@@ -156,7 +188,10 @@ export default function DrawingPropertyEditor() {
       <div className={s.widthRow}>
         <span className={s.widthLabel}>W</span>
         <input
-          type="range" min={1} max={5} step={1}
+          type="range"
+          min={1}
+          max={5}
+          step={1}
           value={style.lineWidth || 2}
           onChange={(e) => updateStyle('lineWidth', parseInt(e.target.value))}
           title={`Line Width: ${style.lineWidth || 2}px`}
@@ -176,7 +211,10 @@ export default function DrawingPropertyEditor() {
             title={dp.name}
             onClick={() => updateStyle('dash', dp.value)}
           >
-            <span className={s.dashLabel} data-active={JSON.stringify(style.dash || []) === JSON.stringify(dp.value) ? 'true' : undefined}>
+            <span
+              className={s.dashLabel}
+              data-active={JSON.stringify(style.dash || []) === JSON.stringify(dp.value) ? 'true' : undefined}
+            >
               {dp.label}
             </span>
           </EditorBtn>
@@ -198,11 +236,7 @@ export default function DrawingPropertyEditor() {
           {drawing.visible === false ? '🙈' : '👁'}
         </span>
       </EditorBtn>
-      <EditorBtn
-        title={drawing.locked ? 'Unlock' : 'Lock'}
-        onClick={handleToggleLock}
-        active={drawing.locked}
-      >
+      <EditorBtn title={drawing.locked ? 'Unlock' : 'Lock'} onClick={handleToggleLock} active={drawing.locked}>
         <span className={s.actionEmoji}>{drawing.locked ? '🔒' : '🔓'}</span>
       </EditorBtn>
       <EditorBtn title="Delete" onClick={handleDelete}>

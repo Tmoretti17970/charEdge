@@ -7,8 +7,8 @@
 
 import React from 'react';
 import { useState, useMemo } from 'react';
-import { C, M } from '@/constants.js';
 import st from './CalendarHeatmap.module.css';
+import { C } from '@/constants.js';
 
 const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -114,7 +114,10 @@ function Tooltip({ cell, style }) {
 
   const dateObj = new Date(cell.date + 'T12:00:00');
   const dateStr = dateObj.toLocaleDateString('en-US', {
-    weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
   });
   const hasPnl = cell.pnl !== null && cell.pnl !== undefined;
   const hasRuleBreak = cell.ruleBreaks > 0;
@@ -157,11 +160,15 @@ function Legend() {
   const steps = [-3, -2, -1, 0, 1, 2, 3];
   return (
     <div className={st.legend}>
-      <span className={st.legendLabel} style={{ marginRight: 4 }}>Less</span>
+      <span className={st.legendLabel} style={{ marginRight: 4 }}>
+        Less
+      </span>
       {steps.map((s, i) => (
         <div key={i} className={st.legendCell} style={{ background: getCellColor(s * 100, 300) }} />
       ))}
-      <span className={st.legendLabel} style={{ marginLeft: 4 }}>More</span>
+      <span className={st.legendLabel} style={{ marginLeft: 4 }}>
+        More
+      </span>
     </div>
   );
 }
@@ -170,10 +177,16 @@ function Legend() {
 
 function SummaryStats({ weeks }) {
   const stats = useMemo(() => {
-    let totalDays = 0, profitDays = 0, lossDays = 0, totalPnl = 0;
+    let totalDays = 0,
+      profitDays = 0,
+      lossDays = 0,
+      totalPnl = 0;
     let bestDay = { pnl: -Infinity, date: '' };
     let worstDay = { pnl: Infinity, date: '' };
-    let currentStreak = 0, bestStreak = 0, worstStreak = 0, currentLoss = 0;
+    let currentStreak = 0,
+      bestStreak = 0,
+      worstStreak = 0,
+      currentLoss = 0;
 
     for (const week of weeks) {
       for (const cell of week) {
@@ -225,7 +238,9 @@ function SummaryStats({ weeks }) {
       {statItems.map((s) => (
         <div key={s.label} className={st.statCard}>
           <div className={st.statLabel}>{s.label}</div>
-          <div className={st.statValue} style={{ color: s.color }}>{s.value}</div>
+          <div className={st.statValue} style={{ color: s.color }}>
+            {s.value}
+          </div>
         </div>
       ))}
     </div>
