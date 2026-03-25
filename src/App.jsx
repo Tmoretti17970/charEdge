@@ -204,7 +204,7 @@ export default function App() {
   }, [ready, demoActive, tradeCount, journalLoaded]);
 
   // Page navigation map: keys 1-3 → pages, 4 → settings slide-over
-  const PAGE_KEYS = ['journal', 'charts', 'discover'];
+  const PAGE_KEYS = ['journal', 'charts', 'intel'];
   const toggleSettings = useUIStore((s) => s.toggleSettings);
 
   // Global hotkeys
@@ -214,7 +214,7 @@ export default function App() {
       { key: '?', handler: () => setShortcutsOpen((o) => !o), description: 'Toggle keyboard shortcuts' },
       { key: '1', handler: () => setPage(PAGE_KEYS[0]), description: 'Go to Home' },
       { key: '2', handler: () => setPage(PAGE_KEYS[1]), description: 'Go to Charts' },
-      { key: '3', handler: () => setPage(PAGE_KEYS[2]), description: 'Go to Discover' },
+      { key: '3', handler: () => setPage(PAGE_KEYS[2]), description: 'Go to Intel' },
       { key: '4', handler: () => toggleSettings(), description: 'Toggle Settings' },
       // Sprint 15: Quick trade entry from anywhere
       {

@@ -11,15 +11,32 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { C } from '../../../constants.js';
+import { getQuote } from '../../../data/QuoteService.js';
 import DemoBadge from './DemoBadge';
 import s from './SectorRotationMap.module.css';
 import { alpha } from '@/shared/colorUtils';
 
-// ─── Mock Sector Data ───────────────────────────────────────────
+// ─── Sector ETF Mapping ─────────────────────────────────────────
 
-const SECTORS = [
+const SECTOR_ETFS = [
+  { id: 'tech', name: 'Technology', icon: '\uD83D\uDCBB', etf: 'XLK', weight: 28.5 },
+  { id: 'health', name: 'Healthcare', icon: '\uD83C\uDFE5', etf: 'XLV', weight: 13.2 },
+  { id: 'finance', name: 'Financials', icon: '\uD83C\uDFE6', etf: 'XLF', weight: 12.8 },
+  { id: 'energy', name: 'Energy', icon: '\u26A1', etf: 'XLE', weight: 4.2 },
+  { id: 'consumer_d', name: 'Cons. Discretionary', icon: '\uD83D\uDECD\uFE0F', etf: 'XLY', weight: 10.5 },
+  { id: 'consumer_s', name: 'Cons. Staples', icon: '\uD83D\uDED2', etf: 'XLP', weight: 6.8 },
+  { id: 'industrial', name: 'Industrials', icon: '\uD83C\uDFED', etf: 'XLI', weight: 8.5 },
+  { id: 'materials', name: 'Materials', icon: '\uD83E\uDDF1', etf: 'XLB', weight: 2.5 },
+  { id: 'realestate', name: 'Real Estate', icon: '\uD83C\uDFE2', etf: 'XLRE', weight: 2.4 },
+  { id: 'utilities', name: 'Utilities', icon: '\uD83D\uDCA1', etf: 'XLU', weight: 2.6 },
+  { id: 'comms', name: 'Communication', icon: '\uD83D\uDCE1', etf: 'XLC', weight: 8.0 },
+];
+
+// ─── Mock Sector Data (fallback) ────────────────────────────────
+
+const MOCK_SECTORS = [
   {
     id: 'tech',
     name: 'Technology',
@@ -198,6 +215,41 @@ const SECTORS = [
   },
 ];
 
+/**
+ * Fetch live sector data from ETF quotes via QuoteService.
+ * Returns sectors array in the same shape as MOCK_SECTORS.
+ */
+async function fetchSectorData() {
+  const quotes = await Promise.all(
+    SECTOR_ETFS.map(async (sec) => {
+      const q = await getQuote(sec.etf);
+      return { ...sec, quote: q };
+    }),
+  );
+
+  return quotes.map((sec) => {
+    const q = sec.quote;
+    const changePct = q?.changePct ?? 0;
+    return {
+      id: sec.id,
+      name: sec.name,
+      icon: sec.icon,
+      weight: sec.weight,
+      // Only 1D is available from live quote; other timeframes use 1D as placeholder
+      perf: {
+        '1D': +changePct.toFixed(2),
+        '1W': +changePct.toFixed(2),
+        '1M': +changePct.toFixed(2),
+        '3M': +changePct.toFixed(2),
+        YTD: +changePct.toFixed(2),
+      },
+      flow: 0, // No free flow data available
+      cycle: changePct > 1 ? 'expansion' : changePct > 0 ? 'peak' : changePct > -1 ? 'trough' : 'contraction',
+      topMovers: [],
+    };
+  });
+}
+
 const TIMEFRAMES = ['1D', '1W', '1M', '3M', 'YTD'];
 
 const CYCLE_META = {
@@ -216,14 +268,42 @@ function SectorRotationMap() {
   const [activeTF, setActiveTF] = useState('1D');
   const [drillSector, setDrillSector] = useState(null);
   const [sortBy, setSortBy] = useState('perf'); // 'perf' | 'flow' | 'weight'
+  const [sectors, setSectors] = useState(MOCK_SECTORS);
+  const [isLive, setIsLive] = useState(false);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    async function load() {
+      try {
+        const data = await fetchSectorData();
+        if (!mountedRef.current) return;
+        // Only use live data if we got valid results
+        const hasValid = data.some((d) => d.perf['1D'] !== 0);
+        if (hasValid) {
+          setSectors(data);
+          setIsLive(true);
+        }
+      } catch (_err) {
+        // eslint-disable-next-line no-console
+        console.warn('[SectorRotationMap] ETF fetch failed, using mock data', _err);
+      }
+    }
+
+    load();
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const sorted = useMemo(() => {
-    const arr = [...SECTORS];
+    const arr = [...sectors];
     if (sortBy === 'perf') arr.sort((a, b) => b.perf[activeTF] - a.perf[activeTF]);
     else if (sortBy === 'flow') arr.sort((a, b) => b.flow - a.flow);
     else arr.sort((a, b) => b.weight - a.weight);
     return arr;
-  }, [sortBy, activeTF]);
+  }, [sectors, sortBy, activeTF]);
 
   return (
     <div className={s.panelWrap}>
@@ -234,7 +314,7 @@ function SectorRotationMap() {
           <h3 className={s.headerTitle}>Sector Rotation Map</h3>
           <DemoBadge />
           <span className={s.sectorBadge} style={{ color: C.g, background: alpha(C.g, 0.1) }}>
-            {SECTORS.length} sectors
+            {sectors.length} sectors{isLive ? ' (live)' : ''}
           </span>
         </div>
         <span className={s.chevron} style={{ transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)' }}>
@@ -296,7 +376,7 @@ function SectorRotationMap() {
 
           {/* Sector Grid or Drill-down */}
           {drillSector ? (
-            <DrillDown sector={SECTORS.find((s) => s.id === drillSector)} activeTF={activeTF} />
+            <DrillDown sector={sectors.find((sec) => sec.id === drillSector)} activeTF={activeTF} />
           ) : (
             <div className={s.s5}>
               {/* Table Header */}

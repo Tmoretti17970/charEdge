@@ -18,11 +18,12 @@ const LandingPage = React.lazy(() => import('../../pages/LandingPage.jsx'));
 const SpeedtestPage = React.lazy(() => import('../../pages/SpeedtestPage.jsx'));
 const MarketsPage = React.lazy(() => import('../../pages/MarketsPage.jsx'));
 const ImportPage = React.lazy(() => import('../../pages/ImportPage.jsx'));
+const IntelPage = React.lazy(() => import('../../pages/IntelPage.jsx'));
 
 // Prefetch Journal immediately (it's the default page) so it loads in background
 if (typeof window !== 'undefined') {
-  requestIdleCallback?.(() => import('../../pages/JournalPage.jsx'), { timeout: 500 })
-    ?? setTimeout(() => import('../../pages/JournalPage.jsx'), 100);
+  requestIdleCallback?.(() => import('../../pages/JournalPage.jsx'), { timeout: 500 }) ??
+    setTimeout(() => import('../../pages/JournalPage.jsx'), 100);
 }
 
 const PAGES = {
@@ -30,6 +31,8 @@ const PAGES = {
   journal: JournalPage,
   charts: ChartsPage,
   markets: MarketsPage,
+  intel: IntelPage,
+  discover: IntelPage,
   charolette: CharolettePage,
   changelog: ChangelogPage,
   privacy: PrivacyPage,
@@ -100,7 +103,6 @@ function PageFallback() {
           {i === 1 && <SkeletonBlock w="100%" h={80} />}
         </div>
       ))}
-
     </div>
   );
 }
@@ -108,7 +110,8 @@ function PageFallback() {
 function PageRouter() {
   const page = useUIStore((s) => s.page);
   const Page = PAGES[page] || JournalPage;
-  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+  const prefersReducedMotion =
+    typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   const hasMounted = useRef(false);
 
   // Track page views for telemetry
@@ -127,7 +130,9 @@ function PageRouter() {
     dashboard: 'Dashboard',
     charts: 'Charts',
     markets: 'Markets',
-    charolette: "Charolette\u2019s Light",
+    intel: 'Intel',
+    discover: 'Intel',
+    charolette: 'Charolette\u2019s Light',
     settings: 'Settings',
     telemetry: 'Telemetry',
     changelog: "What's New",
