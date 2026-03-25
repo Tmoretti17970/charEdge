@@ -24,6 +24,7 @@ import { useChartCoreStore } from '../../../state/chart/useChartCoreStore';
 import { useAlertStore } from '../../../state/useAlertStore';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useMarketsPrefsStore, ALL_COLUMNS } from '../../../state/useMarketsPrefsStore';
+import { usePriceTracker } from '../../../state/usePriceTracker';
 import { useUIStore } from '../../../state/useUIStore';
 import { useWatchlistStore, enrichWithTradeStats, groupByAssetClass } from '../../../state/useWatchlistStore.js';
 import { radii, transition } from '../../../theme/tokens.js';
@@ -229,12 +230,16 @@ export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedInde
   // ─── Fundamentals enrichment (Sprint 32) ──────────────────
   const { fundamentals } = useFundamentalsEnrich(symbols);
 
+  // ─── 52-week stats from PriceTracker ────────────────────
+  const priceTrackerStats = usePriceTracker((s) => s.stats);
+
   // ─── Enriched items ─────────────────────────────────────
   const enrichedItems = useMemo(() => {
     const enriched = enrichWithTradeStats(items, trades);
     return enriched.map((item) => {
       const p = prices[item.symbol];
       const f = fundamentals[item.symbol];
+      const pt = priceTrackerStats[item.symbol];
       return {
         ...item,
         livePrice: p?.price ?? null,
@@ -245,10 +250,12 @@ export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedInde
         maxSupply: f?.maxSupply ?? null,
         ath: f?.ath ?? null,
         athChange: f?.athChange ?? null,
+        high52w: pt?.high52w ?? null,
+        low52w: pt?.low52w ?? null,
         dataFailed: failedSymbols?.has(item.symbol) ?? false,
       };
     });
-  }, [items, trades, prices, fundamentals, failedSymbols]);
+  }, [items, trades, prices, fundamentals, priceTrackerStats, failedSymbols]);
 
   // ─── Filter ─────────────────────────────────────────────────
   const filteredItems = useMemo(() => {
@@ -766,16 +773,56 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
         {fmtDate(item.lastTraded)}
       </div>
     ),
-    weekRange: (
-      <div style={{ overflow: 'visible', position: 'relative' }}>
-        <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-mono)' }}>—</div>
-      </div>
-    ),
-    volProfile: (
-      <div style={{ overflow: 'visible', position: 'relative' }}>
-        <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-mono)' }}>—</div>
-      </div>
-    ),
+    weekRange: (() => {
+      const h = item.high52w;
+      const l = item.low52w;
+      const cur = item.livePrice;
+      if (h == null || l == null || cur == null || h === l) {
+        return <div style={{ textAlign: 'right', fontSize: 10, color: C.t3, fontFamily: 'var(--tf-mono)' }}>—</div>;
+      }
+      const pct = Math.max(0, Math.min(100, ((cur - l) / (h - l)) * 100));
+      return (
+        <div style={{ minWidth: 60 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              fontSize: 9,
+              color: C.t3,
+              fontFamily: 'var(--tf-mono)',
+              marginBottom: 2,
+            }}
+          >
+            <span>{fmtPrice(l)}</span>
+            <span>{fmtPrice(h)}</span>
+          </div>
+          <div style={{ height: 3, borderRadius: 2, background: `${C.bd}20`, position: 'relative' }}>
+            <div
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                height: '100%',
+                width: `${pct}%`,
+                borderRadius: 2,
+                background: `linear-gradient(90deg, #ef4444, #f59e0b, #22c55e)`,
+              }}
+            />
+          </div>
+        </div>
+      );
+    })(),
+    volProfile: (() => {
+      const vol = item.volume;
+      if (vol == null || vol === 0) {
+        return <div style={{ textAlign: 'right', fontSize: 10, color: C.t3, fontFamily: 'var(--tf-mono)' }}>—</div>;
+      }
+      return (
+        <div style={{ textAlign: 'right', fontSize: 11, fontWeight: 500, fontFamily: 'var(--tf-mono)', color: C.t2 }}>
+          {fmtCompact(vol)}
+        </div>
+      );
+    })(),
     marketCap: (
       <div style={{ textAlign: 'right' }}>
         <span

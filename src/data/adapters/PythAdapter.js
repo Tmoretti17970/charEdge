@@ -388,12 +388,19 @@ export class PythAdapter extends BaseAdapter {
     const clean = upper.replace(/=X$|=F$/, '');
     if (PYTH_FEEDS[clean]) return PYTH_FEEDS[clean];
 
-    // Futures symbol aliases → commodity feeds
+    // Futures symbol aliases → corresponding Pyth feeds
     const FUTURES_ALIASES = {
+      ES: 'SPY', // E-mini S&P 500 → SPY ETF feed
+      NQ: 'QQQ', // E-mini Nasdaq 100 → QQQ ETF feed
+      YM: 'DIA', // E-mini Dow → DIA ETF feed
+      RTY: 'IWM', // E-mini Russell 2000 → IWM ETF feed
+      MES: 'SPY', // Micro E-mini S&P → SPY feed
+      MNQ: 'QQQ', // Micro E-mini Nasdaq → QQQ feed
       GC: 'XAU', // Gold futures → Gold feed
       SI: 'XAG', // Silver futures → Silver feed
       CL: 'CRUDE', // Crude oil futures → Crude oil feed
       MGC: 'XAU', // Micro gold → Gold feed
+      MCL: 'CRUDE', // Micro crude → Crude oil feed
     };
     if (FUTURES_ALIASES[clean] && PYTH_FEEDS[FUTURES_ALIASES[clean]]) {
       return PYTH_FEEDS[FUTURES_ALIASES[clean]];

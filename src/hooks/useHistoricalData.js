@@ -2,17 +2,13 @@
 // charEdge — useHistoricalData Hook (Sprint 10)
 //
 // Fetches OHLCV kline data for a symbol and timeframe.
-// Crypto → Binance REST klines via fetchBinanceBatch.
-// Equities → FetchService (routes to Polygon/Yahoo/etc).
-// Caches results to avoid redundant fetches when switching time
-// ranges or re-selecting the same symbol.
+// Routes ALL symbols through FetchService.fetchOHLC for unified
+// deduplication, multi-tier caching, and multi-provider fallback.
 //
 // Returns: { candles, loading, error, timeRange, setTimeRange }
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef } from 'react';
-import { isCrypto } from '../constants.js';
-import { fetchBinanceBatch, toBinancePair } from '../data/BinanceClient.js';
 
 // ─── Time range presets ────────────────────────────────────────
 
@@ -84,19 +80,16 @@ export default function useHistoricalData(symbol) {
 
     (async () => {
       try {
-        let data = null;
-
-        if (isCrypto(symbol)) {
-          // Crypto → Binance REST klines
-          const pair = toBinancePair(symbol);
-          data = await fetchBinanceBatch(pair, range.interval, range.limit);
-        } else {
-          // Equities/Futures/Forex → route through FetchService
-          const { fetchOHLC } = await import('../data/FetchService');
-          const tfId = INTERVAL_TO_TF[range.interval] || '1D';
-          const result = await fetchOHLC(symbol, tfId);
-          data = result?.data || null;
-        }
+        // Route ALL symbols through FetchService for unified deduplication,
+        // multi-tier caching (memory → IDB → OPFS), and multi-provider fallback.
+        // Previously crypto called fetchBinanceBatch directly, which caused a race
+        // condition: _pendingPairs dedup returned null for concurrent callers when
+        // multiple components (MiniChart, TechnicalSnapshot, AITickerNarrative) all
+        // called useHistoricalData simultaneously.
+        const { fetchOHLC } = await import('../data/FetchService');
+        const tfId = INTERVAL_TO_TF[range.interval] || '1D';
+        const result = await fetchOHLC(symbol, tfId);
+        const data = result?.data || null;
 
         if (cancelled || !mountedRef.current) return;
 

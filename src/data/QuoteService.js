@@ -14,7 +14,7 @@
 //   WatchlistPanel → (via SparklineService functions)
 // ═══════════════════════════════════════════════════════════════════
 
-import { isCrypto, getAssetClass } from '../constants.js';
+import { isCrypto, getAssetClass, toYahooSymbol } from '../constants.js';
 import { CoinCapAdapter } from './adapters/CoinCapAdapter.js';
 import { DexScreenerAdapter } from './adapters/DexScreenerAdapter.js';
 import { pythAdapter } from './adapters/PythAdapter.js';
@@ -72,13 +72,20 @@ async function _fetchTicker(symbol) {
     return _fetchDexScreenerTicker(sym);
   }
 
-  // Route by asset class — futures and forex go through Pyth
+  // Route by asset class — futures and forex go through Pyth → Yahoo fallback
   const assetClass = getAssetClass(sym);
-  if (assetClass === 'futures') {
-    return _fetchPythTicker(sym, 'futures');
-  }
-  if (assetClass === 'forex') {
-    return _fetchPythTicker(sym, 'forex');
+  if (assetClass === 'futures' || assetClass === 'forex') {
+    const pythResult = await _fetchPythTicker(sym, assetClass);
+    if (pythResult) return pythResult;
+    // Fallback to Yahoo Finance (ES→ES=F, EURUSD→EURUSD=X)
+    const yahooResult = await _fetchEquityTicker(toYahooSymbol(sym));
+    if (yahooResult) {
+      // Preserve the original symbol in the result
+      yahooResult.symbol = sym;
+      if (yahooResult._raw) yahooResult._raw.symbol = sym;
+      return yahooResult;
+    }
+    return null;
   }
   // Stocks/ETFs: Yahoo → TwelveData → Pyth
   const equity = await _fetchEquityTicker(sym);
@@ -298,12 +305,18 @@ async function _fetchPythSparkline(sym) {
       EURGBP: 'FX.EUR/GBP',
       EURJPY: 'FX.EUR/JPY',
       GBPJPY: 'FX.GBP/JPY',
-      // Futures (via commodity feeds)
+      // Futures (via index/commodity feeds)
       ES: 'Equity.US.SPY/USD',
+      MES: 'Equity.US.SPY/USD',
       NQ: 'Equity.US.QQQ/USD',
+      MNQ: 'Equity.US.QQQ/USD',
+      YM: 'Equity.US.DIA/USD',
+      RTY: 'Equity.US.IWM/USD',
       GC: 'Metal.XAU/USD',
+      MGC: 'Metal.XAU/USD',
       SI: 'Metal.XAG/USD',
       CL: 'Commodity.WTI/USD',
+      MCL: 'Commodity.WTI/USD',
     };
     const pythSym = PYTH_BENCHMARKS_MAP[clean];
     if (!pythSym) return [];
