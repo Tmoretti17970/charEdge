@@ -9,6 +9,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { C, F } from '../../../constants.js';
 import { getQuote } from '../../../data/QuoteService.js';
+import wsService from '../../../data/WebSocketService.ts';
 import FearGreedMini from './FearGreedMini';
 import TrendingNarratives from './TrendingNarratives';
 import { alpha } from '@/shared/colorUtils';
@@ -23,9 +24,17 @@ const MOCK_PRICES = {
   AAPL: { price: 189.72, change: -0.31 },
 };
 
-const TICKER_SYMBOLS = ['ES=F', 'NQ=F', 'BTC-USD', 'ETH-USD', 'SPY', 'AAPL'];
-const TICKER_LABELS = ['ES', 'NQ', 'BTC', 'ETH', 'SPY', 'AAPL'];
 const TICKERS = ['ES', 'NQ', 'BTC', 'ETH', 'SPY', 'AAPL'];
+
+// Crypto tickers streamed via Binance WebSocket
+const CRYPTO_WS_SYMBOLS = [
+  { symbol: 'BTCUSDT', label: 'BTC' },
+  { symbol: 'ETHUSDT', label: 'ETH' },
+];
+
+// Non-crypto tickers that remain on polling
+const POLLING_SYMBOLS = ['ES=F', 'NQ=F', 'SPY', 'AAPL'];
+const POLLING_LABELS = ['ES', 'NQ', 'SPY', 'AAPL'];
 
 // ─── Market Regime (mock) ────────────────────────────────────────
 const MOCK_REGIME = { label: 'Risk-On', type: 'on' }; // on | off | choppy
@@ -58,30 +67,104 @@ function Divider() {
 function MarketPulse() {
   const [prices, setPrices] = useState(MOCK_PRICES);
   const intervalRef = useRef(null);
+  const wsSubIdsRef = useRef([]);
 
+  // ─── Poll non-crypto tickers (equities/futures) every 60s ─────
   useEffect(() => {
-    async function fetchPrices() {
+    async function fetchPollingPrices() {
       try {
-        const results = await Promise.all(TICKER_SYMBOLS.map((sym) => getQuote(sym)));
-        const next = { ...MOCK_PRICES };
-        results.forEach((q, i) => {
-          if (q && q.price != null) {
-            next[TICKER_LABELS[i]] = {
-              price: q.price,
-              change: q.changePct ?? 0,
-            };
-          }
+        const results = await Promise.all(POLLING_SYMBOLS.map((sym) => getQuote(sym)));
+        setPrices((prev) => {
+          const next = { ...prev };
+          results.forEach((q, i) => {
+            if (q && q.price != null) {
+              next[POLLING_LABELS[i]] = {
+                price: q.price,
+                change: q.changePct ?? 0,
+              };
+            }
+          });
+          return next;
         });
-        setPrices(next);
       } catch (err) {
         // eslint-disable-next-line no-console
         console.warn('[MarketPulse] Quote fetch failed, using fallback:', err.message);
       }
     }
 
-    fetchPrices();
-    intervalRef.current = setInterval(fetchPrices, 60000);
+    fetchPollingPrices();
+    intervalRef.current = setInterval(fetchPollingPrices, 60000);
     return () => clearInterval(intervalRef.current);
+  }, []);
+
+  // ─── WebSocket streaming for crypto tickers (BTC, ETH) ────────
+  useEffect(() => {
+    const subIds = [];
+
+    try {
+      CRYPTO_WS_SYMBOLS.forEach(({ symbol, label }) => {
+        const subId = wsService.subscribeTrades(symbol, {
+          onTrade: ({ price }) => {
+            setPrices((prev) => {
+              const current = prev[label];
+              // Skip if price hasn't changed meaningfully
+              if (current && Math.abs(current.price - price) < 0.001) return prev;
+              const change =
+                current && current.price > 0
+                  ? ((price - MOCK_PRICES[label].price) / MOCK_PRICES[label].price) * 100
+                  : (prev[label]?.change ?? 0);
+              return {
+                ...prev,
+                [label]: { price, change },
+              };
+            });
+          },
+        });
+        subIds.push(subId);
+      });
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn('[MarketPulse] WebSocket subscribe failed, falling back to polling:', err.message);
+      // Fall back: include crypto in the polling cycle
+      async function fetchCryptoPrices() {
+        try {
+          const cryptoSymbols = ['BTC-USD', 'ETH-USD'];
+          const cryptoLabels = ['BTC', 'ETH'];
+          const results = await Promise.all(cryptoSymbols.map((sym) => getQuote(sym)));
+          setPrices((prev) => {
+            const next = { ...prev };
+            results.forEach((q, i) => {
+              if (q && q.price != null) {
+                next[cryptoLabels[i]] = {
+                  price: q.price,
+                  change: q.changePct ?? 0,
+                };
+              }
+            });
+            return next;
+          });
+        } catch {
+          // Silently ignore — mock data remains
+        }
+      }
+      fetchCryptoPrices();
+      const fallbackInterval = setInterval(fetchCryptoPrices, 60000);
+      wsSubIdsRef.current = [];
+      return () => clearInterval(fallbackInterval);
+    }
+
+    wsSubIdsRef.current = subIds;
+
+    return () => {
+      wsSubIdsRef.current.forEach((id) => {
+        try {
+          wsService.unsubscribe(id);
+        } catch {
+          // Already cleaned up
+        }
+      });
+      wsSubIdsRef.current = [];
+    };
   }, []);
 
   const regimeColor = getRegimeColor(MOCK_REGIME.type);

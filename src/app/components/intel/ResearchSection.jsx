@@ -132,8 +132,8 @@ class WidgetErrorBoundary extends React.Component {
 // Main Component
 // ═══════════════════════════════════════════════════════════════════
 
-function ResearchSection() {
-  const [activeTab, setActiveTab] = useState('sectors');
+function ResearchSection({ defaultTab }) {
+  const [activeTab, setActiveTab] = useState(defaultTab || 'sectors');
   const tabsRef = useRef([]);
 
   const handleTabChange = useCallback((tabId) => {

@@ -145,8 +145,20 @@ function IntelCopilot({ activeSection = 'default' }) {
   const [response, setResponse] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
   const [responseTier, setResponseTier] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
   const inputRef = useRef(null);
   const panelRef = useRef(null);
+
+  // ─── Mobile detection for MobileNav clearance ─────────────────
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 767px)');
+    setIsMobile(mql.matches);
+    function handleChange(e) {
+      setIsMobile(e.matches);
+    }
+    mql.addEventListener('change', handleChange);
+    return () => mql.removeEventListener('change', handleChange);
+  }, []);
 
   const trades = useJournalStore((s) => s.trades);
   const watchlist = useWatchlistStore((s) => s.items);
@@ -298,7 +310,7 @@ function IntelCopilot({ activeSection = 'default' }) {
       ref={panelRef}
       style={{
         position: 'sticky',
-        bottom: 0,
+        bottom: isMobile ? 72 : 0,
         left: 0,
         right: 0,
         zIndex: 50,
@@ -475,7 +487,7 @@ function IntelCopilot({ activeSection = 'default' }) {
               gap: 6,
               overflowX: 'auto',
               scrollbarWidth: 'none',
-              paddingBottom: 2,
+              paddingBottom: isMobile ? 4 : 2,
             }}
           >
             {prompts.map((p, i) => (

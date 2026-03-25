@@ -15,12 +15,23 @@
 //   Day Trader | Swing | Investor | Learner
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useCallback, useEffect, useRef, Suspense } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo, Suspense } from 'react';
+import {
+  LazySection,
+  useMemoGuard,
+  useRenderCount,
+  useFCPTracker,
+  verifySuspenseBoundaries,
+} from '../app/components/intel/IntelPerformanceGuard.jsx';
+import SectionCustomizer, { loadCustomLayout, clearCustomLayout } from '../app/components/intel/SectionCustomizer.jsx';
 import { C, F } from '../constants.js';
 import { trackFeatureUse, trackClick } from '../observability/telemetry.ts';
 import { useDataStore } from '../state/useDataStore.js';
 import { useLayoutStore } from '../state/useLayoutStore.js';
 import { alpha } from '@/shared/colorUtils';
+
+// ─── Above-fold section IDs (Tier 1 & 2 — loaded immediately) ───
+const ABOVE_FOLD = new Set(['brief', 'pulse']);
 
 // ─── Stagger entrance animation (injected once) ─────────────────
 const ANIM_ID = 'charEdge-intel-stagger';
@@ -47,6 +58,15 @@ const ResearchSection = React.lazy(() => import('../app/components/intel/Researc
 const MacroSection = React.lazy(() => import('../app/components/intel/MacroSection.jsx'));
 const IntelCopilot = React.lazy(() => import('../app/components/intel/IntelCopilot.jsx'));
 
+// ─── Section registry (maps id → component + metadata) ─────────
+const SECTION_REGISTRY = {
+  brief: { Component: TheBrief, title: null, icon: null },
+  pulse: { Component: MarketPulse, title: null, icon: null },
+  signals: { Component: SignalsSection, title: 'Signals', icon: '\u{1F4E1}' },
+  research: { Component: ResearchSection, title: 'Research', icon: '\u{1F50D}' },
+  macro: { Component: MacroSection, title: 'Macro & Predictions', icon: '\u{1F30D}' },
+};
+
 // ─── Layout Presets ──────────────────────────────────────────────
 const PERSONAS = [
   { id: 'daytrader', label: 'Day Trader', icon: '\u{1F4CA}', description: 'Flow + screeners + news' },
@@ -54,6 +74,44 @@ const PERSONAS = [
   { id: 'investor', label: 'Investor', icon: '\u{1F4BC}', description: 'Fundamentals + macro + analyst' },
   { id: 'learner', label: 'Learner', icon: '\u{1F393}', description: 'Briefing + education + basics' },
 ];
+
+// ─── Persona Configurations ──────────────────────────────────
+const PERSONA_CONFIGS = {
+  daytrader: {
+    sectionOrder: ['brief', 'pulse', 'signals', 'research', 'macro'],
+    defaultSignalTab: 'flow',
+    defaultResearchTab: undefined,
+    showTips: false,
+    tips: {},
+  },
+  swing: {
+    sectionOrder: ['brief', 'signals', 'research', 'pulse', 'macro'],
+    defaultSignalTab: 'technical',
+    defaultResearchTab: undefined,
+    showTips: false,
+    tips: {},
+  },
+  investor: {
+    sectionOrder: ['brief', 'macro', 'research', 'pulse', 'signals'],
+    defaultSignalTab: undefined,
+    defaultResearchTab: 'earnings',
+    showTips: false,
+    tips: {},
+  },
+  learner: {
+    sectionOrder: ['brief', 'pulse', 'research', 'signals', 'macro'],
+    defaultSignalTab: undefined,
+    defaultResearchTab: undefined,
+    showTips: true,
+    tips: {
+      brief: 'Start here — this is your AI-generated summary of what moved markets today.',
+      pulse: 'Watch this strip for real-time sentiment and price action across major tickers.',
+      signals: 'Signals surface unusual activity — options flow, insider trades, and more.',
+      research: 'Dive deeper with sector maps, screeners, and earnings calendars.',
+      macro: 'Macro events like Fed meetings and CPI releases drive broad market moves.',
+    },
+  },
+};
 
 // ─── Section Skeleton ────────────────────────────────────────────
 function SectionSkeleton() {
@@ -77,7 +135,7 @@ function SectionSkeleton() {
 }
 
 // ─── Section Wrapper with scroll tracking ────────────────────────
-function SectionBlock({ id, title, icon, children, style, animDelay }) {
+function SectionBlock({ id, title, icon, tip, children, style, animDelay }) {
   return (
     <section
       id={`intel-section-${id}`}
@@ -97,23 +155,40 @@ function SectionBlock({ id, title, icon, children, style, animDelay }) {
           id={`intel-heading-${id}`}
           style={{
             display: 'flex',
-            alignItems: 'center',
-            gap: 10,
+            flexDirection: 'column',
+            gap: 4,
           }}
         >
-          {icon && <span style={{ fontSize: 18 }}>{icon}</span>}
-          <h2
-            style={{
-              margin: 0,
-              fontSize: 16,
-              fontWeight: 700,
-              color: C.t1,
-              fontFamily: F,
-              letterSpacing: '-0.01em',
-            }}
-          >
-            {title}
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {icon && <span style={{ fontSize: 18 }}>{icon}</span>}
+            <h2
+              style={{
+                margin: 0,
+                fontSize: 16,
+                fontWeight: 700,
+                color: C.t1,
+                fontFamily: F,
+                letterSpacing: '-0.01em',
+              }}
+            >
+              {title}
+            </h2>
+          </div>
+          {tip && (
+            <p
+              style={{
+                margin: 0,
+                fontSize: 11,
+                fontStyle: 'italic',
+                color: C.t3,
+                fontFamily: F,
+                lineHeight: 1.4,
+                paddingLeft: 28,
+              }}
+            >
+              {tip}
+            </p>
+          )}
         </div>
       )}
       {children}
@@ -196,24 +271,67 @@ function IntelPage() {
 
   const [activeSection, setActiveSection] = useState('brief');
   const [persona, setPersona] = useState(discoverPreset || 'daytrader');
+  const [customLayout, setCustomLayout] = useState(() => loadCustomLayout());
   const pageRef = useRef(null);
   const isMobile = useIsMobile();
   const trackImpression = useDataStore((s) => s.trackImpression);
+
+  // ─── Performance monitoring ──────────────────────────────────
+  useFCPTracker('IntelPage');
+  useRenderCount('IntelPage');
+
+  // Dev-mode: verify all section components are memoized
+  useMemoGuard('TheBrief', TheBrief);
+  useMemoGuard('MarketPulse', MarketPulse);
+  useMemoGuard('SignalsSection', SignalsSection);
+  useMemoGuard('ResearchSection', ResearchSection);
+  useMemoGuard('MacroSection', MacroSection);
+  useMemoGuard('IntelCopilot', IntelCopilot);
 
   // Track page view on mount
   useEffect(() => {
     trackFeatureUse('intel_page_view');
   }, []);
 
-  // Sync persona with layout store
+  // Dev-mode: verify Suspense boundaries after mount
+  useEffect(() => {
+    verifySuspenseBoundaries(pageRef);
+  }, []);
+
+  // Sync persona with layout store — confirm reset if custom layout exists
   const handlePersonaChange = useCallback(
     (id) => {
+      if (customLayout) {
+         
+        const shouldReset = confirm('You have a custom section layout. Reset it for this persona?');
+        if (shouldReset) {
+          clearCustomLayout();
+          setCustomLayout(null);
+        }
+      }
       setPersona(id);
       applyDiscoverPreset(id);
       trackClick('intel_persona_' + id, 'intel');
     },
-    [applyDiscoverPreset],
+    [applyDiscoverPreset, customLayout],
   );
+
+  // Handle layout changes from the customizer
+  const handleLayoutChange = useCallback((layout) => {
+    setCustomLayout(layout);
+  }, []);
+
+  // Resolve persona config
+  const personaConfig = useMemo(() => PERSONA_CONFIGS[persona] || PERSONA_CONFIGS.daytrader, [persona]);
+
+  // Resolve final section order: custom layout > persona > default
+  const resolvedSections = useMemo(() => {
+    if (customLayout) {
+      const hiddenSet = new Set(customLayout.hidden || []);
+      return customLayout.order.filter((id) => !hiddenSet.has(id) && SECTION_REGISTRY[id]);
+    }
+    return personaConfig.sectionOrder;
+  }, [customLayout, personaConfig]);
 
   // Track which section is in view for copilot context
   useEffect(() => {
@@ -281,43 +399,49 @@ function IntelPage() {
           </h1>
           <p style={{ fontSize: 12, color: C.t3, margin: 0 }}>Your edge, briefed.</p>
         </div>
-        <PersonaSelector active={persona} onSelect={handlePersonaChange} isMobile={isMobile} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <PersonaSelector active={persona} onSelect={handlePersonaChange} isMobile={isMobile} />
+          <SectionCustomizer layout={customLayout} onLayoutChange={handleLayoutChange} />
+        </div>
       </div>
 
-      {/* ─── Tier 1: The Brief ────────────────────────────────── */}
-      <SectionBlock id="brief" animDelay={0}>
-        <Suspense fallback={<SectionSkeleton />}>
-          <TheBrief />
-        </Suspense>
-      </SectionBlock>
+      {/* ─── Dynamic section rendering (custom > persona > default) ── */}
+      {resolvedSections.map((sectionId, idx) => {
+        const entry = SECTION_REGISTRY[sectionId];
+        if (!entry) return null;
+        const { Component, title, icon } = entry;
+        const delay = idx * 80;
+        const tip = personaConfig.showTips ? personaConfig.tips[sectionId] : undefined;
 
-      {/* ─── Tier 2: Market Pulse ─────────────────────────────── */}
-      <SectionBlock id="pulse" animDelay={80}>
-        <Suspense fallback={<SectionSkeleton />}>
-          <MarketPulse />
-        </Suspense>
-      </SectionBlock>
+        // Pass persona-specific default tabs where applicable
+        const extraProps = {};
+        if (sectionId === 'signals' && personaConfig.defaultSignalTab) {
+          extraProps.defaultTab = personaConfig.defaultSignalTab;
+        }
+        if (sectionId === 'research' && personaConfig.defaultResearchTab) {
+          extraProps.defaultTab = personaConfig.defaultResearchTab;
+        }
 
-      {/* ─── Tier 3: Signals ──────────────────────────────────── */}
-      <SectionBlock id="signals" title="Signals" icon={'\u{1F4E1}'} animDelay={160}>
-        <Suspense fallback={<SectionSkeleton />}>
-          <SignalsSection />
-        </Suspense>
-      </SectionBlock>
+        // Tier 1 (Brief) and Tier 2 (Pulse) load immediately (above fold).
+        // Tier 3+ (Signals, Research, Macro) wrapped in LazySection.
+        const isAboveFold = ABOVE_FOLD.has(sectionId);
 
-      {/* ─── Tier 4: Research ─────────────────────────────────── */}
-      <SectionBlock id="research" title="Research" icon={'\u{1F50D}'} animDelay={240}>
-        <Suspense fallback={<SectionSkeleton />}>
-          <ResearchSection />
-        </Suspense>
-      </SectionBlock>
-
-      {/* ─── Tier 5: Macro & Predictions ──────────────────────── */}
-      <SectionBlock id="macro" title="Macro & Predictions" icon={'\u{1F30D}'} animDelay={320}>
-        <Suspense fallback={<SectionSkeleton />}>
-          <MacroSection />
-        </Suspense>
-      </SectionBlock>
+        return (
+          <SectionBlock key={sectionId} id={sectionId} title={title} icon={icon} tip={tip} animDelay={delay}>
+            {isAboveFold ? (
+              <Suspense fallback={<SectionSkeleton />}>
+                <Component {...extraProps} />
+              </Suspense>
+            ) : (
+              <LazySection id={sectionId} fallback={<SectionSkeleton />}>
+                <Suspense fallback={<SectionSkeleton />}>
+                  <Component {...extraProps} />
+                </Suspense>
+              </LazySection>
+            )}
+          </SectionBlock>
+        );
+      })}
 
       {/* ─── Tier 6: AI Copilot (fixed bottom) ────────────────── */}
       <Suspense fallback={null}>

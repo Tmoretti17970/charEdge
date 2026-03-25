@@ -5,13 +5,13 @@
 // All mock data for now — 6 items in a 2x3 grid layout.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { C, F } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
 
-// ─── Mock Prediction Data ───────────────────────────────────────
+// ─── Mock Prediction Data (fallback) ────────────────────────────
 
-const PREDICTIONS = [
+const MOCK_PREDICTIONS = [
   { id: 1, event: 'Fed Rate Cut by June', prob: 72, change: 3 },
   { id: 2, event: 'BTC > $100K by Q3', prob: 45, change: -2 },
   { id: 3, event: 'Recession 2026', prob: 18, change: 1 },
@@ -19,6 +19,28 @@ const PREDICTIONS = [
   { id: 5, event: 'NVDA Beats Earnings', prob: 78, change: 8 },
   { id: 6, event: 'China Tariff Increase', prob: 42, change: 12 },
 ];
+
+const MANIFOLD_URL = 'https://api.manifold.markets/v0/search-markets?term=finance&sort=liquidity&limit=6';
+const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Fetch prediction markets from Manifold Markets free API.
+ * Maps API response to component data shape.
+ */
+async function fetchPredictions() {
+  const resp = await fetch(MANIFOLD_URL);
+  if (!resp.ok) throw new Error(`Manifold API ${resp.status}`);
+  const markets = await resp.json();
+  if (!Array.isArray(markets) || markets.length === 0) {
+    throw new Error('Empty response');
+  }
+  return markets.map((m, i) => ({
+    id: m.id || i + 1,
+    event: m.question || m.title || 'Unknown market',
+    prob: Math.round((m.probability ?? 0.5) * 100),
+    change: 0, // Manifold search endpoint doesn't provide 24h delta
+  }));
+}
 
 // ─── CSS-based Mini Sparkline ───────────────────────────────────
 
@@ -151,6 +173,39 @@ function PredictionItem({ item }) {
 // ═══════════════════════════════════════════════════════════════════
 
 function PredictionMarkets() {
+  const [predictions, setPredictions] = useState(MOCK_PREDICTIONS);
+  const [isLive, setIsLive] = useState(false);
+  const intervalRef = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const data = await fetchPredictions();
+        if (!cancelled) {
+          setPredictions(data);
+          setIsLive(true);
+        }
+      } catch (_err) {
+        // eslint-disable-next-line no-console
+        console.warn('[PredictionMarkets] Fetch failed, using mock data', _err);
+        if (!cancelled) {
+          setPredictions(MOCK_PREDICTIONS);
+          setIsLive(false);
+        }
+      }
+    }
+
+    load();
+    intervalRef.current = setInterval(load, REFRESH_INTERVAL);
+
+    return () => {
+      cancelled = true;
+      clearInterval(intervalRef.current);
+    };
+  }, []);
+
   return (
     <div
       style={{
@@ -191,7 +246,7 @@ function PredictionMarkets() {
             letterSpacing: 0.5,
           }}
         >
-          NEW
+          {isLive ? 'LIVE' : 'DEMO'}
         </span>
       </div>
 
@@ -205,7 +260,7 @@ function PredictionMarkets() {
           padding: '0 16px 16px',
         }}
       >
-        {PREDICTIONS.map((item) => (
+        {predictions.map((item) => (
           <PredictionItem key={item.id} item={item} />
         ))}
       </div>
@@ -226,7 +281,7 @@ function PredictionMarkets() {
             fontWeight: 500,
           }}
         >
-          Powered by prediction markets
+          {isLive ? 'Powered by Manifold Markets' : 'Powered by prediction markets'}
         </span>
       </div>
     </div>

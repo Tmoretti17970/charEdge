@@ -137,8 +137,8 @@ function FeedRow({ item }) {
 }
 
 // ─── Main Component ─────────────────────────────────────────────
-function SignalsSection() {
-  const [activeTab, setActiveTab] = useState('all');
+function SignalsSection({ defaultTab }) {
+  const [activeTab, setActiveTab] = useState(defaultTab || 'all');
   const tabsRef = useRef([]);
 
   const handleTabChange = useCallback((tabId) => {
