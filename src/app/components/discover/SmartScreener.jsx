@@ -6,7 +6,7 @@ import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { C } from '../../../constants.js';
 import { SCAN_PRESETS, fetchScreenerResults } from '../../../services/screenerService.js';
-import { formatDisplayPrice as formatPrice } from '../../../shared/formatting';
+import { formatPrice } from '../../../shared/formatting';
 import LabsBadge from '../ui/LabsBadge.jsx';
 import st from './SmartScreener.module.css';
 import { alpha } from '@/shared/colorUtils';

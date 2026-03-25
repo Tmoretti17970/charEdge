@@ -80,6 +80,24 @@ function IconWatchlist({ color }) {
   );
 }
 
+function IconIntel({ color }) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+    </svg>
+  );
+}
+
 function IconSettings({ color }) {
   return (
     <svg
@@ -123,10 +141,7 @@ const NAV_ITEMS = [
   { id: 'journal', label: 'Home', Icon: IconHome },
   { id: 'markets', label: 'Markets', Icon: IconWatchlist },
   { id: 'charts', label: 'Charts', Icon: IconChart },
-  // Import is now accessed via the header segmented CTA (📓 Logbook | 📥 Import | + Add Trade)
-  // Wave 0: Quarantined — coach + discover removed from v1.0 launch scope
-  // { id: 'coach', label: 'Char', Icon: IconCoach },
-  // { id: 'discover', label: 'Discover', Icon: IconDiscover },
+  { id: 'intel', label: 'Intel', Icon: IconIntel },
 ];
 
 // ─── Sidebar Dimensions ─────────────────────────────────────────

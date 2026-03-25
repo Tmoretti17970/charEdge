@@ -90,9 +90,8 @@ const icons = {
 const TABS = [
   { id: 'journal', label: 'Home', icon: 'home' },
   { id: 'markets', label: 'Markets', icon: 'markets' },
-  { id: 'charts', label: 'Charts', icon: 'charts' },
   { id: '_quickadd', label: 'Add', icon: null, isFab: true },
-  // { id: 'coach', label: 'Coach', icon: 'coach' },
+  { id: 'intel', label: 'Intel', icon: 'discover' },
   { id: '_settings', label: 'Settings', icon: 'settings', isSlideOver: true },
 ];
 
