@@ -32,17 +32,23 @@ export function animateValue(startVal, endVal, durationMs, onUpdate, easing = 'e
 /**
  * Smoothly animate pan/zoom transitions.
  */
-export function animateViewport(engine, targetOffset, targetZoom, duration = 300) {
+export function animateViewport(engine, targetOffset, targetZoom, duration = 200) {
   if (!engine) return () => {};
   const startOffset = engine.getOffset?.() || 0;
   const startZoom = engine.getZoom?.() || 1;
 
-  return animateValue(0, 1, duration, (t) => {
-    const offset = startOffset + (targetOffset - startOffset) * t;
-    const zoom = startZoom + (targetZoom - startZoom) * t;
-    engine.setOffset?.(offset);
-    engine.setZoom?.(zoom);
-  }, 'easeOutCubic');
+  return animateValue(
+    0,
+    1,
+    duration,
+    (t) => {
+      const offset = startOffset + (targetOffset - startOffset) * t;
+      const zoom = startZoom + (targetZoom - startZoom) * t;
+      engine.setOffset?.(offset);
+      engine.setZoom?.(zoom);
+    },
+    'easeOutCubic',
+  );
 }
 
 /**
@@ -68,7 +74,8 @@ export function createPulseAnimation(ctx, x, y, color = '#2962FF', maxRadius = 2
     ctx.stroke();
     ctx.restore();
 
-    if (elapsed < duration * 3) { // 3 pulses
+    if (elapsed < duration * 3) {
+      // 3 pulses
       return requestAnimationFrame((t) => render(t));
     }
     return null;
@@ -81,6 +88,7 @@ export function createPulseAnimation(ctx, x, y, color = '#2962FF', maxRadius = 2
  * Drawing entry animation — lines fade in from thin to full width.
  */
 export function animateDrawingEntry(ctx, drawFn, durationMs = 200) {
+  // --motion-base
   const start = performance.now();
 
   function tick() {
@@ -104,7 +112,7 @@ export function animateDrawingEntry(ctx, drawFn, durationMs = 200) {
  */
 export function createTooltipTransition(element) {
   if (!element) return;
-  element.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
+  element.style.transition = 'opacity 120ms cubic-bezier(0.16,1,0.3,1), transform 120ms cubic-bezier(0.16,1,0.3,1)';
   element.style.opacity = '0';
   element.style.transform = 'translateY(4px)';
 
@@ -118,11 +126,14 @@ const EASINGS = {
   linear: (t) => t,
   easeInQuad: (t) => t * t,
   easeOutQuad: (t) => t * (2 - t),
-  easeInOutQuad: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
-  easeOutCubic: (t) => (--t) * t * t + 1,
-  easeInOutCubic: (t) => t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1,
-  easeOutExpo: (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t),
-  easeOutBack: (t) => { const s = 1.70158; return --t * t * ((s + 1) * t + s) + 1; },
+  easeInOutQuad: (t) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t),
+  easeOutCubic: (t) => --t * t * t + 1,
+  easeInOutCubic: (t) => (t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1),
+  easeOutExpo: (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t)),
+  easeOutBack: (t) => {
+    const s = 1.70158;
+    return --t * t * ((s + 1) * t + s) + 1;
+  },
   easeOutBounce: (t) => {
     if (t < 1 / 2.75) return 7.5625 * t * t;
     if (t < 2 / 2.75) return 7.5625 * (t -= 1.5 / 2.75) * t + 0.75;
@@ -133,6 +144,58 @@ const EASINGS = {
 };
 
 export { EASINGS };
+
+/**
+ * Spring-based crosshair tooltip snap animation.
+ * Smoothly animates tooltip position when snapping to data points.
+ * Uses damped spring physics for a premium feel.
+ * @param {{ x: number, y: number }} current - Current tooltip position
+ * @param {{ x: number, y: number }} target - Target snap position
+ * @param {(pos: { x: number, y: number }) => void} onUpdate
+ * @param {Object} [options]
+ * @param {number} [options.stiffness=400] - Spring stiffness (higher = snappier)
+ * @param {number} [options.damping=30] - Damping (higher = less oscillation)
+ */
+export function animateCrosshairSnap(current, target, onUpdate, options = {}) {
+  const { stiffness = 400, damping = 30 } = options;
+  let vx = 0,
+    vy = 0;
+  let cx = current.x,
+    cy = current.y;
+  let rafId;
+  let lastTime = performance.now();
+
+  function tick() {
+    const now = performance.now();
+    const dt = Math.min((now - lastTime) / 1000, 0.064);
+    lastTime = now;
+
+    // Spring force
+    const fx = -stiffness * (cx - target.x) - damping * vx;
+    const fy = -stiffness * (cy - target.y) - damping * vy;
+
+    vx += fx * dt;
+    vy += fy * dt;
+    cx += vx * dt;
+    cy += vy * dt;
+
+    onUpdate({ x: cx, y: cy });
+
+    // Settle check
+    const settled =
+      Math.abs(vx) < 0.5 && Math.abs(vy) < 0.5 && Math.abs(cx - target.x) < 0.5 && Math.abs(cy - target.y) < 0.5;
+
+    if (settled) {
+      onUpdate(target);
+      return;
+    }
+
+    rafId = requestAnimationFrame(tick);
+  }
+
+  rafId = requestAnimationFrame(tick);
+  return () => cancelAnimationFrame(rafId);
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // Sprint 19: Animation System Overhaul
@@ -178,7 +241,7 @@ export function animateCandleEntrance(ctx, drawFn, options = {}) {
  * @param {Function} drawNewFrame - Draws the new chart type
  * @param {number} [durationMs=250]
  */
-export function animateChartTypeTransition(ctx, oldFrame, drawNewFrame, durationMs = 250) {
+export function animateChartTypeTransition(ctx, oldFrame, drawNewFrame, durationMs = 200) {
   const start = performance.now();
   let rafId;
 
@@ -307,4 +370,3 @@ export function createShimmerEffect(ctx, rect, durationMs = 1500) {
   rafId = requestAnimationFrame(tick);
   return () => cancelAnimationFrame(rafId);
 }
-

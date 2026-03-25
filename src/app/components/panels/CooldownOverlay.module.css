@@ -1,64 +1,139 @@
 /* CooldownOverlay — CSS Module */
 .root {
-  position: relative; width: 100%;
+  position: relative;
+  width: 100%;
   border: 1px solid color-mix(in srgb, var(--tf-yellow) 19%, transparent);
-  border-radius: var(--br-lg); padding: var(--sp-4) var(--sp-5);
-  margin-bottom: var(--sp-4);
+  border-radius: var(--tf-radius-md);
+  padding: var(--tf-space-4) var(--tf-space-5);
+  margin-bottom: var(--tf-space-4);
   animation: tfSubTabsIn 0.3s ease forwards;
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     color-mix(in srgb, var(--tf-red) 3%, transparent),
-    color-mix(in srgb, var(--tf-yellow) 2%, transparent));
+    color-mix(in srgb, var(--tf-yellow) 2%, transparent)
+  );
 }
-.topRow { display: flex; align-items: center; gap: var(--sp-4); }
+.topRow {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-4);
+}
 
 .countdown {
-  background: var(--tf-bg2); border-radius: 10px;
-  padding: 10px var(--sp-4); min-width: 90px; text-align: center;
+  background: var(--tf-bg2);
+  border-radius: 10px;
+  padding: 10px var(--tf-space-4);
+  min-width: 90px;
+  text-align: center;
   border: 1px solid var(--tf-bd);
 }
 .countdownTime {
-  font-size: 24px; font-weight: 800; font-family: var(--tf-mono);
-  color: var(--tf-yellow); font-variant-numeric: tabular-nums;
+  font-size: 24px;
+  font-weight: 800;
+  font-family: var(--tf-mono);
+  color: var(--tf-yellow);
+  font-variant-numeric: tabular-nums;
   letter-spacing: 0.05em;
 }
 .countdownLabel {
-  font-size: 8px; font-weight: var(--fw-semibold); color: var(--tf-t3);
-  text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px;
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 2px;
 }
 
-.messageBody { flex: 1; }
-.messageTitleRow { display: flex; align-items: center; gap: var(--sp-1_5); margin-bottom: var(--sp-1); }
-.messageEmoji { font-size: 18px; }
-.messageTitle { font-size: var(--fs-sm); font-weight: 800; font-family: var(--tf-font); color: var(--tf-t1); }
-.messageText { font-size: var(--fs-sm); color: var(--tf-t2); line-height: var(--lh-normal); font-family: var(--tf-mono); }
-.messageSubtext { font-size: var(--fs-xs); color: var(--tf-t3); }
+.messageBody {
+  flex: 1;
+}
+.messageTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: var(--tf-space-1);
+}
+.messageEmoji {
+  font-size: 18px;
+}
+.messageTitle {
+  font-size: var(--tf-fs-sm);
+  font-weight: 800;
+  font-family: var(--tf-font);
+  color: var(--tf-t1);
+}
+.messageText {
+  font-size: var(--tf-fs-sm);
+  color: var(--tf-t2);
+  line-height: 1.5;
+  font-family: var(--tf-mono);
+}
+.messageSubtext {
+  font-size: var(--tf-fs-xs);
+  color: var(--tf-t3);
+}
 
-.overrideWrap { flex-shrink: 0; }
+.overrideWrap {
+  flex-shrink: 0;
+}
 .overrideBtn {
-  background: transparent; border: 1px solid var(--tf-bd);
-  border-radius: var(--br-md); padding: var(--sp-1_5) var(--sp-3);
-  font-size: var(--fs-xs); color: var(--tf-t3); cursor: pointer;
-  font-family: var(--tf-mono); font-weight: var(--fw-semibold);
+  background: transparent;
+  border: 1px solid var(--tf-bd);
+  border-radius: var(--tf-radius-sm);
+  padding: 6px var(--tf-space-3);
+  font-size: var(--tf-fs-xs);
+  color: var(--tf-t3);
+  cursor: pointer;
+  font-family: var(--tf-mono);
+  font-weight: 600;
 }
-.confirmCol { display: flex; flex-direction: column; gap: var(--sp-1); }
-.confirmLabel { font-size: var(--fs-3xs); color: var(--tf-red); font-family: var(--tf-mono); font-weight: var(--fw-semibold); text-align: center; }
-.confirmRow { display: flex; gap: var(--sp-1); }
+.confirmCol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-1);
+}
+.confirmLabel {
+  font-size: clamp(0.4375rem, 0.4rem + 0.15vw, 0.5rem);
+  color: var(--tf-red);
+  font-family: var(--tf-mono);
+  font-weight: 600;
+  text-align: center;
+}
+.confirmRow {
+  display: flex;
+  gap: var(--tf-space-1);
+}
 .confirmYes {
   background: color-mix(in srgb, var(--tf-red) 12%, transparent);
-  border: 1px solid var(--tf-red); border-radius: var(--br-sm);
-  padding: var(--sp-1) 10px; font-size: var(--fs-xs); color: var(--tf-red);
-  cursor: pointer; font-weight: var(--fw-bold);
+  border: 1px solid var(--tf-red);
+  border-radius: var(--tf-radius-xs);
+  padding: var(--tf-space-1) 10px;
+  font-size: var(--tf-fs-xs);
+  color: var(--tf-red);
+  cursor: pointer;
+  font-weight: 700;
 }
 .confirmNo {
-  background: transparent; border: 1px solid var(--tf-bd);
-  border-radius: var(--br-sm); padding: var(--sp-1) 10px;
-  font-size: var(--fs-xs); color: var(--tf-t3); cursor: pointer;
-  font-weight: var(--fw-semibold);
+  background: transparent;
+  border: 1px solid var(--tf-bd);
+  border-radius: var(--tf-radius-xs);
+  padding: var(--tf-space-1) 10px;
+  font-size: var(--tf-fs-xs);
+  color: var(--tf-t3);
+  cursor: pointer;
+  font-weight: 600;
 }
 
-.progressTrack { margin-top: var(--sp-3); height: 3px; border-radius: 2px; background: var(--tf-bd); overflow: hidden; }
+.progressTrack {
+  margin-top: var(--tf-space-3);
+  height: 3px;
+  border-radius: 2px;
+  background: var(--tf-bd);
+  overflow: hidden;
+}
 .progressFill {
-  height: 100%; border-radius: 2px;
+  height: 100%;
+  border-radius: 2px;
   background: linear-gradient(90deg, var(--tf-yellow), var(--tf-green));
   transition: width 1s linear;
 }

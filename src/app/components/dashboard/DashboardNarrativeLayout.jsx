@@ -1,12 +1,18 @@
 // ═══════════════════════════════════════════════════════════════════
 // charEdge — Dashboard Narrative Layout
 //
-// Redesigned: Session Summary Bar → Equity Curve → Metrics Row →
-// Watchlist + Recent Trades → Insights → Show More
+// Progressive disclosure: Dashboard grows with the trader.
+// Tier 0 (0 trades): Watchlist only
+// Tier 1 (1-4): + Equity Curve
+// Tier 2 (5-9): + Heatmap, Metrics, Risk, Morning Briefing, Strategy
+// Tier 3 (10-19): + Full Metrics, Intraday, AI Insights, Asset Breakdown
+// Tier 4 (20-49): + Monte Carlo, Quest, Show-More toggle
+// Tier 5 (50+): Everything visible
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, Suspense, lazy } from 'react';
 import { C, F } from '../../../constants.js';
+import { getDashboardTier, useUIStore } from '../../../state/useUIStore.ts';
 import { text, radii, space } from '../../../theme/tokens.js';
 import { fmtD, METRIC_TIPS } from '../../../utils.js';
 import { Card } from '../ui/UIKit.jsx';
@@ -20,23 +26,16 @@ import MorningBriefing from './MorningBriefing.jsx';
 import RiskDashboard from './RiskDashboard.jsx';
 import SessionSummaryBar from './SessionSummaryBar.jsx';
 
-
-// Lazy-loaded widgets (Sprint 22: trimmed to 4 useful ones)
+// Lazy-loaded widgets
 const AIInsightCard = lazy(() => import('./AIInsightCard.jsx'));
 const SessionTimeline = lazy(() => import('./SessionTimeline.jsx'));
-
 const TradeReplayPanel = lazy(() => import('./TradeReplayPanel.jsx'));
 const WhatIfPanel_Lazy = lazy(() => import('./WhatIfPanel.jsx'));
-
-// Phase 6 new features
 const IntradayChart = lazy(() => import('./IntradayChart.jsx'));
 const StrategyBreakdown = lazy(() => import('./StrategyBreakdown.jsx'));
 const AssetBreakdown = lazy(() => import('./AssetBreakdown.jsx'));
-const QuickActions = lazy(() => import('./QuickActions.jsx'));
-const SessionJournalPrompt = lazy(() => import('./SessionJournalPrompt.jsx'));
 const MonteCarloWidget = lazy(() => import('./MonteCarloWidget.jsx'));
 const QuestWidget = lazy(() => import('../ui/QuestWidget.jsx'));
-const JournalHealthStreak = lazy(() => import('./JournalHealthStreak.jsx'));
 
 // Widget skeleton fallback
 function WidgetSkeleton({ height = 120 }) {
@@ -53,7 +52,7 @@ function WidgetSkeleton({ height = 120 }) {
   );
 }
 
-// Sprint 15: Dashboard narrative section header
+// Section header
 function SectionHeader({ emoji, title }) {
   return (
     <div
@@ -84,13 +83,37 @@ function SectionHeader({ emoji, title }) {
   );
 }
 
-// ─── Sprint 17: Compact Metrics Row ─────────────────────────────
-function MetricsRow({ result, trades }) {
+// ─── Unlock Hint — subtle prompt to log more trades ─────────────
+function UnlockHint({ needed, current, label }) {
+  if (current >= needed) return null;
+  const remaining = needed - current;
+  return (
+    <div
+      style={{
+        padding: '10px 16px',
+        background: `${C.b}06`,
+        border: `1px dashed ${C.bd}30`,
+        borderRadius: radii.md,
+        fontSize: 11,
+        color: C.t3,
+        fontWeight: 500,
+        marginBottom: 16,
+        textAlign: 'center',
+      }}
+    >
+      Log {remaining} more trade{remaining !== 1 ? 's' : ''} to unlock {label}
+    </div>
+  );
+}
+
+// ─── Compact Metrics Row ─────────────────────────────────────────
+function MetricsRow({ result, trades: _trades, compact }) {
   const pf = result.pf ?? 0;
   const rr = result.rr ?? 0;
   const maxDd = result.maxDd ?? 0;
   const expectancy = result.expectancy ?? 0;
-  const metrics = [
+
+  const allMetrics = [
     {
       label: 'Profit Factor',
       value: pf === Infinity ? '∞' : pf.toFixed(2),
@@ -116,6 +139,9 @@ function MetricsRow({ result, trades }) {
       tip: METRIC_TIPS['Expectancy'],
     },
   ];
+
+  // Compact mode: show only Profit Factor + Win/Loss
+  const metrics = compact ? allMetrics.slice(0, 2) : allMetrics;
 
   return (
     <div
@@ -175,7 +201,7 @@ function MetricsRow({ result, trades }) {
   );
 }
 
-// ─── Sprint 48: Smart Session Tip ──────────────────────────────
+// ─── Smart Session Tip ──────────────────────────────────────────
 function SessionTip({ todayStats, result, sectionGap }) {
   let message = null;
   let emoji = null;
@@ -198,19 +224,21 @@ function SessionTip({ todayStats, result, sectionGap }) {
   if (!message) return null;
 
   return (
-    <div style={{
-      padding: '10px 16px',
-      background: `${C.y}08`,
-      border: `1px solid ${C.y}20`,
-      borderRadius: radii.md,
-      fontSize: 12,
-      color: C.t2,
-      fontWeight: 500,
-      marginBottom: sectionGap,
-      display: 'flex',
-      alignItems: 'center',
-      gap: 8,
-    }}>
+    <div
+      style={{
+        padding: '10px 16px',
+        background: `${C.y}08`,
+        border: `1px solid ${C.y}20`,
+        borderRadius: radii.md,
+        fontSize: 12,
+        color: C.t2,
+        fontWeight: 500,
+        marginBottom: sectionGap,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+      }}
+    >
       <span style={{ fontSize: 16 }}>{emoji}</span>
       {message}
     </div>
@@ -220,23 +248,29 @@ function SessionTip({ todayStats, result, sectionGap }) {
 export default function DashboardNarrativeLayout({
   trades,
   result,
-  computing,
+  computing: _computing,
   todayStats,
   ribbonStats,
-  recentTrades,
+  recentTrades: _recentTrades,
   isMobile,
-  setPage,
-  activeWidgets,
-  activePreset,
+  setPage: _setPage,
+  activeWidgets: _activeWidgets,
+  activePreset: _activePreset,
 }) {
   const [showAllWidgets, setShowAllWidgets] = useState(false);
-  const sectionGap = isMobile ? space[5] : space[9]; // Sprint 28: 20 mobile, 36 desktop
+  const dashboardShowAll = useUIStore((s) => s.dashboardShowAll);
+  const toggleDashboardShowAll = useUIStore((s) => s.toggleDashboardShowAll);
+  const sectionGap = isMobile ? space[5] : space[9];
+
+  // ─── Progressive Disclosure Tier ──────────────────────────────
+  const rawTier = getDashboardTier(trades.length);
+  const tier = dashboardShowAll ? 5 : rawTier;
 
   // AmbientBorder — compute aura color from overall P&L (dark mode only)
   const isDark = typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)')?.matches;
   const ambientColor = isDark
     ? (result?.totalPnl ?? 0) >= 0
-      ? 'rgba(52,199,89,0.04)'   // Sprint 33: reduced from 0.08
+      ? 'rgba(52,199,89,0.04)'
       : 'rgba(255,59,48,0.04)'
     : 'transparent';
 
@@ -251,7 +285,7 @@ export default function DashboardNarrativeLayout({
     >
       <DashHeader trades={trades} />
 
-      {/* ═══ SESSION SUMMARY BAR ═══ */}
+      {/* ═══ SESSION SUMMARY BAR (always visible) ═══ */}
       <SessionSummaryBar
         todayPnl={todayStats.pnl}
         todayCount={todayStats.count}
@@ -260,9 +294,10 @@ export default function DashboardNarrativeLayout({
         recentDailyPnl={todayStats.recentDailyPnl}
         ribbonStats={ribbonStats}
         isMobile={isMobile}
+        collapsed={tier < 3}
       />
 
-      {/* Sprint 23: Simplified Getting Started — single-line banner */}
+      {/* Getting Started banner (tier 1 — under 5 trades) */}
       {trades.length < 5 && !localStorage.getItem('tf_onboard_dismissed') && (
         <div
           style={{
@@ -335,232 +370,264 @@ export default function DashboardNarrativeLayout({
         </div>
       )}
 
-      {/* AI Insight Card — appears after 20+ trades */}
-      {trades.length >= 20 && (
+      {/* AI Insight Card — tier 3+ (20 trades) */}
+      {tier >= 3 && trades.length >= 20 && (
         <Suspense fallback={<WidgetSkeleton height={160} />}>
           <AIInsightCard />
         </Suspense>
       )}
 
-      {/* ═══ HERO SECTION: EQUITY CURVE + TRADE HEATMAP ═══ */}
-      <SectionHeader emoji="📊" title="Performance Overview" />
+      {/* ═══ PERFORMANCE OVERVIEW — tier 1+ ═══ */}
+      {tier >= 1 && (
+        <>
+          <SectionHeader emoji="📊" title="Performance Overview" />
 
-      <div className={s.heroRow} style={{ marginBottom: sectionGap }}>
-        {/* ═══ EQUITY CURVE ═══ */}
-        <Card
-          className="tf-card-hover"
-          style={{
-            padding: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-            backdropFilter: 'blur(16px)',
-          }}
-        >
-          <div
-            style={{
-              padding: '12px 20px 0 20px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <div className="tf-section-accent" style={{ marginBottom: 0 }}>
-              Equity Curve
-            </div>
-            <div style={{ ...text.dataLg, fontSize: 24, fontWeight: 800, color: result.totalPnl >= 0 ? C.g : C.r }}>
-              {fmtD(result.totalPnl)}
-            </div>
-          </div>
-          <div className={s.equityChartWrapResponsive} style={{ flex: 1 }}>
-            <div style={{ position: 'absolute', inset: 0 }}>
-              <WidgetBoundary name="Equity Curve" height="100%">
-                <EquityCurveChart eq={result.eq} height="100%" />
-              </WidgetBoundary>
-            </div>
-          </div>
-        </Card>
-
-        {/* ═══ TRADE HEATMAP ═══ */}
-        <Card
-          className="tf-card-hover"
-          style={{
-            padding: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-            borderImage: `linear-gradient(135deg, ${C.b}30, ${C.y}30) 1`,
-          }}
-        >
-          <div
-            style={{
-              padding: '20px 20px 0 20px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <span className="tf-section-accent" style={{ marginBottom: 0 }}>
-              Trade Heatmap
-            </span>
-          </div>
-          <div style={{ flex: 1, padding: '10px 16px 16px 16px', minHeight: 220 }}>
-            <WidgetBoundary name="Trade Heatmap" height="100%">
-              <TradeHeatmap
-                trades={trades}
-                onDayClick={(date) => {
-                  const dStr = date.toISOString().slice(0, 10);
-                  window.dispatchEvent(new CustomEvent('charEdge:open-logbook', { detail: { date: dStr } }));
+          <div className={s.heroRow} style={{ marginBottom: sectionGap }}>
+            {/* EQUITY CURVE — tier 1+ */}
+            <Card
+              className="tf-card-hover"
+              style={{
+                padding: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+                backdropFilter: 'blur(16px)',
+              }}
+            >
+              <div
+                style={{
+                  padding: '12px 20px 0 20px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                 }}
-              />
-            </WidgetBoundary>
+              >
+                <div className="tf-section-accent" style={{ marginBottom: 0 }}>
+                  Equity Curve
+                </div>
+                <div style={{ ...text.dataLg, fontSize: 24, fontWeight: 800, color: result.totalPnl >= 0 ? C.g : C.r }}>
+                  {fmtD(result.totalPnl)}
+                </div>
+              </div>
+              <div className={s.equityChartWrapResponsive} style={{ flex: 1 }}>
+                <div style={{ position: 'absolute', inset: 0 }}>
+                  <WidgetBoundary name="Equity Curve" height="100%">
+                    <EquityCurveChart eq={result.eq} height="100%" />
+                  </WidgetBoundary>
+                </div>
+              </div>
+            </Card>
+
+            {/* TRADE HEATMAP — tier 2+ */}
+            {tier >= 2 && (
+              <Card
+                className="tf-card-hover"
+                style={{
+                  padding: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  borderImage: `linear-gradient(135deg, ${C.b}30, ${C.y}30) 1`,
+                }}
+              >
+                <div
+                  style={{
+                    padding: '20px 20px 0 20px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <span className="tf-section-accent" style={{ marginBottom: 0 }}>
+                    Trade Heatmap
+                  </span>
+                </div>
+                <div style={{ flex: 1, padding: '10px 16px 16px 16px', minHeight: 220 }}>
+                  <WidgetBoundary name="Trade Heatmap" height="100%">
+                    <TradeHeatmap
+                      trades={trades}
+                      compact={tier < 4}
+                      onDayClick={(date) => {
+                        const dStr = date.toISOString().slice(0, 10);
+                        window.dispatchEvent(new CustomEvent('charEdge:open-logbook', { detail: { date: dStr } }));
+                      }}
+                    />
+                  </WidgetBoundary>
+                </div>
+              </Card>
+            )}
           </div>
-        </Card>
-      </div>
 
+          {/* Unlock hint for heatmap */}
+          {tier < 2 && <UnlockHint needed={5} current={trades.length} label="Trade Heatmap" />}
+        </>
+      )}
 
-      {/* ═══ Sprint 17: COMPACT METRICS ROW ═══ */}
-      <MetricsRow result={result} trades={trades} />
+      {/* ═══ METRICS ROW — tier 2+ ═══ */}
+      {tier >= 2 && <MetricsRow result={result} trades={trades} compact={tier < 3} />}
 
-      {/* ═══ P&L TIMELINE + BREAKDOWN side by side ═══ */}
-      <div className={s.heroRow} style={{ marginBottom: sectionGap, alignItems: 'stretch' }}>
-        {trades.length >= 2 && (
-          <Suspense fallback={null}>
-            <IntradayChart trades={trades} isMobile={isMobile} />
-          </Suspense>
-        )}
-        {trades.length >= 5 && (
-          <Suspense fallback={null}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <StrategyBreakdown trades={trades} />
-              <AssetBreakdown trades={trades} />
-            </div>
-          </Suspense>
-        )}
-      </div>
+      {/* Unlock hint for metrics */}
+      {tier === 1 && <UnlockHint needed={5} current={trades.length} label="Performance Metrics" />}
 
-      {/* ═══ Sprint 48: SMART SESSION RECOMMENDATIONS ═══ */}
+      {/* ═══ P&L TIMELINE + BREAKDOWN — tier 2+ ═══ */}
+      {tier >= 2 && (
+        <div className={s.heroRow} style={{ marginBottom: sectionGap, alignItems: 'stretch' }}>
+          {tier >= 3 && trades.length >= 2 && (
+            <Suspense fallback={null}>
+              <IntradayChart trades={trades} isMobile={isMobile} />
+            </Suspense>
+          )}
+          {trades.length >= 5 && (
+            <Suspense fallback={null}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <StrategyBreakdown trades={trades} />
+                {tier >= 3 && <AssetBreakdown trades={trades} />}
+              </div>
+            </Suspense>
+          )}
+        </div>
+      )}
+
+      {/* Session Tip (runtime condition, not tier-gated) */}
       {todayStats && todayStats.count >= 3 && (
         <SessionTip todayStats={todayStats} result={result} sectionGap={sectionGap} />
       )}
 
-      {/* ═══ Sprint 21: QUEST WIDGET ═══ */}
-      <Suspense fallback={null}>
-        <div style={{ marginBottom: sectionGap }}>
-          <QuestWidget />
-        </div>
-      </Suspense>
+      {/* Quest Widget — tier 4+ */}
+      {tier >= 4 && (
+        <Suspense fallback={null}>
+          <div style={{ marginBottom: sectionGap }}>
+            <QuestWidget />
+          </div>
+        </Suspense>
+      )}
 
-      {/* Trade Heatmap moved to heroRow above */}
-
-      {/* ═══ YOUR EDGE section ═══ */}
+      {/* ═══ YOUR EDGE — Watchlist (always visible) ═══ */}
       <SectionHeader emoji="🎯" title="Your Edge" />
-
-      {/* ═══ Sprint 13: WATCHLIST ═══ */}
       <div style={{ marginBottom: sectionGap }}>
         <HomeWatchlist isMobile={isMobile} />
       </div>
 
-
-
-      {/* ═══ GROWTH section ═══ */}
-      <SectionHeader emoji="📈" title="Growth" />
-
-      {/* ═══ INSIGHTS + MONTE CARLO side by side ═══ */}
-      <div className={s.heroRow} style={{ marginBottom: sectionGap }}>
-        <MorningBriefing />
-
-        {trades.length >= 5 ? (
-          <Suspense fallback={<WidgetSkeleton height={180} />}>
-            <MonteCarloWidget />
-          </Suspense>
-        ) : <div />}
-      </div>
-
-      {/* RiskDashboard always-visible */}
-      <RiskDashboard />
-
-      {/* ═══ Sprint 22: Show More — trimmed to 4 useful widgets ═══ */}
-      {!showAllWidgets ? (
-        <button
-          onClick={() => setShowAllWidgets(true)}
-          className="tf-glass-btn"
-          style={{
-            width: '100%',
-            padding: '14px 0',
-            borderRadius: radii.md,
-            fontSize: 13,
-            fontWeight: 600,
-            fontFamily: F,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            marginBottom: sectionGap,
-          }}
-        >
-          ↓ Show More
-          <span
-            style={{ fontSize: 10, padding: '2px 8px', background: `${C.b}15`, borderRadius: radii.md, color: C.b }}
-          >
-            +2
-          </span>
-        </button>
-      ) : (
+      {/* ═══ GROWTH section — tier 2+ ═══ */}
+      {tier >= 2 && (
         <>
+          <SectionHeader emoji="📈" title="Growth" />
 
-
-          <Suspense fallback={<WidgetSkeleton height={200} />}>
-            <SessionTimeline />
-          </Suspense>
-
-
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-              gap: 16,
-              marginBottom: sectionGap,
-            }}
-          >
-            <Suspense fallback={<WidgetSkeleton height={200} />}>
-              <TradeReplayPanel />
-            </Suspense>
-            <Suspense fallback={<WidgetSkeleton height={200} />}>
-              <WhatIfPanel_Lazy />
-            </Suspense>
+          <div className={s.heroRow} style={{ marginBottom: sectionGap }}>
+            <MorningBriefing />
+            {tier >= 4 && trades.length >= 5 ? (
+              <Suspense fallback={<WidgetSkeleton height={180} />}>
+                <MonteCarloWidget />
+              </Suspense>
+            ) : (
+              <div />
+            )}
           </div>
 
-          <button
-            onClick={() => setShowAllWidgets(false)}
-            className="tf-btn"
-            style={{
-              width: '100%',
-              padding: '10px 0',
-              background: 'transparent',
-              border: `1px dashed ${C.bd}`,
-              borderRadius: radii.md,
-              color: C.t3,
-              fontSize: 12,
-              fontFamily: F,
-              cursor: 'pointer',
-              marginBottom: sectionGap,
-              transition: 'all 0.15s',
-            }}
-          >
-            ↑ Show Less
-          </button>
+          <RiskDashboard />
         </>
       )}
 
-      {/* ═══ Sprint 46: QUICK ACTIONS ═══ */}
-      {!isMobile && (
-        <div style={{ marginTop: sectionGap }}>
-          <Suspense fallback={null}>
-            <QuickActions isActive />
-          </Suspense>
-        </div>
+      {/* Unlock hint for Growth section */}
+      {tier < 2 && <UnlockHint needed={5} current={trades.length} label="Risk Dashboard & Growth Insights" />}
+
+      {/* ═══ Show More — tier 4+ ═══ */}
+      {tier >= 4 && (
+        <>
+          {!showAllWidgets ? (
+            <button
+              onClick={() => setShowAllWidgets(true)}
+              className="tf-glass-btn"
+              style={{
+                width: '100%',
+                padding: '14px 0',
+                borderRadius: radii.md,
+                fontSize: 13,
+                fontWeight: 600,
+                fontFamily: F,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                marginBottom: sectionGap,
+              }}
+            >
+              ↓ Show More
+              <span
+                style={{ fontSize: 10, padding: '2px 8px', background: `${C.b}15`, borderRadius: radii.md, color: C.b }}
+              >
+                +2
+              </span>
+            </button>
+          ) : (
+            <>
+              <Suspense fallback={<WidgetSkeleton height={200} />}>
+                <SessionTimeline />
+              </Suspense>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                  gap: 16,
+                  marginBottom: sectionGap,
+                }}
+              >
+                <Suspense fallback={<WidgetSkeleton height={200} />}>
+                  <TradeReplayPanel />
+                </Suspense>
+                <Suspense fallback={<WidgetSkeleton height={200} />}>
+                  <WhatIfPanel_Lazy />
+                </Suspense>
+              </div>
+
+              <button
+                onClick={() => setShowAllWidgets(false)}
+                className="tf-btn"
+                style={{
+                  width: '100%',
+                  padding: '10px 0',
+                  background: 'transparent',
+                  border: `1px dashed ${C.bd}`,
+                  borderRadius: radii.md,
+                  color: C.t3,
+                  fontSize: 12,
+                  fontFamily: F,
+                  cursor: 'pointer',
+                  marginBottom: sectionGap,
+                  transition: 'all 0.15s',
+                }}
+              >
+                ↑ Show Less
+              </button>
+            </>
+          )}
+        </>
+      )}
+
+      {/* ═══ Show Full Dashboard toggle (for power users on lower tiers) ═══ */}
+      {rawTier < 5 && (
+        <button
+          onClick={toggleDashboardShowAll}
+          className="tf-btn"
+          style={{
+            width: '100%',
+            padding: '10px 0',
+            background: 'transparent',
+            border: `1px dashed ${C.bd}40`,
+            borderRadius: radii.md,
+            color: C.t3,
+            fontSize: 11,
+            fontFamily: F,
+            cursor: 'pointer',
+            marginTop: 8,
+            marginBottom: sectionGap,
+            transition: 'all 0.15s',
+            opacity: 0.6,
+          }}
+        >
+          {dashboardShowAll ? '↑ Use Progressive Dashboard' : '↓ Show Full Dashboard'}
+        </button>
       )}
     </div>
   );

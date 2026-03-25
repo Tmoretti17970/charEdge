@@ -12,20 +12,21 @@ import MobileNav from './app/layouts/MobileNav.jsx';
 import PageRouter from './app/layouts/PageRouter.jsx';
 import Sidebar from './app/layouts/Sidebar.jsx';
 import DailyGuardBanner from './app/misc/components/DailyGuardBanner.jsx';
-import { useHashRouter } from './hooks/useHashRouter.js';
 import styles from './App.module.css';
 import { useAppBoot } from './AppBoot.js';
 import { useBootEffects } from './hooks/useBootEffects.js';
+import useCopilotChat from './hooks/useCopilotChat';
+import { useHashRouter } from './hooks/useHashRouter.js';
+import { useAccountStore } from './state/useAccountStore';
 import { useConsentStore } from './state/useConsentStore';
 import { useFocusStore } from './state/useFocusStore.js';
+import { useJournalStore } from './state/useJournalStore';
 import { useNotificationStore } from './state/useNotificationStore';
 import { useUIStore } from './state/useUIStore';
-import { useAccountStore } from './state/useAccountStore';
-import { useJournalStore } from './state/useJournalStore';
 import { useUserStore } from './state/useUserStore';
-import useCopilotChat from './hooks/useCopilotChat';
 import { useHotkeys } from '@/hooks/useHotkeys';
 import { useBreakpoints } from '@/hooks/useMediaQuery';
+import { useViewportHeight } from '@/hooks/useViewportHeight';
 import { installGlobalErrorHandlers } from '@/shared/globalErrorHandler';
 // Sentry is now consent-gated — see below in render
 
@@ -149,6 +150,7 @@ if (typeof window !== 'undefined') {
 export default function App() {
   const { ready, phase } = useAppBoot();
   const { isMobile } = useBreakpoints();
+  useViewportHeight(); // Phase 6: Prevent keyboard from hiding inputs on mobile
   const toggleNotifications = useNotificationStore((s) => s.toggleLogPanel);
   const page = useUIStore((s) => s.page);
   const setPage = useUIStore((s) => s.setPage);
@@ -158,7 +160,7 @@ export default function App() {
   // Sprint 4: Global copilot state
   const copilotOpen = useCopilotChat((s) => s.panelOpen);
   const toggleCopilot = useCopilotChat((s) => s.togglePanel);
-  const copilotRef = useRef(null);
+  const _copilotRef = useRef(null);
 
   // Keyboard shortcuts panel
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -183,6 +185,7 @@ export default function App() {
         const { genDemoData } = await import('./data/demoData.js');
         const demo = genDemoData();
         if (cancelled || !demo.trades?.length) return;
+        // eslint-disable-next-line no-console
         console.info(`[App] Seeding ${demo.trades.length} demo trades (fallback)`);
         useJournalStore.getState().hydrate({
           trades: demo.trades,
@@ -191,10 +194,13 @@ export default function App() {
           tradePlans: [],
         });
       } catch (err) {
+        // eslint-disable-next-line no-console
         console.warn('[App] Demo seed failed:', err);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [ready, demoActive, tradeCount, journalLoaded]);
 
   // Page navigation map: keys 1-3 → pages, 4 → settings slide-over

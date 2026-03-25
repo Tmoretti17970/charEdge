@@ -10,19 +10,11 @@ import s from './DrawingContextMenu.module.css';
 
 const MENU_ITEMS = [
   { id: 'duplicate', label: 'Duplicate', icon: '⊕', shortcut: 'Ctrl+D' },
-  { id: 'addLabel', label: 'Add Label', icon: '🏷' },
   { id: 'addAlert', label: 'Add Alert', icon: '🔔', hasSubmenu: true },
   { id: 'divider1' },
   { id: 'lock', label: 'Lock', icon: '🔒' },
   { id: 'hide', label: 'Hide', icon: '👁' },
-  { id: 'syncTimeframes', label: 'Sync Across Timeframes', icon: '🔗' },
   { id: 'divider2' },
-  { id: 'bringToFront', label: 'Bring to Front', icon: '↑' },
-  { id: 'sendToBack', label: 'Send to Back', icon: '↓' },
-  { id: 'groupSelected', label: 'Group', icon: '📎' },
-  { id: 'ungroupSelected', label: 'Ungroup', icon: '📌' },
-  { id: 'selectAll', label: 'Select All', icon: '⬜', shortcut: '⌘A' },
-  { id: 'divider3' },
   { id: 'delete', label: 'Delete', icon: '🗑', shortcut: 'Del', danger: true },
 ];
 
@@ -40,7 +32,9 @@ export default function DrawingContextMenu({ x, y, drawing, engine, onClose }) {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) onClose();
     };
-    const handleEscape = (e) => { if (e.key === 'Escape') onClose(); };
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
     document.addEventListener('mousedown', handleClickOutside, true);
     document.addEventListener('keydown', handleEscape, true);
     return () => {
@@ -49,43 +43,70 @@ export default function DrawingContextMenu({ x, y, drawing, engine, onClose }) {
     };
   }, [onClose]);
 
-  const handleAction = useCallback((id) => {
-    if (!drawing || !engine) return;
-    switch (id) {
-      case 'duplicate': engine.duplicateDrawing(drawing.id); break;
-      case 'lock': engine.toggleLock(drawing.id); break;
-      case 'hide': engine.toggleVisibility(drawing.id); break;
-      case 'bringToFront': engine.bringToFront(drawing.id); break;
-      case 'sendToBack': engine.sendToBack(drawing.id); break;
-      case 'addLabel': {
-        const label = prompt('Enter label for this drawing:', drawing.meta?.label || '');
-        if (label !== null) engine.setDrawingLabel(drawing.id, label);
-        break;
+  const handleAction = useCallback(
+    (id) => {
+      if (!drawing || !engine) return;
+      switch (id) {
+        case 'duplicate':
+          engine.duplicateDrawing(drawing.id);
+          break;
+        case 'lock':
+          engine.toggleLock(drawing.id);
+          break;
+        case 'hide':
+          engine.toggleVisibility(drawing.id);
+          break;
+        case 'bringToFront':
+          engine.bringToFront(drawing.id);
+          break;
+        case 'sendToBack':
+          engine.sendToBack(drawing.id);
+          break;
+        case 'addLabel': {
+          const label = prompt('Enter label for this drawing:', drawing.meta?.label || '');
+          if (label !== null) engine.setDrawingLabel(drawing.id, label);
+          break;
+        }
+        case 'syncTimeframes':
+          engine.toggleSyncAcrossTimeframes(drawing.id);
+          break;
+        case 'alert_cross':
+        case 'alert_enter':
+        case 'alert_exit': {
+          const triggerMap = { alert_cross: 'cross', alert_enter: 'enter', alert_exit: 'exit' };
+          createDrawingAlert(drawing, triggerMap[id]);
+          if (engine.enableAlert) engine.enableAlert(drawing.id, { trigger: triggerMap[id] });
+          break;
+        }
+        case 'groupSelected':
+          if (engine.groupSelected) engine.groupSelected();
+          break;
+        case 'ungroupSelected':
+          if (engine.ungroupSelected) engine.ungroupSelected();
+          break;
+        case 'selectAll':
+          if (engine.selectAll) engine.selectAll();
+          break;
+        case 'delete':
+          engine.removeDrawing(drawing.id);
+          break;
       }
-      case 'syncTimeframes': engine.toggleSyncAcrossTimeframes(drawing.id); break;
-      case 'alert_cross':
-      case 'alert_enter':
-      case 'alert_exit': {
-        const triggerMap = { alert_cross: 'cross', alert_enter: 'enter', alert_exit: 'exit' };
-        createDrawingAlert(drawing, triggerMap[id]);
-        if (engine.enableAlert) engine.enableAlert(drawing.id, { trigger: triggerMap[id] });
-        break;
-      }
-      case 'groupSelected': if (engine.groupSelected) engine.groupSelected(); break;
-      case 'ungroupSelected': if (engine.ungroupSelected) engine.ungroupSelected(); break;
-      case 'selectAll': if (engine.selectAll) engine.selectAll(); break;
-      case 'delete': engine.removeDrawing(drawing.id); break;
-    }
-    onClose();
-  }, [drawing, engine, onClose]);
+      onClose();
+    },
+    [drawing, engine, onClose],
+  );
 
   if (!drawing) return null;
 
   const items = MENU_ITEMS.map((item) => {
-    if (item.id === 'lock') return { ...item, label: drawing.locked ? 'Unlock' : 'Lock', icon: drawing.locked ? '🔓' : '🔒' };
-    if (item.id === 'hide') return { ...item, label: drawing.visible ? 'Hide' : 'Show', icon: drawing.visible ? '👁‍🗨' : '👁' };
-    if (item.id === 'addLabel') return { ...item, label: drawing.meta?.label ? `Edit Label "${drawing.meta.label}"` : 'Add Label' };
-    if (item.id === 'syncTimeframes') return { ...item, label: drawing.syncAcrossTimeframes ? '✓ Synced Across TFs' : 'Sync Across Timeframes' };
+    if (item.id === 'lock')
+      return { ...item, label: drawing.locked ? 'Unlock' : 'Lock', icon: drawing.locked ? '🔓' : '🔒' };
+    if (item.id === 'hide')
+      return { ...item, label: drawing.visible ? 'Hide' : 'Show', icon: drawing.visible ? '👁‍🗨' : '👁' };
+    if (item.id === 'addLabel')
+      return { ...item, label: drawing.meta?.label ? `Edit Label "${drawing.meta.label}"` : 'Add Label' };
+    if (item.id === 'syncTimeframes')
+      return { ...item, label: drawing.syncAcrossTimeframes ? '✓ Synced Across TFs' : 'Sync Across Timeframes' };
     return item;
   });
 

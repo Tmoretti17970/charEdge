@@ -14,7 +14,7 @@
   z-index: 9999;
   padding: 8px 12px;
   border-radius: 8px;
-  font-size: var(--fs-xs);
+  font-size: var(--tf-fs-xs);
   font-weight: 500;
   line-height: 1.4;
   max-width: 240px;
@@ -22,25 +22,26 @@
   white-space: normal;
   word-wrap: break-word;
 
-  /* Glassmorphism */
-  background: rgba(20, 20, 35, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  /* Glassmorphism — floating depth tier */
+  background: var(--tf-depth-floating-bg, rgba(22, 24, 29, 0.88));
+  backdrop-filter: var(--tf-depth-floating-blur, blur(24px) saturate(1.6));
+  -webkit-backdrop-filter: var(--tf-depth-floating-blur, blur(24px) saturate(1.6));
+  border: var(--tf-glass-border);
   color: #e2e8f0;
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.04);
+  box-shadow: var(--tf-shadow-2), var(--tf-depth-floating-specular);
 
-  /* Animation */
+  /* Animation — fast entrance with subtle scale */
   opacity: 0;
-  transform: scale(0.95);
-  transition: opacity 150ms ease, transform 150ms ease;
+  transform: scale(0.97) translateY(2px);
+  transition:
+    opacity var(--motion-fast) var(--ease-out),
+    transform var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast) var(--ease-out);
 }
 
 .visible {
   opacity: 1;
-  transform: scale(1);
+  transform: scale(1) translateY(0);
 }
 
 /* ─── Arrow ──────────────────────────────────────────────────── */
@@ -48,8 +49,8 @@
   position: absolute;
   width: 8px;
   height: 8px;
-  background: rgba(20, 20, 35, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--tf-depth-floating-bg, rgba(22, 24, 29, 0.88));
+  border: var(--tf-glass-border);
   transform: rotate(45deg);
 }
 

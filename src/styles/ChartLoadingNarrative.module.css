@@ -5,116 +5,117 @@
  * ═══════════════════════════════════════════════════════════════════ */
 
 .overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 20;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    background: var(--tf-bg, #131722);
-    animation: narrativeFadeIn 0.3s ease;
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: var(--tf-bg, #131722);
+  animation: narrativeFadeIn 0.3s ease;
 }
 
 .overlay[data-exiting='true'] {
-    animation: narrativeFadeOut 0.35s ease forwards;
+  animation: narrativeFadeOut 0.35s ease forwards;
 }
 
 .steps {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 220px;
 }
 
 .step {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 12px;
-    font-family: var(--tf-font, 'Inter', sans-serif);
-    color: var(--tf-t3, #6b7a8d);
-    transition: color 0.3s ease, opacity 0.3s ease;
-    opacity: 0.4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--tf-fs-sm);
+  font-family: var(--tf-font, 'Inter', sans-serif);
+  color: var(--tf-t3, #6b7a8d);
+  transition:
+    color 0.3s ease,
+    opacity 0.3s ease;
+  opacity: 0.4;
 }
 
 .step[data-active='true'] {
-    color: var(--tf-t1, #e0e8f0);
-    opacity: 1;
+  color: var(--tf-t1, #e0e8f0);
+  opacity: 1;
 }
 
 .step[data-done='true'] {
-    color: var(--tf-green, #2dd4a0);
-    opacity: 0.8;
+  color: var(--tf-green, #2dd4a0);
+  opacity: 0.8;
 }
 
 .stepIcon {
-    width: 18px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-size: 12px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: var(--tf-fs-sm);
 }
 
 .spinner {
-    width: 14px;
-    height: 14px;
-    border: 2px solid var(--tf-bd, #363A45);
-    border-top-color: var(--tf-accent, #2962FF);
-    border-radius: 50%;
-    animation: narrativeSpin 0.8s linear infinite;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--tf-bd, #363a45);
+  border-top-color: var(--tf-accent, #2962ff);
+  border-radius: 50%;
+  animation: narrativeSpin 0.8s linear infinite;
 }
 
 .stepLabel {
-    white-space: nowrap;
+  white-space: nowrap;
 }
 
 .symbol {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--tf-t2, #9ca3af);
-    margin-bottom: 4px;
-    letter-spacing: 0.3px;
+  font-size: var(--tf-fs-base);
+  font-weight: 600;
+  color: var(--tf-t2, #9ca3af);
+  margin-bottom: 4px;
+  letter-spacing: 0.3px;
 }
 
 @keyframes narrativeFadeIn {
-    from {
-        opacity: 0;
-    }
+  from {
+    opacity: 0;
+  }
 
-    to {
-        opacity: 1;
-    }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes narrativeFadeOut {
-    from {
-        opacity: 1;
-    }
+  from {
+    opacity: 1;
+  }
 
-    to {
-        opacity: 0;
-    }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes narrativeSpin {
-    to {
-        transform: rotate(360deg);
-    }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .overlay[data-exiting='true'] {
+    animation: none;
+  }
 
-    .overlay,
-    .overlay[data-exiting='true'] {
-        animation: none;
-    }
-
-    .spinner {
-        animation: none;
-        border-top-color: var(--tf-t3, #6b7a8d);
-    }
+  .spinner {
+    animation: none;
+    border-top-color: var(--tf-t3, #6b7a8d);
+  }
 }

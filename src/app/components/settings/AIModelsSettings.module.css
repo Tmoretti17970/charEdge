@@ -1,40 +1,117 @@
 /* AIModelsSettings — CSS Module */
-.root { font-family: var(--tf-font); }
-.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-4); }
-.headerLeft { display: flex; align-items: center; gap: var(--sp-2); }
-.headerIcon { font-size: 16px; }
-.headerTitle { font-size: 14px; font-weight: var(--fw-bold); color: var(--tf-t1); }
-.statusBanner { padding: var(--sp-2) var(--sp-3); border-radius: var(--br-md); margin-bottom: var(--sp-3); font-size: var(--fs-2xs); color: var(--tf-t2); }
-.bulkRow { display: flex; gap: var(--sp-2); margin-bottom: 14px; }
-.bulkBtn {
-  flex: 1; padding: var(--sp-1_5) 0; border-radius: var(--br-md);
-  border: 1px solid var(--tf-bd); background: transparent;
-  font-size: var(--fs-xs); font-family: var(--tf-mono); font-weight: var(--fw-semibold);
-  transition: all var(--dur-fast);
+.root {
+  font-family: var(--tf-font);
 }
-.preloadBtn { composes: bulkBtn; background: var(--tf-accent); color: #fff; border: none; }
-.modelList { display: flex; flex-direction: column; gap: var(--sp-1_5); }
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--tf-space-4);
+}
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+.headerIcon {
+  font-size: 16px;
+}
+.headerTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--tf-t1);
+}
+.statusBanner {
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border-radius: var(--tf-radius-sm);
+  margin-bottom: var(--tf-space-3);
+  font-size: clamp(0.5625rem, 0.5rem + 0.2vw, 0.6875rem);
+  color: var(--tf-t2);
+}
+.bulkRow {
+  display: flex;
+  gap: var(--tf-space-2);
+  margin-bottom: 14px;
+}
+.bulkBtn {
+  flex: 1;
+  padding: 6px 0;
+  border-radius: var(--tf-radius-sm);
+  border: 1px solid var(--tf-bd);
+  background: transparent;
+  font-size: var(--tf-fs-xs);
+  font-family: var(--tf-mono);
+  font-weight: 600;
+  transition: all var(--motion-fast);
+}
+.preloadBtn {
+  composes: bulkBtn;
+  background: var(--tf-accent);
+  color: #fff;
+  border: none;
+}
+.modelList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 .modelRow {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px var(--sp-3); border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px var(--tf-space-3);
+  border-radius: 10px;
   transition: all 0.2s ease;
 }
-.modelEmoji { font-size: 18px; }
-.modelBody { flex: 1; min-width: 0; }
-.modelName { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--tf-t1); margin-bottom: 2px; }
-.modelDesc { font-size: var(--fs-xs); color: var(--tf-t3); line-height: 1.3; }
-.modelStats { display: flex; gap: var(--sp-2); margin-top: var(--sp-1); font-size: var(--fs-3xs); font-family: var(--tf-mono); }
-.footer { margin-top: 14px; font-size: var(--fs-xs); color: var(--tf-t3); line-height: var(--lh-normal); }
+.modelEmoji {
+  font-size: 18px;
+}
+.modelBody {
+  flex: 1;
+  min-width: 0;
+}
+.modelName {
+  font-size: var(--tf-fs-sm);
+  font-weight: 600;
+  color: var(--tf-t1);
+  margin-bottom: 2px;
+}
+.modelDesc {
+  font-size: var(--tf-fs-xs);
+  color: var(--tf-t3);
+  line-height: 1.3;
+}
+.modelStats {
+  display: flex;
+  gap: var(--tf-space-2);
+  margin-top: var(--tf-space-1);
+  font-size: clamp(0.4375rem, 0.4rem + 0.15vw, 0.5rem);
+  font-family: var(--tf-mono);
+}
+.footer {
+  margin-top: 14px;
+  font-size: var(--tf-fs-xs);
+  color: var(--tf-t3);
+  line-height: 1.5;
+}
 
 /* Toggle */
 .toggleTrack {
-  width: 36px; height: 20px; border-radius: 10px;
-  border: none; padding: 2px;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  border: none;
+  padding: 2px;
   transition: background 0.2s ease;
-  display: flex; align-items: center; flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 .toggleThumb {
-  width: 16px; height: 16px; border-radius: 50%;
-  background: #fff; transition: transform 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }

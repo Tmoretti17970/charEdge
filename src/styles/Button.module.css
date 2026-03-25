@@ -10,11 +10,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--sp-2, 8px);
-  font-weight: var(--fw-bold, 700);
+  gap: var(--tf-space-2);
+  font-weight: 700;
   cursor: pointer;
   border: none;
-  transition: all var(--dur-normal, 200ms) var(--ease-default);
+  transition: all var(--motion-base) var(--ease-out);
   letter-spacing: -0.01em;
   white-space: nowrap;
   user-select: none;
@@ -23,17 +23,18 @@
 /* ─── Primary — accent gradient CTA ──────────────────────────── */
 .primary {
   padding: 14px 36px;
-  border-radius: var(--br-lg, 12px);
+  border-radius: var(--tf-radius-md);
   background: linear-gradient(135deg, var(--tf-accent), var(--tf-yellow));
   color: #fff;
-  font-size: var(--fs-md, 16px);
+  font-size: var(--tf-fs-md);
   box-shadow: 0 4px 16px color-mix(in srgb, var(--tf-accent, #e8642c) 19%, transparent);
 }
 
 .primary:hover {
   transform: scale(1.04);
-  box-shadow: 0 8px 32px color-mix(in srgb, var(--tf-accent, #e8642c) 31%, transparent),
-    0 0 0 1px rgba(255,255,255,0.08) inset;
+  box-shadow:
+    0 8px 32px color-mix(in srgb, var(--tf-accent, #e8642c) 31%, transparent),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
 }
 
 .primary:active {
@@ -43,11 +44,11 @@
 /* ─── Secondary — outlined ───────────────────────────────────── */
 .secondary {
   padding: 12px 28px;
-  border-radius: var(--br-lg, 12px);
+  border-radius: var(--tf-radius-md);
   border: 1px solid var(--tf-bd2);
   background: transparent;
   color: var(--tf-t2);
-  font-size: var(--fs-sm, 14px);
+  font-size: var(--tf-fs-sm);
 }
 
 .secondary:hover {
@@ -63,51 +64,51 @@
 /* ─── Ghost — no visible chrome ──────────────────────────────── */
 .ghost {
   padding: 8px 16px;
-  border-radius: var(--br-md, 8px);
+  border-radius: var(--tf-radius-sm);
   background: transparent;
   color: var(--tf-t2);
-  font-size: var(--fs-sm, 14px);
+  font-size: var(--tf-fs-sm);
 }
 
 .ghost:hover {
-  background: var(--c-hover, hsla(217, 91%, 60%, 0.12));
+  background: rgba(92, 156, 245, 0.12);
   color: var(--tf-t1);
 }
 
 .ghost:active {
-  background: var(--c-pressed, hsla(217, 91%, 60%, 0.18));
+  background: rgba(92, 156, 245, 0.18);
 }
 
 /* ─── Icon button — square, icon only ─────────────────────────── */
 .icon {
-  padding: var(--sp-2, 8px);
-  border-radius: var(--br-md, 8px);
+  padding: var(--tf-space-2);
+  border-radius: var(--tf-radius-sm);
   background: transparent;
   color: var(--tf-t2);
-  font-size: var(--fs-lg, 18px);
+  font-size: var(--tf-fs-lg);
   aspect-ratio: 1;
 }
 
 .icon:hover {
-  background: var(--c-hover);
+  background: rgba(92, 156, 245, 0.12);
   color: var(--tf-t1);
 }
 
 .icon:active {
-  background: var(--c-pressed);
+  background: rgba(92, 156, 245, 0.18);
 }
 
 /* ─── Size modifiers ──────────────────────────────────────────── */
 .sm {
   padding: 8px 16px;
-  font-size: var(--fs-xs, 12px);
-  border-radius: var(--br-md, 8px);
+  font-size: var(--tf-fs-xs);
+  border-radius: var(--tf-radius-sm);
 }
 
 .lg {
   padding: 16px 48px;
-  font-size: var(--fs-lg, 18px);
-  border-radius: var(--br-xl, 16px);
+  font-size: var(--tf-fs-lg);
+  border-radius: var(--tf-radius-lg);
 }
 
 /* ─── Disabled state ──────────────────────────────────────────── */
@@ -125,7 +126,7 @@
 .secondary:focus-visible,
 .ghost:focus-visible,
 .icon:focus-visible {
-  outline: 2px solid var(--c-focus-ring);
+  outline: 2px solid rgba(92, 156, 245, 0.5);
   outline-offset: 2px;
 }
 

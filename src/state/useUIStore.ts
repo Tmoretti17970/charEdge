@@ -26,6 +26,7 @@ export interface UIState {
   modal: ModalData | null;
   confirmDialog: ConfirmDialogData | null;
   zenMode: boolean;
+  dashboardShowAll: boolean;
   cmdPaletteOpen: boolean;
   shortcutsOpen: boolean;
   quickTradeOpen: boolean;
@@ -52,6 +53,7 @@ export interface UIActions {
   closeSettings: () => void;
   toggleSettings: () => void;
   setChartSymbol: (sym: string) => void;
+  toggleDashboardShowAll: () => void;
   closeAll: () => void;
 }
 
@@ -62,6 +64,7 @@ const useUIStore = create<UIState & UIActions>((set) => ({
   modal: null,
   confirmDialog: null,
   zenMode: false,
+  dashboardShowAll: false,
   cmdPaletteOpen: false,
   shortcutsOpen: false,
   quickTradeOpen: false,
@@ -91,6 +94,7 @@ const useUIStore = create<UIState & UIActions>((set) => ({
   openSettings: () => set({ settingsOpen: true }),
   closeSettings: () => set({ settingsOpen: false }),
   toggleSettings: () => set((s) => ({ settingsOpen: !s.settingsOpen })),
+  toggleDashboardShowAll: () => set((s) => ({ dashboardShowAll: !s.dashboardShowAll })),
   closeAll: () =>
     set({
       modal: null,
@@ -101,6 +105,24 @@ const useUIStore = create<UIState & UIActions>((set) => ({
       settingsOpen: false,
     }),
 }));
+
+// ─── Dashboard Tier Helper ───────────────────────────────────
+// Derived from trade count — not stored state.
+// Tier 0: 0 trades (empty state)
+// Tier 1: 1-4 trades (equity curve + watchlist)
+// Tier 2: 5-9 trades (+ heatmap, metrics, risk, morning briefing)
+// Tier 3: 10-19 trades (+ full metrics, intraday, AI insights)
+// Tier 4: 20-49 trades (+ monte carlo, quest, show-more toggle)
+// Tier 5: 50+ trades (everything visible)
+
+export function getDashboardTier(tradeCount: number): number {
+  if (tradeCount === 0) return 0;
+  if (tradeCount < 5) return 1;
+  if (tradeCount < 10) return 2;
+  if (tradeCount < 20) return 3;
+  if (tradeCount < 50) return 4;
+  return 5;
+}
 
 export { useUIStore };
 export default useUIStore;

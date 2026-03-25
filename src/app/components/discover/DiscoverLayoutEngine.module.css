@@ -12,7 +12,7 @@
   padding: 6px 12px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: var(--fs-xs);
+  font-size: var(--tf-fs-xs);
   font-weight: 600;
 }
 
@@ -29,7 +29,7 @@
 }
 
 .dropdownTitle {
-  font-size: var(--fs-sm);
+  font-size: var(--tf-fs-sm);
   font-weight: 700;
   margin-bottom: 12px;
 }
@@ -64,6 +64,6 @@
   border-radius: 8px;
   background: transparent;
   cursor: pointer;
-  font-size: var(--fs-2xs);
+  font-size: clamp(0.5625rem, 0.5rem + 0.2vw, 0.6875rem);
   font-weight: 600;
 }

@@ -8,19 +8,19 @@
 .card {
   background: var(--tf-sf);
   border: 1px solid var(--tf-bd);
-  border-radius: var(--br-xl, 16px);
-  padding: var(--sp-6, 24px);
-  transition: all var(--dur-normal, 200ms) var(--ease-default);
+  border-radius: var(--tf-radius-lg);
+  padding: var(--tf-space-6);
+  transition: all var(--motion-base) var(--ease-out);
   cursor: default;
-  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.2));
+  box-shadow: var(--tf-shadow-1);
 }
 
 .card:hover {
   background: var(--tf-sf2);
-  border-color: var(--c-border-hover, rgba(255,255,255,0.12));
+  border-color: var(--tf-bd2);
   transform: perspective(800px) translateY(-2px) rotateX(1deg) rotateY(-0.5deg);
   box-shadow:
-    var(--shadow-md, 0 4px 12px rgba(0,0,0,0.4)),
+    var(--tf-shadow-2),
     0 0 20px rgba(232, 100, 44, 0.06);
 }
 
@@ -28,17 +28,17 @@
 .cardElevated {
   background: var(--tf-sf);
   border: 1px solid var(--tf-bd);
-  border-radius: var(--br-xl, 16px);
-  padding: var(--sp-6, 24px);
-  transition: all var(--dur-normal, 200ms) var(--ease-default);
-  box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.4));
+  border-radius: var(--tf-radius-lg);
+  padding: var(--tf-space-6);
+  transition: all var(--motion-base) var(--ease-out);
+  box-shadow: var(--tf-shadow-2);
 }
 
 .cardElevated:hover {
   background: var(--tf-sf2);
-  border-color: rgba(232,100,44,0.3);
+  border-color: rgba(232, 100, 44, 0.3);
   transform: translateY(-4px);
-  box-shadow: var(--shadow-lg, 0 8px 24px rgba(0,0,0,0.5));
+  box-shadow: var(--tf-shadow-3);
 }
 
 /* ─── Glass variant — blurred backdrop ────────────────────────── */
@@ -46,29 +46,29 @@
   background: rgba(22, 24, 29, 0.65);
   backdrop-filter: blur(16px) saturate(1.5);
   -webkit-backdrop-filter: blur(16px) saturate(1.5);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: var(--br-xl, 16px);
-  padding: var(--sp-6, 24px);
-  transition: all var(--dur-normal, 200ms) var(--ease-default);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--tf-radius-lg);
+  padding: var(--tf-space-6);
+  transition: all var(--motion-base) var(--ease-out);
 }
 
 .cardGlass:hover {
-  border-color: rgba(255,255,255,0.12);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 /* ─── Compact variant — less padding ──────────────────────────── */
 .cardCompact {
   background: var(--tf-sf);
   border: 1px solid var(--tf-bd);
-  border-radius: var(--br-lg, 12px);
-  padding: var(--sp-4, 16px);
-  transition: all var(--dur-normal, 200ms) var(--ease-default);
-  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.2));
+  border-radius: var(--tf-radius-md);
+  padding: var(--tf-space-4);
+  transition: all var(--motion-base) var(--ease-out);
+  box-shadow: var(--tf-shadow-1);
 }
 
 .cardCompact:hover {
   background: var(--tf-sf2);
-  border-color: var(--c-border-hover);
+  border-color: var(--tf-bd2);
 }
 
 @media (prefers-reduced-motion: reduce) {

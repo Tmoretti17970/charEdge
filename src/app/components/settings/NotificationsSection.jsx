@@ -12,10 +12,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 // C, F, M constants removed — using CSS module tokens (Sprint 24)
-import { radii } from '../../../theme/tokens.js';
-import { Card } from '../ui/UIKit.jsx';
-import { SectionHeader } from './SettingsHelpers.jsx';
-import css from './NotificationsSection.module.css';
+import { useGamificationStore } from '../../../state/useGamificationStore';
 import {
   useNotificationPreferences,
   NOTIFICATION_CATEGORIES,
@@ -24,9 +21,11 @@ import {
   FREQUENCY_META,
   PAUSE_DURATIONS,
 } from '../../../state/useNotificationStore';
-import DNDScheduleBuilder from './DNDScheduleBuilder.jsx';
+import { Card } from '../ui/UIKit.jsx';
 import AlertSoundPicker from './AlertSoundPicker.jsx';
-import { useGamificationStore } from '../../../state/useGamificationStore';
+import DNDScheduleBuilder from './DNDScheduleBuilder.jsx';
+import css from './NotificationsSection.module.css';
+import { SectionHeader } from './SettingsHelpers.jsx';
 
 // ─── Main Component ─────────────────────────────────────────────
 
@@ -79,8 +78,47 @@ function NotificationHub({ onSelectCategory }) {
     return `${hours}h remaining`;
   }, [pauseAll, pauseUntil]);
 
+  // ─── Quick Presets ──────────────────────────────────────────
+  const applyPreset = (preset) => {
+    const store = useNotificationPreferences.getState();
+    if (preset === 'all') {
+      store.resumeAll();
+    } else if (preset === 'important') {
+      // Resume but enable DND for non-essential hours
+      store.resumeAll();
+      store.setDnd(true, '22:00', '08:00');
+    } else if (preset === 'silent') {
+      store.setPauseAll(true);
+    }
+  };
+
   return (
     <>
+      {/* Quick Presets */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        {[
+          { id: 'all', label: 'All', desc: 'Everything on' },
+          { id: 'important', label: 'Important Only', desc: 'Alerts & errors' },
+          { id: 'silent', label: 'Silent', desc: 'Everything off' },
+        ].map((p) => (
+          <button
+            key={p.id}
+            className={`tf-btn ${css.pauseBtn}`}
+            onClick={() => applyPreset(p.id)}
+            title={p.desc}
+            style={{
+              flex: 1,
+              padding: '8px 12px',
+              fontSize: 12,
+              fontWeight: 600,
+              borderRadius: 8,
+            }}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
       {/* Global Pause Control */}
       <Card className={css.cardPad}>
         <div className={css.rowBetween}>
@@ -162,7 +200,7 @@ function NotificationHub({ onSelectCategory }) {
       {/* Category List */}
       <div className={css.sectionLabel}>Customize notifications</div>
       <Card className={css.cardPadFlush}>
-        {NOTIFICATION_CATEGORIES.map((catId, i) => {
+        {NOTIFICATION_CATEGORIES.map((catId, _i) => {
           const meta = CATEGORY_META[catId];
           const summary = getActiveChannelSummary(catId);
           const channels = useNotificationPreferences.getState().categories[catId];

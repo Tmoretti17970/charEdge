@@ -9,6 +9,7 @@
 
 import React, { useRef, useLayoutEffect, useState, useCallback } from 'react';
 import { C, F } from '../../../constants.js';
+import { haptics } from '../../misc/haptics.ts';
 import s from './AccountSwitcher.module.css';
 import { alpha } from '@/shared/colorUtils';
 import { useAccountStore, ACCOUNTS } from '@/state/useAccountStore';
@@ -17,6 +18,16 @@ function AccountSwitcher({ expanded = false }) {
   const activeAccountId = useAccountStore((state) => state.activeAccountId);
   const switchAccount = useAccountStore((state) => state.switchAccount);
   const activeAccount = ACCOUNTS.find((a) => a.id === activeAccountId) || ACCOUNTS[0];
+
+  // Phase 3: Confirm before switching accounts to prevent accidental trades against wrong account
+  const handleSwitch = useCallback((newId) => {
+    if (newId === activeAccountId) return;
+    const targetLabel = ACCOUNTS.find((a) => a.id === newId)?.label || newId;
+    if (window.confirm(`Switch to ${targetLabel} account?`)) {
+      switchAccount(newId);
+      haptics.trigger('medium');
+    }
+  }, [activeAccountId, switchAccount]);
 
   // Slider measurement for expanded mode
   const containerRef = useRef(null);
@@ -49,7 +60,7 @@ function AccountSwitcher({ expanded = false }) {
       >
         <button
           className={s.iconBtn}
-          onClick={() => switchAccount(activeAccountId === 'real' ? 'demo' : 'real')}
+          onClick={() => handleSwitch(activeAccountId === 'real' ? 'demo' : 'real')}
           aria-label={`Switch to ${activeAccountId === 'real' ? 'Demo' : 'Real'} account`}
           style={{
             background: alpha(activeAccount.color, 0.1),
@@ -90,7 +101,7 @@ function AccountSwitcher({ expanded = false }) {
               optionRefs.current[account.id] = el;
             }}
             className={`${s.option} ${activeAccountId === account.id ? s.optionActive : ''}`}
-            onClick={() => switchAccount(account.id)}
+            onClick={() => handleSwitch(account.id)}
             aria-label={`Switch to ${account.label} account`}
             aria-pressed={activeAccountId === account.id}
             style={{

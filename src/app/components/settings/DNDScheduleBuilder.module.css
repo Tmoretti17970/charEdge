@@ -1,41 +1,110 @@
 /* DNDScheduleBuilder — CSS Module */
-.cardPad { padding: var(--sp-5); margin-top: var(--sp-4); }
-.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-.title { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--tf-t1); font-family: var(--tf-font); }
-.subtitle { font-size: var(--fs-2xs); color: var(--tf-t3); font-family: var(--tf-font); }
+.cardPad {
+  padding: var(--tf-space-5);
+  margin-top: var(--tf-space-4);
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.title {
+  font-size: var(--tf-fs-sm);
+  font-weight: 700;
+  color: var(--tf-t1);
+  font-family: var(--tf-font);
+}
+.subtitle {
+  font-size: clamp(0.5625rem, 0.5rem + 0.2vw, 0.6875rem);
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+}
 .toggleTrack {
-  width: 46px; height: 26px; border-radius: 13px;
-  position: relative; border: none; cursor: pointer;
-  transition: background var(--dur-normal);
+  width: 46px;
+  height: 26px;
+  border-radius: 13px;
+  position: relative;
+  border: none;
+  cursor: pointer;
+  transition: background var(--motion-base);
 }
 .toggleKnob {
-  width: 20px; height: 20px; border-radius: 50%; background: #fff;
-  position: absolute; top: 3px;
-  transition: left var(--dur-normal); box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  position: absolute;
+  top: 3px;
+  transition: left var(--motion-base);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
-.presetRow { display: flex; gap: var(--sp-1_5); margin-bottom: 14px; }
+.presetRow {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
 .presetBtn {
-  flex: 1; padding: var(--sp-1_5) var(--sp-1); border-radius: var(--br-sm);
+  flex: 1;
+  padding: 6px var(--tf-space-1);
+  border-radius: var(--tf-radius-xs);
   border: 1px solid color-mix(in srgb, var(--tf-bd) 19%, transparent);
-  background: transparent; color: var(--tf-t2);
-  font-size: var(--fs-xs); font-weight: var(--fw-semibold); font-family: var(--tf-font);
+  background: transparent;
+  color: var(--tf-t2);
+  font-size: var(--tf-fs-xs);
+  font-weight: 600;
+  font-family: var(--tf-font);
   cursor: pointer;
 }
-.gridScroll { overflow-x: auto; }
-.grid { display: grid; grid-template-columns: 50px repeat(7, 1fr); gap: 3px; }
+.gridScroll {
+  overflow-x: auto;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 50px repeat(7, 1fr);
+  gap: 3px;
+}
 .dayHeader {
-  text-align: center; font-size: var(--fs-xs); font-weight: var(--fw-bold);
-  color: var(--tf-t3); font-family: var(--tf-mono); padding: var(--sp-1) 0;
+  text-align: center;
+  font-size: var(--tf-fs-xs);
+  font-weight: 700;
+  color: var(--tf-t3);
+  font-family: var(--tf-mono);
+  padding: var(--tf-space-1) 0;
 }
 .blockLabel {
-  font-size: var(--fs-3xs); font-weight: var(--fw-semibold); color: var(--tf-t3);
-  font-family: var(--tf-mono); display: flex; align-items: center; padding-right: var(--sp-1);
+  font-size: clamp(0.4375rem, 0.4rem + 0.15vw, 0.5rem);
+  font-weight: 600;
+  color: var(--tf-t3);
+  font-family: var(--tf-mono);
+  display: flex;
+  align-items: center;
+  padding-right: var(--tf-space-1);
 }
 .blockCell {
-  height: 24px; border-radius: var(--br-sm); border: none;
-  cursor: pointer; transition: background var(--dur-normal);
+  height: 24px;
+  border-radius: var(--tf-radius-xs);
+  border: none;
+  cursor: pointer;
+  transition: background var(--motion-base);
 }
-.legend { display: flex; gap: var(--sp-3); margin-top: var(--sp-2); }
-.legendItem { display: flex; align-items: center; gap: var(--sp-1); }
-.legendDot { width: 10px; height: 10px; border-radius: 2px; }
-.legendLabel { font-size: var(--fs-3xs); color: var(--tf-t3); font-family: var(--tf-font); }
+.legend {
+  display: flex;
+  gap: var(--tf-space-3);
+  margin-top: var(--tf-space-2);
+}
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+}
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+.legendLabel {
+  font-size: clamp(0.4375rem, 0.4rem + 0.15vw, 0.5rem);
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+}

@@ -354,7 +354,7 @@ export default function MarketsWatchlistGrid({ focusedIndex = -1, setFocusedInde
   });
 
   // ─── Sprint 56: Virtual scrolling for large lists ───────────
-  const ROW_HEIGHT = 48;
+  const ROW_HEIGHT = 56;
   const { virtualItems, totalHeight, isVirtualized } = useVirtualScroll({
     itemCount: !groupedData ? sortedItems.length : 0,
     itemHeight: ROW_HEIGHT,
@@ -619,7 +619,7 @@ const WatchlistGridRow = memo(function WatchlistGridRow({
               <EarningsBadge symbol={item.symbol} />
               <span
                 style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-mono)', display: 'none' }}
-               />
+              />
               {item.assetClass && item.assetClass !== 'other' && (
                 <span
                   style={{

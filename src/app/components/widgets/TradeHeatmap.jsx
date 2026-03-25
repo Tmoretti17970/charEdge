@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { useMemo, useState, useCallback } from 'react';
-import { C, M } from '../../../constants.js';
+import { C } from '../../../constants.js';
 import st from './TradeHeatmap.module.css';
 
 // ─── Date Helpers ───────────────────────────────────────────────
@@ -80,7 +80,7 @@ function aggregateMonth(trades, year, month) {
 
 // ─── Heatmap Component ──────────────────────────────────────────
 
-function TradeHeatmap({ trades = [], onDayClick = null, initialDate = null }) {
+function TradeHeatmap({ trades = [], onDayClick = null, initialDate = null, compact = false }) {
   const today = new Date();
   const [viewYear, setViewYear] = useState(initialDate ? initialDate.getFullYear() : today.getFullYear());
   const [viewMonth, setViewMonth] = useState(initialDate ? initialDate.getMonth() : today.getMonth());
@@ -143,23 +143,25 @@ function TradeHeatmap({ trades = [], onDayClick = null, initialDate = null }) {
       {/* Header: month nav */}
       <div className={st.header}>
         <div className={st.navGroup}>
-          <button className={`tf-btn ${st.navBtn}`} onClick={prevMonth}>‹</button>
+          {!compact && <button className={`tf-btn ${st.navBtn}`} onClick={prevMonth}>‹</button>}
           <span className={st.monthLabel}>{MONTHS[viewMonth]} {viewYear}</span>
-          <button className={`tf-btn ${st.navBtn}`} onClick={nextMonth}>›</button>
-          <button className={`tf-btn ${st.todayBtn}`} onClick={goToToday}>Today</button>
+          {!compact && <button className={`tf-btn ${st.navBtn}`} onClick={nextMonth}>›</button>}
+          {!compact && <button className={`tf-btn ${st.todayBtn}`} onClick={goToToday}>Today</button>}
         </div>
 
-        {/* Month summary */}
-        <div className={st.summaryRow}>
-          <span>
-            P&L:{' '}
-            <span className={monthPnl >= 0 ? st.pnlUp : st.pnlDown}>
-              {monthPnl >= 0 ? '+' : ''}${monthPnl.toFixed(0)}
+        {/* Month summary — hidden in compact */}
+        {!compact && (
+          <div className={st.summaryRow}>
+            <span>
+              P&L:{' '}
+              <span className={monthPnl >= 0 ? st.pnlUp : st.pnlDown}>
+                {monthPnl >= 0 ? '+' : ''}${monthPnl.toFixed(0)}
+              </span>
             </span>
-          </span>
-          <span>{tradingDays} days</span>
-          <span>{tradingDays > 0 ? ((winDays / tradingDays) * 100).toFixed(0) : 0}% win</span>
-        </div>
+            <span>{tradingDays} days</span>
+            <span>{tradingDays > 0 ? ((winDays / tradingDays) * 100).toFixed(0) : 0}% win</span>
+          </div>
+        )}
       </div>
 
       {/* Weekday headers */}

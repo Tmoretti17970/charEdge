@@ -4,7 +4,6 @@
 // Status indicator badges with semantic colors from design tokens.
 // ═══════════════════════════════════════════════════════════════════
 
-
 const STATUS_STYLES = {
   success: {
     background: 'hsla(152, 69%, 48%, 0.15)',
@@ -28,14 +27,14 @@ const STATUS_STYLES = {
   },
   neutral: {
     background: 'hsla(210, 13%, 68%, 0.12)',
-    color: 'var(--c-fg-secondary, hsl(210, 13%, 68%))',
+    color: 'var(--tf-t2)',
     border: '1px solid hsla(210, 13%, 68%, 0.2)',
   },
 };
 
 const SIZE_STYLES = {
-  sm: { fontSize: 'var(--fs-xs, 11px)', padding: '2px 8px' },
-  md: { fontSize: 'var(--fs-sm, 13px)', padding: '4px 12px' },
+  sm: { fontSize: 'var(--tf-fs-xs)', padding: '2px 8px' },
+  md: { fontSize: 'var(--tf-fs-sm)', padding: '4px 12px' },
 };
 
 /**
@@ -65,8 +64,8 @@ export default function Badge({
         display: 'inline-flex',
         alignItems: 'center',
         gap: dot ? 6 : 0,
-        borderRadius: 'var(--br-full, 9999px)',
-        fontWeight: 'var(--fw-semibold, 600)',
+        borderRadius: 'var(--tf-radius-full)',
+        fontWeight: '600',
         letterSpacing: '0.02em',
         whiteSpace: 'nowrap',
         lineHeight: 1,

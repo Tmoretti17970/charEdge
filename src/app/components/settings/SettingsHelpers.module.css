@@ -1,6 +1,8 @@
 /* SettingsHelpers — shared settings UI components */
 
-.sectionWrapper { margin-bottom: 16px; }
+.sectionWrapper {
+  margin-bottom: 16px;
+}
 
 .sectionHeader {
   display: flex;
@@ -10,29 +12,31 @@
 }
 
 .sectionTitle {
-  font-size: var(--fs-md);
+  font-size: var(--tf-fs-md);
   font-weight: 700;
   margin: 0;
 }
 
 .sectionDesc {
-  font-size: var(--fs-sm);
+  font-size: var(--tf-fs-sm);
   margin: 0;
   padding-left: 30px;
 }
 
 /* ─── Setting Row ─────────────────────────── */
-.settingRow { margin-bottom: 16px; }
+.settingRow {
+  margin-bottom: 16px;
+}
 
 .settingLabel {
   display: block;
-  font-size: var(--fs-xs);
+  font-size: var(--tf-fs-xs);
   font-weight: 600;
   margin-bottom: 6px;
 }
 
 .settingHint {
-  font-size: var(--fs-xs);
+  font-size: var(--tf-fs-xs);
   margin-top: 4px;
 }
 
@@ -43,7 +47,7 @@
   gap: 4px;
   padding: 3px 10px;
   border-radius: 12px;
-  font-size: var(--fs-2xs);
+  font-size: clamp(0.5625rem, 0.5rem + 0.2vw, 0.6875rem);
   font-weight: 600;
 }
 

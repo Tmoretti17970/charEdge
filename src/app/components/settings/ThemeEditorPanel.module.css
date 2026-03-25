@@ -1,29 +1,103 @@
 /* ThemeEditorPanel — CSS Module */
-.root { margin-top: var(--sp-4); }
-.cardPad { padding: var(--sp-5); margin-bottom: var(--sp-3); }
-.cardPadLast { padding: var(--sp-5); }
-.cardTitle { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--tf-t1); font-family: var(--tf-font); margin-bottom: var(--sp-1); }
-.cardHint { font-size: var(--fs-2xs); color: var(--tf-t3); font-family: var(--tf-font); margin-bottom: 14px; }
-.swatchRow { display: flex; gap: var(--sp-2); flex-wrap: wrap; margin-bottom: var(--sp-3); }
+.root {
+  margin-top: var(--tf-space-4);
+}
+.cardPad {
+  padding: var(--tf-space-5);
+  margin-bottom: var(--tf-space-3);
+}
+.cardPadLast {
+  padding: var(--tf-space-5);
+}
+.cardTitle {
+  font-size: var(--tf-fs-sm);
+  font-weight: 700;
+  color: var(--tf-t1);
+  font-family: var(--tf-font);
+  margin-bottom: var(--tf-space-1);
+}
+.cardHint {
+  font-size: clamp(0.5625rem, 0.5rem + 0.2vw, 0.6875rem);
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  margin-bottom: 14px;
+}
+.swatchRow {
+  display: flex;
+  gap: var(--tf-space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--tf-space-3);
+}
 .accentSwatch {
-  width: 36px; height: 36px; border-radius: 10px;
-  cursor: pointer; transition: all var(--dur-normal);
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all var(--motion-base);
 }
-.customRow { display: flex; align-items: center; gap: var(--sp-2); }
-.colorInput { width: 28px; height: 28px; border: none; background: none; cursor: pointer; padding: 0; }
-.customLabel { font-size: var(--fs-2xs); color: var(--tf-t3); font-family: var(--tf-mono); }
-.schemeRow { display: flex; gap: var(--sp-2); }
+.customRow {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+.colorInput {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+.customLabel {
+  font-size: clamp(0.5625rem, 0.5rem + 0.2vw, 0.6875rem);
+  color: var(--tf-t3);
+  font-family: var(--tf-mono);
+}
+.schemeRow {
+  display: flex;
+  gap: var(--tf-space-2);
+}
 .schemeBtn {
-  flex: 1; padding: 10px var(--sp-2); border-radius: var(--br-sm);
-  cursor: pointer; transition: all var(--dur-normal);
+  flex: 1;
+  padding: 10px var(--tf-space-2);
+  border-radius: var(--tf-radius-xs);
+  cursor: pointer;
+  transition: all var(--motion-base);
 }
-.candlePreview { display: flex; justify-content: center; gap: var(--sp-1); margin-bottom: var(--sp-1_5); }
-.candle { width: 8px; border-radius: 2px; }
-.schemeLabel { font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--tf-t2); font-family: var(--tf-font); }
-.scaleRow { display: flex; gap: var(--sp-1); }
+.candlePreview {
+  display: flex;
+  justify-content: center;
+  gap: var(--tf-space-1);
+  margin-bottom: 6px;
+}
+.candle {
+  width: 8px;
+  border-radius: 2px;
+}
+.schemeLabel {
+  font-size: var(--tf-fs-xs);
+  font-weight: 600;
+  color: var(--tf-t2);
+  font-family: var(--tf-font);
+}
+.scaleRow {
+  display: flex;
+  gap: var(--tf-space-1);
+}
 .scaleBtn {
-  flex: 1; padding: var(--sp-2) var(--sp-1); border-radius: var(--br-sm);
-  font-size: var(--fs-xs); font-weight: var(--fw-semibold); font-family: var(--tf-font);
-  cursor: pointer; transition: all var(--dur-normal);
+  flex: 1;
+  padding: var(--tf-space-2) var(--tf-space-1);
+  border-radius: var(--tf-radius-xs);
+  font-size: var(--tf-fs-xs);
+  font-weight: 600;
+  font-family: var(--tf-font);
+  cursor: pointer;
+  transition: all var(--motion-base);
 }
-.previewBox { margin-top: var(--sp-3); padding: 10px; border-radius: var(--br-sm); color: var(--tf-t2); font-family: var(--tf-font); }
+.previewBox {
+  margin-top: var(--tf-space-3);
+  padding: 10px;
+  border-radius: var(--tf-radius-xs);
+  color: var(--tf-t2);
+  font-family: var(--tf-font);
+}

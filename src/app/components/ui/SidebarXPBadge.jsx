@@ -130,7 +130,7 @@ function SidebarXPBadge() {
             fontWeight: 700,
             fontFamily: M,
             color: '#FF9500',
-            animation: 'tf-pulse 2s ease-in-out infinite',
+            /* Phase 4: Removed pulse animation — static badge reduces visual noise */
           }}
         >
           <span style={{ fontSize: 12 }}>🔥</span>
@@ -139,65 +139,64 @@ function SidebarXPBadge() {
       )}
 
       {/* Hover tooltip — portaled to body so it escapes sidebar overflow */}
-      {hovered && createPortal(
-        <div
-          className="tf-tooltip"
-          style={{
-            ...tooltipStyle,
-            background: alpha(C.sf2, 0.95),
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            border: `1px solid ${alpha(C.bd, 0.4)}`,
-            borderRadius: 10,
-            padding: '10px 14px',
-            minWidth: 160,
-            pointerEvents: 'none',
-            zIndex: 10000,
-            boxShadow: `0 4px 16px ${alpha(C.bg, 0.4)}`,
-            animation: 'tf-fade-in 0.12s ease-out',
-          }}
-        >
-          <div style={{ fontSize: 12, fontWeight: 700, fontFamily: F, color: C.t1, marginBottom: 4 }}>
-            {rank.emoji} {rank.name}
-          </div>
-          <div style={{ fontSize: 10, fontFamily: M, color: C.t2, marginBottom: 6 }}>
-            {xp.toLocaleString()} XP
-            {nextRank && ` • ${(nextRank.minXP - xp).toLocaleString()} to ${nextRank.name}`}
-          </div>
+      {hovered &&
+        createPortal(
+          <div
+            className="tf-tooltip"
+            style={{
+              ...tooltipStyle,
+              background: alpha(C.sf2, 0.95),
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: `1px solid ${alpha(C.bd, 0.4)}`,
+              borderRadius: 10,
+              padding: '10px 14px',
+              minWidth: 160,
+              pointerEvents: 'none',
+              zIndex: 10000,
+              boxShadow: `0 4px 16px ${alpha(C.bg, 0.4)}`,
+              animation: 'tf-fade-in 0.12s ease-out',
+            }}
+          >
+            <div style={{ fontSize: 12, fontWeight: 700, fontFamily: F, color: C.t1, marginBottom: 4 }}>
+              {rank.emoji} {rank.name}
+            </div>
+            <div style={{ fontSize: 10, fontFamily: M, color: C.t2, marginBottom: 6 }}>
+              {xp.toLocaleString()} XP
+              {nextRank && ` • ${(nextRank.minXP - xp).toLocaleString()} to ${nextRank.name}`}
+            </div>
 
-          {/* Mini progress bar */}
-          <div style={{
-            width: '100%',
-            height: 4,
-            borderRadius: 2,
-            background: alpha(C.bd, 0.3),
-            overflow: 'hidden',
-            marginBottom: 6,
-          }}>
-            <div style={{
-              width: `${Math.round(progress * 100)}%`,
-              height: '100%',
-              borderRadius: 2,
-              background: rank.color,
-              transition: 'width 0.4s ease',
-            }} />
-          </div>
+            {/* Mini progress bar */}
+            <div
+              style={{
+                width: '100%',
+                height: 4,
+                borderRadius: 2,
+                background: alpha(C.bd, 0.3),
+                overflow: 'hidden',
+                marginBottom: 6,
+              }}
+            >
+              <div
+                style={{
+                  width: `${Math.round(progress * 100)}%`,
+                  height: '100%',
+                  borderRadius: 2,
+                  background: rank.color,
+                  transition: 'width 0.4s ease',
+                }}
+              />
+            </div>
 
-          {/* Streaks row */}
-          <div style={{ display: 'flex', gap: 10, fontSize: 10, fontFamily: M, color: C.t3 }}>
-            {tradingStreak > 0 && (
-              <span>🔥 {tradingStreak}d streak</span>
-            )}
-            {streaks.journaling.current > 0 && (
-              <span>📝 {streaks.journaling.current}d</span>
-            )}
-            {streaks.profitable.current > 0 && (
-              <span>💰 {streaks.profitable.current}d</span>
-            )}
-          </div>
-        </div>,
-        document.body
-      )}
+            {/* Streaks row */}
+            <div style={{ display: 'flex', gap: 10, fontSize: 10, fontFamily: M, color: C.t3 }}>
+              {tradingStreak > 0 && <span>🔥 {tradingStreak}d streak</span>}
+              {streaks.journaling.current > 0 && <span>📝 {streaks.journaling.current}d</span>}
+              {streaks.profitable.current > 0 && <span>💰 {streaks.profitable.current}d</span>}
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

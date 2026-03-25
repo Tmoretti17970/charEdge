@@ -122,6 +122,7 @@ export default function SwipeChartNav({ watchlist = [], currentSymbol, onSymbolC
       {swiping && isSwipingLeft && nextSymbol && <EdgeIndicator side="right" symbol={nextSymbol} progress={progress} />}
 
       {/* Static edge hints (always visible) */}
+      {/* Phase 6: Enhanced edge indicators — wider, more visible, with glow */}
       {!swiping && prevSymbol && (
         <div
           style={{
@@ -129,10 +130,11 @@ export default function SwipeChartNav({ watchlist = [], currentSymbol, onSymbolC
             left: 0,
             top: '50%',
             transform: 'translateY(-50%)',
-            width: 3,
-            height: 40,
-            borderRadius: '0 3px 3px 0',
-            background: C.t3 + '20',
+            width: 5,
+            height: 48,
+            borderRadius: '0 4px 4px 0',
+            background: `linear-gradient(90deg, ${C.b}40, ${C.b}10)`,
+            boxShadow: `4px 0 12px ${C.b}15`,
           }}
         />
       )}
@@ -143,10 +145,11 @@ export default function SwipeChartNav({ watchlist = [], currentSymbol, onSymbolC
             right: 0,
             top: '50%',
             transform: 'translateY(-50%)',
-            width: 3,
-            height: 40,
-            borderRadius: '3px 0 0 3px',
-            background: C.t3 + '20',
+            width: 5,
+            height: 48,
+            borderRadius: '4px 0 0 4px',
+            background: `linear-gradient(270deg, ${C.b}40, ${C.b}10)`,
+            boxShadow: `-4px 0 12px ${C.b}15`,
           }}
         />
       )}

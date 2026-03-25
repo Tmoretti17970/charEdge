@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { C, F } from '../../../constants.js';
+import { useAccountStore } from '../../../state/useAccountStore';
 import { TemplatePicker } from '../../features/journal/journal_ui/JournalEvolution.jsx';
 import { ModalOverlay, Btn, inputStyle } from '../ui/UIKit.jsx';
 // eslint-disable-next-line import/order
@@ -51,6 +52,8 @@ function TradeFormModal({ isOpen, onClose, editTrade = null }) {
     handleDrop,
     handleTemplateSelect,
   } = useTradeForm({ isOpen, onClose, editTrade });
+
+  const isDemo = useAccountStore((s) => s.activeAccountId === 'demo');
 
   return (
     <>
@@ -102,9 +105,26 @@ function TradeFormModal({ isOpen, onClose, editTrade = null }) {
 
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <h2 style={{ fontSize: 16, fontWeight: 800, fontFamily: F, color: C.t1, margin: 0 }}>
-              {isEdit ? 'Edit Trade' : 'Add Trade'}
-            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <h2 style={{ fontSize: 16, fontWeight: 800, fontFamily: F, color: C.t1, margin: 0 }}>
+                {isEdit ? 'Edit Trade' : 'Add Trade'}
+              </h2>
+              <span
+                style={{
+                  fontSize: 9,
+                  padding: '2px 8px',
+                  borderRadius: 6,
+                  fontWeight: 800,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  background: isDemo ? '#3b82f615' : '#22c55e15',
+                  color: isDemo ? '#3b82f6' : '#22c55e',
+                  border: `1px solid ${isDemo ? '#3b82f630' : '#22c55e30'}`,
+                }}
+              >
+                {isDemo ? 'DEMO' : 'REAL'}
+              </span>
+            </div>
             <button
               className="tf-btn"
               onClick={onClose}

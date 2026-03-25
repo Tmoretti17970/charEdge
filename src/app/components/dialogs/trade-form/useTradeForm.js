@@ -8,6 +8,7 @@ import { roundField } from '../../../../charting_library/model/Money.js';
 import { useJournalStore } from '../../../../state/useJournalStore';
 import { useTradeTemplateStore, applyTradeTemplate } from '../../../../state/useTradeTemplateStore.js';
 import { uid } from '../../../../utils.js';
+import { haptics } from '../../../misc/haptics.ts';
 import toast from '../../ui/Toast.jsx';
 import { calculatePnL } from './PnLCalculator.js';
 import { processScreenshot } from './ScreenshotProcessor.js';
@@ -185,14 +186,19 @@ export function useTradeForm({ isOpen, onClose, editTrade }) {
     if (isEdit) {
       updateTrade(trade.id, trade);
       toast.success(`${trade.symbol} trade updated`);
+      haptics.trigger('success');
       onClose();
     } else {
       addTrade(trade);
-      toast.success(`${trade.symbol} ${trade.side} trade added — ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}`);
-      // Sprint 3: Open post-trade review for new trades
+      haptics.trigger('success');
       onClose();
-      setReviewTrade(trade);
-      setReviewOpen(true);
+      // Phase 3: Post-trade review is now optional — toast with action button
+      toast.action(
+        `${trade.symbol} ${trade.side} trade added — ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}`,
+        'Review',
+        () => { setReviewTrade(trade); setReviewOpen(true); },
+        { type: 'success' },
+      );
     }
 
     setActiveTemplateId(null);

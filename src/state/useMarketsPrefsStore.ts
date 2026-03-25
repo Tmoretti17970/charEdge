@@ -31,7 +31,7 @@ export const ALL_COLUMNS = [
   { id: 'assetClass', label: 'Asset Class', fixed: false },
 ];
 
-export const DEFAULT_COLUMNS = ['symbol', 'sparkline', 'price', 'change', 'volume', 'pnl'];
+export const DEFAULT_COLUMNS = ['symbol', 'price', 'change', 'volume'];
 
 // ─── Asset class filter options ────────────────────────────────
 
@@ -98,7 +98,7 @@ const useMarketsPrefsStore = create(
       clearSort: () => set({ sortKey: null, sortDir: 'desc' }),
 
       // ─── Filter preferences ─────────────────────────────
-      assetClassFilters: [],    // empty = show all
+      assetClassFilters: [], // empty = show all
 
       toggleAssetFilter: (cls) => {
         set((s) => {
@@ -116,39 +116,41 @@ const useMarketsPrefsStore = create(
       clearFilters: () => set({ assetClassFilters: [] }),
 
       // ─── Group preferences ──────────────────────────────
-      groupBy: null,     // null | 'assetClass' | 'folder'
+      groupBy: null, // null | 'assetClass' | 'folder'
 
       setGroupBy: (group) => set({ groupBy: group }),
       clearGroupBy: () => set({ groupBy: null }),
 
       // ─── Detail panel (Sprint 9) ────────────────────────
-      selectedSymbol: null,     // symbol string or null
+      selectedSymbol: null, // symbol string or null
 
       setSelectedSymbol: (symbol) => set({ selectedSymbol: symbol }),
       closeDetail: () => set({ selectedSymbol: null }),
 
       // ─── View mode (Sprint 17 + 18) ────────────────────
-      viewMode: 'list',     // 'list' | 'cards' | 'compact' | 'heatmap'
+      viewMode: 'list', // 'list' | 'cards' | 'compact' | 'heatmap'
       setViewMode: (mode) => set({ viewMode: mode }),
 
       // ─── Heat map preferences (Sprint 18) ──────────────
-      heatmapSizeBy: 'volume',  // 'volume' | 'marketCap'
+      heatmapSizeBy: 'volume', // 'volume' | 'marketCap'
       setHeatmapSizeBy: (sizeBy) => set({ heatmapSizeBy: sizeBy }),
 
       // ─── Multi-watchlist tabs (Sprint 19) ──────────────
-      activeWatchlistId: null,  // null = "All", or folder ID
+      activeWatchlistId: null, // null = "All", or folder ID
       setActiveWatchlistId: (id) => set({ activeWatchlistId: id }),
 
       // ─── Comparison mode (Sprint 20) ───────────────────
-      compareSymbols: [],   // max 4 symbols
-      compareTimeRange: '1M',  // '1D' | '1W' | '1M' | '3M' | '1Y'
-      addCompareSymbol: (sym) => set((s) => {
-        if (s.compareSymbols.length >= 4 || s.compareSymbols.includes(sym)) return s;
-        return { compareSymbols: [...s.compareSymbols, sym] };
-      }),
-      removeCompareSymbol: (sym) => set((s) => ({
-        compareSymbols: s.compareSymbols.filter((c) => c !== sym),
-      })),
+      compareSymbols: [], // max 4 symbols
+      compareTimeRange: '1M', // '1D' | '1W' | '1M' | '3M' | '1Y'
+      addCompareSymbol: (sym) =>
+        set((s) => {
+          if (s.compareSymbols.length >= 4 || s.compareSymbols.includes(sym)) return s;
+          return { compareSymbols: [...s.compareSymbols, sym] };
+        }),
+      removeCompareSymbol: (sym) =>
+        set((s) => ({
+          compareSymbols: s.compareSymbols.filter((c) => c !== sym),
+        })),
       clearCompare: () => set({ compareSymbols: [] }),
       setCompareTimeRange: (range) => set({ compareTimeRange: range }),
 
@@ -160,9 +162,10 @@ const useMarketsPrefsStore = create(
       copilotPanelOpen: false,
       setCopilotPanelOpen: (open) => set({ copilotPanelOpen: open }),
       copilotHistory: [],
-      pushCopilotAction: (action) => set((s) => ({
-        copilotHistory: [...(s.copilotHistory || []).slice(-9), action],
-      })),
+      pushCopilotAction: (action) =>
+        set((s) => ({
+          copilotHistory: [...(s.copilotHistory || []).slice(-9), action],
+        })),
 
       // ─── Prop Firm Advisor (Sprint 26) ────────────────────
       propFirmAdvisorOpen: false,
@@ -203,4 +206,3 @@ const useMarketsPrefsStore = create(
 
 export { useMarketsPrefsStore };
 export default useMarketsPrefsStore;
-

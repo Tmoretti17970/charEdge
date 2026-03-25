@@ -34,14 +34,14 @@
   border-radius: 12px;
   pointer-events: auto;
   cursor: pointer;
-  font-size: var(--fs-sm);
+  font-size: var(--tf-fs-sm);
   line-height: 1.5;
   border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow:
     0 8px 24px rgba(0, 0, 0, 0.35),
     0 0 0 1px rgba(255, 255, 255, 0.04);
 
-  animation: toastIn 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: toastIn var(--motion-slow) var(--ease-out) forwards;
   transform: translateX(100%);
   opacity: 0;
 }
@@ -54,7 +54,7 @@
 }
 
 .exiting {
-  animation: toastOut 200ms ease forwards;
+  animation: toastOut var(--motion-base) ease forwards;
 }
 
 @keyframes toastOut {
@@ -91,7 +91,7 @@
 
 /* ─── Icon ───────────────────────────────────────────────────── */
 .icon {
-  font-size: var(--fs-md);
+  font-size: var(--tf-fs-md);
   flex-shrink: 0;
   margin-top: 1px;
 }
@@ -110,10 +110,12 @@
   color: inherit;
   opacity: 0.5;
   cursor: pointer;
-  font-size: var(--fs-md);
+  font-size: var(--tf-fs-md);
   padding: 0;
   margin-top: 1px;
-  transition: opacity 150ms;
+  transition: opacity var(--motion-fast);
 }
 
-.close:hover { opacity: 1; }
+.close:hover {
+  opacity: 1;
+}

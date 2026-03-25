@@ -5,7 +5,6 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 @layer components {
-
   /* ─── Entrance Animations ────────────────────────────────────── */
   @keyframes fadeIn {
     from {
@@ -130,7 +129,6 @@
   }
 
   @keyframes pulse {
-
     0%,
     100% {
       opacity: 1;
@@ -152,7 +150,6 @@
   }
 
   @keyframes bounce {
-
     0%,
     100% {
       transform: translateY(0);
@@ -246,36 +243,33 @@
 
   /* ─── Utility Classes ────────────────────────────────────────── */
   .animate-fadeIn {
-    animation: fadeIn var(--dur-normal) var(--ease-out);
+    animation: fadeIn var(--motion-base) var(--ease-out);
   }
 
   .animate-fadeInUp {
-    animation: fadeInUp var(--dur-enter) var(--ease-out);
+    animation: fadeInUp var(--motion-base) var(--ease-out);
   }
 
   .animate-fadeInDown {
-    animation: fadeInDown var(--dur-enter) var(--ease-out);
+    animation: fadeInDown var(--motion-base) var(--ease-out);
   }
 
   .animate-scaleIn {
-    animation: scaleIn var(--dur-enter) var(--ease-spring);
+    animation: scaleIn var(--motion-base) var(--ease-spring);
   }
 
   .animate-popIn {
-    animation: popIn var(--dur-slow) var(--ease-spring);
+    animation: popIn var(--motion-slow) var(--ease-spring);
   }
 
   .animate-shimmer {
-    background: linear-gradient(90deg,
-        var(--c-bg-secondary) 25%,
-        var(--c-bg-tertiary) 50%,
-        var(--c-bg-secondary) 75%);
+    background: linear-gradient(90deg, var(--tf-bg2) 25%, var(--tf-sf) 50%, var(--tf-bg2) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
 
   .animate-pulse {
-    animation: pulse 2s var(--ease-default) infinite;
+    animation: pulse 2s var(--ease-out) infinite;
   }
 
   .animate-spin {
@@ -325,75 +319,75 @@
   }
 
   .animate-fadeOut {
-    animation: fadeOut var(--dur-exit) var(--ease-in) forwards;
+    animation: fadeOut var(--motion-fast) var(--ease-in) forwards;
   }
 
   .animate-fadeOutDown {
-    animation: fadeOutDown var(--dur-exit) var(--ease-in) forwards;
+    animation: fadeOutDown var(--motion-fast) var(--ease-in) forwards;
   }
 
   .animate-fadeOutUp {
-    animation: fadeOutUp var(--dur-exit) var(--ease-in) forwards;
+    animation: fadeOutUp var(--motion-fast) var(--ease-in) forwards;
   }
 
   .animate-scaleOut {
-    animation: scaleOut var(--dur-exit) var(--ease-in) forwards;
+    animation: scaleOut var(--motion-fast) var(--ease-in) forwards;
   }
 
   .animate-slideOutRight {
-    animation: slideOutRight var(--dur-exit) var(--ease-in) forwards;
+    animation: slideOutRight var(--motion-fast) var(--ease-in) forwards;
   }
 
   .animate-slideOutLeft {
-    animation: slideOutLeft var(--dur-exit) var(--ease-in) forwards;
+    animation: slideOutLeft var(--motion-fast) var(--ease-in) forwards;
   }
 
   /* ─── Phase 4: Stagger Animations (Task 4.2.5) ───────────────── */
-  .stagger-list>* {
-    animation: fadeInUp var(--dur-enter) var(--ease-out) both;
+  .stagger-list > * {
+    animation: fadeInUp var(--motion-base) var(--ease-out) both;
   }
 
-  .stagger-list>*:nth-child(1) {
+  .stagger-list > *:nth-child(1) {
     animation-delay: 0ms;
   }
 
-  .stagger-list>*:nth-child(2) {
+  .stagger-list > *:nth-child(2) {
     animation-delay: 50ms;
   }
 
-  .stagger-list>*:nth-child(3) {
+  .stagger-list > *:nth-child(3) {
     animation-delay: 100ms;
   }
 
-  .stagger-list>*:nth-child(4) {
+  .stagger-list > *:nth-child(4) {
     animation-delay: 150ms;
   }
 
-  .stagger-list>*:nth-child(5) {
+  .stagger-list > *:nth-child(5) {
     animation-delay: 200ms;
   }
 
-  .stagger-list>*:nth-child(6) {
+  .stagger-list > *:nth-child(6) {
     animation-delay: 250ms;
   }
 
-  .stagger-list>*:nth-child(7) {
+  .stagger-list > *:nth-child(7) {
     animation-delay: 300ms;
   }
 
-  .stagger-list>*:nth-child(8) {
+  .stagger-list > *:nth-child(8) {
     animation-delay: 350ms;
   }
 
-  .stagger-list>*:nth-child(9) {
+  .stagger-list > *:nth-child(9) {
     animation-delay: 400ms;
   }
 
-  .stagger-list>*:nth-child(10) {
+  .stagger-list > *:nth-child(10) {
     animation-delay: 450ms;
   }
 
-  .stagger-list>*:nth-child(n+11) {
+  .stagger-list > *:nth-child(n + 11) {
     animation-delay: 500ms;
   }
 
@@ -420,20 +414,19 @@
 
   .tf-tick-up {
     animation: tickFlashUp 600ms var(--ease-out);
-    color: var(--c-accent-green, #26A69A);
+    color: var(--tf-green);
   }
 
   .tf-tick-down {
     animation: tickFlashDown 600ms var(--ease-out);
-    color: var(--c-accent-red, #EF5350);
+    color: var(--tf-red);
   }
 
   /* ─── Phase 4: View Transitions CSS (Task 4.2.2) ─────────────── */
   @supports (view-transition-name: none) {
-
     ::view-transition-old(root),
     ::view-transition-new(root) {
-      animation-duration: var(--dur-normal, 200ms);
+      animation-duration: var(--motion-base);
       animation-timing-function: var(--ease-out);
     }
 
@@ -448,7 +441,7 @@
     /* Named page morph transition */
     ::view-transition-old(page-morph),
     ::view-transition-new(page-morph) {
-      animation-duration: var(--dur-slow, 350ms);
+      animation-duration: var(--motion-slow);
       animation-timing-function: var(--ease-spring);
     }
 

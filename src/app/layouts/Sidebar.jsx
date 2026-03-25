@@ -98,7 +98,7 @@ function IconSettings({ color }) {
   );
 }
 
-function IconImport({ color }) {
+function _IconImport({ color }) {
   return (
     <svg
       width="20"
@@ -216,7 +216,7 @@ function Sidebar() {
         borderRight: 'var(--tf-glass-border)',
         boxShadow: 'var(--tf-depth-floating-specular), 1px 0 8px rgba(0,0,0,0.15)',
         fontFeatureSettings: '"tnum"',
-        transition: 'width 300ms cubic-bezier(0.32, 0.72, 0, 1), min-width 300ms cubic-bezier(0.32, 0.72, 0, 1)',
+        transition: 'width 150ms cubic-bezier(0.32, 0.72, 0, 1), min-width 150ms cubic-bezier(0.32, 0.72, 0, 1)',
       }}
     >
       {/* ─── Sliding Active Indicator Bar (Sprint 11: gradient) ─── */}

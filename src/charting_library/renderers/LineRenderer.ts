@@ -50,7 +50,7 @@ export function drawLine(
   bars: LineBar[],
   params: LineParams,
   color: string,
-  lineWidth: number = 2,
+  lineWidth: number = 2.5,
 ): void {
   if (!r._available || !bars?.length) return;
 
@@ -146,12 +146,7 @@ export function drawArea(
  * Each segment is expanded into a screen-aligned quad with smooth edges.
  * Produces sub-pixel smooth lines that look better than Canvas2D.
  */
-export function drawAALine(
-  r: RendererRef,
-  points: Point[],
-  color: string,
-  lineWidth: number = 2,
-): void {
+export function drawAALine(r: RendererRef, points: Point[], color: string, lineWidth: number = 2): void {
   if (!r._available || !points || points.length < 2) return;
 
   const gl = r.gl;
@@ -172,14 +167,36 @@ export function drawAALine(
   // Build triangle-strip quad vertices for each segment
   let vi = 0;
   for (let i = 0; i < segCount; i++) {
-    const ax = points[i].x, ay = points[i].y;
-    const bx = points[i + 1].x, by = points[i + 1].y;
+    const ax = points[i].x,
+      ay = points[i].y;
+    const bx = points[i + 1].x,
+      by = points[i + 1].y;
 
     // 4 vertices: start-left, start-right, end-left, end-right
-    data[vi++] = ax; data[vi++] = ay; data[vi++] = bx; data[vi++] = by; data[vi++] = -1; data[vi++] = 0;
-    data[vi++] = ax; data[vi++] = ay; data[vi++] = bx; data[vi++] = by; data[vi++] = 1; data[vi++] = 0;
-    data[vi++] = ax; data[vi++] = ay; data[vi++] = bx; data[vi++] = by; data[vi++] = -1; data[vi++] = 1;
-    data[vi++] = ax; data[vi++] = ay; data[vi++] = bx; data[vi++] = by; data[vi++] = 1; data[vi++] = 1;
+    data[vi++] = ax;
+    data[vi++] = ay;
+    data[vi++] = bx;
+    data[vi++] = by;
+    data[vi++] = -1;
+    data[vi++] = 0;
+    data[vi++] = ax;
+    data[vi++] = ay;
+    data[vi++] = bx;
+    data[vi++] = by;
+    data[vi++] = 1;
+    data[vi++] = 0;
+    data[vi++] = ax;
+    data[vi++] = ay;
+    data[vi++] = bx;
+    data[vi++] = by;
+    data[vi++] = -1;
+    data[vi++] = 1;
+    data[vi++] = ax;
+    data[vi++] = ay;
+    data[vi++] = bx;
+    data[vi++] = by;
+    data[vi++] = 1;
+    data[vi++] = 1;
   }
 
   const _totalVerts = segCount * 4;
@@ -189,6 +206,7 @@ export function drawAALine(
 
   gl.uniform2f(gl.getUniformLocation(prog, 'u_resolution'), cW, cH);
   gl.uniform1f(gl.getUniformLocation(prog, 'u_lineWidth'), lineWidth);
+  gl.uniform1f(gl.getUniformLocation(prog, 'u_pixelRatio'), r._pixelRatio || window.devicePixelRatio || 1);
   gl.uniform4fv(gl.getUniformLocation(prog, 'u_color'), r._parseColor(color));
 
   // Upload vertex data
@@ -201,10 +219,22 @@ export function drawAALine(
   const aSide = gl.getAttribLocation(prog, 'a_side');
   const aMiter = gl.getAttribLocation(prog, 'a_miter');
 
-  if (aPosA >= 0) { gl.enableVertexAttribArray(aPosA); gl.vertexAttribPointer(aPosA, 2, gl.FLOAT, false, stride, 0); }
-  if (aPosB >= 0) { gl.enableVertexAttribArray(aPosB); gl.vertexAttribPointer(aPosB, 2, gl.FLOAT, false, stride, 8); }
-  if (aSide >= 0) { gl.enableVertexAttribArray(aSide); gl.vertexAttribPointer(aSide, 1, gl.FLOAT, false, stride, 16); }
-  if (aMiter >= 0) { gl.enableVertexAttribArray(aMiter); gl.vertexAttribPointer(aMiter, 1, gl.FLOAT, false, stride, 20); }
+  if (aPosA >= 0) {
+    gl.enableVertexAttribArray(aPosA);
+    gl.vertexAttribPointer(aPosA, 2, gl.FLOAT, false, stride, 0);
+  }
+  if (aPosB >= 0) {
+    gl.enableVertexAttribArray(aPosB);
+    gl.vertexAttribPointer(aPosB, 2, gl.FLOAT, false, stride, 8);
+  }
+  if (aSide >= 0) {
+    gl.enableVertexAttribArray(aSide);
+    gl.vertexAttribPointer(aSide, 1, gl.FLOAT, false, stride, 16);
+  }
+  if (aMiter >= 0) {
+    gl.enableVertexAttribArray(aMiter);
+    gl.vertexAttribPointer(aMiter, 1, gl.FLOAT, false, stride, 20);
+  }
 
   // Draw each segment as a separate triangle strip of 4 vertices
   for (let i = 0; i < segCount; i++) {

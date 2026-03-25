@@ -2,15 +2,15 @@
 // charEdge — Two-Factor Authentication Section (Sprint 5)
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { C } from '../../../constants.js';
 import { useUserStore } from '../../../state/useUserStore';
-import { Card, Btn, inputStyle } from '../ui/UIKit.jsx';
-import { toast } from '../ui/Toast.jsx';
 import {
   generateSecret, formatSecret, buildTOTPUri,
   generateBackupCodes, downloadBackupCodes, generateQRMatrix, renderQRToCanvas,
 } from '../../../utils/totpUtils.js';
+import { toast } from '../ui/Toast.jsx';
+import { Card, Btn, inputStyle } from '../ui/UIKit.jsx';
 import st from './TwoFactorSection.module.css';
 
 function TwoFactorSection() {
@@ -49,6 +49,7 @@ function TwoFactorSection() {
   }, [updateProfile]);
 
   const disable2FA = useCallback(() => {
+    if (!window.confirm('Disable two-factor authentication? This reduces your account security.')) return;
     updateProfile({ twoFactorEnabled: false, twoFactorSetupDate: null, backupCodesRemaining: 0 });
     toast.info('Two-factor authentication disabled');
   }, [updateProfile]);

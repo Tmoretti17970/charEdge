@@ -12,13 +12,13 @@
 
 import React from 'react';
 import { useState, useCallback, useMemo } from 'react';
+import { playAlertSound } from '../../../app/misc/alertSounds';
 import { C } from '../../../constants.js';
 import { useAlertStore } from '../../../state/useAlertStore';
-import { playAlertSound } from '../../../app/misc/alertSounds';
 import { useNotificationPreferences } from '../../../state/useNotificationStore';
-import CompoundAlertBuilder from './CompoundAlertBuilder.jsx';
 import { usePriceTracker } from '../../../state/usePriceTracker';
 import s from './AlertPanel.module.css';
+import CompoundAlertBuilder from './CompoundAlertBuilder.jsx';
 
 const AlertHistoryPanel = React.lazy(() => import('./AlertHistoryPanel.jsx'));
 const AlertAnalytics = React.lazy(() => import('./AlertAnalytics.jsx'));
@@ -265,7 +265,7 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
           </select>
           <button
             className={`tf-btn ${s.btnGhost}`}
-            onClick={() => { try { playAlertSound(soundType || 'price'); } catch {} }}
+            onClick={() => { try { playAlertSound(soundType || 'price'); } catch { /* ignored */ } }}
             title="Preview sound"
           >▶</button>
           <button
@@ -310,7 +310,7 @@ function AlertPanel({ compact = false, currentSymbol = '' }) {
         <>
           <div
             className={s.triggeredHeader}
-            style={{ marginTop: activeAlerts.length > 0 ? 'var(--sp-3)' : 0 }}
+            style={{ marginTop: activeAlerts.length > 0 ? 'var(--tf-space-3)' : 0 }}
           >
             <span className={s.sectionLabel}>
               Triggered ({triggeredAlerts.length})

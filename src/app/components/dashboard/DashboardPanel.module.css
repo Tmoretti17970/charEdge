@@ -14,11 +14,17 @@
 }
 
 @container dashboard (min-width: 640px) {
-  .page { padding: 32px; }
+  .page {
+    padding: 32px;
+  }
 }
 
-.pageMobile { padding: 16px; }
-.pageDesktop { padding: 32px; }
+.pageMobile {
+  padding: 16px;
+}
+.pageDesktop {
+  padding: 32px;
+}
 
 /* ─── Container-Responsive Bento Grid ────────────────────────── */
 .bentoGridResponsive {
@@ -59,10 +65,15 @@
   }
 }
 
-.equityChartWrapResponsive { min-height: 280px; position: relative; }
+.equityChartWrapResponsive {
+  min-height: 280px;
+  position: relative;
+}
 
 @container dashboard (min-width: 640px) {
-  .equityChartWrapResponsive { min-height: 280px; }
+  .equityChartWrapResponsive {
+    min-height: 280px;
+  }
 }
 
 /* Side-by-side hero row: equity + heatmap */
@@ -105,10 +116,14 @@
 }
 
 /* Container-responsive section gap (Sprint 28: widened to 36px desktop) */
-.sectionGap { margin-bottom: 20px; }
+.sectionGap {
+  margin-bottom: 20px;
+}
 
 @container dashboard (min-width: 640px) {
-  .sectionGap { margin-bottom: 36px; }
+  .sectionGap {
+    margin-bottom: 36px;
+  }
 }
 
 /* ─── Performance Ribbon (Sprint 5: removed — consolidated into SessionSummaryBar) ─── */
@@ -131,7 +146,7 @@
 
 .onboardTitle {
   font-weight: 800;
-  font-size: var(--fs-base);
+  font-size: var(--tf-fs-base);
   margin-bottom: 4px;
 }
 
@@ -140,8 +155,12 @@
   gap: 12px;
 }
 
-.onboardGridMobile { grid-template-columns: 1fr; }
-.onboardGridDesktop { grid-template-columns: repeat(3, 1fr); }
+.onboardGridMobile {
+  grid-template-columns: 1fr;
+}
+.onboardGridDesktop {
+  grid-template-columns: repeat(3, 1fr);
+}
 
 .onboardStep {
   display: flex;
@@ -154,9 +173,15 @@
   transition: all 0.15s;
 }
 
-.onboardIcon { font-size: 22px; }
-.onboardStepLabel { font-weight: 700; }
-.onboardStepDesc { margin-top: 1px; }
+.onboardIcon {
+  font-size: 22px;
+}
+.onboardStepLabel {
+  font-weight: 700;
+}
+.onboardStepDesc {
+  margin-top: 1px;
+}
 
 .onboardArrow {
   margin-left: auto;
@@ -206,12 +231,16 @@
 }
 
 .equityTotal {
-  font-size: var(--fs-2xl);
+  font-size: var(--tf-fs-2xl);
   font-weight: 800;
 }
 
-.equityChartWrap { flex: 1; }
-.equityChartWrapMobile { min-height: 200px; }
+.equityChartWrap {
+  flex: 1;
+}
+.equityChartWrapMobile {
+  min-height: 200px;
+}
 
 /* ─── Heatmap & Recent Trades Bento Tiles ────────────────────── */
 .bentoTileWide {
@@ -245,7 +274,7 @@
 .viewAllLink {
   background: none;
   border: none;
-  font-size: var(--fs-xs);
+  font-size: var(--tf-fs-xs);
   font-weight: 600;
   cursor: pointer;
 }
@@ -274,12 +303,12 @@
 }
 
 .tradeDate {
-  font-size: var(--fs-xs);
+  font-size: var(--tf-fs-xs);
 }
 
 .tradeSymbol {
   font-weight: 700;
-  font-size: var(--fs-sm);
+  font-size: var(--tf-fs-sm);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -295,7 +324,7 @@
 
 .tradePnl {
   font-weight: 700;
-  font-size: var(--fs-sm);
+  font-size: var(--tf-fs-sm);
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
@@ -311,7 +340,7 @@
   width: 100%;
   padding: 14px 0;
   border-radius: 12px;
-  font-size: var(--fs-sm);
+  font-size: var(--tf-fs-sm);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -320,7 +349,7 @@
 }
 
 .showAllBadge {
-  font-size: var(--fs-2xs);
+  font-size: clamp(0.5625rem, 0.5rem + 0.2vw, 0.6875rem);
   padding: 2px 8px;
   border-radius: 10px;
 }
@@ -341,8 +370,12 @@
   gap: 16px;
 }
 
-.twoColGridMobile { grid-template-columns: 1fr; }
-.twoColGridDesktop { grid-template-columns: 1fr 1fr; }
+.twoColGridMobile {
+  grid-template-columns: 1fr;
+}
+.twoColGridDesktop {
+  grid-template-columns: 1fr 1fr;
+}
 
 /* ─── Edit Mode Bar ──────────────────────────────────────────── */
 .editBar {
@@ -367,7 +400,7 @@
 .editBarBtn {
   padding: 5px 12px;
   border-radius: 6px;
-  font-size: var(--fs-xs);
+  font-size: var(--tf-fs-xs);
   font-weight: 700;
   cursor: pointer;
 }
@@ -391,7 +424,9 @@
   gap: 6px;
 }
 
-.tradeCount { font-weight: 600; }
+.tradeCount {
+  font-weight: 600;
+}
 
 /* ─── UnitToggle ─────────────────────────────────────────────── */
 .unitToggle {
@@ -420,7 +455,7 @@
 }
 
 .metricRowTip {
-  font-size: var(--fs-2xs);
+  font-size: clamp(0.5625rem, 0.5rem + 0.2vw, 0.6875rem);
   cursor: help;
 }
 
@@ -438,7 +473,7 @@
 }
 
 .bentoMetricLabel {
-  font-size: var(--fs-2xs);
+  font-size: clamp(0.5625rem, 0.5rem + 0.2vw, 0.6875rem);
   letter-spacing: 0.08em;
   font-weight: 700;
   margin-bottom: 8px;
@@ -453,7 +488,7 @@
 }
 
 .bentoMetricValue {
-  font-size: var(--fs-2xl);
+  font-size: var(--tf-fs-2xl);
   font-weight: 800;
   letter-spacing: -0.5px;
 }
@@ -511,7 +546,7 @@
 }
 
 .customTradeSide {
-  font-size: var(--fs-2xs);
+  font-size: clamp(0.5625rem, 0.5rem + 0.2vw, 0.6875rem);
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -531,7 +566,7 @@
 }
 
 .insightsEmpty {
-  font-size: var(--fs-sm);
+  font-size: var(--tf-fs-sm);
   padding: 20px 0;
   text-align: center;
 }
@@ -553,20 +588,42 @@
   transform: translateY(8px);
   animation: sectionFadeIn 300ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
-.sectionEntry:nth-child(1) { animation-delay: 0ms; }
-.sectionEntry:nth-child(2) { animation-delay: 40ms; }
-.sectionEntry:nth-child(3) { animation-delay: 80ms; }
-.sectionEntry:nth-child(4) { animation-delay: 120ms; }
-.sectionEntry:nth-child(5) { animation-delay: 160ms; }
-.sectionEntry:nth-child(6) { animation-delay: 200ms; }
-.sectionEntry:nth-child(7) { animation-delay: 240ms; }
-.sectionEntry:nth-child(8) { animation-delay: 280ms; }
+.sectionEntry:nth-child(1) {
+  animation-delay: 0ms;
+}
+.sectionEntry:nth-child(2) {
+  animation-delay: 40ms;
+}
+.sectionEntry:nth-child(3) {
+  animation-delay: 80ms;
+}
+.sectionEntry:nth-child(4) {
+  animation-delay: 120ms;
+}
+.sectionEntry:nth-child(5) {
+  animation-delay: 160ms;
+}
+.sectionEntry:nth-child(6) {
+  animation-delay: 200ms;
+}
+.sectionEntry:nth-child(7) {
+  animation-delay: 240ms;
+}
+.sectionEntry:nth-child(8) {
+  animation-delay: 280ms;
+}
 
 /* Sprint 32: Price flash animation */
 @keyframes priceFlash {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 .priceFlash {
   animation: priceFlash 0.4s ease;
@@ -579,11 +636,11 @@
   z-index: 10;
   backdrop-filter: blur(20px) saturate(1.5);
   -webkit-backdrop-filter: blur(20px) saturate(1.5);
-  border-bottom: 1px solid var(--tf-bd, rgba(255,255,255,0.06));
+  border-bottom: 1px solid var(--tf-bd, rgba(255, 255, 255, 0.06));
   transition: box-shadow 0.2s ease;
 }
 .stickySummary.scrolled {
-  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* ═══ Sprint 35: Focus-Visible Accessibility ═══ */
@@ -595,7 +652,7 @@
 
 /* Minimum touch targets */
 .page button,
-.page [role="button"],
+.page [role='button'],
 .page a {
   min-height: 44px;
   min-width: 44px;
@@ -603,8 +660,13 @@
 
 /* ═══ Sprint 36: Loading Skeleton Styles ═══ */
 @keyframes skeletonPulse {
-  0%, 100% { opacity: 0.06; }
-  50% { opacity: 0.12; }
+  0%,
+  100% {
+    opacity: 0.06;
+  }
+  50% {
+    opacity: 0.12;
+  }
 }
 
 .skeletonRow {

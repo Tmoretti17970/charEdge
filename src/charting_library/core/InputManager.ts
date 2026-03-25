@@ -6,10 +6,22 @@
 
 import { LAYERS } from './LayerManager.js';
 import {
-  _FRICTION, MIN_VELOCITY, ZOOM_LERP, ZOOM_SNAP, PREFETCH_THRESHOLD,
-  OVERSCROLL_MAX, OVERSCROLL_SPRING, RIGHT_MARGIN_FRAC,
-  PRICE_FRICTION, MIN_PRICE_VELOCITY, PRICE_SPRING_BACK,
-  ZOOM_MOMENTUM_WINDOW, ZOOM_MOMENTUM_DECAY,
+  _FRICTION,
+  MIN_VELOCITY,
+  ZOOM_LERP,
+  ZOOM_SNAP,
+  PREFETCH_THRESHOLD,
+  OVERSCROLL_MAX,
+  OVERSCROLL_SPRING,
+  RIGHT_MARGIN_FRAC,
+  INERTIA_DURATION_SCALE,
+  INERTIA_DURATION_MIN,
+  INERTIA_DURATION_MAX,
+  PRICE_FRICTION,
+  MIN_PRICE_VELOCITY,
+  PRICE_SPRING_BACK,
+  ZOOM_MOMENTUM_WINDOW,
+  ZOOM_MOMENTUM_DECAY,
 } from './inputConstants.js';
 import type { EngineRef, TouchMode } from './InputManagerTypes.js';
 
@@ -99,7 +111,9 @@ export class InputManager {
     this.onTouchStart = this.onTouchStart.bind(this);
     this.onTouchMove = this.onTouchMove.bind(this);
     this.onTouchEnd = this.onTouchEnd.bind(this);
-    this._onAuxClick = (e: MouseEvent) => { if (e.button === 1) e.preventDefault(); };
+    this._onAuxClick = (e: MouseEvent) => {
+      if (e.button === 1) e.preventDefault();
+    };
 
     this.tc.style.cursor = 'crosshair';
     this.tc.addEventListener('mousemove', this.onMouseMove);
@@ -115,7 +129,9 @@ export class InputManager {
     window.addEventListener('mouseup', this.onMouseUp);
 
     // B1.5: Observe resize to invalidate cached rect
-    this._resizeObs = new ResizeObserver(() => { this._cachedRect = null; });
+    this._resizeObs = new ResizeObserver(() => {
+      this._cachedRect = null;
+    });
     this._resizeObs.observe(this.tc);
   }
 
@@ -139,7 +155,10 @@ export class InputManager {
     this._zoomMomentumActive = false;
     this._pinchSpringActive = false;
     // B1.5: Disconnect resize observer
-    if (this._resizeObs) { this._resizeObs.disconnect(); this._resizeObs = null; }
+    if (this._resizeObs) {
+      this._resizeObs.disconnect();
+      this._resizeObs = null;
+    }
     // Strategy Item #12: Clean up drag overlay if engine is destroyed mid-drag
     this._removeDragOverlay();
     // Sprint 4: Clean up GPU compositing hint
@@ -200,7 +219,10 @@ export class InputManager {
     // B2.1: Record initial velocity and compute duration proportional to speed
     this._inertiaStartVelocity = this._velocityX;
     this._inertiaStartTime = performance.now();
-    this._inertiaDuration = Math.min(1200, Math.max(400, Math.abs(this._velocityX) * 120));
+    this._inertiaDuration = Math.min(
+      INERTIA_DURATION_MAX,
+      Math.max(INERTIA_DURATION_MIN, Math.abs(this._velocityX) * INERTIA_DURATION_SCALE),
+    );
     this._inertiaActive = true;
     this.engine._scheduleDraw();
   }
@@ -210,25 +232,32 @@ export class InputManager {
     const eng = this.engine;
     const S = eng.state;
 
-    // Spring-back when overscrolled past edges
+    // Spring-back when overscrolled past edges (exponential resistance)
     const rightMargin = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
     const minScroll = -rightMargin;
     const maxScroll = this._maxPanScroll();
     if (S.scrollOffset < minScroll) {
-      S.scrollOffset = minScroll + (S.scrollOffset - minScroll) * OVERSCROLL_SPRING;
+      const over = minScroll - S.scrollOffset;
+      // Exponential resistance: harder to pull further past edge
+      const resistance = 1 / (1 + over / OVERSCROLL_MAX);
+      S.scrollOffset = minScroll - over * OVERSCROLL_SPRING * resistance;
       if (Math.abs(S.scrollOffset - minScroll) < 0.5) S.scrollOffset = minScroll;
-      this._velocityX = 0;
+      this._velocityX *= 0.5; // Dampen velocity instead of zeroing (smoother)
     } else if (S.scrollOffset > maxScroll) {
       const over = S.scrollOffset - maxScroll;
-      S.scrollOffset = maxScroll + over * OVERSCROLL_SPRING;
+      const resistance = 1 / (1 + over / OVERSCROLL_MAX);
+      S.scrollOffset = maxScroll + over * OVERSCROLL_SPRING * resistance;
       if (Math.abs(S.scrollOffset - maxScroll) < 0.5) S.scrollOffset = maxScroll;
-      this._velocityX = 0;
+      this._velocityX *= 0.5;
     }
 
     // B2.1: Time-normalized quintic-out easing
     const elapsed = performance.now() - this._inertiaStartTime;
     const t = Math.min(1, elapsed / this._inertiaDuration);
-    if (t >= 1 || (Math.abs(this._velocityX) < MIN_VELOCITY && S.scrollOffset >= minScroll && S.scrollOffset <= maxScroll)) {
+    if (
+      t >= 1 ||
+      (Math.abs(this._velocityX) < MIN_VELOCITY && S.scrollOffset >= minScroll && S.scrollOffset <= maxScroll)
+    ) {
       this._velocityX = 0;
       this._inertiaActive = false;
       this._prefetchDispatched = false;
@@ -240,7 +269,10 @@ export class InputManager {
     const decay = Math.pow(1 - t, 4);
     this._velocityX = this._inertiaStartVelocity * decay;
 
-    S.scrollOffset = Math.max(minScroll - OVERSCROLL_MAX, Math.min(maxScroll + OVERSCROLL_MAX, S.scrollOffset + this._velocityX));
+    S.scrollOffset = Math.max(
+      minScroll - OVERSCROLL_MAX,
+      Math.min(maxScroll + OVERSCROLL_MAX, S.scrollOffset + this._velocityX),
+    );
     S.mainDirty = true;
     S.topDirty = true;
     if (eng.layers) {
@@ -291,7 +323,7 @@ export class InputManager {
   // At max zoom-out, visibleBars = bars.length so candles fill edge-to-edge.
   private _maxBars(): number {
     const R = this.engine.state.lastRender;
-    const chartWidth = R ? R.cW : (this.tc.clientWidth || 1300);
+    const chartWidth = R ? R.cW : this.tc.clientWidth || 1300;
     const minBarSpacing = 2; // px — keeps candles clearly visible at max zoom-out
     const widthCap = Math.floor(chartWidth / minBarSpacing);
     return Math.max(80, Math.min(widthCap, this.engine.bars.length));
@@ -391,7 +423,7 @@ export class InputManager {
     // Spring-back when overscrolled (priceScroll too far from 0)
     const maxDrift = 0.5;
     const R = S.lastRender;
-    const range = R ? (R.yMax - R.yMin) : 1;
+    const range = R ? R.yMax - R.yMin : 1;
     const maxScroll = range * maxDrift;
 
     if (Math.abs(S.priceScroll) > maxScroll) {
@@ -562,7 +594,7 @@ export class InputManager {
       const dtPrice = nowPrice - this._lastPriceMoveTime;
       if (dtPrice > 0 && dtPrice < 100) {
         const R = S.lastRender;
-        const range = R ? (R.yMax - R.yMin) : 1;
+        const range = R ? R.yMax - R.yMin : 1;
         const pricePerPixel = range / (R?.mainH || 400) / S.priceScale;
         const dyFrame = e.clientY - this._lastPriceMoveY;
         const sample = dyFrame * pricePerPixel * (16 / dtPrice);
@@ -575,7 +607,10 @@ export class InputManager {
     } else if (S.dragging === 'chart' && !consumed) {
       const maxScroll = this._maxPanScroll();
       const rightMarginChart = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
-      S.scrollOffset = Math.max(-rightMarginChart, Math.min(maxScroll, S.dragStartOffset + (e.clientX - S.dragStartX) / R.bSp));
+      S.scrollOffset = Math.max(
+        -rightMarginChart,
+        Math.min(maxScroll, S.dragStartOffset + (e.clientX - S.dragStartX) / R.bSp),
+      );
       const dy = e.clientY - S.dragStartY;
       if (S.autoScale && Math.abs(dy) > 5) {
         S.autoScale = false;
@@ -633,8 +668,8 @@ export class InputManager {
         // TradingView-style cursor hints for axis zones
         const r = this._getRect();
         const R2 = S.lastRender;
-        const isOverTimeAxis = R2 && (e.clientY - r.top >= this.tc.clientHeight - (R2.txH * R2.pr) / R2.pr);
-        const isOverPriceAxis = R2 && (e.clientX - r.left >= R2.cW - ((R2.axW as number) || 72));
+        const isOverTimeAxis = R2 && e.clientY - r.top >= this.tc.clientHeight - (R2.txH * R2.pr) / R2.pr;
+        const isOverPriceAxis = R2 && e.clientX - r.left >= R2.cW - ((R2.axW as number) || 72);
         if (isOverTimeAxis) {
           this.tc.style.cursor = 'ew-resize';
         } else if (isOverPriceAxis) {
@@ -735,8 +770,7 @@ export class InputManager {
     if (stnBtn && e.button === 0) {
       const localX = e.clientX - r.left;
       const localY = e.clientY - r.top;
-      if (localX >= stnBtn.x && localX <= stnBtn.x + stnBtn.w &&
-        localY >= stnBtn.y && localY <= stnBtn.y + stnBtn.h) {
+      if (localX >= stnBtn.x && localX <= stnBtn.x + stnBtn.w && localY >= stnBtn.y && localY <= stnBtn.y + stnBtn.h) {
         // Task 1.4.10: Micro-animation — brief press pulse
         S._btnPressAnim = { id: 'stn', time: performance.now() };
         this.scrollToNow();
@@ -768,8 +802,7 @@ export class InputManager {
       if (afBtn) {
         const localX = e.clientX - r.left;
         const localY = e.clientY - r.top;
-        if (localX >= afBtn.x && localX <= afBtn.x + afBtn.w &&
-          localY >= afBtn.y && localY <= afBtn.y + afBtn.h) {
+        if (localX >= afBtn.x && localX <= afBtn.x + afBtn.w && localY >= afBtn.y && localY <= afBtn.y + afBtn.h) {
           // Task 1.4.10: Micro-animation — brief press pulse
           S._btnPressAnim = { id: 'af', time: performance.now() };
           S.autoScale = true;
@@ -879,7 +912,11 @@ export class InputManager {
     // Task 2.3.30: Release pointer capture after drag
     if ('releasePointerCapture' in this.tc && (e as PointerEvent).pointerId != null) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      try { this.tc.releasePointerCapture((e as PointerEvent).pointerId); } catch (_) { /* not captured */ }
+      try {
+        this.tc.releasePointerCapture((e as PointerEvent).pointerId);
+      } catch (_) {
+        /* not captured */
+      }
     }
 
     if (!wasDrag) return;
@@ -906,7 +943,9 @@ export class InputManager {
         let barIdx = eng.state.hoverIdx;
         if (barIdx == null) {
           const S = eng.state;
-          const bw = (R as any).barW ?? ((R as any).chartW / (S.visibleBars || 100));
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const bw = (R as any).barW ?? (R as any).chartW / (S.visibleBars || 100);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           barIdx = Math.round((pos.x - (R as any).chartW) / bw + (eng.bars.length - 1 - (S.scrollOffset || 0)));
           if (barIdx < 0 || barIdx >= eng.bars.length) barIdx = null;
         }
@@ -1021,7 +1060,7 @@ export class InputManager {
     } else if (!isDiscreteWheel && !e.ctrlKey) {
       // ── Trackpad scroll: horizontal pan ──
       // Use deltaX for horizontal, deltaY for vertical trackpad scrolling
-      const panDelta = (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? -e.deltaX : -e.deltaY);
+      const panDelta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? -e.deltaX : -e.deltaY;
       const barsDelta = panDelta / (R.bSp || 10);
       const maxScroll = this._maxPanScroll();
       const rightMarginPan = Math.floor(S.visibleBars * RIGHT_MARGIN_FRAC);
@@ -1147,8 +1186,14 @@ export class InputManager {
    * Used by ChartEngine._needsNextFrame() to keep the render loop alive.
    */
   hasActiveAnimations(): boolean {
-    return this._inertiaActive || this._zoomActive || this._priceInertiaActive
-      || this._zoomMomentumActive || this._scrollToNowActive || this._pinchSpringActive;
+    return (
+      this._inertiaActive ||
+      this._zoomActive ||
+      this._priceInertiaActive ||
+      this._zoomMomentumActive ||
+      this._scrollToNowActive ||
+      this._pinchSpringActive
+    );
   }
 
   // ─── P1-A #1: Trackpad Sensitivity Setter ──────────────────
@@ -1162,7 +1207,8 @@ export class InputManager {
 
   // ─── Touch Gesture Support ─────────────────────────────────
   private _getTouchCenter(touches: TouchList): { x: number; y: number } {
-    let x = 0, y = 0;
+    let x = 0,
+      y = 0;
     for (let i = 0; i < touches.length; i++) {
       const r = this._getRect();
       x += touches[i].clientX - r.left;
@@ -1352,9 +1398,11 @@ export class InputManager {
       if (Math.abs(dx) > SWIPE_THRESHOLD) {
         const direction = dx < 0 ? 'next' : 'prev';
         // Dispatch custom event for React layer to handle workspace navigation
-        window.dispatchEvent(new CustomEvent('charEdge:workspace-switch', {
-          detail: { direction },
-        }));
+        window.dispatchEvent(
+          new CustomEvent('charEdge:workspace-switch', {
+            detail: { direction },
+          }),
+        );
       }
     }
     // B2.3: Elastic pinch spring-back on release

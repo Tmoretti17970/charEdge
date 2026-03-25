@@ -13,8 +13,9 @@
 //   <MobileJournal trades={trades} onEdit={fn} onDelete={fn} />
 // ═══════════════════════════════════════════════════════════════════
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { C, F, M } from '../../../constants.js';
+import { haptics } from '../../misc/haptics.ts';
 
 const FILTERS = [
   { id: 'all', label: 'All' },
@@ -27,6 +28,42 @@ const FILTERS = [
 export default function MobileJournal({ trades = [], onEdit, onDelete, onAdd, onTradePress }) {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
+
+  // Phase 6: Pull-to-refresh
+  const scrollRef = useRef(null);
+  const [pullProgress, setPullProgress] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const touchStartY = useRef(0);
+
+  const handleTouchStart = useCallback((e) => {
+    if (scrollRef.current?.scrollTop === 0) {
+      touchStartY.current = e.touches[0].clientY;
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    if (!touchStartY.current || scrollRef.current?.scrollTop > 0) return;
+    const diff = e.touches[0].clientY - touchStartY.current;
+    if (diff > 0 && diff < 120) {
+      setPullProgress(Math.min(diff / 80, 1));
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (pullProgress >= 1 && !refreshing) {
+      setRefreshing(true);
+      haptics.trigger('medium');
+      // Trigger analytics recompute
+      window.dispatchEvent(new CustomEvent('charEdge:recompute-analytics'));
+      setTimeout(() => {
+        setRefreshing(false);
+        setPullProgress(0);
+      }, 1000);
+    } else {
+      setPullProgress(0);
+    }
+    touchStartY.current = 0;
+  }, [pullProgress, refreshing]);
 
   const now = new Date();
   const todayStr = now.toISOString().slice(0, 10);
@@ -181,8 +218,38 @@ export default function MobileJournal({ trades = [], onEdit, onDelete, onAdd, on
         ))}
       </div>
 
+      {/* Pull-to-refresh indicator */}
+      {pullProgress > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            padding: 8,
+            opacity: pullProgress,
+            transition: 'opacity 0.15s',
+          }}
+        >
+          <div
+            className="tf-pull-indicator"
+            style={{
+              width: 24,
+              height: 24,
+              animation: refreshing ? 'pullSpin 0.6s linear infinite' : 'none',
+              transform: `rotate(${pullProgress * 360}deg)`,
+              fontSize: 16,
+            }}
+          >
+            {refreshing ? '↻' : '↓'}
+          </div>
+        </div>
+      )}
+
       {/* Trade list */}
       <div
+        ref={scrollRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         style={{
           flex: 1,
           overflowY: 'auto',

@@ -1,13 +1,12 @@
 import { useState, useRef, useCallback, useLayoutEffect } from 'react';
-import useCopilotChat from '../../hooks/useCopilotChat';
 import AIOrb from '../../app/components/design/AIOrb.jsx';
 import Coachmark from '../../app/components/ui/Coachmark.jsx';
 import { Btn } from '../../app/components/ui/UIKit.jsx';
 import { C, F } from '../../constants.js';
-import useHotkeys from '@/hooks/useHotkeys';
+import useCopilotChat from '../../hooks/useCopilotChat';
 import { alpha } from '@/shared/colorUtils';
-import { useUIStore } from '@/state/useUIStore';
 import { useAccountStore, ACCOUNTS } from '@/state/useAccountStore';
+import { useUIStore } from '@/state/useUIStore';
 
 // ─── ModePill — Apple-style Segmented Toggle (Real / Demo) ─────
 // Compact pill, always visible in header. Spring-physics slider,
@@ -136,9 +135,22 @@ export { INSIGHT_SUB_TABS };
 
 export default function JournalHeader({ journalTab, setJournalTab, openAddTrade, tradeCount }) {
   const showSubTabs = INSIGHT_SUB_TABS.some((s) => s.id === journalTab);
-  const [logbookHover, setLogbookHover] = useState(false);
-  const [importHover, setImportHover] = useState(false);
-  const setPage = useUIStore((s) => s.setPage);
+  const [overflowOpen, setOverflowOpen] = useState(false);
+  const overflowRef = useRef(null);
+  const _setPage = useUIStore((s) => s.setPage);
+
+  // Close overflow menu on outside click
+  const handleClickOutside = useCallback((e) => {
+    if (overflowRef.current && !overflowRef.current.contains(e.target)) {
+      setOverflowOpen(false);
+    }
+  }, []);
+
+  // Attach/detach listener
+  useState(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  });
 
   // ─── Copilot (Sprint 4: use global store) ─────────────────────
   const copilotOpen = useCopilotChat((s) => s.panelOpen);
@@ -209,72 +221,9 @@ export default function JournalHeader({ journalTab, setJournalTab, openAddTrade,
           {/* ─── Real / Demo Mode Pill ──────────────── */}
           <ModePill />
 
-          {/* ─── Segmented CTA: Logbook | Import | + Add Trade ──── */}
-          <div
-            style={{
-              display: 'flex',
-              borderRadius: 12,
-              overflow: 'hidden',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-            }}
-          >
-            {/* Logbook button (ghost left segment) */}
-            <button
-              onClick={() => window.dispatchEvent(new CustomEvent('charEdge:open-logbook'))}
-              onMouseEnter={() => setLogbookHover(true)}
-              onMouseLeave={() => setLogbookHover(false)}
-              id="tf-logbook-btn"
-              aria-label="Open trade logbook"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '8px 14px',
-                fontSize: 13,
-                fontWeight: 600,
-                fontFamily: F,
-                border: `1.5px solid ${C.b}`,
-                borderRight: 'none',
-                borderRadius: '12px 0 0 12px',
-                background: logbookHover ? C.b + '12' : 'transparent',
-                color: logbookHover ? C.b : C.t2,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <span style={{ fontSize: 14, lineHeight: 1 }}>📓</span>
-              Logbook
-            </button>
-
-            {/* Import button (ghost middle segment) */}
-            <button
-              onClick={() => window.dispatchEvent(new CustomEvent('charEdge:open-import'))}
-              onMouseEnter={() => setImportHover(true)}
-              onMouseLeave={() => setImportHover(false)}
-              id="tf-import-btn"
-              aria-label="Open import hub"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '8px 14px',
-                fontSize: 13,
-                fontWeight: 600,
-                fontFamily: F,
-                border: `1.5px solid ${C.b}`,
-                borderRight: 'none',
-                borderRadius: 0,
-                background: importHover ? C.b + '12' : 'transparent',
-                color: importHover ? C.b : C.t2,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <span style={{ fontSize: 14, lineHeight: 1 }}>📥</span>
-              Import
-            </button>
-
-            {/* Add Trade button (primary right segment) */}
+          {/* ─── Primary CTA + Overflow Menu ──── */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            {/* Add Trade — primary action */}
             <Btn
               onClick={openAddTrade}
               id="tf-add-trade-btn"
@@ -282,13 +231,114 @@ export default function JournalHeader({ journalTab, setJournalTab, openAddTrade,
                 fontSize: 13,
                 padding: '8px 18px',
                 fontWeight: 700,
-                borderRadius: '0 12px 12px 0',
-                border: `1.5px solid ${C.b}`,
-                borderLeft: 'none',
+                borderRadius: 12,
               }}
             >
               + Add Trade
             </Btn>
+
+            {/* Overflow menu — Logbook + Import */}
+            <div ref={overflowRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setOverflowOpen((v) => !v)}
+                className="tf-btn"
+                aria-label="More actions"
+                aria-expanded={overflowOpen}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  border: `1px solid ${C.bd}`,
+                  background: overflowOpen ? C.sf2 : 'transparent',
+                  color: C.t2,
+                  fontSize: 16,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                ⋯
+              </button>
+              {overflowOpen && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    marginTop: 6,
+                    minWidth: 160,
+                    background: C.sf,
+                    border: `1px solid ${C.bd}`,
+                    borderRadius: 10,
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                    padding: 4,
+                    zIndex: 100,
+                    animation: 'fadeIn 0.12s ease',
+                  }}
+                >
+                  <button
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent('charEdge:open-logbook'));
+                      setOverflowOpen(false);
+                    }}
+                    id="tf-logbook-btn"
+                    aria-label="Open trade logbook"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      width: '100%',
+                      padding: '8px 12px',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      fontFamily: F,
+                      border: 'none',
+                      borderRadius: 8,
+                      background: 'transparent',
+                      color: C.t1,
+                      cursor: 'pointer',
+                      transition: 'background 0.12s ease',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = C.sf2; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    <span style={{ fontSize: 14 }}>📓</span>
+                    Logbook
+                  </button>
+                  <button
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent('charEdge:open-import'));
+                      setOverflowOpen(false);
+                    }}
+                    id="tf-import-btn"
+                    aria-label="Open import hub"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      width: '100%',
+                      padding: '8px 12px',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      fontFamily: F,
+                      border: 'none',
+                      borderRadius: 8,
+                      background: 'transparent',
+                      color: C.t1,
+                      cursor: 'pointer',
+                      transition: 'background 0.12s ease',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = C.sf2; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    <span style={{ fontSize: 14 }}>📥</span>
+                    Import
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Coachmark for new users */}

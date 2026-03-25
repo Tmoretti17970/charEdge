@@ -23,7 +23,7 @@
  * @param {number} durationMs
  * @param {() => void} onComplete
  */
-export function animateLineGrow(ctx, from, to, color, lineWidth = 2, durationMs = 250, onComplete) {
+export function animateLineGrow(ctx, from, to, color, lineWidth = 2, durationMs = 200, onComplete) {
   const start = performance.now();
   let rafId = null;
 
@@ -54,7 +54,9 @@ export function animateLineGrow(ctx, from, to, color, lineWidth = 2, durationMs 
   }
 
   rafId = requestAnimationFrame(frame);
-  return () => { if (rafId) cancelAnimationFrame(rafId); };
+  return () => {
+    if (rafId) cancelAnimationFrame(rafId);
+  };
 }
 
 /**
@@ -99,7 +101,10 @@ export function renderSelectionGlow(ctx, points, color) {
  * @param {() => void} onComplete
  */
 export function animateDeletion(ctx, points, color, lineWidth = 2, durationMs = 200, onComplete) {
-  if (!points || points.length === 0) { onComplete?.(); return; }
+  if (!points || points.length === 0) {
+    onComplete?.();
+    return;
+  }
 
   const start = performance.now();
   // Center of gravity
@@ -114,7 +119,7 @@ export function animateDeletion(ctx, points, color, lineWidth = 2, durationMs = 
     const eased = t * t;
 
     const scale = 1 - eased * 0.3; // Scale down to 0.7
-    const alpha = 1 - eased;       // Fade to 0
+    const alpha = 1 - eased; // Fade to 0
 
     ctx.save();
     ctx.globalAlpha = alpha;
@@ -140,7 +145,9 @@ export function animateDeletion(ctx, points, color, lineWidth = 2, durationMs = 
   }
 
   rafId = requestAnimationFrame(frame);
-  return () => { if (rafId) cancelAnimationFrame(rafId); };
+  return () => {
+    if (rafId) cancelAnimationFrame(rafId);
+  };
 }
 
 /**
@@ -180,5 +187,7 @@ export function flashSnapDot(ctx, x, y, color = '#2962FF', durationMs = 300) {
   }
 
   rafId = requestAnimationFrame(frame);
-  return () => { if (rafId) cancelAnimationFrame(rafId); };
+  return () => {
+    if (rafId) cancelAnimationFrame(rafId);
+  };
 }

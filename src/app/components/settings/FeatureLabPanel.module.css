@@ -1,48 +1,161 @@
 /* FeatureLabPanel — CSS Module */
-.root { max-width: 700px; }
-.header { margin-bottom: var(--sp-5); }
-.headerTitle { font-size: 16px; font-weight: 800; color: var(--tf-t1); font-family: var(--tf-font); margin: 0 0 var(--sp-1); }
-.headerDesc { font-size: var(--fs-sm); color: var(--tf-t3); font-family: var(--tf-font); margin: 0; }
-.tierCard { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-4); border-radius: 10px; margin-bottom: var(--sp-4); }
-.tierIcon { font-size: 28px; }
-.tierBody { flex: 1; }
-.tierName { font-size: 14px; font-weight: var(--fw-bold); font-family: var(--tf-font); }
-.tierMeta { font-size: var(--fs-2xs); color: var(--tf-t3); font-family: var(--tf-mono); }
-.overrideRow { display: flex; gap: var(--sp-1); align-items: center; }
-.overrideLabel { font-size: var(--fs-xs); color: var(--tf-t3); font-family: var(--tf-mono); margin-right: var(--sp-1); }
-.overrideBtn { padding: 3px var(--sp-2); border-radius: var(--br-sm); font-size: var(--fs-xs); font-family: var(--tf-mono); cursor: pointer; }
+.root {
+  max-width: 700px;
+}
+.header {
+  margin-bottom: var(--tf-space-5);
+}
+.headerTitle {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--tf-t1);
+  font-family: var(--tf-font);
+  margin: 0 0 var(--tf-space-1);
+}
+.headerDesc {
+  font-size: var(--tf-fs-sm);
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  margin: 0;
+}
+.tierCard {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-4);
+  padding: var(--tf-space-4);
+  border-radius: 10px;
+  margin-bottom: var(--tf-space-4);
+}
+.tierIcon {
+  font-size: 28px;
+}
+.tierBody {
+  flex: 1;
+}
+.tierName {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--tf-font);
+}
+.tierMeta {
+  font-size: clamp(0.5625rem, 0.5rem + 0.2vw, 0.6875rem);
+  color: var(--tf-t3);
+  font-family: var(--tf-mono);
+}
+.overrideRow {
+  display: flex;
+  gap: var(--tf-space-1);
+  align-items: center;
+}
+.overrideLabel {
+  font-size: var(--tf-fs-xs);
+  color: var(--tf-t3);
+  font-family: var(--tf-mono);
+  margin-right: var(--tf-space-1);
+}
+.overrideBtn {
+  padding: 3px var(--tf-space-2);
+  border-radius: var(--tf-radius-xs);
+  font-size: var(--tf-fs-xs);
+  font-family: var(--tf-mono);
+  cursor: pointer;
+}
 .searchInput {
-  width: 100%; padding: var(--sp-2) var(--sp-3); border-radius: var(--br-md);
-  border: 1px solid var(--tf-bd); background: var(--tf-bg);
-  color: var(--tf-t1); font-size: var(--fs-sm); font-family: var(--tf-mono);
-  margin-bottom: var(--sp-3); box-sizing: border-box; outline: none;
+  width: 100%;
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border-radius: var(--tf-radius-sm);
+  border: 1px solid var(--tf-bd);
+  background: var(--tf-bg);
+  color: var(--tf-t1);
+  font-size: var(--tf-fs-sm);
+  font-family: var(--tf-mono);
+  margin-bottom: var(--tf-space-3);
+  box-sizing: border-box;
+  outline: none;
 }
-.filterRow { display: flex; gap: var(--sp-1_5); margin-bottom: var(--sp-4); }
+.filterRow {
+  display: flex;
+  gap: 6px;
+  margin-bottom: var(--tf-space-4);
+}
 .filterChip {
-  padding: var(--sp-1) 10px; border-radius: var(--br-md);
-  font-size: var(--fs-2xs); font-family: var(--tf-mono); font-weight: var(--fw-semibold);
-  cursor: pointer; transition: all var(--dur-fast);
+  padding: var(--tf-space-1) 10px;
+  border-radius: var(--tf-radius-sm);
+  font-size: clamp(0.5625rem, 0.5rem + 0.2vw, 0.6875rem);
+  font-family: var(--tf-mono);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--motion-fast);
 }
-.featureList { display: flex; flex-direction: column; gap: var(--sp-1); }
+.featureList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-1);
+}
 .featureRow {
-  display: flex; align-items: center; gap: var(--sp-3);
-  padding: var(--sp-2) var(--sp-3); border-radius: var(--br-md);
-  transition: all var(--dur-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border-radius: var(--tf-radius-sm);
+  transition: all var(--motion-fast);
 }
-.statusDot { width: 8px; height: 8px; border-radius: var(--sp-1); flex-shrink: 0; }
-.featureBody { flex: 1; min-width: 0; }
-.featureName { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--tf-t1); font-family: var(--tf-font); }
-.featureTier { font-size: var(--fs-xs); color: var(--tf-t3); font-family: var(--tf-mono); }
-.earlyBadge { color: #f59e0b; margin-left: var(--sp-1_5); }
-.tierBadge { padding: 2px var(--sp-2); border-radius: var(--br-sm); font-size: var(--fs-xs); font-weight: var(--fw-bold); font-family: var(--tf-mono); flex-shrink: 0; }
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--tf-space-1);
+  flex-shrink: 0;
+}
+.featureBody {
+  flex: 1;
+  min-width: 0;
+}
+.featureName {
+  font-size: var(--tf-fs-sm);
+  font-weight: 600;
+  color: var(--tf-t1);
+  font-family: var(--tf-font);
+}
+.featureTier {
+  font-size: var(--tf-fs-xs);
+  color: var(--tf-t3);
+  font-family: var(--tf-mono);
+}
+.earlyBadge {
+  color: #f59e0b;
+  margin-left: 6px;
+}
+.tierBadge {
+  padding: 2px var(--tf-space-2);
+  border-radius: var(--tf-radius-xs);
+  font-size: var(--tf-fs-xs);
+  font-weight: 700;
+  font-family: var(--tf-mono);
+  flex-shrink: 0;
+}
 .toggleSwitch {
-  width: 36px; height: 20px; border-radius: 10px; border: none;
-  cursor: pointer; position: relative; transition: background 0.2s ease;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s ease;
   flex-shrink: 0;
 }
 .toggleKnob {
-  width: 14px; height: 14px; border-radius: 7px; background: #fff;
-  position: absolute; top: 3px; transition: left 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  background: #fff;
+  position: absolute;
+  top: 3px;
+  transition: left 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
-.empty { font-size: var(--fs-sm); color: var(--tf-t3); text-align: center; padding: var(--sp-6); }
+.empty {
+  font-size: var(--tf-fs-sm);
+  color: var(--tf-t3);
+  text-align: center;
+  padding: var(--tf-space-6);
+}

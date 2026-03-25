@@ -8,6 +8,7 @@
 import React from 'react';
 import { C, M } from '../../constants.js';
 import { useUIStore } from '../../state/useUIStore';
+import { haptics } from '../misc/haptics.ts';
 
 // Compact inline SVG icons (18×18 for bottom bar)
 const icons = {
@@ -70,7 +71,16 @@ const icons = {
     </svg>
   ),
   markets: (c) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={c}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
       <circle cx="12" cy="12" r="3" />
     </svg>
@@ -200,7 +210,10 @@ function MobileNav() {
         return (
           <button
             key={tab.id}
-            onClick={() => setPage(tab.id)}
+            onClick={() => {
+              haptics.trigger('light');
+              setPage(tab.id);
+            }}
             className="tf-nav-btn"
             aria-label={tab.label}
             aria-current={active ? 'page' : undefined}

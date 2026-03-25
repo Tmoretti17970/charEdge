@@ -1,54 +1,165 @@
 /* ChecklistTab — CSS Module */
-.root { padding: 10px; }
-.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.statusText { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--tf-t1); }
-.statusHint { font-size: var(--fs-xs); color: var(--tf-t3); }
-.headerBtns { display: flex; gap: var(--sp-1); }
+.root {
+  padding: 10px;
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.statusText {
+  font-size: var(--tf-fs-sm);
+  font-weight: 600;
+  color: var(--tf-t1);
+}
+.statusHint {
+  font-size: var(--tf-fs-xs);
+  color: var(--tf-t3);
+}
+.headerBtns {
+  display: flex;
+  gap: var(--tf-space-1);
+}
 .miniBtn {
-  padding: 3px var(--sp-2); background: var(--tf-sf);
-  border: 1px solid var(--tf-bd); border-radius: var(--br-sm);
-  color: var(--tf-t3); font-size: var(--fs-xs);
-  cursor: pointer; font-family: var(--tf-font);
+  padding: 3px var(--tf-space-2);
+  background: var(--tf-sf);
+  border: 1px solid var(--tf-bd);
+  border-radius: var(--tf-radius-xs);
+  color: var(--tf-t3);
+  font-size: var(--tf-fs-xs);
+  cursor: pointer;
+  font-family: var(--tf-font);
 }
 
-.progressTrack { height: 4px; background: var(--tf-bd); border-radius: 2px; margin-bottom: var(--sp-3); overflow: hidden; }
-.progressFill { height: 100%; border-radius: 2px; transition: width 0.3s, background 0.3s; }
+.progressTrack {
+  height: 4px;
+  background: var(--tf-bd);
+  border-radius: 2px;
+  margin-bottom: var(--tf-space-3);
+  overflow: hidden;
+}
+.progressFill {
+  height: 100%;
+  border-radius: 2px;
+  transition:
+    width 0.3s,
+    background 0.3s;
+}
 
-.sectionGroup { margin-bottom: 10px; }
-.sectionLabel { font-size: var(--fs-3xs); font-weight: var(--fw-bold); color: var(--tf-t3); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: var(--sp-1); }
+.sectionGroup {
+  margin-bottom: 10px;
+}
+.sectionLabel {
+  font-size: clamp(0.4375rem, 0.4rem + 0.15vw, 0.5rem);
+  font-weight: 700;
+  color: var(--tf-t3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--tf-space-1);
+}
 
-.customizeArea { border-top: 1px solid var(--tf-bd); padding-top: var(--sp-2); }
-.customizeBtn { width: 100%; font-size: var(--fs-2xs); padding: var(--sp-1_5) 0; }
-.addRow { display: flex; gap: var(--sp-1); }
+.customizeArea {
+  border-top: 1px solid var(--tf-bd);
+  padding-top: var(--tf-space-2);
+}
+.customizeBtn {
+  width: 100%;
+  font-size: clamp(0.5625rem, 0.5rem + 0.2vw, 0.6875rem);
+  padding: 6px 0;
+}
+.addRow {
+  display: flex;
+  gap: var(--tf-space-1);
+}
 .addInput {
-  flex: 1; padding: 5px var(--sp-2); background: var(--tf-sf);
-  border: 1px solid var(--tf-bd); border-radius: var(--br-sm);
-  color: var(--tf-t1); font-family: var(--tf-font); font-size: var(--fs-2xs); outline: none;
+  flex: 1;
+  padding: 5px var(--tf-space-2);
+  background: var(--tf-sf);
+  border: 1px solid var(--tf-bd);
+  border-radius: var(--tf-radius-xs);
+  color: var(--tf-t1);
+  font-family: var(--tf-font);
+  font-size: clamp(0.5625rem, 0.5rem + 0.2vw, 0.6875rem);
+  outline: none;
 }
 .addBtn {
-  padding: 5px var(--sp-3); background: var(--tf-accent); border: none;
-  border-radius: var(--br-sm); color: #fff; font-size: var(--fs-2xs);
-  font-weight: var(--fw-semibold); cursor: pointer;
+  padding: 5px var(--tf-space-3);
+  background: var(--tf-accent);
+  border: none;
+  border-radius: var(--tf-radius-xs);
+  color: #fff;
+  font-size: clamp(0.5625rem, 0.5rem + 0.2vw, 0.6875rem);
+  font-weight: 600;
+  cursor: pointer;
 }
-.addBtnDisabled { opacity: 0.4; cursor: default; }
+.addBtnDisabled {
+  opacity: 0.4;
+  cursor: default;
+}
 
 /* Checklist Item */
 .item {
-  display: flex; align-items: center; gap: var(--sp-2);
-  padding: 7px var(--sp-2); cursor: pointer;
-  border-radius: 5px; margin-bottom: 2px; transition: background var(--dur-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  padding: 7px var(--tf-space-2);
+  cursor: pointer;
+  border-radius: 5px;
+  margin-bottom: 2px;
+  transition: background var(--motion-fast);
 }
-.itemChecked { background: color-mix(in srgb, var(--tf-green) 3%, transparent); }
+.itemChecked {
+  background: color-mix(in srgb, var(--tf-green) 3%, transparent);
+}
 .checkbox {
-  width: 18px; height: 18px; border-radius: var(--br-sm); flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: var(--fs-2xs); color: #fff; font-weight: var(--fw-bold); transition: all var(--dur-fast);
+  width: 18px;
+  height: 18px;
+  border-radius: var(--tf-radius-xs);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.5625rem, 0.5rem + 0.2vw, 0.6875rem);
+  color: #fff;
+  font-weight: 700;
+  transition: all var(--motion-fast);
 }
-.checkboxOn { border: 2px solid var(--tf-green); background: var(--tf-green); }
-.checkboxOff { border: 2px solid var(--tf-bd); background: transparent; }
-.itemEmoji { font-size: var(--fs-xs); flex-shrink: 0; }
-.itemLabel { font-size: var(--fs-sm); flex: 1; transition: all var(--dur-fast); }
-.itemLabelChecked { color: var(--tf-t3); text-decoration: line-through; }
-.itemLabelUnchecked { color: var(--tf-t1); text-decoration: none; }
-.reqBadge { font-size: 8px; color: var(--tf-red); font-weight: var(--fw-bold); }
-.removeItemBtn { background: none; border: none; color: var(--tf-t3); font-size: var(--fs-sm); cursor: pointer; padding: 0 2px; }
+.checkboxOn {
+  border: 2px solid var(--tf-green);
+  background: var(--tf-green);
+}
+.checkboxOff {
+  border: 2px solid var(--tf-bd);
+  background: transparent;
+}
+.itemEmoji {
+  font-size: var(--tf-fs-xs);
+  flex-shrink: 0;
+}
+.itemLabel {
+  font-size: var(--tf-fs-sm);
+  flex: 1;
+  transition: all var(--motion-fast);
+}
+.itemLabelChecked {
+  color: var(--tf-t3);
+  text-decoration: line-through;
+}
+.itemLabelUnchecked {
+  color: var(--tf-t1);
+  text-decoration: none;
+}
+.reqBadge {
+  font-size: 8px;
+  color: var(--tf-red);
+  font-weight: 700;
+}
+.removeItemBtn {
+  background: none;
+  border: none;
+  color: var(--tf-t3);
+  font-size: var(--tf-fs-sm);
+  cursor: pointer;
+  padding: 0 2px;
+}

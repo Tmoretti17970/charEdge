@@ -10,87 +10,87 @@
 
 /* ─── High Contrast Overrides ────────────────────────────────── */
 @media (prefers-contrast: more) {
-    :root {
-        /* Boost text contrast */
-        --c-fg-primary: hsl(0, 0%, 100%);
-        --c-fg-secondary: hsl(0, 0%, 85%);
-        --c-fg-tertiary: hsl(0, 0%, 70%);
-        --c-fg-muted: hsl(0, 0%, 55%);
+  :root {
+    /* Boost text contrast */
+    --c-fg-primary: hsl(0, 0%, 100%);
+    --c-fg-secondary: hsl(0, 0%, 85%);
+    --c-fg-tertiary: hsl(0, 0%, 70%);
+    --c-fg-muted: hsl(0, 0%, 55%);
 
-        /* Sharper borders */
-        --c-border: hsl(0, 0%, 40%);
-        --c-border-hover: hsl(0, 0%, 60%);
-        --c-border-focus: hsl(217, 100%, 65%);
+    /* Sharper borders */
+    --c-border: hsl(0, 0%, 40%);
+    --c-border-hover: hsl(0, 0%, 60%);
+    --c-border-focus: hsl(217, 100%, 65%);
 
-        /* Higher contrast accents */
-        --c-accent-green: hsl(152, 85%, 50%);
-        --c-accent-red: hsl(0, 90%, 55%);
-        --c-accent-blue: hsl(217, 100%, 65%);
+    /* Higher contrast accents */
+    --c-accent-green: hsl(152, 85%, 50%);
+    --c-accent-red: hsl(0, 90%, 55%);
+    --c-accent-blue: hsl(217, 100%, 65%);
 
-        /* Stronger shadows and focus */
-        --c-focus-ring: hsl(217, 100%, 65%);
-        --shadow-sm: 0 1px 3px hsla(0, 0%, 0%, 0.5);
-        --shadow-md: 0 4px 16px hsla(0, 0%, 0%, 0.6);
+    /* Stronger shadows and focus */
+    --c-focus-ring: hsl(217, 100%, 65%);
+    --shadow-sm: 0 1px 3px hsla(0, 0%, 0%, 0.5);
+    --shadow-md: 0 4px 16px hsla(0, 0%, 0%, 0.6);
 
-        /* Override glass effects for readability */
-        --tf-glass-1: rgba(14, 16, 19, 0.98);
-        --tf-glass-2: rgba(14, 16, 19, 0.99);
-        --tf-glass-3: rgba(14, 16, 19, 1);
-        --tf-glass-4: rgba(14, 16, 19, 1);
-        --tf-glass-border: 1px solid rgba(255, 255, 255, 0.20);
-        --tf-glass-border-hover: 1px solid rgba(255, 255, 255, 0.35);
+    /* Override glass effects for readability */
+    --tf-glass-1: rgba(14, 16, 19, 0.98);
+    --tf-glass-2: rgba(14, 16, 19, 0.99);
+    --tf-glass-3: rgba(14, 16, 19, 1);
+    --tf-glass-4: rgba(14, 16, 19, 1);
+    --tf-glass-border: 1px solid rgba(255, 255, 255, 0.2);
+    --tf-glass-border-hover: 1px solid rgba(255, 255, 255, 0.35);
 
-        /* Theme-specific overrides */
-        --tf-t1: #ffffff;
-        --tf-t2: #c8cad8;
-        --tf-t3: #9ca0b4;
-        --tf-bd: #4a4e5a;
-    }
+    /* Theme-specific overrides */
+    --tf-t1: #ffffff;
+    --tf-t2: #c8cad8;
+    --tf-t3: #9ca0b4;
+    --tf-bd: #4a4e5a;
+  }
 
-    /* Ensure all buttons have visible borders */
-    button:not([class*="tf-"]) {
-        border: 1px solid var(--c-border) !important;
-    }
+  /* Ensure all buttons have visible borders */
+  button:not([class*='tf-']) {
+    border: 1px solid var(--tf-bd) !important;
+  }
 
-    /* Ensure input fields have visible borders */
-    input,
-    select,
-    textarea {
-        border: 1px solid var(--c-border) !important;
-    }
+  /* Ensure input fields have visible borders */
+  input,
+  select,
+  textarea {
+    border: 1px solid var(--tf-bd) !important;
+  }
 
-    /* Stronger focus indicators */
-    :focus-visible {
-        outline: 3px solid var(--c-focus-ring) !important;
-        outline-offset: 2px !important;
-    }
+  /* Stronger focus indicators */
+  :focus-visible {
+    outline: 3px solid rgba(92, 156, 245, 0.5) !important;
+    outline-offset: 2px !important;
+  }
 
-    /* Increase line width in chart for visibility */
-    .tf-stat-value,
-    .tf-data-mono {
-        font-weight: 600;
-    }
+  /* Increase line width in chart for visibility */
+  .tf-stat-value,
+  .tf-data-mono {
+    font-weight: 600;
+  }
 }
 
 /* ─── Windows High Contrast Mode (forced-colors) ─────────────── */
 @media (forced-colors: active) {
-    :root {
-        --c-fg-primary: CanvasText;
-        --c-fg-secondary: CanvasText;
-        --c-bg-primary: Canvas;
-        --c-accent-blue: LinkText;
-        --c-accent-green: Highlight;
-        --c-accent-red: Mark;
-    }
+  :root {
+    --c-fg-primary: CanvasText;
+    --c-fg-secondary: CanvasText;
+    --c-bg-primary: Canvas;
+    --c-accent-blue: LinkText;
+    --c-accent-green: Highlight;
+    --c-accent-red: Mark;
+  }
 
-    button {
-        forced-color-adjust: none;
-        border: 1px solid ButtonText !important;
-        color: ButtonText !important;
-        background: ButtonFace !important;
-    }
+  button {
+    forced-color-adjust: none;
+    border: 1px solid ButtonText !important;
+    color: ButtonText !important;
+    background: ButtonFace !important;
+  }
 
-    a {
-        color: LinkText !important;
-    }
+  a {
+    color: LinkText !important;
+  }
 }
