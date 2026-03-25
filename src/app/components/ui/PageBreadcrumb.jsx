@@ -6,6 +6,7 @@
 // Skipped on Charts page (full-bleed layout).
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { C, F } from '../../../constants.js';
 import { alpha } from '@/shared/colorUtils';
 
@@ -25,7 +26,7 @@ const PAGE_META = {
   landing: { label: 'Landing', icon: '🚀' },
 };
 
-export default function PageBreadcrumb({ page, subTab = null }) {
+function PageBreadcrumb({ page, subTab = null }) {
   // Skip breadcrumb for chart page (full-bleed) and landing
   if (page === 'charts' || page === 'landing') return null;
 
@@ -67,3 +68,5 @@ export default function PageBreadcrumb({ page, subTab = null }) {
     </div>
   );
 }
+
+export default React.memo(PageBreadcrumb);

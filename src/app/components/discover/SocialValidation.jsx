@@ -7,6 +7,7 @@
 import React from 'react';
 import { useState } from 'react';
 import { C } from '../../../constants.js';
+import DemoBadge from './DemoBadge';
 import st from './SocialValidation.module.css';
 import { alpha } from '@/shared/colorUtils';
 
@@ -89,6 +90,7 @@ function SocialValidation() {
         <div className={st.headerLeft}>
           <span className={st.headerIcon}>🏆</span>
           <h3 className={st.headerTitle}>Community Validation</h3>
+          <DemoBadge />
           <span className={st.badge} style={{ color: C.p, background: alpha(C.p, 0.1) }}>
             {MOCK_SYMBOLS.reduce((s, m) => s + m.watchers, 0).toLocaleString()} watchers
           </span>

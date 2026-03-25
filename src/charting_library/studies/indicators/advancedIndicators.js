@@ -7,6 +7,7 @@
 import { ADAPTIVE_INDICATORS } from './advanced/adaptiveIndicators.js';
 import { CORE_INDICATORS } from './advanced/coreIndicators.js';
 import { EXOTIC_INDICATORS } from './advanced/exoticIndicators.js';
+import { EXPANSION_INDICATORS } from './advanced/expansionIndicators.js';
 import { QUICKWIN_INDICATORS } from './advanced/quickwinIndicators.js';
 
 export const ADVANCED_INDICATORS = {
@@ -14,4 +15,5 @@ export const ADVANCED_INDICATORS = {
   ...QUICKWIN_INDICATORS,
   ...ADAPTIVE_INDICATORS,
   ...EXOTIC_INDICATORS,
+  ...EXPANSION_INDICATORS,
 };

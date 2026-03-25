@@ -7,6 +7,7 @@
 import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
+import DemoBadge from './DemoBadge';
 import st from './SentimentNewsFeed.module.css';
 import { alpha } from '@/shared/colorUtils';
 
@@ -214,6 +215,7 @@ function SentimentNewsFeed({ compact }) {
         <div className={st.headerRow}>
           <span className={st.headerIcon}>📰</span>
           <h3 className={st.headerTitle}>Sentiment News Feed</h3>
+          <DemoBadge />
           <div className={st.sentCounts}>
             <span className={st.sentCount} style={{ color: SENTIMENT_META.bullish.color }}>
               {aggSentiment.bull} 🟢

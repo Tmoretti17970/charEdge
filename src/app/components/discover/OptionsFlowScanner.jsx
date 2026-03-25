@@ -7,6 +7,7 @@
 import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
+import DemoBadge from './DemoBadge';
 import { alpha } from '@/shared/colorUtils';
 
 const MOCK_FLOWS = [
@@ -203,6 +204,7 @@ function OptionsFlowScanner() {
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
             Options Flow Scanner
           </h3>
+          <DemoBadge />
           <span
             style={{
               fontSize: 10,

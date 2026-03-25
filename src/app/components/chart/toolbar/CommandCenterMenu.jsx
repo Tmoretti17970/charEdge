@@ -77,6 +77,23 @@ function LayoutPicker({ layoutMode, setLayoutMode, onClose }) {
         [1, 1],
       ],
     },
+    {
+      id: '2x3',
+      label: '6 Chart',
+      grid: [
+        [1, 1],
+        [1, 1],
+        [1, 1],
+      ],
+    },
+    {
+      id: '4x2',
+      label: '8 Chart',
+      grid: [
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+      ],
+    },
   ];
 
   return (

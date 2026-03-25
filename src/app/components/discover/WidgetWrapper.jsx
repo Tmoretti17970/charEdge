@@ -22,6 +22,7 @@ function WidgetWrapper({
   accentColor,
   headerRight,
   ariaLabel,
+  demo = false,
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [visible, setVisible] = useState(!lazy);
@@ -102,6 +103,23 @@ function WidgetWrapper({
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {demo && (
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: '#f59e0b',
+                  background: 'rgba(245, 158, 11, 0.12)',
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                  letterSpacing: '0.05em',
+                  fontFamily: 'var(--tf-font)',
+                }}
+                title="This widget shows sample data for preview purposes"
+              >
+                DEMO
+              </span>
+            )}
             {headerRight}
             {collapsible && (
               <span

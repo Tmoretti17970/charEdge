@@ -6,6 +6,7 @@ import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
+import DemoBadge from './DemoBadge';
 import st from './EarningsIntelligence.module.css';
 import { alpha } from '@/shared/colorUtils';
 
@@ -124,6 +125,7 @@ function EarningsIntelligence() {
         <div className={st.headerLeft}>
           <span className={st.headerIcon}>📊</span>
           <h3 className={st.headerTitle}>Earnings Intelligence</h3>
+          <DemoBadge />
           <span className={st.badge} style={{ color: C.b, background: alpha(C.b, 0.1) }}>
             {earnings.length} this week
           </span>

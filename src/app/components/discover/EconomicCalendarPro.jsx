@@ -5,6 +5,7 @@
 import React from 'react';
 import { useState, useEffect, useMemo } from 'react';
 import { C } from '../../../constants.js';
+import DemoBadge from './DemoBadge';
 import st from './EconomicCalendarPro.module.css';
 import { alpha } from '@/shared/colorUtils';
 
@@ -166,6 +167,7 @@ function EconomicCalendarPro() {
         <div className={st.headerLeft}>
           <span className={st.headerIcon}>📅</span>
           <h3 className={st.headerTitle}>Economic Calendar</h3>
+          <DemoBadge />
           <span className={st.badge} style={{ color: C.r, background: alpha(C.r, 0.1) }}>
             {highImpactCount} high-impact
           </span>

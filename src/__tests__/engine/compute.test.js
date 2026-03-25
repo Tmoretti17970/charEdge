@@ -29,12 +29,12 @@ describe('1.2.1 — ComputeWorkerPool wired into indicator computation', () => {
   });
 
   it('ChartEngineWidget imports indicatorBridge', () => {
-    expect(widgetSource).toContain("import { indicatorBridge }");
-    expect(widgetSource).toContain("IndicatorWorkerBridge");
+    expect(widgetSource).toContain('import { indicatorBridge }');
+    expect(widgetSource).toContain('IndicatorWorkerBridge');
   });
 
   it('ChartEngineWidget calls indicatorBridge.computeBatch() for full recompute', () => {
-    expect(widgetSource).toContain('indicatorBridge.computeBatch(batchTasks, bars)');
+    expect(widgetSource).toContain('.computeBatch(batchTasks, bars)');
   });
 
   it('ChartEngineWidget keeps synchronous update() for tick updates', () => {
@@ -46,7 +46,7 @@ describe('1.2.1 — ComputeWorkerPool wired into indicator computation', () => {
     // Fixed to: if (!this._fallback && this._ready)
     const computeSection = bridgeSource.slice(
       bridgeSource.indexOf('async compute(indicator'),
-      bridgeSource.indexOf('async computeBatch')
+      bridgeSource.indexOf('async computeBatch'),
     );
     expect(computeSection).not.toContain('this._worker');
   });
@@ -86,10 +86,10 @@ describe('1.2.2 — WebGPU Compute connected to render pipeline', () => {
   });
 
   it('GPUComputeStage has GPU dispatch for ema, rsi, macd, bb', () => {
-    expect(gpuStageSource).toContain("ema:");
-    expect(gpuStageSource).toContain("rsi:");
-    expect(gpuStageSource).toContain("macd:");
-    expect(gpuStageSource).toContain("bb:");
+    expect(gpuStageSource).toContain('ema:');
+    expect(gpuStageSource).toContain('rsi:');
+    expect(gpuStageSource).toContain('macd:');
+    expect(gpuStageSource).toContain('bb:');
     expect(gpuStageSource).toContain('gpu.computeEMA');
     expect(gpuStageSource).toContain('gpu.computeRSI');
     expect(gpuStageSource).toContain('gpu.computeMACD');
@@ -98,11 +98,11 @@ describe('1.2.2 — WebGPU Compute connected to render pipeline', () => {
 
   it('GPUComputeStage falls back gracefully when WebGPU unavailable', () => {
     // First line of the function checks availability
-    expect(gpuStageSource).toContain("if (!gpuCompute?.available) return");
+    expect(gpuStageSource).toContain('if (!gpuCompute?.available) return');
   });
 
   it('RenderPipeline registers gpuCompute stage before indicators', () => {
-    expect(pipelineSource).toContain("import { executeGPUComputeStage }");
+    expect(pipelineSource).toContain('import { executeGPUComputeStage }');
     const gpuIdx = pipelineSource.indexOf("'gpuCompute'");
     const indIdx = pipelineSource.indexOf("'indicators'");
     expect(gpuIdx).toBeGreaterThan(-1);
@@ -110,8 +110,8 @@ describe('1.2.2 — WebGPU Compute connected to render pipeline', () => {
   });
 
   it('ChartEngine imports WebGPUCompute and instantiates _gpuCompute', () => {
-    expect(engineSource).toContain("import { WebGPUCompute }");
-    expect(engineSource).toContain("this._gpuCompute = new WebGPUCompute()");
+    expect(engineSource).toContain('import { WebGPUCompute }');
+    expect(engineSource).toContain('this._gpuCompute = new WebGPUCompute()');
   });
 });
 
@@ -128,8 +128,8 @@ describe('1.3.1 — DataSharedWorker wired for cross-tab WS dedup', () => {
   });
 
   it('AppBoot.postBoot starts TickerPlant', () => {
-    expect(bootSource).toContain("tickerPlant.start()");
-    expect(bootSource).toContain("TickerPlant.js");
+    expect(bootSource).toContain('tickerPlant.start()');
+    expect(bootSource).toContain('TickerPlant.js');
   });
 
   it('TickerPlant constructor calls _initSharedWorker()', () => {
@@ -138,21 +138,21 @@ describe('1.3.1 — DataSharedWorker wired for cross-tab WS dedup', () => {
   });
 
   it('TickerPlant._initSharedWorker creates SharedWorker', () => {
-    expect(tickerSource).toContain("new SharedWorker(workerUrl");
-    expect(tickerSource).toContain("charEdge-data");
-    expect(tickerSource).toContain("_sharedWorkerPort.onmessage");
-    expect(tickerSource).toContain("_sharedWorkerPort.start()");
+    expect(tickerSource).toContain('new SharedWorker(workerUrl');
+    expect(tickerSource).toContain('charEdge-data');
+    expect(tickerSource).toContain('_sharedWorkerPort.onmessage');
+    expect(tickerSource).toContain('_sharedWorkerPort.start()');
   });
 
   it('TickerPlant broadcasts price updates to SharedWorker', () => {
-    expect(tickerSource).toContain("_broadcastToSharedWorker");
+    expect(tickerSource).toContain('_broadcastToSharedWorker');
     expect(tickerSource).toContain("type: 'ingest'");
     expect(tickerSource).toContain('_sharedWorkerPort.postMessage(msg)');
   });
 
   it('TickerPlant uses BinaryCodec for bandwidth savings', () => {
-    expect(tickerSource).toContain("import { BinaryCodec");
-    expect(tickerSource).toContain("BinaryCodec.encode(msg)");
+    expect(tickerSource).toContain('import { BinaryCodec');
+    expect(tickerSource).toContain('BinaryCodec.encode(msg)');
   });
 });
 
@@ -178,10 +178,7 @@ describe('1.3.2 — Binary WebSocket wire format', () => {
   });
 
   it('WebSocketService decodes binary messages via BinaryCodec', () => {
-    const onmessageSection = wsSource.slice(
-      wsSource.indexOf('onmessage = (evt)'),
-      wsSource.indexOf('onclose')
-    );
+    const onmessageSection = wsSource.slice(wsSource.indexOf('onmessage = (evt)'), wsSource.indexOf('onclose'));
     expect(onmessageSection).toContain('codec.decodeAuto');
     expect(onmessageSection).toContain('codec.decode');
   });

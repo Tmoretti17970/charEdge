@@ -17,16 +17,23 @@ const DEFAULT_QUADS = [
   { symbol: 'ETH', tf: '1h' },
   { symbol: 'SOL', tf: '1h' },
   { symbol: 'DOGE', tf: '1h' },
+  { symbol: 'SPY', tf: '1h' },
+  { symbol: 'NQ', tf: '1h' },
+  { symbol: 'AAPL', tf: '1h' },
+  { symbol: 'ES', tf: '1h' },
 ];
 
 // Grid config per layout mode
 const LAYOUT_CONFIG = {
-  '1x1': { cols: '1fr', rows: '1fr', count: 1 },
-  '2x1': { cols: '1fr 1fr', rows: '1fr', count: 2 },
-  '1x2': { cols: '1fr', rows: '1fr 1fr', count: 2 },
-  '3x1': { cols: '1fr 1fr 1fr', rows: '1fr', count: 3 },
-  '1x3': { cols: '1fr', rows: '1fr 1fr 1fr', count: 3 },
-  '2x2': { cols: '1fr 1fr', rows: '1fr 1fr', count: 4 },
+  '1x1': { cols: '1fr', rows: '1fr', count: 1, label: '1' },
+  '2x1': { cols: '1fr 1fr', rows: '1fr', count: 2, label: '2H' },
+  '1x2': { cols: '1fr', rows: '1fr 1fr', count: 2, label: '2V' },
+  '3x1': { cols: '1fr 1fr 1fr', rows: '1fr', count: 3, label: '3' },
+  '1x3': { cols: '1fr', rows: '1fr 1fr 1fr', count: 3, label: '3V' },
+  '2x2': { cols: '1fr 1fr', rows: '1fr 1fr', count: 4, label: '4' },
+  '2x3': { cols: '1fr 1fr', rows: '1fr 1fr 1fr', count: 6, label: '6' },
+  '4x2': { cols: '1fr 1fr 1fr 1fr', rows: '1fr 1fr', count: 8, label: '8' },
+  '3x3': { cols: '1fr 1fr 1fr', rows: '1fr 1fr 1fr', count: 9, label: '9' },
 };
 
 const QuadChart = memo(function QuadChart({ initialQuads = DEFAULT_QUADS, layoutMode = '2x2', onConfigChange }) {
@@ -37,14 +44,17 @@ const QuadChart = memo(function QuadChart({ initialQuads = DEFAULT_QUADS, layout
   const [crosshairTime, setCrosshairTime] = useState(null);
   const [crosshairSourcePane, setCrosshairSourcePane] = useState(-1);
 
-  const updateQuad = useCallback((idx, updates) => {
-    setQuads((q) => {
-      const next = q.map((quad, i) => (i === idx ? { ...quad, ...updates } : quad));
-      // Sprint 6 Task 6.1.5: Notify parent for workspace persistence
-      onConfigChange?.({ layout: layoutMode, panels: next });
-      return next;
-    });
-  }, [layoutMode, onConfigChange]);
+  const updateQuad = useCallback(
+    (idx, updates) => {
+      setQuads((q) => {
+        const next = q.map((quad, i) => (i === idx ? { ...quad, ...updates } : quad));
+        // Sprint 6 Task 6.1.5: Notify parent for workspace persistence
+        onConfigChange?.({ layout: layoutMode, panels: next });
+        return next;
+      });
+    },
+    [layoutMode, onConfigChange],
+  );
 
   // Sprint 6 Task 6.1.2: Crosshair move handler — lifted to parent
   const handleCrosshairSync = useCallback((paneIdx, time) => {
@@ -89,8 +99,14 @@ const QuadChart = memo(function QuadChart({ initialQuads = DEFAULT_QUADS, layout
 // ─── Full-Engine Chart Pane ─────────────────────────────────────
 
 const MultiChartPane = memo(function MultiChartPane({
-  _paneId, symbol, tf, onSymbolChange, onTfChange,
-  crosshairTime, onCrosshairSync, onCrosshairLeave,
+  _paneId,
+  symbol,
+  tf,
+  onSymbolChange,
+  onTfChange,
+  crosshairTime,
+  onCrosshairSync,
+  onCrosshairLeave,
 }) {
   const [editing, setEditing] = useState(false);
   const [symInput, setSymInput] = useState(symbol);
@@ -99,14 +115,17 @@ const MultiChartPane = memo(function MultiChartPane({
   const engineRef = useRef(null);
 
   // Sprint 6 Task 6.1.2: Forward crosshair events to parent for sync
-  const handleCrosshairMove = useCallback((e) => {
-    if (e?.close) {
-      setLastPrice(e.close);
-    }
-    if (e?.time && onCrosshairSync) {
-      onCrosshairSync(e.time);
-    }
-  }, [onCrosshairSync]);
+  const handleCrosshairMove = useCallback(
+    (e) => {
+      if (e?.close) {
+        setLastPrice(e.close);
+      }
+      if (e?.time && onCrosshairSync) {
+        onCrosshairSync(e.time);
+      }
+    },
+    [onCrosshairSync],
+  );
 
   // Update price when engine reports data
   const handleEngineReady = useCallback((eng) => {
@@ -116,7 +135,7 @@ const MultiChartPane = memo(function MultiChartPane({
       const last = eng.bars[eng.bars.length - 1];
       const prev = eng.bars.length > 1 ? eng.bars[eng.bars.length - 2] : null;
       setLastPrice(last.close);
-      setPriceChange(prev ? ((last.close - prev.close) / prev.close * 100) : 0);
+      setPriceChange(prev ? ((last.close - prev.close) / prev.close) * 100 : 0);
     }
   }, []);
 
@@ -146,13 +165,18 @@ const MultiChartPane = memo(function MultiChartPane({
       onMouseLeave={onCrosshairLeave}
     >
       {/* Compact Header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '3px 8px', height: 28,
-        borderBottom: `1px solid ${C.bd}50`,
-        flexShrink: 0,
-        background: `${C.sf}60`,
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '3px 8px',
+          height: 28,
+          borderBottom: `1px solid ${C.bd}50`,
+          flexShrink: 0,
+          background: `${C.sf}60`,
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           {editing ? (
             <form onSubmit={handleSymSubmit} style={{ display: 'flex' }}>
@@ -162,36 +186,53 @@ const MultiChartPane = memo(function MultiChartPane({
                 onBlur={handleSymSubmit}
                 autoFocus
                 style={{
-                  width: 60, padding: '2px 4px',
-                  border: `1px solid ${C.b}`, borderRadius: 4,
-                  background: C.sf, color: C.t1,
-                  fontSize: 11, fontWeight: 800, fontFamily: M,
-                  outline: 'none', textAlign: 'center',
+                  width: 60,
+                  padding: '2px 4px',
+                  border: `1px solid ${C.b}`,
+                  borderRadius: 4,
+                  background: C.sf,
+                  color: C.t1,
+                  fontSize: 11,
+                  fontWeight: 800,
+                  fontFamily: M,
+                  outline: 'none',
+                  textAlign: 'center',
                 }}
               />
             </form>
           ) : (
             <span
-              onClick={() => { setSymInput(symbol); setEditing(true); }}
+              onClick={() => {
+                setSymInput(symbol);
+                setEditing(true);
+              }}
               style={{
-                fontSize: 12, fontWeight: 800, fontFamily: M,
-                color: C.t1, cursor: 'pointer',
+                fontSize: 12,
+                fontWeight: 800,
+                fontFamily: M,
+                color: C.t1,
+                cursor: 'pointer',
                 transition: 'color 0.15s',
               }}
-              onMouseEnter={(e) => e.currentTarget.style.color = C.b}
-              onMouseLeave={(e) => e.currentTarget.style.color = C.t1}
+              onMouseEnter={(e) => (e.currentTarget.style.color = C.b)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = C.t1)}
             >
               {symbol}
             </span>
           )}
           {lastPrice != null && (
-            <span style={{
-              fontSize: 10, fontWeight: 700, fontFamily: M,
-              color: priceChange >= 0 ? C.g : C.r,
-            }}>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                fontFamily: M,
+                color: priceChange >= 0 ? C.g : C.r,
+              }}
+            >
               {lastPrice >= 1000 ? lastPrice.toFixed(0) : lastPrice.toFixed(2)}
               <span style={{ fontSize: 8, marginLeft: 3, opacity: 0.7 }}>
-                {priceChange >= 0 ? '+' : ''}{priceChange.toFixed(2)}%
+                {priceChange >= 0 ? '+' : ''}
+                {priceChange.toFixed(2)}%
               </span>
             </span>
           )}
@@ -204,11 +245,14 @@ const MultiChartPane = memo(function MultiChartPane({
               key={t.id}
               onClick={() => onTfChange(t.id)}
               style={{
-                padding: '1px 5px', borderRadius: 3,
+                padding: '1px 5px',
+                borderRadius: 3,
                 border: 'none',
                 background: tf === t.id ? `${C.b}25` : 'transparent',
                 color: tf === t.id ? C.b : C.t3,
-                fontSize: 9, fontWeight: 700, fontFamily: M,
+                fontSize: 9,
+                fontWeight: 700,
+                fontFamily: M,
                 cursor: 'pointer',
                 transition: 'all 0.12s',
               }}

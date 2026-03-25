@@ -56,7 +56,9 @@ export type AIRequestType =
   | 'grade' // Trade grading → L3
   | 'journal' // Journal enhancement → L3
   | 'chat' // Conversational → L3/L4/L1
-  | 'complex'; // Long/complex reasoning → L4
+  | 'complex' // Long/complex reasoning → L4
+  | 'post_trade_debrief' // Auto-triggered after trade close → L3/L4
+  | 'weekly_digest'; // Auto-triggered weekly performance summary → L3/L4
 
 export interface AIRequest {
   type: AIRequestType;
@@ -232,6 +234,8 @@ const TIER_MAP: Record<AIRequestType, AITier[]> = {
   journal: ['L3', 'L4', 'L1'],
   chat: ['L3', 'L4', 'L1'], // Sprint 1: added L1 fallback
   complex: ['L4', 'L3'],
+  post_trade_debrief: ['L3', 'L4', 'L1'],
+  weekly_digest: ['L3', 'L4', 'L1'],
 };
 
 // ─── Router Class ───────────────────────────────────────────────

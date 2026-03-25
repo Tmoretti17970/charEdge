@@ -8,6 +8,7 @@ import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
+import DemoBadge from './DemoBadge';
 import { alpha } from '@/shared/colorUtils';
 
 const SYMBOLS = ['NVDA', 'AAPL', 'MSFT', 'TSLA', 'META', 'AMZN', 'GOOGL', 'SPY'];
@@ -72,6 +73,7 @@ function CorrelationMatrix() {
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
             Correlation Matrix
           </h3>
+          <DemoBadge />
           {warnings.length > 0 && (
             <span
               style={{

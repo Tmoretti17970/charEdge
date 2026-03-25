@@ -7,6 +7,7 @@
 import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
+import DemoBadge from './DemoBadge';
 import { alpha } from '@/shared/colorUtils';
 
 const TIMEFRAMES = ['5m', '15m', '1H', '4H', '1D', '1W'];
@@ -64,6 +65,7 @@ function ConfluenceView() {
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
             Multi-Timeframe Confluence
           </h3>
+          <DemoBadge />
           <span
             style={{
               fontSize: 10,

@@ -8,6 +8,7 @@ import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
+import DemoBadge from './DemoBadge';
 import { alpha } from '@/shared/colorUtils';
 
 const MOCK_INSIDER = [
@@ -249,6 +250,7 @@ function InsiderTracker() {
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
             Insider & Institutional Tracker
           </h3>
+          <DemoBadge />
           {clusterCount > 0 && (
             <span
               style={{

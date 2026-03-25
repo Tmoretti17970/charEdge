@@ -3,9 +3,10 @@
 // Extracted from CommandPalette (Phase 0.1): individual command row.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { C, M } from '@/constants.js';
 
-export default function CommandItem({ cmd, isSelected, onSelect, onExecute }) {
+function CommandItem({ cmd, isSelected, onSelect, onExecute }) {
   return (
     <div
       onClick={onExecute}
@@ -33,12 +34,12 @@ export default function CommandItem({ cmd, isSelected, onSelect, onExecute }) {
         }}
       >
         {cmd.icon && (
-          <span style={{ fontSize: 14, width: 22, textAlign: 'center', flexShrink: 0, opacity: isSelected ? 1 : 0.7 }}>{cmd.icon}</span>
+          <span style={{ fontSize: 14, width: 22, textAlign: 'center', flexShrink: 0, opacity: isSelected ? 1 : 0.7 }}>
+            {cmd.icon}
+          </span>
         )}
         <span>{cmd.label}</span>
-        {cmd.sublabel && (
-          <span style={{ fontSize: 11, color: C.t3, marginLeft: 4 }}>{cmd.sublabel}</span>
-        )}
+        {cmd.sublabel && <span style={{ fontSize: 11, color: C.t3, marginLeft: 4 }}>{cmd.sublabel}</span>}
       </span>
       {cmd.shortcut && (
         <kbd
@@ -61,3 +62,5 @@ export default function CommandItem({ cmd, isSelected, onSelect, onExecute }) {
     </div>
   );
 }
+
+export default React.memo(CommandItem);

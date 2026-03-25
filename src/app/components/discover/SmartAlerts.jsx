@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
 import { useAlertStore } from '../../../state/useAlertStore';
 import { useNotificationPreferences } from '../../../state/useNotificationStore';
+import DemoBadge from './DemoBadge';
 import { alpha } from '@/shared/colorUtils';
 
 const ALERT_TYPES = {
@@ -171,6 +172,7 @@ function SmartAlerts() {
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
             Smart Alerts
           </h3>
+          <DemoBadge />
           {criticalCount > 0 && (
             <span
               style={{

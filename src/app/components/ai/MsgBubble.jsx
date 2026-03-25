@@ -5,6 +5,7 @@
 // journal context badge, and feedback buttons.
 // ═══════════════════════════════════════════════════════════════════
 
+import React from 'react';
 import { C } from '@/constants.js';
 import useCopilotChat from '@/hooks/useCopilotChat';
 
@@ -114,7 +115,7 @@ function relativeTime(ts) {
 // MsgBubble
 // ═══════════════════════════════════════════════════════════════════
 
-export default function MsgBubble({ msg, streaming }) {
+function MsgBubble({ msg, streaming }) {
   const isUser = msg.role === 'user';
 
   // Sprint 33: Insight card
@@ -273,3 +274,5 @@ export default function MsgBubble({ msg, streaming }) {
     </div>
   );
 }
+
+export default React.memo(MsgBubble);

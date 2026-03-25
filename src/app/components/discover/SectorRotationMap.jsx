@@ -13,6 +13,7 @@
 import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
+import DemoBadge from './DemoBadge';
 import s from './SectorRotationMap.module.css';
 import { alpha } from '@/shared/colorUtils';
 
@@ -231,6 +232,7 @@ function SectorRotationMap() {
         <div className={s.s1}>
           <span className={s.headerIcon}>🗺️</span>
           <h3 className={s.headerTitle}>Sector Rotation Map</h3>
+          <DemoBadge />
           <span className={s.sectorBadge} style={{ color: C.g, background: alpha(C.g, 0.1) }}>
             {SECTORS.length} sectors
           </span>

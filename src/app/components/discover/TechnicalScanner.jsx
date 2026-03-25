@@ -7,6 +7,7 @@
 import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
+import DemoBadge from './DemoBadge';
 import s from './TechnicalScanner.module.css';
 import { alpha } from '@/shared/colorUtils';
 
@@ -207,6 +208,7 @@ function TechnicalScanner() {
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
             Technical Scanner
           </h3>
+          <DemoBadge />
           <span
             style={{
               fontSize: 10,

@@ -9,6 +9,7 @@ import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import s from './AnalystConsensus.module.css';
+import DemoBadge from './DemoBadge';
 import { alpha } from '@/shared/colorUtils';
 
 const MOCK_CONSENSUS = [
@@ -153,6 +154,7 @@ function AnalystConsensus() {
           >
             {MOCK_CONSENSUS.length} symbols
           </span>
+          <DemoBadge />
         </div>
         <span
           style={{
