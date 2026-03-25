@@ -13,6 +13,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { aiBriefService } from '../../../ai/AIBriefService.ts';
 import { C, F } from '../../../constants.js';
 import { useBriefingStore } from '../../../state/useBriefingStore.ts';
 import { useJournalStore } from '../../../state/useJournalStore';
@@ -154,6 +155,10 @@ function ensureKeyframes() {
       0%   { background-position: -200% 0; }
       100% { background-position: 200% 0; }
     }
+    @keyframes tfBriefSpin {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   `;
   document.head.appendChild(style);
 }
@@ -172,6 +177,9 @@ function TheBrief() {
   const isStale = useBriefingStore((s) => s.isStale);
 
   const [expanded, setExpanded] = useState(false);
+  const [aiEnhanced, setAiEnhanced] = useState(null);
+  const [aiEnhancing, setAiEnhancing] = useState(false);
+  const [aiError, setAiError] = useState(null);
 
   // Inject keyframes
   useEffect(() => {
@@ -212,6 +220,26 @@ function TheBrief() {
   }, [briefing]);
 
   const handleToggleExpand = useCallback(() => setExpanded((p) => !p), []);
+
+  const handleEnhanceWithAI = useCallback(async () => {
+    if (aiEnhancing || aiEnhanced) return;
+    setAiEnhancing(true);
+    setAiError(null);
+    try {
+      const symbols = watchlistItems.map((w) => w.symbol || w).filter(Boolean);
+      const result = await aiBriefService.generate(symbols);
+      if (result) {
+        setAiEnhanced(result);
+      } else {
+        throw new Error('No AI brief returned');
+      }
+      // eslint-disable-next-line unused-imports/no-unused-vars
+    } catch (err) {
+      setAiError('AI enhancement unavailable right now.');
+    } finally {
+      setAiEnhancing(false);
+    }
+  }, [aiEnhancing, aiEnhanced, watchlistItems]);
 
   // ─── Loading State ──────────────────────────────────────────────
   if (loading || !briefing) {
@@ -307,6 +335,162 @@ function TheBrief() {
         >
           {narrative}
         </p>
+
+        {/* ─── Enhance with AI Button ──────────────────────────── */}
+        {!aiEnhanced && (
+          <button
+            onClick={handleEnhanceWithAI}
+            disabled={aiEnhancing}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              marginTop: 10,
+              padding: '4px 12px',
+              borderRadius: 8,
+              border: `1px solid ${alpha(C.b, 0.2)}`,
+              background: alpha(C.b, 0.06),
+              color: C.b,
+              cursor: aiEnhancing ? 'default' : 'pointer',
+              fontSize: 11,
+              fontWeight: 600,
+              fontFamily: F || 'var(--tf-font)',
+              transition: 'all 0.15s',
+              opacity: aiEnhancing ? 0.7 : 1,
+            }}
+          >
+            {aiEnhancing ? (
+              <>
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: 10,
+                    height: 10,
+                    border: `2px solid ${alpha(C.b, 0.3)}`,
+                    borderTopColor: C.b,
+                    borderRadius: '50%',
+                    animation: 'tfBriefSpin 0.8s linear infinite',
+                  }}
+                />
+                Enhancing...
+              </>
+            ) : (
+              <>
+                <span style={{ fontSize: 12 }}>&#x2728;</span>
+                Enhance with AI
+              </>
+            )}
+          </button>
+        )}
+
+        {/* ─── AI Error (inline) ───────────────────────────────── */}
+        {aiError && (
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 11,
+              color: C.r,
+              fontFamily: F || 'var(--tf-font)',
+              fontWeight: 500,
+              opacity: 0.85,
+            }}
+          >
+            {aiError}
+          </div>
+        )}
+
+        {/* ─── AI-Enhanced Narrative ───────────────────────────── */}
+        {aiEnhanced && (
+          <div
+            style={{
+              marginTop: 14,
+              padding: '12px 16px',
+              borderRadius: 12,
+              background: alpha(C.b, 0.04),
+              border: `1px solid ${alpha(C.b, 0.12)}`,
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                marginBottom: 8,
+              }}
+            >
+              <span style={{ fontSize: 12 }}>&#x2728;</span>
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: C.b,
+                  fontFamily: 'var(--tf-mono)',
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                AI-Enhanced Briefing
+              </span>
+              {aiEnhanced.tier && (
+                <span
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 700,
+                    fontFamily: 'var(--tf-mono)',
+                    color: C.b,
+                    background: alpha(C.b, 0.1),
+                    border: `1px solid ${alpha(C.b, 0.2)}`,
+                    borderRadius: 4,
+                    padding: '1px 5px',
+                  }}
+                >
+                  {aiEnhanced.tier}
+                </span>
+              )}
+            </div>
+            {aiEnhanced.marketOverview && (
+              <p
+                style={{
+                  margin: '0 0 8px',
+                  fontSize: 12,
+                  color: C.t2,
+                  fontFamily: F || 'var(--tf-font)',
+                  lineHeight: 1.7,
+                }}
+              >
+                {aiEnhanced.marketOverview}
+              </p>
+            )}
+            {aiEnhanced.focusTrades && (
+              <p
+                style={{
+                  margin: '0 0 8px',
+                  fontSize: 12,
+                  color: C.t2,
+                  fontFamily: F || 'var(--tf-font)',
+                  lineHeight: 1.7,
+                }}
+              >
+                <strong style={{ color: C.t1, fontWeight: 700 }}>Focus: </strong>
+                {aiEnhanced.focusTrades}
+              </p>
+            )}
+            {aiEnhanced.riskNotes && (
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 12,
+                  color: C.t2,
+                  fontFamily: F || 'var(--tf-font)',
+                  lineHeight: 1.7,
+                }}
+              >
+                <strong style={{ color: C.t1, fontWeight: 700 }}>Risk: </strong>
+                {aiEnhanced.riskNotes}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ─── Stats Row ────────────────────────────────────────── */}

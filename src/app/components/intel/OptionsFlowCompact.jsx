@@ -78,7 +78,7 @@ function fmtPremium(v) {
 // ─── Component ──────────────────────────────────────────────────
 function OptionsFlowCompact() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <div role="list" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       {MOCK_FLOWS.map((f) => {
         const isCall = f.type === 'Call';
         const tint = isCall ? C.g : C.r;
@@ -86,6 +86,8 @@ function OptionsFlowCompact() {
         return (
           <div
             key={f.id}
+            role="listitem"
+            aria-label={`${f.time} ${f.symbol} ${f.strike} ${f.side} ${fmtPremium(f.premium)} ${f.type}${f.sweep ? ' Sweep' : ''}`}
             style={{
               display: 'flex',
               alignItems: 'center',

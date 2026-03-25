@@ -5,12 +5,12 @@
 // Adapted from quarantined TrendingNarratives. Hover shows tokens.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { C, F } from '../../../constants.js';
+import { sentimentAdapter } from '../../../data/adapters/SentimentAdapter.js';
 import { alpha } from '@/shared/colorUtils';
 
-// ─── Mock Data ───────────────────────────────────────────────────
+// ─── Mock Data (fallback) ────────────────────────────────────────
 const MOCK_NARRATIVES = [
   { id: 'ai', name: 'AI Agents', metric: '+145%', trend: 'up', active: true, tokens: ['FET', 'AGIX', 'TAO'] },
   { id: 'rates', name: 'Rate Cuts', metric: '+110%', trend: 'up', active: true, tokens: ['GOLD', 'TLT', 'SPY'] },
@@ -118,6 +118,31 @@ function NarrativePill({ narrative }) {
 // ═══════════════════════════════════════════════════════════════════
 
 function TrendingNarratives() {
+  const [narratives, setNarratives] = useState(MOCK_NARRATIVES);
+
+  useEffect(() => {
+    async function fetchTrending() {
+      try {
+        const results = await sentimentAdapter.fetchRedditTrending('all-stocks', 1);
+        if (results && results.length > 0) {
+          const mapped = results.slice(0, 5).map((r, i) => ({
+            id: r.symbol || `t${i}`,
+            name: r.name || r.symbol,
+            metric: r.mentionsDelta > 0 ? `+${r.mentions}` : `${r.mentions}`,
+            trend: r.mentionsDelta >= 0 ? 'up' : 'down',
+            active: i < 2,
+            tokens: [r.symbol],
+          }));
+          setNarratives(mapped);
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn('[TrendingNarratives] Fetch failed, using fallback:', err.message);
+      }
+    }
+    fetchTrending();
+  }, []);
+
   return (
     <div
       style={{
@@ -149,7 +174,7 @@ function TrendingNarratives() {
         Trending
       </span>
 
-      {MOCK_NARRATIVES.map((narrative) => (
+      {narratives.map((narrative) => (
         <NarrativePill key={narrative.id} narrative={narrative} />
       ))}
     </div>

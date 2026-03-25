@@ -72,6 +72,8 @@ function PredictionItem({ item }) {
 
   return (
     <div
+      role="listitem"
+      aria-label={`${item.event}: ${item.prob}% probability, ${item.change >= 0 ? 'up' : 'down'} ${Math.abs(item.change)}% in 24 hours`}
       style={{
         padding: '12px 14px',
         borderRadius: 10,
@@ -195,6 +197,7 @@ function PredictionMarkets() {
 
       {/* ─── Prediction Grid (2 columns, 3 rows) ──────────────── */}
       <div
+        role="list"
         style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',

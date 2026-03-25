@@ -6,11 +6,14 @@
 // with the top 3 entries from each signal type sorted by time.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { C, F } from '../../../constants.js';
+import { trackClick } from '../../../observability/telemetry.ts';
 import InsiderCompact from './InsiderCompact';
+import LiquidationCompact from './LiquidationCompact';
 import OptionsFlowCompact from './OptionsFlowCompact';
 import TechnicalSignalsCompact from './TechnicalSignalsCompact';
+import WhaleCompact from './WhaleCompact';
 import { alpha } from '@/shared/colorUtils';
 
 // ─── Tabs ───────────────────────────────────────────────────────
@@ -34,9 +37,15 @@ const ALL_FEED = [
   { id: 't1', ts: '14:20', kind: 'technical', label: 'NVDA Bull Flag', detail: '4H Bullish 87%', tint: 'g' },
   { id: 't2', ts: '14:18', kind: 'technical', label: 'BTC Cup & Handle', detail: '1D Bullish 82%', tint: 'g' },
   { id: 't3', ts: '14:16', kind: 'technical', label: 'TSLA Head & Shoulders', detail: '4H Bearish 78%', tint: 'r' },
+  { id: 'w1', ts: '14:29', kind: 'whale', label: 'BTC 500 → Coinbase', detail: '$34.7M Deposit', tint: 'r' },
+  { id: 'w2', ts: '14:25', kind: 'whale', label: 'ETH 15K ← Binance', detail: '$52.8M Withdraw', tint: 'g' },
+  { id: 'w3', ts: '14:22', kind: 'whale', label: 'USDT 80M Mint', detail: '$80M Treasury', tint: 'g' },
+  { id: 'l1', ts: '14:30', kind: 'liquidations', label: 'BTC LONG Liquidated', detail: '$2.3M @69.4K', tint: 'r' },
+  { id: 'l2', ts: '14:27', kind: 'liquidations', label: 'ETH SHORT Liquidated', detail: '$890K @3520', tint: 'g' },
+  { id: 'l3', ts: '14:22', kind: 'liquidations', label: 'BTC LONG Liquidated', detail: '$5.2M @69.1K', tint: 'r' },
 ];
 
-// ─── Pulsing live dot keyframes (injected once) ─────────────────
+// ─── Pulsing live dot + tab fade keyframes (injected once) ──────
 const PULSE_ID = 'charEdge-signals-pulse';
 if (typeof document !== 'undefined' && !document.getElementById(PULSE_ID)) {
   const style = document.createElement('style');
@@ -45,6 +54,13 @@ if (typeof document !== 'undefined' && !document.getElementById(PULSE_ID)) {
     @keyframes ceSignalPulse {
       0%, 100% { opacity: 1; transform: scale(1); }
       50%      { opacity: 0.4; transform: scale(0.75); }
+    }
+    @keyframes ceTabFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ce-tab-fade { animation: none !important; }
     }
   `;
   document.head.appendChild(style);
@@ -55,6 +71,8 @@ const KIND_COLORS = {
   flow: C.b,
   insider: '#a78bfa',
   technical: '#38bdf8',
+  whale: '#f472b6',
+  liquidations: '#fb923c',
 };
 
 // ─── Unified feed row ───────────────────────────────────────────
@@ -118,26 +136,33 @@ function FeedRow({ item }) {
   );
 }
 
-// ─── Placeholder for future tabs ────────────────────────────────
-function ComingSoon({ label }) {
-  return (
-    <div
-      style={{
-        padding: '24px 0',
-        textAlign: 'center',
-        fontFamily: F,
-        fontSize: 12,
-        color: C.t3,
-      }}
-    >
-      {label} signals coming soon
-    </div>
-  );
-}
-
 // ─── Main Component ─────────────────────────────────────────────
 function SignalsSection() {
   const [activeTab, setActiveTab] = useState('all');
+  const tabsRef = useRef([]);
+
+  const handleTabChange = useCallback((tabId) => {
+    setActiveTab(tabId);
+    trackClick('intel_signal_tab_' + tabId, 'intel');
+  }, []);
+
+  const handleTabKeyDown = useCallback(
+    (e) => {
+      const currentIndex = TABS.findIndex((t) => t.id === activeTab);
+      let nextIndex = -1;
+      if (e.key === 'ArrowRight') {
+        nextIndex = (currentIndex + 1) % TABS.length;
+      } else if (e.key === 'ArrowLeft') {
+        nextIndex = (currentIndex - 1 + TABS.length) % TABS.length;
+      }
+      if (nextIndex >= 0) {
+        e.preventDefault();
+        setActiveTab(TABS[nextIndex].id);
+        tabsRef.current[nextIndex]?.focus();
+      }
+    },
+    [activeTab],
+  );
 
   const content = useMemo(() => {
     switch (activeTab) {
@@ -156,9 +181,9 @@ function SignalsSection() {
       case 'technical':
         return <TechnicalSignalsCompact />;
       case 'whale':
-        return <ComingSoon label="Whale" />;
+        return <WhaleCompact />;
       case 'liquidations':
-        return <ComingSoon label="Liquidations" />;
+        return <LiquidationCompact />;
       default:
         return null;
     }
@@ -206,6 +231,9 @@ function SignalsSection() {
           border: `1px solid ${C.bd}`,
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch',
         }}
       >
         {TABS.map((tab) => {
@@ -213,12 +241,20 @@ function SignalsSection() {
           return (
             <button
               key={tab.id}
+              ref={(el) => {
+                tabsRef.current[TABS.indexOf(tab)] = el;
+              }}
+              id={`signals-tab-${tab.id}`}
               role="tab"
               aria-selected={isActive}
-              onClick={() => setActiveTab(tab.id)}
+              aria-controls="signals-tabpanel"
+              tabIndex={isActive ? 0 : -1}
+              onClick={() => handleTabChange(tab.id)}
+              onKeyDown={handleTabKeyDown}
               style={{
                 flex: 1,
                 minWidth: 0,
+                flexShrink: 0,
                 padding: '7px 6px',
                 borderRadius: 10,
                 border: 'none',
@@ -258,7 +294,19 @@ function SignalsSection() {
       </div>
 
       {/* ─── Tab Content ────────────────────────────────────── */}
-      <div>{content}</div>
+      <div
+        key={activeTab}
+        id="signals-tabpanel"
+        role="tabpanel"
+        aria-labelledby={`signals-tab-${activeTab}`}
+        tabIndex={0}
+        className="ce-tab-fade"
+        style={{
+          animation: 'ceTabFadeIn 0.25s ease-out',
+        }}
+      >
+        {content}
+      </div>
     </div>
   );
 }

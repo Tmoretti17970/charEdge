@@ -17,8 +17,27 @@
 
 import React, { useState, useCallback, useEffect, useRef, Suspense } from 'react';
 import { C, F } from '../constants.js';
+import { trackFeatureUse, trackClick } from '../observability/telemetry.ts';
+import { useDataStore } from '../state/useDataStore.js';
 import { useLayoutStore } from '../state/useLayoutStore.js';
 import { alpha } from '@/shared/colorUtils';
+
+// ─── Stagger entrance animation (injected once) ─────────────────
+const ANIM_ID = 'charEdge-intel-stagger';
+if (typeof document !== 'undefined' && !document.getElementById(ANIM_ID)) {
+  const style = document.createElement('style');
+  style.id = ANIM_ID;
+  style.textContent = `
+    @keyframes ceIntelFadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ce-intel-animate { animation: none !important; }
+    }
+  `;
+  document.head.appendChild(style);
+}
 
 // ─── Lazy-loaded section components ──────────────────────────────
 const TheBrief = React.lazy(() => import('../app/components/intel/TheBrief.jsx'));
@@ -58,15 +77,18 @@ function SectionSkeleton() {
 }
 
 // ─── Section Wrapper with scroll tracking ────────────────────────
-function SectionBlock({ id, title, icon, children, style }) {
+function SectionBlock({ id, title, icon, children, style, animDelay }) {
   return (
     <section
       id={`intel-section-${id}`}
       aria-labelledby={`intel-heading-${id}`}
+      className="ce-intel-animate"
       style={{
         display: 'flex',
         flexDirection: 'column',
         gap: 16,
+        animation: `ceIntelFadeUp 0.4s ease-out both`,
+        animationDelay: animDelay != null ? `${animDelay}ms` : '0ms',
         ...style,
       }}
     >
@@ -100,7 +122,7 @@ function SectionBlock({ id, title, icon, children, style }) {
 }
 
 // ─── Persona Selector ────────────────────────────────────────────
-function PersonaSelector({ active, onSelect }) {
+function PersonaSelector({ active, onSelect, isMobile }) {
   return (
     <div
       role="radiogroup"
@@ -112,6 +134,7 @@ function PersonaSelector({ active, onSelect }) {
         background: alpha(C.sf, 0.5),
         borderRadius: 12,
         border: `1px solid ${C.bd}`,
+        ...(isMobile ? { overflowX: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' } : {}),
       }}
     >
       {PERSONAS.map((p) => {
@@ -151,6 +174,19 @@ function PersonaSelector({ active, onSelect }) {
   );
 }
 
+// ─── Mobile breakpoint hook ──────────────────────────────────────
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < breakpoint : false);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    setIsMobile(mq.matches);
+    return () => mq.removeEventListener('change', handler);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 // ═════════════════════════════════════════════════════════════════
 // Intel Page
 // ═════════════════════════════════════════════════════════════════
@@ -161,12 +197,20 @@ function IntelPage() {
   const [activeSection, setActiveSection] = useState('brief');
   const [persona, setPersona] = useState(discoverPreset || 'daytrader');
   const pageRef = useRef(null);
+  const isMobile = useIsMobile();
+  const trackImpression = useDataStore((s) => s.trackImpression);
+
+  // Track page view on mount
+  useEffect(() => {
+    trackFeatureUse('intel_page_view');
+  }, []);
 
   // Sync persona with layout store
   const handlePersonaChange = useCallback(
     (id) => {
       setPersona(id);
       applyDiscoverPreset(id);
+      trackClick('intel_persona_' + id, 'intel');
     },
     [applyDiscoverPreset],
   );
@@ -183,6 +227,7 @@ function IntelPage() {
         ([entry]) => {
           if (entry.isIntersecting) {
             setActiveSection(id);
+            trackImpression('intel_section_' + id);
           }
         },
         { rootMargin: '-20% 0px -60% 0px' },
@@ -192,17 +237,18 @@ function IntelPage() {
     });
 
     return () => observers.forEach((o) => o.disconnect());
-  }, []);
+  }, [trackImpression]);
 
   return (
     <div
       ref={pageRef}
+      role="main"
       style={{
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
         gap: 28,
-        padding: '24px 28px 120px',
+        padding: isMobile ? '16px 16px 120px' : '24px 28px 120px',
         maxWidth: 1200,
         width: '100%',
         margin: '0 auto',
@@ -214,7 +260,8 @@ function IntelPage() {
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'flex-start',
+          alignItems: isMobile ? 'stretch' : 'flex-start',
+          flexDirection: isMobile ? 'column' : 'row',
           flexWrap: 'wrap',
           gap: 16,
         }}
@@ -234,39 +281,39 @@ function IntelPage() {
           </h1>
           <p style={{ fontSize: 12, color: C.t3, margin: 0 }}>Your edge, briefed.</p>
         </div>
-        <PersonaSelector active={persona} onSelect={handlePersonaChange} />
+        <PersonaSelector active={persona} onSelect={handlePersonaChange} isMobile={isMobile} />
       </div>
 
       {/* ─── Tier 1: The Brief ────────────────────────────────── */}
-      <SectionBlock id="brief">
+      <SectionBlock id="brief" animDelay={0}>
         <Suspense fallback={<SectionSkeleton />}>
           <TheBrief />
         </Suspense>
       </SectionBlock>
 
       {/* ─── Tier 2: Market Pulse ─────────────────────────────── */}
-      <SectionBlock id="pulse">
+      <SectionBlock id="pulse" animDelay={80}>
         <Suspense fallback={<SectionSkeleton />}>
           <MarketPulse />
         </Suspense>
       </SectionBlock>
 
       {/* ─── Tier 3: Signals ──────────────────────────────────── */}
-      <SectionBlock id="signals" title="Signals" icon={'\u{1F4E1}'}>
+      <SectionBlock id="signals" title="Signals" icon={'\u{1F4E1}'} animDelay={160}>
         <Suspense fallback={<SectionSkeleton />}>
           <SignalsSection />
         </Suspense>
       </SectionBlock>
 
       {/* ─── Tier 4: Research ─────────────────────────────────── */}
-      <SectionBlock id="research" title="Research" icon={'\u{1F50D}'}>
+      <SectionBlock id="research" title="Research" icon={'\u{1F50D}'} animDelay={240}>
         <Suspense fallback={<SectionSkeleton />}>
           <ResearchSection />
         </Suspense>
       </SectionBlock>
 
       {/* ─── Tier 5: Macro & Predictions ──────────────────────── */}
-      <SectionBlock id="macro" title="Macro & Predictions" icon={'\u{1F30D}'}>
+      <SectionBlock id="macro" title="Macro & Predictions" icon={'\u{1F30D}'} animDelay={320}>
         <Suspense fallback={<SectionSkeleton />}>
           <MacroSection />
         </Suspense>

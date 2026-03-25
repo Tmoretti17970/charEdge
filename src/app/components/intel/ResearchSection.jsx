@@ -6,9 +6,27 @@
 // Tabs: Sectors | Screener | Earnings | Analysts | Volatility | Correlation
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useCallback, useRef, Suspense } from 'react';
 import { C, F } from '../../../constants.js';
+import { trackClick } from '../../../observability/telemetry.ts';
 import { alpha } from '@/shared/colorUtils';
+
+// ─── Tab fade keyframes (injected once) ─────────────────────────
+const RESEARCH_ANIM_ID = 'charEdge-research-tabfade';
+if (typeof document !== 'undefined' && !document.getElementById(RESEARCH_ANIM_ID)) {
+  const style = document.createElement('style');
+  style.id = RESEARCH_ANIM_ID;
+  style.textContent = `
+    @keyframes ceResearchFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ce-research-fade { animation: none !important; }
+    }
+  `;
+  document.head.appendChild(style);
+}
 
 // ─── Lazy-loaded Widgets ────────────────────────────────────────
 
@@ -116,6 +134,30 @@ class WidgetErrorBoundary extends React.Component {
 
 function ResearchSection() {
   const [activeTab, setActiveTab] = useState('sectors');
+  const tabsRef = useRef([]);
+
+  const handleTabChange = useCallback((tabId) => {
+    setActiveTab(tabId);
+    trackClick('intel_research_tab_' + tabId, 'intel');
+  }, []);
+
+  const handleTabKeyDown = useCallback(
+    (e) => {
+      const currentIndex = TABS.findIndex((t) => t.id === activeTab);
+      let nextIndex = -1;
+      if (e.key === 'ArrowRight') {
+        nextIndex = (currentIndex + 1) % TABS.length;
+      } else if (e.key === 'ArrowLeft') {
+        nextIndex = (currentIndex - 1 + TABS.length) % TABS.length;
+      }
+      if (nextIndex >= 0) {
+        e.preventDefault();
+        setActiveTab(TABS[nextIndex].id);
+        tabsRef.current[nextIndex]?.focus();
+      }
+    },
+    [activeTab],
+  );
 
   const current = TABS.find((t) => t.id === activeTab) || TABS[0];
   const ActiveWidget = current.Component;
@@ -162,12 +204,15 @@ function ResearchSection() {
 
       {/* ─── Tab Bar ───────────────────────────────────────────── */}
       <div
+        role="tablist"
+        aria-label="Research type tabs"
         style={{
           display: 'flex',
           gap: 6,
           padding: '12px 20px 14px',
           overflowX: 'auto',
           scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch',
         }}
       >
         {TABS.map((tab) => {
@@ -175,9 +220,18 @@ function ResearchSection() {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              aria-pressed={isActive}
+              ref={(el) => {
+                tabsRef.current[TABS.indexOf(tab)] = el;
+              }}
+              id={`research-tab-${tab.id}`}
+              role="tab"
+              aria-selected={isActive}
+              aria-controls="research-tabpanel"
+              tabIndex={isActive ? 0 : -1}
+              onClick={() => handleTabChange(tab.id)}
+              onKeyDown={handleTabKeyDown}
               style={{
+                flexShrink: 0,
                 padding: '5px 14px',
                 borderRadius: 20,
                 border: `1px solid ${isActive ? C.b : C.bd}`,
@@ -198,7 +252,18 @@ function ResearchSection() {
       </div>
 
       {/* ─── Widget Content ────────────────────────────────────── */}
-      <div style={{ minHeight: 300 }}>
+      <div
+        key={activeTab}
+        id="research-tabpanel"
+        role="tabpanel"
+        aria-labelledby={`research-tab-${activeTab}`}
+        tabIndex={0}
+        className="ce-research-fade"
+        style={{
+          minHeight: 300,
+          animation: 'ceResearchFadeIn 0.25s ease-out',
+        }}
+      >
         <WidgetErrorBoundary key={activeTab}>
           <Suspense fallback={<SkeletonFallback />}>
             <ActiveWidget />

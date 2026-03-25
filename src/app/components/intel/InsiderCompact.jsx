@@ -5,8 +5,9 @@
 // Shows top 5 insider moves with cluster-buy badges.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { C, F } from '../../../constants.js';
+import { edgarAdapter } from '../../../data/adapters/EdgarAdapter.js';
 import { alpha } from '@/shared/colorUtils';
 
 // ─── Mock Data ──────────────────────────────────────────────────
@@ -62,16 +63,52 @@ function fmtValue(v) {
   return `$${v}`;
 }
 
+const INSIDER_SYMBOLS = ['AAPL', 'NVDA', 'MSFT', 'JPM', 'TSLA'];
+
 // ─── Component ──────────────────────────────────────────────────
 function InsiderCompact() {
+  const [insiders, setInsiders] = useState(MOCK_INSIDERS);
+
+  useEffect(() => {
+    async function fetchInsiders() {
+      try {
+        const allResults = await Promise.all(
+          INSIDER_SYMBOLS.map((sym) => edgarAdapter.fetchInsiderTransactions(sym, 3)),
+        );
+        const flat = allResults
+          .flat()
+          .filter((f) => f && f.filingDate)
+          .sort((a, b) => new Date(b.filingDate) - new Date(a.filingDate))
+          .slice(0, 5)
+          .map((f, i) => ({
+            id: i + 1,
+            date: f.filingDate ? f.filingDate.slice(5).replace('-', '/') : '',
+            name: f.description || 'Insider',
+            role: f.form === '4' ? 'Officer' : 'Dir',
+            symbol: f.symbol || '',
+            action: 'Filing',
+            value: 0,
+            cluster: false,
+          }));
+        if (flat.length > 0) setInsiders(flat);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn('[InsiderCompact] Fetch failed, using fallback:', err.message);
+      }
+    }
+    fetchInsiders();
+  }, []);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {MOCK_INSIDERS.map((ins) => {
+    <div role="list" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {insiders.map((ins) => {
         const isBuy = ins.action === 'Buy';
         const tint = isBuy ? C.g : C.r;
 
         return (
           <div
+            role="listitem"
+            aria-label={`${ins.date} ${ins.name} ${ins.role} ${ins.action} ${ins.symbol} ${fmtValue(ins.value)}${ins.cluster ? ' Cluster buy' : ''}`}
             key={ins.id}
             style={{
               display: 'flex',

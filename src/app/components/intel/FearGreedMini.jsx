@@ -5,11 +5,12 @@
 // Adapted from quarantined FearGreedWidget. Fits within ~80x60px.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { C, F } from '../../../constants.js';
+import { sentimentAdapter } from '../../../data/adapters/SentimentAdapter.js';
 import { alpha } from '@/shared/colorUtils';
 
-// ─── Mock Data ───────────────────────────────────────────────────
+// ─── Mock Data (fallback) ────────────────────────────────────────
 const MOCK_FG = { value: 68, previousClose: 62 };
 
 function getColor(value) {
@@ -48,7 +49,7 @@ function MiniArc({ value, size = 80 }) {
   const color = getColor(value);
 
   return (
-    <svg width={size} height={size / 2 + 8} viewBox={`0 0 ${size} ${size / 2 + 8}`}>
+    <svg width={size} height={size / 2 + 8} viewBox={`0 0 ${size} ${size / 2 + 8}`} role="img" aria-hidden="true">
       <defs>
         <linearGradient id="fgMiniGrad" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#e74c3c" />
@@ -96,13 +97,34 @@ function MiniArc({ value, size = 80 }) {
 // ═══════════════════════════════════════════════════════════════════
 
 function FearGreedMini() {
-  const { value, previousClose } = MOCK_FG;
+  const [fgData, setFgData] = useState(MOCK_FG);
+
+  useEffect(() => {
+    async function fetchFG() {
+      try {
+        const result = await sentimentAdapter.fetchFearGreed();
+        if (result?.current?.value != null) {
+          const currentVal = result.current.value;
+          const prevVal = result.history?.[1]?.value ?? MOCK_FG.previousClose;
+          setFgData({ value: currentVal, previousClose: prevVal });
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn('[FearGreedMini] Fetch failed, using fallback:', err.message);
+      }
+    }
+    fetchFG();
+  }, []);
+
+  const { value, previousClose } = fgData;
   const delta = value - previousClose;
   const color = getColor(value);
   const label = getLabel(value);
 
   return (
     <div
+      role="img"
+      aria-label={`Fear and Greed Index: ${value}, ${label}, ${delta >= 0 ? 'up' : 'down'} ${Math.abs(delta)} from previous`}
       style={{
         display: 'flex',
         flexDirection: 'column',

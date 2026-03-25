@@ -5,8 +5,9 @@
 // Shows top 5 detected chart patterns with confidence bars.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { C, F } from '../../../constants.js';
+import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { alpha } from '@/shared/colorUtils';
 
 // ─── Mock Data ──────────────────────────────────────────────────
@@ -18,16 +19,54 @@ const MOCK_PATTERNS = [
   { id: 5, symbol: 'SPY', pattern: 'Ascending Triangle', timeframe: '1H', signal: 'Bullish', confidence: 71 },
 ];
 
+const DEFAULT_SYMBOLS = ['NVDA', 'BTC', 'TSLA', 'AAPL', 'SPY'];
+
 // ─── Component ──────────────────────────────────────────────────
 function TechnicalSignalsCompact() {
+  const [patterns, setPatterns] = useState(MOCK_PATTERNS);
+  const watchlist = useWatchlistStore((s) => s.items);
+
+  useEffect(() => {
+    let mounted = true;
+    const symbols = watchlist && watchlist.length > 0 ? watchlist.slice(0, 10).map((w) => w.symbol) : DEFAULT_SYMBOLS;
+
+    import('../../../data/engine/computeWatchlistIntel.js')
+      .then(async ({ batchComputeIntel }) => {
+        const results = await batchComputeIntel(symbols, {}, '1h');
+        if (!mounted) return;
+        const mapped = results
+          .filter((r) => r && r.pattern && r.pattern !== 'Analyzing...' && r.pattern !== 'No data available')
+          .slice(0, 5)
+          .map((r, i) => ({
+            id: i + 1,
+            symbol: r.symbol,
+            pattern: r.pattern || 'N/A',
+            timeframe: '1H',
+            signal: r.sentiment === 'bullish' ? 'Bullish' : r.sentiment === 'bearish' ? 'Bearish' : 'Neutral',
+            confidence: r.sentimentConfidence || 50,
+          }));
+        if (mapped.length > 0) setPatterns(mapped);
+      })
+      .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.warn('[TechnicalSignalsCompact] Fetch failed, using fallback:', err.message);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [watchlist]);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {MOCK_PATTERNS.map((p) => {
+    <div role="list" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {patterns.map((p) => {
         const isBull = p.signal === 'Bullish';
         const tint = isBull ? C.g : C.r;
 
         return (
           <div
+            role="listitem"
+            aria-label={`${p.symbol} ${p.pattern} ${p.timeframe} ${p.signal} ${p.confidence}% confidence`}
             key={p.id}
             style={{
               display: 'flex',

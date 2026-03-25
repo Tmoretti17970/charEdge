@@ -10,7 +10,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useRef, useEffect } from 'react';
+import { aiRouter } from '../../../ai/AIRouter.ts';
+import { journalRAG } from '../../../ai/JournalRAG.ts';
+import { traderDNA } from '../../../ai/TraderDNA.ts';
 import { C, F } from '../../../constants.js';
+import { trackFeatureUse } from '../../../observability/telemetry.ts';
 import { useJournalStore } from '../../../state/useJournalStore';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { alpha } from '@/shared/colorUtils';
@@ -140,6 +144,7 @@ function IntelCopilot({ activeSection = 'default' }) {
   const [inputValue, setInputValue] = useState('');
   const [response, setResponse] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
+  const [responseTier, setResponseTier] = useState(null);
   const inputRef = useRef(null);
   const panelRef = useRef(null);
 
@@ -168,16 +173,103 @@ function IntelCopilot({ activeSection = 'default' }) {
     const q = query || inputValue;
     if (!q.trim()) return;
 
+    trackFeatureUse('intel_copilot_query', { section: activeSection });
     setInputValue('');
     setIsExpanded(true);
     setIsTyping(true);
+    setResponseTier(null);
 
-    // Simulate typing delay
-    await new Promise((r) => setTimeout(r, 600 + Math.random() * 400));
+    try {
+      // Determine route type based on query content
+      const isBriefing = /\b(brief|expand|miss|summary|30-second|quick)\b/i.test(q);
+      const routeType = isBriefing ? 'narrate' : 'analyze';
 
-    const result = generateResponse(q, trades, watchlist, activeSection);
-    setResponse({ query: q, ...result });
-    setIsTyping(false);
+      // Build system prompt with context
+      let systemPrompt = `You are a trading copilot. Active section: ${activeSection}.`;
+      try {
+        const dna = traderDNA.getDNAForPrompt();
+        if (dna) systemPrompt += `\n\nTrader DNA: ${dna}`;
+      } catch {
+        // TraderDNA not ready — skip
+      }
+
+      // Inject JournalRAG context for trade-related queries
+      let ragContext = '';
+      if (/\b(my\s+trade|win\s*rate|journal|history)\b/i.test(q)) {
+        try {
+          const ragResult = await journalRAG.query(q, 5);
+          if (ragResult && ragResult.context) {
+            ragContext = `\n\nRelevant journal context:\n${ragResult.context}`;
+          }
+        } catch {
+          // RAG unavailable — proceed without
+        }
+      }
+
+      if (ragContext) {
+        systemPrompt += ragContext;
+      }
+
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: q },
+      ];
+
+      // Try streaming first
+      let streamed = false;
+      let streamedContent = '';
+      let streamTier = null;
+
+      try {
+        const generator = aiRouter.stream({ type: routeType, messages, maxTokens: 300, stream: true });
+        let iterResult = await generator.next();
+
+        if (!iterResult.done) {
+          streamed = true;
+          // Show streaming response progressively
+          setIsTyping(false);
+          setResponse({ query: q, text: '', followUp: [] });
+
+          while (!iterResult.done) {
+            streamedContent += iterResult.value;
+            setResponse({ query: q, text: streamedContent, followUp: [] });
+            iterResult = await generator.next();
+          }
+
+          // The return value of the generator holds the AIResponse metadata
+          const finalMeta = iterResult.value;
+          if (finalMeta && finalMeta.tier) {
+            streamTier = finalMeta.tier;
+          }
+          setResponseTier(streamTier || 'L4');
+          return;
+        }
+      } catch {
+        // Streaming not available — try non-streaming route
+      }
+
+      if (!streamed) {
+        const aiResult = await aiRouter.route({ type: routeType, messages, maxTokens: 300 });
+        if (aiResult && aiResult.content) {
+          setResponse({ query: q, text: aiResult.content, followUp: [] });
+          setResponseTier(aiResult.tier || 'L3');
+          setIsTyping(false);
+          return;
+        }
+      }
+
+      // If we reached here, AI didn't produce a result — fall back
+      throw new Error('No AI response');
+    } catch {
+      // Fallback to rule-based response engine
+      // Simulate brief typing delay for rule-based
+      await new Promise((r) => setTimeout(r, 400 + Math.random() * 300));
+      const result = generateResponse(q, trades, watchlist, activeSection);
+      setResponse({ query: q, ...result });
+      setResponseTier('L1');
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -198,6 +290,7 @@ function IntelCopilot({ activeSection = 'default' }) {
   const handleClose = () => {
     setIsExpanded(false);
     setResponse(null);
+    setResponseTier(null);
   };
 
   return (
@@ -215,6 +308,9 @@ function IntelCopilot({ activeSection = 'default' }) {
       {/* ─── Expanded Response Panel ───────────────────────────── */}
       {isExpanded && (response || isTyping) && (
         <div
+          role="log"
+          aria-live="polite"
+          aria-busy={isTyping}
           style={{
             background: C.bg2,
             borderRadius: '14px 14px 0 0',
@@ -262,17 +358,44 @@ function IntelCopilot({ activeSection = 'default' }) {
 
           {response && !isTyping && (
             <div>
-              {/* User query */}
+              {/* User query + tier badge */}
               <div
                 style={{
-                  fontSize: 11,
-                  color: C.t3,
-                  fontFamily: F,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
                   marginBottom: 8,
-                  fontStyle: 'italic',
                 }}
               >
-                {response.query}
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: C.t3,
+                    fontFamily: F,
+                    fontStyle: 'italic',
+                  }}
+                >
+                  {response.query}
+                </div>
+                {responseTier && (
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      fontFamily: 'var(--tf-mono)',
+                      color: responseTier === 'L1' ? C.t3 : responseTier === 'L4' ? C.b : alpha(C.b, 0.8),
+                      background: responseTier === 'L1' ? alpha(C.t3, 0.1) : alpha(C.b, 0.1),
+                      border: `1px solid ${responseTier === 'L1' ? alpha(C.t3, 0.2) : alpha(C.b, 0.2)}`,
+                      borderRadius: 4,
+                      padding: '1px 5px',
+                      letterSpacing: '0.04em',
+                      flexShrink: 0,
+                      marginLeft: 8,
+                    }}
+                  >
+                    {responseTier}
+                  </span>
+                )}
               </div>
 
               {/* AI response */}
@@ -358,7 +481,11 @@ function IntelCopilot({ activeSection = 'default' }) {
             {prompts.map((p, i) => (
               <button
                 key={i}
-                onClick={() => handleSend(p.query)}
+                aria-label={`Ask: ${p.label}`}
+                onClick={() => {
+                  trackFeatureUse('intel_copilot_quick_prompt', { prompt: p.label });
+                  handleSend(p.query);
+                }}
                 style={{
                   padding: '5px 12px',
                   borderRadius: 20,
