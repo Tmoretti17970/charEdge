@@ -19,12 +19,19 @@ import { logger } from '@/observability/logger';
 // Oldest bars are evicted via splice when this limit is exceeded.
 const MAX_BARS = 2000;
 
+// Phase 5.1: Number of recently-viewed symbol+tf combos to keep in memory.
+// Bars are retained even after unsubscribe, making switching back instant.
+const RETAIN_RECENT_COUNT = 5;
+
 class DatafeedService {
   constructor() {
     this.cache = new Map(); // key: 'symbol_tf', value: { bars: [], status: 'idle'|'loading'|'ready', subscribers: Set(), generation: number }
     this.sockets = new Map(); // key: 'symbol_tf', value: WebSocket
     this._reconnectTimers = new Map(); // key → setTimeout id for pending reconnects
     this._pythUnsubs = new Map(); // key → unsubscribe fn for Pyth SSE streams
+
+    // Phase 5.1: Track recently-viewed keys for optimistic retention
+    this._recentKeys = []; // Ordered: most recent first
   }
 
   /**
@@ -51,14 +58,24 @@ class DatafeedService {
     const subscriber = { onHistorical, onTick, onError };
     entry.subscribers.add(subscriber);
 
+    // Phase 5.1: Track this key as recently viewed
+    this._trackRecent(key);
+
     // Bump generation — invalidates any in-flight fetch for this key
     entry.generation = (entry.generation || 0) + 1;
 
-    // If we already have bars, emit immediately
-    if (entry.status === 'ready' && entry.bars.length > 0) {
+    // Phase 5.1: Optimistic rendering — if we have stale bars from a previous
+    // session, emit them immediately while fetching fresh data in background.
+    // This makes symbol switching feel instant (<50ms) for recently-viewed symbols.
+    if (entry.bars.length > 0) {
       if (onHistorical) onHistorical(entry.bars);
+      // If data is stale (retained from previous session), trigger background refresh
+      if (entry.status !== 'loading') {
+        entry.status = 'idle'; // Reset to allow re-fetch
+        this._loadHistorical(symbol, tf, key);
+      }
     }
-    // If not currently loading, trigger a load
+    // No cached bars — trigger normal load
     else if (entry.status === 'idle') {
       this._loadHistorical(symbol, tf, key);
     }
@@ -581,8 +598,8 @@ class DatafeedService {
   }
 
   _cleanup(key) {
-    // Zero active subscribers, drop connection and cache
-    // (Clearing cache prevents gaps when re-subscribing later)
+    // Zero active subscribers — close connections but optionally retain bar data
+    // for instant switch-back (Phase 5.1: optimistic symbol transitions).
 
     // Cancel any in-flight fetch first
     const entry = this.cache.get(key);
@@ -622,8 +639,40 @@ class DatafeedService {
       this._pythUnsubs.delete(key);
     }
 
-    this.cache.delete(key);
+    // Phase 5.1: Retain bar data for recently-viewed symbols.
+    // Close connections but keep bars in memory so switching back is instant.
+    // Only fully delete cache entries that aren't in the recent set.
+    if (this._recentKeys.includes(key) && entry?.bars?.length > 0) {
+      // Keep bars, reset status so next subscribe triggers a background refresh
+      entry.status = 'idle';
+      entry.subscribers.clear();
+    } else {
+      this.cache.delete(key);
+    }
+
     removeAggregator(key);
+  }
+
+  /**
+   * Phase 5.1: Track a key as recently viewed.
+   * Maintains a bounded list of the last N symbol+tf combos.
+   * @private
+   */
+  _trackRecent(key) {
+    // Move to front if already tracked
+    const idx = this._recentKeys.indexOf(key);
+    if (idx !== -1) this._recentKeys.splice(idx, 1);
+    this._recentKeys.unshift(key);
+
+    // Evict oldest retained entries beyond the limit
+    while (this._recentKeys.length > RETAIN_RECENT_COUNT) {
+      const evicted = this._recentKeys.pop();
+      // If evicted key has no subscribers and still in cache, delete it now
+      const entry = this.cache.get(evicted);
+      if (entry && entry.subscribers.size === 0) {
+        this.cache.delete(evicted);
+      }
+    }
   }
 }
 

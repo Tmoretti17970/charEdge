@@ -37,6 +37,60 @@ const TF_DURATION_MS: Record<string, number> = {
   '1w': 7 * 24 * 60 * 60_000,
 };
 
+// ─── Phase 3.3: Aggregation Memoization Cache ───────────────────
+//
+// Memoizes aggregation results keyed on symbol:targetTf:barCount:lastBarTime.
+// Makes timeframe switching instant (<1ms) when source data hasn't changed.
+// Cache invalidated when new 1m bars arrive (different count or last time).
+
+const _aggregationCache = new Map<string, { bars: Bar[]; key: string }>();
+const MAX_AGG_CACHE_ENTRIES = 50; // Max cached symbol:tf combos
+
+/**
+ * Memoized version of aggregateBars.
+ * Returns cached result if source data hasn't changed.
+ *
+ * @param bars Source bars (e.g. 1m bars)
+ * @param targetTf Target timeframe string
+ * @param symbol Symbol for cache key (optional, improves cache isolation)
+ */
+export function aggregateBarsMemoized(bars: Bar[], targetTf: string, symbol = ''): Bar[] {
+  if (!bars.length) return [];
+
+  // Build cache key from data fingerprint
+  const lastBar = bars[bars.length - 1];
+  const cacheKey = `${symbol}:${targetTf}:${bars.length}:${lastBar.time}:${lastBar.close}`;
+
+  const cached = _aggregationCache.get(cacheKey);
+  if (cached) return cached.bars;
+
+  // Compute aggregation
+  const result = aggregateBars(bars, targetTf);
+
+  // Evict oldest entries if cache is full
+  if (_aggregationCache.size >= MAX_AGG_CACHE_ENTRIES) {
+    const firstKey = _aggregationCache.keys().next().value;
+    if (firstKey) _aggregationCache.delete(firstKey);
+  }
+
+  _aggregationCache.set(cacheKey, { bars: result, key: cacheKey });
+  return result;
+}
+
+/**
+ * Clear the aggregation cache (call on symbol change or data reset).
+ */
+export function clearAggregationCache(symbol?: string) {
+  if (symbol) {
+    const prefix = `${symbol}:`;
+    for (const key of _aggregationCache.keys()) {
+      if (key.startsWith(prefix)) _aggregationCache.delete(key);
+    }
+  } else {
+    _aggregationCache.clear();
+  }
+}
+
 // ─── Core Aggregation ────────────────────────────────────────────
 
 /**
@@ -145,11 +199,13 @@ export function getAggregationRatio(sourceTf: string, targetTf: string): number 
 export function getDeriveableTimeframes(sourceTf: string): string[] {
   const sourceMs = TF_DURATION_MS[sourceTf];
   if (!sourceMs) return [];
-  return Object.entries(TF_DURATION_MS)
-    .filter(([_tf, ms]) => ms > sourceMs && ms % sourceMs === 0)
-    .map(([tf]) => tf)
-    // Deduplicate case variants (1D/1d)
-    .filter((tf, i, arr) => arr.indexOf(tf) === i);
+  return (
+    Object.entries(TF_DURATION_MS)
+      .filter(([_tf, ms]) => ms > sourceMs && ms % sourceMs === 0)
+      .map(([tf]) => tf)
+      // Deduplicate case variants (1D/1d)
+      .filter((tf, i, arr) => arr.indexOf(tf) === i)
+  );
 }
 
 // Re-export for testing

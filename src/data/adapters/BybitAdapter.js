@@ -15,9 +15,19 @@ const BYBIT_REST = 'https://api.bybit.com';
 const BYBIT_WS = 'wss://stream.bybit.com/v5/public/spot';
 
 const INTERVAL_MAP = {
-  '1m': '1', '3m': '3', '5m': '5', '15m': '15', '30m': '30',
-  '1h': '60', '2h': '120', '4h': '240', '6h': '360', '12h': '720',
-  '1d': 'D', '1w': 'W', '1M': 'M',
+  '1m': '1',
+  '3m': '3',
+  '5m': '5',
+  '15m': '15',
+  '30m': '30',
+  '1h': '60',
+  '2h': '120',
+  '4h': '240',
+  '6h': '360',
+  '12h': '720',
+  '1d': 'D',
+  '1w': 'W',
+  '1M': 'M',
 };
 
 // ─── Helpers ───────────────────────────────────────────────────
@@ -47,6 +57,7 @@ export class BybitAdapter extends BaseAdapter {
     this._reconnectTimer = null;
     this._heartbeatTimer = null;
     this._pendingSubscriptions = [];
+    this._disposed = false; // Phase 1.3: Guard against post-dispose method calls
   }
 
   // ── Interface Methods ──────────────────────────────────────────
@@ -57,7 +68,9 @@ export class BybitAdapter extends BaseAdapter {
     return upper.endsWith('USDT') || upper.endsWith('USDC');
   }
 
-  latencyTier() { return 'realtime'; }
+  latencyTier() {
+    return 'realtime';
+  }
 
   async fetchOHLCV(symbol, interval = '1h', opts = {}) {
     const bybitInterval = INTERVAL_MAP[interval] || '60';
@@ -75,7 +88,7 @@ export class BybitAdapter extends BaseAdapter {
 
     // Bybit returns newest-first, reverse for chronological order
     return data.result.list
-      .map(k => {
+      .map((k) => {
         const timeMs = parseInt(k[0]);
         return {
           time: timeMs,
@@ -134,6 +147,41 @@ export class BybitAdapter extends BaseAdapter {
     };
   }
 
+  /**
+   * Phase 2.1: Subscribe to Bybit server-computed kline (candle) stream.
+   * Eliminates client-side candle aggregation — exchange-accurate OHLCV.
+   *
+   * @param {string} symbol - e.g. 'BTCUSDT'
+   * @param {string} interval - charEdge interval e.g. '1m', '5m', '1h'
+   * @param {Function} callback - ({ time, open, high, low, close, volume, isClosed }) => void
+   * @returns {Function} unsubscribe
+   */
+  subscribeKline(symbol, interval, callback) {
+    const upper = symbol.toUpperCase();
+    const bybitInterval = INTERVAL_MAP[interval] || '60';
+    const topic = `kline.${bybitInterval}.${upper}`;
+    const key = `kline:${upper}:${interval}`;
+
+    if (!this._subscribers.has(key)) {
+      this._subscribers.set(key, new Set());
+    }
+    this._subscribers.get(key).add(callback);
+
+    this._ensureWebSocket();
+    this._sendSubscribe([topic]);
+
+    return () => {
+      const subs = this._subscribers.get(key);
+      if (subs) {
+        subs.delete(callback);
+        if (subs.size === 0) {
+          this._subscribers.delete(key);
+          this._sendUnsubscribe([topic]);
+        }
+      }
+    };
+  }
+
   async searchSymbols(query, limit = 10) {
     try {
       const data = await fetchJSON(`${BYBIT_REST}/v5/market/instruments-info?category=spot`);
@@ -141,15 +189,15 @@ export class BybitAdapter extends BaseAdapter {
 
       const q = query.toUpperCase();
       return data.result.list
-        .filter(s => s.status === 'Trading' && s.symbol.includes(q))
+        .filter((s) => s.status === 'Trading' && s.symbol.includes(q))
         .slice(0, limit)
-        .map(s => ({
+        .map((s) => ({
           symbol: s.symbol,
           name: `${s.baseCoin}/${s.quoteCoin}`,
           type: 'CRYPTO',
           exchange: 'Bybit',
         }));
-    // eslint-disable-next-line unused-imports/no-unused-vars
+      // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return [];
     }
@@ -161,20 +209,33 @@ export class BybitAdapter extends BaseAdapter {
   }
 
   dispose() {
+    this._disposed = true;
+    this._stopHeartbeat();
+    clearTimeout(this._reconnectTimer);
+    this._reconnectTimer = null;
     if (this._ws) {
-      this._ws.close();
+      // Phase 1.3: Null handlers before close to prevent late callbacks
+      this._ws.onopen = null;
+      this._ws.onmessage = null;
+      this._ws.onclose = null;
+      this._ws.onerror = null;
+      try {
+        this._ws.close();
+      } catch {
+        /* ignore */
+      }
       this._ws = null;
     }
     this._wsConnected = false;
     this._subscribers.clear();
-    clearTimeout(this._reconnectTimer);
-    clearInterval(this._heartbeatTimer);
+    this._pendingSubscriptions = [];
   }
 
   // ── WebSocket Management ───────────────────────────────────────
 
   /** @private */
   _ensureWebSocket() {
+    if (this._disposed) return; // Phase 1.3: Guard
     if (this._ws && this._wsConnected) return;
     if (this._ws) return; // Connecting
 
@@ -199,7 +260,9 @@ export class BybitAdapter extends BaseAdapter {
         try {
           const msg = JSON.parse(event.data);
           this._handleMessage(msg);
-        } catch (e) { logger.data.warn('Operation failed', e); }
+        } catch (e) {
+          logger.data.warn('Operation failed', e);
+        }
       };
 
       this._ws.onclose = () => {
@@ -249,7 +312,46 @@ export class BybitAdapter extends BaseAdapter {
           side: trade.S === 'Buy' ? 'buy' : 'sell',
         };
         for (const cb of callbacks) {
-          try { cb(tick); } catch (e) { logger.data.warn('Operation failed', e); }
+          try {
+            cb(tick);
+          } catch (e) {
+            logger.data.warn('Operation failed', e);
+          }
+        }
+      }
+    }
+
+    // Phase 2.1: Kline (candle) data — server-computed OHLCV
+    if (msg.topic?.startsWith('kline.') && msg.data) {
+      // topic format: kline.{interval}.{SYMBOL}
+      const parts = msg.topic.split('.');
+      const symbol = parts[2]; // e.g. BTCUSDT
+      // Find the matching charEdge interval from Bybit interval code
+      const bybitInterval = parts[1];
+      const charEdgeInterval = Object.entries(INTERVAL_MAP).find(([, v]) => v === bybitInterval)?.[0] || '1h';
+      const key = `kline:${symbol}:${charEdgeInterval}`;
+
+      const callbacks = this._subscribers.get(key);
+      if (!callbacks || callbacks.size === 0) return;
+
+      for (const candle of msg.data) {
+        const bar = {
+          time: parseInt(candle.start),
+          open: parseFloat(candle.open),
+          high: parseFloat(candle.high),
+          low: parseFloat(candle.low),
+          close: parseFloat(candle.close),
+          volume: parseFloat(candle.volume),
+          isClosed: candle.confirm === true,
+          symbol,
+          source: 'bybit',
+        };
+        for (const cb of callbacks) {
+          try {
+            cb(bar);
+          } catch (e) {
+            logger.data.warn('Operation failed', e);
+          }
         }
       }
     }
@@ -261,19 +363,23 @@ export class BybitAdapter extends BaseAdapter {
       this._pendingSubscriptions.push(...topics);
       return;
     }
-    this._ws.send(JSON.stringify({
-      op: 'subscribe',
-      args: topics,
-    }));
+    this._ws.send(
+      JSON.stringify({
+        op: 'subscribe',
+        args: topics,
+      }),
+    );
   }
 
   /** @private */
   _sendUnsubscribe(topics) {
     if (!this._ws || !this._wsConnected) return;
-    this._ws.send(JSON.stringify({
-      op: 'unsubscribe',
-      args: topics,
-    }));
+    this._ws.send(
+      JSON.stringify({
+        op: 'unsubscribe',
+        args: topics,
+      }),
+    );
   }
 
   /** @private */

@@ -15,12 +15,22 @@
 import { BaseAdapter } from './BaseAdapter.js';
 import { logger } from '@/observability/logger';
 const OKX_REST = 'https://www.okx.com';
-const OKX_WS   = 'wss://ws.okx.com:8443/ws/v5/public';
+const OKX_WS = 'wss://ws.okx.com:8443/ws/v5/public';
 
 const INTERVAL_MAP = {
-  '1m': '1m', '3m': '3m', '5m': '5m', '15m': '15m', '30m': '30m',
-  '1h': '1H', '2h': '2H', '4h': '4H', '6h': '6H', '12h': '12H',
-  '1d': '1D', '1w': '1W', '1M': '1M',
+  '1m': '1m',
+  '3m': '3m',
+  '5m': '5m',
+  '15m': '15m',
+  '30m': '30m',
+  '1h': '1H',
+  '2h': '2H',
+  '4h': '4H',
+  '6h': '6H',
+  '12h': '12H',
+  '1d': '1D',
+  '1w': '1W',
+  '1M': '1M',
 };
 
 // ─── Symbol Mapping ────────────────────────────────────────────
@@ -72,6 +82,7 @@ export class OKXAdapter extends BaseAdapter {
     this._reconnectTimer = null;
     this._heartbeatTimer = null;
     this._pendingSubscriptions = [];
+    this._disposed = false; // Phase 1.3: Guard against post-dispose method calls
   }
 
   // ── Interface Methods ──────────────────────────────────────────
@@ -81,7 +92,9 @@ export class OKXAdapter extends BaseAdapter {
     return upper.endsWith('USDT') || upper.endsWith('USDC');
   }
 
-  latencyTier() { return 'realtime'; }
+  latencyTier() {
+    return 'realtime';
+  }
 
   async fetchOHLCV(symbol, interval = '1h', opts = {}) {
     const instId = toOKXInstId(symbol);
@@ -99,7 +112,7 @@ export class OKXAdapter extends BaseAdapter {
 
     // OKX returns newest-first [[ts, o, h, l, c, vol, ...]]
     return data.data
-      .map(k => ({
+      .map((k) => ({
         time: parseInt(k[0]),
         open: parseFloat(k[1]),
         high: parseFloat(k[2]),
@@ -158,6 +171,42 @@ export class OKXAdapter extends BaseAdapter {
     };
   }
 
+  /**
+   * Phase 2.1: Subscribe to OKX server-computed candle stream.
+   * OKX channel format: candle{interval} (e.g. candle1m, candle1H)
+   *
+   * @param {string} symbol - e.g. 'BTCUSDT'
+   * @param {string} interval - charEdge interval e.g. '1m', '5m', '1h'
+   * @param {Function} callback - ({ time, open, high, low, close, volume, isClosed }) => void
+   * @returns {Function} unsubscribe
+   */
+  subscribeKline(symbol, interval, callback) {
+    const upper = (symbol || '').toUpperCase();
+    const instId = toOKXInstId(upper);
+    const okxInterval = INTERVAL_MAP[interval] || '1H';
+    const channel = `candle${okxInterval}`;
+    const key = `kline:${upper}:${interval}`;
+
+    if (!this._subscribers.has(key)) {
+      this._subscribers.set(key, new Set());
+    }
+    this._subscribers.get(key).add(callback);
+
+    this._ensureWebSocket();
+    this._sendSubscribe([{ channel, instId }]);
+
+    return () => {
+      const subs = this._subscribers.get(key);
+      if (subs) {
+        subs.delete(callback);
+        if (subs.size === 0) {
+          this._subscribers.delete(key);
+          this._sendUnsubscribe([{ channel, instId }]);
+        }
+      }
+    };
+  }
+
   async searchSymbols(query, limit = 10) {
     try {
       const data = await fetchJSON(`${OKX_REST}/api/v5/public/instruments?instType=SPOT`);
@@ -165,15 +214,15 @@ export class OKXAdapter extends BaseAdapter {
 
       const q = query.toUpperCase();
       return data.data
-        .filter(s => s.state === 'live' && (s.instId.includes(q) || fromOKXInstId(s.instId).includes(q)))
+        .filter((s) => s.state === 'live' && (s.instId.includes(q) || fromOKXInstId(s.instId).includes(q)))
         .slice(0, limit)
-        .map(s => ({
+        .map((s) => ({
           symbol: fromOKXInstId(s.instId),
           name: `${s.baseCcy}/${s.quoteCcy}`,
           type: 'CRYPTO',
           exchange: 'OKX',
         }));
-    // eslint-disable-next-line unused-imports/no-unused-vars
+      // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return [];
     }
@@ -184,20 +233,33 @@ export class OKXAdapter extends BaseAdapter {
   }
 
   dispose() {
+    this._disposed = true;
+    this._stopHeartbeat();
+    clearTimeout(this._reconnectTimer);
+    this._reconnectTimer = null;
     if (this._ws) {
-      this._ws.close();
+      // Phase 1.3: Null handlers before close to prevent late callbacks
+      this._ws.onopen = null;
+      this._ws.onmessage = null;
+      this._ws.onclose = null;
+      this._ws.onerror = null;
+      try {
+        this._ws.close();
+      } catch {
+        /* ignore */
+      }
       this._ws = null;
     }
     this._wsConnected = false;
     this._subscribers.clear();
-    clearTimeout(this._reconnectTimer);
-    clearInterval(this._heartbeatTimer);
+    this._pendingSubscriptions = [];
   }
 
   // ── WebSocket Management ───────────────────────────────────────
 
   /** @private */
   _ensureWebSocket() {
+    if (this._disposed) return; // Phase 1.3: Guard
     if (this._ws && this._wsConnected) return;
     if (this._ws) return; // Connecting
 
@@ -224,7 +286,9 @@ export class OKXAdapter extends BaseAdapter {
           if (event.data === 'pong') return;
           const msg = JSON.parse(event.data);
           this._handleMessage(msg);
-        } catch (e) { logger.data.warn('Operation failed', e); }
+        } catch (e) {
+          logger.data.warn('Operation failed', e);
+        }
       };
 
       this._ws.onclose = () => {
@@ -275,7 +339,47 @@ export class OKXAdapter extends BaseAdapter {
           side: trade.side,
         };
         for (const cb of callbacks) {
-          try { cb(tick); } catch (e) { logger.data.warn('Operation failed', e); }
+          try {
+            cb(tick);
+          } catch (e) {
+            logger.data.warn('Operation failed', e);
+          }
+        }
+      }
+    }
+
+    // Phase 2.1: Candle data — server-computed OHLCV
+    // OKX candle channel: candle1m, candle1H, candle1D, etc.
+    if (msg.arg?.channel?.startsWith('candle') && msg.data) {
+      const instId = msg.arg.instId;
+      const tfSymbol = fromOKXInstId(instId);
+      const okxInterval = msg.arg.channel.replace('candle', '');
+      // Reverse-lookup charEdge interval from OKX interval
+      const charEdgeInterval = Object.entries(INTERVAL_MAP).find(([, v]) => v === okxInterval)?.[0] || '1h';
+      const key = `kline:${tfSymbol}:${charEdgeInterval}`;
+
+      const callbacks = this._subscribers.get(key);
+      if (!callbacks || callbacks.size === 0) return;
+
+      // OKX candle data: [[ts, o, h, l, c, vol, volCcy, volCcyQuote, confirm]]
+      for (const candle of msg.data) {
+        const bar = {
+          time: parseInt(candle[0]),
+          open: parseFloat(candle[1]),
+          high: parseFloat(candle[2]),
+          low: parseFloat(candle[3]),
+          close: parseFloat(candle[4]),
+          volume: parseFloat(candle[5]),
+          isClosed: candle[8] === '1',
+          symbol: tfSymbol,
+          source: 'okx',
+        };
+        for (const cb of callbacks) {
+          try {
+            cb(bar);
+          } catch (e) {
+            logger.data.warn('Operation failed', e);
+          }
         }
       }
     }
@@ -287,19 +391,23 @@ export class OKXAdapter extends BaseAdapter {
       this._pendingSubscriptions.push(...args);
       return;
     }
-    this._ws.send(JSON.stringify({
-      op: 'subscribe',
-      args,
-    }));
+    this._ws.send(
+      JSON.stringify({
+        op: 'subscribe',
+        args,
+      }),
+    );
   }
 
   /** @private */
   _sendUnsubscribe(args) {
     if (!this._ws || !this._wsConnected) return;
-    this._ws.send(JSON.stringify({
-      op: 'unsubscribe',
-      args,
-    }));
+    this._ws.send(
+      JSON.stringify({
+        op: 'unsubscribe',
+        args,
+      }),
+    );
   }
 
   /** @private */

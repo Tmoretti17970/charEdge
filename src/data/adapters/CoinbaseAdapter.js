@@ -15,11 +15,15 @@
 import { BaseAdapter } from './BaseAdapter.js';
 import { logger } from '@/observability/logger';
 const CB_REST = 'https://api.exchange.coinbase.com';
-const CB_WS   = 'wss://ws-feed.exchange.coinbase.com';
+const CB_WS = 'wss://ws-feed.exchange.coinbase.com';
 
 const INTERVAL_MAP = {
-  '1m': 60, '5m': 300, '15m': 900,
-  '1h': 3600, '6h': 21600, '1d': 86400,
+  '1m': 60,
+  '5m': 300,
+  '15m': 900,
+  '1h': 3600,
+  '6h': 21600,
+  '1d': 86400,
 };
 
 // ─── Symbol Mapping ────────────────────────────────────────────
@@ -73,6 +77,7 @@ export class CoinbaseAdapter extends BaseAdapter {
     super('coinbase');
     this._ws = null;
     this._wsConnected = false;
+    this._disposed = false; // Phase 1.3: Guard against post-dispose method calls
     this._subscribers = new Map(); // tfSymbol → Set<callback>
     this._reconnectTimer = null;
     this._subscribedProducts = new Set(); // active Coinbase product IDs
@@ -86,7 +91,9 @@ export class CoinbaseAdapter extends BaseAdapter {
     return upper.endsWith('USDT') || upper.endsWith('USD') || upper.endsWith('USDC');
   }
 
-  latencyTier() { return 'realtime'; }
+  latencyTier() {
+    return 'realtime';
+  }
 
   async fetchOHLCV(symbol, interval = '1h', opts = {}) {
     const productId = toCoinbaseProductId(symbol);
@@ -105,7 +112,7 @@ export class CoinbaseAdapter extends BaseAdapter {
     // Coinbase returns newest-first: [timestamp, low, high, open, close, volume]
     return data
       .slice(0, limit)
-      .map(k => ({
+      .map((k) => ({
         time: k[0] * 1000, // Convert Unix seconds to ms
         open: parseFloat(k[3]),
         high: parseFloat(k[2]),
@@ -130,7 +137,9 @@ export class CoinbaseAdapter extends BaseAdapter {
       let stats = null;
       try {
         stats = await fetchJSON(`${CB_REST}/products/${productId}/stats`);
-      } catch (e) { logger.data.warn('Operation failed', e); }
+      } catch (e) {
+        logger.data.warn('Operation failed', e);
+      }
 
       const openPrice = stats ? parseFloat(stats.open) : lastPrice;
       return {
@@ -142,7 +151,7 @@ export class CoinbaseAdapter extends BaseAdapter {
         low: stats ? parseFloat(stats.low) : lastPrice,
         open: openPrice,
       };
-    // eslint-disable-next-line unused-imports/no-unused-vars
+      // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return null;
     }
@@ -186,17 +195,19 @@ export class CoinbaseAdapter extends BaseAdapter {
 
       const q = query.toUpperCase();
       return data
-        .filter(p => !p.trading_disabled &&
-          (p.id.includes(q) || fromCoinbaseProductId(p.id).includes(q) ||
-           p.base_currency?.includes(q)))
+        .filter(
+          (p) =>
+            !p.trading_disabled &&
+            (p.id.includes(q) || fromCoinbaseProductId(p.id).includes(q) || p.base_currency?.includes(q)),
+        )
         .slice(0, limit)
-        .map(p => ({
+        .map((p) => ({
           symbol: fromCoinbaseProductId(p.id),
           name: `${p.base_currency}/${p.quote_currency}`,
           type: 'CRYPTO',
           exchange: 'Coinbase',
         }));
-    // eslint-disable-next-line unused-imports/no-unused-vars
+      // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return [];
     }
@@ -207,20 +218,32 @@ export class CoinbaseAdapter extends BaseAdapter {
   }
 
   dispose() {
+    this._disposed = true;
+    clearTimeout(this._reconnectTimer);
+    this._reconnectTimer = null;
     if (this._ws) {
-      this._ws.close();
+      // Phase 1.3: Null handlers before close to prevent late callbacks
+      this._ws.onopen = null;
+      this._ws.onmessage = null;
+      this._ws.onclose = null;
+      this._ws.onerror = null;
+      try {
+        this._ws.close();
+      } catch {
+        /* ignore */
+      }
       this._ws = null;
     }
     this._wsConnected = false;
     this._subscribers.clear();
     this._subscribedProducts.clear();
-    clearTimeout(this._reconnectTimer);
   }
 
   // ── WebSocket Management ───────────────────────────────────────
 
   /** @private */
   _ensureWebSocket() {
+    if (this._disposed) return; // Phase 1.3: Guard
     if (this._ws && this._wsConnected) return;
     if (this._ws) return; // Connecting
 
@@ -241,7 +264,9 @@ export class CoinbaseAdapter extends BaseAdapter {
         try {
           const msg = JSON.parse(event.data);
           this._handleMessage(msg);
-        } catch (e) { logger.data.warn('Operation failed', e); }
+        } catch (e) {
+          logger.data.warn('Operation failed', e);
+        }
       };
 
       this._ws.onclose = () => {
@@ -290,7 +315,11 @@ export class CoinbaseAdapter extends BaseAdapter {
       };
 
       for (const cb of callbacks) {
-        try { cb(tick); } catch (e) { logger.data.warn('Operation failed', e); }
+        try {
+          cb(tick);
+        } catch (e) {
+          logger.data.warn('Operation failed', e);
+        }
       }
     }
   }
@@ -298,21 +327,25 @@ export class CoinbaseAdapter extends BaseAdapter {
   /** @private */
   _sendSubscribe(productIds) {
     if (!this._ws || !this._wsConnected) return;
-    this._ws.send(JSON.stringify({
-      type: 'subscribe',
-      product_ids: productIds,
-      channels: ['ticker'],
-    }));
+    this._ws.send(
+      JSON.stringify({
+        type: 'subscribe',
+        product_ids: productIds,
+        channels: ['ticker'],
+      }),
+    );
   }
 
   /** @private */
   _sendUnsubscribe(productIds) {
     if (!this._ws || !this._wsConnected) return;
-    this._ws.send(JSON.stringify({
-      type: 'unsubscribe',
-      product_ids: productIds,
-      channels: ['ticker'],
-    }));
+    this._ws.send(
+      JSON.stringify({
+        type: 'unsubscribe',
+        product_ids: productIds,
+        channels: ['ticker'],
+      }),
+    );
   }
 }
 

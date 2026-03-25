@@ -17,10 +17,10 @@ import { WebSocketService as WSClass, WS_STATUS } from './WebSocketService';
 import { logger } from '@/observability/logger';
 
 // ─── Config ────────────────────────────────────────────────────
-const STANDBY_DELAY_MS = 2_000;        // Delay before standby connects
+const STANDBY_DELAY_MS = 2_000; // Delay before standby connects
 const HEALTH_CHECK_INTERVAL_MS = 5_000; // Check health every 5s
-const LATENCY_THRESHOLD_MS = 2_000;     // Switch if primary latency > 2s
-const STALENESS_THRESHOLD_MS = 10_000;  // Switch if no message in 10s
+const LATENCY_THRESHOLD_MS = 2_000; // Switch if primary latency > 2s
+const STALENESS_THRESHOLD_MS = 10_000; // Switch if no message in 10s
 
 /**
  * Dual-connection failover wrapper.
@@ -32,10 +32,10 @@ class _WebSocketFailover {
     this._enabled = false;
     this._primary = null;
     this._standby = null;
-    this._active = null;         // Points to whichever is currently active
+    this._active = null; // Points to whichever is currently active
 
     /** @type {Map<number, { args: Array, type: string }>} */
-    this._subscriptions = new Map();  // Track all subs so standby can mirror
+    this._subscriptions = new Map(); // Track all subs so standby can mirror
 
     this._healthCheckTimer = null;
     this._standbyTimer = null;
@@ -44,10 +44,11 @@ class _WebSocketFailover {
 
     // Check opt-in
     try {
-      this._enabled = typeof localStorage !== 'undefined' &&
-        localStorage.getItem('charEdge:dualWs') === 'true';
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    } catch (_) { /* SSR safe */ }
+      this._enabled = typeof localStorage !== 'undefined' && localStorage.getItem('charEdge:dualWs') === 'true';
+      // eslint-disable-next-line unused-imports/no-unused-vars
+    } catch (_) {
+      /* SSR safe */
+    }
   }
 
   /**
@@ -144,11 +145,13 @@ class _WebSocketFailover {
       ...primary,
       isDualMode: this._enabled,
       switchCount: this._switchCount,
-      standby: standby ? {
-        status: standby.status,
-        latencyMs: standby.latencyMs,
-        isStale: standby.isStale,
-      } : null,
+      standby: standby
+        ? {
+            status: standby.status,
+            latencyMs: standby.latencyMs,
+            isStale: standby.isStale,
+          }
+        : null,
     };
   }
 
@@ -197,8 +200,7 @@ class _WebSocketFailover {
       // Switch back if primary recovered and is better than standby
       if (!primaryDegraded && this._active === this._standby) {
         const standbyDegraded =
-          standbyHealth.latencyMs > LATENCY_THRESHOLD_MS ||
-          standbyHealth.lastMessageAge > STALENESS_THRESHOLD_MS;
+          standbyHealth.latencyMs > LATENCY_THRESHOLD_MS || standbyHealth.lastMessageAge > STALENESS_THRESHOLD_MS;
 
         if (standbyDegraded) {
           this._switchTo(this._primary);
@@ -209,6 +211,11 @@ class _WebSocketFailover {
 
   /**
    * @private — Switch active connection and re-wire callbacks.
+   *
+   * Phase 1.2: Fixed to properly handle both kline AND trade subscriptions
+   * during failover. Previously, trade subs' callbacks weren't properly
+   * wired on the new active connection, causing trade stream gaps.
+   * Now also tracks the new subIds so unsubscribe() works after switchover.
    */
   _switchTo(target) {
     if (target === this._active) return;
@@ -216,22 +223,30 @@ class _WebSocketFailover {
     logger.data.warn(`[WebSocketFailover] Switching to ${target === this._primary ? 'primary' : 'standby'}`);
     this._switchCount++;
 
-    // Re-subscribe with real callbacks on the new active
     const old = this._active;
     this._active = target;
 
-    // A1.4: Clear standby's placeholder subs ONCE before re-subscribing all.
-    // Previously called target.unsubscribe() inside the loop, destroying earlier subs.
+    // Clear standby's placeholder subs before re-subscribing with real callbacks
     target.unsubscribe();
-    for (const [_subId, sub] of this._subscriptions) {
+
+    // Re-subscribe with real callbacks on the new active.
+    // Build a new subscription map with updated subIds from the new connection.
+    const oldSubs = new Map(this._subscriptions);
+    this._subscriptions.clear();
+
+    for (const [, sub] of oldSubs) {
+      let newSubId;
       if (sub.type === 'kline') {
-        target.subscribe(sub.args[0], sub.args[1], sub.args[2]);
+        newSubId = target.subscribe(sub.args[0], sub.args[1], sub.args[2]);
       } else if (sub.type === 'trade') {
-        target.subscribeTrades(sub.args[0], sub.args[1]);
+        newSubId = target.subscribeTrades(sub.args[0], sub.args[1]);
+      }
+      if (newSubId != null) {
+        this._subscriptions.set(newSubId, sub);
       }
     }
 
-    // Demote old to standby (empty callbacks)
+    // Demote old to standby with placeholder callbacks (no data dispatch)
     old.unsubscribe();
     this._mirrorSubscriptions(old);
   }

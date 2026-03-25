@@ -25,24 +25,46 @@ const KRAKEN_WS = 'wss://ws.kraken.com';
 // Kraken uses non-standard symbols (XBT instead of BTC, etc.)
 
 const TF_TO_KRAKEN_SYMBOL = {
-  BTC: 'XBT', BTCUSD: 'XBT/USD', BTCUSDT: 'XBT/USDT',
-  ETH: 'ETH', ETHUSD: 'ETH/USD', ETHUSDT: 'ETH/USDT',
-  SOL: 'SOL', SOLUSD: 'SOL/USD',
-  XRP: 'XRP', XRPUSD: 'XRP/USD',
-  ADA: 'ADA', ADAUSD: 'ADA/USD',
-  DOT: 'DOT', DOTUSD: 'DOT/USD',
-  DOGE: 'DOGE', DOGEUSD: 'DOGE/USD', DOGEUSDT: 'XDG/USDT',
-  AVAX: 'AVAX', AVAXUSD: 'AVAX/USD',
-  LINK: 'LINK', LINKUSD: 'LINK/USD',
-  MATIC: 'MATIC', MATICUSD: 'MATIC/USD',
-  UNI: 'UNI', UNIUSD: 'UNI/USD',
-  LTC: 'LTC', LTCUSD: 'LTC/USD', LTCUSDT: 'LTC/USDT',
-  ATOM: 'ATOM', ATOMUSD: 'ATOM/USD',
-  FIL: 'FIL', FILUSD: 'FIL/USD',
-  NEAR: 'NEAR', NEARUSD: 'NEAR/USD',
-  APT: 'APT', APTUSD: 'APT/USD',
-  ARB: 'ARB', ARBUSD: 'ARB/USD',
-  SUI: 'SUI', SUIUSD: 'SUI/USD',
+  BTC: 'XBT',
+  BTCUSD: 'XBT/USD',
+  BTCUSDT: 'XBT/USDT',
+  ETH: 'ETH',
+  ETHUSD: 'ETH/USD',
+  ETHUSDT: 'ETH/USDT',
+  SOL: 'SOL',
+  SOLUSD: 'SOL/USD',
+  XRP: 'XRP',
+  XRPUSD: 'XRP/USD',
+  ADA: 'ADA',
+  ADAUSD: 'ADA/USD',
+  DOT: 'DOT',
+  DOTUSD: 'DOT/USD',
+  DOGE: 'DOGE',
+  DOGEUSD: 'DOGE/USD',
+  DOGEUSDT: 'XDG/USDT',
+  AVAX: 'AVAX',
+  AVAXUSD: 'AVAX/USD',
+  LINK: 'LINK',
+  LINKUSD: 'LINK/USD',
+  MATIC: 'MATIC',
+  MATICUSD: 'MATIC/USD',
+  UNI: 'UNI',
+  UNIUSD: 'UNI/USD',
+  LTC: 'LTC',
+  LTCUSD: 'LTC/USD',
+  LTCUSDT: 'LTC/USDT',
+  ATOM: 'ATOM',
+  ATOMUSD: 'ATOM/USD',
+  FIL: 'FIL',
+  FILUSD: 'FIL/USD',
+  NEAR: 'NEAR',
+  NEARUSD: 'NEAR/USD',
+  APT: 'APT',
+  APTUSD: 'APT/USD',
+  ARB: 'ARB',
+  ARBUSD: 'ARB/USD',
+  SUI: 'SUI',
+  SUIUSD: 'SUI/USD',
 };
 
 const KRAKEN_TO_TF = {};
@@ -52,8 +74,14 @@ for (const [tf, kr] of Object.entries(TF_TO_KRAKEN_SYMBOL)) {
 
 // Interval mapping: charEdge → Kraken OHLC intervals (in minutes)
 const INTERVAL_MAP = {
-  '1m': 1, '5m': 5, '15m': 15, '30m': 30,
-  '1h': 60, '4h': 240, '1d': 1440, '1w': 10080,
+  '1m': 1,
+  '5m': 5,
+  '15m': 15,
+  '30m': 30,
+  '1h': 60,
+  '4h': 240,
+  '1d': 1440,
+  '1w': 10080,
 };
 
 // ─── Helpers ───────────────────────────────────────────────────
@@ -87,7 +115,7 @@ export class KrakenAdapter extends BaseAdapter {
     this._ws = null;
     this._wsConnected = false;
     this._subscribers = new Map(); // krakenPair → Set<callback>
-    this._lastPrices = new Map();  // symbol → { price, volume, time }
+    this._lastPrices = new Map(); // symbol → { price, volume, time }
     this._reconnectTimer = null;
     this._heartbeatTimer = null;
   }
@@ -104,7 +132,9 @@ export class KrakenAdapter extends BaseAdapter {
     );
   }
 
-  latencyTier() { return 'realtime'; }
+  latencyTier() {
+    return 'realtime';
+  }
 
   // ─── REST: OHLCV ─────────────────────────────────────────────
 
@@ -128,10 +158,10 @@ export class KrakenAdapter extends BaseAdapter {
       }
 
       // Result key is the pair name (varies, e.g. "XXBTZUSD")
-      const resultKey = Object.keys(json.result || {}).find(k => k !== 'last');
+      const resultKey = Object.keys(json.result || {}).find((k) => k !== 'last');
       if (!resultKey) return [];
 
-      return json.result[resultKey].map(bar => ({
+      return json.result[resultKey].map((bar) => ({
         time: bar[0] * 1000,
         open: parseFloat(bar[1]),
         high: parseFloat(bar[2]),
@@ -162,15 +192,15 @@ export class KrakenAdapter extends BaseAdapter {
 
       const d = json.result[resultKey];
       return {
-        price: parseFloat(d.c[0]),       // Last trade close
-        volume: parseFloat(d.v[1]),      // 24h volume
-        high: parseFloat(d.h[1]),        // 24h high
-        low: parseFloat(d.l[1]),         // 24h low
-        open: parseFloat(d.o),           // Today's opening
+        price: parseFloat(d.c[0]), // Last trade close
+        volume: parseFloat(d.v[1]), // 24h volume
+        high: parseFloat(d.h[1]), // 24h high
+        low: parseFloat(d.l[1]), // 24h low
+        open: parseFloat(d.o), // Today's opening
         change: parseFloat(d.c[0]) - parseFloat(d.o),
         changePct: ((parseFloat(d.c[0]) - parseFloat(d.o)) / parseFloat(d.o)) * 100,
-        vwap: parseFloat(d.p[1]),        // 24h VWAP
-        trades: parseInt(d.t[1], 10),    // 24h trade count
+        vwap: parseFloat(d.p[1]), // 24h VWAP
+        trades: parseInt(d.t[1], 10), // 24h trade count
       };
     } catch (err) {
       logger.data.warn('[KrakenAdapter] fetchQuote failed:', err.message);
@@ -209,6 +239,72 @@ export class KrakenAdapter extends BaseAdapter {
     };
   }
 
+  /**
+   * Phase 2.1: Subscribe to Kraken server-computed OHLC candle stream.
+   * Kraken sends OHLC updates at configurable intervals (1m, 5m, 15m, 1h, 4h, 1d).
+   *
+   * @param {string} symbol - e.g. 'BTCUSD'
+   * @param {string} interval - charEdge interval e.g. '1m', '5m', '1h'
+   * @param {Function} callback - ({ time, open, high, low, close, volume, isClosed, vwap }) => void
+   * @returns {Function} unsubscribe
+   */
+  subscribeKline(symbol, interval, callback) {
+    const pair = toKrakenPair(symbol);
+    const minutes = INTERVAL_MAP[interval] || 60;
+    const key = `ohlc:${pair}:${interval}`;
+
+    if (!this._subscribers.has(key)) {
+      this._subscribers.set(key, new Set());
+    }
+    this._subscribers.get(key).add(callback);
+
+    this._ensureWebSocket();
+
+    // Subscribe to OHLC channel with specified interval
+    if (this._wsConnected) {
+      this._sendOHLCSubscribe([pair], minutes);
+    }
+
+    return () => {
+      const subs = this._subscribers.get(key);
+      if (subs) {
+        subs.delete(callback);
+        if (subs.size === 0) {
+          this._subscribers.delete(key);
+          if (this._wsConnected) {
+            this._sendOHLCUnsubscribe([pair], minutes);
+          }
+        }
+      }
+    };
+  }
+
+  /** @private — Send OHLC subscribe */
+  _sendOHLCSubscribe(pairs, interval) {
+    if (this._ws?.readyState === WebSocket.OPEN) {
+      this._ws.send(
+        JSON.stringify({
+          event: 'subscribe',
+          pair: pairs,
+          subscription: { name: 'ohlc', interval },
+        }),
+      );
+    }
+  }
+
+  /** @private — Send OHLC unsubscribe */
+  _sendOHLCUnsubscribe(pairs, interval) {
+    if (this._ws?.readyState === WebSocket.OPEN) {
+      this._ws.send(
+        JSON.stringify({
+          event: 'unsubscribe',
+          pair: pairs,
+          subscription: { name: 'ohlc', interval },
+        }),
+      );
+    }
+  }
+
   // ─── WebSocket: Internal ─────────────────────────────────────
 
   _ensureWebSocket() {
@@ -222,9 +318,28 @@ export class KrakenAdapter extends BaseAdapter {
         logger.data.info('[KrakenAdapter] WebSocket connected');
 
         // Subscribe to all pending pairs
-        const pairs = [...this._subscribers.keys()];
-        if (pairs.length > 0) {
-          this._sendSubscribe(pairs);
+        const tradePairs = [];
+        const ohlcPairs = new Map(); // interval → [pairs]
+
+        for (const key of this._subscribers.keys()) {
+          if (key.startsWith('ohlc:')) {
+            // Phase 2.1: OHLC subscription — key format: ohlc:pair:interval
+            const parts = key.split(':');
+            const pair = parts[1];
+            const interval = parts[2];
+            const minutes = INTERVAL_MAP[interval] || 60;
+            if (!ohlcPairs.has(minutes)) ohlcPairs.set(minutes, []);
+            ohlcPairs.get(minutes).push(pair);
+          } else {
+            tradePairs.push(key);
+          }
+        }
+
+        if (tradePairs.length > 0) {
+          this._sendSubscribe(tradePairs);
+        }
+        for (const [interval, pairs] of ohlcPairs) {
+          this._sendOHLCSubscribe(pairs, interval);
         }
 
         // Heartbeat monitoring
@@ -235,7 +350,9 @@ export class KrakenAdapter extends BaseAdapter {
         try {
           const msg = JSON.parse(event.data);
           this._handleMessage(msg);
-        } catch (e) { logger.data.warn('Operation failed', e); }
+        } catch (e) {
+          logger.data.warn('Operation failed', e);
+        }
       };
 
       this._ws.onclose = () => {
@@ -255,7 +372,7 @@ export class KrakenAdapter extends BaseAdapter {
       this._ws.onerror = () => {
         this._wsConnected = false;
       };
-    // eslint-disable-next-line unused-imports/no-unused-vars
+      // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       this._ws = null;
     }
@@ -294,7 +411,45 @@ export class KrakenAdapter extends BaseAdapter {
             this._lastPrices.set(pair, tick);
 
             for (const cb of subs) {
-              try { cb(tick); } catch (e) { logger.data.warn('Operation failed', e); }
+              try {
+                cb(tick);
+              } catch (e) {
+                logger.data.warn('Operation failed', e);
+              }
+            }
+          }
+        }
+      }
+
+      // Phase 2.1: OHLC candle data
+      // Kraken OHLC format: [channelID, [time, etime, open, high, low, close, vwap, volume, count], 'ohlc-{interval}', pair]
+      if (typeof channelName === 'string' && channelName.startsWith('ohlc') && Array.isArray(data)) {
+        // Extract interval from channel name: 'ohlc-1' → 1 minute
+        const krakenInterval = parseInt(channelName.split('-')[1], 10) || 1;
+        // Reverse-lookup charEdge interval
+        const charEdgeInterval = Object.entries(INTERVAL_MAP).find(([, v]) => v === krakenInterval)?.[0] || '1m';
+        const key = `ohlc:${pair}:${charEdgeInterval}`;
+
+        const subs = this._subscribers.get(key);
+        if (subs) {
+          const bar = {
+            time: Math.floor(parseFloat(data[0]) * 1000), // start time in seconds → ms
+            open: parseFloat(data[2]),
+            high: parseFloat(data[3]),
+            low: parseFloat(data[4]),
+            close: parseFloat(data[5]),
+            vwap: parseFloat(data[6]),
+            volume: parseFloat(data[7]),
+            isClosed: false, // Kraken doesn't have a closed flag; updates continuously
+            symbol: fromKrakenSymbol(pair),
+            source: 'kraken',
+          };
+
+          for (const cb of subs) {
+            try {
+              cb(bar);
+            } catch (e) {
+              logger.data.warn('Operation failed', e);
             }
           }
         }
@@ -304,21 +459,25 @@ export class KrakenAdapter extends BaseAdapter {
 
   _sendSubscribe(pairs) {
     if (this._ws?.readyState === WebSocket.OPEN) {
-      this._ws.send(JSON.stringify({
-        event: 'subscribe',
-        pair: pairs,
-        subscription: { name: 'trade' },
-      }));
+      this._ws.send(
+        JSON.stringify({
+          event: 'subscribe',
+          pair: pairs,
+          subscription: { name: 'trade' },
+        }),
+      );
     }
   }
 
   _sendUnsubscribe(pairs) {
     if (this._ws?.readyState === WebSocket.OPEN) {
-      this._ws.send(JSON.stringify({
-        event: 'unsubscribe',
-        pair: pairs,
-        subscription: { name: 'trade' },
-      }));
+      this._ws.send(
+        JSON.stringify({
+          event: 'unsubscribe',
+          pair: pairs,
+          subscription: { name: 'trade' },
+        }),
+      );
     }
   }
 
@@ -362,7 +521,7 @@ export class KrakenAdapter extends BaseAdapter {
           type: 'CRYPTO',
           exchange: 'Kraken',
         }));
-    // eslint-disable-next-line unused-imports/no-unused-vars
+      // eslint-disable-next-line unused-imports/no-unused-vars
     } catch (_) {
       return [];
     }

@@ -126,6 +126,9 @@ class _WebSocketService {
 
     // Phase 3 Task #45: Deferred init flag — listener moved out of constructor
     this._initialized = false;
+
+    // Phase 1.1: Periodic sweep timer for orphaned tick buffers
+    this._bufferSweepTimer = null;
   }
 
   // Phase 3 Task #45: Move event listeners to init() — called lazily on first subscribe
@@ -145,6 +148,9 @@ class _WebSocketService {
         }
       });
     }
+
+    // Phase 1.1: Start periodic buffer sweep (every 60s)
+    this._bufferSweepTimer = setInterval(() => this._sweepOrphanedBuffers(), 60_000);
   }
 
   static isSupported(symbol) {
@@ -258,6 +264,11 @@ class _WebSocketService {
           idx.delete(subId);
           if (idx.size === 0) this._tradeSubsByStream.delete(tradeSub.streamKey);
         }
+        // Phase 1.1: Evict tick buffer when last trade subscriber for a symbol unsubscribes
+        const sym = tradeSub.symbol?.toUpperCase();
+        if (sym && idx?.size === 0) {
+          this._evictTickBuffer(sym);
+        }
       }
       this._subs.delete(subId);
       this._tradeSubs.delete(subId);
@@ -267,6 +278,9 @@ class _WebSocketService {
       this._tradeSubs.clear();
       this._klineSubsByStream.clear();
       this._tradeSubsByStream.clear();
+      // Phase 1.1: Clear all tick buffers on full unsubscribe
+      this._tickBuffers.clear();
+      this._lastKnownPrice.clear();
     }
 
     const totalSubs = this._subs.size + this._tradeSubs.size;
@@ -519,7 +533,6 @@ class _WebSocketService {
           if (!this._rafId) {
             this._rafId = requestAnimationFrame(() => this._flushMessages());
           }
-           
         } catch {
           /* ignore parse errors */
         }
@@ -539,7 +552,6 @@ class _WebSocketService {
         this._notifyStatus();
         // onclose will fire after onerror, reconnect handled there
       };
-       
     } catch {
       this._status = WS_STATUS.DISCONNECTED;
       this._notifyStatus();
@@ -696,16 +708,39 @@ class _WebSocketService {
 
   /**
    * Check if a price is reasonable by comparing against last known price.
-   * Rejects zero, negative, or >100× jump from last known price.
-   * First tick for a symbol is always accepted.
+   * Rejects zero, negative, or extreme jumps from last known price.
+   *
+   * Phase 1.4: Hardened — first tick cross-referenced against PriceAggregator
+   * if available; ratio tightened from 0.01-100 to 0.5-2 (allows 2× moves,
+   * covers flash crashes but rejects corrupted feeds).
    * @private
    */
   _isReasonablePrice(price, symbol) {
-    if (price <= 0) return false;
+    if (price <= 0 || !Number.isFinite(price)) return false;
+
     const lastPrice = this._lastKnownPrice.get(symbol);
-    if (!lastPrice) return true; // First tick — accept
+    if (!lastPrice) {
+      // Phase 1.4: Cross-reference first tick against PriceAggregator
+      // if available, to prevent corrupted first tick from poisoning validation
+      if (_priceAgg) {
+        try {
+          const aggPrice = _priceAgg.getLatest?.(symbol);
+          if (aggPrice && aggPrice > 0) {
+            const ratio = price / aggPrice;
+            if (ratio < 0.5 || ratio > 2) {
+              logger.data.warn(`[WS] First tick ${price} for ${symbol} deviates >2× from aggregated price ${aggPrice}`);
+              return false;
+            }
+          }
+        } catch {
+          // PriceAggregator not ready — accept first tick
+        }
+      }
+      return true; // First tick — accept (no cross-reference available)
+    }
+
     const ratio = price / lastPrice;
-    return ratio > 0.01 && ratio < 100; // Reject >100× spike or >99% crash
+    return ratio > 0.5 && ratio < 2; // Reject >2× spike or >50% crash
   }
 
   // ── 5A.1.2: Tick Buffer Access ────────────────────────────────
@@ -719,6 +754,41 @@ class _WebSocketService {
   getTickBuffer(symbol) {
     const sym = (symbol || '').toUpperCase();
     return this._tickBuffers.get(sym) || null;
+  }
+
+  // ── Phase 1.1: Tick buffer lifecycle management ─────────────
+
+  /**
+   * Evict tick buffer for a symbol if no active trade subscriptions remain.
+   * Prevents memory leaks from orphaned buffers (~512KB each).
+   * @param {string} sym - Uppercase symbol
+   * @private
+   */
+  _evictTickBuffer(sym) {
+    // Only evict if no trade subscribers reference this symbol
+    for (const sub of this._tradeSubs.values()) {
+      if (sub.symbol?.toUpperCase() === sym) return; // Still has subscribers
+    }
+    this._tickBuffers.delete(sym);
+  }
+
+  /**
+   * Periodic sweep to evict orphaned tick buffers.
+   * Catches buffers from abnormal disconnects or missed cleanup.
+   * @private
+   */
+  _sweepOrphanedBuffers() {
+    // Build set of symbols with active trade subscriptions
+    const activeSymbols = new Set();
+    for (const sub of this._tradeSubs.values()) {
+      if (sub.symbol) activeSymbols.add(sub.symbol.toUpperCase());
+    }
+    // Evict buffers for symbols with no active subscribers
+    for (const sym of this._tickBuffers.keys()) {
+      if (!activeSymbols.has(sym)) {
+        this._tickBuffers.delete(sym);
+      }
+    }
   }
 
   /** @private — Notify all subscribers of status change */
@@ -842,6 +912,11 @@ class _WebSocketService {
     if (this._reconnectTimer) {
       clearTimeout(this._reconnectTimer);
       this._reconnectTimer = null;
+    }
+    // Phase 1.1: Stop buffer sweep when WS fully closes
+    if (this._bufferSweepTimer) {
+      clearInterval(this._bufferSweepTimer);
+      this._bufferSweepTimer = null;
     }
     // Clear debounce timer to prevent a pending _applyStreamDiff from reopening
     if (this._reconnectDebounce) {
