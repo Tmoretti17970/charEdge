@@ -12,8 +12,9 @@
 // Layout: Ticker Strip → Movers → Filters → View Content
 // ═══════════════════════════════════════════════════════════════════
 
-import { useEffect, useState, memo } from 'react';
+import { useEffect, useState, useRef, useMemo, memo } from 'react';
 import useTopMarketsStore from '../../../state/useTopMarketsStore.js';
+import useTopMarketsStreaming from '../../../hooks/useTopMarketsStreaming.js';
 import MarketTickerStrip from './MarketTickerStrip.jsx';
 import TopNetworkFilters from './TopNetworkFilters.jsx';
 import TopRankedTable from './TopRankedTable.jsx';
@@ -59,12 +60,23 @@ export default memo(function TopTabContent() {
   const topicFilter = useTopMarketsStore((s) => s.topicFilter);
 
   const [viewMode, setViewMode] = useState('table');
+  const searchRef = useRef(null);
 
   // Start/stop data fetching with tab lifecycle
   useEffect(() => {
     startAutoRefresh();
     return () => stopAutoRefresh();
   }, [startAutoRefresh, stopAutoRefresh]);
+
+  // Derive visible markets for streaming (first 20 from current filtered view)
+  const markets = useTopMarketsStore((s) => s.markets);
+  const visibleMarkets = useMemo(() => {
+    const filtered = useTopMarketsStore.getState().getFilteredMarkets();
+    return filtered.slice(0, 20);
+  }, [markets, assetClassFilter, topicFilter, searchQuery]);
+
+  // Real-time streaming: WS for crypto, polling for equities
+  const { priceUpdates, wsStatus } = useTopMarketsStreaming(visibleMarkets, true);
 
   const hasActiveFilters = assetClassFilter !== 'all' || topicFilter !== null || searchQuery !== '';
 
@@ -97,6 +109,7 @@ export default memo(function TopTabContent() {
             <SearchIcon />
           </span>
           <input
+            ref={searchRef}
             type="text"
             placeholder="Search assets..."
             value={searchQuery}
@@ -121,6 +134,7 @@ export default memo(function TopTabContent() {
             <span className={styles.statusText}>
               {sources.crypto.count + sources.equities.count} assets
               {loading ? ' · Updating...' : ''}
+              {wsStatus === 'connected' ? ' · Live' : ''}
             </span>
 
             {hasActiveFilters && (
@@ -143,7 +157,7 @@ export default memo(function TopTabContent() {
       )}
 
       {/* ─── View Content ────────────────────────────────────── */}
-      {viewMode === 'table' && <TopRankedTable />}
+      {viewMode === 'table' && <TopRankedTable priceUpdates={priceUpdates} searchRef={searchRef} />}
       {viewMode === 'cards' && <TopsCardView />}
       {viewMode === 'heatmap' && <TopsHeatMap />}
     </div>

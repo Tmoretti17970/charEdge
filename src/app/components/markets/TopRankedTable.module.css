@@ -57,6 +57,7 @@
 
 .row {
   transition: background 0.15s ease;
+  cursor: pointer;
 }
 
 .row:hover {
@@ -65,6 +66,84 @@
 
 .row:active {
   background: rgba(255, 255, 255, 0.05);
+}
+
+.rowExpanded {
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom-color: transparent;
+}
+
+/* ─── Detail Expansion Panel ──────────────────────────── */
+
+.detailRow {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.detailRow td {
+  padding: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.detailPanel {
+  padding: 16px 24px;
+  animation: detailSlideIn 0.25s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+
+@keyframes detailSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 200px;
+  }
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.detailSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detailLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-t3, rgba(255, 255, 255, 0.35));
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.detailValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-t1, #fff);
+  font-family: var(--font-mono, 'SF Mono', monospace);
+}
+
+.perfRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.perfBadge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono, 'SF Mono', monospace);
+  white-space: nowrap;
 }
 
 .td {

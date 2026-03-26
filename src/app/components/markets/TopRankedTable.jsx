@@ -1,16 +1,24 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Top Ranked Table
+// charEdge — Top Ranked Table (Phase 3: Real-time + Automation)
 //
-// CoinMarketCap-style ranked market table. Shows top assets by
-// market cap with live prices, % changes, volume, and sparklines.
+// CoinMarketCap-style ranked market table with:
+//   - Virtual scrolling for 200+ rows (useVirtualScroll)
+//   - Price flash animations on real-time updates
+//   - Keyboard navigation (j/k/arrows, Enter, Escape, /)
+//   - Inline detail expansion panel
 // ═══════════════════════════════════════════════════════════════════
 
-import { memo, useMemo, useCallback } from 'react';
+import React, { memo, useMemo, useCallback, useRef, useState, useEffect } from 'react';
 import { C, M } from '../../../constants.js';
 import { fmt } from '../../../shared/formatting.ts';
 import useTopMarketsStore from '../../../state/useTopMarketsStore.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
+import { useVirtualScroll } from '../../../hooks/useVirtualScroll.ts';
+import { useMarketsKeyboard } from '../../../hooks/useMarketsKeyboard.ts';
 import styles from './TopRankedTable.module.css';
+
+const ROW_HEIGHT = 56; // px per row (for virtual scroll)
+const DETAIL_ROW_HEIGHT = 180; // expanded detail panel height
 
 const ASSET_CLASS_COLORS = {
   crypto: '#F7931A',
@@ -46,8 +54,7 @@ function fmtCompact(n) {
 
 function fmtPercent(n) {
   if (n == null || isNaN(n)) return '—';
-  const sign = n >= 0 ? '' : '';
-  return sign + n.toFixed(2) + '%';
+  return n.toFixed(2) + '%';
 }
 
 function fmtSupply(n, symbol) {
@@ -125,9 +132,83 @@ function StarButton({ symbol, name, assetClass }) {
   );
 }
 
+// ─── Inline Detail Expansion Panel ──────────────────────────────
+
+function DetailPanel({ market }) {
+  if (!market) return null;
+
+  const isUp = (market.change24h || 0) >= 0;
+  const changeColor = isUp ? (C.g || '#34C759') : (C.r || '#FF3B30');
+
+  return (
+    <tr className={styles.detailRow}>
+      <td colSpan={COLUMNS.length + 1}>
+        <div className={styles.detailPanel}>
+          <div className={styles.detailGrid}>
+            {/* Price overview */}
+            <div className={styles.detailSection}>
+              <span className={styles.detailLabel}>Current Price</span>
+              <span className={styles.detailValue} style={{ fontFamily: M, fontSize: 20, fontWeight: 700 }}>
+                ${fmt(market.price)}
+              </span>
+              <span style={{ color: changeColor, fontFamily: M, fontSize: 13, fontWeight: 600 }}>
+                {isUp ? '▲' : '▼'} {fmtPercent(Math.abs(market.change24h || 0))} today
+              </span>
+            </div>
+
+            {/* Key stats */}
+            <div className={styles.detailSection}>
+              <span className={styles.detailLabel}>Market Cap</span>
+              <span className={styles.detailValue}>{fmtCompact(market.marketCap)}</span>
+            </div>
+
+            <div className={styles.detailSection}>
+              <span className={styles.detailLabel}>24h Volume</span>
+              <span className={styles.detailValue}>{fmtCompact(market.volume24h)}</span>
+            </div>
+
+            <div className={styles.detailSection}>
+              <span className={styles.detailLabel}>Circulating Supply</span>
+              <span className={styles.detailValue}>{fmtSupply(market.supply, market.symbol)}</span>
+            </div>
+
+            {/* Performance row */}
+            <div className={styles.detailSection}>
+              <span className={styles.detailLabel}>Performance</span>
+              <div className={styles.perfRow}>
+                <PerfBadge label="1h" value={market.change1h} />
+                <PerfBadge label="24h" value={market.change24h} />
+                <PerfBadge label="7d" value={market.change7d} />
+              </div>
+            </div>
+
+            {/* Sparkline large */}
+            <div className={styles.detailSection}>
+              <span className={styles.detailLabel}>7-Day Trend</span>
+              <MiniSparkline data={market.sparkline7d} width={200} height={48} />
+            </div>
+          </div>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+function PerfBadge({ label, value }) {
+  if (value == null) return null;
+  const isUp = value >= 0;
+  const bg = isUp ? 'rgba(52, 199, 89, 0.1)' : 'rgba(255, 59, 48, 0.1)';
+  const color = isUp ? (C.g || '#34C759') : (C.r || '#FF3B30');
+  return (
+    <span className={styles.perfBadge} style={{ background: bg, color }}>
+      {label}: {isUp ? '+' : ''}{value.toFixed(2)}%
+    </span>
+  );
+}
+
 // ─── Table Component ────────────────────────────────────────────
 
-export default memo(function TopRankedTable() {
+export default memo(function TopRankedTable({ priceUpdates = {}, searchRef }) {
   const sortBy = useTopMarketsStore((s) => s.sortBy);
   const sortDir = useTopMarketsStore((s) => s.sortDir);
   const setSortBy = useTopMarketsStore((s) => s.setSortBy);
@@ -136,15 +217,47 @@ export default memo(function TopRankedTable() {
   const assetClassFilter = useTopMarketsStore((s) => s.assetClassFilter);
   const topicFilter = useTopMarketsStore((s) => s.topicFilter);
   const searchQuery = useTopMarketsStore((s) => s.searchQuery);
-  const page = useTopMarketsStore((s) => s.page);
-  const pageSize = useTopMarketsStore((s) => s.pageSize);
-  const setPage = useTopMarketsStore((s) => s.setPage);
 
-  // Compute filtered/sorted/paginated results with useMemo (avoids infinite loop)
-  const { items, total, totalPages } = useMemo(() => {
-    return useTopMarketsStore.getState().getPaginatedMarkets();
+  const containerRef = useRef(null);
+  const [expandedSymbol, setExpandedSymbol] = useState(null);
+
+  // Get ALL filtered items (no pagination — virtual scroll handles windowing)
+  const allItems = useMemo(() => {
+    return useTopMarketsStore.getState().getFilteredMarkets();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [markets, sortBy, sortDir, assetClassFilter, topicFilter, searchQuery, page, pageSize]);
+  }, [markets, sortBy, sortDir, assetClassFilter, topicFilter, searchQuery]);
+
+  // Virtual scrolling
+  const { virtualItems, totalHeight, isVirtualized } = useVirtualScroll({
+    itemCount: allItems.length,
+    itemHeight: ROW_HEIGHT,
+    containerRef,
+    overscan: 8,
+    enabled: true,
+  });
+
+  // Keyboard navigation
+  const handleSelect = useCallback((symbol) => {
+    setExpandedSymbol((prev) => (prev === symbol ? null : symbol));
+  }, []);
+
+  const handleRemove = useCallback(() => {
+    // No-op for tops table (not a watchlist)
+  }, []);
+
+  const handleDoubleClick = useCallback(() => {
+    // Future: navigate to chart
+  }, []);
+
+  const { focusedIndex, setFocusedIndex } = useMarketsKeyboard({
+    items: allItems,
+    onSelect: handleSelect,
+    onRemove: handleRemove,
+    onDoubleClick: handleDoubleClick,
+    searchRef,
+    detailOpen: expandedSymbol != null,
+    closeDetail: () => setExpandedSymbol(null),
+  });
 
   const handleSort = useCallback(
     (colId) => {
@@ -154,12 +267,16 @@ export default memo(function TopRankedTable() {
     [setSortBy],
   );
 
-  if (loading && items.length === 0) {
+  const handleRowClick = useCallback((symbol) => {
+    setExpandedSymbol((prev) => (prev === symbol ? null : symbol));
+  }, []);
+
+  if (loading && allItems.length === 0) {
     return <TableSkeleton />;
   }
 
   return (
-    <div className={styles.wrapper}>
+    <div className={styles.wrapper} ref={containerRef}>
       <table className={styles.table}>
         <thead>
           <tr>
@@ -181,45 +298,137 @@ export default memo(function TopRankedTable() {
             ))}
           </tr>
         </thead>
-        <tbody>
-          {items.map((market, i) => (
-            <MarketRow key={market.id} market={market} index={i} />
-          ))}
+        <tbody style={isVirtualized ? { position: 'relative', height: totalHeight } : undefined}>
+          {isVirtualized ? (
+            // Virtualized rendering
+            virtualItems.map((vi) => {
+              const market = allItems[vi.index];
+              if (!market) return null;
+              const update = priceUpdates[market.symbol];
+              return (
+                <MarketRow
+                  key={market.id}
+                  market={market}
+                  index={vi.index}
+                  offsetY={vi.offsetY}
+                  virtualized
+                  priceDirection={update?.direction}
+                  isFocused={focusedIndex === vi.index}
+                  isExpanded={expandedSymbol === market.symbol}
+                  onClick={() => handleRowClick(market.symbol)}
+                />
+              );
+            })
+          ) : (
+            // Non-virtualized rendering
+            allItems.map((market, i) => {
+              const update = priceUpdates[market.symbol];
+              return (
+                <React.Fragment key={market.id}>
+                  <MarketRow
+                    market={market}
+                    index={i}
+                    priceDirection={update?.direction}
+                    isFocused={focusedIndex === i}
+                    isExpanded={expandedSymbol === market.symbol}
+                    onClick={() => handleRowClick(market.symbol)}
+                  />
+                  {expandedSymbol === market.symbol && (
+                    <DetailPanel market={market} />
+                  )}
+                </React.Fragment>
+              );
+            })
+          )}
         </tbody>
       </table>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className={styles.pagination}>
-          <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1} className={styles.pageBtn}>
-            ← Prev
-          </button>
-          <span className={styles.pageInfo}>
-            Page {page} of {totalPages} ({total} assets)
-          </span>
-          <button
-            onClick={() => setPage(Math.min(totalPages, page + 1))}
-            disabled={page >= totalPages}
-            className={styles.pageBtn}
-          >
-            Next →
-          </button>
-        </div>
-      )}
+      {/* Item count footer */}
+      <div className={styles.pagination}>
+        <span className={styles.pageInfo}>
+          {allItems.length} assets{isVirtualized ? ' · Virtual scroll active' : ''}
+          {focusedIndex >= 0 ? ` · Row ${focusedIndex + 1} focused` : ''}
+        </span>
+      </div>
     </div>
   );
 });
 
 // ─── Market Row ─────────────────────────────────────────────────
 
-const MarketRow = memo(function MarketRow({ market }) {
+const MarketRow = memo(function MarketRow({
+  market,
+  index,
+  offsetY,
+  virtualized,
+  priceDirection,
+  isFocused,
+  isExpanded,
+  onClick,
+}) {
+  const rowRef = useRef(null);
+  const flashKeyRef = useRef(0);
+
+  // Price flash animation: re-trigger by updating key
+  useEffect(() => {
+    if (priceDirection) {
+      flashKeyRef.current += 1;
+      const el = rowRef.current;
+      if (!el) return;
+
+      // Apply flash class
+      const flashClass = priceDirection === 'up'
+        ? 'markets-row-flash-up'
+        : 'markets-row-flash-down';
+      el.classList.add(flashClass);
+
+      const timer = setTimeout(() => {
+        el.classList.remove(flashClass);
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [priceDirection, market.price]);
+
+  // Scroll focused row into view
+  useEffect(() => {
+    if (isFocused && rowRef.current) {
+      rowRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [isFocused]);
+
   const changeColor = (val) => {
     if (val == null) return C.t3;
     return val >= 0 ? C.g : C.r;
   };
 
+  // Price direction indicator class for the price cell
+  const priceFlashClass = priceDirection === 'up'
+    ? 'markets-price-tick-up'
+    : priceDirection === 'down'
+      ? 'markets-price-tick-down'
+      : '';
+
+  const rowStyle = virtualized
+    ? { position: 'absolute', top: offsetY, left: 0, right: 0, height: ROW_HEIGHT }
+    : undefined;
+
+  const rowClasses = [
+    styles.row,
+    'markets-row-transition',
+    isFocused ? 'markets-row-focused' : '',
+    isExpanded ? styles.rowExpanded : '',
+  ].filter(Boolean).join(' ');
+
   return (
-    <tr className={styles.row}>
+    <tr
+      ref={rowRef}
+      className={rowClasses}
+      style={rowStyle}
+      onClick={onClick}
+      data-symbol={market.symbol}
+      aria-selected={isFocused}
+      role="row"
+    >
       {/* Star */}
       <td className={styles.starCell}>
         <StarButton symbol={market.symbol} name={market.name} assetClass={market.assetClass} />
@@ -260,7 +469,7 @@ const MarketRow = memo(function MarketRow({ market }) {
       </td>
 
       {/* Price */}
-      <td className={styles.td} style={{ textAlign: 'right', fontFamily: M, fontWeight: 600 }}>
+      <td className={`${styles.td} ${priceFlashClass}`} style={{ textAlign: 'right', fontFamily: M, fontWeight: 600 }}>
         ${fmt(market.price)}
       </td>
 
