@@ -56,11 +56,15 @@
 /* ─── Rows ────────────────────────────────────────────── */
 
 .row {
-  transition: background 0.12s ease;
+  transition: background 0.15s ease;
 }
 
 .row:hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.row:active {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .td {
@@ -152,7 +156,7 @@
 
 .pageBtn {
   padding: 6px 14px;
-  border-radius: 8px;
+  border-radius: 10px;
   border: 1px solid var(--color-bd, rgba(255, 255, 255, 0.06));
   background: transparent;
   color: var(--color-t2, rgba(255, 255, 255, 0.6));
@@ -160,12 +164,17 @@
   font-weight: 600;
   font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, sans-serif);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .pageBtn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--color-t1, #fff);
+  transform: scale(1.02);
+}
+
+.pageBtn:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .pageBtn:disabled {

@@ -72,7 +72,7 @@ function MiniSparkline({ data, width = 100, height = 32 }) {
   const max = Math.max(...data);
   const range = max - min || 1;
   const isUp = data[data.length - 1] >= data[0];
-  const color = isUp ? '#16c784' : '#ea3943';
+  const color = isUp ? (C.g || '#34C759') : (C.r || '#FF3B30');
 
   const points = data.map((v, i) => {
     const x = (i / (data.length - 1)) * width;
@@ -215,7 +215,7 @@ export default memo(function TopRankedTable() {
 const MarketRow = memo(function MarketRow({ market }) {
   const changeColor = (val) => {
     if (val == null) return C.t3;
-    return val >= 0 ? '#16c784' : '#ea3943';
+    return val >= 0 ? C.g : C.r;
   };
 
   return (

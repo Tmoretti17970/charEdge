@@ -1,0 +1,174 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — Tops Card View Styles
+   Apple-style responsive card grid for market discovery
+   ═══════════════════════════════════════════════════════════════════ */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  padding: 12px 24px 24px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--color-sf2, rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.2s ease,
+              border-color 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.card:active {
+  transform: scale(0.98);
+}
+
+/* ─── Card Header ──────────────────────────────────────── */
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.cardIdentity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cardIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.cardSymbol {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-t1, #fff);
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.cardName {
+  display: block;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-t3, rgba(255, 255, 255, 0.4));
+  line-height: 1.2;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.starBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  padding: 2px;
+  color: var(--color-t3, rgba(255, 255, 255, 0.3));
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.starBtn:hover {
+  transform: scale(1.2);
+  opacity: 1;
+}
+
+/* ─── Sparkline ────────────────────────────────────────── */
+
+.cardSparkline {
+  display: flex;
+  justify-content: center;
+  margin: 0 -4px;
+}
+
+/* ─── Footer ───────────────────────────────────────────── */
+
+.cardFooter {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cardPrice {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-t1, #fff);
+  font-family: var(--font-mono, 'SF Mono', monospace);
+}
+
+.cardChange {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono, 'SF Mono', monospace);
+}
+
+/* ─── Rank Badge ───────────────────────────────────────── */
+
+.rankBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--color-t3, rgba(255, 255, 255, 0.3));
+  font-family: var(--font-mono, 'SF Mono', monospace);
+  display: none;
+}
+
+.card:hover .rankBadge {
+  display: block;
+}
+
+/* ─── Empty State ──────────────────────────────────────── */
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  color: var(--color-t3, rgba(255, 255, 255, 0.4));
+  font-size: 13px;
+}
+
+/* ─── Responsive ───────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px;
+    padding: 8px 12px 16px;
+  }
+
+  .card {
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .cardPrice {
+    font-size: 13px;
+  }
+}
