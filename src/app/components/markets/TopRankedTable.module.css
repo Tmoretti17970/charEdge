@@ -267,27 +267,64 @@
   font-family: var(--font-mono, 'SF Mono', monospace);
 }
 
-/* ─── Skeleton ────────────────────────────────────────── */
+/* ─── Skeleton (Apple-style staggered pulse) ─────────── */
 
 .skeleton {
   height: 14px;
-  border-radius: 4px;
+  border-radius: 6px;
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.04) 25%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.04) 75%
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.07) 40%,
+    rgba(255, 255, 255, 0.03) 100%
   );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+  background-size: 250% 100%;
+  animation: appleShimmer 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
+.skeletonCircle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  animation: applePulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.skeletonRow {
+  animation: skeletonStaggerIn 0.5s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+.skeletonRow:nth-child(1) { animation-delay: 0.00s; }
+.skeletonRow:nth-child(2) { animation-delay: 0.04s; }
+.skeletonRow:nth-child(3) { animation-delay: 0.08s; }
+.skeletonRow:nth-child(4) { animation-delay: 0.12s; }
+.skeletonRow:nth-child(5) { animation-delay: 0.16s; }
+.skeletonRow:nth-child(6) { animation-delay: 0.20s; }
+.skeletonRow:nth-child(7) { animation-delay: 0.24s; }
+.skeletonRow:nth-child(8) { animation-delay: 0.28s; }
+.skeletonRow:nth-child(9) { animation-delay: 0.32s; }
+.skeletonRow:nth-child(10) { animation-delay: 0.36s; }
+
+@keyframes appleShimmer {
+  0% { background-position: 250% 0; }
+  100% { background-position: -250% 0; }
+}
+
+@keyframes applePulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes skeletonStaggerIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
   }
-  100% {
-    background-position: -200% 0;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

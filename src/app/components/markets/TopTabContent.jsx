@@ -156,10 +156,12 @@ export default memo(function TopTabContent() {
         </div>
       )}
 
-      {/* ─── View Content ────────────────────────────────────── */}
-      {viewMode === 'table' && <TopRankedTable priceUpdates={priceUpdates} searchRef={searchRef} />}
-      {viewMode === 'cards' && <TopsCardView />}
-      {viewMode === 'heatmap' && <TopsHeatMap />}
+      {/* ─── View Content (animated transitions) ───────────── */}
+      <div className={styles.viewContainer} key={viewMode}>
+        {viewMode === 'table' && <TopRankedTable priceUpdates={priceUpdates} searchRef={searchRef} />}
+        {viewMode === 'cards' && <TopsCardView />}
+        {viewMode === 'heatmap' && <TopsHeatMap />}
+      </div>
     </div>
   );
 });

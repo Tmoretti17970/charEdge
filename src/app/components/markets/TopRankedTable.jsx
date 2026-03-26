@@ -547,13 +547,42 @@ function TableSkeleton() {
         </thead>
         <tbody>
           {Array.from({ length: 10 }, (_, i) => (
-            <tr key={i} className={styles.row}>
-              <td className={styles.td} />
-              {COLUMNS.map((col) => (
-                <td key={col.id} className={styles.td}>
-                  <div className={styles.skeleton} style={{ width: col.width === 'auto' ? '60%' : '70%' }} />
-                </td>
-              ))}
+            <tr key={i} className={`${styles.row} ${styles.skeletonRow}`}>
+              <td className={styles.td}>
+                <div className={styles.skeleton} style={{ width: 16, height: 16, borderRadius: '50%' }} />
+              </td>
+              {/* Rank */}
+              <td className={styles.td}>
+                <div className={styles.skeleton} style={{ width: 20 }} />
+              </td>
+              {/* Name — icon + text */}
+              <td className={styles.td}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div className={styles.skeletonCircle} />
+                  <div style={{ flex: 1 }}>
+                    <div className={styles.skeleton} style={{ width: '55%', marginBottom: 6 }} />
+                    <div className={styles.skeleton} style={{ width: '35%', height: 10 }} />
+                  </div>
+                </div>
+              </td>
+              {/* Price */}
+              <td className={styles.td}><div className={styles.skeleton} style={{ width: '75%', marginLeft: 'auto' }} /></td>
+              {/* 1h% */}
+              <td className={styles.td}><div className={styles.skeleton} style={{ width: '60%', marginLeft: 'auto' }} /></td>
+              {/* 24h% */}
+              <td className={styles.td}><div className={styles.skeleton} style={{ width: '60%', marginLeft: 'auto' }} /></td>
+              {/* 7d% */}
+              <td className={styles.td}><div className={styles.skeleton} style={{ width: '60%', marginLeft: 'auto' }} /></td>
+              {/* Market Cap */}
+              <td className={styles.td}><div className={styles.skeleton} style={{ width: '70%', marginLeft: 'auto' }} /></td>
+              {/* Volume */}
+              <td className={styles.td}><div className={styles.skeleton} style={{ width: '65%', marginLeft: 'auto' }} /></td>
+              {/* Supply */}
+              <td className={styles.td}><div className={styles.skeleton} style={{ width: '55%', marginLeft: 'auto' }} /></td>
+              {/* Sparkline */}
+              <td className={styles.td}>
+                <div className={styles.skeleton} style={{ width: 80, height: 24, borderRadius: 4, margin: '0 auto' }} />
+              </td>
             </tr>
           ))}
         </tbody>
