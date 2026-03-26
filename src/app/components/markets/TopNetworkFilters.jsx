@@ -9,12 +9,13 @@ import { C, F, M } from '../../../constants.js';
 import useTopMarketsStore from '../../../state/useTopMarketsStore.js';
 
 const FILTERS = [
-  { id: 'all', label: 'All Networks', dot: null },
+  { id: 'all', label: 'All Markets', dot: null },
   { id: 'crypto', label: 'Crypto', dot: '#F7931A' },
   { id: 'stock', label: 'Stocks', dot: '#4A90D9' },
   { id: 'futures', label: 'Futures', dot: '#8B5CF6' },
   { id: 'etf', label: 'ETFs', dot: '#10B981' },
   { id: 'forex', label: 'Forex', dot: '#06B6D4' },
+  { id: 'index', label: 'Indices', dot: '#F59E0B' },
 ];
 
 export default memo(function TopNetworkFilters() {

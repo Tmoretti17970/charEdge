@@ -1,23 +1,38 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Top Tab Topic Pills
+// charEdge — Top Tab Topic Pills (Enhanced)
 //
-// Horizontal scrollable narrative/topic filters for the Top tab.
-// AI, DeFi, RWA, Memes, Layer 2, Gaming, Infrastructure.
+// Context-aware narrative/topic filters for the Top tab.
+// Shows crypto topics when viewing crypto, stock sector topics
+// when viewing stocks, and all topics for "All Markets" view.
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo } from 'react';
 import { C, F } from '../../../constants.js';
 import useTopMarketsStore from '../../../state/useTopMarketsStore.js';
 
-const TOPICS = [
+const CRYPTO_TOPICS = [
   { id: null, label: 'All' },
-  { id: 'ai', label: '🤖 AI' },
-  { id: 'defi', label: '🏦 DeFi' },
-  { id: 'rwa', label: '🏠 RWA' },
-  { id: 'memes', label: '🐸 Memes' },
-  { id: 'layer2', label: '⚡ Layer 2' },
-  { id: 'gaming', label: '🎮 Gaming' },
-  { id: 'infrastructure', label: '🔗 Infra' },
+  { id: 'ai', label: 'AI' },
+  { id: 'defi', label: 'DeFi' },
+  { id: 'rwa', label: 'RWA' },
+  { id: 'memes', label: 'Memes' },
+  { id: 'layer2', label: 'Layer 2' },
+  { id: 'gaming', label: 'Gaming' },
+  { id: 'infrastructure', label: 'Infra' },
+];
+
+const STOCK_TOPICS = [
+  { id: null, label: 'All' },
+  { id: 'mag7', label: 'Mag 7' },
+  { id: 'semis', label: 'Semis' },
+  { id: 'ev', label: 'EV' },
+  { id: 'banks', label: 'Banks' },
+  { id: 'biotech', label: 'Biotech' },
+  { id: 'defense', label: 'Defense' },
+  { id: 'energy', label: 'Energy' },
+  { id: 'saas', label: 'SaaS' },
+  { id: 'retail', label: 'Retail' },
+  { id: 'china', label: 'China' },
 ];
 
 export default memo(function TopTopicPills() {
@@ -25,8 +40,16 @@ export default memo(function TopTopicPills() {
   const setTopicFilter = useTopMarketsStore((s) => s.setTopicFilter);
   const assetClassFilter = useTopMarketsStore((s) => s.assetClassFilter);
 
-  // Only show topic pills for crypto view
-  if (assetClassFilter !== 'all' && assetClassFilter !== 'crypto') return null;
+  // Choose topics based on asset class
+  let topics;
+  if (assetClassFilter === 'stock') {
+    topics = STOCK_TOPICS;
+  } else if (assetClassFilter === 'crypto' || assetClassFilter === 'all') {
+    topics = CRYPTO_TOPICS;
+  } else {
+    // No topic pills for futures, forex, ETFs, indices
+    return null;
+  }
 
   return (
     <div
@@ -39,7 +62,7 @@ export default memo(function TopTopicPills() {
         flexShrink: 0,
       }}
     >
-      {TOPICS.map((topic) => {
+      {topics.map((topic) => {
         const isActive = topicFilter === topic.id;
         return (
           <button

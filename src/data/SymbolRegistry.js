@@ -410,6 +410,18 @@ const FUTURES = [
   // Expanded — micros
   { symbol: 'MES=F', displayName: 'Micro E-mini S&P' },
   { symbol: 'MNQ=F', displayName: 'Micro E-mini Nasdaq' },
+  // Expanded — commodities & currencies
+  { symbol: 'HG=F', displayName: 'Copper' },
+  { symbol: 'PL=F', displayName: 'Platinum' },
+  { symbol: 'ZC=F', displayName: 'Corn' },
+  { symbol: 'ZS=F', displayName: 'Soybeans' },
+  { symbol: 'ZW=F', displayName: 'Wheat' },
+  { symbol: 'KC=F', displayName: 'Coffee' },
+  { symbol: 'CT=F', displayName: 'Cotton' },
+  { symbol: 'BTC=F', displayName: 'Bitcoin Futures (CME)' },
+  { symbol: '6E=F', displayName: 'Euro FX Futures' },
+  { symbol: '6J=F', displayName: 'Yen Futures' },
+  { symbol: 'VX=F', displayName: 'VIX Futures' },
 ].map((f) => ({
   ...f,
   assetClass: 'futures',
@@ -417,6 +429,30 @@ const FUTURES = [
   exchange: 'CME',
   currency: 'USD',
   realtime: true,
+}));
+
+// ─── Global Indices (display-only, Yahoo Finance) ────────────────
+
+const INDICES = [
+  { symbol: '^GSPC', displayName: 'S&P 500' },
+  { symbol: '^IXIC', displayName: 'NASDAQ Composite' },
+  { symbol: '^DJI', displayName: 'Dow Jones' },
+  { symbol: '^RUT', displayName: 'Russell 2000' },
+  { symbol: '^VIX', displayName: 'Volatility Index' },
+  { symbol: '^TNX', displayName: '10-Year Treasury Yield' },
+  { symbol: '^FTSE', displayName: 'FTSE 100' },
+  { symbol: '^N225', displayName: 'Nikkei 225' },
+  { symbol: '^HSI', displayName: 'Hang Seng' },
+  { symbol: '^GDAXI', displayName: 'DAX' },
+  { symbol: '^STOXX50E', displayName: 'EURO STOXX 50' },
+  { symbol: '^AXJO', displayName: 'ASX 200' },
+].map((i) => ({
+  ...i,
+  assetClass: 'index',
+  provider: 'yahoo',
+  exchange: 'Index',
+  currency: 'USD',
+  realtime: false,
 }));
 
 // ─── Registry Class ─────────────────────────────────────────────
@@ -428,7 +464,7 @@ class _SymbolRegistry {
     this._aliases = new Map(); // e.g. 'BTC' → 'BTCUSDT'
 
     // Load built-in catalog
-    const all = [...CRYPTO_PAIRS, ...POPULAR_STOCKS, ...POPULAR_ETFS, ...FOREX_PAIRS, ...FUTURES, ...COMMODITIES];
+    const all = [...CRYPTO_PAIRS, ...POPULAR_STOCKS, ...POPULAR_ETFS, ...FOREX_PAIRS, ...FUTURES, ...COMMODITIES, ...INDICES];
     for (const info of all) {
       this._map.set(info.symbol.toUpperCase(), info);
     }
@@ -613,5 +649,5 @@ class _SymbolRegistry {
 // Singleton
 const SymbolRegistry = new _SymbolRegistry();
 
-export { SymbolRegistry, CRYPTO_PAIRS, POPULAR_STOCKS, POPULAR_ETFS, FOREX_PAIRS, FUTURES, COMMODITIES };
+export { SymbolRegistry, CRYPTO_PAIRS, POPULAR_STOCKS, POPULAR_ETFS, FOREX_PAIRS, FUTURES, COMMODITIES, INDICES };
 export default SymbolRegistry;

@@ -117,11 +117,15 @@ const useTopMarketsStore = create((set, get) => ({
       filtered = filtered.filter((m) => m.assetClass === state.assetClassFilter);
     }
 
-    // Topic filter (crypto narrative tags)
+    // Topic filter (crypto narratives + stock sectors)
     if (state.topicFilter) {
       const topicKeywords = TOPIC_KEYWORDS[state.topicFilter] || [];
       filtered = filtered.filter((m) =>
-        topicKeywords.some((kw) => m.name?.toLowerCase().includes(kw) || m.symbol?.toLowerCase().includes(kw)),
+        topicKeywords.some(
+          (kw) =>
+            m.name?.toLowerCase().includes(kw) ||
+            m.symbol?.toLowerCase().includes(kw),
+        ) || (m.sector && m.sector.toLowerCase() === state.topicFilter),
       );
     }
 
@@ -164,6 +168,7 @@ const useTopMarketsStore = create((set, get) => ({
 
 // ─── Topic keyword mapping for narrative filters ────────────
 const TOPIC_KEYWORDS = {
+  // Crypto narratives
   ai: ['ai', 'artificial', 'gpt', 'neural', 'render', 'fetch', 'ocean', 'singularity', 'agi', 'bittensor', 'tau'],
   defi: ['swap', 'lend', 'aave', 'compound', 'uniswap', 'sushi', 'curve', 'maker', 'yearn', 'dex', 'defi'],
   rwa: ['real world', 'rwa', 'tokenized', 'ondo', 'centrifuge', 'maple', 'goldfinch'],
@@ -171,6 +176,17 @@ const TOPIC_KEYWORDS = {
   layer2: ['layer 2', 'l2', 'arbitrum', 'optimism', 'polygon', 'zksync', 'starknet', 'base', 'scroll', 'linea'],
   gaming: ['game', 'gaming', 'axie', 'sandbox', 'gala', 'imx', 'immutable', 'ronin', 'beam'],
   infrastructure: ['chain', 'network', 'protocol', 'cosmos', 'polkadot', 'avalanche', 'near', 'solana'],
+  // Stock sector topics
+  mag7: ['aapl', 'msft', 'googl', 'amzn', 'nvda', 'meta', 'tsla'],
+  semis: ['nvda', 'amd', 'intc', 'qcom', 'txn', 'avgo', 'mrvl', 'mu', 'asml', 'tsm', 'lrcx', 'amat', 'klac', 'cdns', 'snps', 'smci', 'arm', 'soxl'],
+  ev: ['tsla', 'rivn', 'lcid', 'nio', 'li', 'xpev'],
+  banks: ['jpm', 'bac', 'gs', 'ms', 'c', 'wfc', 'usb', 'schw', 'blk', 'sofi'],
+  biotech: ['lly', 'abbv', 'mrk', 'pfe', 'bmy', 'gild', 'vrtx', 'regn', 'amgn', 'isrg', 'dxcm'],
+  defense: ['lmt', 'rtx', 'noc', 'gd', 'ba'],
+  energy: ['xom', 'cvx', 'cop', 'slb', 'eog', 'psx', 'vlo', 'mpc', 'oxy'],
+  saas: ['crm', 'now', 'shop', 'snow', 'ddog', 'zs', 'net', 'panw', 'crwd', 'okta', 'twlo', 'mdb', 'wday', 'team'],
+  retail: ['wmt', 'cost', 'tgt', 'hd', 'low', 'rost', 'nke', 'lulu', 'sbux', 'mcd'],
+  china: ['baba', 'jd', 'pdd', 'nio', 'li', 'xpev'],
 };
 
 export { useTopMarketsStore };

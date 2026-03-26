@@ -21,6 +21,7 @@ import TopsCardView from './TopsCardView.jsx';
 import TopsFearGreedGauge from './TopsFearGreedGauge.jsx';
 import TopsHeatMap from './TopsHeatMap.jsx';
 import TopsMovers from './TopsMovers.jsx';
+import TopsSectorCards from './TopsSectorCards.jsx';
 import TopsViewToggle from './TopsViewToggle.jsx';
 import styles from './TopTabContent.module.css';
 import TopTopicPills from './TopTopicPills.jsx';
@@ -76,6 +77,9 @@ export default memo(function TopTabContent() {
       <div className={styles.insightsRow}>
         <TopsFearGreedGauge />
       </div>
+
+      {/* ─── Sector Performance Cards ────────────────────────── */}
+      <TopsSectorCards />
 
       {/* ─── Top Movers (Gainers/Losers/Active) ─────────────── */}
       <TopsMovers />
