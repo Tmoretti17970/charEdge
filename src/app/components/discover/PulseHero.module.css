@@ -1,0 +1,148 @@
+/* PulseHero — Glanceable market status strip */
+
+.strip {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px;
+  border-radius: 16px;
+  background: var(--tf-sf);
+  border: 1px solid var(--tf-bd);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* ─── Metrics Row ────────────────────────────────────────────── */
+
+.metrics {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.metricCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metricLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ─── Regime ─────────────────────────────────────────────────── */
+
+.regimeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.regimeDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+
+.regimeText {
+  font-size: 18px;
+  font-weight: 800;
+  font-family: var(--tf-font);
+  letter-spacing: -0.01em;
+}
+
+.metricSub {
+  font-size: 11px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  line-height: 1.4;
+  max-width: 200px;
+}
+
+/* ─── Gauge ──────────────────────────────────────────────────── */
+
+.gaugeWrap {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0;
+}
+
+/* ─── VIX ────────────────────────────────────────────────────── */
+
+.vixValue {
+  font-size: 28px;
+  font-weight: 800;
+  font-family: var(--tf-mono);
+  color: var(--tf-t1);
+  letter-spacing: -0.02em;
+}
+
+.vixDelta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--tf-mono);
+}
+
+/* ─── AI Summary ─────────────────────────────────────────────── */
+
+.summaryRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(var(--tf-accent-rgb, 92, 156, 245), 0.06);
+  border: 1px solid rgba(var(--tf-accent-rgb, 92, 156, 245), 0.1);
+}
+
+.summaryIcon {
+  color: var(--tf-accent, #5c9cf5);
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.summaryText {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tf-t2);
+  font-family: var(--tf-font);
+  line-height: 1.4;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .metrics {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .metricCard:nth-child(2) {
+    grid-column: 1 / -1;
+    align-items: center;
+  }
+
+  .strip {
+    padding: 16px;
+  }
+
+  .regimeText {
+    font-size: 16px;
+  }
+
+  .vixValue {
+    font-size: 22px;
+  }
+}

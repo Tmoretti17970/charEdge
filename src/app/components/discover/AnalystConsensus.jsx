@@ -4,12 +4,12 @@
 // Sprint 9: Aggregated analyst ratings dashboard.
 // ═══════════════════════════════════════════════════════════════════
 
+import { Star, List } from 'lucide-react';
 import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import s from './AnalystConsensus.module.css';
-import DemoBadge from './DemoBadge';
 import { alpha } from '@/shared/colorUtils';
 
 const MOCK_CONSENSUS = [
@@ -137,7 +137,7 @@ function AnalystConsensus() {
     <div style={{ background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 16, overflow: 'hidden' }}>
       <button onClick={() => setCollapsed(!collapsed)} className={`tf-btn ${s.s0}`}>
         <div className={s.s1}>
-          <span style={{ fontSize: 18 }}>⭐</span>
+          <Star size={18} color={C.y} />
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
             Analyst Consensus
           </h3>
@@ -154,7 +154,6 @@ function AnalystConsensus() {
           >
             {MOCK_CONSENSUS.length} symbols
           </span>
-          <DemoBadge />
         </div>
         <span
           style={{
@@ -189,7 +188,17 @@ function AnalystConsensus() {
                   fontFamily: 'var(--tf-font)',
                 }}
               >
-                {f === 'all' ? '📋 All Covered' : '⭐ My Watchlist'}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  {f === 'all' ? (
+                    <>
+                      <List size={12} /> All Covered
+                    </>
+                  ) : (
+                    <>
+                      <Star size={12} /> My Watchlist
+                    </>
+                  )}
+                </span>
               </button>
             ))}
           </div>
@@ -236,13 +245,13 @@ function AnalystConsensus() {
                           <div style={{ flex: 1, background: C.r }} />
                         </div>
                         <div className={s.s6}>
-                          <span style={{ fontSize: 9, color: C.g, fontFamily: 'var(--tf-mono)', fontWeight: 600 }}>
+                          <span style={{ fontSize: 11, color: C.g, fontFamily: 'var(--tf-mono)', fontWeight: 600 }}>
                             {stock.buy} Buy
                           </span>
-                          <span style={{ fontSize: 9, color: C.y, fontFamily: 'var(--tf-mono)', fontWeight: 600 }}>
+                          <span style={{ fontSize: 11, color: C.y, fontFamily: 'var(--tf-mono)', fontWeight: 600 }}>
                             {stock.hold} Hold
                           </span>
-                          <span style={{ fontSize: 9, color: C.r, fontFamily: 'var(--tf-mono)', fontWeight: 600 }}>
+                          <span style={{ fontSize: 11, color: C.r, fontFamily: 'var(--tf-mono)', fontWeight: 600 }}>
                             {stock.sell} Sell
                           </span>
                         </div>
@@ -250,13 +259,13 @@ function AnalystConsensus() {
 
                       {/* Price Target */}
                       <div className={s.s7}>
-                        <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>Avg Target</div>
+                        <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)' }}>Avg Target</div>
                         <div style={{ fontSize: 14, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-mono)' }}>
                           ${stock.targetAvg}
                         </div>
                         <div
                           style={{
-                            fontSize: 9,
+                            fontSize: 11,
                             color: stock.upside >= 0 ? C.g : C.r,
                             fontFamily: 'var(--tf-mono)',
                             fontWeight: 600,
@@ -323,13 +332,13 @@ function AnalystConsensus() {
                             />
                           </div>
                           <div className={s.s8}>
-                            <span style={{ fontSize: 9, color: C.r, fontFamily: 'var(--tf-mono)' }}>
+                            <span style={{ fontSize: 11, color: C.r, fontFamily: 'var(--tf-mono)' }}>
                               ${stock.targetLow}
                             </span>
-                            <span style={{ fontSize: 9, color: C.b, fontFamily: 'var(--tf-mono)', fontWeight: 600 }}>
+                            <span style={{ fontSize: 11, color: C.b, fontFamily: 'var(--tf-mono)', fontWeight: 600 }}>
                               Current: ${stock.current}
                             </span>
-                            <span style={{ fontSize: 9, color: C.g, fontFamily: 'var(--tf-mono)' }}>
+                            <span style={{ fontSize: 11, color: C.g, fontFamily: 'var(--tf-mono)' }}>
                               ${stock.targetHigh}
                             </span>
                           </div>
@@ -379,7 +388,7 @@ function AnalystConsensus() {
                               <span style={{ color: C.t1, fontFamily: 'var(--tf-mono)', marginLeft: 'auto' }}>
                                 PT ${rc.target}
                               </span>
-                              <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>
+                              <span style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-mono)' }}>
                                 ({rc.accuracy}% acc)
                               </span>
                             </div>

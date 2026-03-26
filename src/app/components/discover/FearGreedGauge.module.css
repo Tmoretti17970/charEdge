@@ -1,0 +1,43 @@
+/* FearGreedGauge — Circular sentiment gauge */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.svg {
+  display: block;
+}
+
+.progressRing {
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.center {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.score {
+  font-size: 22px;
+  font-weight: 800;
+  font-family: var(--tf-mono);
+  letter-spacing: -0.02em;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--tf-font);
+  text-align: center;
+  white-space: nowrap;
+}

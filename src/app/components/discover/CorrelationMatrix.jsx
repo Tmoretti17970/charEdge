@@ -4,11 +4,11 @@
 // Sprint 11: Interactive correlation heatmap for portfolio risk.
 // ═══════════════════════════════════════════════════════════════════
 
+import { Link2, AlertTriangle, Globe } from 'lucide-react';
 import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
-import DemoBadge from './DemoBadge';
 import { alpha } from '@/shared/colorUtils';
 
 const SYMBOLS = ['NVDA', 'AAPL', 'MSFT', 'TSLA', 'META', 'AMZN', 'GOOGL', 'SPY'];
@@ -69,11 +69,10 @@ function CorrelationMatrix() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 18 }}>🔗</span>
+          <Link2 size={18} color={C.t1} />
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
             Correlation Matrix
           </h3>
-          <DemoBadge />
           {warnings.length > 0 && (
             <span
               style={{
@@ -86,7 +85,8 @@ function CorrelationMatrix() {
                 fontFamily: 'var(--tf-mono)',
               }}
             >
-              ⚠ {warnings.length} high corr
+              <AlertTriangle size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 2 }} />{' '}
+              {warnings.length} high corr
             </span>
           )}
         </div>
@@ -143,7 +143,8 @@ function CorrelationMatrix() {
                 fontFamily: 'var(--tf-font)',
               }}
             >
-              {showMacro ? '🌐 Macro On' : '🌐 Macro Off'}
+              <Globe size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
+              {showMacro ? 'Macro On' : 'Macro Off'}
             </button>
           </div>
 
@@ -159,7 +160,8 @@ function CorrelationMatrix() {
               }}
             >
               <div style={{ fontSize: 10, fontWeight: 700, color: C.y, fontFamily: 'var(--tf-font)', marginBottom: 4 }}>
-                ⚠ Hidden Correlation Risk
+                <AlertTriangle size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />{' '}
+                Hidden Correlation Risk
               </div>
               {warnings.map((w, i) => (
                 <div key={i} style={{ fontSize: 10, color: C.t2, fontFamily: 'var(--tf-font)' }}>
@@ -187,7 +189,7 @@ function CorrelationMatrix() {
                 <div
                   key={s}
                   style={{
-                    fontSize: 9,
+                    fontSize: 11,
                     fontWeight: 700,
                     color: MACRO.includes(s) ? C.p : C.t2,
                     fontFamily: 'var(--tf-mono)',
@@ -247,15 +249,15 @@ function CorrelationMatrix() {
           <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <div style={{ width: 12, height: 8, borderRadius: 2, background: C.g }} />
-              <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>Positive</span>
+              <span style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)' }}>Positive</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <div style={{ width: 12, height: 8, borderRadius: 2, background: C.t3 }} />
-              <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>Neutral</span>
+              <span style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)' }}>Neutral</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <div style={{ width: 12, height: 8, borderRadius: 2, background: C.r }} />
-              <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>Negative</span>
+              <span style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)' }}>Negative</span>
             </div>
           </div>
         </div>

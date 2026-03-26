@@ -4,10 +4,10 @@
 // Sprint 7: Unusual options activity feed.
 // ═══════════════════════════════════════════════════════════════════
 
+import { Zap, List, TrendingUp, TrendingDown, Flame, Diamond, Circle } from 'lucide-react';
 import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
-import DemoBadge from './DemoBadge';
 import { alpha } from '@/shared/colorUtils';
 
 const MOCK_FLOWS = [
@@ -200,11 +200,10 @@ function OptionsFlowScanner() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 18 }}>⚡</span>
+          <Zap size={18} color={C.y} />
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
             Options Flow Scanner
           </h3>
-          <DemoBadge />
           <span
             style={{
               fontSize: 10,
@@ -237,10 +236,22 @@ function OptionsFlowScanner() {
           <div style={{ marginBottom: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
               <span style={{ fontSize: 10, fontWeight: 600, color: C.g, fontFamily: 'var(--tf-font)' }}>
-                🟢 Bullish {sentiment.bullPct.toFixed(0)}%
+                <Circle
+                  size={8}
+                  fill={C.g}
+                  stroke="none"
+                  style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 3 }}
+                />{' '}
+                Bullish {sentiment.bullPct.toFixed(0)}%
               </span>
               <span style={{ fontSize: 10, fontWeight: 600, color: C.r, fontFamily: 'var(--tf-font)' }}>
-                Bearish {(100 - sentiment.bullPct).toFixed(0)}% 🔴
+                Bearish {(100 - sentiment.bullPct).toFixed(0)}%{' '}
+                <Circle
+                  size={8}
+                  fill={C.r}
+                  stroke="none"
+                  style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: 3 }}
+                />
               </span>
             </div>
             <div style={{ height: 6, borderRadius: 3, background: alpha(C.r, 0.3), overflow: 'hidden' }}>
@@ -275,7 +286,25 @@ function OptionsFlowScanner() {
                   textTransform: 'capitalize',
                 }}
               >
-                {f === 'all' ? '📋 All' : f === 'calls' ? '📈 Calls' : f === 'puts' ? '📉 Puts' : '🔥 Sweeps'}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  {f === 'all' ? (
+                    <>
+                      <List size={12} /> All
+                    </>
+                  ) : f === 'calls' ? (
+                    <>
+                      <TrendingUp size={12} /> Calls
+                    </>
+                  ) : f === 'puts' ? (
+                    <>
+                      <TrendingDown size={12} /> Puts
+                    </>
+                  ) : (
+                    <>
+                      <Flame size={12} /> Sweeps
+                    </>
+                  )}
+                </span>
               </button>
             ))}
           </div>
@@ -287,7 +316,7 @@ function OptionsFlowScanner() {
               gridTemplateColumns: '50px 55px 65px 50px 50px 1fr 50px',
               gap: 4,
               padding: '6px 10px',
-              fontSize: 9,
+              fontSize: 11,
               fontWeight: 700,
               color: C.t3,
               fontFamily: 'var(--tf-font)',
@@ -309,7 +338,14 @@ function OptionsFlowScanner() {
             {flows.map((flow) => {
               const isBull =
                 (flow.type === 'Call' && flow.side === 'Buy') || (flow.type === 'Put' && flow.side === 'Sell');
-              const tier = flow.premium >= 1e6 ? '🐋' : flow.premium >= 250000 ? '🔷' : '•';
+              const tierNode =
+                flow.premium >= 1e6 ? (
+                  <span style={{ fontSize: 10, fontWeight: 800, color: C.b, fontFamily: 'var(--tf-font)' }}>W</span>
+                ) : flow.premium >= 250000 ? (
+                  <Diamond size={14} color={C.b} />
+                ) : (
+                  <span style={{ fontSize: 10 }}>{'•'}</span>
+                );
               return (
                 <div
                   key={flow.id}
@@ -360,7 +396,7 @@ function OptionsFlowScanner() {
                     {flow.type}
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <span style={{ fontSize: 10 }}>{tier}</span>
+                    <span style={{ fontSize: 10, display: 'inline-flex', alignItems: 'center' }}>{tierNode}</span>
                     <span style={{ fontWeight: 600, color: C.t1 }}>
                       $
                       {flow.premium >= 1e6
@@ -371,7 +407,7 @@ function OptionsFlowScanner() {
                   <div style={{ textAlign: 'right' }}>
                     <span
                       style={{
-                        fontSize: 9,
+                        fontSize: 11,
                         fontWeight: 700,
                         fontFamily: 'var(--tf-font)',
                         color: isBull ? C.g : C.r,

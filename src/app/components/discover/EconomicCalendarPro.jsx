@@ -2,10 +2,10 @@
 // charEdge — Economic Calendar Pro
 // ═══════════════════════════════════════════════════════════════════
 
+import { Calendar, Globe, Circle, Lightbulb } from 'lucide-react';
 import React from 'react';
 import { useState, useEffect, useMemo } from 'react';
 import { C } from '../../../constants.js';
-import DemoBadge from './DemoBadge';
 import st from './EconomicCalendarPro.module.css';
 import { alpha } from '@/shared/colorUtils';
 
@@ -165,9 +165,8 @@ function EconomicCalendarPro() {
     <div className={st.card} style={{ background: C.bg2, border: `1px solid ${C.bd}` }}>
       <button onClick={() => setCollapsed(!collapsed)} className={`tf-btn ${st.headerBtn}`}>
         <div className={st.headerLeft}>
-          <span className={st.headerIcon}>📅</span>
+          <Calendar size={18} color={C.t1} />
           <h3 className={st.headerTitle}>Economic Calendar</h3>
-          <DemoBadge />
           <span className={st.badge} style={{ color: C.r, background: alpha(C.r, 0.1) }}>
             {highImpactCount} high-impact
           </span>
@@ -192,7 +191,23 @@ function EconomicCalendarPro() {
                     color: impactFilter === imp ? impactColors[imp] || C.b : C.t3,
                   }}
                 >
-                  {imp === 'all' ? '🌐 All' : imp === 'high' ? '🔴 High' : imp === 'medium' ? '🟡 Medium' : '🟢 Low'}
+                  {imp === 'all' ? (
+                    <>
+                      <Globe size={12} /> All
+                    </>
+                  ) : imp === 'high' ? (
+                    <>
+                      <Circle size={8} fill={C.r} stroke="none" /> High
+                    </>
+                  ) : imp === 'medium' ? (
+                    <>
+                      <Circle size={8} fill="#f0b64e" stroke="none" /> Medium
+                    </>
+                  ) : (
+                    <>
+                      <Circle size={8} fill={C.g} stroke="none" /> Low
+                    </>
+                  )}
                 </button>
               ))}
             </div>
@@ -289,7 +304,8 @@ function EventRow({ event }) {
             style={{ background: alpha(impactColor, 0.04), border: `1px solid ${alpha(impactColor, 0.1)}` }}
           >
             <div className={st.contextTitle} style={{ color: impactColor }}>
-              💡 What This Means
+              <Lightbulb size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} /> What This
+              Means
             </div>
             <p className={st.contextText} style={{ color: C.t2 }}>
               {event.context}

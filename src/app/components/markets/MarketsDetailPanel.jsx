@@ -25,6 +25,8 @@ import { usePriceTracker } from '../../../state/usePriceTracker';
 import { useUIStore } from '../../../state/useUIStore';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
 import { radii, transition } from '../../../theme/tokens.js';
+import AnalystConsensus from '../discover/AnalystConsensus.jsx';
+import CorrelationMatrix from '../discover/CorrelationMatrix.jsx';
 import AITickerNarrative from './AITickerNarrative.jsx';
 import DetailJournalSection from './DetailJournalSection.jsx';
 import MiniChart from './MiniChart.jsx';
@@ -377,6 +379,16 @@ function MarketsDetailPanel() {
         {/* Sprint 37: Notes */}
         <DetailSection title="Notes" icon="📝">
           <TickerNotes symbol={selectedSymbol} />
+        </DetailSection>
+
+        {/* Analyst Consensus — moved from Intel page */}
+        <DetailSection title="Analyst Consensus" icon="⭐">
+          <AnalystConsensus />
+        </DetailSection>
+
+        {/* Correlation Matrix — moved from Intel page */}
+        <DetailSection title="Correlations" icon="🔗">
+          <CorrelationMatrix />
         </DetailSection>
 
         {/* Sprint 38: Journal Integration */}

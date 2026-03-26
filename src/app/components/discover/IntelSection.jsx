@@ -1,218 +1,109 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Intel Section (Extracted from CommunityPage)
+// charEdge — Intel Section
 //
-// Phase B Sprint 5: Supports inline (condensed) mode for unified feed.
-// inline=true → compact 3-widget preview; inline=false → full view.
-//
-// Social widgets (FearGreed, Sentiment, Heatmap, Polls, Tournaments,
-// Leaderboard, WhaleAlert, Liquidation, FundingRates, MacroCalendar)
-// Non-social discover components (AnalystConsensus, CorrelationMatrix,
-// etc.) remain active.
+// Market Intelligence hub — Apple-caliber redesign.
+// Narrative flow: Pulse → Predictions → Calendar/Earnings →
+// Heatmap → Sentiment → Smart Money → Crypto Intel → Go Deeper.
 // ═══════════════════════════════════════════════════════════════════
 
-import React from 'react';
-import { C } from '../../../constants.js';
-// eslint-disable-next-line import/order
+import React, { Suspense } from 'react';
 import { useDataStore } from '../../../state/useDataStore.js';
+import s from './IntelSection.module.css';
+import PredictionMarkets from './PredictionMarkets.jsx';
+import PulseHero from './PulseHero.jsx';
+// ─── Below-the-fold (lazy) ──────────────────────────────────
+const EconomicCalendarPro = React.lazy(() => import('./EconomicCalendarPro.jsx'));
+const EarningsIntelligence = React.lazy(() => import('./EarningsIntelligence.jsx'));
+const MarketHeatmap = React.lazy(() => import('./MarketHeatmap.jsx'));
+const SocialSentiment = React.lazy(() => import('./SocialSentiment.jsx'));
+const SmartMoney = React.lazy(() => import('./SmartMoney.jsx'));
+const SectorRotationMap = React.lazy(() => import('./SectorRotationMap.jsx'));
+const CryptoIntel = React.lazy(() => import('./CryptoIntel.jsx'));
+const GoDeeper = React.lazy(() => import('./GoDeeper.jsx'));
 
-// ─── Discover Components (non-social, still active) ─────────────
-import AnalystConsensus from './AnalystConsensus.jsx';
-import ConfluenceView from './ConfluenceView.jsx';
-import CorrelationMatrix from './CorrelationMatrix.jsx';
-import EarningsIntelligence from './EarningsIntelligence.jsx';
-import EconomicCalendarPro from './EconomicCalendarPro.jsx';
-import InsiderTracker from './InsiderTracker.jsx';
-import OptionsFlowScanner from './OptionsFlowScanner.jsx';
-import SectorRotationMap from './SectorRotationMap.jsx';
-import SmartAlerts from './SmartAlerts.jsx';
-import SocialValidation from './SocialValidation.jsx';
-import TechnicalScanner from './TechnicalScanner.jsx';
-import VolatilityDashboard from './VolatilityDashboard.jsx';
-import { alpha } from '@/shared/colorUtils';
-
-// Social widgets quarantined — see src/_quarantine/p2p/README.md
-
-// ═════════════════════════════════════════════════════════════════
-// Coming Soon Placeholder (replaces quarantined social widgets)
-// ═════════════════════════════════════════════════════════════════
-function ComingSoonWidget({ icon, title }) {
-  return (
-    <div
-      style={{
-        padding: '32px 20px',
-        textAlign: 'center',
-        background: C.bg2,
-        borderRadius: 14,
-        border: `1px solid ${C.bd}`,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 8,
-      }}
-    >
-      <span style={{ fontSize: 28, opacity: 0.7 }}>{icon}</span>
-      <div style={{ fontSize: 13, fontWeight: 600, color: C.t2, fontFamily: 'var(--tf-font)' }}>{title}</div>
-      <span
-        style={{
-          padding: '4px 12px',
-          borderRadius: 16,
-          background: alpha(C.b, 0.08),
-          color: C.b,
-          fontSize: 10,
-          fontWeight: 700,
-          fontFamily: 'var(--tf-font)',
-        }}
-      >
-        Coming Soon
-      </span>
-    </div>
-  );
+function LazySection({ children }) {
+  return <Suspense fallback={<div className={s.lazyFallback} />}>{children}</Suspense>;
 }
 
 // ═════════════════════════════════════════════════════════════════
-// Market Intel Content
+// Market Intel Content — Full narrative layout
 // ═════════════════════════════════════════════════════════════════
 function MarketIntelContent() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* Row 1: Sentiment Overview — placeholders for quarantined widgets */}
-      <div className="tf-discover-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <ComingSoonWidget icon="😨" title="Fear & Greed Index" />
-        <ComingSoonWidget icon="𝕏" title="Social Sentiment" />
-      </div>
+    <div className={s.contentStack}>
+      {/* Act 1: The Pulse — glanceable market status */}
+      <PulseHero />
 
-      {/* Row 2: Market Heatmap — placeholder */}
-      <ComingSoonWidget icon="🗺️" title="Market Heatmap" />
+      {/* Act 2: Prediction Markets — crowdsourced probabilities */}
+      <PredictionMarkets />
 
-      {/* Row 3: Sector Rotation — active (non-social) */}
-      <SectorRotationMap />
+      {/* Act 3: Today's Calendar + Earnings */}
+      <LazySection>
+        <div className={`${s.grid2} tf-discover-grid-2`}>
+          <EconomicCalendarPro />
+          <EarningsIntelligence />
+        </div>
+      </LazySection>
 
-      {/* Row 4: Options Flow + Insider Tracker — active */}
-      <div className="tf-discover-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <OptionsFlowScanner />
-        <InsiderTracker />
-      </div>
+      {/* Act 4: Market Heatmap — visual sector/crypto performance */}
+      <LazySection>
+        <MarketHeatmap />
+      </LazySection>
 
-      {/* Row 5: Analyst Consensus — active */}
-      <AnalystConsensus />
+      {/* Act 5: Social Sentiment — trending tickers */}
+      <LazySection>
+        <SocialSentiment />
+      </LazySection>
 
-      {/* Row 6: Technical Scanner — active */}
-      <TechnicalScanner />
+      {/* Act 6: Smart Money — options flow + insider activity */}
+      <LazySection>
+        <SmartMoney />
+      </LazySection>
 
-      {/* Row 7: Calendar + Earnings — active */}
-      <div className="tf-discover-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <EconomicCalendarPro />
-        <EarningsIntelligence />
-      </div>
+      {/* Act 7: Sector Rotation — money flow analysis */}
+      <LazySection>
+        <SectorRotationMap />
+      </LazySection>
 
-      {/* Row 8: Data Tables — placeholders for quarantined widgets */}
-      <div className="tf-discover-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <ComingSoonWidget icon="💰" title="Funding Rates" />
-        <ComingSoonWidget icon="📅" title="Macro Calendar" />
-      </div>
+      {/* Act 8: Crypto Intelligence — funding, whales, liquidations */}
+      <LazySection>
+        <CryptoIntel />
+      </LazySection>
 
-      {/* Row 9: Live Feeds — placeholders for quarantined widgets */}
-      <div className="tf-discover-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <ComingSoonWidget icon="🐋" title="Whale Alerts" />
-        <ComingSoonWidget icon="💧" title="Liquidation Tracker" />
-      </div>
-
-      {/* Row 10: Correlation Matrix — active */}
-      <CorrelationMatrix />
-
-      {/* Row 11: Volatility Dashboard — active */}
-      <VolatilityDashboard />
-
-      {/* Row 12: Confluence — active */}
-      <ConfluenceView />
-
-      {/* Row 13: Smart Alerts — active */}
-      <SmartAlerts />
-
-      {/* Row 14: Social Validation — active */}
-      <SocialValidation />
+      {/* Act 9: Go Deeper — progressive disclosure */}
+      <LazySection>
+        <GoDeeper />
+      </LazySection>
     </div>
   );
 }
 
 // ═════════════════════════════════════════════════════════════════
-// Predictions Content (quarantined — all social)
-// ═════════════════════════════════════════════════════════════════
-function PredictionsContent() {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <SectionHeader icon="🔮" title="Predictions & Tournaments" />
-      <div
-        className="tf-discover-grid-2"
-        style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}
-      >
-        <ComingSoonWidget icon="🔮" title="Prediction Markets" />
-        <ComingSoonWidget icon="🏆" title="Trading Tournaments" />
-        <ComingSoonWidget icon="🏅" title="Trader Leaderboard" />
-      </div>
-    </div>
-  );
-}
-
-// ═════════════════════════════════════════════════════════════════
-// Combined Intel Section (Market Intel + Predictions)
+// Combined Intel Section
 // inline=true → compact preview for unified feed
 // ═════════════════════════════════════════════════════════════════
-function IntelSection({ activePolls: _activePolls, resolvedPolls: _resolvedPolls, inline = false }) {
-  const setActiveChip = useDataStore((s) => s.setActiveChip);
+function IntelSection({ inline = false }) {
+  const setActiveChip = useDataStore((st) => st.setActiveChip);
 
-  // Inline mode: show condensed 3-widget preview
+  // Inline mode: show condensed preview
   if (inline) {
     return (
-      <div
-        role="region"
-        aria-label="Market Intelligence Preview"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-          padding: 20,
-          background: alpha(C.sf, 0.3),
-          borderRadius: 16,
-          border: `1px solid ${C.bd}`,
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <SectionHeader icon="📊" title="Market Intelligence" />
-          <button
-            onClick={() => setActiveChip('intel')}
-            style={{
-              padding: '5px 14px',
-              borderRadius: 8,
-              border: `1px solid ${C.bd}`,
-              background: 'transparent',
-              color: C.b,
-              fontSize: 11,
-              fontWeight: 700,
-              fontFamily: 'var(--tf-font)',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-          >
+      <div role="region" aria-label="Market Intelligence Preview" className={s.inlinePreview}>
+        <div className={s.inlineHeader}>
+          <SectionHeader title="Market Intelligence" />
+          <button className={s.viewAllBtn} onClick={() => setActiveChip('intel')}>
             View All →
           </button>
         </div>
-        <div className="tf-discover-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <ComingSoonWidget icon="😨" title="Fear & Greed Index" />
-          <ComingSoonWidget icon="𝕏" title="Social Sentiment" />
-        </div>
-        <ComingSoonWidget icon="🗺️" title="Market Heatmap" />
+        <PulseHero />
       </div>
     );
   }
 
-  // Full mode: all intel + predictions
+  // Full mode: complete intelligence briefing
   return (
-    <div role="tabpanel" aria-label="Market Intelligence" style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+    <div role="tabpanel" aria-label="Market Intelligence" className={s.intelPanel}>
       <MarketIntelContent />
-      <div style={{ borderTop: `1px solid ${C.bd}`, paddingTop: 24 }}>
-        <PredictionsContent />
-      </div>
     </div>
   );
 }
@@ -221,72 +112,25 @@ function IntelSection({ activePolls: _activePolls, resolvedPolls: _resolvedPolls
 // Shared Components
 // ═════════════════════════════════════════════════════════════════
 
-function SectionHeader({ icon, title, count }) {
+function SectionHeader({ title, count, icon }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 0 }}>
-      <span style={{ fontSize: 20 }}>{icon}</span>
-      <h2
-        style={{
-          margin: 0,
-          fontSize: 18,
-          fontWeight: 700,
-          color: C.t1,
-          fontFamily: 'var(--tf-font)',
-        }}
-      >
-        {title}
-      </h2>
-      {count !== undefined && (
-        <span
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            color: C.t3,
-            background: alpha(C.t3, 0.1),
-            padding: '3px 8px',
-            borderRadius: 6,
-            fontFamily: 'var(--tf-mono)',
-          }}
-        >
-          {count}
-        </span>
-      )}
+    <div className={s.sectionHeaderWrap}>
+      {icon && <span className={s.sectionIcon}>{icon}</span>}
+      <h2 className={s.sectionTitle}>{title}</h2>
+      {count !== undefined && <span className={s.sectionCount}>{count}</span>}
     </div>
   );
 }
 
 function EmptyState({ text, icon, cta, onCta }) {
   return (
-    <div
-      style={{
-        padding: '48px 24px',
-        textAlign: 'center',
-        background: C.bg2,
-        borderRadius: 14,
-        border: `1px solid ${C.bd}`,
-      }}
-    >
-      {icon && (
-        <div className="tf-empty-float" style={{ fontSize: 48, marginBottom: 12 }}>
-          {icon}
-        </div>
-      )}
-      <div style={{ color: C.t3, fontSize: 14, fontFamily: 'var(--tf-font)', marginBottom: cta ? 16 : 0 }}>{text}</div>
+    <div className={s.emptyState}>
+      {icon && <div className={`${s.emptyIcon} tf-empty-float`}>{icon}</div>}
+      <div className={s.emptyText} style={{ marginBottom: cta ? 16 : 0 }}>
+        {text}
+      </div>
       {cta && onCta && (
-        <button
-          onClick={onCta}
-          style={{
-            padding: '8px 20px',
-            borderRadius: 10,
-            border: 'none',
-            background: C.b,
-            color: '#fff',
-            fontSize: 12,
-            fontWeight: 700,
-            cursor: 'pointer',
-            fontFamily: 'var(--tf-font)',
-          }}
-        >
+        <button className={s.emptyCta} onClick={onCta}>
           {cta}
         </button>
       )}

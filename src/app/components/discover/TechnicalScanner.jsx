@@ -4,10 +4,10 @@
 // Sprint 10: Automated chart pattern & signal detection engine.
 // ═══════════════════════════════════════════════════════════════════
 
+import { Grid3X3, BarChart3, Telescope, Target, Diamond } from 'lucide-react';
 import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
-import DemoBadge from './DemoBadge';
 import s from './TechnicalScanner.module.css';
 import { alpha } from '@/shared/colorUtils';
 
@@ -204,11 +204,10 @@ function TechnicalScanner() {
     <div style={{ background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 16, overflow: 'hidden' }}>
       <button onClick={() => setCollapsed(!collapsed)} className={`tf-btn ${s.s0}`}>
         <div className={s.s1}>
-          <span style={{ fontSize: 18 }}>📐</span>
+          <Grid3X3 size={18} color={C.t1} />
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
             Technical Scanner
           </h3>
-          <DemoBadge />
           <span
             style={{
               fontSize: 10,
@@ -240,9 +239,9 @@ function TechnicalScanner() {
           {/* Tab Toggle */}
           <div className={s.s2}>
             {[
-              { id: 'patterns', label: '📐 Patterns', count: MOCK_PATTERNS.length },
-              { id: 'signals', label: '📊 Signals', count: MOCK_SIGNALS.length },
-              { id: 'confluence', label: '🔭 Confluence', count: CONFLUENCE_DATA.length },
+              { id: 'patterns', label: 'Patterns', icon: Grid3X3, count: MOCK_PATTERNS.length },
+              { id: 'signals', label: 'Signals', icon: BarChart3, count: MOCK_SIGNALS.length },
+              { id: 'confluence', label: 'Confluence', icon: Telescope, count: CONFLUENCE_DATA.length },
             ].map((t) => (
               <button
                 key={t.id}
@@ -263,8 +262,9 @@ function TechnicalScanner() {
                   gap: 4,
                 }}
               >
+                <t.icon size={12} />
                 {t.label}
-                <span style={{ fontSize: 9, fontFamily: 'var(--tf-mono)', color: tab === t.id ? C.b : C.t3 }}>
+                <span style={{ fontSize: 11, fontFamily: 'var(--tf-mono)', color: tab === t.id ? C.b : C.t3 }}>
                   ({t.count})
                 </span>
               </button>
@@ -293,7 +293,17 @@ function TechnicalScanner() {
                       textTransform: 'capitalize',
                     }}
                   >
-                    {cf === 'all' ? 'All' : cf === 'high' ? '🎯 High (80%+)' : '🔷 Medium'}
+                    {cf === 'all' ? (
+                      'All'
+                    ) : cf === 'high' ? (
+                      <>
+                        <Target size={12} /> High (80%+)
+                      </>
+                    ) : (
+                      <>
+                        <Diamond size={12} /> Medium
+                      </>
+                    )}
                   </button>
                 ))}
               </div>
@@ -315,13 +325,13 @@ function TechnicalScanner() {
                       <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
                         {p.symbol}
                       </div>
-                      <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>{p.timeframe}</div>
+                      <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-mono)' }}>{p.timeframe}</div>
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 11, fontWeight: 600, color: C.t1, fontFamily: 'var(--tf-font)' }}>
                         {p.pattern}
                       </div>
-                      <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>
+                      <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)' }}>
                         {p.type} · {p.detected}
                       </div>
                     </div>
@@ -337,12 +347,12 @@ function TechnicalScanner() {
                       >
                         {p.confidence}%
                       </div>
-                      <div style={{ fontSize: 8, color: C.t3, fontFamily: 'var(--tf-font)' }}>conf.</div>
+                      <div style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-font)' }}>conf.</div>
                     </div>
                     {/* Direction */}
                     <span
                       style={{
-                        fontSize: 9,
+                        fontSize: 11,
                         fontWeight: 700,
                         fontFamily: 'var(--tf-font)',
                         color: p.direction === 'bullish' ? C.g : C.r,
@@ -358,7 +368,7 @@ function TechnicalScanner() {
                       <div style={{ fontSize: 10, fontWeight: 600, color: C.t1, fontFamily: 'var(--tf-mono)' }}>
                         T: ${p.target}
                       </div>
-                      <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>S: ${p.stop}</div>
+                      <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-mono)' }}>S: ${p.stop}</div>
                     </div>
                   </div>
                 ))}
@@ -386,17 +396,17 @@ function TechnicalScanner() {
                     <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
                       {s.symbol}
                     </div>
-                    <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>{s.timeframe}</div>
+                    <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-mono)' }}>{s.timeframe}</div>
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 11, fontWeight: 600, color: C.t1, fontFamily: 'var(--tf-font)' }}>
                       {s.signal}
                     </div>
-                    <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>{s.detected}</div>
+                    <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)' }}>{s.detected}</div>
                   </div>
                   <span
                     style={{
-                      fontSize: 9,
+                      fontSize: 11,
                       fontWeight: 600,
                       color: getStrengthColors()[s.strength] || C.t3,
                       background: alpha(getStrengthColors()[s.strength] || C.t3, 0.1),
@@ -410,7 +420,7 @@ function TechnicalScanner() {
                   </span>
                   <span
                     style={{
-                      fontSize: 9,
+                      fontSize: 11,
                       fontWeight: 700,
                       fontFamily: 'var(--tf-font)',
                       color:
@@ -436,7 +446,7 @@ function TechnicalScanner() {
                   gridTemplateColumns: '60px repeat(5, 1fr) 60px',
                   gap: 4,
                   padding: '6px 10px',
-                  fontSize: 9,
+                  fontSize: 11,
                   fontWeight: 700,
                   color: C.t3,
                   fontFamily: 'var(--tf-font)',

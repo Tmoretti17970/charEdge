@@ -4,11 +4,11 @@
 // Sprint 8: SEC insider & institutional activity monitor.
 // ═══════════════════════════════════════════════════════════════════
 
+import { Building, User, Flame, Star, TrendingUp, TrendingDown, List } from 'lucide-react';
 import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
-import DemoBadge from './DemoBadge';
 import { alpha } from '@/shared/colorUtils';
 
 const MOCK_INSIDER = [
@@ -246,11 +246,10 @@ function InsiderTracker() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 18 }}>🏛️</span>
+          <Building size={18} color={C.t1} />
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
             Insider & Institutional Tracker
           </h3>
-          <DemoBadge />
           {clusterCount > 0 && (
             <span
               style={{
@@ -284,8 +283,8 @@ function InsiderTracker() {
           {/* Tab Toggle */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
             {[
-              { id: 'insider', label: '👤 Insider Trades' },
-              { id: 'congress', label: '🏛️ Congress Trades' },
+              { id: 'insider', label: 'Insider Trades', icon: User },
+              { id: 'congress', label: 'Congress Trades', icon: Building },
             ].map((t) => (
               <button
                 key={t.id}
@@ -303,7 +302,9 @@ function InsiderTracker() {
                   fontFamily: 'var(--tf-font)',
                 }}
               >
-                {t.label}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <t.icon size={12} /> {t.label}
+                </span>
               </button>
             ))}
           </div>
@@ -330,15 +331,29 @@ function InsiderTracker() {
                       textTransform: 'capitalize',
                     }}
                   >
-                    {f === 'clusters'
-                      ? '🔥 Clusters'
-                      : f === 'watchlist'
-                        ? '⭐ Watchlist'
-                        : f === 'buys'
-                          ? '📈 Buys'
-                          : f === 'sells'
-                            ? '📉 Sells'
-                            : '📋 All'}
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      {f === 'clusters' ? (
+                        <>
+                          <Flame size={12} /> Clusters
+                        </>
+                      ) : f === 'watchlist' ? (
+                        <>
+                          <Star size={12} /> Watchlist
+                        </>
+                      ) : f === 'buys' ? (
+                        <>
+                          <TrendingUp size={12} /> Buys
+                        </>
+                      ) : f === 'sells' ? (
+                        <>
+                          <TrendingDown size={12} /> Sells
+                        </>
+                      ) : (
+                        <>
+                          <List size={12} /> All
+                        </>
+                      )}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -375,7 +390,7 @@ function InsiderTracker() {
                         <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
                           {trade.symbol}
                         </div>
-                        <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>
+                        <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-mono)' }}>
                           {trade.date.slice(5)}
                         </div>
                       </div>
@@ -383,7 +398,7 @@ function InsiderTracker() {
                         <div style={{ fontSize: 11, fontWeight: 600, color: C.t1, fontFamily: 'var(--tf-font)' }}>
                           {trade.name}
                         </div>
-                        <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>{trade.role}</div>
+                        <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)' }}>{trade.role}</div>
                       </div>
                       <span
                         style={{
@@ -402,14 +417,14 @@ function InsiderTracker() {
                         <div style={{ fontSize: 11, fontWeight: 600, color: C.t1, fontFamily: 'var(--tf-mono)' }}>
                           ${(trade.value / 1e6).toFixed(1)}M
                         </div>
-                        <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>
+                        <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-mono)' }}>
                           {trade.shares.toLocaleString()} sh
                         </div>
                       </div>
                       {trade.cluster && (
                         <span
                           style={{
-                            fontSize: 9,
+                            fontSize: 11,
                             fontWeight: 700,
                             color: C.g,
                             background: alpha(C.g, 0.12),
@@ -446,7 +461,7 @@ function InsiderTracker() {
                     <div style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
                       {ct.symbol}
                     </div>
-                    <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-mono)' }}>{ct.date.slice(5)}</div>
+                    <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-mono)' }}>{ct.date.slice(5)}</div>
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 11, fontWeight: 600, color: C.t1, fontFamily: 'var(--tf-font)' }}>
@@ -454,7 +469,7 @@ function InsiderTracker() {
                     </div>
                     <span
                       style={{
-                        fontSize: 9,
+                        fontSize: 11,
                         fontWeight: 600,
                         color: ct.party === 'D' ? C.info : C.r,
                         fontFamily: 'var(--tf-font)',

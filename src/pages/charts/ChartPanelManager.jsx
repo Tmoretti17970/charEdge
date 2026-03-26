@@ -51,6 +51,8 @@ const CommunitySignals = React.lazy(() => import('../../app/components/data/Comm
 const PositionSizer = React.lazy(() => import('../../app/components/chart/chart_ui/PositionSizer.jsx'));
 const QuickJournalPanel = React.lazy(() => import('../../app/components/chart/chart_ui/QuickJournalPanel.jsx'));
 const StockInfoPanel = React.lazy(() => import('../../app/components/charts/StockInfoPanel.jsx'));
+const TechnicalScannerPanel = React.lazy(() => import('../../app/components/discover/TechnicalScanner.jsx'));
+const ConfluenceViewPanel = React.lazy(() => import('../../app/components/discover/ConfluenceView.jsx'));
 
 /**
  * Manages all side panels, modals, bottom panels, and mobile sheets.
@@ -232,6 +234,8 @@ export default function ChartPanelManager({
                 {activePanel === 'alertAnalytics' && <AlertAnalytics />}
                 {activePanel === 'quickJournal' && <QuickJournalPanel onClose={closePanel} />}
                 {activePanel === 'stockInfo' && <StockInfoPanel symbol={symbol} />}
+                {activePanel === 'technicalScanner' && <TechnicalScannerPanel />}
+                {activePanel === 'confluenceView' && <ConfluenceViewPanel />}
                 {/* copilot removed — consolidated into watchlist side panel */}
               </Suspense>
             </WidgetBoundary>

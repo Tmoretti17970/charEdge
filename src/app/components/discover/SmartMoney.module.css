@@ -1,0 +1,25 @@
+/* SmartMoney — Tabbed smart money intelligence */
+
+.tabBar {
+  display: flex;
+  gap: 2px;
+}
+
+.tabBtn {
+  all: unset;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--tf-font);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.tabBtn:hover {
+  color: var(--tf-t1);
+}
+
+.content {
+  min-height: 200px;
+}

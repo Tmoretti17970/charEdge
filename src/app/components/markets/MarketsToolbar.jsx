@@ -90,9 +90,11 @@ const VIEW_MODES = [
       </svg>
     ),
   },
+  // Heatmap view mode moved to Intel page
   {
     id: 'heatmap',
     label: 'Heat Map',
+    hidden: true,
     icon: (
       <svg
         width="12"
@@ -129,7 +131,7 @@ function ViewModeToggle() {
         padding: 2,
       }}
     >
-      {VIEW_MODES.map((mode) => {
+      {VIEW_MODES.filter((m) => !m.hidden).map((mode) => {
         const isActive = viewMode === mode.id;
         return (
           <button

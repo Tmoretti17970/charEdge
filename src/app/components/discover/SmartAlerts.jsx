@@ -1,25 +1,39 @@
+import {
+  Bell,
+  DollarSign,
+  BarChart3,
+  Grid3X3,
+  Calendar,
+  Building,
+  Star,
+  MessageCircle,
+  Circle,
+  List,
+  Clock,
+  CheckCircle,
+  VolumeX,
+} from 'lucide-react';
 import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
 import { useAlertStore } from '../../../state/useAlertStore';
 import { useNotificationPreferences } from '../../../state/useNotificationStore';
-import DemoBadge from './DemoBadge';
 import { alpha } from '@/shared/colorUtils';
 
 const ALERT_TYPES = {
-  price: { icon: '💰', label: 'Price Level', color: C.g },
-  volume: { icon: '📊', label: 'Volume Spike', color: '#818cf8' },
-  pattern: { icon: '📐', label: 'Pattern Complete', color: '#f0b64e' },
-  earnings: { icon: '📅', label: 'Earnings Event', color: '#38bdf8' },
-  insider: { icon: '🏛️', label: 'Insider Activity', color: '#c084fc' },
-  analyst: { icon: '⭐', label: 'Analyst Change', color: '#fb923c' },
-  sentiment: { icon: '💬', label: 'Sentiment Shift', color: '#f472b6' },
+  price: { icon: <DollarSign size={14} />, label: 'Price Level', color: C.g },
+  volume: { icon: <BarChart3 size={14} />, label: 'Volume Spike', color: '#818cf8' },
+  pattern: { icon: <Grid3X3 size={14} />, label: 'Pattern Complete', color: '#f0b64e' },
+  earnings: { icon: <Calendar size={14} />, label: 'Earnings Event', color: '#38bdf8' },
+  insider: { icon: <Building size={14} />, label: 'Insider Activity', color: '#c084fc' },
+  analyst: { icon: <Star size={14} />, label: 'Analyst Change', color: '#fb923c' },
+  sentiment: { icon: <MessageCircle size={14} />, label: 'Sentiment Shift', color: '#f472b6' },
 };
 
 const PRIORITY_META = {
-  critical: { label: 'Critical', color: C.r, icon: '🔴' },
-  important: { label: 'Important', color: '#f0b64e', icon: '🟡' },
-  fyi: { label: 'FYI', color: '#4e8bf5', icon: '🔵' },
+  critical: { label: 'Critical', color: C.r, icon: <Circle size={8} fill={C.r} stroke="none" /> },
+  important: { label: 'Important', color: '#f0b64e', icon: <Circle size={8} fill="#f0b64e" stroke="none" /> },
+  fyi: { label: 'FYI', color: '#4e8bf5', icon: <Circle size={8} fill="#4e8bf5" stroke="none" /> },
 };
 
 const MOCK_ALERTS = [
@@ -168,11 +182,10 @@ function SmartAlerts() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 18 }}>🔔</span>
+          <Bell size={18} style={{ color: C.t1 }} />
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
             Smart Alerts
           </h3>
-          <DemoBadge />
           {criticalCount > 0 && (
             <span
               style={{
@@ -188,7 +201,20 @@ function SmartAlerts() {
               {criticalCount} critical
             </span>
           )}
-          {quietMode && <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>🔇 Quiet</span>}
+          {quietMode && (
+            <span
+              style={{
+                fontSize: 11,
+                color: C.t3,
+                fontFamily: 'var(--tf-font)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 3,
+              }}
+            >
+              <VolumeX size={10} /> Quiet
+            </span>
+          )}
         </div>
         <span
           style={{
@@ -234,13 +260,25 @@ function SmartAlerts() {
                     textTransform: 'capitalize',
                   }}
                 >
-                  {f === 'all'
-                    ? '📋 All'
-                    : f === 'critical'
-                      ? '🔴 Critical'
-                      : f === 'unresolved'
-                        ? '⏳ Active'
-                        : '✅ Resolved'}
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    {f === 'all' ? (
+                      <>
+                        <List size={12} /> All
+                      </>
+                    ) : f === 'critical' ? (
+                      <>
+                        <Circle size={8} fill={C.r} stroke="none" /> Critical
+                      </>
+                    ) : f === 'unresolved' ? (
+                      <>
+                        <Clock size={12} /> Active
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle size={12} /> Resolved
+                      </>
+                    )}
+                  </span>
                 </button>
               ))}
             </div>
@@ -259,7 +297,17 @@ function SmartAlerts() {
                 fontFamily: 'var(--tf-font)',
               }}
             >
-              {quietMode ? '🔇 Quiet On' : '🔔 Alerts On'}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                {quietMode ? (
+                  <>
+                    <VolumeX size={12} /> Quiet On
+                  </>
+                ) : (
+                  <>
+                    <Bell size={12} /> Alerts On
+                  </>
+                )}
+              </span>
             </button>
           </div>
 
@@ -282,7 +330,7 @@ function SmartAlerts() {
                     borderLeft: `3px solid ${pm.color}`,
                   }}
                 >
-                  <span style={{ fontSize: 16, marginTop: 2 }}>{at.icon}</span>
+                  <span style={{ marginTop: 2, color: at.color, display: 'flex' }}>{at.icon}</span>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
                       <span style={{ fontSize: 13, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
@@ -290,7 +338,7 @@ function SmartAlerts() {
                       </span>
                       <span
                         style={{
-                          fontSize: 8,
+                          fontSize: 10,
                           fontWeight: 700,
                           color: at.color,
                           background: alpha(at.color, 0.1),
@@ -301,10 +349,10 @@ function SmartAlerts() {
                       >
                         {at.label}
                       </span>
-                      <span style={{ fontSize: 8, fontWeight: 600, color: pm.color, fontFamily: 'var(--tf-font)' }}>
+                      <span style={{ fontSize: 10, fontWeight: 600, color: pm.color, fontFamily: 'var(--tf-font)' }}>
                         {pm.icon}
                       </span>
-                      <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)', marginLeft: 'auto' }}>
+                      <span style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)', marginLeft: 'auto' }}>
                         {alert.time}
                       </span>
                     </div>

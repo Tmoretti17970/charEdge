@@ -19,7 +19,7 @@ import MarketsCompactView from '../app/components/markets/MarketsCompactView.jsx
 import MarketsCompareOverlay from '../app/components/markets/MarketsCompareOverlay.jsx';
 import MarketsCopilotPanel from '../app/components/markets/MarketsCopilotPanel.jsx';
 import MarketsGridSkeleton from '../app/components/markets/MarketsGridSkeleton.jsx';
-import MarketsHeatMap from '../app/components/markets/MarketsHeatMap.jsx';
+// MarketsHeatMap moved to Intel page
 import MarketsMobileView from '../app/components/markets/MarketsMobileView.jsx';
 import MarketsSearchBar from '../app/components/markets/MarketsSearchBar.jsx';
 import MarketsToolbar from '../app/components/markets/MarketsToolbar.jsx';
@@ -463,8 +463,6 @@ function MarketsPage() {
               {/* Sprint 17+18: Conditional view rendering */}
               {isMobile ? (
                 <MarketsMobileView />
-              ) : viewMode === 'heatmap' ? (
-                <MarketsHeatMap />
               ) : viewMode === 'cards' ? (
                 <MarketsCardView />
               ) : viewMode === 'compact' ? (

@@ -4,10 +4,10 @@
 // Sprint 14: Signal alignment across timeframes.
 // ═══════════════════════════════════════════════════════════════════
 
+import { Telescope, List, Target } from 'lucide-react';
 import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
-import DemoBadge from './DemoBadge';
 import { alpha } from '@/shared/colorUtils';
 
 const TIMEFRAMES = ['5m', '15m', '1H', '4H', '1D', '1W'];
@@ -61,11 +61,10 @@ function ConfluenceView() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 18 }}>🔭</span>
+          <Telescope size={18} color={C.t1} />
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
             Multi-Timeframe Confluence
           </h3>
-          <DemoBadge />
           <span
             style={{
               fontSize: 10,
@@ -111,7 +110,7 @@ function ConfluenceView() {
                 fontFamily: 'var(--tf-font)',
               }}
             >
-              📋 All Symbols
+              <List size={12} /> All Symbols
             </button>
             <button
               onClick={() => setHighOnly(true)}
@@ -128,7 +127,7 @@ function ConfluenceView() {
                 fontFamily: 'var(--tf-font)',
               }}
             >
-              🎯 High Confluence Only (70%+)
+              <Target size={12} /> High Confluence Only (70%+)
             </button>
           </div>
 
@@ -139,7 +138,7 @@ function ConfluenceView() {
               gridTemplateColumns: `70px repeat(${TIMEFRAMES.length}, 1fr) 60px`,
               gap: 4,
               padding: '6px 10px',
-              fontSize: 9,
+              fontSize: 11,
               fontWeight: 700,
               color: C.t3,
               fontFamily: 'var(--tf-font)',
@@ -221,7 +220,7 @@ function ConfluenceView() {
                 <span style={{ fontSize: 11, color: getSignalColor(key), fontFamily: 'var(--tf-mono)' }}>
                   {SIGNAL_ICONS[key]}
                 </span>
-                <span style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)', textTransform: 'capitalize' }}>
+                <span style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)', textTransform: 'capitalize' }}>
                   {label}
                 </span>
               </div>

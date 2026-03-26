@@ -10,12 +10,50 @@
 //   - Drill-down top movers per sector
 // ═══════════════════════════════════════════════════════════════════
 
+import {
+  Monitor,
+  Heart,
+  Building,
+  Zap,
+  ShoppingBag,
+  ShoppingCart,
+  Factory,
+  Layers,
+  Building2,
+  Lightbulb,
+  Radio,
+  TrendingUp,
+  ArrowUp,
+  TrendingDown,
+  RefreshCw,
+  MapPin,
+} from 'lucide-react';
 import React from 'react';
 import { useState, useMemo } from 'react';
 import { C } from '../../../constants.js';
-import DemoBadge from './DemoBadge';
 import s from './SectorRotationMap.module.css';
 import { alpha } from '@/shared/colorUtils';
+
+const SECTOR_ICONS = {
+  tech: Monitor,
+  health: Heart,
+  finance: Building,
+  energy: Zap,
+  consumer_d: ShoppingBag,
+  consumer_s: ShoppingCart,
+  industrial: Factory,
+  materials: Layers,
+  realestate: Building2,
+  utilities: Lightbulb,
+  comms: Radio,
+};
+
+const CYCLE_ICONS = {
+  expansion: TrendingUp,
+  peak: ArrowUp,
+  contraction: TrendingDown,
+  trough: RefreshCw,
+};
 
 // ─── Mock Sector Data ───────────────────────────────────────────
 
@@ -23,7 +61,6 @@ const SECTORS = [
   {
     id: 'tech',
     name: 'Technology',
-    icon: '💻',
     weight: 28.5,
     perf: { '1D': 1.42, '1W': 3.18, '1M': 5.64, '3M': 12.3, YTD: 8.9 },
     flow: 2.4, // billions, positive = inflow
@@ -39,7 +76,6 @@ const SECTORS = [
   {
     id: 'health',
     name: 'Healthcare',
-    icon: '🏥',
     weight: 13.2,
     perf: { '1D': -0.35, '1W': 0.82, '1M': -1.24, '3M': 2.1, YTD: 1.5 },
     flow: -0.8,
@@ -55,7 +91,6 @@ const SECTORS = [
   {
     id: 'finance',
     name: 'Financials',
-    icon: '🏦',
     weight: 12.8,
     perf: { '1D': 0.68, '1W': 1.45, '1M': 3.82, '3M': 8.4, YTD: 6.2 },
     flow: 1.2,
@@ -71,7 +106,6 @@ const SECTORS = [
   {
     id: 'energy',
     name: 'Energy',
-    icon: '⚡',
     weight: 4.2,
     perf: { '1D': -1.85, '1W': -3.2, '1M': -5.4, '3M': -8.6, YTD: -12.4 },
     flow: -1.6,
@@ -87,7 +121,6 @@ const SECTORS = [
   {
     id: 'consumer_d',
     name: 'Cons. Discretionary',
-    icon: '🛍️',
     weight: 10.5,
     perf: { '1D': 0.92, '1W': 2.1, '1M': 4.35, '3M': 6.8, YTD: 5.1 },
     flow: 0.6,
@@ -103,7 +136,6 @@ const SECTORS = [
   {
     id: 'consumer_s',
     name: 'Cons. Staples',
-    icon: '🛒',
     weight: 6.8,
     perf: { '1D': 0.12, '1W': -0.45, '1M': -0.82, '3M': 1.2, YTD: -0.4 },
     flow: -0.2,
@@ -119,7 +151,6 @@ const SECTORS = [
   {
     id: 'industrial',
     name: 'Industrials',
-    icon: '🏭',
     weight: 8.5,
     perf: { '1D': 0.55, '1W': 1.82, '1M': 2.9, '3M': 5.4, YTD: 4.8 },
     flow: 0.4,
@@ -135,7 +166,6 @@ const SECTORS = [
   {
     id: 'materials',
     name: 'Materials',
-    icon: '🧱',
     weight: 2.5,
     perf: { '1D': -0.28, '1W': 0.65, '1M': 1.42, '3M': -2.1, YTD: -1.8 },
     flow: -0.3,
@@ -151,7 +181,6 @@ const SECTORS = [
   {
     id: 'realestate',
     name: 'Real Estate',
-    icon: '🏢',
     weight: 2.4,
     perf: { '1D': -0.62, '1W': -1.24, '1M': -2.85, '3M': -4.2, YTD: -5.6 },
     flow: -0.5,
@@ -167,7 +196,6 @@ const SECTORS = [
   {
     id: 'utilities',
     name: 'Utilities',
-    icon: '💡',
     weight: 2.6,
     perf: { '1D': 0.18, '1W': -0.32, '1M': -1.1, '3M': 0.8, YTD: -2.1 },
     flow: 0.1,
@@ -183,7 +211,6 @@ const SECTORS = [
   {
     id: 'comms',
     name: 'Communication',
-    icon: '📡',
     weight: 8.0,
     perf: { '1D': 1.15, '1W': 2.48, '1M': 6.2, '3M': 14.5, YTD: 10.2 },
     flow: 1.8,
@@ -201,10 +228,10 @@ const SECTORS = [
 const TIMEFRAMES = ['1D', '1W', '1M', '3M', 'YTD'];
 
 const CYCLE_META = {
-  expansion: { color: C.g, label: 'Expansion', icon: '📈' },
-  peak: { color: '#f0b64e', label: 'Peak', icon: '🔝' },
-  contraction: { color: C.r, label: 'Contraction', icon: '📉' },
-  trough: { color: '#c084fc', label: 'Trough', icon: '🔄' },
+  expansion: { color: C.g, label: 'Expansion' },
+  peak: { color: '#f0b64e', label: 'Peak' },
+  contraction: { color: C.r, label: 'Contraction' },
+  trough: { color: '#c084fc', label: 'Trough' },
 };
 
 // ═══════════════════════════════════════════════════════════════════
@@ -230,9 +257,10 @@ function SectorRotationMap() {
       {/* Header */}
       <button onClick={() => setCollapsed(!collapsed)} className={`tf-btn ${s.s0}`}>
         <div className={s.s1}>
-          <span className={s.headerIcon}>🗺️</span>
+          <span className={s.headerIcon}>
+            <MapPin size={18} />
+          </span>
           <h3 className={s.headerTitle}>Sector Rotation Map</h3>
-          <DemoBadge />
           <span className={s.sectorBadge} style={{ color: C.g, background: alpha(C.g, 0.1) }}>
             {SECTORS.length} sectors
           </span>
@@ -356,7 +384,7 @@ function SectorRow({ sector, activeTF, onClick }) {
     >
       {/* Sector Name */}
       <div className={s.s8}>
-        <span className={s.sectorNameIcon}>{sector.icon}</span>
+        <span className={s.sectorNameIcon}>{React.createElement(SECTOR_ICONS[sector.id], { size: 14 })}</span>
         <div>
           <div className={s.sectorName}>{sector.name}</div>
           <div className={s.sectorWeight}>{sector.weight}% of S&P</div>
@@ -400,7 +428,7 @@ function SectorRow({ sector, activeTF, onClick }) {
       {/* Cycle Badge */}
       <div className={s.textRight}>
         <span className={s.cycleBadge} style={{ color: cycleMeta.color, background: alpha(cycleMeta.color, 0.1) }}>
-          {cycleMeta.icon} {cycleMeta.label.slice(0, 4)}
+          {React.createElement(CYCLE_ICONS[sector.cycle], { size: 12 })} {cycleMeta.label.slice(0, 4)}
         </span>
       </div>
     </div>
@@ -419,11 +447,16 @@ function DrillDown({ sector, activeTF }) {
     <div>
       {/* Sector Summary */}
       <div className={s.drillSummary} style={{ background: alpha(C.sf, 0.5) }}>
-        <span className={s.drillIcon}>{sector.icon}</span>
+        <span className={s.drillIcon}>{React.createElement(SECTOR_ICONS[sector.id], { size: 14 })}</span>
         <div className={s.drillFlex}>
           <div className={s.drillTitle}>{sector.name}</div>
           <div className={s.drillSubtitle}>
-            {sector.weight}% of S&P 500 · {cycleMeta.icon} {cycleMeta.label} phase
+            {sector.weight}% of S&P 500 ·{' '}
+            {React.createElement(CYCLE_ICONS[sector.cycle], {
+              size: 12,
+              style: { display: 'inline-block', verticalAlign: 'middle' },
+            })}{' '}
+            {cycleMeta.label} phase
           </div>
         </div>
         <div className={s.drillAlignRight}>

@@ -4,10 +4,10 @@
 // Sprint 12: Volatility regime monitor for risk management.
 // ═══════════════════════════════════════════════════════════════════
 
+import { BarChart3, Circle, TrendingUp, TrendingDown, Zap } from 'lucide-react';
 import React from 'react';
 import { useState } from 'react';
 import { C } from '../../../constants.js';
-import DemoBadge from './DemoBadge';
 import s from './VolatilityDashboard.module.css';
 import { alpha } from '@/shared/colorUtils';
 
@@ -19,12 +19,27 @@ const REGIME_META = {
   low: {
     label: 'Low Vol',
     color: C.g,
-    icon: '🟢',
+    icon: () => <Circle size={8} fill={C.g} stroke="none" />,
     tip: 'Complacency — good for selling premium. Watch for vol expansion.',
   },
-  normal: { label: 'Normal', color: '#f0b64e', icon: '🟡', tip: 'Standard conditions. Balanced approach to sizing.' },
-  elevated: { label: 'Elevated', color: '#e8642c', icon: '🟠', tip: 'Reduce size. Focus on defined-risk trades.' },
-  extreme: { label: 'Extreme', color: C.r, icon: '🔴', tip: 'Crisis mode. Small size only. Hedge existing positions.' },
+  normal: {
+    label: 'Normal',
+    color: '#f0b64e',
+    icon: () => <Circle size={8} fill="#f0b64e" stroke="none" />,
+    tip: 'Standard conditions. Balanced approach to sizing.',
+  },
+  elevated: {
+    label: 'Elevated',
+    color: '#f97316',
+    icon: () => <Circle size={8} fill="#f97316" stroke="none" />,
+    tip: 'Reduce size. Focus on defined-risk trades.',
+  },
+  extreme: {
+    label: 'Extreme',
+    color: C.r,
+    icon: () => <Circle size={8} fill={C.r} stroke="none" />,
+    tip: 'Crisis mode. Small size only. Hedge existing positions.',
+  },
 };
 
 // VIX term structure (mock)
@@ -69,11 +84,10 @@ function VolatilityDashboard() {
     <div style={{ background: C.bg2, border: `1px solid ${C.bd}`, borderRadius: 16, overflow: 'hidden' }}>
       <button onClick={() => setCollapsed(!collapsed)} className={`tf-btn ${s.s0}`}>
         <div className={s.s1}>
-          <span style={{ fontSize: 18 }}>📉</span>
+          <BarChart3 size={18} color={C.t1} />
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-font)' }}>
             Volatility Dashboard
           </h3>
-          <DemoBadge />
           <span
             style={{
               fontSize: 10,
@@ -85,7 +99,7 @@ function VolatilityDashboard() {
               fontFamily: 'var(--tf-mono)',
             }}
           >
-            {regimeMeta.icon} VIX {VIX_CURRENT}
+            {regimeMeta.icon()} VIX {VIX_CURRENT}
           </span>
         </div>
         <span
@@ -114,7 +128,7 @@ function VolatilityDashboard() {
                 textAlign: 'center',
               }}
             >
-              <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)', marginBottom: 2 }}>VIX Index</div>
+              <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)', marginBottom: 2 }}>VIX Index</div>
               <div style={{ fontSize: 28, fontWeight: 700, color: regimeMeta.color, fontFamily: 'var(--tf-mono)' }}>
                 {VIX_CURRENT}
               </div>
@@ -140,11 +154,11 @@ function VolatilityDashboard() {
                 borderRadius: 10,
               }}
             >
-              <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)', marginBottom: 2 }}>Regime</div>
+              <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)', marginBottom: 2 }}>Regime</div>
               <div style={{ fontSize: 16, fontWeight: 700, color: regimeMeta.color, fontFamily: 'var(--tf-font)' }}>
                 {regimeMeta.label}
               </div>
-              <div style={{ fontSize: 9, color: C.t2, fontFamily: 'var(--tf-font)', marginTop: 4, lineHeight: 1.4 }}>
+              <div style={{ fontSize: 11, color: C.t2, fontFamily: 'var(--tf-font)', marginTop: 4, lineHeight: 1.4 }}>
                 {regimeMeta.tip}
               </div>
             </div>
@@ -158,13 +172,13 @@ function VolatilityDashboard() {
                 borderRadius: 10,
               }}
             >
-              <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)', marginBottom: 2 }}>
+              <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)', marginBottom: 2 }}>
                 Suggested Max Size
               </div>
               <div style={{ fontSize: 22, fontWeight: 700, color: C.t1, fontFamily: 'var(--tf-mono)' }}>
                 {sizing.maxPct}%
               </div>
-              <div style={{ fontSize: 9, color: C.t2, fontFamily: 'var(--tf-font)', marginTop: 4, lineHeight: 1.4 }}>
+              <div style={{ fontSize: 11, color: C.t2, fontFamily: 'var(--tf-font)', marginTop: 4, lineHeight: 1.4 }}>
                 {sizing.tip}
               </div>
             </div>
@@ -188,7 +202,17 @@ function VolatilityDashboard() {
               <span
                 style={{ fontSize: 10, fontWeight: 600, color: isContango ? C.g : C.r, fontFamily: 'var(--tf-font)' }}
               >
-                {isContango ? '📈 Contango (Normal)' : '📉 Backwardation (Fear)'}
+                {isContango ? (
+                  <>
+                    <TrendingUp size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
+                    Contango (Normal)
+                  </>
+                ) : (
+                  <>
+                    <TrendingDown size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
+                    Backwardation (Fear)
+                  </>
+                )}
               </span>
             </div>
             <div className={s.s4}>
@@ -196,7 +220,7 @@ function VolatilityDashboard() {
                 const pct = ((t.value - tsMin) / (tsMax - tsMin)) * 100;
                 return (
                   <div key={i} className={s.s5}>
-                    <span style={{ fontSize: 9, color: C.t2, fontFamily: 'var(--tf-mono)' }}>{t.value}</span>
+                    <span style={{ fontSize: 11, color: C.t2, fontFamily: 'var(--tf-mono)' }}>{t.value}</span>
                     <div
                       style={{
                         width: '100%',
@@ -205,7 +229,7 @@ function VolatilityDashboard() {
                         borderRadius: 3,
                       }}
                     />
-                    <span style={{ fontSize: 8, color: C.t3, fontFamily: 'var(--tf-mono)' }}>{t.label}</span>
+                    <span style={{ fontSize: 10, color: C.t3, fontFamily: 'var(--tf-mono)' }}>{t.label}</span>
                   </div>
                 );
               })}
@@ -250,7 +274,7 @@ function VolatilityDashboard() {
                   </span>
                   <div className={s.s7}>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>IV</div>
+                      <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)' }}>IV</div>
                       <div
                         style={{
                           fontSize: 13,
@@ -264,14 +288,14 @@ function VolatilityDashboard() {
                     </div>
                     <span style={{ fontSize: 10, color: C.t3 }}>vs</span>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>HV</div>
+                      <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)' }}>HV</div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: C.t2, fontFamily: 'var(--tf-mono)' }}>
                         {sv.hv}
                       </div>
                     </div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 9, color: C.t3, fontFamily: 'var(--tf-font)' }}>IV Rank</div>
+                    <div style={{ fontSize: 11, color: C.t3, fontFamily: 'var(--tf-font)' }}>IV Rank</div>
                     <div
                       style={{
                         fontSize: 12,
@@ -285,7 +309,7 @@ function VolatilityDashboard() {
                   </div>
                   <span
                     style={{
-                      fontSize: 9,
+                      fontSize: 11,
                       fontWeight: 600,
                       color: rm.color,
                       background: alpha(rm.color, 0.1),
@@ -298,9 +322,10 @@ function VolatilityDashboard() {
                   </span>
                   {sv.alert && (
                     <span
-                      style={{ fontSize: 9, color: C.y, fontFamily: 'var(--tf-font)', fontWeight: 600, maxWidth: 150 }}
+                      style={{ fontSize: 11, color: C.y, fontFamily: 'var(--tf-font)', fontWeight: 600, maxWidth: 150 }}
                     >
-                      ⚡ {sv.alert}
+                      <Zap size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 2 }} />{' '}
+                      {sv.alert}
                     </span>
                   )}
                 </div>

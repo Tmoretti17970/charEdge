@@ -1,0 +1,86 @@
+/* GoDeeper — Progressive disclosure accordion */
+
+.wrap {
+  border-radius: 16px;
+  background: var(--tf-sf);
+  border: 1px solid var(--tf-bd);
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--tf-t1);
+  font-family: var(--tf-font);
+}
+
+.subtitle {
+  font-size: 12px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.item {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.itemBtn {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.itemBtn:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.chevron {
+  color: var(--tf-t3);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.itemText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.itemTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tf-t1);
+  font-family: var(--tf-font);
+}
+
+.itemDesc {
+  font-size: 12px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+}
+
+.itemContent {
+  padding: 4px 14px 16px;
+}

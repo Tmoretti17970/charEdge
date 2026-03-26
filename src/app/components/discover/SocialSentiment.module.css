@@ -1,0 +1,126 @@
+/* SocialSentiment — Trending ticker sentiment */
+
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.filterBtn {
+  all: unset;
+  padding: 5px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--tf-font);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.sourceLabel {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  opacity: 0.6;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--tf-bg2);
+  transition: background 0.15s;
+}
+
+.row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.symbol {
+  font-size: 14px;
+  font-weight: 800;
+  font-family: var(--tf-mono);
+  color: var(--tf-t1);
+  min-width: 50px;
+}
+
+/* ─── Sentiment Bar ──────────────────────────────────────────── */
+
+.barWrap {
+  flex: 1;
+  display: flex;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  min-width: 80px;
+}
+
+.barBull {
+  background: #22c55e;
+  transition: width 0.3s ease;
+}
+
+.barBear {
+  background: #ef4444;
+  transition: width 0.3s ease;
+}
+
+/* ─── Metrics ────────────────────────────────────────────────── */
+
+.score {
+  font-size: 13px;
+  font-weight: 800;
+  font-family: var(--tf-mono);
+  min-width: 38px;
+  text-align: right;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--tf-font);
+  min-width: 50px;
+}
+
+.mentions {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tf-t3);
+  font-family: var(--tf-mono);
+  min-width: 40px;
+  text-align: right;
+}
+
+.trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--tf-mono);
+  min-width: 48px;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .label,
+  .mentions {
+    display: none;
+  }
+
+  .sourceLabel {
+    display: none;
+  }
+}

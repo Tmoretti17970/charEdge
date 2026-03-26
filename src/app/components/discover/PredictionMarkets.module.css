@@ -1,0 +1,54 @@
+/* PredictionMarkets — Section layout */
+
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filterBtn {
+  all: unset;
+  padding: 5px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--tf-font);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.filterBtn:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.sourceLabel {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+  opacity: 0.6;
+}
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loading,
+.empty {
+  padding: 32px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--tf-t3);
+  font-family: var(--tf-font);
+}
+
+@media (max-width: 768px) {
+  .sourceLabel {
+    display: none;
+  }
+}
