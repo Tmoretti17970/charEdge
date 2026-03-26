@@ -63,8 +63,8 @@ function ModePill() {
         borderRadius: 20,
         padding: 3,
         gap: 2,
-        background: C.sf2,
-        border: `1px solid ${C.bd}`,
+        background: 'var(--tf-sf2)',
+        border: '1px solid var(--tf-bd)',
         height: 32,
         flexShrink: 0,
       }}
@@ -114,7 +114,7 @@ function ModePill() {
               fontSize: 11,
               fontWeight: isActive ? 700 : 500,
               fontFamily: F,
-              color: isActive ? account.color : C.t3,
+              color: isActive ? account.color : 'var(--tf-t3)',
               whiteSpace: 'nowrap',
               transition: 'color 0.2s ease',
               lineHeight: 1,
@@ -186,7 +186,7 @@ function MarketsPage() {
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
-        background: C.bg,
+        background: 'var(--tf-bg)',
         minHeight: 0,
         overflow: 'hidden',
       }}
@@ -198,19 +198,19 @@ function MarketsPage() {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '16px 24px 12px',
-          background: C.bg2,
+          background: 'var(--tf-bg2)',
           flexShrink: 0,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, fontFamily: F, color: C.t1 }}>Markets</h1>
+          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, fontFamily: F, color: 'var(--tf-t1)' }}>Markets</h1>
           <span
             style={{
               fontSize: 10,
               fontWeight: 700,
               fontFamily: M,
-              color: C.t3,
-              background: `${C.bd}30`,
+              color: 'var(--tf-t3)',
+              background: 'color-mix(in srgb, var(--tf-bd) 19%, transparent)',
               padding: '2px 8px',
               borderRadius: 4,
             }}
@@ -230,22 +230,22 @@ function MarketsPage() {
               height: 30,
               padding: '0 12px 0 8px',
               borderRadius: 15,
-              background: copilotOpen ? C.b + '15' : C.sf2,
-              border: `1px solid ${copilotOpen ? C.b + '40' : C.bd}`,
-              color: copilotOpen ? C.t1 : C.t2,
+              background: copilotOpen ? alpha(C.b, 0.08) : 'var(--tf-sf2)',
+              border: `1px solid ${copilotOpen ? alpha(C.b, 0.25) : 'var(--tf-bd)'}`,
+              color: copilotOpen ? 'var(--tf-t1)' : 'var(--tf-t2)',
               fontSize: 11,
               fontWeight: 600,
               fontFamily: F,
               cursor: 'pointer',
               transition: 'all 0.25s cubic-bezier(0.25, 0.1, 0.25, 1)',
-              boxShadow: copilotOpen ? `0 0 16px ${C.b}25` : 'none',
+              boxShadow: copilotOpen ? `0 0 16px ${alpha(C.b, 0.15)}` : 'none',
             }}
             onMouseEnter={(e) => {
               if (!copilotOpen) {
-                e.currentTarget.style.background = C.b + '12';
-                e.currentTarget.style.borderColor = C.b + '30';
+                e.currentTarget.style.background = alpha(C.b, 0.07);
+                e.currentTarget.style.borderColor = alpha(C.b, 0.19);
                 e.currentTarget.style.color = C.t1;
-                e.currentTarget.style.boxShadow = `0 0 14px ${C.b}18`;
+                e.currentTarget.style.boxShadow = `0 0 14px ${alpha(C.b, 0.09)}`;
               }
             }}
             onMouseLeave={(e) => {
@@ -293,7 +293,7 @@ function MarketsPage() {
                 border: `1.5px solid ${C.b}`,
                 borderRight: 'none',
                 borderRadius: '12px 0 0 12px',
-                background: logbookHover ? C.b + '12' : 'transparent',
+                background: logbookHover ? alpha(C.b, 0.07) : 'transparent',
                 color: logbookHover ? C.b : C.t2,
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
@@ -320,7 +320,7 @@ function MarketsPage() {
                 border: `1.5px solid ${C.b}`,
                 borderRight: 'none',
                 borderRadius: 0,
-                background: importHover ? C.b + '12' : 'transparent',
+                background: importHover ? alpha(C.b, 0.07) : 'transparent',
                 color: importHover ? C.b : C.t2,
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',

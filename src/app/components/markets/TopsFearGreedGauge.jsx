@@ -43,7 +43,9 @@ export default memo(function TopsFearGreedGauge() {
       }
     }
     fetch();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (loading || score == null) return null;
@@ -52,7 +54,9 @@ export default memo(function TopsFearGreedGauge() {
   // Arc for the gauge: 180 degree arc
   const pct = score / 100;
   const arcAngle = Math.PI * pct;
-  const cx = 44, cy = 38, r = 32;
+  const cx = 44,
+    cy = 38,
+    r = 32;
   const startX = cx - r;
   const startY = cy;
   const endX = cx + r * Math.cos(Math.PI - arcAngle);
@@ -67,7 +71,7 @@ export default memo(function TopsFearGreedGauge() {
         gap: 10,
         padding: '6px 14px',
         borderRadius: 12,
-        background: 'rgba(255, 255, 255, 0.03)',
+        background: 'color-mix(in srgb, var(--tf-t1) 3%, transparent)',
         border: `1px solid ${C.bd}`,
         flexShrink: 0,
       }}
@@ -78,7 +82,7 @@ export default memo(function TopsFearGreedGauge() {
         <path
           d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
           fill="none"
-          stroke="rgba(255,255,255,0.08)"
+          stroke="var(--tf-bd)"
           strokeWidth="5"
           strokeLinecap="round"
         />

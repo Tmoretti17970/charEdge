@@ -24,7 +24,7 @@ const PredictionHeatmap = React.lazy(() => import('../predictions/PredictionHeat
 const PredictionDetailPanel = React.lazy(() => import('../predictions/PredictionDetailPanel.jsx'));
 
 const LazyFallback = () => (
-  <div style={{ minHeight: 120, opacity: 0.4, borderRadius: 12, background: 'rgba(255,255,255,0.02)' }} />
+  <div style={{ minHeight: 120, opacity: 0.4, borderRadius: 12, background: 'var(--tf-sf2)' }} />
 );
 
 export default function PredictionsTabContent() {

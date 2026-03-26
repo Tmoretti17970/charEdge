@@ -19,7 +19,10 @@ function squarify(data, x, y, w, h) {
   if (total <= 0) return rects;
 
   let remaining = [...data];
-  let cx = x, cy = y, cw = w, ch = h;
+  let cx = x,
+    cy = y,
+    cw = w,
+    ch = h;
 
   while (remaining.length > 0) {
     const isWide = cw >= ch;
@@ -116,15 +119,17 @@ export default memo(function TopsHeatMap() {
   const topicFilter = useTopMarketsStore((s) => s.topicFilter);
   const searchQuery = useTopMarketsStore((s) => s.searchQuery);
 
-  const filtered = useMemo(() => {
-    return useTopMarketsStore.getState().getFilteredMarkets();
-  }, [markets, assetClassFilter, topicFilter, searchQuery]);
+  const filtered = useMemo(
+    () => useTopMarketsStore.getState().getFilteredMarkets(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- store slices as deps to trigger recalc
+    [markets, assetClassFilter, topicFilter, searchQuery],
+  );
 
   const treeData = useMemo(() => {
     return filtered
-      .filter(m => (m.marketCap || m.volume24h) > 0)
+      .filter((m) => (m.marketCap || m.volume24h) > 0)
       .slice(0, 100)
-      .map(m => ({
+      .map((m) => ({
         ...m,
         weight: m.marketCap || m.volume24h || 1,
       }))
@@ -140,7 +145,7 @@ export default memo(function TopsHeatMap() {
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const ro = new ResizeObserver(entries => {
+    const ro = new ResizeObserver((entries) => {
       const { width, height } = entries[0].contentRect;
       if (width > 0 && height > 0) setDims({ w: width, h: height });
     });
@@ -212,19 +217,24 @@ export default memo(function TopsHeatMap() {
   }, [rects, dims, hover]);
 
   // Mouse tracking
-  const handleMouseMove = useCallback((e) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const bound = canvas.getBoundingClientRect();
-    const mx = e.clientX - bound.left;
-    const my = e.clientY - bound.top;
-    const found = rects.find(r => mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h);
-    setHover(found || null);
-  }, [rects]);
+  const handleMouseMove = useCallback(
+    (e) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const bound = canvas.getBoundingClientRect();
+      const mx = e.clientX - bound.left;
+      const my = e.clientY - bound.top;
+      const found = rects.find((r) => mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h);
+      setHover(found || null);
+    },
+    [rects],
+  );
 
   if (treeData.length === 0) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: C.t3, fontSize: 13 }}>
+      <div
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: C.t3, fontSize: 13 }}
+      >
         No market data for heatmap
       </div>
     );
@@ -251,9 +261,9 @@ export default memo(function TopsHeatMap() {
             gap: 12,
             padding: '8px 16px',
             borderRadius: 12,
-            background: 'rgba(14, 16, 19, 0.85)',
+            background: 'var(--tf-glass-3)',
             backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
+            border: '1px solid var(--tf-bd)',
             pointerEvents: 'none',
             zIndex: 10,
           }}
@@ -264,13 +274,16 @@ export default memo(function TopsHeatMap() {
             ${hover.price?.toLocaleString('en-US', { maximumFractionDigits: 2 })}
           </span>
           {hover.change24h != null && (
-            <span style={{
-              fontSize: 12,
-              fontWeight: 700,
-              fontFamily: 'var(--tf-mono)',
-              color: hover.change24h >= 0 ? 'var(--tf-green, #34C759)' : 'var(--tf-red, #FF3B30)',
-            }}>
-              {hover.change24h >= 0 ? '+' : ''}{hover.change24h.toFixed(2)}%
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                fontFamily: 'var(--tf-mono)',
+                color: hover.change24h >= 0 ? 'var(--tf-green, #34C759)' : 'var(--tf-red, #FF3B30)',
+              }}
+            >
+              {hover.change24h >= 0 ? '+' : ''}
+              {hover.change24h.toFixed(2)}%
             </span>
           )}
         </div>

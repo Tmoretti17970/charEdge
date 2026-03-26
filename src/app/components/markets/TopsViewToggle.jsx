@@ -15,7 +15,15 @@ const VIEW_MODES = [
     id: 'table',
     label: 'Table',
     icon: (
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <svg
+        width="13"
+        height="13"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      >
         <line x1="3" y1="6" x2="21" y2="6" />
         <line x1="3" y1="12" x2="21" y2="12" />
         <line x1="3" y1="18" x2="21" y2="18" />
@@ -26,7 +34,16 @@ const VIEW_MODES = [
     id: 'cards',
     label: 'Cards',
     icon: (
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg
+        width="13"
+        height="13"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
         <rect x="3" y="3" width="7" height="7" rx="1.5" />
         <rect x="14" y="3" width="7" height="7" rx="1.5" />
         <rect x="3" y="14" width="7" height="7" rx="1.5" />
@@ -38,7 +55,16 @@ const VIEW_MODES = [
     id: 'heatmap',
     label: 'Heatmap',
     icon: (
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg
+        width="13"
+        height="13"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
         <rect x="3" y="3" width="8" height="10" rx="1" />
         <rect x="13" y="3" width="8" height="6" rx="1" />
         <rect x="3" y="15" width="8" height="6" rx="1" />
@@ -92,8 +118,8 @@ export default memo(function TopsViewToggle({ viewMode, setViewMode }) {
             borderRadius: 7,
             left: slider.left,
             width: slider.width,
-            background: 'rgba(255, 255, 255, 0.08)',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.04)',
+            background: 'var(--tf-sf)',
+            boxShadow: 'var(--tf-shadow-1)',
             transition: 'left 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
             pointerEvents: 'none',
             zIndex: 0,
@@ -101,12 +127,14 @@ export default memo(function TopsViewToggle({ viewMode, setViewMode }) {
         />
       )}
 
-      {VIEW_MODES.map(mode => {
+      {VIEW_MODES.map((mode) => {
         const isActive = viewMode === mode.id;
         return (
           <button
             key={mode.id}
-            ref={el => { optionRefs.current[mode.id] = el; }}
+            ref={(el) => {
+              optionRefs.current[mode.id] = el;
+            }}
             onClick={() => setViewMode(mode.id)}
             aria-label={`Switch to ${mode.label} view`}
             style={{

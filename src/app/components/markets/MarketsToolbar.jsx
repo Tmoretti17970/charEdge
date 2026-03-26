@@ -180,9 +180,12 @@ function CompareButton() {
         fontSize: 10,
         fontWeight: 600,
         fontFamily: 'var(--tf-mono)',
-        border: count > 0 ? '1px solid #6e5ce640' : `1px solid ${C.bd}30`,
-        background: count > 0 ? '#6e5ce612' : 'transparent',
-        color: count > 0 ? '#6e5ce6' : C.t3,
+        border:
+          count > 0
+            ? '1px solid color-mix(in srgb, var(--tf-purple) 25%, transparent)'
+            : `1px solid color-mix(in srgb, var(--tf-bd) 19%, transparent)`,
+        background: count > 0 ? 'color-mix(in srgb, var(--tf-purple) 7%, transparent)' : 'transparent',
+        color: count > 0 ? 'var(--tf-purple)' : C.t3,
         cursor: 'pointer',
         transition: `all ${transition.fast}`,
       }}
@@ -220,9 +223,11 @@ function AlertsButton() {
         fontSize: 10,
         fontWeight: 600,
         fontFamily: 'var(--tf-mono)',
-        border: alertPickerOpen ? '1px solid #f0b64e40' : `1px solid ${C.bd}30`,
-        background: alertPickerOpen ? '#f0b64e12' : 'transparent',
-        color: alertPickerOpen ? '#f0b64e' : C.t3,
+        border: alertPickerOpen
+          ? '1px solid color-mix(in srgb, var(--tf-yellow) 25%, transparent)'
+          : `1px solid color-mix(in srgb, var(--tf-bd) 19%, transparent)`,
+        background: alertPickerOpen ? 'color-mix(in srgb, var(--tf-yellow) 7%, transparent)' : 'transparent',
+        color: alertPickerOpen ? 'var(--tf-yellow)' : C.t3,
         cursor: 'pointer',
         transition: `all ${transition.fast}`,
       }}
