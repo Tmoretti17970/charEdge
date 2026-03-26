@@ -1,0 +1,90 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — Tops Economic Events Strip Styles
+   ═══════════════════════════════════════════════════════════════════ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--color-t3, rgba(255, 255, 255, 0.35));
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 0 24px;
+}
+
+.scroll {
+  display: flex;
+  gap: 6px;
+  padding: 0 24px 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+  mask-image: linear-gradient(
+    to right,
+    transparent, black 24px,
+    black calc(100% - 24px), transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent, black 24px,
+    black calc(100% - 24px), transparent
+  );
+}
+
+.scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--color-sf2, rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  transition:
+    border-color 0.15s ease,
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.chip:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.chipContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.chipTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-t1, #fff);
+  white-space: nowrap;
+}
+
+.chipMeta {
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--color-t3, rgba(255, 255, 255, 0.4));
+  font-family: var(--font-mono, 'SF Mono', monospace);
+  white-space: nowrap;
+}

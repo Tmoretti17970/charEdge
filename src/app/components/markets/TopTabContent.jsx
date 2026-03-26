@@ -1,15 +1,19 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Top Tab Content (Enhanced)
+// charEdge — Top Tab Content (Phase 5: Intelligence)
 //
 // Market discovery experience with Apple-style UI. Shows:
 //   1. Market Ticker Strip (indices/futures + macro indicators)
-//   2. Fear & Greed gauge
-//   3. Top Movers (Gainers/Losers/Most Active)
-//   4. Topic pills + Network filters
-//   5. View mode toggle (Table / Cards / Heatmap)
-//   6. Ranked table, card grid, or heatmap view
+//   2. Fear & Greed gauge + Market Breadth
+//   3. Economic Events + Upcoming Earnings
+//   4. Sector Performance Cards
+//   5. Top Movers (Gainers/Losers/Most Active)
+//   6. Quick Screener Presets
+//   7. Topic pills + Network filters
+//   8. Search + View Toggle + Export
+//   9. Ranked table, card grid, or heatmap view
 //
-// Layout: Ticker Strip → Movers → Filters → View Content
+// Layout: Ticker Strip → Insights → Events → Sectors → Movers
+//         → Screener → Filters → Toolbar → View Content
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useState, useRef, useMemo, memo } from 'react';
@@ -24,6 +28,11 @@ import TopsHeatMap from './TopsHeatMap.jsx';
 import TopsMovers from './TopsMovers.jsx';
 import TopsSectorCards from './TopsSectorCards.jsx';
 import TopsViewToggle from './TopsViewToggle.jsx';
+import TopsBreadthWidget from './TopsBreadthWidget.jsx';
+import TopsEconStrip from './TopsEconStrip.jsx';
+import TopsEarningsStrip from './TopsEarningsStrip.jsx';
+import TopsScreenerPresets from './TopsScreenerPresets.jsx';
+import TopsExportButton from './TopsExportButton.jsx';
 import styles from './TopTabContent.module.css';
 import TopTopicPills from './TopTopicPills.jsx';
 
@@ -85,10 +94,15 @@ export default memo(function TopTabContent() {
       {/* ─── Market Ticker Strip (glass header) ──────────────── */}
       <MarketTickerStrip />
 
-      {/* ─── Movers + Fear & Greed Row ───────────────────────── */}
+      {/* ─── Insights Row: Fear & Greed + Market Breadth ─────── */}
       <div className={styles.insightsRow}>
         <TopsFearGreedGauge />
+        <TopsBreadthWidget />
       </div>
+
+      {/* ─── Economic Events + Upcoming Earnings ─────────────── */}
+      <TopsEconStrip />
+      <TopsEarningsStrip />
 
       {/* ─── Sector Performance Cards ────────────────────────── */}
       <TopsSectorCards />
@@ -96,13 +110,16 @@ export default memo(function TopTabContent() {
       {/* ─── Top Movers (Gainers/Losers/Active) ─────────────── */}
       <TopsMovers />
 
+      {/* ─── Quick Screener Presets ──────────────────────────── */}
+      <TopsScreenerPresets />
+
       {/* ─── Filter Bar ──────────────────────────────────────── */}
       <div className={styles.filterBar}>
         <TopTopicPills />
         <TopNetworkFilters />
       </div>
 
-      {/* ─── Toolbar: Search + Status + View Toggle ──────────── */}
+      {/* ─── Toolbar: Search + Status + View Toggle + Export ─── */}
       <div className={styles.toolbar}>
         <div className={styles.searchWrap}>
           <span className={styles.searchIcon}>
@@ -126,6 +143,7 @@ export default memo(function TopTabContent() {
 
         <div className={styles.toolbarRight}>
           <TopsViewToggle viewMode={viewMode} setViewMode={setViewMode} />
+          <TopsExportButton />
 
           <div className={styles.statusRow}>
             {loading && <span className={styles.statusDot} style={{ background: 'var(--tf-yellow, #f0b64e)' }} />}
