@@ -1,0 +1,59 @@
+/* Stats Bar — Apple glanceable metrics strip */
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 16px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to right, black 95%, transparent 100%);
+}
+
+.bar::-webkit-scrollbar {
+  display: none;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 24px;
+  white-space: nowrap;
+}
+
+.stat:first-of-type {
+  padding-left: 0;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--tf-tx-2, rgba(255, 255, 255, 0.45));
+  text-transform: uppercase;
+}
+
+.value {
+  font-size: 22px;
+  font-weight: 700;
+  font-family: var(--tf-mono, 'SF Mono', 'Menlo', monospace);
+  color: var(--tf-tx, rgba(255, 255, 255, 0.92));
+  letter-spacing: -0.01em;
+}
+
+.divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .stat {
+    padding: 0 16px;
+  }
+  .value {
+    font-size: 18px;
+  }
+}

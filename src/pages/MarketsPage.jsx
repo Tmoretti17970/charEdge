@@ -1,68 +1,34 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Markets Page (Sprints 3–9)
+// charEdge — Markets Page (Unified)
 //
-// World-class market watchlist with AI insights, live prices,
-// and multi-asset support.
+// Thin shell with 3 top-level tabs: Top | Predictions | Watchlist.
+// Each tab is an independent panel with its own data, layout, and
+// features. No state shared between tabs except the active tab.
 //
-// Sprint 3: Page shell + sidebar nav
-// Sprint 4: Watchlist grid with live prices, sparklines, P&L
-// Sprint 5: Quick-add search bar
-// Sprint 6: Column customization
-// Sprint 7: Sort, filter, group toolbar
-// Sprint 9: Detail panel (slide-in, linked browsing)
+// Top: Market discovery (CoinGecko + equity rankings)
+// Predictions: Full prediction markets (5 sources, 30+ components)
+// Watchlist: Personal watchlist (grid, folders, copilot, screener)
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useRef, useCallback, useLayoutEffect, Suspense } from 'react';
 import AIOrb from '../app/components/design/AIOrb.jsx';
-import MarketsCardView from '../app/components/markets/MarketsCardView.jsx';
-import MarketsCompactView from '../app/components/markets/MarketsCompactView.jsx';
-import MarketsCompareOverlay from '../app/components/markets/MarketsCompareOverlay.jsx';
-import MarketsCopilotPanel from '../app/components/markets/MarketsCopilotPanel.jsx';
 import MarketsGridSkeleton from '../app/components/markets/MarketsGridSkeleton.jsx';
-// MarketsHeatMap moved to Intel page
-import MarketsMobileView from '../app/components/markets/MarketsMobileView.jsx';
 import MarketsSearchBar from '../app/components/markets/MarketsSearchBar.jsx';
-import MarketsToolbar from '../app/components/markets/MarketsToolbar.jsx';
-import MarketsWatchlistGrid from '../app/components/markets/MarketsWatchlistGrid.jsx';
-import MarketsWatchlistTabs from '../app/components/markets/MarketsWatchlistTabs.jsx';
-import SmartAlertPicker from '../app/components/markets/SmartAlertPicker.jsx';
+import MarketsTopLevelTabs from '../app/components/markets/MarketsTopLevelTabs.jsx';
+import TopTabContent from '../app/components/markets/TopTabContent.jsx';
+import useMarketsURLSync from '../app/components/markets/useMarketsURLSync.js';
+import WatchlistTabContent from '../app/components/markets/WatchlistTabContent.jsx';
 import { Btn } from '../app/components/ui/UIKit.jsx';
 import { C, F, M } from '../constants.js';
 import useCopilotChat from '../hooks/useCopilotChat';
-import { useMarketsKeyboard } from '../hooks/useMarketsKeyboard';
-import { useChartCoreStore } from '../state/chart/useChartCoreStore';
 import { useAccountStore, ACCOUNTS } from '../state/useAccountStore';
 import { useMarketsPrefsStore } from '../state/useMarketsPrefsStore';
 import { useUIStore } from '../state/useUIStore';
 import { useWatchlistStore } from '../state/useWatchlistStore.js';
 import { alpha } from '@/shared/colorUtils';
 
-// ─── Lazy-loaded panels (breaks HMR circular dep chain) ────────
-const MarketsDetailPanel = React.lazy(() => import('../app/components/markets/MarketsDetailPanel.jsx'));
-const SmartFolderManager = React.lazy(() => import('../app/components/markets/SmartFolderManager.jsx'));
-const MarketsScreenerPanel = React.lazy(() => import('../app/components/markets/MarketsScreenerPanel.jsx'));
-
-const MarketsPerformancePanel = React.lazy(() => import('../app/components/markets/MarketsPerformancePanel.jsx'));
-
-// ─── Constants ──────────────────────────────────────────────────
-
-const ACCENT = '#6e5ce6';
-const ACCENT_GLOW = '#6e5ce630';
-const MOBILE_BREAKPOINT = 768;
-
-// ─── Responsive hook ────────────────────────────────────────────
-function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState(
-    typeof window !== 'undefined' ? window.innerWidth < MOBILE_BREAKPOINT : false,
-  );
-  React.useEffect(() => {
-    const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-    const handler = (e) => setIsMobile(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
-  return isMobile;
-}
+// ─── Lazy-loaded Predictions tab (code-split) ──────────────────
+const PredictionsTabContent = React.lazy(() => import('../app/components/markets/PredictionsTabContent.jsx'));
 
 // ─── ModePill — Apple-style Segmented Toggle (Real / Demo) ─────
 function ModePill() {
@@ -173,29 +139,15 @@ function ModePill() {
   );
 }
 
-// ─── Markets Page ───────────────────────────────────────────────
+// ─── Markets Page (Unified Shell) ───────────────────────────────
 
 function MarketsPage() {
   const setPage = useUIStore((s) => s.setPage);
+  const activeTopTab = useMarketsPrefsStore((s) => s.activeTopTab);
   const items = useWatchlistStore((s) => s.items);
-  const loaded = useWatchlistStore((s) => s.loaded);
-  const addSymbol = useWatchlistStore((s) => s.add);
-  const removeSymbol = useWatchlistStore((s) => s.remove);
-  const hasItems = items.length > 0;
-  const isLoading = !loaded;
 
-  const selectedSymbol = useMarketsPrefsStore((s) => s.selectedSymbol);
-  const viewMode = useMarketsPrefsStore((s) => s.viewMode);
-  const setSelectedSymbol = useMarketsPrefsStore((s) => s.setSelectedSymbol);
-  const closeDetail = useMarketsPrefsStore((s) => s.closeDetail);
-  const smartFolderOpen = useMarketsPrefsStore((s) => s.smartFolderOpen);
-  const setSmartFolderOpen = useMarketsPrefsStore((s) => s.setSmartFolderOpen);
-  const screenerPanelOpen = useMarketsPrefsStore((s) => s.screenerPanelOpen);
-  const setScreenerPanelOpen = useMarketsPrefsStore((s) => s.setScreenerPanelOpen);
-
-  const performancePanelOpen = useMarketsPrefsStore((s) => s.performancePanelOpen);
-  const setPerformancePanelOpen = useMarketsPrefsStore((s) => s.setPerformancePanelOpen);
-  const panelOpen = !!selectedSymbol;
+  // URL sync for tab deep-linking
+  useMarketsURLSync();
 
   // Copilot state
   const copilotOpen = useCopilotChat((s) => s.panelOpen);
@@ -205,30 +157,7 @@ function MarketsPage() {
   const [logbookHover, setLogbookHover] = useState(false);
   const [importHover, setImportHover] = useState(false);
 
-  const setChartSymbol = useChartCoreStore((s) => s.setSymbol);
   const searchRef = useRef(null);
-  const isMobile = useIsMobile();
-
-  // ─── Keyboard navigation (Sprint 50) ──────────────────────
-  const onSelectRow = useCallback((symbol) => setSelectedSymbol(symbol), [setSelectedSymbol]);
-  const onRemoveRow = useCallback((symbol) => removeSymbol(symbol), [removeSymbol]);
-  const onDoubleClickRow = useCallback(
-    (symbol) => {
-      setChartSymbol(symbol);
-      setPage('charts');
-    },
-    [setChartSymbol, setPage],
-  );
-
-  const { focusedIndex, setFocusedIndex } = useMarketsKeyboard({
-    items,
-    onSelect: onSelectRow,
-    onRemove: onRemoveRow,
-    onDoubleClick: onDoubleClickRow,
-    searchRef,
-    detailOpen: panelOpen,
-    closeDetail,
-  });
 
   // ─── Global Hotkeys (page-level) ──────────────────────────
   useEffect(() => {
@@ -262,7 +191,7 @@ function MarketsPage() {
         overflow: 'hidden',
       }}
     >
-      {/* ─── Header Bar ────────────────────────────────────── */}
+      {/* ─── Shared Header Bar ─────────────────────────────── */}
       <div
         style={{
           display: 'flex',
@@ -274,17 +203,7 @@ function MarketsPage() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <h1
-            style={{
-              margin: 0,
-              fontSize: 20,
-              fontWeight: 700,
-              fontFamily: F,
-              color: C.t1,
-            }}
-          >
-            Markets
-          </h1>
+          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, fontFamily: F, color: C.t1 }}>Markets</h1>
           <span
             style={{
               fontSize: 10,
@@ -346,8 +265,6 @@ function MarketsPage() {
         {/* Right side: Search + Mode Toggle + Logbook | + Add Trade */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <MarketsSearchBar ref={searchRef} />
-
-          {/* Real / Demo Mode Pill */}
           <ModePill />
 
           {/* Segmented CTA: Logbook | Import | + Add Trade */}
@@ -359,7 +276,6 @@ function MarketsPage() {
               boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
             }}
           >
-            {/* Logbook button (ghost left segment) */}
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('charEdge:open-logbook'))}
               onMouseEnter={() => setLogbookHover(true)}
@@ -387,7 +303,6 @@ function MarketsPage() {
               Logbook
             </button>
 
-            {/* Import button (ghost middle segment) */}
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('charEdge:open-import'))}
               onMouseEnter={() => setImportHover(true)}
@@ -415,7 +330,6 @@ function MarketsPage() {
               Import
             </button>
 
-            {/* Add Trade button (primary right segment) */}
             <Btn
               onClick={() => window.dispatchEvent(new CustomEvent('charEdge:add-trade'))}
               id="tf-markets-add-trade-btn"
@@ -434,215 +348,19 @@ function MarketsPage() {
         </div>
       </div>
 
-      {/* ─── Content ───────────────────────────────────────── */}
-      {isLoading ? (
-        <MarketsGridSkeleton rows={8} />
-      ) : hasItems ? (
-        <>
-          <MarketsToolbar />
-          <MarketsWatchlistTabs />
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              minHeight: 0,
-              overflow: 'hidden',
-            }}
-          >
-            {/* Grid (shrinks when panel is open) */}
-            <div
-              style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                minWidth: 0,
-                minHeight: 0,
-                transition: 'flex 0.3s ease',
-              }}
-            >
-              {/* Sprint 17+18: Conditional view rendering */}
-              {isMobile ? (
-                <MarketsMobileView />
-              ) : viewMode === 'cards' ? (
-                <MarketsCardView />
-              ) : viewMode === 'compact' ? (
-                <MarketsCompactView />
-              ) : (
-                <MarketsWatchlistGrid focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex} />
-              )}
-            </div>
+      {/* ─── Top-Level Tabs ────────────────────────────────── */}
+      <MarketsTopLevelTabs />
 
-            {/* Comparison overlay (Sprint 20) */}
-            <MarketsCompareOverlay />
+      {/* ─── Tab Content ───────────────────────────────────── */}
+      {activeTopTab === 'top' && <TopTabContent />}
 
-            {/* Detail panel (Sprint 9) — lazy loaded */}
-            {panelOpen && (
-              <Suspense fallback={null}>
-                <MarketsDetailPanel />
-              </Suspense>
-            )}
-
-            {/* Smart Alert Picker (Sprint 22) */}
-            <SmartAlertPicker />
-
-            {/* AI Copilot Panel (Sprint 23) */}
-            <MarketsCopilotPanel />
-
-            {/* Lazy-loaded slide-over panels */}
-            <Suspense fallback={null}>
-              {/* Smart Folder Manager (Sprint 28) */}
-              <SmartFolderManager open={smartFolderOpen} onClose={() => setSmartFolderOpen(false)} />
-
-              {/* Screener Panel (Sprint 29) */}
-              <MarketsScreenerPanel open={screenerPanelOpen} onClose={() => setScreenerPanelOpen(false)} />
-
-              {/* Performance Analytics Panel (Sprint 31) */}
-              <MarketsPerformancePanel open={performancePanelOpen} onClose={() => setPerformancePanelOpen(false)} />
-            </Suspense>
-          </div>
-        </>
-      ) : (
-        <EmptyState addSymbol={addSymbol} />
+      {activeTopTab === 'predictions' && (
+        <Suspense fallback={<MarketsGridSkeleton rows={6} />}>
+          <PredictionsTabContent />
+        </Suspense>
       )}
-    </div>
-  );
-}
 
-// ═══════════════════════════════════════════════════════════════════
-// Empty State — shown when watchlist has 0 items
-// ═══════════════════════════════════════════════════════════════════
-
-const POPULAR = [
-  { symbol: 'BTC', name: 'Bitcoin', assetClass: 'crypto' },
-  { symbol: 'ETH', name: 'Ethereum', assetClass: 'crypto' },
-  { symbol: 'ES', name: 'E-mini S&P 500', assetClass: 'futures' },
-  { symbol: 'NQ', name: 'E-mini Nasdaq', assetClass: 'futures' },
-  { symbol: 'AAPL', name: 'Apple Inc.', assetClass: 'stocks' },
-  { symbol: 'SPY', name: 'SPDR S&P 500 ETF', assetClass: 'etf' },
-];
-
-function EmptyState({ addSymbol }) {
-  return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 24,
-        padding: 40,
-        minHeight: 0,
-      }}
-    >
-      {/* Orb + glow */}
-      <div
-        style={{
-          position: 'relative',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            width: 120,
-            height: 120,
-            borderRadius: '50%',
-            background: `radial-gradient(circle, ${ACCENT_GLOW} 0%, transparent 70%)`,
-            animation: 'ai-pulse 3s ease-in-out infinite',
-          }}
-        />
-        <AIOrb size={56} glow state="idle" />
-      </div>
-
-      <div style={{ textAlign: 'center', maxWidth: 400 }}>
-        <h2
-          style={{
-            margin: '0 0 8px',
-            fontSize: 18,
-            fontWeight: 700,
-            fontFamily: F,
-            color: C.t1,
-          }}
-        >
-          Your Market Intelligence Hub
-        </h2>
-        <p
-          style={{
-            margin: '0 0 20px',
-            fontSize: 13,
-            color: C.t2,
-            lineHeight: 1.6,
-            fontFamily: F,
-          }}
-        >
-          Add symbols to see live prices, sparklines, volume, and your trading P&L — all in one view.
-        </p>
-      </div>
-
-      {/* Quick-add popular symbols */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 8,
-          justifyContent: 'center',
-          maxWidth: 400,
-        }}
-      >
-        {POPULAR.map((s) => (
-          <button
-            key={s.symbol}
-            onClick={() => addSymbol(s)}
-            style={{
-              padding: '6px 14px',
-              borderRadius: 8,
-              fontSize: 12,
-              fontWeight: 700,
-              fontFamily: M,
-              background: `${ACCENT}10`,
-              color: ACCENT,
-              border: `1px solid ${ACCENT}25`,
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = `${ACCENT}20`;
-              e.currentTarget.style.borderColor = ACCENT;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = `${ACCENT}10`;
-              e.currentTarget.style.borderColor = `${ACCENT}25`;
-            }}
-          >
-            + {s.symbol}
-          </button>
-        ))}
-      </div>
-
-      {/* Hotkey hint */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          fontSize: 10,
-          color: C.t3,
-          fontFamily: M,
-          marginTop: 8,
-        }}
-      >
-        <span style={{ background: `${C.bd}80`, borderRadius: 4, padding: '2px 6px', fontWeight: 600 }}>1</span> Home
-        <span style={{ margin: '0 4px', opacity: 0.3 }}>·</span>
-        <span style={{ background: `${C.bd}80`, borderRadius: 4, padding: '2px 6px', fontWeight: 600 }}>2</span> Charts
-        <span style={{ margin: '0 4px', opacity: 0.3 }}>·</span>
-        <span style={{ background: ACCENT_GLOW, color: ACCENT, borderRadius: 4, padding: '2px 6px', fontWeight: 700 }}>
-          3
-        </span>
-        <span style={{ color: ACCENT, fontWeight: 600 }}>Markets</span>
-      </div>
+      {activeTopTab === 'watchlist' && <WatchlistTabContent />}
     </div>
   );
 }

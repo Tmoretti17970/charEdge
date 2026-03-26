@@ -1,32 +1,91 @@
 // ═══════════════════════════════════════════════════════════════════
-// charEdge — Prediction Market Store
+// charEdge — Prediction Market Store V2
 //
-// Aggregates prediction market data from Kalshi + Polymarket.
-// Merges, deduplicates, and sorts by relevance to user's watchlist.
-// Auto-refreshes on interval. Falls back to cached data offline.
+// Aggregates prediction market data from all sources via
+// PredictionAggregator. Supports pagination, filtering, stats,
+// topic tags, and per-source status tracking.
+//
+// Backward-compatible: getFilteredMarkets() still works for
+// the Intel page mini-widget.
 // ═══════════════════════════════════════════════════════════════════
 
 import { create } from 'zustand';
-import { fetchKalshiMarkets } from '../data/adapters/KalshiAdapter.js';
-import { fetchPolymarketMarkets } from '../data/adapters/PolymarketAdapter.js';
+import { fetchAllMarkets } from '../data/services/PredictionAggregator.js';
+import { filterByTimeframe, countByTimeframe } from '../data/services/TimeClassifier.js';
+import { filterByTags, generateSubcategories } from '../data/services/TopicTagGenerator.js';
 
 const REFRESH_INTERVAL = 60_000; // 60 seconds
 
 const usePredictionStore = create((set, get) => ({
-  // ─── State ──────────────────────────────────────────────────────
-  markets: [],
+  // ─── Core State ───────────────────────────────────────────────
+  markets: [],               // All fetched + deduped markets
+  totalCount: 0,             // Total market count
   loading: false,
   error: null,
   lastFetch: null,
-  activeCategory: 'all', // 'all' | 'economics' | 'markets' | 'crypto' | 'politics'
   refreshTimer: null,
 
-  // ─── Actions ────────────────────────────────────────────────────
+  // ─── Filter State ─────────────────────────────────────────────
+  activeCategory: 'all',     // Category tab
+  activeSubcategory: null,   // Subcategory pill within category
+  activeTimeFilter: 'all',   // Time bucket filter
+  activeTags: [],            // Selected topic tags
+  searchQuery: '',           // Search text
+  sortBy: 'volume',          // 'volume' | 'trending' | 'newest' | 'closingSoon' | 'probability'
+  sortOrder: 'desc',         // 'asc' | 'desc'
+  platformFilters: [],       // Empty = all, or ['kalshi', 'polymarket']
+  viewMode: 'grid',          // 'grid' | 'list'
 
-  setCategory: (category) => set({ activeCategory: category }),
+  // ─── Derived Data ─────────────────────────────────────────────
+  stats: null,               // Aggregate stats from PredictionStatsService
+  topicTags: [],             // Auto-generated topic tags with counts
+  sourceStatus: {},          // Per-source health { kalshi: { count, error, latency } }
+  timeframeCounts: {},       // Count per time bucket { daily: 45, weekly: 12 }
+  subcategories: [],         // Subcategory pills for active category
+
+  // ─── Actions ──────────────────────────────────────────────────
+
+  setCategory: (category) => {
+    set({ activeCategory: category, activeSubcategory: null });
+    // Regenerate subcategories
+    const { markets } = get();
+    const filtered = category === 'all' ? markets : markets.filter(m => m.category === category);
+    set({ subcategories: generateSubcategories(filtered, category) });
+  },
+
+  setSubcategory: (sub) => set({ activeSubcategory: sub }),
+  setTimeFilter: (tf) => set({ activeTimeFilter: tf }),
+  setSearchQuery: (q) => set({ searchQuery: q }),
+  setSortBy: (sort) => set({ sortBy: sort }),
+  setSortOrder: (order) => set({ sortOrder: order }),
+
+  toggleTag: (tag) => {
+    const { activeTags } = get();
+    if (activeTags.includes(tag)) {
+      set({ activeTags: activeTags.filter(t => t !== tag) });
+    } else {
+      set({ activeTags: [...activeTags, tag] });
+    }
+  },
+
+  clearTags: () => set({ activeTags: [] }),
+
+  setPlatformFilters: (platforms) => set({ platformFilters: platforms }),
+  setViewMode: (mode) => set({ viewMode: mode }),
+
+  clearAllFilters: () => set({
+    activeCategory: 'all',
+    activeSubcategory: null,
+    activeTimeFilter: 'all',
+    activeTags: [],
+    searchQuery: '',
+    sortBy: 'volume',
+    sortOrder: 'desc',
+    platformFilters: [],
+  }),
 
   /**
-   * Fetch from both sources, merge, deduplicate, and sort.
+   * Fetch from all sources via PredictionAggregator.
    */
   fetchAll: async () => {
     const state = get();
@@ -35,30 +94,28 @@ const usePredictionStore = create((set, get) => ({
     set({ loading: true, error: null });
 
     try {
-      const [kalshi, polymarket] = await Promise.allSettled([
-        fetchKalshiMarkets({ limit: 15 }),
-        fetchPolymarketMarkets({ limit: 15 }),
-      ]);
+      const result = await fetchAllMarkets({ limit: 100, useEvents: true });
 
-      const kalshiData = kalshi.status === 'fulfilled' ? kalshi.value : [];
-      const polyData = polymarket.status === 'fulfilled' ? polymarket.value : [];
-
-      // Merge and deduplicate (prefer higher volume source)
-      const merged = deduplicateMarkets([...kalshiData, ...polyData]);
-
-      // Sort: volume desc (highest activity first)
-      merged.sort((a, b) => (b.volume24h || 0) - (a.volume24h || 0));
+      const timeframeCounts = countByTimeframe(result.markets);
+      const { activeCategory } = get();
+      const catMarkets = activeCategory === 'all'
+        ? result.markets
+        : result.markets.filter(m => m.category === activeCategory);
+      const subcategories = generateSubcategories(catMarkets, activeCategory);
 
       set({
-        markets: merged,
+        markets: result.markets,
+        totalCount: result.totalCount,
+        stats: result.stats,
+        topicTags: result.topicTags,
+        sourceStatus: result.sourceStatus,
+        timeframeCounts,
+        subcategories,
         loading: false,
         lastFetch: Date.now(),
       });
     } catch (err) {
-      set({
-        loading: false,
-        error: err.message,
-      });
+      set({ loading: false, error: err.message });
     }
   },
 
@@ -69,7 +126,6 @@ const usePredictionStore = create((set, get) => ({
     const state = get();
     if (state.refreshTimer) return;
 
-    // Initial fetch
     get().fetchAll();
 
     const timer = setInterval(() => {
@@ -90,69 +146,104 @@ const usePredictionStore = create((set, get) => ({
     }
   },
 
-  // ─── Derived / Filtered ─────────────────────────────────────────
+  // ─── Derived / Filtered ───────────────────────────────────────
 
   /**
-   * Get markets filtered by active category.
+   * Get markets filtered by all active filters.
+   * Full pipeline: category → subcategory → timeframe → tags → search → platform → sort.
    */
   getFilteredMarkets: () => {
-    const { markets, activeCategory } = get();
-    if (activeCategory === 'all') return markets;
-    return markets.filter((m) => m.category === activeCategory);
+    const {
+      markets, activeCategory, activeSubcategory, activeTimeFilter,
+      activeTags, searchQuery, sortBy, sortOrder, platformFilters,
+    } = get();
+
+    let filtered = markets;
+
+    // Category
+    if (activeCategory !== 'all') {
+      filtered = filtered.filter(m => m.category === activeCategory);
+    }
+
+    // Subcategory
+    if (activeSubcategory) {
+      filtered = filtered.filter(m => m.subcategory === activeSubcategory);
+    }
+
+    // Timeframe
+    filtered = filterByTimeframe(filtered, activeTimeFilter);
+
+    // Topic tags
+    if (activeTags.length > 0) {
+      filtered = filterByTags(filtered, activeTags);
+    }
+
+    // Search
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(m =>
+        m.question?.toLowerCase().includes(q) ||
+        m.tags?.some(t => t.toLowerCase().includes(q))
+      );
+    }
+
+    // Platform
+    if (platformFilters.length > 0) {
+      filtered = filtered.filter(m => platformFilters.includes(m.source));
+    }
+
+    // Sort
+    filtered = sortMarkets(filtered, sortBy, sortOrder);
+
+    return filtered;
+  },
+
+  /**
+   * Get active filter count (for "N filters active" badge).
+   */
+  getActiveFilterCount: () => {
+    const { activeCategory, activeSubcategory, activeTimeFilter, activeTags, searchQuery, platformFilters } = get();
+    let count = 0;
+    if (activeCategory !== 'all') count++;
+    if (activeSubcategory) count++;
+    if (activeTimeFilter !== 'all') count++;
+    count += activeTags.length;
+    if (searchQuery) count++;
+    if (platformFilters.length > 0) count++;
+    return count;
   },
 }));
 
-/**
- * Deduplicate markets that cover the same event across sources.
- * Simple heuristic: if two markets have >60% word overlap in their
- * question text, keep the one with higher volume.
- */
-function deduplicateMarkets(markets) {
-  const seen = new Map();
+// ─── Sort helper ───────────────────────────────────────────────────
 
-  for (const market of markets) {
-    const key = normalizeQuestion(market.question);
-    const existing = seen.get(key);
+function sortMarkets(markets, sortBy, sortOrder) {
+  const sorted = [...markets];
+  const dir = sortOrder === 'asc' ? 1 : -1;
 
-    if (!existing || (market.volume24h || 0) > (existing.volume24h || 0)) {
-      seen.set(key, market);
+  sorted.sort((a, b) => {
+    switch (sortBy) {
+      case 'volume':
+        return ((b.volume24h || 0) - (a.volume24h || 0)) * dir;
+      case 'trending':
+        return (Math.abs(b.change24h || 0) - Math.abs(a.change24h || 0)) * dir;
+      case 'newest':
+        return ((new Date(b.createdDate || 0)).getTime() - (new Date(a.createdDate || 0)).getTime()) * dir;
+      case 'closingSoon': {
+        const aClose = a.closeDate ? new Date(a.closeDate).getTime() : Infinity;
+        const bClose = b.closeDate ? new Date(b.closeDate).getTime() : Infinity;
+        return (aClose - bClose) * dir;
+      }
+      case 'probability': {
+        const aProb = a.outcomes?.[0]?.probability || 0;
+        const bProb = b.outcomes?.[0]?.probability || 0;
+        return (bProb - aProb) * dir;
+      }
+      default:
+        return ((b.volume24h || 0) - (a.volume24h || 0)) * dir;
     }
-  }
+  });
 
-  return [...seen.values()];
-}
-
-/**
- * Create a normalized key for deduplication.
- * Strips common words and sorts remaining tokens.
- */
-function normalizeQuestion(question) {
-  const stopWords = new Set([
-    'will',
-    'the',
-    'a',
-    'an',
-    'by',
-    'in',
-    'at',
-    'to',
-    'of',
-    'be',
-    'is',
-    'on',
-    'for',
-    'before',
-    'after',
-    'above',
-    'below',
-  ]);
-  const words = question
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, '')
-    .split(/\s+/)
-    .filter((w) => w.length > 2 && !stopWords.has(w))
-    .sort();
-  return words.join('-');
+  return sorted;
 }
 
 export default usePredictionStore;

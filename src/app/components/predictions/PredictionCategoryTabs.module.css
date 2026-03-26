@@ -1,0 +1,128 @@
+/* Category Tabs — Apple segmented control */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.tabsScroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabsScroll::-webkit-scrollbar {
+  display: none;
+}
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  position: relative;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.indicator {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  height: calc(100% - 6px);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  transition:
+    transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    width 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tab {
+  position: relative;
+  z-index: 1;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--tf-tx-2, rgba(255, 255, 255, 0.45));
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.tab:hover {
+  color: var(--tf-tx, rgba(255, 255, 255, 0.75));
+}
+
+.tab.active {
+  color: var(--tf-tx, rgba(255, 255, 255, 0.95));
+  font-weight: 600;
+}
+
+.count {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--tf-tx-2, rgba(255, 255, 255, 0.3));
+  margin-left: 2px;
+  vertical-align: super;
+  font-family: var(--tf-mono, monospace);
+}
+
+/* ─── Subcategory pills ───────────────────────────────────────── */
+
+.subPills {
+  display: flex;
+  gap: 6px;
+  padding: 0 3px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.subPills::-webkit-scrollbar {
+  display: none;
+}
+
+.subPill {
+  padding: 5px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tf-tx-2, rgba(255, 255, 255, 0.5));
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.subPill:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--tf-tx, rgba(255, 255, 255, 0.75));
+}
+
+.subPill.subActive {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--tf-tx, rgba(255, 255, 255, 0.95));
+  font-weight: 600;
+}
+
+.subCount {
+  font-size: 10px;
+  margin-left: 4px;
+  color: var(--tf-tx-2, rgba(255, 255, 255, 0.3));
+  font-family: var(--tf-mono, monospace);
+}
+
+@media (max-width: 768px) {
+  .tab {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}

@@ -1,0 +1,171 @@
+/* ═══════════════════════════════════════════════════════════════════
+   charEdge — Top Tab Content Styles
+   Market discovery layout
+   ═══════════════════════════════════════════════════════════════════ */
+
+.container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ─── Filter Bar ──────────────────────────────────────── */
+
+.filterBar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0 8px;
+  flex-shrink: 0;
+}
+
+/* ─── Toolbar ─────────────────────────────────────────── */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 24px 12px;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.searchWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 280px;
+  flex: 1;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 10px;
+  font-size: 13px;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 7px 32px 7px 32px;
+  border-radius: 8px;
+  border: 1px solid var(--color-bd, rgba(255, 255, 255, 0.06));
+  background: var(--color-sf2, rgba(255, 255, 255, 0.04));
+  color: var(--color-t1, #fff);
+  font-size: 13px;
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, sans-serif);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.searchInput::placeholder {
+  color: var(--color-t3, rgba(255, 255, 255, 0.4));
+}
+
+.searchInput:focus {
+  border-color: var(--color-b, #6e5ce6);
+}
+
+.clearSearch {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--color-t3, rgba(255, 255, 255, 0.4));
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.clearSearch:hover {
+  color: var(--color-t1, #fff);
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.statusText {
+  font-size: 11px;
+  color: var(--color-t3, rgba(255, 255, 255, 0.4));
+  font-family: var(--font-mono, 'SF Mono', monospace);
+  white-space: nowrap;
+}
+
+.clearBtn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--color-bd, rgba(255, 255, 255, 0.06));
+  background: transparent;
+  color: var(--color-t3, rgba(255, 255, 255, 0.4));
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.clearBtn:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-t1, #fff);
+}
+
+/* ─── Error Bar ───────────────────────────────────────── */
+
+.errorBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 24px;
+  background: rgba(234, 57, 67, 0.08);
+  border-bottom: 1px solid rgba(234, 57, 67, 0.2);
+  font-size: 12px;
+  color: #ea3943;
+  flex-shrink: 0;
+}
+
+.retryBtn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(234, 57, 67, 0.3);
+  background: transparent;
+  color: #ea3943;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.retryBtn:hover {
+  background: rgba(234, 57, 67, 0.12);
+}
+
+/* ─── Responsive ──────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 8px 16px 12px;
+  }
+
+  .searchWrap {
+    max-width: none;
+  }
+
+  .filterBar {
+    padding: 8px 0 4px;
+  }
+}

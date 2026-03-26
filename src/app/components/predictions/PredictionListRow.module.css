@@ -1,0 +1,133 @@
+/* List Row — Apple dense but readable */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  min-height: 48px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.row:first-child {
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.catDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.title {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tf-tx, rgba(255, 255, 255, 0.85));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.leadLabel {
+  font-size: 11px;
+  color: var(--tf-tx-2, rgba(255, 255, 255, 0.4));
+  white-space: nowrap;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.probPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--tf-mono, monospace);
+  color: var(--tf-tx, rgba(255, 255, 255, 0.9));
+  flex-shrink: 0;
+}
+
+.delta {
+  font-size: 12px;
+  font-family: var(--tf-mono, monospace);
+  font-weight: 500;
+  min-width: 40px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.volume {
+  font-size: 12px;
+  font-family: var(--tf-mono, monospace);
+  color: var(--tf-tx-2, rgba(255, 255, 255, 0.4));
+  min-width: 60px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.remaining {
+  font-size: 11px;
+  color: var(--tf-tx-2, rgba(255, 255, 255, 0.35));
+  min-width: 30px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.sourceDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bookmarkBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--tf-tx-2, rgba(255, 255, 255, 0.25));
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.12s ease;
+}
+
+.bookmarkBtn:hover {
+  color: var(--tf-tx, rgba(255, 255, 255, 0.6));
+}
+
+.bookmarkBtn.bookmarked {
+  color: #ef4444;
+}
+
+/* ─── Responsive ──────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .leadLabel,
+  .volume,
+  .remaining {
+    display: none;
+  }
+  .row {
+    gap: 8px;
+    padding: 8px 10px;
+  }
+}

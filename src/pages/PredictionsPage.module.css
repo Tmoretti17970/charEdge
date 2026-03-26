@@ -1,0 +1,52 @@
+/* ═══════════════════════════════════════════════════════════════════
+   PredictionsPage — Apple-caliber prediction markets layout
+   3-panel: sidebar (260px) + main content (flex) + future detail panel
+   ═══════════════════════════════════════════════════════════════════ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 20px 40px 40px;
+  gap: 0;
+  min-height: 100%;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 0;
+  margin-top: 4px;
+  flex: 1;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-left: 20px;
+  min-width: 0;
+}
+
+/* ─── Responsive ──────────────────────────────────────────────── */
+
+@media (max-width: 1200px) {
+  .page {
+    padding: 16px 24px 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 12px 8px 24px;
+  }
+
+  .content {
+    grid-template-columns: 1fr;
+  }
+
+  .main {
+    padding-left: 0;
+  }
+}

@@ -121,6 +121,10 @@ const useMarketsPrefsStore = create(
       setGroupBy: (group) => set({ groupBy: group }),
       clearGroupBy: () => set({ groupBy: null }),
 
+      // ─── Top-level tab (Markets merge) ────────────────────
+      activeTopTab: 'top', // 'top' | 'predictions' | 'watchlist'
+      setActiveTopTab: (tab) => set({ activeTopTab: tab, selectedSymbol: null }),
+
       // ─── Detail panel (Sprint 9) ────────────────────────
       selectedSymbol: null, // symbol string or null
 
@@ -189,8 +193,9 @@ const useMarketsPrefsStore = create(
     }),
     {
       name: 'charEdge-markets-prefs',
-      version: 3,
+      version: 4,
       partialize: (state) => ({
+        activeTopTab: state.activeTopTab,
         visibleColumns: state.visibleColumns,
         sortKey: state.sortKey,
         sortDir: state.sortDir,

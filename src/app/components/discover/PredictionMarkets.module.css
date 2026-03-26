@@ -47,6 +47,51 @@
   font-family: var(--tf-font);
 }
 
+/* View All button in header */
+.viewAllBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #5c9cf5;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s ease;
+  font-family: var(--tf-font);
+}
+
+.viewAllBtn:hover {
+  background: rgba(92, 156, 245, 0.08);
+}
+
+/* View All CTA at bottom */
+.viewAllCta {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--tf-tx-2, rgba(255, 255, 255, 0.55));
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+  font-family: var(--tf-font);
+}
+
+.viewAllCta:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--tf-tx, rgba(255, 255, 255, 0.85));
+}
+
 @media (max-width: 768px) {
   .sourceLabel {
     display: none;

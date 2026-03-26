@@ -1,0 +1,155 @@
+/* Share Market Card — Apple-style share sheet */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  width: 360px;
+  background: var(--tf-bg, #0d0d1a);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: scaleIn 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--tf-tx, rgba(255, 255, 255, 0.9));
+  margin: 0;
+}
+.closeBtn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--tf-tx-2);
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Preview */
+.preview {
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.previewQuestion {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tf-tx, rgba(255, 255, 255, 0.9));
+  margin-bottom: 10px;
+  line-height: 1.35;
+}
+
+.previewStats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.previewProb {
+  font-size: 20px;
+  font-weight: 700;
+  font-family: var(--tf-mono, monospace);
+  color: var(--tf-tx, rgba(255, 255, 255, 0.95));
+}
+
+.previewDelta {
+  font-size: 12px;
+  font-family: var(--tf-mono, monospace);
+  color: var(--tf-tx-2, rgba(255, 255, 255, 0.4));
+}
+
+.previewVol {
+  font-size: 12px;
+  font-family: var(--tf-mono, monospace);
+  color: var(--tf-tx-2, rgba(255, 255, 255, 0.35));
+}
+
+.previewSource {
+  font-size: 11px;
+  color: var(--tf-tx-2, rgba(255, 255, 255, 0.3));
+  margin-left: auto;
+}
+
+/* Share options */
+.shareOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.shareBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--tf-tx, rgba(255, 255, 255, 0.8));
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.12s ease;
+}
+
+.shareBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.shareBtnIcon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .modal {
+    width: calc(100% - 32px);
+  }
+}

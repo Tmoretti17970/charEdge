@@ -24,7 +24,9 @@ const RING_CIRC = 2 * Math.PI * RING_R;
 
 function PredictionCard({ market }) {
   const color = CATEGORY_COLORS[market.category] || CATEGORY_COLORS.other;
-  const progress = (market.probability / 100) * RING_CIRC;
+  // V2 schema: read from outcomes[0], fall back to flat probability
+  const probability = market.outcomes?.[0]?.probability ?? market.probability ?? 0;
+  const progress = (probability / 100) * RING_CIRC;
   const offset = RING_CIRC - progress;
   const delta = market.change24h || 0;
 
@@ -74,7 +76,7 @@ function PredictionCard({ market }) {
           />
         </svg>
         <span className={s.ringValue} style={{ color }}>
-          {market.probability}%
+          {probability}%
         </span>
       </div>
 

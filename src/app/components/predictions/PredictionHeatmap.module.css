@@ -1,0 +1,108 @@
+/* Prediction Heatmap — Apple-style treemap */
+
+.heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tf-tx, rgba(255, 255, 255, 0.9));
+  margin: 0;
+}
+
+.legend {
+  display: flex;
+  gap: 12px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--tf-tx-2, rgba(255, 255, 255, 0.4));
+}
+
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+/* Treemap container */
+
+.treemap {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.tile {
+  position: absolute;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: filter 0.12s ease;
+  overflow: hidden;
+}
+
+.tile:hover {
+  filter: brightness(1.3);
+  z-index: 1;
+}
+
+.tileContent {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 8px;
+  height: 100%;
+  justify-content: center;
+}
+
+.tileLabel {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.tileProb {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--tf-mono, monospace);
+  color: rgba(255, 255, 255, 0.95);
+  margin-top: 2px;
+}
+
+.tileDelta {
+  font-size: 10px;
+  font-family: var(--tf-mono, monospace);
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .treemap {
+    height: 200px;
+  }
+  .legend {
+    display: none;
+  }
+}

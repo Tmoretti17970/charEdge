@@ -80,6 +80,25 @@ function IconWatchlist({ color }) {
   );
 }
 
+function IconIntel({ color }) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+  );
+}
+
 function IconSettings({ color }) {
   return (
     <svg
@@ -123,6 +142,7 @@ const NAV_ITEMS = [
   { id: 'journal', label: 'Home', Icon: IconHome },
   { id: 'markets', label: 'Markets', Icon: IconWatchlist },
   { id: 'charts', label: 'Charts', Icon: IconChart },
+  { id: 'intel', label: 'Intel', Icon: IconIntel },
   // Import is now accessed via the header segmented CTA (📓 Logbook | 📥 Import | + Add Trade)
   // Wave 0: Quarantined — coach + discover removed from v1.0 launch scope
   // { id: 'coach', label: 'Char', Icon: IconCoach },

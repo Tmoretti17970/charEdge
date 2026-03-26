@@ -1,0 +1,201 @@
+/* Price Alert Setup — Apple-style compact form */
+
+.alertSetup {
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.bellIcon {
+  font-size: 14px;
+}
+
+.headerTitle {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--tf-tx-2, rgba(255, 255, 255, 0.35));
+  flex: 1;
+}
+
+.addBtn {
+  padding: 3px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background: transparent;
+  color: #5c9cf5;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.addBtn:hover {
+  background: rgba(92, 156, 245, 0.08);
+}
+
+/* Alert list */
+
+.alertList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.alertItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.alertCondition {
+  flex: 1;
+  font-size: 12px;
+  font-family: var(--tf-mono, monospace);
+  color: var(--tf-tx, rgba(255, 255, 255, 0.8));
+}
+
+.alertStatus {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.alertStatus.triggered {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.removeBtn {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--tf-tx-2, rgba(255, 255, 255, 0.3));
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.removeBtn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+/* Form */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.formRow {
+  display: flex;
+  align-items: center;
+}
+
+.formLabel {
+  font-size: 12px;
+  color: var(--tf-tx-2, rgba(255, 255, 255, 0.55));
+}
+
+.formControls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dirSelect {
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--tf-tx, rgba(255, 255, 255, 0.8));
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+.dirSelect option {
+  background: #1a1a2e;
+  color: #fff;
+}
+
+.thresholdWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.thresholdSlider {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  outline: none;
+}
+
+.thresholdSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #5c9cf5;
+  cursor: pointer;
+}
+
+.thresholdValue {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--tf-mono, monospace);
+  color: var(--tf-tx, rgba(255, 255, 255, 0.9));
+  min-width: 36px;
+  text-align: right;
+}
+
+.createBtn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #5c9cf5;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.createBtn:hover {
+  background: #4a8ae5;
+}
+
+.emptyText {
+  font-size: 12px;
+  color: var(--tf-tx-2, rgba(255, 255, 255, 0.3));
+  margin: 0;
+}

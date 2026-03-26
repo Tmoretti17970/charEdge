@@ -1,6 +1,7 @@
 import React, { Suspense, useEffect, useRef } from 'react';
 import { C } from '../../constants.js';
 import { trackPageView } from '../../observability/telemetry';
+import { useMarketsPrefsStore } from '../../state/useMarketsPrefsStore';
 import { useUIStore } from '../../state/useUIStore';
 import ErrorBoundary from '../components/ui/ErrorBoundary.jsx';
 import PageBreadcrumb from '../components/ui/PageBreadcrumb.jsx';
@@ -18,11 +19,13 @@ const LandingPage = React.lazy(() => import('../../pages/LandingPage.jsx'));
 const SpeedtestPage = React.lazy(() => import('../../pages/SpeedtestPage.jsx'));
 const MarketsPage = React.lazy(() => import('../../pages/MarketsPage.jsx'));
 const ImportPage = React.lazy(() => import('../../pages/ImportPage.jsx'));
+const IntelPage = React.lazy(() => import('../../pages/IntelPage.jsx'));
+// PredictionsPage merged into MarketsPage as a tab (Top | Predictions | Watchlist)
 
 // Prefetch Journal immediately (it's the default page) so it loads in background
 if (typeof window !== 'undefined') {
-  requestIdleCallback?.(() => import('../../pages/JournalPage.jsx'), { timeout: 500 })
-    ?? setTimeout(() => import('../../pages/JournalPage.jsx'), 100);
+  requestIdleCallback?.(() => import('../../pages/JournalPage.jsx'), { timeout: 500 }) ??
+    setTimeout(() => import('../../pages/JournalPage.jsx'), 100);
 }
 
 const PAGES = {
@@ -39,6 +42,8 @@ const PAGES = {
   settings: SettingsPage,
   telemetry: TelemetryDashboard,
   import: ImportPage,
+  intel: IntelPage,
+  // predictions route redirects to markets (handled below)
 };
 
 function SkeletonBlock({ w, h, style }) {
@@ -100,7 +105,6 @@ function PageFallback() {
           {i === 1 && <SkeletonBlock w="100%" h={80} />}
         </div>
       ))}
-
     </div>
   );
 }
@@ -108,8 +112,17 @@ function PageFallback() {
 function PageRouter() {
   const page = useUIStore((s) => s.page);
   const Page = PAGES[page] || JournalPage;
-  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+  const prefersReducedMotion =
+    typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   const hasMounted = useRef(false);
+
+  // Redirect old predictions route to markets with predictions tab
+  useEffect(() => {
+    if (page === 'predictions') {
+      useUIStore.getState().setPage('markets');
+      useMarketsPrefsStore.getState().setActiveTopTab('predictions');
+    }
+  }, [page]);
 
   // Track page views for telemetry
   useEffect(() => {
@@ -127,7 +140,7 @@ function PageRouter() {
     dashboard: 'Dashboard',
     charts: 'Charts',
     markets: 'Markets',
-    charolette: "Charolette\u2019s Light",
+    charolette: 'Charolette\u2019s Light',
     settings: 'Settings',
     telemetry: 'Telemetry',
     changelog: "What's New",
@@ -136,6 +149,8 @@ function PageRouter() {
     landing: 'Landing',
     speedtest: 'Speed Test',
     import: 'Import Hub',
+    intel: 'Market Intelligence',
+    predictions: 'Markets', // redirects to markets tab
   };
 
   const motionEnabled = hasMounted.current && !prefersReducedMotion;
