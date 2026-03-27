@@ -18,9 +18,7 @@ function modulepreloadPlugin() {
       const links = [];
       for (const [fileName, chunk] of Object.entries(ctx.bundle)) {
         if (chunk.type !== 'chunk') continue;
-        const matchesCritical = CRITICAL_CHUNKS.some(name =>
-          fileName.includes(name) || chunk.name === name
-        );
+        const matchesCritical = CRITICAL_CHUNKS.some((name) => fileName.includes(name) || chunk.name === name);
         if (matchesCritical) {
           links.push({
             tag: 'link',
@@ -43,12 +41,29 @@ function modulepreloadPlugin() {
 // from .env.local server-side. Mirrors Vercel serverless functions.
 function apiProxyPlugin() {
   const PROXY_CONFIGS = {
-    alpaca: { base: 'https://data.alpaca.markets', authStyle: 'header', envKeys: { keyId: 'ALPACA_KEY_ID', secret: 'ALPACA_SECRET' }, headerMap: { keyId: 'APCA-API-KEY-ID', secret: 'APCA-API-SECRET-KEY' }, cache: 5 },
+    alpaca: {
+      base: 'https://data.alpaca.markets',
+      authStyle: 'header',
+      envKeys: { keyId: 'ALPACA_KEY_ID', secret: 'ALPACA_SECRET' },
+      headerMap: { keyId: 'APCA-API-KEY-ID', secret: 'APCA-API-SECRET-KEY' },
+      cache: 5,
+    },
     polygon: { base: 'https://api.polygon.io', envKey: 'POLYGON_API_KEY', paramName: 'apiKey', cache: 5 },
-    alphavantage: { base: 'https://www.alphavantage.co', envKey: 'ALPHAVANTAGE_API_KEY', paramName: 'apikey', cache: 30 },
+    alphavantage: {
+      base: 'https://www.alphavantage.co',
+      envKey: 'ALPHAVANTAGE_API_KEY',
+      paramName: 'apikey',
+      cache: 30,
+    },
     fmp: { base: 'https://financialmodelingprep.com/api/v3', envKey: 'FMP_API_KEY', paramName: 'apikey', cache: 30 },
     tiingo: { base: 'https://api.tiingo.com', envKey: 'TIINGO_API_TOKEN', paramName: 'token', cache: 60 },
-    fred: { base: 'https://api.stlouisfed.org/fred', envKey: 'FRED_API_KEY', paramName: 'api_key', cache: 300, extraParams: { file_type: 'json' } },
+    fred: {
+      base: 'https://api.stlouisfed.org/fred',
+      envKey: 'FRED_API_KEY',
+      paramName: 'api_key',
+      cache: 300,
+      extraParams: { file_type: 'json' },
+    },
     finnhub: { base: 'https://finnhub.io/api/v1', envKey: 'FINNHUB_API_KEY', paramName: 'token', cache: 5 },
   };
 
@@ -113,7 +128,9 @@ function apiProxyPlugin() {
           });
 
           res.setHeader('Cache-Control', `public, max-age=${config.cache}`);
-          res.writeHead(upstream.status, { 'Content-Type': upstream.headers.get('content-type') || 'application/json' });
+          res.writeHead(upstream.status, {
+            'Content-Type': upstream.headers.get('content-type') || 'application/json',
+          });
           const body = await upstream.text();
           res.end(body);
         } catch (err) {
@@ -130,7 +147,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
-      'react': path.resolve(__dirname, 'node_modules/react'),
+      react: path.resolve(__dirname, 'node_modules/react'),
       'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
     },
     dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
@@ -138,50 +155,54 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: [
-      'react', 'react-dom', 'react-dom/client',
-      'react/jsx-runtime', 'react/jsx-dev-runtime',
-      'zustand', 'zustand/react', 'zustand/traditional', 'zustand/middleware',
+      'react',
+      'react-dom',
+      'react-dom/client',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+      'zustand',
+      'zustand/react',
+      'zustand/traditional',
+      'zustand/middleware',
     ],
   },
   server: {
     port: 5173,
     open: true,
-    // HMR disabled: Vite's client throws a fatal error when the WebSocket
-    // connection fails (e.g. due to browser extensions like MetaMask/Phantom/Yoroi
-    // intercepting WS upgrades), which kills the entire module loading chain and
-    // prevents the app from rendering. With hmr:false the app loads reliably —
-    // the only trade-off is needing manual page refresh during development.
-    hmr: false,
+    // HMR: Do NOT set an explicit port here. In Vite 6, setting hmr.port
+    // makes __HMR_PORT__ truthy, which skips the graceful fallback path in
+    // the client and causes a fatal `throw e` on WebSocket failure (client.mjs:842).
+    // Without this config, __HMR_PORT__ is falsy and WS failures are caught gracefully.
     proxy: {
       '/api/binance-futures': {
         target: 'https://fapi.binance.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/binance-futures/, '')
+        rewrite: (path) => path.replace(/^\/api\/binance-futures/, ''),
       },
       '/api/binance': {
         target: 'https://data-api.binance.vision',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/binance/, '/api')
+        rewrite: (path) => path.replace(/^\/api\/binance/, '/api'),
       },
       '/api/yahoo': {
         target: 'https://query1.finance.yahoo.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/yahoo/, '/v8/finance'),
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        },
       },
       '/api/coingecko': {
         target: 'https://api.coingecko.com/api/v3',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/coingecko/, '')
+        rewrite: (path) => path.replace(/^\/api\/coingecko/, ''),
       },
       '/api/cryptocompare': {
         target: 'https://min-api.cryptocompare.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/cryptocompare/, '')
-      }
-    }
+        rewrite: (path) => path.replace(/^\/api\/cryptocompare/, ''),
+      },
+    },
   },
   worker: {
     format: 'es',
@@ -251,8 +272,13 @@ export default defineConfig({
             return 'analytics';
           }
           // charting_library + chart UI components in same chunk to avoid circular deps
-          if (id.includes('src/charting_library/') || id.includes('src/pages/ChartsPage') || id.includes('src/pages/MarketsPage')
-            || id.includes('src/app/features/chart') || id.includes('src/app/components/chart')) {
+          if (
+            id.includes('src/charting_library/') ||
+            id.includes('src/pages/ChartsPage') ||
+            id.includes('src/pages/MarketsPage') ||
+            id.includes('src/app/features/chart') ||
+            id.includes('src/app/components/chart')
+          ) {
             return 'chart-tools';
           }
           // ⚠️  journal-page chunk REMOVED — it created circular deps with
