@@ -30,7 +30,7 @@ const _dexScreenerAdapter = new DexScreenerAdapter();
 const _twelveDataAdapter = new TwelveDataAdapter();
 
 const CACHE_TTL = 60_000; // 60s TTL
-const MAX_CACHE_SIZE = 200;
+const MAX_CACHE_SIZE = 500;
 
 // symbol → { data, ts }
 const _cache = new Map();
@@ -621,14 +621,18 @@ export async function batchGetQuotes(symbols) {
     results.set(sym, data);
   }
 
-  // 3. Parallel-fetch uncached equity (no batch endpoint available)
+  // 3. Chunked-fetch uncached equity (no batch endpoint available)
+  // Chunk into groups of 30 to avoid overwhelming Yahoo Finance with 250+ concurrent requests
   if (uncachedEquity.length > 0) {
-    const equityFetches = uncachedEquity.map(async (sym) => {
-      // Reuse getQuote() which handles inflight dedup + cache write
-      const quote = await getQuote(sym);
-      if (quote) results.set(sym, quote);
-    });
-    await Promise.allSettled(equityFetches);
+    const CHUNK_SIZE = 30;
+    for (let i = 0; i < uncachedEquity.length; i += CHUNK_SIZE) {
+      const chunk = uncachedEquity.slice(i, i + CHUNK_SIZE);
+      const fetches = chunk.map(async (sym) => {
+        const quote = await getQuote(sym);
+        if (quote) results.set(sym, quote);
+      });
+      await Promise.allSettled(fetches);
+    }
   }
 
   _evictStale();
