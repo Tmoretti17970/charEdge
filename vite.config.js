@@ -142,8 +142,28 @@ function apiProxyPlugin() {
   };
 }
 
+// ─── Dev CSP Plugin ──────────────────────────────────────────────
+// Strips the restrictive CSP <meta> tag during dev mode. The meta tag
+// blocks 'unsafe-eval' which Vite needs for HMR/module transforms.
+// Production CSP is handled by server/middleware/security.js with nonces.
+function devStripCspPlugin() {
+  return {
+    name: 'charEdge-dev-strip-csp',
+    transformIndexHtml: {
+      order: 'pre',
+      handler(html) {
+        return html.replace(
+          /<meta\s+http-equiv="Content-Security-Policy"[^>]*>/s,
+          '<!-- CSP meta tag stripped in dev — production uses server headers -->',
+        );
+      },
+    },
+    apply: 'serve',
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), modulepreloadPlugin(), apiProxyPlugin()],
+  plugins: [react(), devStripCspPlugin(), modulepreloadPlugin(), apiProxyPlugin()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
