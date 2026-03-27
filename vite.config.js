@@ -146,13 +146,12 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
-    hmr: {
-      // Explicit HMR config — prevents WebSocket failures caused by browser
-      // extensions (crypto wallets, etc.) or proxy/firewall interference.
-      host: 'localhost',
-      port: 5173,
-      protocol: 'ws',
-    },
+    // HMR disabled: Vite's client throws a fatal error when the WebSocket
+    // connection fails (e.g. due to browser extensions like MetaMask/Phantom/Yoroi
+    // intercepting WS upgrades), which kills the entire module loading chain and
+    // prevents the app from rendering. With hmr:false the app loads reliably —
+    // the only trade-off is needing manual page refresh during development.
+    hmr: false,
     proxy: {
       '/api/binance-futures': {
         target: 'https://fapi.binance.com',
