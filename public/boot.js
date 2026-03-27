@@ -26,14 +26,24 @@ window.addEventListener('unhandledrejection', function (e) {
     window.__CE_ERRORS.push('REJECT: ' + msg);
 });
 
-// After 3s, if React hasn't mounted, show diagnostics
+// After 10s, if React hasn't mounted, show diagnostics.
+// Previous 3s timeout was too aggressive — the boot sequence (IndexedDB reads,
+// encryption migration, store hydration) regularly exceeds 3s on cold starts.
+// Only show fallback if there are actual JS errors, since a slow boot is not
+// the same as a broken browser.
 setTimeout(function () {
     var root = document.getElementById('root');
     // Check if React actually rendered (it adds real DOM elements, not just comments)
     var hasReactContent = root && root.querySelector && root.querySelector('[data-reactroot], div, section, main, form, button');
     if (!hasReactContent) {
         var errors = window.__CE_ERRORS;
-        var info = 'Browser: ' + navigator.userAgent + '\nErrors (' + errors.length + '):\n' + errors.join('\n');
+        // Filter out Vite HMR WebSocket errors — these don't prevent the app from loading
+        var realErrors = errors.filter(function (e) {
+            return e.indexOf('WebSocket') === -1 && e.indexOf('websocket') === -1 && e.indexOf('[vite]') === -1;
+        });
+        // If no real errors and we're just slow booting, give more time before showing fallback
+        if (realErrors.length === 0 && errors.length > 0) return;
+        var info = 'Browser: ' + navigator.userAgent + '\nErrors (' + realErrors.length + '):\n' + realErrors.join('\n');
         // Use textContent for the error details to prevent XSS via error messages
         var container = document.createElement('div');
         container.style.cssText = 'padding:2rem;color:#ececef;font-family:sans-serif;text-align:center;max-width:500px;margin:auto;margin-top:10vh';
@@ -62,4 +72,4 @@ setTimeout(function () {
         root.innerHTML = '';
         root.appendChild(container);
     }
-}, 3000);
+}, 10000);

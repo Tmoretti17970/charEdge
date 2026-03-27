@@ -146,6 +146,13 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
+    hmr: {
+      // Explicit HMR config — prevents WebSocket failures caused by browser
+      // extensions (crypto wallets, etc.) or proxy/firewall interference.
+      host: 'localhost',
+      port: 5173,
+      protocol: 'ws',
+    },
     proxy: {
       '/api/binance-futures': {
         target: 'https://fapi.binance.com',
