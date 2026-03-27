@@ -10,15 +10,14 @@
 
 import React, { memo, useMemo, useCallback, useRef, useState, useEffect } from 'react';
 import { C, M } from '../../../constants.js';
+import { useMarketsKeyboard } from '../../../hooks/useMarketsKeyboard.ts';
+import { useVirtualScroll } from '../../../hooks/useVirtualScroll.ts';
 import { fmt } from '../../../shared/formatting.ts';
 import useTopMarketsStore from '../../../state/useTopMarketsStore.js';
 import { useWatchlistStore } from '../../../state/useWatchlistStore.js';
-import { useVirtualScroll } from '../../../hooks/useVirtualScroll.ts';
-import { useMarketsKeyboard } from '../../../hooks/useMarketsKeyboard.ts';
 import styles from './TopRankedTable.module.css';
 
 const ROW_HEIGHT = 56; // px per row (for virtual scroll)
-const DETAIL_ROW_HEIGHT = 180; // expanded detail panel height
 
 const ASSET_CLASS_COLORS = {
   crypto: '#F7931A',
@@ -79,7 +78,7 @@ function MiniSparkline({ data, width = 100, height = 32 }) {
   const max = Math.max(...data);
   const range = max - min || 1;
   const isUp = data[data.length - 1] >= data[0];
-  const color = isUp ? (C.g || '#34C759') : (C.r || '#FF3B30');
+  const color = isUp ? C.g || '#34C759' : C.r || '#FF3B30';
 
   const points = data.map((v, i) => {
     const x = (i / (data.length - 1)) * width;
@@ -138,7 +137,7 @@ function DetailPanel({ market }) {
   if (!market) return null;
 
   const isUp = (market.change24h || 0) >= 0;
-  const changeColor = isUp ? (C.g || '#34C759') : (C.r || '#FF3B30');
+  const changeColor = isUp ? C.g || '#34C759' : C.r || '#FF3B30';
 
   return (
     <tr className={styles.detailRow}>
@@ -198,10 +197,11 @@ function PerfBadge({ label, value }) {
   if (value == null) return null;
   const isUp = value >= 0;
   const bg = isUp ? 'rgba(52, 199, 89, 0.1)' : 'rgba(255, 59, 48, 0.1)';
-  const color = isUp ? (C.g || '#34C759') : (C.r || '#FF3B30');
+  const color = isUp ? C.g || '#34C759' : C.r || '#FF3B30';
   return (
     <span className={styles.perfBadge} style={{ background: bg, color }}>
-      {label}: {isUp ? '+' : ''}{value.toFixed(2)}%
+      {label}: {isUp ? '+' : ''}
+      {value.toFixed(2)}%
     </span>
   );
 }
@@ -249,7 +249,7 @@ export default memo(function TopRankedTable({ priceUpdates = {}, searchRef }) {
     // Future: navigate to chart
   }, []);
 
-  const { focusedIndex, setFocusedIndex } = useMarketsKeyboard({
+  const { focusedIndex } = useMarketsKeyboard({
     items: allItems,
     onSelect: handleSelect,
     onRemove: handleRemove,
@@ -299,47 +299,43 @@ export default memo(function TopRankedTable({ priceUpdates = {}, searchRef }) {
           </tr>
         </thead>
         <tbody style={isVirtualized ? { position: 'relative', height: totalHeight } : undefined}>
-          {isVirtualized ? (
-            // Virtualized rendering
-            virtualItems.map((vi) => {
-              const market = allItems[vi.index];
-              if (!market) return null;
-              const update = priceUpdates[market.symbol];
-              return (
-                <MarketRow
-                  key={market.id}
-                  market={market}
-                  index={vi.index}
-                  offsetY={vi.offsetY}
-                  virtualized
-                  priceDirection={update?.direction}
-                  isFocused={focusedIndex === vi.index}
-                  isExpanded={expandedSymbol === market.symbol}
-                  onClick={() => handleRowClick(market.symbol)}
-                />
-              );
-            })
-          ) : (
-            // Non-virtualized rendering
-            allItems.map((market, i) => {
-              const update = priceUpdates[market.symbol];
-              return (
-                <React.Fragment key={market.id}>
+          {isVirtualized
+            ? // Virtualized rendering
+              virtualItems.map((vi) => {
+                const market = allItems[vi.index];
+                if (!market) return null;
+                const update = priceUpdates[market.symbol];
+                return (
                   <MarketRow
+                    key={market.id}
                     market={market}
-                    index={i}
+                    index={vi.index}
+                    offsetY={vi.offsetY}
+                    virtualized
                     priceDirection={update?.direction}
-                    isFocused={focusedIndex === i}
+                    isFocused={focusedIndex === vi.index}
                     isExpanded={expandedSymbol === market.symbol}
                     onClick={() => handleRowClick(market.symbol)}
                   />
-                  {expandedSymbol === market.symbol && (
-                    <DetailPanel market={market} />
-                  )}
-                </React.Fragment>
-              );
-            })
-          )}
+                );
+              })
+            : // Non-virtualized rendering
+              allItems.map((market, i) => {
+                const update = priceUpdates[market.symbol];
+                return (
+                  <React.Fragment key={market.id}>
+                    <MarketRow
+                      market={market}
+                      index={i}
+                      priceDirection={update?.direction}
+                      isFocused={focusedIndex === i}
+                      isExpanded={expandedSymbol === market.symbol}
+                      onClick={() => handleRowClick(market.symbol)}
+                    />
+                    {expandedSymbol === market.symbol && <DetailPanel market={market} />}
+                  </React.Fragment>
+                );
+              })}
         </tbody>
       </table>
 
@@ -358,7 +354,7 @@ export default memo(function TopRankedTable({ priceUpdates = {}, searchRef }) {
 
 const MarketRow = memo(function MarketRow({
   market,
-  index,
+  index: _index,
   offsetY,
   virtualized,
   priceDirection,
@@ -377,9 +373,7 @@ const MarketRow = memo(function MarketRow({
       if (!el) return;
 
       // Apply flash class
-      const flashClass = priceDirection === 'up'
-        ? 'markets-row-flash-up'
-        : 'markets-row-flash-down';
+      const flashClass = priceDirection === 'up' ? 'markets-row-flash-up' : 'markets-row-flash-down';
       el.classList.add(flashClass);
 
       const timer = setTimeout(() => {
@@ -402,11 +396,8 @@ const MarketRow = memo(function MarketRow({
   };
 
   // Price direction indicator class for the price cell
-  const priceFlashClass = priceDirection === 'up'
-    ? 'markets-price-tick-up'
-    : priceDirection === 'down'
-      ? 'markets-price-tick-down'
-      : '';
+  const priceFlashClass =
+    priceDirection === 'up' ? 'markets-price-tick-up' : priceDirection === 'down' ? 'markets-price-tick-down' : '';
 
   const rowStyle = virtualized
     ? { position: 'absolute', top: offsetY, left: 0, right: 0, height: ROW_HEIGHT }
@@ -417,7 +408,9 @@ const MarketRow = memo(function MarketRow({
     'markets-row-transition',
     isFocused ? 'markets-row-focused' : '',
     isExpanded ? styles.rowExpanded : '',
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <tr
@@ -566,19 +559,33 @@ function TableSkeleton() {
                 </div>
               </td>
               {/* Price */}
-              <td className={styles.td}><div className={styles.skeleton} style={{ width: '75%', marginLeft: 'auto' }} /></td>
+              <td className={styles.td}>
+                <div className={styles.skeleton} style={{ width: '75%', marginLeft: 'auto' }} />
+              </td>
               {/* 1h% */}
-              <td className={styles.td}><div className={styles.skeleton} style={{ width: '60%', marginLeft: 'auto' }} /></td>
+              <td className={styles.td}>
+                <div className={styles.skeleton} style={{ width: '60%', marginLeft: 'auto' }} />
+              </td>
               {/* 24h% */}
-              <td className={styles.td}><div className={styles.skeleton} style={{ width: '60%', marginLeft: 'auto' }} /></td>
+              <td className={styles.td}>
+                <div className={styles.skeleton} style={{ width: '60%', marginLeft: 'auto' }} />
+              </td>
               {/* 7d% */}
-              <td className={styles.td}><div className={styles.skeleton} style={{ width: '60%', marginLeft: 'auto' }} /></td>
+              <td className={styles.td}>
+                <div className={styles.skeleton} style={{ width: '60%', marginLeft: 'auto' }} />
+              </td>
               {/* Market Cap */}
-              <td className={styles.td}><div className={styles.skeleton} style={{ width: '70%', marginLeft: 'auto' }} /></td>
+              <td className={styles.td}>
+                <div className={styles.skeleton} style={{ width: '70%', marginLeft: 'auto' }} />
+              </td>
               {/* Volume */}
-              <td className={styles.td}><div className={styles.skeleton} style={{ width: '65%', marginLeft: 'auto' }} /></td>
+              <td className={styles.td}>
+                <div className={styles.skeleton} style={{ width: '65%', marginLeft: 'auto' }} />
+              </td>
               {/* Supply */}
-              <td className={styles.td}><div className={styles.skeleton} style={{ width: '55%', marginLeft: 'auto' }} /></td>
+              <td className={styles.td}>
+                <div className={styles.skeleton} style={{ width: '55%', marginLeft: 'auto' }} />
+              </td>
               {/* Sparkline */}
               <td className={styles.td}>
                 <div className={styles.skeleton} style={{ width: 80, height: 24, borderRadius: 4, margin: '0 auto' }} />

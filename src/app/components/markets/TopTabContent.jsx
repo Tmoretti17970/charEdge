@@ -17,22 +17,22 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useState, useRef, useMemo, memo } from 'react';
-import useTopMarketsStore from '../../../state/useTopMarketsStore.js';
 import useTopMarketsStreaming from '../../../hooks/useTopMarketsStreaming.js';
+import useTopMarketsStore from '../../../state/useTopMarketsStore.js';
 import MarketTickerStrip from './MarketTickerStrip.jsx';
 import TopNetworkFilters from './TopNetworkFilters.jsx';
 import TopRankedTable from './TopRankedTable.jsx';
+import TopsBreadthWidget from './TopsBreadthWidget.jsx';
 import TopsCardView from './TopsCardView.jsx';
+import TopsEarningsStrip from './TopsEarningsStrip.jsx';
+import TopsEconStrip from './TopsEconStrip.jsx';
+import TopsExportButton from './TopsExportButton.jsx';
 import TopsFearGreedGauge from './TopsFearGreedGauge.jsx';
 import TopsHeatMap from './TopsHeatMap.jsx';
 import TopsMovers from './TopsMovers.jsx';
+import TopsScreenerPresets from './TopsScreenerPresets.jsx';
 import TopsSectorCards from './TopsSectorCards.jsx';
 import TopsViewToggle from './TopsViewToggle.jsx';
-import TopsBreadthWidget from './TopsBreadthWidget.jsx';
-import TopsEconStrip from './TopsEconStrip.jsx';
-import TopsEarningsStrip from './TopsEarningsStrip.jsx';
-import TopsScreenerPresets from './TopsScreenerPresets.jsx';
-import TopsExportButton from './TopsExportButton.jsx';
 import styles from './TopTabContent.module.css';
 import TopTopicPills from './TopTopicPills.jsx';
 
@@ -40,7 +40,17 @@ import TopTopicPills from './TopTopicPills.jsx';
 
 function SearchIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.4 }}>
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ opacity: 0.4 }}
+    >
       <circle cx="11" cy="11" r="8" />
       <line x1="21" y1="21" x2="16.65" y2="16.65" />
     </svg>
@@ -49,7 +59,15 @@ function SearchIcon() {
 
 function CloseIcon() {
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    >
       <line x1="18" y1="6" x2="6" y2="18" />
       <line x1="6" y1="6" x2="18" y2="18" />
     </svg>
@@ -79,10 +97,14 @@ export default memo(function TopTabContent() {
 
   // Derive visible markets for streaming (first 20 from current filtered view)
   const markets = useTopMarketsStore((s) => s.markets);
-  const visibleMarkets = useMemo(() => {
-    const filtered = useTopMarketsStore.getState().getFilteredMarkets();
-    return filtered.slice(0, 20);
-  }, [markets, assetClassFilter, topicFilter, searchQuery]);
+  const visibleMarkets = useMemo(
+    () => {
+      const filtered = useTopMarketsStore.getState().getFilteredMarkets();
+      return filtered.slice(0, 20);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deps trigger recomputation when filters change via store
+    [markets, assetClassFilter, topicFilter, searchQuery],
+  );
 
   // Real-time streaming: WS for crypto, polling for equities
   const { priceUpdates, wsStatus } = useTopMarketsStreaming(visibleMarkets, true);
@@ -147,7 +169,9 @@ export default memo(function TopTabContent() {
 
           <div className={styles.statusRow}>
             {loading && <span className={styles.statusDot} style={{ background: 'var(--tf-yellow, #f0b64e)' }} />}
-            {!loading && !error && <span className={styles.statusDot} style={{ background: 'var(--tf-green, #34C759)' }} />}
+            {!loading && !error && (
+              <span className={styles.statusDot} style={{ background: 'var(--tf-green, #34C759)' }} />
+            )}
             {error && <span className={styles.statusDot} style={{ background: 'var(--tf-red, #FF3B30)' }} />}
             <span className={styles.statusText}>
               {sources.crypto.count + sources.equities.count} assets
