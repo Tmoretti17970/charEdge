@@ -13,7 +13,6 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { isCrypto } from '../constants.js';
 import useTopMarketsStore from '../state/useTopMarketsStore.js';
 
 const MAX_WS_SYMBOLS = 20; // Max concurrent WebSocket streams
@@ -29,7 +28,6 @@ const POLL_INTERVAL = 30_000; // 30s polling for non-crypto
 export default function useTopMarketsStreaming(visibleMarkets, enabled = true) {
   const [priceUpdates, setPriceUpdates] = useState({});
   const [wsStatus, setWsStatus] = useState('disconnected');
-  const subsRef = useRef([]);
   const pollTimerRef = useRef(null);
   const isHiddenRef = useRef(false);
   const prevPricesRef = useRef({});
@@ -100,9 +98,7 @@ export default function useTopMarketsStreaming(visibleMarkets, enabled = true) {
             // Update the store directly
             const store = useTopMarketsStore.getState();
             const markets = store.markets;
-            const idx = markets.findIndex(
-              (m) => m.symbol === symbol || m.symbol === data.s,
-            );
+            const idx = markets.findIndex((m) => m.symbol === symbol || m.symbol === data.s);
             if (idx >= 0) {
               const updated = [...markets];
               updated[idx] = { ...updated[idx], price };
@@ -137,6 +133,7 @@ export default function useTopMarketsStreaming(visibleMarkets, enabled = true) {
       }
       setWsStatus('disconnected');
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, visibleMarkets?.length, trackDirection]);
 
   // Polling for non-crypto (equities)
@@ -194,6 +191,7 @@ export default function useTopMarketsStreaming(visibleMarkets, enabled = true) {
     pollTimerRef.current = setInterval(poll, POLL_INTERVAL);
 
     return () => clearInterval(pollTimerRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, visibleMarkets?.length, trackDirection]);
 
   return { priceUpdates, wsStatus };

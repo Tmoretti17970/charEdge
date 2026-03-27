@@ -9,8 +9,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo, useEffect, useState, useCallback, useRef } from 'react';
-import { C, F, M } from '../../../constants.js';
-import { isMarketOpen, isExtendedHours, getMarketStatus } from '../../../shared/marketHours.ts';
+import { isMarketOpen, getMarketStatus } from '../../../shared/marketHours.ts';
 import styles from './MarketTickerStrip.module.css';
 
 // ─── Ticker definitions ──────────────────────────────────────────
@@ -56,12 +55,15 @@ function TinySparkline({ data, isUp }) {
   const min = Math.min(...data);
   const max = Math.max(...data);
   const range = max - min || 1;
-  const w = 40, h = 16;
-  const points = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * w;
-    const y = h - ((v - min) / range) * (h - 2) - 1;
-    return `${x},${y}`;
-  }).join(' ');
+  const w = 40,
+    h = 16;
+  const points = data
+    .map((v, i) => {
+      const x = (i / (data.length - 1)) * w;
+      const y = h - ((v - min) / range) * (h - 2) - 1;
+      return `${x},${y}`;
+    })
+    .join(' ');
 
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className={styles.sparkline}>
@@ -79,12 +81,16 @@ function TinySparkline({ data, isUp }) {
 
 // ─── Single Ticker Item ─────────────────────────────────────────
 
-const TickerItem = memo(function TickerItem({ label, short, price, change, sparkData, isFear, isBond }) {
+const TickerItem = memo(function TickerItem({ _label, short, price, change, sparkData, isFear, isBond }) {
   const isUp = (change || 0) >= 0;
   // VIX: high = fear (red), low = calm (green) — inverted
   const changeColor = isFear
-    ? (change >= 0 ? 'var(--tf-red, #FF3B30)' : 'var(--tf-green, #34C759)')
-    : (isUp ? 'var(--tf-green, #34C759)' : 'var(--tf-red, #FF3B30)');
+    ? change >= 0
+      ? 'var(--tf-red, #FF3B30)'
+      : 'var(--tf-green, #34C759)'
+    : isUp
+      ? 'var(--tf-green, #34C759)'
+      : 'var(--tf-red, #FF3B30)';
 
   const fmtPrice = (p) => {
     if (p == null) return '—';
@@ -108,8 +114,7 @@ const TickerItem = memo(function TickerItem({ label, short, price, change, spark
         <span className={styles.tickerPrice}>{fmtPrice(price)}</span>
         {change != null && (
           <span className={styles.tickerChange} style={{ color: changeColor }}>
-            {isUp && !isFear ? '▲' : (!isUp && !isFear) ? '▼' : ''}
-            {' '}{fmtChange(change)}
+            {isUp && !isFear ? '▲' : !isUp && !isFear ? '▼' : ''} {fmtChange(change)}
           </span>
         )}
       </div>
@@ -131,9 +136,14 @@ function MarketStatusBadge() {
       if (isMarketOpen()) {
         // Time until 4:00 PM ET close
         const now = new Date();
-        const etStr = now.toLocaleString('en-US', { timeZone: 'America/New_York', hour12: false, hour: '2-digit', minute: '2-digit' });
+        const etStr = now.toLocaleString('en-US', {
+          timeZone: 'America/New_York',
+          hour12: false,
+          hour: '2-digit',
+          minute: '2-digit',
+        });
         const [h, m] = etStr.split(':').map(Number);
-        const minsLeft = (16 * 60) - (h * 60 + m);
+        const minsLeft = 16 * 60 - (h * 60 + m);
         if (minsLeft > 0) {
           const hrs = Math.floor(minsLeft / 60);
           const mins = minsLeft % 60;
@@ -148,11 +158,12 @@ function MarketStatusBadge() {
     return () => clearInterval(id);
   }, []);
 
-  const dotColor = status === 'Market Open'
-    ? 'var(--tf-green, #34C759)'
-    : status === 'Extended Hours'
-      ? 'var(--tf-yellow, #f0b64e)'
-      : 'var(--tf-t3, #4e5266)';
+  const dotColor =
+    status === 'Market Open'
+      ? 'var(--tf-green, #34C759)'
+      : status === 'Extended Hours'
+        ? 'var(--tf-yellow, #f0b64e)'
+        : 'var(--tf-t3, #4e5266)';
 
   return (
     <div className={styles.statusBadge}>
@@ -176,7 +187,7 @@ export default memo(function MarketTickerStrip() {
 
     // Pick primary tickers based on market status
     const primary = open ? INDICES : FUTURES;
-    const allSymbols = [...primary, ...MACRO].map(t => t.symbol);
+    const allSymbols = [...primary, ...MACRO].map((t) => t.symbol);
 
     const q = await fetchStripQuotes(allSymbols);
     setQuotes(q);
@@ -202,7 +213,7 @@ export default memo(function MarketTickerStrip() {
       <div className={styles.tickerGroup}>
         <span className={styles.groupLabel}>{isOpen ? 'Indices' : 'Futures'}</span>
         <div className={styles.tickers}>
-          {primary.map(t => {
+          {primary.map((t) => {
             const q = quotes[t.symbol];
             return (
               <TickerItem
@@ -224,7 +235,7 @@ export default memo(function MarketTickerStrip() {
       <div className={styles.tickerGroup}>
         <span className={styles.groupLabel}>Macro</span>
         <div className={styles.tickers}>
-          {MACRO.map(t => {
+          {MACRO.map((t) => {
             const q = quotes[t.symbol];
             return (
               <TickerItem

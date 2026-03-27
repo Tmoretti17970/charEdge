@@ -40,11 +40,13 @@ function MiniSparkline({ data, width = 64, height = 28 }) {
   const range = max - min || 1;
   const isUp = data[data.length - 1] >= data[0];
   const color = isUp ? 'var(--tf-green, #34C759)' : 'var(--tf-red, #FF3B30)';
-  const pts = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * width;
-    const y = height - ((v - min) / range) * (height - 4) - 2;
-    return `${x},${y}`;
-  }).join(' ');
+  const pts = data
+    .map((v, i) => {
+      const x = (i / (data.length - 1)) * width;
+      const y = height - ((v - min) / range) * (height - 4) - 2;
+      return `${x},${y}`;
+    })
+    .join(' ');
 
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
@@ -54,10 +56,7 @@ function MiniSparkline({ data, width = 64, height = 28 }) {
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <polygon
-        points={`0,${height} ${pts} ${width},${height}`}
-        fill={`url(#sg-${isUp ? 'up' : 'dn'})`}
-      />
+      <polygon points={`0,${height} ${pts} ${width},${height}`} fill={`url(#sg-${isUp ? 'up' : 'dn'})`} />
       <polyline
         points={pts}
         fill="none"
@@ -77,11 +76,14 @@ const AssetCard = memo(function AssetCard({ market }) {
   const add = useWatchlistStore((s) => s.add);
   const remove = useWatchlistStore((s) => s.remove);
 
-  const toggleStar = useCallback((e) => {
-    e.stopPropagation();
-    if (has) remove(market.symbol);
-    else add({ symbol: market.symbol, name: market.name, assetClass: market.assetClass });
-  }, [has, market, add, remove]);
+  const toggleStar = useCallback(
+    (e) => {
+      e.stopPropagation();
+      if (has) remove(market.symbol);
+      else add({ symbol: market.symbol, name: market.name, assetClass: market.assetClass });
+    },
+    [has, market, add, remove],
+  );
 
   return (
     <div className={styles.card}>
@@ -111,7 +113,11 @@ const AssetCard = memo(function AssetCard({ market }) {
             <span className={styles.cardName}>{market.name}</span>
           </div>
         </div>
-        <button onClick={toggleStar} className={styles.starBtn} aria-label={has ? 'Remove from watchlist' : 'Add to watchlist'}>
+        <button
+          onClick={toggleStar}
+          className={styles.starBtn}
+          aria-label={has ? 'Remove from watchlist' : 'Add to watchlist'}
+        >
           {has ? '★' : '☆'}
         </button>
       </div>
@@ -140,12 +146,10 @@ export default memo(function TopsCardView() {
   const assetClassFilter = useTopMarketsStore((s) => s.assetClassFilter);
   const topicFilter = useTopMarketsStore((s) => s.topicFilter);
   const searchQuery = useTopMarketsStore((s) => s.searchQuery);
-  const sortBy = useTopMarketsStore((s) => s.sortBy);
-  const sortDir = useTopMarketsStore((s) => s.sortDir);
-
   const filtered = useMemo(() => {
     return useTopMarketsStore.getState().getFilteredMarkets();
-  }, [markets, assetClassFilter, topicFilter, searchQuery, sortBy, sortDir]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [markets, assetClassFilter, topicFilter, searchQuery]);
 
   // Show up to 60 cards (more feels cluttered)
   const items = filtered.slice(0, 60);
@@ -160,7 +164,7 @@ export default memo(function TopsCardView() {
 
   return (
     <div className={styles.grid}>
-      {items.map(market => (
+      {items.map((market) => (
         <AssetCard key={market.id} market={market} />
       ))}
     </div>
