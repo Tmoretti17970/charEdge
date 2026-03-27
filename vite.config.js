@@ -169,7 +169,12 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    open: true,
+    open: false,
+    hmr: {
+      // Allow HMR over the proxied connection
+      clientPort: 443,
+      protocol: 'wss',
+    },
     proxy: {
       '/api/binance-futures': {
         target: 'https://fapi.binance.com',
