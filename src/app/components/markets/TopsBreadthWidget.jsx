@@ -5,10 +5,9 @@
 // Shows advancing/declining ratio as a horizontal bar + indicator label.
 // ═══════════════════════════════════════════════════════════════════
 
-import { memo, useMemo, useState, useEffect } from 'react';
-import { C } from '../../../constants.js';
-import useTopMarketsStore from '../../../state/useTopMarketsStore.js';
+import { memo, useState, useEffect } from 'react';
 import { derivedEngine } from '../../../data/DerivedDataEngine.js';
+import useTopMarketsStore from '../../../state/useTopMarketsStore.js';
 import styles from './TopsBreadthWidget.module.css';
 
 const INDICATOR_LABELS = {
@@ -50,7 +49,9 @@ export default memo(function TopsBreadthWidget() {
       setBreadth(result);
     } catch {
       // DerivedDataEngine may not have ticks loaded — fallback calculation
-      let adv = 0, dec = 0, unch = 0;
+      let adv = 0,
+        dec = 0,
+        unch = 0;
       for (const q of quotes) {
         if (q.changePct > 0) adv++;
         else if (q.changePct < 0) dec++;
@@ -58,7 +59,16 @@ export default memo(function TopsBreadthWidget() {
       }
       const total = adv + dec + unch;
       const ratio = total > 0 ? Math.round((adv / total) * 1000) / 1000 : 0.5;
-      const indicator = ratio > 0.65 ? 'strongly_bullish' : ratio > 0.55 ? 'bullish' : ratio > 0.45 ? 'neutral' : ratio > 0.35 ? 'bearish' : 'strongly_bearish';
+      const indicator =
+        ratio > 0.65
+          ? 'strongly_bullish'
+          : ratio > 0.55
+            ? 'bullish'
+            : ratio > 0.45
+              ? 'neutral'
+              : ratio > 0.35
+                ? 'bearish'
+                : 'strongly_bearish';
       setBreadth({ advancing: adv, declining: dec, unchanged: unch, total, ratio, indicator });
     }
   }, [markets]);
@@ -80,10 +90,7 @@ export default memo(function TopsBreadthWidget() {
 
       {/* A/D Bar */}
       <div className={styles.barTrack}>
-        <div
-          className={styles.barAdvancing}
-          style={{ width: `${advPct}%` }}
-        />
+        <div className={styles.barAdvancing} style={{ width: `${advPct}%` }} />
       </div>
 
       <div className={styles.stats}>

@@ -7,7 +7,6 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { memo, useEffect, useState, useCallback } from 'react';
-import { C } from '../../../constants.js';
 import styles from './TopsSectorCards.module.css';
 
 const SECTORS = [
@@ -73,7 +72,8 @@ export default memo(function TopsSectorCards() {
                 <span className={styles.cardLabel}>{sector.label}</span>
               </div>
               <span className={styles.cardChange} style={{ color: changeColor }}>
-                {isUp ? '▲' : '▼'} {isUp ? '+' : ''}{sector.change.toFixed(2)}%
+                {isUp ? '▲' : '▼'} {isUp ? '+' : ''}
+                {sector.change.toFixed(2)}%
               </span>
             </div>
           );
