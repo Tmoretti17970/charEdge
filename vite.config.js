@@ -170,6 +170,7 @@ export default defineConfig({
     port: 5173,
     open: false,
     host: true,
+    hmr: false,
     proxy: {
       '/api/binance-futures': {
         target: 'https://fapi.binance.com',
