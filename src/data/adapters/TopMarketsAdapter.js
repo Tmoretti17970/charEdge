@@ -20,81 +20,20 @@ let cache = { data: null, ts: 0 };
 // ─── Market cap lookup (known large-caps, updated periodically) ──
 
 const KNOWN_MARKET_CAPS = {
-  // ── Mega-Cap Technology ──
   AAPL: 3.5e12, MSFT: 3.2e12, NVDA: 3.0e12, GOOGL: 2.2e12, AMZN: 2.1e12,
-  META: 1.6e12, TSLA: 900e9, AVGO: 750e9, ORCL: 370e9, ADBE: 230e9,
-  CRM: 310e9, CSCO: 240e9, ACN: 220e9, NFLX: 350e9, AMD: 280e9,
-  INTC: 120e9, QCOM: 200e9, TXN: 190e9, IBM: 210e9, NOW: 190e9,
-  INTU: 190e9, ANET: 110e9, PLTR: 250e9, SMCI: 30e9, ARM: 170e9,
-  COIN: 60e9, SQ: 45e9, SHOP: 120e9, SNOW: 50e9, DDOG: 45e9,
-  CRWD: 80e9, PANW: 120e9, NET: 35e9, ZS: 30e9, FTNT: 60e9,
-  TTD: 45e9, MU: 120e9, MRVL: 70e9, SNPS: 80e9, CDNS: 75e9,
-  KLAC: 95e9, LRCX: 100e9, AMAT: 150e9, TSM: 800e9, ASML: 350e9,
-  SAP: 280e9, HPQ: 35e9, DELL: 80e9, WDAY: 60e9, TEAM: 50e9,
-  DXCM: 30e9, OKTA: 15e9, TWLO: 12e9, DOCU: 14e9, MDB: 25e9,
-  SPLK: 25e9, ZM: 20e9, RBLX: 30e9, U: 12e9, RDDT: 25e9,
-  HOOD: 20e9, AFRM: 15e9, MSI: 70e9, NXPI: 55e9, ON: 30e9,
-  SWKS: 20e9, STX: 18e9, WDC: 20e9, KEYS: 35e9, ZBRA: 18e9,
-  MPWR: 35e9, GDDY: 25e9, GEN: 15e9, IT: 40e9, ANSS: 30e9,
-  FICO: 45e9, CPAY: 20e9,
-  // ── Financials ──
-  'BRK-B': 1.0e12, JPM: 680e9, V: 620e9, MA: 470e9, BAC: 340e9,
-  GS: 180e9, MS: 170e9, BLK: 150e9, SCHW: 120e9, C: 130e9,
-  WFC: 220e9, AXP: 180e9, USB: 70e9, MCO: 80e9, SPGI: 150e9,
-  ICE: 85e9, CME: 80e9, KKR: 100e9, APO: 70e9, BX: 170e9,
-  PNC: 70e9, TFC: 50e9, MTB: 25e9, FITB: 25e9, COF: 60e9,
-  DFS: 40e9, MET: 50e9, PRU: 40e9, AFL: 50e9, TRV: 55e9,
-  CB: 110e9, MMC: 100e9, AON: 75e9, AIG: 45e9, ALL: 45e9,
-  CINF: 20e9, PYPL: 80e9, SOFI: 12e9,
-  // ── Healthcare ──
-  UNH: 540e9, LLY: 800e9, JNJ: 380e9, ABBV: 330e9, TMO: 210e9,
-  PFE: 150e9, ABT: 190e9, BMY: 100e9, GILD: 100e9, ISRG: 170e9,
-  MDT: 110e9, SYK: 130e9, VRTX: 120e9, REGN: 100e9, AMGN: 150e9,
-  DHR: 170e9, ZTS: 80e9, ELV: 100e9, CI: 95e9, HCA: 80e9,
-  BSX: 120e9, EW: 45e9, BDX: 65e9, HOLX: 20e9, IDXX: 40e9,
-  A: 40e9, IQV: 40e9, GEHC: 40e9, ALGN: 18e9, ZBH: 22e9,
-  MTD: 25e9, MRK: 270e9,
-  // ── Consumer Discretionary ──
-  HD: 400e9, LOW: 150e9, TGT: 60e9, WMT: 600e9, COST: 380e9,
-  NKE: 120e9, LULU: 40e9, SBUX: 100e9, MCD: 210e9, CMG: 80e9,
-  YUM: 40e9, DPZ: 15e9, DASH: 60e9, ROST: 45e9, DHI: 45e9,
-  DIS: 200e9, UBER: 160e9, ABNB: 70e9, SNAP: 15e9, ROKU: 10e9,
-  BKNG: 160e9, MAR: 80e9, HLT: 55e9, ORLY: 65e9, AZO: 50e9,
-  LEN: 35e9, PHM: 25e9, EBAY: 30e9, RCL: 55e9, WYNN: 10e9,
-  GPC: 20e9, GRMN: 30e9, POOL: 14e9, RIVN: 12e9, LCID: 5e9,
-  GME: 8e9, AMC: 3e9, NIO: 8e9, LI: 20e9, XPEV: 10e9,
-  BABA: 200e9, JD: 45e9, PDD: 130e9,
-  // ── Consumer Staples ──
-  PG: 400e9, KO: 280e9, PEP: 230e9, CL: 75e9, MDLZ: 85e9,
-  MNST: 55e9, PM: 190e9, MO: 85e9, KDP: 45e9, SYY: 40e9,
-  KR: 40e9, ADM: 25e9, STZ: 45e9, GIS: 40e9, HSY: 35e9,
-  KMB: 45e9, MKC: 20e9,
-  // ── Energy ──
-  XOM: 480e9, CVX: 280e9, COP: 130e9, SLB: 60e9, EOG: 70e9,
-  PSX: 50e9, VLO: 45e9, MPC: 55e9, OXY: 40e9, DVN: 25e9,
-  FANG: 35e9, HAL: 25e9, BKR: 35e9, WMB: 50e9, KMI: 45e9,
-  OKE: 55e9, TRGP: 35e9,
-  // ── Industrials ──
-  BA: 140e9, GE: 200e9, HON: 140e9, CAT: 180e9, DE: 120e9,
-  MMM: 70e9, UPS: 100e9, FDX: 70e9, ADP: 110e9, ITW: 75e9,
-  EMR: 65e9, ETN: 120e9, PH: 80e9, LMT: 130e9, RTX: 160e9,
-  NOC: 70e9, GD: 75e9, WM: 85e9, RSG: 60e9, CTAS: 75e9,
-  PAYX: 50e9, FAST: 40e9, ODFL: 40e9, CSX: 60e9, NSC: 50e9,
-  UNP: 140e9, TDG: 70e9, AXON: 40e9, IR: 40e9, CPRT: 50e9,
-  VRSK: 40e9, SHW: 85e9, MARA: 5e9, RIOT: 3e9,
-  // ── Telecom / Communication ──
-  T: 160e9, VZ: 180e9, CMCSA: 160e9, CHTR: 50e9, TMUS: 250e9,
-  EA: 40e9, TTWO: 30e9, MTCH: 8e9, PARA: 7e9, WBD: 20e9,
-  NWSA: 15e9,
-  // ── Utilities ──
-  NEE: 160e9, DUK: 85e9, SO: 90e9, D: 45e9, AEP: 50e9,
-  SRE: 50e9, XEL: 35e9, WEC: 28e9, ED: 32e9, AWK: 27e9,
-  // ── Real Estate ──
-  PLD: 110e9, AMT: 95e9, CCI: 40e9, EQIX: 80e9, PSA: 55e9,
-  SPG: 55e9, O: 50e9, WELL: 55e9, DLR: 45e9, VICI: 35e9,
-  // ── Materials ──
-  LIN: 210e9, APD: 65e9, ECL: 60e9, DD: 30e9, FCX: 60e9,
-  NEM: 50e9, NUE: 35e9, VMC: 35e9, MLM: 35e9, PPG: 30e9,
+  META: 1.6e12, BRK_B: 1.0e12, TSLA: 900e9, JPM: 680e9, V: 620e9,
+  UNH: 540e9, MA: 470e9, LLY: 800e9, AVGO: 750e9, HD: 400e9,
+  PG: 400e9, JNJ: 380e9, COST: 380e9, ORCL: 370e9, NFLX: 350e9,
+  BAC: 340e9, ABBV: 330e9, CRM: 310e9, XOM: 480e9, KO: 280e9,
+  MRK: 270e9, PEP: 230e9, TMO: 210e9, ADBE: 230e9, AMD: 280e9,
+  CSCO: 240e9, ACN: 220e9, INTC: 120e9, QCOM: 200e9, TXN: 190e9,
+  WMT: 600e9, DIS: 200e9, PYPL: 80e9, UBER: 160e9, BA: 140e9,
+  GS: 180e9, MS: 170e9, BLK: 150e9, C: 130e9, WFC: 220e9,
+  T: 160e9, VZ: 180e9, CMCSA: 160e9, LMT: 130e9, RTX: 160e9,
+  CAT: 180e9, GE: 200e9, HON: 140e9, NOW: 190e9, INTU: 190e9,
+  IBM: 210e9, PLTR: 250e9, COIN: 60e9, ARM: 170e9, SMCI: 30e9,
+  SHOP: 120e9, SNOW: 50e9, CRWD: 80e9, PANW: 120e9, NET: 35e9,
+  ASML: 350e9, TSM: 800e9, SAP: 280e9,
   // ETFs — use AUM as proxy
   SPY: 550e9, QQQ: 250e9, IWM: 60e9, DIA: 35e9, VTI: 400e9,
   VOO: 500e9, GLD: 75e9, TLT: 50e9, IBIT: 50e9,
@@ -237,7 +176,7 @@ export async function fetchTopMarkets({ cryptoPages = 2, includeEquities = true,
         }
 
         for (const symbol of equitySymbols) {
-          const q = quotes?.get(symbol);
+          const q = quotes?.[symbol];
           const info = SymbolRegistry.lookup(symbol);
           if (!q || !info) continue;
 
@@ -305,77 +244,44 @@ const STOCK_SECTORS = {
   MDB: 'Technology', SPLK: 'Technology', ZM: 'Technology', FTNT: 'Technology',
   MRVL: 'Technology', MU: 'Technology', TTD: 'Technology', RBLX: 'Technology',
   U: 'Technology', RDDT: 'Technology', HOOD: 'Technology', AFRM: 'Technology',
-  ACN: 'Technology', MSI: 'Technology', NXPI: 'Technology', ON: 'Technology',
-  SWKS: 'Technology', STX: 'Technology', WDC: 'Technology', KEYS: 'Technology',
-  ZBRA: 'Technology', MPWR: 'Technology', GDDY: 'Technology', GEN: 'Technology',
-  IT: 'Technology', ANSS: 'Technology', FICO: 'Technology', CPAY: 'Technology',
-  MARA: 'Technology', RIOT: 'Technology', SNAP: 'Technology', ROKU: 'Technology',
-  BABA: 'Technology', JD: 'Technology', PDD: 'Technology',
+  ACN: 'Technology', MSI: 'Technology',
   // Healthcare
   UNH: 'Healthcare', LLY: 'Healthcare', JNJ: 'Healthcare', ABBV: 'Healthcare',
   MRK: 'Healthcare', PFE: 'Healthcare', TMO: 'Healthcare', ABT: 'Healthcare',
   BMY: 'Healthcare', GILD: 'Healthcare', ISRG: 'Healthcare', MDT: 'Healthcare',
   SYK: 'Healthcare', VRTX: 'Healthcare', REGN: 'Healthcare', AMGN: 'Healthcare',
   DHR: 'Healthcare', ZTS: 'Healthcare', ELV: 'Healthcare', CI: 'Healthcare',
-  HCA: 'Healthcare', DXCM: 'Healthcare', BSX: 'Healthcare', EW: 'Healthcare',
-  BDX: 'Healthcare', HOLX: 'Healthcare', IDXX: 'Healthcare', A: 'Healthcare',
-  IQV: 'Healthcare', GEHC: 'Healthcare', ALGN: 'Healthcare', ZBH: 'Healthcare',
-  MTD: 'Healthcare',
+  HCA: 'Healthcare', DXCM: 'Healthcare',
   // Financials
   JPM: 'Financials', V: 'Financials', MA: 'Financials', BAC: 'Financials',
   GS: 'Financials', MS: 'Financials', BLK: 'Financials', SCHW: 'Financials',
   C: 'Financials', WFC: 'Financials', AXP: 'Financials', USB: 'Financials',
   MCO: 'Financials', SPGI: 'Financials', ICE: 'Financials', CME: 'Financials',
   KKR: 'Financials', APO: 'Financials', BX: 'Financials', PYPL: 'Financials',
-  SOFI: 'Financials', PNC: 'Financials', TFC: 'Financials', MTB: 'Financials',
-  FITB: 'Financials', COF: 'Financials', DFS: 'Financials', MET: 'Financials',
-  PRU: 'Financials', AFL: 'Financials', TRV: 'Financials', CB: 'Financials',
-  MMC: 'Financials', AON: 'Financials', AIG: 'Financials', ALL: 'Financials',
-  CINF: 'Financials', 'BRK-B': 'Financials',
+  SOFI: 'Financials',
   // Consumer
   PG: 'Consumer', KO: 'Consumer', PEP: 'Consumer', COST: 'Consumer',
   WMT: 'Consumer', HD: 'Consumer', LOW: 'Consumer', TGT: 'Consumer',
   NKE: 'Consumer', LULU: 'Consumer', SBUX: 'Consumer', MCD: 'Consumer',
   CMG: 'Consumer', YUM: 'Consumer', DPZ: 'Consumer', DASH: 'Consumer',
-  ROST: 'Consumer', DIS: 'Consumer', DHI: 'Consumer', UBER: 'Consumer',
-  ABNB: 'Consumer', BKNG: 'Consumer', MAR: 'Consumer', HLT: 'Consumer',
-  ORLY: 'Consumer', AZO: 'Consumer', LEN: 'Consumer', PHM: 'Consumer',
-  EBAY: 'Consumer', RCL: 'Consumer', WYNN: 'Consumer', GPC: 'Consumer',
-  GRMN: 'Consumer', POOL: 'Consumer', GME: 'Consumer', AMC: 'Consumer',
-  CL: 'Consumer', MDLZ: 'Consumer', MNST: 'Consumer', PM: 'Consumer',
-  MO: 'Consumer', KDP: 'Consumer', SYY: 'Consumer', KR: 'Consumer',
-  ADM: 'Consumer', STZ: 'Consumer', GIS: 'Consumer', HSY: 'Consumer',
-  KMB: 'Consumer', MKC: 'Consumer',
+  ROST: 'Consumer', DIS: 'Consumer',
   // Energy
   XOM: 'Energy', CVX: 'Energy', COP: 'Energy', SLB: 'Energy',
   EOG: 'Energy', PSX: 'Energy', VLO: 'Energy', MPC: 'Energy', OXY: 'Energy',
-  DVN: 'Energy', FANG: 'Energy', HAL: 'Energy', BKR: 'Energy',
-  WMB: 'Energy', KMI: 'Energy', OKE: 'Energy', TRGP: 'Energy',
   // Industrials
   GE: 'Industrials', HON: 'Industrials', CAT: 'Industrials', DE: 'Industrials',
   MMM: 'Industrials', UPS: 'Industrials', FDX: 'Industrials', LMT: 'Industrials',
   RTX: 'Industrials', NOC: 'Industrials', GD: 'Industrials', BA: 'Industrials',
   ADP: 'Industrials', ITW: 'Industrials', EMR: 'Industrials', ETN: 'Industrials',
-  PH: 'Industrials', WM: 'Industrials', RSG: 'Industrials', CTAS: 'Industrials',
-  PAYX: 'Industrials', FAST: 'Industrials', ODFL: 'Industrials', CSX: 'Industrials',
-  NSC: 'Industrials', UNP: 'Industrials', TDG: 'Industrials', AXON: 'Industrials',
-  IR: 'Industrials', CPRT: 'Industrials', VRSK: 'Industrials', SHW: 'Industrials',
-  // Telecom / Communication
+  PH: 'Industrials', DHI: 'Industrials', UBER: 'Industrials', ABNB: 'Industrials',
+  // Telecom
   T: 'Telecom', VZ: 'Telecom', CMCSA: 'Telecom', CHTR: 'Telecom', TMUS: 'Telecom',
-  EA: 'Telecom', TTWO: 'Telecom', MTCH: 'Telecom', PARA: 'Telecom',
-  WBD: 'Telecom', NWSA: 'Telecom',
   // Automotive / EV
   RIVN: 'Automotive', LCID: 'Automotive', NIO: 'Automotive', LI: 'Automotive', XPEV: 'Automotive',
-  // Utilities
-  NEE: 'Utilities', DUK: 'Utilities', SO: 'Utilities', D: 'Utilities',
-  AEP: 'Utilities', SRE: 'Utilities', XEL: 'Utilities', WEC: 'Utilities',
-  ED: 'Utilities', AWK: 'Utilities',
-  // Real Estate
-  PLD: 'Real Estate', AMT: 'Real Estate', CCI: 'Real Estate', EQIX: 'Real Estate',
-  PSA: 'Real Estate', SPG: 'Real Estate', O: 'Real Estate', WELL: 'Real Estate',
-  DLR: 'Real Estate', VICI: 'Real Estate',
-  // Materials
-  LIN: 'Materials', APD: 'Materials', ECL: 'Materials', DD: 'Materials',
-  FCX: 'Materials', NEM: 'Materials', NUE: 'Materials', VMC: 'Materials',
-  MLM: 'Materials', PPG: 'Materials',
+  // China / International
+  BABA: 'Technology', JD: 'Technology', PDD: 'Technology',
+  // Crypto miners
+  MARA: 'Technology', RIOT: 'Technology',
+  // Social / Meme
+  GME: 'Consumer', AMC: 'Consumer', SNAP: 'Technology', ROKU: 'Technology',
 };
